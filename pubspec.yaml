@@ -1,0 +1,88 @@
+name: audio_diaries_flutter
+description: Audio Diaries Flutter is a mobile application that allows users to record audio diaries and store them locally and in a cloud database. The application is built using Flutter and Dart, and uses Firebase for cloud storage.
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+# In Windows, build-name is used as the major, minor, and patch parts
+# of the product and file versions while build-number is used as the build suffix.
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.2 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.2
+
+  #Adaptive font
+  flutter_screenutil: ^5.8.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^2.0.0
+
+
+# The following section is specific to Flutter packages.
+flutter:
+
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/images/
+
+  fonts:
+    - family: Rubik
+      fonts:
+        - asset: assets/fonts/Rubik-Black.ttf
+          weight: 900
+        - asset: assets/fonts/Rubik-BlackItalic.ttf
+          weight: 900
+          style: italic
+        - asset: assets/fonts/Rubik-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Rubik-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/Rubik-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Rubik-ExtraBoldItalic.ttf
+          weight: 800
+          style: italic
+        - asset: assets/fonts/Rubik-Italic.ttf
+          style: italic
+        - asset: assets/fonts/Rubik-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Rubik-LightItalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/Rubik-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Rubik-MediumItalic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/Rubik-Regular.ttf
+        - asset: assets/fonts/Rubik-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Rubik-SemiBoldItalic.ttf
+          weight: 600
+          style: italic
+
+    - family:  CustomIcons
+      fonts:
+        - asset: assets/fonts/CustomIcons.ttf
