@@ -1,9 +1,9 @@
-import 'dart:io';
-
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/utils/formatter.dart';
 import '../custom_icons.dart';
 import '../resources/strings.dart';
 import 'buttons.dart';
@@ -136,8 +136,8 @@ class Tag extends StatelessWidget {
 ///
 /// The card is also clickable, and when clicked, it expands or collapses.
 class AudioDiaryCard extends StatefulWidget {
-  final File? file;
-  const AudioDiaryCard({super.key, required this.file});
+  final String path;
+  const AudioDiaryCard({super.key, required this.path});
 
   @override
   State<AudioDiaryCard> createState() => _AudioDiaryCardState();
@@ -145,6 +145,25 @@ class AudioDiaryCard extends StatefulWidget {
 
 class _AudioDiaryCardState extends State<AudioDiaryCard> {
   bool isExpanded = false;
+
+  //Audio Player
+  late AudioPlayer audioPlayer;
+  bool isPlaying = false;
+  double currentSliderPosition = 0;
+  double maxSliderPosition = 0;
+  Duration maxDuration = Duration.zero;
+
+  @override
+  void initState() {
+    playerInit();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    audioPlayer.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -217,7 +236,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
           child: SizedBox(
             child: Row(
               children: [
-                const Icon(Icons.timer),
+                const Icon(Icons.access_time_rounded),
                 const SizedBox(
                   width: 5,
                 ),
@@ -265,17 +284,21 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
             width: width,
             child: SliderTheme(
               data: const SliderThemeData(
-                activeTrackColor: CustomColors.productNormalActive,
-                inactiveTrackColor: CustomColors.textSecondaryContent,
+                trackHeight: 3,
+                activeTrackColor: CustomColors.productNormal,
+                thumbColor: CustomColors.productNormal,
+                inactiveTrackColor: CustomColors.productBorderNormal,
                 thumbShape: RoundSliderThumbShape(enabledThumbRadius: 5),
               ),
-              child: Slider(value: 0, onChanged: (val) => {}),
+              child: Slider(value: currentSliderPosition,
+                max: maxSliderPosition,
+                onChanged: (val) => seek(val),),
             )),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("3:15", style: CustomTypography().caption()),
-            Text("3:15", style: CustomTypography().caption())
+            Text(formatDuration(currentSliderPosition.toInt())),
+            Text(formatDuration(maxDuration.inMilliseconds.toInt()))
           ],
         )
       ],
@@ -292,9 +315,9 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
           Text("01:32", style: CustomTypography().bodyMedium())
         ],
       ),
-      child: const Row(
+      child:  Row(
         children: [
-          Expanded(child: SizedBox()),
+          const Expanded(child: SizedBox()),
           Expanded(
               flex: 2,
               child: SizedBox(
@@ -302,24 +325,24 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      onPressed: null,
-                      icon: Icon(CustomIcons.backupLeft_15s),
+                      onPressed: () => rewind(),
+                      icon: const Icon(CustomIcons.backupLeft_15s),
                       color: Colors.black,
                     ),
                     IconButton(
-                      onPressed: null,
-                      icon: Icon(CustomIcons.playArrow),
+                      onPressed: () => play(),
+                      icon: Icon(isPlaying ? CustomIcons.pause : CustomIcons.playArrow),
                       color: Colors.black,
                     ),
                     IconButton(
-                      onPressed: null,
-                      icon: Icon(CustomIcons.forwardRight_15s),
+                      onPressed: () => forward(),
+                      icon: const Icon(CustomIcons.forwardRight_15s),
                       color: Colors.black,
                     ),
                   ],
                 ),
               )),
-          Expanded(
+          const Expanded(
               child: SizedBox(
             child: Align(
               alignment: Alignment.centerRight,
@@ -332,6 +355,69 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
         ],
       ),
     );
+  }
+
+  Future<void> play() async =>
+      isPlaying ? await audioPlayer.pause() : await audioPlayer.resume();
+
+  Future<void> seek(double value) async {
+    currentSliderPosition = value;
+    await audioPlayer.seek(Duration(milliseconds: value.toInt()));
+    if (!isPlaying) {
+      await audioPlayer.resume();
+    }
+  }
+
+  Future<void> rewind() async {
+    final int currentPositionMillis = currentSliderPosition.toInt();
+    int reduce = 15000;
+
+    if (currentPositionMillis - reduce < 0) {
+      reduce = currentSliderPosition.toInt();
+    }
+
+    int position = currentPositionMillis - reduce;
+    await audioPlayer.seek(Duration(milliseconds: position));
+  }
+
+  Future<void> forward() async {
+    final int currentPositionMillis = currentSliderPosition.toInt();
+    int increase = 15000;
+
+    if (currentPositionMillis + increase > maxSliderPosition.toInt()) {
+      increase = maxSliderPosition.toInt() - currentPositionMillis;
+    }
+
+    int position = currentSliderPosition.toInt() + increase;
+    await audioPlayer.seek(Duration(milliseconds: position));
+  }
+
+  Future<void> delete() async{
+    
+  }
+
+  void playerInit() async {
+    audioPlayer = AudioPlayer()
+      ..setSourceDeviceFile(widget.path)
+      ..setReleaseMode(ReleaseMode.stop)
+      ..setPlayerMode(PlayerMode.mediaPlayer);
+
+    audioPlayer.onPositionChanged.listen((event) {
+      setState(() {
+        currentSliderPosition = event.inMilliseconds.toDouble();
+      });
+    });
+    audioPlayer.onPlayerStateChanged.listen((event) {
+      setState(() {
+        isPlaying = event == PlayerState.playing;
+      });
+    });
+    audioPlayer.onDurationChanged.listen((event) {
+      setState(() {
+        maxDuration = event;
+        maxSliderPosition = event.inMilliseconds.toDouble();
+      });
+    });
   }
 }
 
