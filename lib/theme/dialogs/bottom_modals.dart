@@ -1,6 +1,12 @@
-import 'package:audio_diaries_flutter/theme/custom_colors.dart';
-import 'package:flutter/material.dart';
+import 'dart:io';
 
+import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+import '../../core/utils/formatter.dart';
 import '../components/buttons.dart';
 import '../custom_icons.dart';
 import '../custom_typography.dart';
@@ -13,7 +19,7 @@ final tabs = [
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Row(
           children: [
-            const Icon(CustomIcons.graphicEq),
+            const Icon(CustomIcons.graphicEq, size: 24),
             const SizedBox(
               width: 5,
             ),
@@ -28,12 +34,14 @@ final tabs = [
   ),
   Tab(
     child: SizedBox(
-      height: 32,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Row(
           children: [
-            const Icon(CustomIcons.sort),
+            const Icon(
+              Icons.sort,
+              size: 24,
+            ),
             const SizedBox(
               width: 5,
             ),
@@ -50,7 +58,8 @@ final tabs = [
 
 /// Bottom Modal for when the user needs to record.
 class BottomRecordingModal extends StatefulWidget {
-  const BottomRecordingModal({super.key});
+  final ValueChanged<String?>? onSave;
+  const BottomRecordingModal({super.key, required this.onSave});
 
   @override
   State<BottomRecordingModal> createState() => _BottomRecordingModalState();
@@ -60,14 +69,22 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     with SingleTickerProviderStateMixin {
   late TabController tabController;
 
+  //Recording
+  late RecorderController recorderController;
+  String timer = "00:00:00";
+  RecorderState isRecording = RecorderState.initialized;
+
   @override
   void initState() {
+    recorderController = RecorderController();
+    recorderInit();
     tabController = TabController(length: tabs.length, vsync: this);
     super.initState();
   }
 
   @override
   void dispose() {
+    recorderController.dispose();
     tabController.dispose();
     super.dispose();
   }
@@ -99,14 +116,29 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   //Tab Indicator
                   tabIndicatos(),
 
+                  const SizedBox(
+                    height: 15,
+                  ),
+
                   // Title & Rename Button
                   recordingTitle(),
+
+                  const SizedBox(
+                    height: 15,
+                  ),
 
                   // Timer
                   recordingTimer(),
 
+                  const SizedBox(
+                    height: 24,
+                  ),
                   // Waveform & Transcript
                   waveFormAndTranscript(),
+
+                  const SizedBox(
+                    height: 24,
+                  ),
 
                   // Controls
                   recordingControls(),
@@ -169,7 +201,12 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         const SizedBox(
           width: 5,
         ),
-        const IconButton(onPressed: null, icon: Icon(CustomIcons.editNote))
+        const IconButton(
+            onPressed: null,
+            icon: Icon(
+              CustomIcons.editNote,
+              size: 24,
+            ))
       ],
     );
   }
@@ -188,7 +225,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           width: 5,
         ),
         Text(
-          "00:34:33",
+          timer,
           style: CustomTypography().bodyLarge(),
         )
       ],
@@ -196,16 +233,28 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Widget waveFormAndTranscript() {
+    final width = MediaQuery.of(context).size.width;
     return Expanded(
         child: TabBarView(
       physics: const NeverScrollableScrollPhysics(),
       controller: tabController,
       children: [
-        Container(
-          color: Colors.red,
-        ),
+        LayoutBuilder(builder: (context, constraints) {
+          final parentHeight = constraints.maxHeight;
+          return AudioWaveforms(
+            recorderController: recorderController,
+            size: Size(width, parentHeight),
+            waveStyle: const WaveStyle(
+                waveColor: CustomColors.textTertiaryContent,
+                middleLineColor: CustomColors.productNormalActive,
+                middleLineThickness: 2,
+                scaleFactor: 50,
+                spacing: 6,
+                waveThickness: 1.5),
+          );
+        }),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 15),
+          padding: const EdgeInsets.symmetric(horizontal: 15),
           child: SingleChildScrollView(
               child: Text(
             Strings.lorem,
@@ -222,7 +271,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       children: [
         //Redo
         TextButton(
-            onPressed: null,
+            onPressed: () => redo(),
             child: Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 31.0, vertical: 9.5),
@@ -232,40 +281,82 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             )),
 
         //Play Pause Resume
-        IconButton(
-            onPressed: null,
-            icon: Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 44, vertical: 14.5),
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: Colors.red, width: 2),
-                ),
-                child: const Icon(CustomIcons.pause))),
 
-        IconButton(
-            onPressed: null,
-            icon: Container(
-              height: 60,
-              width: 60,
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                      color: CustomColors.textTertiaryContent, width: 2)),
-              child: Container(
-                decoration: const BoxDecoration(
-                    shape: BoxShape.circle, color: CustomColors.warningActive),
+        switch (isRecording) {
+          RecorderState.initialized => IconButton(
+              style: IconButton.styleFrom(
+                splashFactory: NoSplash.splashFactory,
               ),
-            )),
+              onPressed: () => record(),
+              icon: Container(
+                height: 60,
+                width: 60,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                        color: CustomColors.textTertiaryContent, width: 2)),
+                child: Container(
+                  decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: CustomColors.warningActive),
+                ),
+              )),
+          RecorderState.stopped => IconButton(
+              style: IconButton.styleFrom(
+                splashFactory: NoSplash.splashFactory,
+              ),
+              onPressed: () => record(),
+              icon: Container(
+                height: 60,
+                width: 60,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                        color: CustomColors.textTertiaryContent, width: 2)),
+                child: Container(
+                  decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: CustomColors.warningActive),
+                ),
+              )),
+          _ => IconButton(
+              style: IconButton.styleFrom(
+                splashFactory: NoSplash.splashFactory,
+              ),
+              onPressed: () => record(),
+              color: CustomColors.warningActive,
+              icon: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 44, vertical: 14.5),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    color: isRecording == RecorderState.recording
+                        ? Colors.transparent
+                        : CustomColors.warningFill,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: isRecording == RecorderState.recording
+                            ? CustomColors.textTertiaryContent
+                            : CustomColors.warningActive,
+                        width: 2),
+                  ),
+                  child: isRecording == RecorderState.recording
+                      ? const Icon(Icons.pause_rounded, size: 24)
+                      : const Icon(
+                          Icons.play_arrow_rounded,
+                          size: 24,
+                        )),
+            ),
+        },
 
         //Save
         TextButton(
-            onPressed: () => {Navigator.pop(context)},
+            onPressed: () => {save(), Navigator.pop(context)},
             child: Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 31.0, vertical: 9.5),
@@ -275,6 +366,78 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             )),
       ],
     );
+  }
+
+  void recorderInit() {
+    recorderController.androidEncoder = AndroidEncoder.aac;
+    recorderController.androidOutputFormat = AndroidOutputFormat.mpeg4;
+    recorderController.iosEncoder = IosEncoder.kAudioFormatMPEG4AAC;
+    recorderController.sampleRate = 44100;
+    recorderController.bitRate = 48000;
+    recorderController.onCurrentDuration.listen((duration) {
+      setState(() {
+        timer = duration.toHHMMSS();
+      });
+    });
+    recorderController.onRecorderStateChanged.listen((event) {
+      setState(() {
+        isRecording = event;
+      });
+    });
+  }
+
+  Future<void> redo() async {
+    await recorderController.stop();
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      record();
+    });
+  }
+
+  Future<void> record() async {
+    final hasPermission = await checkAndRequestPermission();
+    hasPermission
+        ? {
+            isRecording == RecorderState.recording
+                ? await recorderController.pause()
+                : await recorderController.record()
+          }
+        : /* TODO: Show Permission Error */ null;
+  }
+
+  void save() async {
+    try {
+      final path = await recorderController.stop();
+      final File file = File(path!);
+
+      final now = DateTime.now();
+      final fileName = 'audio_promt_${formatDate(now)}.mp3';
+
+      final dir = await getFilePath();
+      final newFile = await changeFileName(file, dir, fileName);
+
+      widget.onSave!(newFile.path);
+    } catch (e) {
+      /* TODO: Show Error */
+    }
+  }
+
+  Future<bool> checkAndRequestPermission() async {
+    final status = await Permission.microphone.request();
+    return status.isGranted;
+  }
+
+  Future<String> getFilePath() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final dir =
+        await Directory('${directory.path}/prompt/').create(recursive: true);
+    return dir.path;
+  }
+
+  Future<File> changeFileName(File file, String path, String newFileName) {
+    var lastSeparator = path.lastIndexOf(Platform.pathSeparator);
+    var newPath = path.substring(0, lastSeparator + 1) + newFileName;
+    return file.rename(newPath);
   }
 }
 
