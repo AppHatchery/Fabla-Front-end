@@ -9,6 +9,8 @@ import '../../../../theme/components/indicators.dart';
 import '../../../../theme/components/notes.dart';
 import '../../../../theme/components/options.dart';
 import '../../../../theme/custom_colors.dart';
+import '../widgets/custom_app_bar.dart';
+import '../widgets/my_responses.dart';
 
 class DiariesPage extends StatelessWidget {
   const DiariesPage({super.key});
@@ -205,91 +207,3 @@ class _NewDailyDiaryPageState extends State<NewDailyDiaryPage> {
   }
 }
 
-/// This class is the UI element that is displayed when the user selects the option "RECORD RESPONSE"
-/// and has recorded an audio
-/// it displays the Audio that the user has recorded
-/// and a button for them to add a new response(no functionality yet)
-/// the My response section, to be changed into a  list in case of multiple responses
-class MyResponse extends StatelessWidget {
-  const MyResponse({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "My Response",
-          style: CustomTypography()
-              .titleLarge(color: CustomColors.textNormalContent),
-        ),
-        const SizedBox(height: 12),
-        const AudioDiaryCard(
-          path:"",
-        ),
-        const SizedBox(height: 12),
-        CustomElevatedButton(
-          onClick: () {},
-          text: "ADD A NEW RESPONSE",
-          color: CustomColors.productLightPrimaryNormalWhite,
-          textColor: CustomColors.productNormal,
-          shadowColor: CustomColors.productBorderNormal,
-        ),
-      ],
-    );
-  }
-}
-
-/// this is a custom AppBar that is being used in the DiaryPageView
-/// the skip button has no functionality yet
-class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CustomAppBar({super.key});
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      backgroundColor: CustomColors.fillNormal,
-      title: Row(
-        children: [
-          Align(
-            alignment: Alignment.topLeft,
-            child: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(CustomIcons.close),
-              iconSize: 15.0,
-            ),
-          ),
-          Expanded(
-            child: Align(
-              alignment: Alignment.center,
-              child: Text(
-                "New Daily Diary",
-                style: CustomTypography()
-                    .titleSmall(color: CustomColors.textNormalContent),
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.topRight,
-            child: TextButton(
-              onPressed: () {
-                print("Skip clicked!");
-              },
-              child: Text(
-                "Skip",
-                style: CustomTypography()
-                    .titleSmall(color: CustomColors.textNormalContent),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

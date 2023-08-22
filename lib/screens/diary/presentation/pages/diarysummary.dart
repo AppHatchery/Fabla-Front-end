@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:flutter/material.dart';
 
@@ -25,28 +26,23 @@ class DiarySummaryPage extends StatelessWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: CustomColors.fillNormal,
-        title: Row(
-          children: [
-            IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(CustomIcons.close),
-              iconSize: 15.0,
-            ),
-            Expanded(
-              child: Align(
-                alignment: Alignment.center,
-                child: Text(
-                  "My Responses",
-                  style: CustomTypography().titleMedium(
-                    color: CustomColors.textNormalContent,
-                  ),
-                ),
-              ),
-            ),
-          ],
+        leading:  IconButton(
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const Hub())
+            );
+          },
+          icon: const Icon(CustomIcons.close),
+          iconSize: 15.0,
         ),
+        title: Text(
+          "My Responses",
+          style: CustomTypography().titleMedium(
+            color: CustomColors.textNormalContent,
+          ),
+        ),
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
