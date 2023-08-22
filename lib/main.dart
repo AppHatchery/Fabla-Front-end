@@ -1,3 +1,5 @@
+import 'package:audio_diaries_flutter/screens/diary/presentation/pages/diarycompletion.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/pages/diarysummary.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_icons.dart';

@@ -21,6 +21,7 @@ class CustomColors {
 
   //Gradient
   static const Color backgroundPrimary = Color(0xFF4396FE);
+  static const Color backgroundSecondary = Color(0xFF5B89FF);
 
   //Neutral Colors
   //Fill
@@ -57,4 +58,5 @@ class CustomColors {
 
   //Grey
   static const Color greyLight = Color(0xFFD0D0D0);
+  static const Color greyDark = Color(0xFFAFAFAF);
 }

@@ -26,6 +26,7 @@ class CustomElevatedButton extends StatelessWidget {
   final Border border;
   final double? elevation;
   final bool isDisabled;
+  final Color? textColor;
   const CustomElevatedButton(
       {super.key,
       required this.onClick,
@@ -34,7 +35,8 @@ class CustomElevatedButton extends StatelessWidget {
       this.shadowColor = CustomColors.productNormalActive,
       this.border = const Border(),
       this.elevation = 4.5,
-      this.isDisabled = false});
+      this.isDisabled = false,
+      this.textColor});
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +71,7 @@ class CustomElevatedButton extends StatelessWidget {
               child: Center(
                   child: Text(text.toString(),
                       style: CustomTypography()
-                          .button(color: CustomColors.fillWhite))),
+                          .button(color: textColor ?? CustomColors.fillWhite,))),
             ),
           ),
         ),
@@ -174,12 +176,14 @@ class CustomFlatButton extends StatelessWidget {
   final String? text;
   final Color color;
   final bool isDisabled;
+  final Color? textColor;
   const CustomFlatButton({
     super.key,
     required this.onClick,
     required this.text,
     this.color = CustomColors.productNormal,
     this.isDisabled = false,
+    this.textColor,
   });
 
   @override
@@ -207,7 +211,7 @@ class CustomFlatButton extends StatelessWidget {
               child: Center(
                   child: Text(text.toString(),
                       style: CustomTypography()
-                          .button(color: CustomColors.fillWhite))),
+                          .button(color: textColor?? CustomColors.fillWhite))),
             ),
           ),
         ),
