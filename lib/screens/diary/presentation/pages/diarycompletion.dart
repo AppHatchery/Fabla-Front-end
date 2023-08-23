@@ -1,5 +1,4 @@
 import 'package:audio_diaries_flutter/main.dart';
-import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../theme/components/buttons.dart';
@@ -27,21 +26,24 @@ class DiaryCompletionPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Image.asset(
-                      "assets/images/avatar_diary.png",
+                    "assets/images/avatar_diary.png",
                     width: 112,
                     height: 112,
                   ),
                   Text(
                     "Success!",
-                    style: CustomTypography().headlineLarge(color: CustomColors.textWhite),
+                    style: CustomTypography()
+                        .headlineLarge(color: CustomColors.textWhite),
                   ),
                   Text(
                     "I submitted your diary",
-                    style: CustomTypography().headlineMedium(color: CustomColors.textWhite),
+                    style: CustomTypography()
+                        .headlineMedium(color: CustomColors.textWhite),
                   ),
                   Text(
                     "I look forward to hearing from you next time",
-                    style: CustomTypography().titleSmall(color: CustomColors.textWhite),
+                    style: CustomTypography()
+                        .titleSmall(color: CustomColors.textWhite),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -51,10 +53,8 @@ class DiaryCompletionPage extends StatelessWidget {
               alignment: Alignment.bottomCenter,
               child: CustomFlatButton(
                 onClick: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Hub())
-                  );
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => const Hub()));
                 },
                 text: "Return Home",
                 color: CustomColors.productLightPrimaryNormalWhite,

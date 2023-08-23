@@ -20,12 +20,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: CustomColors.fillNormal,
       leading: IconButton(
         onPressed: () {
-          Navigator.push(
+          Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(
-                  builder: (context) => const Hub()
-              )
-          );
+              MaterialPageRoute(builder: (context) => const Hub()),
+              (route) => false);
         },
         icon: const Icon(CustomIcons.close),
         iconSize: 15.0,
@@ -37,16 +35,16 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       centerTitle: true,
       actions: [
-      TextButton(
-        onPressed: () {
-          print("Skip clicked!");
-        },
-        child: Text(
-          "Skip",
-          style: CustomTypography()
-              .titleSmall(color: CustomColors.textNormalContent),
+        TextButton(
+          onPressed: () {
+            print("Skip clicked!");
+          },
+          child: Text(
+            "Skip",
+            style: CustomTypography()
+                .titleSmall(color: CustomColors.textNormalContent),
+          ),
         ),
-      ),
       ],
     );
   }

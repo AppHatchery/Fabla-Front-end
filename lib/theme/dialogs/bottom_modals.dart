@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../core/utils/formatter.dart';
@@ -58,8 +59,10 @@ final tabs = [
 
 /// Bottom Modal for when the user needs to record.
 class BottomRecordingModal extends StatefulWidget {
+  final int promptId;
   final ValueChanged<String?>? onSave;
-  const BottomRecordingModal({super.key, required this.onSave});
+  const BottomRecordingModal(
+      {super.key, required this.promptId, required this.onSave});
 
   @override
   State<BottomRecordingModal> createState() => _BottomRecordingModalState();
@@ -92,8 +95,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final contentHeight =
+        screenHeight >= 850 ? screenHeight * 0.5 : screenHeight * 0.65;
     return Container(
-      height: screenHeight / 2,
+      height: contentHeight,
       color: Colors.transparent,
       child: Stack(
         children: [
@@ -103,7 +108,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             right: 0,
             child: Container(
               padding: const EdgeInsets.only(top: 30),
-              height: (screenHeight / 2) - 130,
+              height: contentHeight - 100,
               decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
@@ -375,14 +380,18 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     recorderController.sampleRate = 44100;
     recorderController.bitRate = 48000;
     recorderController.onCurrentDuration.listen((duration) {
-      setState(() {
-        timer = duration.toHHMMSS();
-      });
+      if (mounted) {
+        setState(() {
+          timer = duration.toHHMMSS();
+        });
+      }
     });
     recorderController.onRecorderStateChanged.listen((event) {
-      setState(() {
-        isRecording = event;
-      });
+      if (mounted) {
+        setState(() {
+          isRecording = event;
+        });
+      }
     });
   }
 
@@ -430,7 +439,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Future<String> getFilePath() async {
     final directory = await getApplicationDocumentsDirectory();
     final dir =
-        await Directory('${directory.path}/prompt/').create(recursive: true);
+        await Directory(p.join(directory.path, widget.promptId.toString()))
+            .create(recursive: true);
+    print(dir.path);
     return dir.path;
   }
 

@@ -1,9 +1,15 @@
+import 'package:audio_diaries_flutter/core/utils/types.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:tuple/tuple.dart';
 
 import '../../core/utils/formatter.dart';
+import '../../core/utils/statuses.dart';
+import '../../screens/diary/data/diary.dart';
+import '../../screens/diary/data/tag.dart';
 import '../custom_icons.dart';
 import '../resources/strings.dart';
 import 'buttons.dart';
@@ -12,8 +18,8 @@ import 'buttons.dart';
 ///
 /// This is the card that is displayed on the homescreen.
 class DiaryCard extends StatelessWidget {
-  // final Diary diary;
-  const DiaryCard({super.key});
+  final Diary? diary;
+  const DiaryCard({super.key, required this.diary});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +45,7 @@ class DiaryCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
               child: Wrap(
                 spacing: 6,
@@ -48,13 +54,7 @@ class DiaryCard extends StatelessWidget {
                 alignment: WrapAlignment.start,
                 runAlignment: WrapAlignment.start,
                 crossAxisAlignment: WrapCrossAlignment.start,
-                children: [
-                  Tag(text: "60 seconds", icon: Icons.timelapse_rounded),
-                  Tag(
-                    text: "2/3 responses completed",
-                    icon: Icons.build_circle_rounded,
-                  ),
-                ],
+                children: [for (var tag in diary!.tags) TagPill(tag: tag)],
               ),
             ),
             const SizedBox(
@@ -68,9 +68,17 @@ class DiaryCard extends StatelessWidget {
                       "Tell me about your day.",
                       style: CustomTypography().bodyMedium(),
                     )),
-                CustomElevatedButton(
-                  onClick: () => {print("object")},
-                  text: "CONTINUE",
+                Expanded(
+                  flex: 1,
+                  child: CustomElevatedButton(
+                    onClick: () => navigateToDiary(context),
+                    text: switch (diary!.status) {
+                      DiaryStatus.complete => "Submit",
+                      DiaryStatus.idle => "Start",
+                      DiaryStatus.ongoing => "Continue",
+                      DiaryStatus.submitted => "View",
+                    },
+                  ),
                 ),
               ],
             )
@@ -79,41 +87,49 @@ class DiaryCard extends StatelessWidget {
       ),
     );
   }
+
+  void navigateToDiary(BuildContext context) {
+    if (diary!.status == DiaryStatus.complete) {
+      Navigator.pushNamed(context, '/DiarySummaryPage', arguments: diary);
+    } else {
+      Navigator.of(context).pushNamed("/NewDiaryPage", arguments: diary);
+    }
+  }
 }
 
 /// Used in [DiaryCard]
-class Tag extends StatelessWidget {
-  final String? text;
-  final IconData? icon;
-  final Color? backgroundColor;
-  final Color? foregroundColor;
-  const Tag(
-      {super.key,
-      required this.text,
-      required this.icon,
-      this.backgroundColor = CustomColors.orangeLight,
-      this.foregroundColor = CustomColors.orangeDark});
+class TagPill extends StatelessWidget {
+  final Tag tag;
+  const TagPill({
+    super.key,
+    required this.tag,
+  });
 
   @override
   Widget build(BuildContext context) {
+    Tuple2<Color, Color> colors = getColorFromString(tag.text);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
           shape: BoxShape.rectangle,
           borderRadius: BorderRadius.circular(5),
-          color: backgroundColor!.withOpacity(0.2)),
+          color: colors.item1),
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Icon(
-            icon,
-            color: foregroundColor,
+            switch (tag.type) {
+              TagType.time => Icons.access_time_rounded,
+              TagType.remainder => Icons.contrast_rounded,
+              TagType.questions => Icons.quiz_outlined,
+            },
+            color: colors.item2,
           ),
           const SizedBox(
             width: 5,
           ),
-          Text(text.toString(),
-              style: CustomTypography().caption(color: foregroundColor!)),
+          Text(tag.text,
+              style: CustomTypography().caption(color: colors.item2)),
         ],
       ),
     );
@@ -136,8 +152,11 @@ class Tag extends StatelessWidget {
 ///
 /// The card is also clickable, and when clicked, it expands or collapses.
 class AudioDiaryCard extends StatefulWidget {
-  final String path;
-  const AudioDiaryCard({super.key, required this.path});
+  final Recording recording;
+  final VoidCallback? delete;
+  final bool viewOnly;
+  const AudioDiaryCard(
+      {super.key, required this.recording, this.delete, this.viewOnly = false});
 
   @override
   State<AudioDiaryCard> createState() => _AudioDiaryCardState();
@@ -240,7 +259,8 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                 const SizedBox(
                   width: 5,
                 ),
-                Text("3:15 PM", style: CustomTypography().titleRegular())
+                Text(formatDateShort(widget.recording.date),
+                    style: CustomTypography().titleRegular())
               ],
             ),
           ),
@@ -290,9 +310,11 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                 inactiveTrackColor: CustomColors.productBorderNormal,
                 thumbShape: RoundSliderThumbShape(enabledThumbRadius: 5),
               ),
-              child: Slider(value: currentSliderPosition,
+              child: Slider(
+                value: currentSliderPosition,
                 max: maxSliderPosition,
-                onChanged: (val) => seek(val),),
+                onChanged: (val) => seek(val),
+              ),
             )),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -311,11 +333,13 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
       replacement: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("3:16 PM", style: CustomTypography().bodyMedium()),
-          Text("01:32", style: CustomTypography().bodyMedium())
+          Text(formatDateShort(widget.recording.date),
+              style: CustomTypography().bodyMedium()),
+          Text(formatDuration(maxDuration.inMilliseconds.toInt()),
+              style: CustomTypography().bodyMedium())
         ],
       ),
-      child:  Row(
+      child: Row(
         children: [
           const Expanded(child: SizedBox()),
           Expanded(
@@ -331,7 +355,9 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                     ),
                     IconButton(
                       onPressed: () => play(),
-                      icon: Icon(isPlaying ? CustomIcons.pause : CustomIcons.playArrow),
+                      icon: Icon(isPlaying
+                          ? CustomIcons.pause
+                          : CustomIcons.playArrow),
                       color: Colors.black,
                     ),
                     IconButton(
@@ -342,16 +368,21 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                   ],
                 ),
               )),
-          const Expanded(
-              child: SizedBox(
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Icon(
-                CustomIcons.delete,
-                color: CustomColors.warningActive,
-              ),
-            ),
-          )),
+          Expanded(
+              child: widget.viewOnly
+                  ? const SizedBox()
+                  : GestureDetector(
+                      onTap: () => delete(),
+                      child: const SizedBox(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Icon(
+                            CustomIcons.delete,
+                            color: CustomColors.warningActive,
+                          ),
+                        ),
+                      ),
+                    )),
         ],
       ),
     );
@@ -392,31 +423,37 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
     await audioPlayer.seek(Duration(milliseconds: position));
   }
 
-  Future<void> delete() async{
-    
+  Future<void> delete() async {
+    widget.delete!();
   }
 
   void playerInit() async {
     audioPlayer = AudioPlayer()
-      ..setSourceDeviceFile(widget.path)
+      ..setSourceDeviceFile(widget.recording.path)
       ..setReleaseMode(ReleaseMode.stop)
       ..setPlayerMode(PlayerMode.mediaPlayer);
 
     audioPlayer.onPositionChanged.listen((event) {
-      setState(() {
-        currentSliderPosition = event.inMilliseconds.toDouble();
-      });
+      if (mounted) {
+        setState(() {
+          currentSliderPosition = event.inMilliseconds.toDouble();
+        });
+      }
     });
     audioPlayer.onPlayerStateChanged.listen((event) {
-      setState(() {
-        isPlaying = event == PlayerState.playing;
-      });
+      if (mounted) {
+        setState(() {
+          isPlaying = event == PlayerState.playing;
+        });
+      }
     });
     audioPlayer.onDurationChanged.listen((event) {
-      setState(() {
-        maxDuration = event;
-        maxSliderPosition = event.inMilliseconds.toDouble();
-      });
+      if (mounted) {
+        setState(() {
+          maxDuration = event;
+          maxSliderPosition = event.inMilliseconds.toDouble();
+        });
+      }
     });
   }
 }
