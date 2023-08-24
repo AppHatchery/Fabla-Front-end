@@ -53,6 +53,6 @@
 			<string>audio</string>
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>MyApp uses the microphone to record your speech</string>
+	<string>Dayrio uses the microphone to record your speech</string>
 </dict>
 </plist>
