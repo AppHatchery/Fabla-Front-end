@@ -25,7 +25,9 @@ class DiaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: CustomColors.fillWhite,
+        color: diary?.status == DiaryStatus.submitted
+            ? CustomColors.fillNormal
+            : CustomColors.fillWhite,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: CustomColors.productBorderNormal,
@@ -78,6 +80,16 @@ class DiaryCard extends StatelessWidget {
                       DiaryStatus.ongoing => "Continue",
                       DiaryStatus.submitted => "View",
                     },
+                    color: diary?.status == DiaryStatus.submitted
+                        ? CustomColors.fillNormal
+                        : CustomColors.productNormal,
+                    border: diary?.status == DiaryStatus.submitted
+                        ? Border.all(
+                            color: CustomColors.productNormal, width: 2)
+                        : const Border(),
+                    textColor: diary?.status == DiaryStatus.submitted
+                        ? CustomColors.productNormal
+                        : CustomColors.textWhite,
                   ),
                 ),
               ],
@@ -217,7 +229,11 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                     visible: isExpanded,
                     child: Column(
                       children: [
-                        transcript(),
+                        // transcript(),
+                        /// Remove sized if transcript is available
+                        const SizedBox(
+                          height: 10,
+                        ),
                         slider(width),
                       ],
                     )),
@@ -610,6 +626,7 @@ class CalendaerCard extends StatelessWidget {
     return Container(
       width: width,
       decoration: BoxDecoration(
+          color: CustomColors.fillNormal,
           border: Border.all(
             color: CustomColors.productBorderNormal,
             width: 2,

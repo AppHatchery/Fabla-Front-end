@@ -65,6 +65,18 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     }
   }
 
+  void previousPage() {
+    if (currentPage > 0) {
+      controller.previousPage(
+          duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    } else {
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const Hub()),
+          (route) => false);
+    }
+  }
+
   @override
   void dispose() {
     controller.dispose();
@@ -75,8 +87,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pushAndRemoveUntil(
-            context, MaterialPageRoute(builder: (context) => const Hub()), (route) => false);
+        previousPage();
         return false;
       },
       child: Scaffold(
@@ -97,7 +108,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               ),
             ),
             Container(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 34),
               alignment: Alignment.bottomCenter,
               child: CustomFlatButton(
                 isDisabled: !ableToContinue,
@@ -245,7 +256,9 @@ class _QuestionPageState extends State<QuestionPage> {
                               isClicked = !isClicked;
                             });
                           },
-                          icon: const Icon(CustomIcons.note_1),
+                          icon: Icon(isClicked
+                              ? CustomIcons.note
+                              : CustomIcons.note_1),
                           color: CustomColors.productNormal,
                           iconSize: 22.0,
                           padding: const EdgeInsets.all(0),
@@ -264,7 +277,7 @@ class _QuestionPageState extends State<QuestionPage> {
               }),
             ),
           const SizedBox(height: 24),
-          prompt.answer != null
+          prompt.answer?.recordings.isNotEmpty ?? false
               ? MyResponse(
                   prompt: prompt,
                   status: widget.diary.status,

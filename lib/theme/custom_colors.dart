@@ -45,7 +45,7 @@ class CustomColors {
 
   //Other Colors
   //Yellow
-  static const Color yellowLight = Color(0xFFFFD69B);
+  static const Color yellowLight = Color(0xFFFFF1DD);
   static const Color yellowDark = Color(0xFFFE9600);
 
   //Orange

@@ -11,7 +11,7 @@ import '../../core/utils/formatter.dart';
 import '../components/buttons.dart';
 import '../custom_icons.dart';
 import '../custom_typography.dart';
-import '../resources/strings.dart';
+import 'pop_ups.dart';
 
 final tabs = [
   Tab(
@@ -33,28 +33,28 @@ final tabs = [
       ),
     ),
   ),
-  Tab(
-    child: SizedBox(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.sort,
-              size: 24,
-            ),
-            const SizedBox(
-              width: 5,
-            ),
-            Text(
-              "Transcript",
-              style: CustomTypography().bodyMedium(),
-            )
-          ],
-        ),
-      ),
-    ),
-  ),
+  // Tab(
+  //   child: SizedBox(
+  //     child: Padding(
+  //       padding: const EdgeInsets.symmetric(horizontal: 10),
+  //       child: Row(
+  //         children: [
+  //           const Icon(
+  //             Icons.sort,
+  //             size: 24,
+  //           ),
+  //           const SizedBox(
+  //             width: 5,
+  //           ),
+  //           Text(
+  //             "Transcript",
+  //             style: CustomTypography().bodyMedium(),
+  //           )
+  //         ],
+  //       ),
+  //     ),
+  //   ),
+  // ),
 ];
 
 /// Bottom Modal for when the user needs to record.
@@ -107,7 +107,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.only(top: 30),
+              padding: const EdgeInsets.only(top: 30, bottom: 24),
               height: contentHeight - 100,
               decoration: const BoxDecoration(
                   color: Colors.white,
@@ -258,118 +258,123 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 waveThickness: 1.5),
           );
         }),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: SingleChildScrollView(
-              child: Text(
-            Strings.lorem,
-            style: CustomTypography().bodyMedium(),
-          )),
-        ),
+
+        /// Transcript
+        // Padding(
+        //   padding: const EdgeInsets.symmetric(horizontal: 15),
+        //   child: SingleChildScrollView(
+        //       child: Text(
+        //     Strings.lorem,
+        //     style: CustomTypography().bodyMedium(),
+        //   )),
+        // ),
       ],
     ));
   }
 
   Widget recordingControls() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        //Redo
-        TextButton(
-            onPressed: () => redo(),
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 31.0, vertical: 9.5),
-              child: Text("Redo",
-                  style: CustomTypography()
-                      .button(color: CustomColors.textSecondaryContent)),
-            )),
-
-        //Play Pause Resume
-
-        switch (isRecording) {
-          RecorderState.initialized => IconButton(
-              style: IconButton.styleFrom(
-                splashFactory: NoSplash.splashFactory,
-              ),
-              onPressed: () => record(),
-              icon: Container(
-                height: 60,
-                width: 60,
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                        color: CustomColors.textTertiaryContent, width: 2)),
-                child: Container(
-                  decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: CustomColors.warningActive),
-                ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 0.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          //Redo
+          TextButton(
+              onPressed: () async => {await recorderController.pause(), redo()},
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 31.0, vertical: 9.5),
+                child: Text("Redo",
+                    style: CustomTypography()
+                        .button(color: CustomColors.textSecondaryContent)),
               )),
-          RecorderState.stopped => IconButton(
-              style: IconButton.styleFrom(
-                splashFactory: NoSplash.splashFactory,
-              ),
-              onPressed: () => record(),
-              icon: Container(
-                height: 60,
-                width: 60,
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                        color: CustomColors.textTertiaryContent, width: 2)),
-                child: Container(
-                  decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: CustomColors.warningActive),
+
+          //Play Pause Resume
+
+          switch (isRecording) {
+            RecorderState.initialized => IconButton(
+                style: IconButton.styleFrom(
+                  splashFactory: NoSplash.splashFactory,
                 ),
-              )),
-          _ => IconButton(
-              style: IconButton.styleFrom(
-                splashFactory: NoSplash.splashFactory,
-              ),
-              onPressed: () => record(),
-              color: CustomColors.warningActive,
-              icon: Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 44, vertical: 14.5),
+                onPressed: () => record(),
+                icon: Container(
+                  height: 60,
+                  width: 60,
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    shape: BoxShape.rectangle,
-                    color: isRecording == RecorderState.recording
-                        ? Colors.transparent
-                        : CustomColors.warningFill,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: isRecording == RecorderState.recording
-                            ? CustomColors.textTertiaryContent
-                            : CustomColors.warningActive,
-                        width: 2),
+                      color: Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: CustomColors.textTertiaryContent, width: 2)),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: CustomColors.warningActive),
                   ),
-                  child: isRecording == RecorderState.recording
-                      ? const Icon(Icons.pause_rounded, size: 24)
-                      : const Icon(
-                          Icons.play_arrow_rounded,
-                          size: 24,
-                        )),
-            ),
-        },
+                )),
+            RecorderState.stopped => IconButton(
+                style: IconButton.styleFrom(
+                  splashFactory: NoSplash.splashFactory,
+                ),
+                onPressed: () => record(),
+                icon: Container(
+                  height: 60,
+                  width: 60,
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: CustomColors.textTertiaryContent, width: 2)),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: CustomColors.warningActive),
+                  ),
+                )),
+            _ => IconButton(
+                style: IconButton.styleFrom(
+                  splashFactory: NoSplash.splashFactory,
+                ),
+                onPressed: () => record(),
+                color: CustomColors.warningActive,
+                icon: Container(
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 44, vertical: 14.5),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.rectangle,
+                      color: isRecording == RecorderState.recording
+                          ? Colors.transparent
+                          : CustomColors.warningFill,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: isRecording == RecorderState.recording
+                              ? CustomColors.textTertiaryContent
+                              : CustomColors.warningActive,
+                          width: 2),
+                    ),
+                    child: isRecording == RecorderState.recording
+                        ? const Icon(Icons.pause_rounded, size: 24)
+                        : const Icon(
+                            Icons.play_arrow_rounded,
+                            size: 24,
+                          )),
+              ),
+          },
 
-        //Save
-        TextButton(
-            onPressed: () => {save(), Navigator.pop(context)},
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 31.0, vertical: 9.5),
-              child: Text("Save",
-                  style: CustomTypography()
-                      .button(color: CustomColors.textSecondaryContent)),
-            )),
-      ],
+          //Save
+          TextButton(
+              onPressed: () => {save(), Navigator.pop(context)},
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 31.0, vertical: 9.5),
+                child: Text("Save",
+                    style: CustomTypography()
+                        .button(color: CustomColors.textSecondaryContent)),
+              )),
+        ],
+      ),
     );
   }
 
@@ -396,10 +401,15 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Future<void> redo() async {
-    await recorderController.stop();
+    showDialog(context: context, builder: (context) => const RedoPopUp())
+        .then((value) async {
+      if (value) {
+        await recorderController.stop();
 
-    Future.delayed(const Duration(milliseconds: 500), () {
-      record();
+        Future.delayed(const Duration(milliseconds: 150), () {
+          record();
+        });
+      }
     });
   }
 

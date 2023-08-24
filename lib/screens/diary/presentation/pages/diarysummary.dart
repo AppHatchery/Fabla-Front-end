@@ -97,40 +97,53 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
   }
 
   Widget content(Diary diary, BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      child: Column(
-        children: [
-          Align(
-            alignment: Alignment.topLeft,
-            child: Text(
-              "Review your responses",
-              style: CustomTypography()
-                  .headlineMedium(color: CustomColors.textNormalContent),
-            ),
+    return Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 100.0),
+          child: Column(
+            children: [
+              Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  "Review your responses",
+                  style: CustomTypography()
+                      .headlineMedium(color: CustomColors.textNormalContent),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Expanded(
+                  child: SingleChildScrollView(
+                child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: diary.prompts.length,
+                    itemBuilder: (context, index) =>
+                        buildPrompt(diary.prompts[index], index)),
+              )),
+            ],
           ),
-          const SizedBox(height: 24),
-          Expanded(
-              child: SingleChildScrollView(
-            child: ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: diary.prompts.length,
-                itemBuilder: (context, index) =>
-                    buildPrompt(diary.prompts[index], index)),
-          )),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: CustomElevatedButton(
-              onClick: () => submitDiary(),
-              text: "SUBMIT MY RESPONSE",
-              color: CustomColors.productNormal,
-              textColor: CustomColors.textWhite,
-              shadowColor: CustomColors.productNormalActive,
+        ),
+
+
+        Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                color: CustomColors.fillWhite,
+                padding: const EdgeInsets.only(bottom: 34, top: 24, left: 16, right: 16),
+                alignment: Alignment.bottomCenter,
+                child: CustomElevatedButton(
+                  onClick: () => submitDiary(),
+                  text: "SUBMIT MY RESPONSE",
+                  color: CustomColors.productNormal,
+                  textColor: CustomColors.textWhite,
+                  shadowColor: CustomColors.productNormalActive,
+                ),
+              ),
             ),
-          ),
-        ],
-      ),
+      ],
     );
   }
 
