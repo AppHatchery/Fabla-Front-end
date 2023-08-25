@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:path_provider/path_provider.dart';
@@ -358,19 +359,35 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     );
   }
 
-  void recorderInit() {
-    recorder.openRecorder().then((value) {
-      if (value != null) {
-        value.onProgress!.listen((event) {
-          if (mounted) {
-            setState(() {
-              timer = formatDurationtoHHMMSS(event.duration);
-            });
-          }
+  void recorderInit() async {
+    await recorder.openRecorder();
+    final session = await AudioSession.instance;
+    await session.configure(AudioSessionConfiguration(
+      avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
+      avAudioSessionCategoryOptions:
+          AVAudioSessionCategoryOptions.allowBluetooth |
+              AVAudioSessionCategoryOptions.defaultToSpeaker,
+      avAudioSessionMode: AVAudioSessionMode.spokenAudio,
+      avAudioSessionRouteSharingPolicy:
+          AVAudioSessionRouteSharingPolicy.defaultPolicy,
+      avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+      androidAudioAttributes: const AndroidAudioAttributes(
+        contentType: AndroidAudioContentType.speech,
+        flags: AndroidAudioFlags.none,
+        usage: AndroidAudioUsage.voiceCommunication,
+      ),
+      androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+      androidWillPauseWhenDucked: true,
+    ));
+
+    recorder.onProgress!.listen((event) {
+      if (mounted) {
+        setState(() {
+          timer = formatDurationtoHHMMSS(event.duration);
         });
-        recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
       }
     });
+    await recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
   }
 
   Future<void> redo() async {

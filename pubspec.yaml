@@ -37,6 +37,7 @@ dependencies:
 
   #Audio recording & playback
   flutter_sound: ^9.2.13
+  audio_session: ^0.1.16
   audioplayers: ^5.1.0
 
   #internal storage
