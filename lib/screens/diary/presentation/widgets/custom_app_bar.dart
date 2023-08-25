@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/main.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../theme/custom_colors.dart';
