@@ -6,7 +6,9 @@ import '../../../diary/data/diary.dart';
 
 class UnsubmittedDiaryList extends StatelessWidget {
   final List<Diary> diaries;
-  const UnsubmittedDiaryList({super.key, required this.diaries});
+  final ValueChanged<bool> refresh;
+  const UnsubmittedDiaryList(
+      {super.key, required this.diaries, required this.refresh});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +28,10 @@ class UnsubmittedDiaryList extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: diaries.length,
           itemBuilder: (context, index) {
-            return DiaryCard(diary: diaries[index]);
+            return DiaryCard(
+              diary: diaries[index],
+              refresh: (value) => refresh(value),
+            );
           },
         ),
       ],

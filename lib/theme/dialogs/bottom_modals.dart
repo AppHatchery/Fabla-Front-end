@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/theme/components/waveform.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
-import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
@@ -73,13 +75,12 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   late TabController tabController;
 
   //Recording
-  late RecorderController recorderController;
+  final FlutterSoundRecorder recorder = FlutterSoundRecorder();
   String timer = "00:00:00";
-  RecorderState isRecording = RecorderState.initialized;
+  RecorderState recorderState = RecorderState.isStopped;
 
   @override
   void initState() {
-    recorderController = RecorderController();
     recorderInit();
     tabController = TabController(length: tabs.length, vsync: this);
     super.initState();
@@ -87,7 +88,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   @override
   void dispose() {
-    recorderController.dispose();
+    recorder.closeRecorder();
     tabController.dispose();
     super.dispose();
   }
@@ -246,17 +247,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       children: [
         LayoutBuilder(builder: (context, constraints) {
           final parentHeight = constraints.maxHeight;
-          return AudioWaveforms(
-            recorderController: recorderController,
-            size: Size(width, parentHeight),
-            waveStyle: const WaveStyle(
-                waveColor: CustomColors.textTertiaryContent,
-                middleLineColor: CustomColors.productNormalActive,
-                middleLineThickness: 2,
-                scaleFactor: 50,
-                spacing: 6,
-                waveThickness: 1.5),
-          );
+          return CustomWaveform(
+              recorder: recorder,
+              maxVisibleValues: width ~/ 2,
+              maxValue: parentHeight);
         }),
 
         /// Transcript
@@ -280,7 +274,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         children: [
           //Redo
           TextButton(
-              onPressed: () async => {await recorderController.pause(), redo()},
+              onPressed: () async => {
+                    await recorder.pauseRecorder(),
+                    setState(() {
+                      recorderState = RecorderState.isPaused;
+                    }),
+                    redo()
+                  },
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 31.0, vertical: 9.5),
@@ -291,28 +291,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
           //Play Pause Resume
 
-          switch (isRecording) {
-            RecorderState.initialized => IconButton(
-                style: IconButton.styleFrom(
-                  splashFactory: NoSplash.splashFactory,
-                ),
-                onPressed: () => record(),
-                icon: Container(
-                  height: 60,
-                  width: 60,
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color: CustomColors.textTertiaryContent, width: 2)),
-                  child: Container(
-                    decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: CustomColors.warningActive),
-                  ),
-                )),
-            RecorderState.stopped => IconButton(
+          switch (recorderState) {
+            RecorderState.isStopped => IconButton(
                 style: IconButton.styleFrom(
                   splashFactory: NoSplash.splashFactory,
                 ),
@@ -344,17 +324,17 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                         horizontal: 44, vertical: 14.5),
                     decoration: BoxDecoration(
                       shape: BoxShape.rectangle,
-                      color: isRecording == RecorderState.recording
+                      color: recorderState == RecorderState.isRecording
                           ? Colors.transparent
                           : CustomColors.warningFill,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color: isRecording == RecorderState.recording
+                          color: recorderState == RecorderState.isRecording
                               ? CustomColors.textTertiaryContent
                               : CustomColors.warningActive,
                           width: 2),
                     ),
-                    child: isRecording == RecorderState.recording
+                    child: recorderState == RecorderState.isRecording
                         ? const Icon(Icons.pause_rounded, size: 24)
                         : const Icon(
                             Icons.play_arrow_rounded,
@@ -379,65 +359,72 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   void recorderInit() {
-    recorderController.androidEncoder = AndroidEncoder.aac;
-    recorderController.androidOutputFormat = AndroidOutputFormat.mpeg4;
-    recorderController.iosEncoder = IosEncoder.kAudioFormatMPEG4AAC;
-    recorderController.sampleRate = 44100;
-    recorderController.bitRate = 48000;
-    recorderController.onCurrentDuration.listen((duration) {
-      if (mounted) {
-        setState(() {
-          timer = duration.toHHMMSS();
+    recorder.openRecorder().then((value) {
+      if (value != null) {
+        value.onProgress!.listen((event) {
+          if (mounted) {
+            setState(() {
+              timer = formatDurationtoHHMMSS(event.duration);
+            });
+          }
         });
-      }
-    });
-    recorderController.onRecorderStateChanged.listen((event) {
-      if (mounted) {
-        setState(() {
-          isRecording = event;
-        });
+        recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
       }
     });
   }
 
   Future<void> redo() async {
-    showDialog(context: context, builder: (context) => const RedoPopUp())
-        .then((value) async {
-      if (value) {
-        await recorderController.stop();
+    final showDialogResult = await showDialog<bool>(
+      context: context,
+      builder: (context) => const RedoPopUp(),
+    );
 
-        Future.delayed(const Duration(milliseconds: 150), () {
-          record();
-        });
+    if (showDialogResult == true) {
+      final stoppedRecorderValue = await recorder.stopRecorder();
+
+      if (stoppedRecorderValue != null) {
+        final file = File(stoppedRecorderValue);
+        await file.delete();
       }
-    });
+
+      await Future.delayed(const Duration(milliseconds: 150));
+      record();
+    }
   }
 
   Future<void> record() async {
     final hasPermission = await checkAndRequestPermission();
-    hasPermission
-        ? {
-            isRecording == RecorderState.recording
-                ? await recorderController.pause()
-                : await recorderController.record()
-          }
-        : /* TODO: Show Permission Error */ null;
+    if (hasPermission) {
+      if (recorder.isRecording) {
+        await recorder.pauseRecorder();
+      } else if (recorder.isPaused) {
+        await recorder.resumeRecorder();
+      } else {
+        final path = await getFilePath();
+        await recorder.startRecorder(toFile: path);
+      }
+
+      setState(() {
+        recorderState = recorder.isRecording
+            ? RecorderState.isRecording
+            : RecorderState.isPaused;
+      });
+    } else {
+      /* TODO: Show Permission Error */ null;
+    }
   }
 
   void save() async {
     try {
-      final path = await recorderController.stop();
-      final File file = File(path!);
+      final url = await recorder.stopRecorder();
+      setState(() => recorderState = RecorderState.isStopped);
 
-      final now = DateTime.now();
-      final fileName = 'audio_promt_${formatDate(now)}.mp3';
-
-      final dir = await getFilePath();
-      final newFile = await changeFileName(file, dir, fileName);
-
-      widget.onSave!(newFile.path);
+      if (url != null) {
+        final file = await changeFileName(url);
+        widget.onSave?.call(file.path);
+      }
     } catch (e) {
-      /* TODO: Show Error */
+      // TODO: Show Error
     }
   }
 
@@ -451,13 +438,20 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     final dir =
         await Directory(p.join(directory.path, widget.promptId.toString()))
             .create(recursive: true);
-    print(dir.path);
-    return dir.path;
+    final now = DateTime.now();
+    final fileName = 'audio_promt_${widget.promptId}_${formatDate(now)}.aac';
+    final filePath = p.join(dir.path, fileName);
+    return filePath;
   }
 
-  Future<File> changeFileName(File file, String path, String newFileName) {
-    var lastSeparator = path.lastIndexOf(Platform.pathSeparator);
-    var newPath = path.substring(0, lastSeparator + 1) + newFileName;
+  Future<File> changeFileName(String path) {
+    final File file = File(path);
+
+    String directory = p.dirname(file.path);
+    String oldName = p.basenameWithoutExtension(file.path);
+
+    String newName = '$oldName.mp3';
+    String newPath = p.join(directory, newName);
     return file.rename(newPath);
   }
 }

@@ -21,8 +21,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late HomeCubit homeCubit;
   @override
   void initState() {
+    homeCubit = BlocProvider.of<HomeCubit>(context);
     fetchData(context);
     super.initState();
   }
@@ -31,7 +33,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
-      backgroundColor: CustomColors.fillNormal,
+        backgroundColor: CustomColors.fillNormal,
         appBar: AppBar(
           toolbarHeight: 105.h,
           backgroundColor: CustomColors.productNormal,
@@ -125,20 +127,28 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         children: [
           unSubmittedDiaries.isNotEmpty
-              ? UnsubmittedDiaryList(diaries: unSubmittedDiaries)
+              ? UnsubmittedDiaryList(
+                  diaries: unSubmittedDiaries,
+                  refresh: (value) => refresh(value),
+                )
               : const SizedBox.shrink(),
           const SizedBox(
             height: 12,
           ),
-          TodaysDiaryList(diaries: diaries)
+          TodaysDiaryList(diaries: diaries, refresh: (value) => refresh(value))
         ],
       ),
     );
   }
 
   void fetchData(BuildContext context) {
-    final homeCubit = BlocProvider.of<HomeCubit>(context);
     homeCubit.loadDiaries();
+  }
+
+  void refresh(bool shouldRefresh) {
+    if (shouldRefresh) {
+      homeCubit.loadDiaries();
+    }
   }
 
   void showResearchInformation() {

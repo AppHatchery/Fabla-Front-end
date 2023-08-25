@@ -50,6 +50,31 @@ String formatDuration(int milli) {
       : "${twoDigits(duration.inMinutes)}:${twoDigits(duration.inSeconds.remainder(60))}";
 }
 
+/// Formats a duration in milliseconds into a human-readable time format.
+/// This function converts a given duration in milliseconds into a formatted string that represents the duration as hours, minutes, and seconds.
+///
+/// Parameters:
+/// - [duaration]: The duration to be formatted.
+///
+/// Note:
+/// - Used for the timer on the bottom recording dialog
+///
+/// Returns:
+/// A formatted string representing the provided duration in hours, minutes, and seconds.
+///
+String formatDurationtoHHMMSS(Duration duration) {
+  String twoDigits(int n) {
+    if (n >= 10) return "$n";
+    return "0$n";
+  }
+
+  String hours = twoDigits(duration.inHours.remainder(24));
+  String minutes = twoDigits(duration.inMinutes.remainder(60));
+  String seconds = twoDigits(duration.inSeconds.remainder(60));
+
+  return "$hours:$minutes:$seconds";
+}
+
 /// Retrieves a pair of colors based on a given text, ensuring consistency.
 /// This function calculates color indices from the hash code of the input text and maps them to predefined background and foreground color lists.
 ///

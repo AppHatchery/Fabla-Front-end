@@ -19,7 +19,8 @@ import 'buttons.dart';
 /// This is the card that is displayed on the homescreen.
 class DiaryCard extends StatelessWidget {
   final Diary? diary;
-  const DiaryCard({super.key, required this.diary});
+  final ValueChanged<bool> refresh;
+  const DiaryCard({super.key, required this.diary, required this.refresh});
 
   @override
   Widget build(BuildContext context) {
@@ -100,11 +101,16 @@ class DiaryCard extends StatelessWidget {
     );
   }
 
-  void navigateToDiary(BuildContext context) {
+  void navigateToDiary(BuildContext context) async {
     if (diary!.status == DiaryStatus.complete) {
       Navigator.pushNamed(context, '/DiarySummaryPage', arguments: diary);
     } else {
-      Navigator.of(context).pushNamed("/NewDiaryPage", arguments: diary);
+      final results = await Navigator.of(context)
+          .pushNamed("/NewDiaryPage", arguments: diary);
+
+      if (results == true) {
+        refresh(true);
+      }
     }
   }
 }
