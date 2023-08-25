@@ -268,7 +268,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Widget recordingControls() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 0.0),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -283,7 +283,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   },
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 31.0, vertical: 9.5),
+                    const EdgeInsets.symmetric(horizontal: 20.0, vertical: 9.5),
                 child: Text("Redo",
                     style: CustomTypography()
                         .button(color: CustomColors.textSecondaryContent)),
@@ -321,7 +321,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 icon: Container(
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 44, vertical: 14.5),
+                        horizontal: 30, vertical: 14.5),
                     decoration: BoxDecoration(
                       shape: BoxShape.rectangle,
                       color: recorderState == RecorderState.isRecording
@@ -348,7 +348,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               onPressed: () => {save(), Navigator.pop(context)},
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 31.0, vertical: 9.5),
+                    const EdgeInsets.symmetric(horizontal: 20.0, vertical: 9.5),
                 child: Text("Save",
                     style: CustomTypography()
                         .button(color: CustomColors.textSecondaryContent)),
