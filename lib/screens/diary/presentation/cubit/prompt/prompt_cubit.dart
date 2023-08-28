@@ -1,0 +1,103 @@
+import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
+
+import '../../../data/prompt.dart';
+import '../../../domain/repository/answer_repository.dart';
+
+part 'prompt_state.dart';
+
+class PromptCubit extends Cubit<PromptState> {
+  PromptCubit() : super(const PromptInitial());
+  final AnswerRepository _repository = AnswerRepository();
+
+  /// Loads and updates a prompt's state along with its associated answer, if available.
+  ///
+  /// This function loads a specific [prompt] using the [repository], which retrieves and
+  /// updates the prompt's state by associating it with an answer, if available. If no answers
+  /// are found, the prompt's answer is set to `null`. The updated prompt state is then emitted
+  /// using the `emit` method, reflecting the loaded state.
+  ///
+  /// Parameters:
+  /// - [prompt]: The prompt to be loaded.
+  ///
+  /// Usage example:
+  /// ```dart
+  /// await loadPrompt(myPrompt);
+  /// ```
+  Future<void> loadPrompt(Prompt prompt) async {
+    try {
+      emit(const PromptLoading());
+      final newPrompt = await _repository.load(prompt);
+      emit(PromptLoaded(newPrompt));
+    } catch (e) {
+      print("Catch Error: $e");
+    }
+  }
+
+  /// Saves a user response, handling success, errors, and subsequent prompt loading.
+  ///
+  /// This function attempts to save a user response based on the provided [prompt]
+  /// and recording [path]. It uses the [repository] to perform the saving operation.
+  /// If the saving operation is successful, a success modal is displayed using
+  /// `showSuccessModal()`. If an error occurs during the operation, a debug message
+  /// is printed, and an error modal is shown using `showErrorModal()`. Regardless
+  /// of the outcome, the function ensures that the [prompt] is reloaded to reflect
+  /// the latest state by calling `loadPrompt()`.
+  ///
+  /// Parameters:
+  /// - [prompt]: The prompt associated with the response.
+  /// - [path]: The file path of the recorded response.
+  ///
+  /// Usage example:
+  /// ```dart
+  /// await saveResponse(myPrompt, '/path/to/recording.wav');
+  /// ```
+  Future<void> saveResponse(Prompt prompt, String path) async {
+    try {
+      final saved = await _repository.saveResponse(prompt, path);
+      if (saved) {
+        showSuccessModal();
+      }
+    } catch (e) {
+      showErrorModal();
+    } finally {
+      loadPrompt(prompt);
+    }
+  }
+
+  /// Removes a user response, handling errors and prompt reloading.
+  ///
+  /// This function attempts to remove a user response associated with the provided [prompt]
+  /// and recording [path]. It utilizes the [repository] to perform the removal operation.
+  /// If an error occurs during the operation, a debug message is printed and if necessary the a message is displayed to the user, but the user
+  /// experience continues without interruption. Regardless of the outcome, the function
+  /// ensures that the [prompt] is reloaded to reflect the latest state by calling `loadPrompt()`.
+  ///
+  /// Parameters:
+  /// - [prompt]: The prompt associated with the response.
+  /// - [path]: The file path of the recorded response to be removed.
+  ///
+  /// Usage example:
+  /// ```dart
+  /// await removeResponse(myPrompt, '/path/to/recording.wav');
+  /// ```
+  Future<void> removeResponse(Prompt prompt, String path) async {
+    try {
+      await _repository.removeResponse(prompt, path);
+    } catch (e) {
+      print("Catch Error: $e");
+    } finally {
+      loadPrompt(prompt);
+    }
+  }
+
+  /// Shows a success modal.
+  void showSuccessModal() {
+    emit(const PromptResponseSuccess());
+  }
+
+  /// Shows an error modal.
+  void showErrorModal() {
+    emit(const PromptResponseError());
+  }
+}

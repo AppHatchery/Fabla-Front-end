@@ -70,8 +70,9 @@ class CustomElevatedButton extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
               child: Center(
                   child: Text(text.toString(),
-                      style: CustomTypography()
-                          .button(color: textColor ?? CustomColors.fillWhite,))),
+                      style: CustomTypography().button(
+                        color: textColor ?? CustomColors.fillWhite,
+                      ))),
             ),
           ),
         ),
@@ -176,14 +177,14 @@ class CustomFlatButton extends StatelessWidget {
   final String? text;
   final Color color;
   final bool isDisabled;
-  final Color? textColor;
+  final Color textColor;
   const CustomFlatButton({
     super.key,
     required this.onClick,
     required this.text,
     this.color = CustomColors.productNormal,
     this.isDisabled = false,
-    this.textColor,
+    this.textColor = CustomColors.fillWhite,
   });
 
   @override
@@ -194,7 +195,7 @@ class CustomFlatButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 6.0),
         child: Ink(
           decoration: BoxDecoration(
-            color: color,
+            color: isDisabled ? CustomColors.fillDisabled : color,
             borderRadius: BorderRadius.circular(12),
             shape: BoxShape.rectangle,
           ),
@@ -210,8 +211,9 @@ class CustomFlatButton extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
               child: Center(
                   child: Text(text.toString(),
-                      style: CustomTypography()
-                          .button(color: textColor?? CustomColors.fillWhite))),
+                      style: CustomTypography().button(
+                          color:
+                              isDisabled ? CustomColors.greyDark : textColor))),
             ),
           ),
         ),

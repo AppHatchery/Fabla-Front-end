@@ -1,16 +1,20 @@
 import 'dart:io';
 
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/theme/components/waveform.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
-import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../core/utils/formatter.dart';
 import '../components/buttons.dart';
 import '../custom_icons.dart';
 import '../custom_typography.dart';
-import '../resources/strings.dart';
+import 'pop_ups.dart';
 
 final tabs = [
   Tab(
@@ -32,34 +36,36 @@ final tabs = [
       ),
     ),
   ),
-  Tab(
-    child: SizedBox(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.sort,
-              size: 24,
-            ),
-            const SizedBox(
-              width: 5,
-            ),
-            Text(
-              "Transcript",
-              style: CustomTypography().bodyMedium(),
-            )
-          ],
-        ),
-      ),
-    ),
-  ),
+  // Tab(
+  //   child: SizedBox(
+  //     child: Padding(
+  //       padding: const EdgeInsets.symmetric(horizontal: 10),
+  //       child: Row(
+  //         children: [
+  //           const Icon(
+  //             Icons.sort,
+  //             size: 24,
+  //           ),
+  //           const SizedBox(
+  //             width: 5,
+  //           ),
+  //           Text(
+  //             "Transcript",
+  //             style: CustomTypography().bodyMedium(),
+  //           )
+  //         ],
+  //       ),
+  //     ),
+  //   ),
+  // ),
 ];
 
 /// Bottom Modal for when the user needs to record.
 class BottomRecordingModal extends StatefulWidget {
+  final int promptId;
   final ValueChanged<String?>? onSave;
-  const BottomRecordingModal({super.key, required this.onSave});
+  const BottomRecordingModal(
+      {super.key, required this.promptId, required this.onSave});
 
   @override
   State<BottomRecordingModal> createState() => _BottomRecordingModalState();
@@ -70,13 +76,12 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   late TabController tabController;
 
   //Recording
-  late RecorderController recorderController;
+  final FlutterSoundRecorder recorder = FlutterSoundRecorder();
   String timer = "00:00:00";
-  RecorderState isRecording = RecorderState.initialized;
+  RecorderState recorderState = RecorderState.isStopped;
 
   @override
   void initState() {
-    recorderController = RecorderController();
     recorderInit();
     tabController = TabController(length: tabs.length, vsync: this);
     super.initState();
@@ -84,7 +89,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   @override
   void dispose() {
-    recorderController.dispose();
+    recorder.closeRecorder();
     tabController.dispose();
     super.dispose();
   }
@@ -92,8 +97,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final contentHeight =
+        screenHeight >= 850 ? screenHeight * 0.5 : screenHeight * 0.65;
     return Container(
-      height: screenHeight / 2,
+      height: contentHeight,
       color: Colors.transparent,
       child: Stack(
         children: [
@@ -102,8 +109,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.only(top: 30),
-              height: (screenHeight / 2) - 130,
+              padding: const EdgeInsets.only(top: 30, bottom: 24),
+              height: contentHeight - 100,
               decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
@@ -241,184 +248,200 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       children: [
         LayoutBuilder(builder: (context, constraints) {
           final parentHeight = constraints.maxHeight;
-          return AudioWaveforms(
-            recorderController: recorderController,
-            size: Size(width, parentHeight),
-            waveStyle: const WaveStyle(
-                waveColor: CustomColors.textTertiaryContent,
-                middleLineColor: CustomColors.productNormalActive,
-                middleLineThickness: 2,
-                scaleFactor: 50,
-                spacing: 6,
-                waveThickness: 1.5),
-          );
+          return CustomWaveform(
+              recorder: recorder,
+              maxVisibleValues: width ~/ 2,
+              maxValue: parentHeight);
         }),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: SingleChildScrollView(
-              child: Text(
-            Strings.lorem,
-            style: CustomTypography().bodyMedium(),
-          )),
-        ),
+
+        /// Transcript
+        // Padding(
+        //   padding: const EdgeInsets.symmetric(horizontal: 15),
+        //   child: SingleChildScrollView(
+        //       child: Text(
+        //     Strings.lorem,
+        //     style: CustomTypography().bodyMedium(),
+        //   )),
+        // ),
       ],
     ));
   }
 
   Widget recordingControls() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        //Redo
-        TextButton(
-            onPressed: () => redo(),
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 31.0, vertical: 9.5),
-              child: Text("Redo",
-                  style: CustomTypography()
-                      .button(color: CustomColors.textSecondaryContent)),
-            )),
-
-        //Play Pause Resume
-
-        switch (isRecording) {
-          RecorderState.initialized => IconButton(
-              style: IconButton.styleFrom(
-                splashFactory: NoSplash.splashFactory,
-              ),
-              onPressed: () => record(),
-              icon: Container(
-                height: 60,
-                width: 60,
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                        color: CustomColors.textTertiaryContent, width: 2)),
-                child: Container(
-                  decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: CustomColors.warningActive),
-                ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          //Redo
+          TextButton(
+              onPressed: () async => {
+                    await recorder.pauseRecorder(),
+                    setState(() {
+                      recorderState = RecorderState.isPaused;
+                    }),
+                    redo()
+                  },
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20.0, vertical: 9.5),
+                child: Text("Redo",
+                    style: CustomTypography()
+                        .button(color: CustomColors.textSecondaryContent)),
               )),
-          RecorderState.stopped => IconButton(
-              style: IconButton.styleFrom(
-                splashFactory: NoSplash.splashFactory,
-              ),
-              onPressed: () => record(),
-              icon: Container(
-                height: 60,
-                width: 60,
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                        color: CustomColors.textTertiaryContent, width: 2)),
-                child: Container(
-                  decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: CustomColors.warningActive),
+
+          //Play Pause Resume
+
+          switch (recorderState) {
+            RecorderState.isStopped => IconButton(
+                style: IconButton.styleFrom(
+                  splashFactory: NoSplash.splashFactory,
                 ),
-              )),
-          _ => IconButton(
-              style: IconButton.styleFrom(
-                splashFactory: NoSplash.splashFactory,
-              ),
-              onPressed: () => record(),
-              color: CustomColors.warningActive,
-              icon: Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 44, vertical: 14.5),
+                onPressed: () => record(),
+                icon: Container(
+                  height: 60,
+                  width: 60,
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    shape: BoxShape.rectangle,
-                    color: isRecording == RecorderState.recording
-                        ? Colors.transparent
-                        : CustomColors.warningFill,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: isRecording == RecorderState.recording
-                            ? CustomColors.textTertiaryContent
-                            : CustomColors.warningActive,
-                        width: 2),
+                      color: Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: CustomColors.textTertiaryContent, width: 2)),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: CustomColors.warningActive),
                   ),
-                  child: isRecording == RecorderState.recording
-                      ? const Icon(Icons.pause_rounded, size: 24)
-                      : const Icon(
-                          Icons.play_arrow_rounded,
-                          size: 24,
-                        )),
-            ),
-        },
+                )),
+            _ => IconButton(
+                style: IconButton.styleFrom(
+                  splashFactory: NoSplash.splashFactory,
+                ),
+                onPressed: () => record(),
+                color: CustomColors.warningActive,
+                icon: Container(
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30, vertical: 14.5),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.rectangle,
+                      color: recorderState == RecorderState.isRecording
+                          ? Colors.transparent
+                          : CustomColors.warningFill,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: recorderState == RecorderState.isRecording
+                              ? CustomColors.textTertiaryContent
+                              : CustomColors.warningActive,
+                          width: 2),
+                    ),
+                    child: recorderState == RecorderState.isRecording
+                        ? const Icon(Icons.pause_rounded, size: 24)
+                        : const Icon(
+                            Icons.play_arrow_rounded,
+                            size: 24,
+                          )),
+              ),
+          },
 
-        //Save
-        TextButton(
-            onPressed: () => {save(), Navigator.pop(context)},
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 31.0, vertical: 9.5),
-              child: Text("Save",
-                  style: CustomTypography()
-                      .button(color: CustomColors.textSecondaryContent)),
-            )),
-      ],
+          //Save
+          TextButton(
+              onPressed: () => {save(), Navigator.pop(context)},
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20.0, vertical: 9.5),
+                child: Text("Save",
+                    style: CustomTypography()
+                        .button(color: CustomColors.textSecondaryContent)),
+              )),
+        ],
+      ),
     );
   }
 
-  void recorderInit() {
-    recorderController.androidEncoder = AndroidEncoder.aac;
-    recorderController.androidOutputFormat = AndroidOutputFormat.mpeg4;
-    recorderController.iosEncoder = IosEncoder.kAudioFormatMPEG4AAC;
-    recorderController.sampleRate = 44100;
-    recorderController.bitRate = 48000;
-    recorderController.onCurrentDuration.listen((duration) {
-      setState(() {
-        timer = duration.toHHMMSS();
-      });
+  void recorderInit() async {
+    await recorder.openRecorder();
+    final session = await AudioSession.instance;
+    await session.configure(AudioSessionConfiguration(
+      avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
+      avAudioSessionCategoryOptions:
+          AVAudioSessionCategoryOptions.allowBluetooth |
+              AVAudioSessionCategoryOptions.defaultToSpeaker,
+      avAudioSessionMode: AVAudioSessionMode.spokenAudio,
+      avAudioSessionRouteSharingPolicy:
+          AVAudioSessionRouteSharingPolicy.defaultPolicy,
+      avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+      androidAudioAttributes: const AndroidAudioAttributes(
+        contentType: AndroidAudioContentType.speech,
+        flags: AndroidAudioFlags.none,
+        usage: AndroidAudioUsage.voiceCommunication,
+      ),
+      androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+      androidWillPauseWhenDucked: true,
+    ));
+
+    recorder.onProgress!.listen((event) {
+      if (mounted) {
+        setState(() {
+          timer = formatDurationtoHHMMSS(event.duration);
+        });
+      }
     });
-    recorderController.onRecorderStateChanged.listen((event) {
-      setState(() {
-        isRecording = event;
-      });
-    });
+    await recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
   }
 
   Future<void> redo() async {
-    await recorderController.stop();
+    final showDialogResult = await showDialog<bool>(
+      context: context,
+      builder: (context) => const RedoPopUp(),
+    );
 
-    Future.delayed(const Duration(milliseconds: 500), () {
+    if (showDialogResult == true) {
+      final stoppedRecorderValue = await recorder.stopRecorder();
+
+      if (stoppedRecorderValue != null) {
+        final file = File(stoppedRecorderValue);
+        await file.delete();
+      }
+
+      await Future.delayed(const Duration(milliseconds: 150));
       record();
-    });
+    }
   }
 
   Future<void> record() async {
     final hasPermission = await checkAndRequestPermission();
-    hasPermission
-        ? {
-            isRecording == RecorderState.recording
-                ? await recorderController.pause()
-                : await recorderController.record()
-          }
-        : /* TODO: Show Permission Error */ null;
+    if (hasPermission) {
+      if (recorder.isRecording) {
+        await recorder.pauseRecorder();
+      } else if (recorder.isPaused) {
+        await recorder.resumeRecorder();
+      } else {
+        final path = await getFilePath();
+        await recorder.startRecorder(toFile: path);
+      }
+
+      setState(() {
+        recorderState = recorder.isRecording
+            ? RecorderState.isRecording
+            : RecorderState.isPaused;
+      });
+    } else {
+      /* TODO: Show Permission Error */ null;
+    }
   }
 
   void save() async {
     try {
-      final path = await recorderController.stop();
-      final File file = File(path!);
+      final url = await recorder.stopRecorder();
+      setState(() => recorderState = RecorderState.isStopped);
 
-      final now = DateTime.now();
-      final fileName = 'audio_promt_${formatDate(now)}.mp3';
-
-      final dir = await getFilePath();
-      final newFile = await changeFileName(file, dir, fileName);
-
-      widget.onSave!(newFile.path);
+      if (url != null) {
+        final file = await changeFileName(url);
+        widget.onSave?.call(file.path);
+      }
     } catch (e) {
-      /* TODO: Show Error */
+      // TODO: Show Error
     }
   }
 
@@ -430,13 +453,22 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Future<String> getFilePath() async {
     final directory = await getApplicationDocumentsDirectory();
     final dir =
-        await Directory('${directory.path}/prompt/').create(recursive: true);
-    return dir.path;
+        await Directory(p.join(directory.path, widget.promptId.toString()))
+            .create(recursive: true);
+    final now = DateTime.now();
+    final fileName = 'audio_promt_${widget.promptId}_${formatDate(now)}.aac';
+    final filePath = p.join(dir.path, fileName);
+    return filePath;
   }
 
-  Future<File> changeFileName(File file, String path, String newFileName) {
-    var lastSeparator = path.lastIndexOf(Platform.pathSeparator);
-    var newPath = path.substring(0, lastSeparator + 1) + newFileName;
+  Future<File> changeFileName(String path) {
+    final File file = File(path);
+
+    String directory = p.dirname(file.path);
+    String oldName = p.basenameWithoutExtension(file.path);
+
+    String newName = '$oldName.mp3';
+    String newPath = p.join(directory, newName);
     return file.rename(newPath);
   }
 }

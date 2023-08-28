@@ -485,9 +485,15 @@ class WarningPopUp extends StatelessWidget {
 }
 
 /// Pop up for when the user wants to redo their answer.
-class RedoPopUp extends StatelessWidget {
+class RedoPopUp extends StatefulWidget {
   const RedoPopUp({super.key});
 
+  @override
+  State<RedoPopUp> createState() => _RedoPopUpState();
+}
+
+class _RedoPopUpState extends State<RedoPopUp> {
+  bool _dontShowAgain = false;
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
@@ -528,9 +534,13 @@ class RedoPopUp extends StatelessWidget {
                   alignment: Alignment.center,
                   child: IntrinsicWidth(
                     child: CustomCheckbox(
-                        value: true,
+                        value: _dontShowAgain,
                         label: "Don't show me again",
-                        onChanged: (value) => print(value)),
+                        onChanged: (value){
+                          setState(() {
+                            _dontShowAgain = value!;
+                          });
+                        }),
                   )),
 
               const SizedBox(
@@ -542,7 +552,7 @@ class RedoPopUp extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context),
+                      onClick: () => Navigator.pop(context, false),
                       text: "CANCEL",
                       color: CustomColors.greyLight,
                     ),
@@ -552,7 +562,7 @@ class RedoPopUp extends StatelessWidget {
                   ),
                   Expanded(
                     child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context),
+                      onClick: () => Navigator.pop(context, true),
                       text: "YES",
                       color: CustomColors.warningActive,
                     ),

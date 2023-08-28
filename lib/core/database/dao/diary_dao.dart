@@ -1,0 +1,64 @@
+import '../../../objectbox.g.dart';
+import '../../../screens/diary/domain/entities/diary_entity.dart';
+
+class DiaryDAO {
+  final Box<DiaryEntity> box;
+
+  DiaryDAO({required this.box});
+
+  /// Retrieves and returns a list of all DiaryEntity objects stored in the database.
+  /// This function provides access to the complete collection of diary entries.
+  /// It retrieves the entries from the underlying storage box and returns them as a list.
+  ///
+  /// Returns:
+  /// A list of DiaryEntity objects representing all stored diary entries.
+  ///
+  List<DiaryEntity> getAllDiaries() {
+    return box.getAll();
+  }
+
+  /// Retrieves a single DiaryEntity object from the database based on the specified due date.
+  /// This function searches for a diary entry with a due date matching the provided DateTime.
+  /// It constructs a query to find the relevant entry within the storage box and returns it.
+  ///
+  /// Parameters:
+  /// - [due]: The DateTime representing the due date of the desired diary entry.
+  ///
+  /// Returns:
+  /// A DiaryEntity object representing the diary entry with the specified due date,
+  /// or null if no matching entry is found.
+  ///
+  DiaryEntity? getDiary(DateTime due) {
+    final query =
+        box.query(DiaryEntity_.due.equals(due.millisecondsSinceEpoch)).build();
+    return query.findFirst();
+  }
+
+  /// Adds a collection of DiaryEntity objects to the database.
+  /// This function stores multiple diary entries within the storage box in a single operation.
+  ///
+  /// Parameters:
+  /// - [diaries]: A list of DiaryEntity objects representing the diary entries to be added.
+  ///
+  /// Note:
+  /// This function efficiently inserts multiple diary entries into the storage box
+  /// in a single bulk operation, which can be more efficient than inserting them individually.
+  ///
+  void addDiaries(List<DiaryEntity> diaries) {
+    box.putMany(diaries);
+  }
+
+  /// Updates an existing DiaryEntity object in the database.
+  /// This function modifies the properties of a specific diary entry within the storage box.
+  ///
+  /// Parameters:
+  /// - [diary]: The DiaryEntity object representing the entry to be updated.
+  ///
+  /// Note:
+  /// This function efficiently applies changes to a single diary entry within the storage box.
+  /// It ensures that the modified data replaces the existing entry while preserving its unique identifier.
+  ///
+  void updateDiary(DiaryEntity diary) {
+    box.put(diary);
+  }
+}

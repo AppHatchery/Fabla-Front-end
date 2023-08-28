@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/main.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../theme/custom_colors.dart';
@@ -20,12 +19,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: CustomColors.fillNormal,
       leading: IconButton(
         onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const Hub()
-              )
-          );
+          Navigator.pop(context, true);
         },
         icon: const Icon(CustomIcons.close),
         iconSize: 15.0,
@@ -37,16 +31,16 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       centerTitle: true,
       actions: [
-      TextButton(
-        onPressed: () {
-          print("Skip clicked!");
-        },
-        child: Text(
-          "Skip",
-          style: CustomTypography()
-              .titleSmall(color: CustomColors.textNormalContent),
+        TextButton(
+          onPressed: () {
+            print("Skip clicked!");
+          },
+          child: Text(
+            "Skip",
+            style: CustomTypography()
+                .titleSmall(color: CustomColors.textNormalContent),
+          ),
         ),
-      ),
       ],
     );
   }

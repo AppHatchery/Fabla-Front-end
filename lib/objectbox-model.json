@@ -1,0 +1,118 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:4780301132920731756",
+      "lastPropertyId": "4:8351473670569862961",
+      "name": "Answer",
+      "properties": [
+        {
+          "id": "1:3131970637247521626",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2081985361532343882",
+          "name": "promptId",
+          "type": 6
+        },
+        {
+          "id": "3:5980970100735323542",
+          "name": "date",
+          "type": 10
+        },
+        {
+          "id": "4:8351473670569862961",
+          "name": "response",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:930454942769669084",
+      "lastPropertyId": "4:2343405347508727175",
+      "name": "DiaryEntity",
+      "properties": [
+        {
+          "id": "1:6605698874004738863",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8488302295664678966",
+          "name": "prompts",
+          "type": 23
+        },
+        {
+          "id": "3:5166114394790175803",
+          "name": "due",
+          "type": 10
+        },
+        {
+          "id": "4:2343405347508727175",
+          "name": "dbDiaryStatus",
+          "type": 6
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:5802285032129807332",
+      "lastPropertyId": "6:6565701585878895689",
+      "name": "Recording",
+      "properties": [
+        {
+          "id": "1:3574151983110546586",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2942001006476132380",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:8966212371760081647",
+          "name": "path",
+          "type": 9
+        },
+        {
+          "id": "4:198240375005047259",
+          "name": "transcript",
+          "type": 9
+        },
+        {
+          "id": "5:3321189128907141071",
+          "name": "date",
+          "type": 10
+        },
+        {
+          "id": "6:6565701585878895689",
+          "name": "answerId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "1:282317442931372277",
+          "relationTarget": "Answer"
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "3:5802285032129807332",
+  "lastIndexId": "1:282317442931372277",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}
