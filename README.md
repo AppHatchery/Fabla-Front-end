@@ -41,7 +41,15 @@ git clone
 ```
 flutter pub get
 ```
-3. Run the application
+(only for iOS)
+```
+pod install
+```
+3. Install the database
+```
+dart run build_runner build
+```
+4. Run the application
 ```
 flutter run
 ```
