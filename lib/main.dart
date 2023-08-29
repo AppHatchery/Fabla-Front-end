@@ -1,6 +1,7 @@
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.dart';
+import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:flutter/material.dart';
@@ -19,8 +20,9 @@ import 'services/diary_init.dart';
 late ObjectBox objectbox;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  objectbox = await ObjectBox.create();
-  await diaryInit();
+  objectbox = await ObjectBox.create(); // Setting up ObjectBox database
+  await diaryInit(); // Setting up diary prompts if not already set up
+  await NotificationService.init(); // Setting up notification channels
   runApp(const MyApp());
 }
 
@@ -95,6 +97,7 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
 
   @override
   void initState() {
+    NotificationService.setListeners();
     tabController = TabController(length: pages.length, vsync: this);
     super.initState();
   }

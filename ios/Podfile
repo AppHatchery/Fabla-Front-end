@@ -52,7 +52,7 @@ post_install do |installer|
                 'PERMISSION_MICROPHONE=1',
                 
               ## dart: PermissionGroup.notification
-              # 'PERMISSION_NOTIFICATIONS=1',
+               'PERMISSION_NOTIFICATIONS=1',
 
             ]
         

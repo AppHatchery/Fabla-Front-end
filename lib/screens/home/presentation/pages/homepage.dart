@@ -7,7 +7,9 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:permission_handler/permission_handler.dart';
 
+import '../../../../services/notification_service.dart';
 import '../../../../theme/dialogs/pop_ups.dart';
 import '../../../../theme/resources/strings.dart';
 import '../../../diary/data/diary.dart';
@@ -151,7 +153,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void showResearchInformation() {
+  void showResearchInformation() async {
     showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -165,5 +167,15 @@ class _HomePageState extends State<HomePage> {
                     researcher: "Dr. Jane Doe")
               ],
             ));
+
+    final permission = await Permission.notification.request();
+
+    if (permission.isGranted) {
+      NotificationService.createNotification(
+          title: "Time for Your Daily Diary",
+          body: "Hi! I am ready to hear from you.",
+          date: DateTime.now().add(const Duration(seconds: 2)),
+          payload: {"diary": "Example Payload"});
+    }
   }
 }
