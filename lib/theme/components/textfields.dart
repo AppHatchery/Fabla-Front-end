@@ -13,86 +13,102 @@ import 'package:flutter/material.dart';
 /// [isDisabled] is a boolean that determines if the text field is disabled.
 class CustomTextField extends StatefulWidget {
   final TextInputType? keyboardType;
+  final TextEditingController? controller;
+  final bool error;
   final String? hint;
   final int maxLines;
   final bool isDisabled;
+  final EdgeInsets padding;
+  final bool filled;
+  final Color fillColor;
+  final BorderRadius borderRadius;
+  final Color borderColor;
+  final double borderWidth;
+  final IconButton? suffix;
   const CustomTextField(
       {super.key,
       this.keyboardType = TextInputType.text,
+      this.controller,
+      this.error = false,
       this.hint,
       this.maxLines = 1,
-      this.isDisabled = false});
+      this.isDisabled = false,
+      this.padding = const EdgeInsets.symmetric(horizontal: 16.5, vertical: 18),
+      this.filled = false,
+      this.fillColor = CustomColors.fillWhite,
+      required this.borderRadius,
+      this.borderColor = CustomColors.productBorderNormal,
+      this.borderWidth = 2,
+      this.suffix});
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
-  late TextEditingController controller;
-
-  @override
-  void initState() {
-    controller = TextEditingController();
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
+      controller: widget.controller,
       enabled: widget.isDisabled ? false : true,
       keyboardType: widget.keyboardType,
       maxLines: widget.maxLines,
       style: CustomTypography().titleSmall(),
+      cursorColor: CustomColors.productNormal,
       decoration: InputDecoration(
+        errorText: widget.error ? "" : null,
+        filled: widget.filled,
+        fillColor: widget.fillColor,
+        suffixIcon: widget.suffix,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(
-            color: CustomColors.productBorderNormal,
-            width: 2,
+          borderRadius: widget.borderRadius,
+          borderSide: BorderSide(
+            color: widget.borderColor,
+            width: widget.borderWidth,
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(
-            color: CustomColors.productBorderNormal,
-            width: 2,
+          borderRadius: widget.borderRadius,
+          borderSide: BorderSide(
+            color: widget.borderColor,
+            width: widget.borderWidth,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(
+          borderRadius: widget.borderRadius,
+          borderSide: BorderSide(
             color: CustomColors.productBorderActive,
-            width: 2,
+            width: widget.borderWidth,
           ),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: widget.borderRadius,
           borderSide: const BorderSide(
             color: CustomColors.warningNormal,
             width: 2,
           ),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: widget.borderRadius,
           borderSide: const BorderSide(
             color: CustomColors.warningActive,
             width: 2,
           ),
         ),
         disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(
+          borderRadius: widget.borderRadius,
+          borderSide: BorderSide(
             color: CustomColors.productBorderNormal,
-            width: 2,
+            width: widget.borderWidth,
           ),
         ),
         hintText: widget.hint,
-        hintStyle: CustomTypography().titleSmall(color: CustomColors.textTertiaryContent),
-        errorStyle: CustomTypography().titleSmall(color: CustomColors.warningActive),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 18,
-          vertical: 16.5,
-        ),
+        hintStyle: CustomTypography()
+            .bodyLarge(color: CustomColors.textTertiaryContent),
+        errorStyle:
+            CustomTypography().bodyLarge(color: CustomColors.warningActive),
+        contentPadding: widget.padding,
       ),
     );
   }

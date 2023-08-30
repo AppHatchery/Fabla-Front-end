@@ -1,0 +1,114 @@
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welcome.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
+import 'package:audio_diaries_flutter/theme/custom_typography.dart';
+import 'package:flutter/material.dart';
+
+import '../../../../theme/components/buttons.dart';
+import '../../../../theme/custom_colors.dart';
+
+class ConfrimJoiningPage extends StatelessWidget {
+  const ConfrimJoiningPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: CustomColors.backgroundSecondary,
+      appBar: AppBar(
+        backgroundColor: CustomColors.backgroundSecondary,
+        leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: CustomColors.fillWhite,
+              size: 32,
+            )),
+      ),
+      body: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Research Information",
+                        style: CustomTypography()
+                            .headlineLarge(color: CustomColors.textWhite)),
+                    const SizedBox(
+                      height: 16,
+                    ),
+                    Text(
+                        "Below is the study information associated with your verification code.",
+                        style: CustomTypography()
+                            .bodyLarge(color: CustomColors.textWhite)),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    const ConfrimTile(
+                      title: "Research Name",
+                      info: "A Study of Audio Diary for Emotion Regulation",
+                      icon: Icon(
+                        Icons.assured_workload_rounded,
+                      ),
+                    ),
+              
+                    const SizedBox(
+                      height: 12,
+                    ),
+              
+                    const ConfrimTile(
+                      title: "Research Duration",
+                      info: "Jun 2023 - Oct 2023",
+                      icon: Icon(
+                        Icons.calendar_month_outlined,
+                      ),
+                    ),
+              
+                    const SizedBox(
+                      height: 12,
+                    ),
+              
+                    const ConfrimTile(
+                      title: "Researcher Name",
+                      info: "Dr. Jane Doe",
+                      icon: Icon(
+                        Icons.person_outline_rounded,
+                      ),
+                    ),
+
+                  ],
+                ),
+              ),
+            ),
+          ),
+        
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              color:  CustomColors.backgroundSecondary,
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 34),
+              child: Column(
+                children: [
+                  CustomElevatedButton(
+                    onClick: () => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> const WelcomePage()), (route) => false),
+                    text: "CONFIRM JOINING",
+                    color: CustomColors.fillWhite,
+                    shadowColor: CustomColors.productBorderNormal,
+                    textColor: CustomColors.productNormalActive,
+                  ),
+
+                  //CustomTextButton(onClick: ()=> null, text: "I HAVE A PROBLEM JOINING THE STUDY", textColor: CustomColors.textWhite,)
+                ],
+              ),
+            )),
+        ],
+      ),
+    );
+  }
+}

@@ -232,11 +232,13 @@ class CustomFlatButton extends StatelessWidget {
 class CustomTextButton extends StatelessWidget {
   final VoidCallback? onClick;
   final String? text;
+  final Color textColor;
   final bool isDisabled;
   const CustomTextButton({
     super.key,
     required this.onClick,
     required this.text,
+    this.textColor =  CustomColors.productNormal,
     this.isDisabled = false,
   });
 
@@ -256,7 +258,7 @@ class CustomTextButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 18.0),
           child: Text(
             text.toString(),
-            style: CustomTypography().button(color: CustomColors.productNormal),
+            style: CustomTypography().button(color: textColor),
           ),
         ));
   }

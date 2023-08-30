@@ -7,4 +7,13 @@ class Strings{
   static String studyDescription = "Hi, welcome to our study! In this study, participants will use audio diaries to record their daily thoughts, feelings, and experiences, providing invaluable insights into how everyday life impacts our emotional well-being. \n \n By participating, you are not only contributing to groundbreaking mental health research but also embarking on a journey of self-discovery. Your audio diary entries will serve as a personal chronicle of your emotional journey, fostering a deeper understanding of your own emotional patterns. We appreciate your time and commitment, and thank you for your contribution to this crucial study.";
 
   static String wavingEmoji = "👋";
+
+  static String telescope = "🔬";
+
+  static String confetti = "🎉";
+
+
+  String participantMetadata(String code, String date){
+    return "Participant $code \n started study on $date";
+  }
 }
