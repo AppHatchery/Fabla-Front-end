@@ -9,6 +9,19 @@ class LoginCubit extends Cubit<LoginState> {
   LoginCubit() : super(const LoginInitial());
   final LoginRepository repository = LoginRepository();
 
+  /// Handles the participant login process and updates the state accordingly.
+  ///
+  /// This function is responsible for handling the participant login process by
+  /// verifying the provided [code]. It emits different states to reflect the
+  /// login process and outcome:
+  ///   - `LoginLoading`: Indicates that the login process has started.
+  ///   - `LoginSuccess`: Indicates successful login after code verification.
+  ///   - `LoginError`: Indicates an error during the login process and provides
+  ///                   an error message, such as an invalid code or general error.
+  ///
+  /// Parameters:
+  /// - [code]: The participant's login code to be verified.
+  ///
   void login(String code) async {
     emit(const LoginLoading());
     try {

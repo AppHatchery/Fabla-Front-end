@@ -12,14 +12,59 @@ class SetupRepository {
   final ParticipantDAO _participantDAO =
       ParticipantDAO(box: Box<Participant>(objectbox.store));
 
+  /// Retrieves the participant's information from the database.
+  ///
+  /// This function fetches and returns the participant's information from the
+  /// database using the associated participant DAO (Data Access Object).
+  /// It retrieves the participant's data and returns it as a `Participant` object.
+  ///
+  /// Returns:
+  /// - A `Participant` object containing the retrieved participant's information,
+  ///   or `null` if no participant information is available.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// Participant? participant = getParticipant();
+  /// if (participant != null) {
+  ///   // Display or manipulate participant data...
+  /// }
+  /// ```
   Participant? getParticipant() {
     return _participantDAO.get();
   }
 
+  /// Updates the participant's name in the database.
+  ///
+  /// This function updates the participant's name in the database using the
+  /// associated participant DAO (Data Access Object). It takes the new [name]
+  /// as input and applies the update operation to the participant's record.
+  ///
+  /// Parameters:
+  /// - [name]: The new name to be assigned to the participant.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// updateParticipant("John Doe"); // Update participant's name to "John Doe".
+  /// ```
   void updateParticipant(String name) {
     _participantDAO.update(name);
   }
 
+  /// Creates and stores metadata related to the participant's study.
+  ///
+  /// This function generates metadata regarding the participant's study, including
+  /// their study code and the current date. It then stores this metadata in a text
+  /// file named "metadata.txt". The file is created in the temporary directory.
+  /// The metadata file can later be used for logging and record-keeping.
+  ///
+  /// After creating the metadata file, the function sends the file to a designated
+  /// S3 bucket, which may serve as the participant's root folder for
+  /// study-related data.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// createMetadata(); // Generate and store participant's study metadata.
+  /// ```
   void createMetadata() async {
     final participant = getParticipant();
     final today = DateTime.now();
@@ -28,7 +73,7 @@ class SetupRepository {
 
     final metadata = Strings().participantMetadata(code, date);
 
-    final dir = await getApplicationDocumentsDirectory();
+    final dir = await getTemporaryDirectory();
     final path = p.join(dir.path, "metadata.txt");
     final file = File(path);
 

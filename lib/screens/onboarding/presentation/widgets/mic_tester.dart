@@ -77,7 +77,7 @@ class MicGauge extends StatefulWidget {
 }
 
 class _MicGaugeState extends State<MicGauge> {
-  double _currentDecibel = 0.0;
+  double currentDecibel = 0.0;
   final minDecibel = 0.0;
   final maxDecibel = 70;
   List<Color> barColors = List.filled(7, CustomColors.fillNormal);
@@ -116,12 +116,29 @@ class _MicGaugeState extends State<MicGauge> {
   void updateDecibel(double decibel) {
     if (mounted) {
       setState(() {
-        _currentDecibel = decibel;
+        currentDecibel = decibel;
         updateBars();
       });
     }
   }
 
+  /// Updates the colors of sound level indicator bars based on current decibel levels.
+  ///
+  /// This function calculates the range of decibel values based on the provided
+  /// [minDecibel] and [maxDecibel] values. It then determines the range of decibel
+  /// values per bar by dividing the total range by the number of bars (7). The function
+  /// iterates through each bar, calculating the minimum and maximum decibel values
+  /// that correspond to the current bar. It then evaluates the current decibel level
+  /// [currentDecibel] against these ranges to determine the appropriate color for
+  /// the bar. The bar's color is updated based on the decibel level and range.
+  ///
+  /// Note: The function makes use of a list called [barColors] to track and update
+  /// the colors of the indicator bars.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// updateBars(); // Update indicator bar colors based on current decibel levels.
+  /// ```
   void updateBars() {
     double range = maxDecibel - minDecibel;
     double rangePerBar = range / 7;
@@ -130,20 +147,20 @@ class _MicGaugeState extends State<MicGauge> {
       double minBarValue = minDecibel + rangePerBar * i;
       double maxBarValue = minBarValue + rangePerBar;
 
-      if (_currentDecibel < 10) {
-        _currentDecibel = 10;
-      }
+      // if (currentDecibel < 10) {
+      //   currentDecibel = 10;
+      // }
 
       Color color;
-      if (_currentDecibel <= 19) {
+      if (currentDecibel <= 19) {
         color = CustomColors.warningActive;
-      } else if (_currentDecibel <= 39) {
+      } else if (currentDecibel <= 39) {
         color = CustomColors.yellowDark;
       } else {
         color = const Color(0xFF00ED26);
       }
 
-      if (_currentDecibel >= maxBarValue) {
+      if (currentDecibel >= maxBarValue) {
         setState(() {
           barColors[i] = color;
         });

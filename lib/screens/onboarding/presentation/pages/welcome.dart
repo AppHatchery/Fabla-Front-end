@@ -90,5 +90,5 @@ class _WelcomePageState extends State<WelcomePage> {
 
   void scheduleNotifications() {}
 
-  void createMetadata() async => repository.createMetadata();
+  void createMetadata() => repository.createMetadata();
 }
