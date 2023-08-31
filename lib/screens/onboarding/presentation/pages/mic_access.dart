@@ -65,14 +65,15 @@ class _MicAccessPageState extends State<MicAccessPage> {
                   ),
                   const SizedBox(height: 16.0),
                   MicTester(
+                    permission: permission,
                     width: width,
                     recorder: recorder,
                   ),
                   const SizedBox(height: 24.0),
-                  Padding(
+                  permission ? const SizedBox.shrink(): Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 60.0),
                     child: Image.asset(
-                      "assets/images/notification_example_ios.png",
+                      "assets/images/mic_example.png",
                       width: width,
                     ),
                   ),

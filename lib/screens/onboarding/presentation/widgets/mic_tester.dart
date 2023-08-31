@@ -5,9 +5,14 @@ import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
 
 class MicTester extends StatefulWidget {
+  final bool permission;
   final double width;
   final FlutterSoundRecorder recorder;
-  const MicTester({super.key, required this.width, required this.recorder});
+  const MicTester(
+      {super.key,
+      required this.permission,
+      required this.width,
+      required this.recorder});
 
   @override
   State<MicTester> createState() => _MicTesterState();
@@ -21,12 +26,17 @@ class _MicTesterState extends State<MicTester> {
       child: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.only(bottom: 40.0),
-            child: Image.asset(
-              "assets/images/mic_access.png",
-              width: widget.width,
-            ),
-          ),
+              padding: const EdgeInsets.only(bottom: 40.0),
+              child: Visibility(
+                  visible: widget.permission,
+                  replacement: Image.asset(
+                    "assets/images/mic_access.png",
+                    width: widget.width,
+                  ),
+                  child: Image.asset(
+                    "assets/images/check_mic.png",
+                    width: widget.width,
+                  ))),
           Positioned(
             bottom: 0,
             left: 0,
