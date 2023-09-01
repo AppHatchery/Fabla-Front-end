@@ -22,6 +22,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   objectbox = await ObjectBox.create();
   await diaryInit();
+  //this is responsible for Initializing amplify when app starts
   configureAmplify();
   runApp(const MyApp());
 }
