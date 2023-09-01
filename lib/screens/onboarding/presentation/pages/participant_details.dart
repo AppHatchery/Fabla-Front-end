@@ -130,7 +130,6 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
   }
 
   Widget loadedDetails(double height, double width, Participant participant) {
-    controller.text = participant.name;
     return AvatarBackground(
         height: height,
         width: width,
@@ -147,7 +146,9 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
 
   void saveName() {
     if (controller.text.isNotEmpty) {
-      setupCubit.updateParticipant(controller.text);
+      final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
+      final name = controller.text.substring(0, lastNonSpaceIndex + 1);
+      setupCubit.updateParticipant(name);
     }
   }
 }

@@ -49,7 +49,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    return TextField(
       controller: widget.controller,
       enabled: widget.isDisabled ? false : true,
       keyboardType: widget.keyboardType,
