@@ -89,13 +89,15 @@ class SummaryRepository {
   ///
   Future<bool> submitDiary(Diary diary) async {
     try {
-      //TODO: Upload file to cloud
+      final uploaded = await upload(diary);
 
-      prepareAudioUpload(diary);
-
-      diary.status = DiaryStatus.submitted;
-      diaryRepository.updateDiary(diary);
-      return true;
+      if (uploaded) {
+        diary.status = DiaryStatus.submitted;
+        diaryRepository.updateDiary(diary);
+        return true;
+      } else {
+        return false;
+      }
     } catch (e) {
       print("Error submitting diary: $e");
       return false;

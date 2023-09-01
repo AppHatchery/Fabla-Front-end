@@ -104,67 +104,27 @@ Tuple2<Color, Color> getColorFromString(String text) {
   return Tuple2(
       backgroundColor[backgroundIndex], foregroundColor[foregroundIndex]);
 }
-///Returns string format date after submitting a date of type Datetime
 
-String getPostDate(DateTime audioDate) {
-  String dayName = getDayName(audioDate.weekday);
-  String year = audioDate.year.toString();
-  String month = getMonthName(audioDate.month);
-  String day = audioDate.day.toString();
-
-  return ("$dayName, $day $month $year");
+/// Converts a DateTime into a formatted post date string.
+///
+/// This function takes a [date] in DateTime format and converts it into a
+/// formatted string representing a post date. The date is formatted in a human-
+/// readable style, including the full day of the week, day of the month, month,
+/// and year.
+///
+/// Parameters:
+/// - [date]: The DateTime representing the date for conversion.
+///
+/// Returns:
+/// - A formatted date string, e.g., "Thursday, 25 August 2023".
+///
+/// Example usage:
+/// ```dart
+/// DateTime audioDate = DateTime(2023, 8, 25);
+/// String formattedDate = getPostDate(audioDate);
+/// // Output: "Thursday, 25 August 2023"
+/// ```
+String getPostDate(DateTime date) {
+  final DateFormat formatter = DateFormat("EEEE, d MMMM y");
+  return formatter.format(date);
 }
-/// Gets day of the week as a string after submitting interger represnting the day of the week
-String getDayName(int dayOfWeek) {
-  switch (dayOfWeek) {
-    case 1:
-      return "Monday";
-    case 2:
-      return "Tuesday";
-    case 3:
-      return "Wednesday";
-    case 4:
-      return "Thursday";
-    case 5:
-      return "Friday";
-    case 6:
-      return "Saturday";
-    case 7:
-      return "Sunday";
-    default:
-      return "Invalid day";
-  }
-}
-
-/// Gets the month as a string after submitting interger represnting month
-String getMonthName(int monthOfYear) {
-  switch (monthOfYear) {
-    case 1:
-      return "January";
-    case 2:
-      return "February";
-    case 3:
-      return "March";
-    case 4:
-      return "April";
-    case 5:
-      return "May";
-    case 6:
-      return "June";
-    case 7:
-      return "July";
-    case 8:
-      return "August";
-    case 9:
-      return "September";
-    case 10:
-      return "October";
-    case 11:
-      return "November";
-    case 12:
-      return "December";
-    default:
-      return "Invalid month";
-  }
-}
-
