@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,11 +20,13 @@ class MyResponse extends StatefulWidget {
   final Prompt prompt;
   final DiaryStatus status;
   final List<Recording> recordings;
+  final int? expandedCardIndex;
   const MyResponse({
     super.key,
     required this.prompt,
     required this.status,
     required this.recordings,
+    this.expandedCardIndex,
   });
 
   @override
@@ -32,6 +36,7 @@ class MyResponse extends StatefulWidget {
 class _MyResponseState extends State<MyResponse> {
   @override
   Widget build(BuildContext context) {
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -45,15 +50,20 @@ class _MyResponseState extends State<MyResponse> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: widget.recordings.length,
-            itemBuilder: (context, index) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6.0),
-                  child: AudioDiaryCard(
-                    recording: widget.recordings[index],
-                    delete: () => deleteResponse(
-                        widget.prompt, widget.recordings[index].path),
-                    viewOnly: widget.status == DiaryStatus.submitted,
-                  ),
-                )),
+            itemBuilder: (context, index) {
+              final isExpanded = widget.expandedCardIndex == index;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6.0),
+                child: AudioDiaryCard(
+                  recording: widget.recordings[index],
+                  delete: () => deleteResponse(
+                      widget.prompt, widget.recordings[index].path),
+                  viewOnly: widget.status == DiaryStatus.submitted,
+                  isExpanded: isExpanded,
+                ),
+              );
+            }
+        ),
         const SizedBox(height: 12),
       ],
     );

@@ -65,6 +65,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     }
   }
 
+  bool get isCurrentPageLast => currentPage == widget.diary.prompts.length - 1;
+
+
   void previousPage() {
     if (currentPage > 0) {
       controller.previousPage(
@@ -135,6 +138,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                   });
                 }
               },
+      nextPage: nextPage,
+      isLastPage: isCurrentPageLast,
             ))
         .toList();
   }
@@ -162,15 +167,18 @@ class QuestionPage extends StatefulWidget {
   final Prompt prompt;
   final GlobalKey<ScaffoldState> scaffoldKey;
   final ValueChanged<bool> answerAdded;
+  final VoidCallback nextPage;
+  final bool? isLastPage;
   const QuestionPage(
       {super.key,
       required this.diary,
       required this.prompt,
       required this.scaffoldKey,
-      required this.answerAdded});
+      required this.answerAdded, required this.nextPage,  this.isLastPage, });
 
   @override
   State<QuestionPage> createState() => _QuestionPageState();
+
 }
 
 class _QuestionPageState extends State<QuestionPage> {
@@ -220,7 +228,9 @@ class _QuestionPageState extends State<QuestionPage> {
               }
             }
           }
-        }));
+        }
+        )
+    );
   }
 
   Widget buildLoading() {
@@ -306,8 +316,8 @@ class _QuestionPageState extends State<QuestionPage> {
         backgroundColor: Colors.transparent,
         context: context,
         isScrollControlled: true,
-        // isDismissible: false,
-        // enableDrag: false,
+        isDismissible: false,
+        enableDrag: true,
         builder: (context) => BottomRecordingModal(
               promptId: prompt.id,
               onSave: (value) {
@@ -322,8 +332,12 @@ class _QuestionPageState extends State<QuestionPage> {
   }
 
   void showSuccessModal() {
+    bool isLast = widget.isLastPage ?? true;
     widget.scaffoldKey.currentState!
-        .showBottomSheet((context) => const BottomSuccessModal());
+        .showBottomSheet((context) => BottomSuccessModal(
+      onNextQuestionClicked: widget.nextPage,
+      text: isLast ? "REVIEW SUMMARY" : "NEXT QUESTION",
+    ));
   }
 
   void showErrorModal() {
