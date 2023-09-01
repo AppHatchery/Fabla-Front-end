@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/network/amplifyutils/amplify_utils.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.dart';
@@ -21,6 +22,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   objectbox = await ObjectBox.create();
   await diaryInit();
+  configureAmplify();
   runApp(const MyApp());
 }
 

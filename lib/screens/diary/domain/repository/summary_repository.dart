@@ -1,3 +1,5 @@
+import 'package:audio_diaries_flutter/core/network/upload.dart';
+
 import '../../../../core/utils/statuses.dart';
 import '../../data/diary.dart';
 import '../../data/prompt.dart';
@@ -88,6 +90,8 @@ class SummaryRepository {
   Future<bool> submitDiary(Diary diary) async {
     try {
       //TODO: Upload file to cloud
+
+      prepareAudioUpload(diary);
 
       diary.status = DiaryStatus.submitted;
       diaryRepository.updateDiary(diary);
