@@ -537,8 +537,8 @@ class BottomSuccessModal extends StatelessWidget {
                             padding: const EdgeInsets.all(0.0),
                             child: CustomElevatedButton(
                               onClick: () {
-                                onNextQuestionClicked?.call();
                                 Navigator.pop(context);
+                                onNextQuestionClicked?.call();
                               },
                               text: text,
                             ),

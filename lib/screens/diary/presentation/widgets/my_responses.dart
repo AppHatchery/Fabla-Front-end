@@ -20,13 +20,12 @@ class MyResponse extends StatefulWidget {
   final Prompt prompt;
   final DiaryStatus status;
   final List<Recording> recordings;
-  final int? expandedCardIndex;
+
   const MyResponse({
     super.key,
     required this.prompt,
     required this.status,
     required this.recordings,
-    this.expandedCardIndex,
   });
 
   @override
@@ -34,6 +33,8 @@ class MyResponse extends StatefulWidget {
 }
 
 class _MyResponseState extends State<MyResponse> {
+   int? expandedCardId;
+
   @override
   Widget build(BuildContext context) {
 
@@ -51,7 +52,6 @@ class _MyResponseState extends State<MyResponse> {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: widget.recordings.length,
             itemBuilder: (context, index) {
-              final isExpanded = widget.expandedCardIndex == index;
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: AudioDiaryCard(
@@ -59,7 +59,12 @@ class _MyResponseState extends State<MyResponse> {
                   delete: () => deleteResponse(
                       widget.prompt, widget.recordings[index].path),
                   viewOnly: widget.status == DiaryStatus.submitted,
-                  isExpanded: isExpanded,
+                  isExpanded: expandedCardId == widget.recordings[index].id,
+                  onTap: () {
+                    setState(() {
+                      expandedCardId = expandedCardId == widget.recordings[index].id ? null : widget.recordings[index].id;
+                    });
+                  },
                 ),
               );
             }

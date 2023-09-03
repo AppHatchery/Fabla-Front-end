@@ -189,7 +189,6 @@ class AudioDiaryCard extends StatefulWidget {
 
 class _AudioDiaryCardState extends State<AudioDiaryCard> {
 
-   late bool initialIsExpanded = false;
   //Audio Player
   late AudioPlayer audioPlayer;
   bool isPlaying = false;
@@ -200,7 +199,6 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
   @override
   void initState() {
     playerInit();
-    initialIsExpanded = widget.isExpanded;
     super.initState();
   }
 
@@ -217,7 +215,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
     return SizedBox(
       width: width,
       child: GestureDetector(
-        onTap: () => {setState(() => initialIsExpanded = !initialIsExpanded)},
+        onTap:  widget.onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
@@ -241,7 +239,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
               children: [
                 title(),
                 Visibility(
-                    visible: initialIsExpanded,
+                    visible: widget.isExpanded,
                     child: Column(
                       children: [
                         // transcript(),
@@ -253,7 +251,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                       ],
                     )),
                 Visibility(
-                    visible: !initialIsExpanded,
+                    visible: !widget.isExpanded,
                     child: const SizedBox(
                       height: 12,
                     )),
@@ -281,7 +279,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
           ),
         ),
         Visibility(
-          visible: initialIsExpanded,
+          visible: widget.isExpanded,
           child: SizedBox(
             child: Row(
               children: [
@@ -359,7 +357,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
 
   Widget controls() {
     return Visibility(
-      visible: initialIsExpanded,
+      visible: widget.isExpanded,
       replacement: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

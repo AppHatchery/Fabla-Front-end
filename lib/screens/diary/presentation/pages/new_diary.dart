@@ -186,6 +186,7 @@ class _QuestionPageState extends State<QuestionPage> {
   late Prompt prompt;
 
   bool isClicked = false;
+  ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -247,6 +248,7 @@ class _QuestionPageState extends State<QuestionPage> {
 
   Widget buildPrompt(Prompt prompt) {
     return SingleChildScrollView(
+      controller: _scrollController,
       child: Column(
         children: [
           Row(
@@ -300,6 +302,7 @@ class _QuestionPageState extends State<QuestionPage> {
                   text: prompt.answer != null
                       ? "ADD NEW RESPONSE"
                       : "RECORD RESPONSE"),
+        if(widget.diary.status != DiaryStatus.submitted)   SizedBox(height: MediaQuery.of(context).size.height * 0.3),
           // const CustomTextButton(
           //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
         ],
@@ -332,12 +335,21 @@ class _QuestionPageState extends State<QuestionPage> {
   }
 
   void showSuccessModal() {
+    double bottomSuccessModalHeight = MediaQuery.of(context).size.height * 0.6;
     bool isLast = widget.isLastPage ?? true;
-    widget.scaffoldKey.currentState!
-        .showBottomSheet((context) => BottomSuccessModal(
-      onNextQuestionClicked: widget.nextPage,
-      text: isLast ? "REVIEW SUMMARY" : "NEXT QUESTION",
-    ));
+
+    widget.scaffoldKey.currentState!.showBottomSheet((context) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+
+      return BottomSuccessModal(
+        onNextQuestionClicked: widget.nextPage,
+        text: isLast ? "REVIEW SUMMARY" : "NEXT QUESTION",
+      );
+    });
   }
 
   void showErrorModal() {
