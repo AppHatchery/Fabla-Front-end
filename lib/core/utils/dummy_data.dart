@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../../screens/diary/data/diary.dart';
 import '../../screens/diary/data/prompt.dart';
 import '../../screens/diary/data/tag.dart';
@@ -93,6 +95,8 @@ List<Tag> fakeTags = const [
   Tag(text: "60 seconds", type: TagType.time),
   Tag(text: "Multiple questions", type: TagType.questions),
 ];
+
+const TimeOfDay fixedTime = TimeOfDay(hour: 9, minute: 0);
 
 final List<String> studyCodes = [
   "X8R3Z9",

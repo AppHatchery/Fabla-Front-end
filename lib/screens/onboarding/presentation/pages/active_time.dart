@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/notification_access.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/list_active_times.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../theme/custom_colors.dart';
@@ -57,9 +58,22 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                             height: height,
                             width: width,
                             image:
-                                "assets/images/avatar_ask_name.png", // Change Image
-                            onContinue: () => Navigator.push(context, MaterialPageRoute(builder: (context)=> const NotificationAccessPage())),
-                            children: const []),
+                                "assets/images/active_time.png", // Change Image
+                            onContinue: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const NotificationAccessPage())),
+                            children: [
+                              Text(
+                                "Diary Time",
+                                style: CustomTypography().headlineMedium(),
+                              ),
+                              const SizedBox(
+                                height: 6,
+                              ),
+                              const ListActiveTimes(),
+                            ]),
                       ),
                     )
                   ],

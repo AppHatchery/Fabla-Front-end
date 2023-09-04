@@ -46,11 +46,17 @@ class AvatarBackground extends StatelessWidget {
                       topLeft: Radius.circular(24),
                       topRight: Radius.circular(24))),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  SizedBox(
-                    child: Column(
-                      children: children,
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: SizedBox(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: children,
+                        ),
+                      ),
                     ),
                   ),
                   CustomElevatedButton(

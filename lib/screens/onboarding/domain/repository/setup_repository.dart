@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -68,7 +69,7 @@ class SetupRepository {
   void createMetadata() async {
     final participant = getParticipant();
     final today = DateTime.now();
-    final date = "${today.month}/${today.day}/${today.year}";
+    final date = formatDate(today);
     final code = participant!.studyCode;
 
     final metadata = Strings().participantMetadata(code, date);

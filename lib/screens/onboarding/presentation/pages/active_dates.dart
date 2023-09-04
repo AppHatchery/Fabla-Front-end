@@ -99,7 +99,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
             child: AvatarBackground(
                 height: height,
                 width: width,
-                image: "assets/images/avatar_ask_name.png", // Change Image
+                image: "assets/images/active_dates.png", // Change Image
                 onContinue: () => Navigator.push(context, MaterialPageRoute(builder: (context)=> const ActiveTimePage())),
                 children: const []),
           ),

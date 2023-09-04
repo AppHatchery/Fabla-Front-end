@@ -2,9 +2,12 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welc
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
+import '../../../../theme/dialogs/pop_ups.dart';
+import '../../../../theme/resources/strings.dart';
 
 class ConfrimJoiningPage extends StatelessWidget {
   const ConfrimJoiningPage({super.key});
@@ -55,11 +58,9 @@ class ConfrimJoiningPage extends StatelessWidget {
                         Icons.assured_workload_rounded,
                       ),
                     ),
-              
                     const SizedBox(
                       height: 12,
                     ),
-              
                     const ConfrimTile(
                       title: "Research Duration",
                       info: "Jun 2023 - Oct 2023",
@@ -67,11 +68,9 @@ class ConfrimJoiningPage extends StatelessWidget {
                         Icons.calendar_month_outlined,
                       ),
                     ),
-              
                     const SizedBox(
                       height: 12,
                     ),
-              
                     const ConfrimTile(
                       title: "Researcher Name",
                       info: "Dr. Jane Doe",
@@ -79,36 +78,69 @@ class ConfrimJoiningPage extends StatelessWidget {
                         Icons.person_outline_rounded,
                       ),
                     ),
-
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    TextButton(
+                        onPressed: () => showResearchDetails(context),
+                        child: Text(
+                          "View Research Details",
+                          style: TextStyle(
+                              color: CustomColors.textWhite,
+                              fontFamily: CustomTypography.fontName,
+                              fontSize: 18.sp,
+                              decoration: TextDecoration.underline,
+                              decorationColor: CustomColors.textWhite
+                              ),
+                        ))
                   ],
                 ),
               ),
             ),
           ),
-        
           Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              color:  CustomColors.backgroundSecondary,
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 34),
-              child: Column(
-                children: [
-                  CustomElevatedButton(
-                    onClick: () => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> const WelcomePage()), (route) => false),
-                    text: "CONFIRM JOINING",
-                    color: CustomColors.fillWhite,
-                    shadowColor: CustomColors.productBorderNormal,
-                    textColor: CustomColors.productNormalActive,
-                  ),
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                color: CustomColors.backgroundSecondary,
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 34),
+                child: Column(
+                  children: [
+                    CustomElevatedButton(
+                      onClick: () => Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const WelcomePage()),
+                          (route) => false),
+                      text: "CONFIRM JOINING",
+                      color: CustomColors.fillWhite,
+                      shadowColor: CustomColors.productBorderNormal,
+                      textColor: CustomColors.productNormalActive,
+                    ),
 
-                  //CustomTextButton(onClick: ()=> null, text: "I HAVE A PROBLEM JOINING THE STUDY", textColor: CustomColors.textWhite,)
-                ],
-              ),
-            )),
+                    //CustomTextButton(onClick: ()=> null, text: "I HAVE A PROBLEM JOINING THE STUDY", textColor: CustomColors.textWhite,)
+                  ],
+                ),
+              )),
         ],
       ),
     );
+  }
+
+  void showResearchDetails(BuildContext context){
+     showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => Wrap(
+              children: [
+                BottomResearcherInfoPopUp(
+                    studyName: "Audio Diary Study for Emotional Regulation.  ",
+                    studyDescription: Strings.studyDescription,
+                    organisation: "Emory School of Medicine",
+                    duration: "Oct 2022 - Aug 2023",
+                    researcher: "Dr. Jane Doe")
+              ],
+            ));
   }
 }
