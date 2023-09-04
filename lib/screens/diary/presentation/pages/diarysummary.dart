@@ -30,6 +30,7 @@ class DiarySummaryPage extends StatefulWidget {
 
 class _DiarySummaryPageState extends State<DiarySummaryPage> {
   late SummaryCubit summaryCubit;
+  int? expandedCardId;
 
   @override
   void initState() {
@@ -78,7 +79,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
-                  builder: (context) => const DiaryCompletionPage()), (route) => false);
+                  builder: (context) => const DiaryCompletionPage()),
+              (route) => false);
         }
       }),
     );
@@ -124,25 +126,24 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
             ],
           ),
         ),
-
-
         Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                color: CustomColors.fillWhite,
-                padding: const EdgeInsets.only(bottom: 34, top: 24, left: 16, right: 16),
-                alignment: Alignment.bottomCenter,
-                child: CustomElevatedButton(
-                  onClick: () => submitDiary(),
-                  text: "SUBMIT MY RESPONSE",
-                  color: CustomColors.productNormal,
-                  textColor: CustomColors.textWhite,
-                  shadowColor: CustomColors.productNormalActive,
-                ),
-              ),
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            color: CustomColors.fillWhite,
+            padding:
+                const EdgeInsets.only(bottom: 34, top: 24, left: 16, right: 16),
+            alignment: Alignment.bottomCenter,
+            child: CustomElevatedButton(
+              onClick: () => submitDiary(),
+              text: "SUBMIT MY RESPONSE",
+              color: CustomColors.productNormal,
+              textColor: CustomColors.textWhite,
+              shadowColor: CustomColors.productNormalActive,
             ),
+          ),
+        ),
       ],
     );
   }
@@ -168,7 +169,17 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
                       child: AudioDiaryCard(
                           recording: prompt.answer!.recordings[index],
                           delete: () => deleteResponse(
-                              prompt, prompt.answer!.recordings[index].path)),
+                              prompt, prompt.answer!.recordings[index].path),
+                          isExpanded: expandedCardId ==
+                              prompt.answer!.recordings[index].id,
+                          onTap: () {
+                            setState(() {
+                              expandedCardId = expandedCardId ==
+                                      prompt.answer!.recordings[index].id
+                                  ? null
+                                  : prompt.answer!.recordings[index].id;
+                            });
+                          }),
                     ))
             : const SizedBox.shrink(),
         // const AudioDiaryCard(
