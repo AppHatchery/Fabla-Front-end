@@ -104,3 +104,27 @@ Tuple2<Color, Color> getColorFromString(String text) {
   return Tuple2(
       backgroundColor[backgroundIndex], foregroundColor[foregroundIndex]);
 }
+
+/// Converts a DateTime into a formatted post date string.
+///
+/// This function takes a [date] in DateTime format and converts it into a
+/// formatted string representing a post date. The date is formatted in a human-
+/// readable style, including the full day of the week, day of the month, month,
+/// and year.
+///
+/// Parameters:
+/// - [date]: The DateTime representing the date for conversion.
+///
+/// Returns:
+/// - A formatted date string, e.g., "Thursday, 25 August 2023".
+///
+/// Example usage:
+/// ```dart
+/// DateTime audioDate = DateTime(2023, 8, 25);
+/// String formattedDate = getPostDate(audioDate);
+/// // Output: "Thursday, 25 August 2023"
+/// ```
+String getPostDate(DateTime date) {
+  final DateFormat formatter = DateFormat("EEEE, d MMMM y");
+  return formatter.format(date);
+}

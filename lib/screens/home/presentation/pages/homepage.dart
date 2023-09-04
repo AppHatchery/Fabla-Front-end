@@ -56,7 +56,9 @@ class _HomePageState extends State<HomePage> {
                         Text(
                           "Hi, Christopher",
                           style: CustomTypography()
-                              .headlineLarge(color: CustomColors.fillWhite),
+                              .headlineLargeCustom(color: CustomColors.fillWhite,
+                            //fontSize: MediaQuery.of(context).textScaleFactor * 20,
+                          ),
                         ),
                         Text(
                           "Welcome back ${Strings.wavingEmoji}",

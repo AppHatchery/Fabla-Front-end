@@ -173,15 +173,21 @@ class AudioDiaryCard extends StatefulWidget {
   final Recording recording;
   final VoidCallback? delete;
   final bool viewOnly;
+  final bool isExpanded;
+  final VoidCallback? onTap;
   const AudioDiaryCard(
-      {super.key, required this.recording, this.delete, this.viewOnly = false});
+      {super.key,
+        required this.recording,
+        this.delete,
+        this.viewOnly = false,
+        this.isExpanded = false, this.onTap,
+      });
 
   @override
   State<AudioDiaryCard> createState() => _AudioDiaryCardState();
 }
 
 class _AudioDiaryCardState extends State<AudioDiaryCard> {
-  bool isExpanded = false;
 
   //Audio Player
   late AudioPlayer audioPlayer;
@@ -196,6 +202,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
     super.initState();
   }
 
+
   @override
   void dispose() {
     audioPlayer.dispose();
@@ -208,7 +215,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
     return SizedBox(
       width: width,
       child: GestureDetector(
-        onTap: () => {setState(() => isExpanded = !isExpanded)},
+        onTap:  widget.onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
@@ -232,7 +239,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
               children: [
                 title(),
                 Visibility(
-                    visible: isExpanded,
+                    visible: widget.isExpanded,
                     child: Column(
                       children: [
                         // transcript(),
@@ -244,7 +251,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                       ],
                     )),
                 Visibility(
-                    visible: !isExpanded,
+                    visible: !widget.isExpanded,
                     child: const SizedBox(
                       height: 12,
                     )),
@@ -256,7 +263,6 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
       ),
     );
   }
-
   Widget title() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -273,7 +279,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
           ),
         ),
         Visibility(
-          visible: isExpanded,
+          visible: widget.isExpanded,
           child: SizedBox(
             child: Row(
               children: [
@@ -351,7 +357,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
 
   Widget controls() {
     return Visibility(
-      visible: isExpanded,
+      visible: widget.isExpanded,
       replacement: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
