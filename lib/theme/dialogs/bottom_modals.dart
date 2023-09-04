@@ -463,7 +463,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         await Directory(p.join(directory.path, widget.promptId.toString()))
             .create(recursive: true);
     final now = DateTime.now();
-    final fileName = 'audio_promt_${widget.promptId}_${formatDate(now)}.aac';
+    final fileName = 'audio_prompt_${widget.promptId + 1}_${formatDate(now)}.aac';
     final filePath = p.join(dir.path, fileName);
     return filePath;
   }

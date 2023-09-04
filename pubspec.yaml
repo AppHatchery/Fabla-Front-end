@@ -60,6 +60,13 @@ dependencies:
   objectbox: ^2.2.0
   objectbox_flutter_libs: any
 
+  #Amplify
+  amplify_flutter: ^1.0.0
+  amplify_auth_cognito: ^1.0.0
+  amplify_storage_s3: ^1.0.0
+
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,0 +1,23 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-audiodiaries01-dev-130959-authRole",
+      "UnauthRoleArn": "arn:aws:iam::697035619499:role/amplify-audiodiaries01-dev-130959-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::697035619499:role/amplify-audiodiaries01-dev-130959-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-audiodiaries01-dev-130959-deployment",
+      "UnauthRoleName": "amplify-audiodiaries01-dev-130959-unauthRole",
+      "StackName": "amplify-audiodiaries01-dev-130959",
+      "StackId": "arn:aws:cloudformation:us-east-1:697035619499:stack/amplify-audiodiaries01-dev-130959/f12311e0-47ee-11ee-b6bd-0e7efab0964f",
+      "AmplifyAppId": "d1hr0j09tuo1do"
+    },
+    "categories": {
+      "auth": {
+        "audiodiaries01b1efc40a": {}
+      },
+      "storage": {
+        "audiodiariesbucket": {}
+      }
+    }
+  }
+}
