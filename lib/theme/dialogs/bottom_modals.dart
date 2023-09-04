@@ -64,6 +64,7 @@ final tabs = [
 class BottomRecordingModal extends StatefulWidget {
   final int promptId;
   final ValueChanged<String?>? onSave;
+
   const BottomRecordingModal(
       {super.key, required this.promptId, required this.onSave});
 
@@ -313,12 +314,15 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                         color: CustomColors.warningActive),
                   ),
                 )),
-            _ => IconButton(
+            _ => Container(
+                width: 150,
+                child: IconButton(
                 style: IconButton.styleFrom(
                   splashFactory: NoSplash.splashFactory,
                 ),
                 onPressed: () => record(),
                 color: CustomColors.warningActive,
+
                 icon: Container(
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(
@@ -328,7 +332,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                       color: recorderState == RecorderState.isRecording
                           ? Colors.transparent
                           : CustomColors.warningFill,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(26),
                       border: Border.all(
                           color: recorderState == RecorderState.isRecording
                               ? CustomColors.textTertiaryContent
@@ -337,11 +341,14 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     ),
                     child: recorderState == RecorderState.isRecording
                         ? const Icon(Icons.pause_rounded, size: 24)
-                        : const Icon(
-                            Icons.play_arrow_rounded,
-                            size: 24,
-                          )),
-              ),
+                        : Text(
+                            "Resume",
+                            style: CustomTypography()
+                                .bodyLarge(color: CustomColors.warningActive),
+                          )
+                ),
+              )
+            ),
           },
 
           //Save
@@ -475,7 +482,11 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
 /// Bottom Modal for when the user has successfull answered a prompt.
 class BottomSuccessModal extends StatelessWidget {
-  const BottomSuccessModal({super.key});
+  final VoidCallback? onNextQuestionClicked;
+  final String text;
+
+  const BottomSuccessModal(
+      {super.key, this.onNextQuestionClicked, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -525,8 +536,12 @@ class BottomSuccessModal extends StatelessWidget {
                           child: Padding(
                             padding: const EdgeInsets.all(0.0),
                             child: CustomElevatedButton(
-                                onClick: () => Navigator.pop(context),
-                                text: "CONTINUE"),
+                              onClick: () {
+                                Navigator.pop(context);
+                                onNextQuestionClicked?.call();
+                              },
+                              text: text,
+                            ),
                           ),
                         ),
                       ],

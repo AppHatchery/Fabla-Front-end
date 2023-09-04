@@ -27,6 +27,7 @@ dependencies:
 
   cupertino_icons: ^1.0.2
 
+  table_calendar: ^3.0.9
   #Adaptive font
   flutter_screenutil: ^5.8.4
 

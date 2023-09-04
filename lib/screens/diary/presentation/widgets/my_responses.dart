@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,6 +20,7 @@ class MyResponse extends StatefulWidget {
   final Prompt prompt;
   final DiaryStatus status;
   final List<Recording> recordings;
+
   const MyResponse({
     super.key,
     required this.prompt,
@@ -30,8 +33,11 @@ class MyResponse extends StatefulWidget {
 }
 
 class _MyResponseState extends State<MyResponse> {
+   int? expandedCardId;
+
   @override
   Widget build(BuildContext context) {
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -45,15 +51,24 @@ class _MyResponseState extends State<MyResponse> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: widget.recordings.length,
-            itemBuilder: (context, index) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6.0),
-                  child: AudioDiaryCard(
-                    recording: widget.recordings[index],
-                    delete: () => deleteResponse(
-                        widget.prompt, widget.recordings[index].path),
-                    viewOnly: widget.status == DiaryStatus.submitted,
-                  ),
-                )),
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6.0),
+                child: AudioDiaryCard(
+                  recording: widget.recordings[index],
+                  delete: () => deleteResponse(
+                      widget.prompt, widget.recordings[index].path),
+                  viewOnly: widget.status == DiaryStatus.submitted,
+                  isExpanded: expandedCardId == widget.recordings[index].id,
+                  onTap: () {
+                    setState(() {
+                      expandedCardId = expandedCardId == widget.recordings[index].id ? null : widget.recordings[index].id;
+                    });
+                  },
+                ),
+              );
+            }
+        ),
         const SizedBox(height: 12),
       ],
     );
