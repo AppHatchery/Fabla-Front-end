@@ -102,9 +102,33 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "4:214140320849011354",
+      "lastPropertyId": "3:1731805203720530722",
+      "name": "Participant",
+      "properties": [
+        {
+          "id": "1:1331150252373643062",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2924582276931934013",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:1731805203720530722",
+          "name": "studyCode",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "3:5802285032129807332",
+  "lastEntityId": "4:214140320849011354",
   "lastIndexId": "1:282317442931372277",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

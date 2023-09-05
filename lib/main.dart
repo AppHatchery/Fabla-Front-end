@@ -3,6 +3,9 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/dia
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:flutter/material.dart';
@@ -28,8 +31,21 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final RouteService routeService = RouteService();
+  late Widget route;
+  @override
+  void initState() {
+    route = RouteService().getRoute();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +62,8 @@ class MyApp extends StatelessWidget {
               ),
               BlocProvider<PromptCubit>(create: (context) => PromptCubit()),
               BlocProvider<SummaryCubit>(create: (context) => SummaryCubit()),
+              BlocProvider<LoginCubit>(create: (context) => LoginCubit()),
+              BlocProvider<SetupCubit>(create: (context) => SetupCubit()),
               BlocProvider<DiaryCubit>(create:(context) => DiaryCubit()),
               BlocProvider<DiaryHistoryCubit>(create: (context) => DiaryHistoryCubit()),
             ],
@@ -79,7 +97,8 @@ class MyApp extends StatelessWidget {
               },
             ));
       },
-        child: MediaQuery(data: MediaQuery.of(context).copyWith(textScaleFactor: 1), child: const Hub(),)
+      child: route,
+        child: MediaQuery(data: MediaQuery.of(context).copyWith(textScaleFactor: 1), child: const route,)
     );
   }
 }

@@ -1,0 +1,70 @@
+import 'package:flutter/material.dart';
+
+import '../../../../theme/components/buttons.dart';
+import '../../../../theme/custom_colors.dart';
+
+class AvatarBackground extends StatelessWidget {
+  final List<Widget> children;
+  final double height;
+  final double width;
+  final String image;
+  final VoidCallback onContinue;
+  const AvatarBackground(
+      {super.key,
+      required this.children,
+      required this.height,
+      required this.width,
+      required this.image,
+      required this.onContinue});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Image.asset(
+                image,
+                width: width,
+              ),
+            )),
+        Positioned(
+            top: height > 860 ? 130 : 100,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              width: width,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              decoration: const BoxDecoration(
+                  color: CustomColors.fillWhite,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(24))),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: SizedBox(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: children,
+                        ),
+                      ),
+                    ),
+                  ),
+                  CustomElevatedButton(
+                      onClick: () => onContinue(), text: "CONTINUE")
+                ],
+              ),
+            ))
+      ],
+    );
+  }
+}

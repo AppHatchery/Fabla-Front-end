@@ -109,13 +109,14 @@ class BottomResearcherInfoPopUp extends StatelessWidget {
   final String organisation;
   final String duration;
   final String researcher;
+  final List<Widget>? actions;
   const BottomResearcherInfoPopUp(
       {super.key,
       required this.studyName,
       required this.studyDescription,
       required this.organisation,
       required this.duration,
-      required this.researcher});
+      required this.researcher, this.actions=const []});
 
   @override
   Widget build(BuildContext context) {
@@ -207,16 +208,20 @@ class BottomResearcherInfoPopUp extends StatelessWidget {
             height: 32,
           ),
 
+          actions!.isNotEmpty? Column(
+            children: actions!,
+          ):Container()
+
           //Confirmation
-          CustomElevatedButton(
-              onClick: () => Navigator.pop(context), text: "CONFIRM JOINING"),
-          const SizedBox(
-            height: 16,
-          ),
-          //Deny
-          CustomTextButton(
-              onClick: () => Navigator.pop(context),
-              text: "I have a problem with joining the study")
+          // CustomElevatedButton(
+          //     onClick: () => Navigator.pop(context), text: "CONFIRM JOINING"),
+          // const SizedBox(
+          //   height: 16,
+          // ),
+          // //Deny
+          // CustomTextButton(
+          //     onClick: () => Navigator.pop(context),
+          //     text: "I have a problem with joining the study")
         ],
       ),
     );
