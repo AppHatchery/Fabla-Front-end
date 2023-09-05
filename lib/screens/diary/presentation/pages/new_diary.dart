@@ -65,6 +65,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     }
   }
 
+  bool get isCurrentPageLast => currentPage == widget.diary.prompts.length - 1;
+
+
   void previousPage() {
     if (currentPage > 0) {
       controller.previousPage(
@@ -135,6 +138,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                   });
                 }
               },
+      nextPage: nextPage,
+      isLastPage: isCurrentPageLast,
             ))
         .toList();
   }
@@ -162,15 +167,18 @@ class QuestionPage extends StatefulWidget {
   final Prompt prompt;
   final GlobalKey<ScaffoldState> scaffoldKey;
   final ValueChanged<bool> answerAdded;
+  final VoidCallback nextPage;
+  final bool? isLastPage;
   const QuestionPage(
       {super.key,
       required this.diary,
       required this.prompt,
       required this.scaffoldKey,
-      required this.answerAdded});
+      required this.answerAdded, required this.nextPage,  this.isLastPage, });
 
   @override
   State<QuestionPage> createState() => _QuestionPageState();
+
 }
 
 class _QuestionPageState extends State<QuestionPage> {
@@ -178,6 +186,7 @@ class _QuestionPageState extends State<QuestionPage> {
   late Prompt prompt;
 
   bool isClicked = false;
+  ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -220,7 +229,9 @@ class _QuestionPageState extends State<QuestionPage> {
               }
             }
           }
-        }));
+        }
+        )
+    );
   }
 
   Widget buildLoading() {
@@ -237,6 +248,7 @@ class _QuestionPageState extends State<QuestionPage> {
 
   Widget buildPrompt(Prompt prompt) {
     return SingleChildScrollView(
+      controller: _scrollController,
       child: Column(
         children: [
           Row(
@@ -290,6 +302,7 @@ class _QuestionPageState extends State<QuestionPage> {
                   text: prompt.answer != null
                       ? "ADD NEW RESPONSE"
                       : "RECORD RESPONSE"),
+        if(widget.diary.status != DiaryStatus.submitted)   SizedBox(height: MediaQuery.of(context).size.height * 0.3),
           // const CustomTextButton(
           //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
         ],
@@ -306,8 +319,8 @@ class _QuestionPageState extends State<QuestionPage> {
         backgroundColor: Colors.transparent,
         context: context,
         isScrollControlled: true,
-        // isDismissible: false,
-        // enableDrag: false,
+        isDismissible: false,
+        enableDrag: true,
         builder: (context) => BottomRecordingModal(
               promptId: prompt.id,
               onSave: (value) {
@@ -322,8 +335,21 @@ class _QuestionPageState extends State<QuestionPage> {
   }
 
   void showSuccessModal() {
-    widget.scaffoldKey.currentState!
-        .showBottomSheet((context) => const BottomSuccessModal());
+    double bottomSuccessModalHeight = MediaQuery.of(context).size.height * 0.6;
+    bool isLast = widget.isLastPage ?? true;
+
+    widget.scaffoldKey.currentState!.showBottomSheet((context) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+
+      return BottomSuccessModal(
+        onNextQuestionClicked: widget.nextPage,
+        text: isLast ? "REVIEW SUMMARY" : "NEXT QUESTION",
+      );
+    });
   }
 
   void showErrorModal() {

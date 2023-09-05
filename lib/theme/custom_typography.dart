@@ -4,6 +4,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class CustomTypography {
   static const String fontName = 'Rubik';
 
+  TextStyle headlineLargeCustom({Color color = Colors.black, double fontSize = 32}){
+    return TextStyle(
+      fontFamily: fontName,
+      fontWeight: FontWeight.w600,
+      fontSize: fontSize,
+      color: color,
+      letterSpacing: 0,
+    );
+  }
+
   TextStyle headlineLarge({Color color = Colors.black}) {
     return TextStyle(
       fontFamily: fontName,

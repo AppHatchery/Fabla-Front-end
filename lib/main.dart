@@ -1,3 +1,5 @@
+import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_cubit.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_history_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.dart';
@@ -16,6 +18,7 @@ import 'screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'screens/diary/presentation/pages/diaries.dart';
 import 'screens/diary/presentation/pages/diarysummary.dart';
 import 'screens/home/presentation/cubit/cubit/home_cubit.dart';
+import 'services/amplify_init.dart';
 import 'services/diary_init.dart';
 
 //Global variables
@@ -24,6 +27,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   objectbox = await ObjectBox.create();
   await diaryInit();
+  await configureAmplify();
   runApp(const MyApp());
 }
 
@@ -60,6 +64,8 @@ class _MyAppState extends State<MyApp> {
               BlocProvider<SummaryCubit>(create: (context) => SummaryCubit()),
               BlocProvider<LoginCubit>(create: (context) => LoginCubit()),
               BlocProvider<SetupCubit>(create: (context) => SetupCubit()),
+              BlocProvider<DiaryCubit>(create:(context) => DiaryCubit()),
+              BlocProvider<DiaryHistoryCubit>(create: (context) => DiaryHistoryCubit()),
             ],
             child: MaterialApp(
               title: 'Audio Diaries',
@@ -92,6 +98,7 @@ class _MyAppState extends State<MyApp> {
             ));
       },
       child: route,
+        child: MediaQuery(data: MediaQuery.of(context).copyWith(textScaleFactor: 1), child: const route,)
     );
   }
 }

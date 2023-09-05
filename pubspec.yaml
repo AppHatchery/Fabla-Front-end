@@ -27,6 +27,7 @@ dependencies:
 
   cupertino_icons: ^1.0.2
 
+  table_calendar: ^3.0.9
   #Adaptive font
   flutter_screenutil: ^5.8.4
 
@@ -59,8 +60,14 @@ dependencies:
   objectbox: ^2.2.0
   objectbox_flutter_libs: any
 
+
   #Animations
   lottie: ^2.6.0
+
+  #Amplify
+  amplify_flutter: ^1.0.0
+  amplify_auth_cognito: ^1.0.0
+  amplify_storage_s3: ^1.0.0
 
 dev_dependencies:
   flutter_test:
