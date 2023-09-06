@@ -20,6 +20,7 @@ import 'screens/diary/presentation/pages/diarysummary.dart';
 import 'screens/home/presentation/cubit/cubit/home_cubit.dart';
 import 'services/amplify_init.dart';
 import 'services/diary_init.dart';
+import 'services/notification_service.dart';
 
 //Global variables
 late ObjectBox objectbox;
@@ -28,6 +29,7 @@ void main() async {
   objectbox = await ObjectBox.create();
   await diaryInit();
   await configureAmplify();
+  await NotificationService.init();
   runApp(const MyApp());
 }
 
@@ -43,6 +45,7 @@ class _MyAppState extends State<MyApp> {
   late Widget route;
   @override
   void initState() {
+    NotificationService.setListeners();
     route = RouteService().getRoute();
     super.initState();
   }
@@ -97,8 +100,7 @@ class _MyAppState extends State<MyApp> {
               },
             ));
       },
-      child: route,
-        child: MediaQuery(data: MediaQuery.of(context).copyWith(textScaleFactor: 1), child: const route,)
+        child: MediaQuery(data: MediaQuery.of(context).copyWith(textScaleFactor: 1), child: route,)
     );
   }
 }
