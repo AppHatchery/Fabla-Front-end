@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../../../theme/custom_colors.dart';
 
-
 class CustomCalender extends StatelessWidget {
-  const CustomCalender({super.key});
+  final DateTime? startDate;
+  final DateTime? endDate;
+  const CustomCalender({super.key, this.startDate, this.endDate});
 
   @override
   Widget build(BuildContext context) {
-    return  Container(
+    return Container(
       decoration: BoxDecoration(
         color: CustomColors.fillWhite,
         borderRadius: BorderRadius.circular(12),
@@ -20,7 +20,7 @@ class CustomCalender extends StatelessWidget {
         ),
         shape: BoxShape.rectangle,
       ),
-      child:  TableCalendar(
+      child: TableCalendar(
         firstDay: DateTime.utc(2010, 10, 16),
         lastDay: DateTime.utc(2030, 3, 14),
         focusedDay: DateTime.now(),
@@ -31,13 +31,10 @@ class CustomCalender extends StatelessWidget {
           leftChevronIcon: Icon(Icons.chevron_left),
           rightChevronIcon: Icon(Icons.chevron_right),
         ),
-
-        calendarStyle: const CalendarStyle(
-          markerSize: 1
-        ),
-
+        rangeStartDay: startDate,
+        rangeEndDay: endDate,
+        calendarStyle: const CalendarStyle(markerSize: 1),
       ),
     );
   }
 }
-

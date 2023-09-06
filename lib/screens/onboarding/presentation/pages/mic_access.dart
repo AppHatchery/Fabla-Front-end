@@ -68,14 +68,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
                     width: width,
                     recorder: recorder,
                   ),
-                  const SizedBox(height: 24.0),
-                  permission ? const SizedBox.shrink(): Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 60.0),
-                    child: Image.asset(
-                      "assets/images/mic_example.png",
-                      width: width,
-                    ),
-                  ),
+                 
                 ]),
               ),
               CustomElevatedButton(

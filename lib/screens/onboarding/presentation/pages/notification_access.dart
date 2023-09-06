@@ -46,14 +46,6 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
                   "assets/images/notification_access.png",
                   width: width,
                 ),
-                const SizedBox(height: 24.0),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 60.0),
-                  child: Image.asset(
-                    "assets/images/notification_example_ios.png",
-                    width: width,
-                  ),
-                ),
               ]),
             ),
             CustomElevatedButton(

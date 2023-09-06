@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_time.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -99,9 +100,24 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
             child: AvatarBackground(
                 height: height,
                 width: width,
-                image: "assets/images/active_dates.png", // Change Image
-                onContinue: () => Navigator.push(context, MaterialPageRoute(builder: (context)=> const ActiveTimePage())),
-                children: const []),
+                image: "assets/images/active_dates.png",
+                onContinue: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ActiveTimePage())),
+                children: [
+                  Text(
+                    "Diary Calendar",
+                    style: CustomTypography().titleLarge(),
+                  ),
+                  const SizedBox(
+                    height: 6,
+                  ),
+                  CustomCalender(
+                    startDate: DateTime.now(),
+                    endDate: DateTime.now().add(const Duration(days: 5)),
+                  ),
+                ]),
           ),
         )
       ],
