@@ -22,10 +22,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late HomeCubit homeCubit;
+  String _name = "";
   @override
   void initState() {
     homeCubit = BlocProvider.of<HomeCubit>(context);
     fetchData(context);
+    getParticipant();
     super.initState();
   }
 
@@ -52,7 +54,7 @@ class _HomePageState extends State<HomePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Hi, Christopher",
+                          "Hi, $_name",
                           style: CustomTypography()
                               .headlineLargeCustom(color: CustomColors.fillWhite,
                             //fontSize: MediaQuery.of(context).textScaleFactor * 20,
@@ -151,6 +153,13 @@ class _HomePageState extends State<HomePage> {
     if (shouldRefresh) {
       homeCubit.loadDiaries();
     }
+  }
+
+  void getParticipant() async{
+    final name = await homeCubit.getParticipantName();
+    setState(() {
+      _name = name;
+    });
   }
 
   void showResearchInformation() {

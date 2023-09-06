@@ -114,8 +114,8 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                     height: 6,
                   ),
                   CustomCalender(
-                    startDate: DateTime.now(),
-                    endDate: DateTime.now().add(const Duration(days: 5)),
+                    rangeStart: DateTime.now(),
+                    rangeEnd: DateTime.now().add(const Duration(days: 5)),
                   ),
                 ]),
           ),

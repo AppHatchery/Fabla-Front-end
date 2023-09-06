@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -10,6 +11,7 @@ part 'home_state.dart';
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit() : super(const HomeInitial());
   DiaryRepository repository = DiaryRepository();
+  final SetupRepository setupRepository = SetupRepository();
   final today =
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
@@ -45,4 +47,7 @@ class HomeCubit extends Cubit<HomeState> {
       emit(const HomeError("Something went wrong"));
     }
   }
+
+  Future<String> getParticipantName() async => setupRepository.getParticipant()!.name;
+
 }
