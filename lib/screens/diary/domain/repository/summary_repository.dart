@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 
 import '../../../../core/utils/statuses.dart';
 import '../../data/diary.dart';
@@ -89,7 +90,9 @@ class SummaryRepository {
   ///
   Future<bool> submitDiary(Diary diary) async {
     try {
-      final uploaded = await upload(diary);
+      final SetupRepository repository = await SetupRepository();
+      final participant = repository.getParticipant();
+      final uploaded = await upload(participant!.studyCode,diary);
 
       if (uploaded) {
         diary.status = DiaryStatus.submitted;

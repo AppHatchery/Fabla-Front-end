@@ -34,7 +34,7 @@ import '../utils/formatter.dart';
 ///   // Handle upload failure.
 /// }
 /// ```
-Future<bool> upload(Diary diary) async {
+Future<bool> upload(String studyCode, Diary diary) async {
   List<DiaryAudioData> fileList = [];
 
   for (int i = 0; i < diary.prompts.length; i++) {
@@ -46,7 +46,7 @@ Future<bool> upload(Diary diary) async {
           prompt: i + 1, file: File(rec[r].path), date: rec[r].date));
     }
   }
-  final uploaded = await uploadFilesToS3(fileList);
+  final uploaded = await uploadFilesToS3(studyCode, fileList);
   return uploaded;
 }
 
@@ -77,9 +77,7 @@ Future<bool> upload(Diary diary) async {
 ///   // Handle upload failure.
 /// }
 /// ```
-Future<bool> uploadFilesToS3(List<DiaryAudioData> audioData) async {
-  var studycode = "654321";
-
+Future<bool> uploadFilesToS3(String studyCode, List<DiaryAudioData> audioData) async {
   for (DiaryAudioData fileData in audioData) {
     var filePath = fileData.file.path;
 
@@ -89,7 +87,7 @@ Future<bool> uploadFilesToS3(List<DiaryAudioData> audioData) async {
     try {
       final uploadResult = await Amplify.Storage.uploadFile(
         localFile: awsFile,
-        key: "$studycode/$date/prompt_${fileData.prompt}/$filename",
+        key: "$studyCode/$date/prompt_${fileData.prompt}/$filename",
       ).result;
       print('Uploaded file: ${uploadResult.uploadedItem.key}');
     } on StorageException catch (e) {
@@ -97,5 +95,21 @@ Future<bool> uploadFilesToS3(List<DiaryAudioData> audioData) async {
       return false;
     }
   }
+  return true;
+}
+
+Future<bool> uploadMetaDataS3(var studyCode,File file) async {
+final awsFile = AWSFilePlatform.fromFile(file);
+    try {
+      final uploadResult = await Amplify.Storage.uploadFile(
+        localFile: awsFile,
+        key: "$studyCode/metadata.txt",
+      ).result;
+      print('Uploaded Meta data file: ${uploadResult.uploadedItem.key}');
+    } on StorageException catch (e) {
+      print('Error uploading file: ${e.message}');
+      return false;
+    }
+  
   return true;
 }
