@@ -8,6 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
+import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
 
 class MicAccessPage extends StatefulWidget {
@@ -68,7 +69,69 @@ class _MicAccessPageState extends State<MicAccessPage> {
                     width: width,
                     recorder: recorder,
                   ),
-                 
+                  const SizedBox(height: 24),
+                  requested == true && permission == false
+                      ? Container(
+                          width: width,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: CustomColors.warningFill,
+                            border: Border.all(
+                              color: CustomColors.warningActive,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(11),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(CustomIcons.cancel,
+                                      size: 20,
+                                      color: CustomColors.warningActive),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  Flexible(
+                                    child: Text(
+                                      "Oops! You need to enable microphone access to use the recording diary.",
+                                      style: CustomTypography().bodyLarge(
+                                          color: CustomColors.warningActive),
+                                    ),
+                                  )
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 20, width: 20),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  TextButton(
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
+                                        alignment: Alignment.center,
+                                        backgroundColor:
+                                            CustomColors.warningActive,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(11),
+                                        ),
+                                      ),
+                                      onPressed: openPermissionSettings,
+                                      child: Text("Open Settings",
+                                          style: CustomTypography().bodyLarge(
+                                              color: CustomColors.textWhite)))
+                                ],
+                              ),
+                            ],
+                          ),
+                        )
+                      : const SizedBox.shrink()
                 ]),
               ),
               CustomElevatedButton(
@@ -132,5 +195,9 @@ class _MicAccessPageState extends State<MicAccessPage> {
       }
     }
     requested = true;
+  }
+
+  void openPermissionSettings() async {
+    await openAppSettings();
   }
 }
