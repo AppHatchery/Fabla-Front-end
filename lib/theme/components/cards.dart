@@ -175,20 +175,20 @@ class AudioDiaryCard extends StatefulWidget {
   final bool viewOnly;
   final bool isExpanded;
   final VoidCallback? onTap;
-  const AudioDiaryCard(
-      {super.key,
-        required this.recording,
-        this.delete,
-        this.viewOnly = false,
-        this.isExpanded = false, this.onTap,
-      });
+  const AudioDiaryCard({
+    super.key,
+    required this.recording,
+    this.delete,
+    this.viewOnly = false,
+    this.isExpanded = false,
+    this.onTap,
+  });
 
   @override
   State<AudioDiaryCard> createState() => _AudioDiaryCardState();
 }
 
 class _AudioDiaryCardState extends State<AudioDiaryCard> {
-
   //Audio Player
   late AudioPlayer audioPlayer;
   bool isPlaying = false;
@@ -202,7 +202,6 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
     super.initState();
   }
 
-
   @override
   void dispose() {
     audioPlayer.dispose();
@@ -215,7 +214,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
     return SizedBox(
       width: width,
       child: GestureDetector(
-        onTap:  widget.onTap,
+        onTap: widget.onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
@@ -263,6 +262,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
       ),
     );
   }
+
   Widget title() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -629,8 +629,23 @@ class _TextDiaryCardState extends State<TextDiaryCard> {
   }
 }
 
-class CalendaerCard extends StatelessWidget {
-  const CalendaerCard({super.key});
+class CalendarCard extends StatefulWidget {
+  final List<Diary> diaries;
+  const CalendarCard({super.key, required this.diaries});
+
+  @override
+  State<CalendarCard> createState() => _CalendarCardState();
+}
+
+class _CalendarCardState extends State<CalendarCard> {
+  final List<Widget> days = [];
+  int diariesLeft = 0;
+
+  @override
+  void initState() {
+    prepareDays();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -638,7 +653,7 @@ class CalendaerCard extends StatelessWidget {
     return Container(
       width: width,
       decoration: BoxDecoration(
-          color: CustomColors.fillNormal,
+          color: CustomColors.fillWhite,
           border: Border.all(
             color: CustomColors.productBorderNormal,
             width: 2,
@@ -668,12 +683,12 @@ class CalendaerCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "1 diaries left this week",
+                          "$diariesLeft diaries left this week",
                           style: CustomTypography()
                               .bodyLarge(color: CustomColors.fillWhite),
                         ),
                         Text(
-                          "Great job!",
+                          encouragement(diariesLeft),
                           style: CustomTypography()
                               .bodyMedium(color: CustomColors.fillWhite),
                         )
@@ -696,54 +711,112 @@ class CalendaerCard extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 18),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                dayOfTheWeek("M", true),
-                dayOfTheWeek("T", false),
-                dayOfTheWeek("W", false),
-                dayOfTheWeek("T", false),
-                dayOfTheWeek("F", false),
-                dayOfTheWeek("S", false),
-                dayOfTheWeek("S", false),
-              ],
+              children: days,
             ),
           ),
         ],
       ),
     );
   }
-}
 
-Widget dayOfTheWeek(String day, bool isToday) {
-  return Column(
-    children: [
-      Text(
-        day,
-        style: CustomTypography().titleSmall(
-          color: isToday
-              ? CustomColors.yellowDark
-              : CustomColors.textTertiaryContent,
+  void prepareDays() {
+    final today = DateTime.now().weekday;
+    print("Length is ${widget.diaries.length}");
+    setState(() {
+      diariesLeft = widget.diaries
+          .where((element) => element.status != DiaryStatus.submitted)
+          .length;
+    });
+
+    // Define a map of day abbreviations.
+    final Map<int, String> dayAbbreviations = {
+      1: "M",
+      2: "T",
+      3: "W",
+      4: "T",
+      5: "F",
+      6: "S",
+      7: "S",
+    };
+
+    // Create a list of dayOfTheWeek objects using list comprehension.
+    final d = List.generate(
+      7,
+      (index) {
+        final isToday = today == index + 1;
+        final day = dayAbbreviations[index + 1]; // Adjust for 1-based indexing.
+
+        return dayOfTheWeek(day, isToday, false);
+      },
+    );
+
+    for (var diary in widget.diaries) {
+      final day = diary.due.weekday;
+      final isToday = today == day;
+      final isComplete = diary.status == DiaryStatus.submitted;
+      d[day - 1] = dayOfTheWeek(dayAbbreviations[day], isToday,
+          isComplete); // Adjust for 1-based indexing.
+    }
+
+    // Update the 'days' list or add to 'days' if 'widget.weekDiarys' is empty.
+    days.addAll(d);
+  }
+
+  Widget dayOfTheWeek(String? day, bool isToday, bool isComplete) {
+    return Column(
+      children: [
+        Text(
+          day.toString(),
+          style: CustomTypography().titleSmall(
+            color: isToday
+                ? CustomColors.yellowDark
+                : CustomColors.textTertiaryContent,
+          ),
         ),
-      ),
-      Container(
-        height: 35,
-        width: 35,
-        padding: const EdgeInsets.only(right: 5),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          //borderRadius: BorderRadius.circular(100),
-          shape: BoxShape.circle,
-          color: isToday
-              ? CustomColors.yellowDark
-              : CustomColors.productBorderNormal,
+        Container(
+          height: 35,
+          width: 35,
+          padding: const EdgeInsets.only(right: 5),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            //borderRadius: BorderRadius.circular(100),
+            shape: BoxShape.circle,
+            color: isComplete
+                ? CustomColors.yellowDark
+                : CustomColors.productBorderNormal,
+          ),
+          child: isComplete
+              ? const Icon(
+                  CustomIcons.check,
+                  color: CustomColors.fillWhite,
+                  size: 13,
+                )
+              : const SizedBox.shrink(),
         ),
-        child: isToday
-            ? const Icon(
-                CustomIcons.check,
-                color: CustomColors.fillWhite,
-                size: 13,
-              )
-            : const SizedBox.shrink(),
-      ),
-    ],
-  );
+      ],
+    );
+  }
+
+  String encouragement(int days) {
+    switch (days) {
+      case 0:
+        return "Great job!";
+      case 1:
+        return "You're doing great!";
+      case 2:
+        return "You're on fire!";
+      case 3:
+        return "Keep it up!";
+      case 4:
+        return "You're making progress!";
+      case 5:
+        return "Just a few more to go!";
+      case 6:
+        return "You're off to a great start!";
+      case 7:
+        return "Let's get started!";
+      default:
+        return "Let's get started!";
+    }
+  }
 }

@@ -176,7 +176,9 @@ class _LoginPageState extends State<LoginPage> {
 
   void login() {
     if (controller.text.isNotEmpty) {
-      loginCubit.login(controller.text);
+      final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
+      final code = controller.text.substring(0, lastNonSpaceIndex + 1);
+      loginCubit.login(code);
     }
   }
 

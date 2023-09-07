@@ -48,6 +48,27 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  Future<String> getParticipantName() async => setupRepository.getParticipant()!.name;
+  Future<String> getParticipantName() async =>
+      setupRepository.getParticipant()!.name;
 
+  Future<List<Diary>> getAllDiaries() async => repository.getAllDiaries();
+
+  List<Diary> getAllDiariesThisWeek() {
+    final today = DateTime.now().weekday;
+
+    int daysUntilMonday = today == 1 ? 0 : 7 - today;
+    final monday = DateTime(
+        DateTime.now().add(Duration(days: -daysUntilMonday)).year,
+        DateTime.now().add(Duration(days: -daysUntilMonday)).month,
+        DateTime.now().add(Duration(days: -daysUntilMonday)).day);
+    final sunday = monday.add(const Duration(days: 6));
+
+    final diaries = repository.getAllDiaries();
+    final thisWeek = diaries
+        .where((element) =>
+            element.due.isAfter(monday) && element.due.isBefore(sunday))
+        .toList();
+    thisWeek.sort((a, b) => a.due.compareTo(b.due));
+    return thisWeek;
+  }
 }

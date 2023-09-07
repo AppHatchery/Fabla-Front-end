@@ -23,11 +23,13 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late HomeCubit homeCubit;
   String _name = "";
+  late List<Diary> diaries;
   @override
   void initState() {
     homeCubit = BlocProvider.of<HomeCubit>(context);
     fetchData(context);
     getParticipant();
+    diaries = homeCubit.getAllDiariesThisWeek();
     super.initState();
   }
 
@@ -55,8 +57,8 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Text(
                           "Hi, $_name",
-                          style: CustomTypography()
-                              .headlineLargeCustom(color: CustomColors.fillWhite,
+                          style: CustomTypography().headlineLargeCustom(
+                            color: CustomColors.fillWhite,
                             //fontSize: MediaQuery.of(context).textScaleFactor * 20,
                           ),
                         ),
@@ -91,7 +93,9 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: ListView(
             children: [
-              const CalendaerCard(),
+              CalendarCard(
+                diaries: diaries,
+              ),
               const SizedBox(
                 height: 24,
               ),
@@ -155,7 +159,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void getParticipant() async{
+  void getParticipant() async {
     final name = await homeCubit.getParticipantName();
     setState(() {
       _name = name;
