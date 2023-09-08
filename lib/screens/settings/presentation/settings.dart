@@ -124,7 +124,7 @@ class _SettingsState extends State<Settings> {
                             color: CustomColors.textTertiaryContent),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -133,10 +133,51 @@ class _SettingsState extends State<Settings> {
             const SizedBox(height: 12.0),
           ]),
         )),
+        // ElevatedButton(
+        //   onPressed: () {
+        //     openAppSettings();
+        //     //AppSettings.openAppSettings(type: AppSettingsType.settings);
+        //   },
+        //   child: const Text('Open Microphone Settings'),
+        // ),
         Align(
           alignment: Alignment.bottomCenter,
-          child: Image.asset(
-            "assets/images/emory_watermark.png",
+          child: Column(
+            children: [
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                TextButton(
+                  onPressed: () {},
+                  child: Text(
+                    "Privacy & Terms",
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textSecondaryContent),
+                  ),
+                ),
+                Text(
+                  "|",
+                  style: CustomTypography()
+                      .bodyMedium(color: CustomColors.textSecondaryContent),
+                ),
+                TextButton(
+                  onPressed: () {},
+                  child: Text(
+                    "Provide Feedback",
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textSecondaryContent),
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 12),
+              Image.asset(
+                "assets/images/emory_logo.png",
+              ),
+              const SizedBox(height: 24),
+              Text(
+                "Dayrio Version 1.1",
+                style: CustomTypography()
+                    .bodyMedium(color: CustomColors.textSecondaryContent),
+              )
+            ],
           ),
         ),
         const SizedBox(height: 16),
