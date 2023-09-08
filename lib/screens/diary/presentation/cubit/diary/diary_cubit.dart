@@ -29,6 +29,8 @@ class DiaryCubit extends Cubit<DiaryState>{
         diaries
             .sort((a, b) => a.status.toString().compareTo(b.status.toString()));
         emit(DiaryLoaded(diaries, unSubmittedDiaries));
+      }else{
+        emit(const DiaryLoaded([], []));
       }
     } catch(e){
       emit(const DiaryError("Something went wrong"));

@@ -42,6 +42,8 @@ class HomeCubit extends Cubit<HomeState> {
         diaries
             .sort((a, b) => a.status.toString().compareTo(b.status.toString()));
         emit(HomeLoaded(diaries, unSubmittedDiaries));
+      } else {
+        emit(const HomeLoaded([], []));
       }
     } catch (e) {
       emit(const HomeError("Something went wrong"));
