@@ -198,6 +198,15 @@ class _MicAccessPageState extends State<MicAccessPage> {
   }
 
   void openPermissionSettings() async {
-    await openAppSettings();
+    bool opened = await openAppSettings();
+
+    if (opened) {
+      final results = await Permission.microphone.request();
+      setState(() {
+        permission = results.isGranted;
+      });
+
+      if (permission) startRecorder();
+    }
   }
 }
