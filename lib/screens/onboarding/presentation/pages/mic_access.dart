@@ -6,6 +6,7 @@ import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../../../services/preference_service.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
@@ -195,6 +196,8 @@ class _MicAccessPageState extends State<MicAccessPage> {
       }
     }
     requested = true;
+    await PreferenceService()
+        .setBoolPreference(key: 'mic_requested', value: requested);
   }
 
   void openPermissionSettings() async {
