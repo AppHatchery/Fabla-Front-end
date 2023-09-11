@@ -176,7 +176,14 @@ class _SettingsState extends State<Settings> {
                 "Dayrio Version 1.1",
                 style: CustomTypography()
                     .bodyMedium(color: CustomColors.textSecondaryContent),
-              )
+              ),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(
+                  "Copyright © 2023 Emory University",
+                  style: CustomTypography()
+                      .bodyMedium(color: CustomColors.textSecondaryContent),
+                ),
+              ]),
             ],
           ),
         ),
