@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -79,9 +80,6 @@ class SetupRepository {
     final file = File(path);
 
     await file.writeAsString(metadata);
-
-    final text = await file.readAsString();
-    print("Metadata: $text");
-    // TODO: Send file to S3 bucket, should be the root folder of the participant's folder
+    uploadMetaDataS3(code, file);
   }
 }
