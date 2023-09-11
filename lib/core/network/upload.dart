@@ -97,6 +97,7 @@ Future<bool> uploadFilesToS3(String studyCode, List<DiaryAudioData> audioData) a
   }
   return true;
 }
+/// Uploads a file having metadata about the study pertaining the participant to the s3 Bucket of the current participant 
 
 Future<bool> uploadMetaDataS3(var studyCode,File file) async {
 final awsFile = AWSFilePlatform.fromFile(file);

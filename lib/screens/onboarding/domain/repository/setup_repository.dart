@@ -80,9 +80,6 @@ class SetupRepository {
     final file = File(path);
 
     await file.writeAsString(metadata);
-
-
-    //print("Metadata: $text");
     uploadMetaDataS3(code, file);
   }
 }
