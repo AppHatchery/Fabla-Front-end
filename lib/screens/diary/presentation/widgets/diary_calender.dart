@@ -9,7 +9,8 @@ import '../../data/diary.dart';
 class DiaryCalender extends StatelessWidget {
   final List<Diary> diaries;
   final ValueChanged<bool> refresh;
-  const DiaryCalender({super.key, required this.diaries, required this.refresh});
+  const DiaryCalender(
+      {super.key, required this.diaries, required this.refresh});
 
   @override
   Widget build(BuildContext context) {
@@ -19,17 +20,27 @@ class DiaryCalender extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         Text(
           formattedDate,
           style: CustomTypography()
               .titleLarge(color: CustomColors.textNormalContent),
           textAlign: TextAlign.left,
         ),
-        const SizedBox(height: 6,),
-         DiaryCard(
-          diary: diaries[0],
-          refresh: (value) => refresh(value),
+        const SizedBox(
+          height: 6,
+        ),
+        ListView.builder(
+          padding: const EdgeInsets.all(0),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: diaries.length,
+          itemBuilder: (context, index) {
+            final diary = diaries[index];
+            return DiaryCard(
+              diary: diary,
+              refresh: refresh,
+            );
+          },
         )
       ],
     );

@@ -1,4 +1,4 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 
 import '../core/utils/dummy_data.dart';
 import '../core/utils/statuses.dart';
@@ -19,11 +19,11 @@ import '../screens/diary/domain/repository/diary_repository.dart';
 /// A Future indicating that the operation may be asynchronous and requires awaiting.
 ///
 Future<void> diaryInit() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  final bool? isFirstTime = prefs.getBool('isFirstTime');
+  final bool isFirstTime =
+      await PreferenceService().getBoolPreference(key: 'isFirstTime') ?? true;
 
-  if (isFirstTime ?? true) {
-    prefs.setBool('isFirstTime', false);
+  if (isFirstTime) {
+    PreferenceService().setBoolPreference(key: 'isFirstTime', value: false);
 
     final repository = DiaryRepository();
     final today = DateTime.now();

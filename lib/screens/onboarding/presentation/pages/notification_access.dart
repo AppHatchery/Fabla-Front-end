@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../../../services/preference_service.dart';
 import '../../../../theme/custom_colors.dart';
 
 class NotificationAccessPage extends StatefulWidget {
@@ -46,14 +47,6 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
                   "assets/images/notification_access.png",
                   width: width,
                 ),
-                const SizedBox(height: 24.0),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 60.0),
-                  child: Image.asset(
-                    "assets/images/notification_example_ios.png",
-                    width: width,
-                  ),
-                ),
               ]),
             ),
             CustomElevatedButton(
@@ -71,12 +64,15 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
 
   void navigateToNextPage() async {
     final results = await Permission.notification.request();
+    await PreferenceService()
+        .setBoolPreference(key: 'notification_requested', value: true);
+
     if (results.isGranted) {
       if (context.mounted) {
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const MicAccessPage()));
       }
-    }else{
+    } else {
       //TODO: Show error
     }
   }

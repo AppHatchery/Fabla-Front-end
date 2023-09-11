@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_history_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/diary_calender.dart';
@@ -25,15 +26,18 @@ enum Calendar { list, calendar }
 class _DiaryPageState extends State<DiariesPage> {
   late DiaryCubit diaryCubit;
   late DiaryHistoryCubit historyCubit;
+  Map<DateTime, List<String>> events = {};
 
   @override
-  void initState(){
+  void initState() {
     historyCubit = BlocProvider.of<DiaryHistoryCubit>(context);
     fetchHistoryData(context);
     diaryCubit = BlocProvider.of<DiaryCubit>(context);
     fetchData(context);
+    getAllDiaries();
     super.initState();
   }
+
   bool isListButtonSelected = true;
   Calendar calendarView = Calendar.list;
   DateTime currentDate = DateTime.now();
@@ -42,8 +46,7 @@ class _DiaryPageState extends State<DiariesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CustomColors.fillNormal,
-      appBar:
-      AppBar(
+      appBar: AppBar(
         backgroundColor: CustomColors.fillNormal,
         shadowColor: Colors.black,
         title: Text(
@@ -54,14 +57,12 @@ class _DiaryPageState extends State<DiariesPage> {
         centerTitle: true,
         shape: const Border(
             bottom: BorderSide(
-              color: CustomColors.productBorderNormal,
-              width: 2.0,
-            )
-        ),
+          color: CustomColors.productBorderNormal,
+          width: 2.0,
+        )),
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 16.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
@@ -69,7 +70,6 @@ class _DiaryPageState extends State<DiariesPage> {
               child: ListView(
                 children: [
                   Row(
-
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Visibility(
@@ -140,66 +140,57 @@ class _DiaryPageState extends State<DiariesPage> {
                             ),
                           ],
                         ),
-                      ]
-                  ),
+                      ]),
                   const SizedBox(height: 12),
                   Visibility(
                     visible: calendarView == Calendar.calendar,
-                    child: const CustomCalender(),
+                    child: CustomCalender(events: events,),
                   ),
                   const SizedBox(height: 24),
                   Visibility(
-                    visible: calendarView == Calendar.calendar,
+                      visible: calendarView == Calendar.calendar,
                       child: BlocConsumer<DiaryCubit, DiaryState>(
                         listener: (context, state) {},
-                        builder: (context, state){
-                          if(state is DiaryInitial){
+                        builder: (context, state) {
+                          if (state is DiaryInitial) {
                             return initialDiary();
-                          }else if(state is DiaryLoading){
+                          } else if (state is DiaryLoading) {
                             return loading();
-                          }else if(state is DiaryLoaded){
+                          } else if (state is DiaryLoaded) {
                             return loadedDiary(
-                                state.diaries,
-                              state.unSubmittedDiaries
-                            );
-                          }else{
+                                state.diaries, state.unSubmittedDiaries);
+                          } else {
                             return initialDiary();
                           }
                         },
-                      )
-                  ),
-                 Visibility(
-                   visible: calendarView == Calendar.list,
-                     child: BlocConsumer<DiaryHistoryCubit, DiaryHistoryState>(
-                       listener: (context, state){},
-                       builder: (context, state){
-                         if(state is DiaryHistoryInitial){
-                           return initialDiaryHistory();
-                         } else if(state is DiaryHistoryLoading){
-                           return historyLoading();
-                         } else if(state is DiaryHistoryLoaded){
-                           return loadedDiaryHistory(
-                             state.diaries,
-                             state.unSubmittedDiaries
-                           );
-                         } else{
-                           return initialDiaryHistory();
-                         }
-                       },
-                     )
-                 )
+                      )),
+                  Visibility(
+                      visible: calendarView == Calendar.list,
+                      child: BlocConsumer<DiaryHistoryCubit, DiaryHistoryState>(
+                        listener: (context, state) {},
+                        builder: (context, state) {
+                          if (state is DiaryHistoryInitial) {
+                            return initialDiaryHistory();
+                          } else if (state is DiaryHistoryLoading) {
+                            return historyLoading();
+                          } else if (state is DiaryHistoryLoaded) {
+                            return loadedDiaryHistory(
+                                state.diaries, state.unSubmittedDiaries);
+                          } else {
+                            return initialDiaryHistory();
+                          }
+                        },
+                      ))
                 ],
               ),
             ),
-          ]
-          ,
-        )
-        ,
+          ],
+        ),
       ),
     );
   }
 
-  Widget historyLoading(){
+  Widget historyLoading() {
     return const Center(
       child: CircularProgressIndicator(
         color: CustomColors.productBorderNormal,
@@ -207,22 +198,22 @@ class _DiaryPageState extends State<DiariesPage> {
     );
   }
 
-
-  Widget initialDiaryHistory(){
+  Widget initialDiaryHistory() {
     return Container(
       child: const Text("No Diary History"),
     );
   }
 
-  Widget loadedDiaryHistory(List<Diary> diaries, List<Diary> unSubmittedDiaries){
+  Widget loadedDiaryHistory(
+      List<Diary> diaries, List<Diary> unSubmittedDiaries) {
     return SingleChildScrollView(
       child: Column(
         children: [
           unSubmittedDiaries.isNotEmpty
               ? UnsubmittedDiaryList(
-            diaries: unSubmittedDiaries,
-            refresh: (value) => refresh(value),
-          )
+                  diaries: unSubmittedDiaries,
+                  refresh: (value) => refresh(value),
+                )
               : const SizedBox.shrink(),
           DiaryHistory(diaries: diaries, refresh: (value) => refresh(value)),
         ],
@@ -230,52 +221,62 @@ class _DiaryPageState extends State<DiariesPage> {
     );
   }
 
-  void fetchHistoryData(BuildContext context){
+  void fetchHistoryData(BuildContext context) {
     historyCubit.loadPastDiaries();
   }
 
-  void refreshHistory(bool shouldRefresh){
-    if(shouldRefresh){
+  void refreshHistory(bool shouldRefresh) {
+    if (shouldRefresh) {
       historyCubit.loadPastDiaries();
     }
   }
 
-  Widget loading(){
+  Widget loading() {
     return const Center(
         child: CircularProgressIndicator(
-          color: CustomColors.productNormalActive,
-        )
-    );
+      color: CustomColors.productNormalActive,
+    ));
   }
 
-  Widget initialDiary(){
+  Widget initialDiary() {
     return Container();
   }
 
-  Widget loadedDiary(List<Diary> diaries, List<Diary> unSubmittedDiaries){
+  Widget loadedDiary(List<Diary> diaries, List<Diary> unSubmittedDiaries) {
     return SingleChildScrollView(
       child: Column(
         children: [
           unSubmittedDiaries.isNotEmpty
               ? UnsubmittedDiaryList(
-
-            diaries: unSubmittedDiaries,
-            refresh: (value) => refresh(value),
-          )
+                  diaries: unSubmittedDiaries,
+                  refresh: (value) => refresh(value),
+                )
               : const SizedBox.shrink(),
           DiaryCalender(diaries: diaries, refresh: (value) => refresh(value)),
         ],
       ),
     );
   }
-  void fetchData(BuildContext context){
+
+  void fetchData(BuildContext context) {
     diaryCubit.loadDiaries();
   }
 
-  void refresh(bool shouldRefresh){
-    if(shouldRefresh){
+  void refresh(bool shouldRefresh) {
+    if (shouldRefresh) {
       diaryCubit.loadDiaries();
     }
   }
 
+  void getAllDiaries() {
+    final DiaryRepository repository = DiaryRepository();
+    List<Diary> diaries = repository.getAllDiaries();
+    final date = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+
+    for(Diary diary in diaries){
+      if(diary.due != date){
+        events.addAll({diary.due: ["Yes"]});
+      }
+    }
+  }
 }

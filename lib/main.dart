@@ -30,11 +30,15 @@ void main() async {
   await diaryInit();
   await configureAmplify();
   await NotificationService.init();
-  runApp(const MyApp());
+  final route = await RouteService().getRoute();
+  runApp(MyApp(
+    route: route,
+  ));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final Widget route;
+  const MyApp({super.key, required this.route});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -42,11 +46,11 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final RouteService routeService = RouteService();
-  late Widget route;
+  late Widget _route;
   @override
-  void initState() {
+  initState() {
     NotificationService.setListeners();
-    route = RouteService().getRoute();
+    _route = widget.route;
     super.initState();
   }
 
@@ -55,53 +59,58 @@ class _MyAppState extends State<MyApp> {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
-      minTextAdapt: true,
-      designSize: Size(width, height),
-      builder: (context, child) {
-        return MultiBlocProvider(
-            providers: [
-              BlocProvider<HomeCubit>(
-                create: (context) => HomeCubit(),
-              ),
-              BlocProvider<PromptCubit>(create: (context) => PromptCubit()),
-              BlocProvider<SummaryCubit>(create: (context) => SummaryCubit()),
-              BlocProvider<LoginCubit>(create: (context) => LoginCubit()),
-              BlocProvider<SetupCubit>(create: (context) => SetupCubit()),
-              BlocProvider<DiaryCubit>(create:(context) => DiaryCubit()),
-              BlocProvider<DiaryHistoryCubit>(create: (context) => DiaryHistoryCubit()),
-            ],
-            child: MaterialApp(
-              title: 'Audio Diaries',
-              theme: ThemeData(
-                  primaryColor: CustomColors.productNormal, useMaterial3: true),
-              home: child,
-              debugShowCheckedModeBanner: false,
-              onGenerateRoute: (settings) {
-                switch (settings.name) {
-                  case "/NewDiaryPage":
-                    {
-                      final Diary diary = settings.arguments as Diary;
+        minTextAdapt: true,
+        designSize: Size(width, height),
+        builder: (context, child) {
+          return MultiBlocProvider(
+              providers: [
+                BlocProvider<HomeCubit>(
+                  create: (context) => HomeCubit(),
+                ),
+                BlocProvider<PromptCubit>(create: (context) => PromptCubit()),
+                BlocProvider<SummaryCubit>(create: (context) => SummaryCubit()),
+                BlocProvider<LoginCubit>(create: (context) => LoginCubit()),
+                BlocProvider<SetupCubit>(create: (context) => SetupCubit()),
+                BlocProvider<DiaryCubit>(create: (context) => DiaryCubit()),
+                BlocProvider<DiaryHistoryCubit>(
+                    create: (context) => DiaryHistoryCubit()),
+              ],
+              child: MaterialApp(
+                title: 'Audio Diaries',
+                theme: ThemeData(
+                    primaryColor: CustomColors.productNormal,
+                    useMaterial3: true),
+                home: child,
+                debugShowCheckedModeBanner: false,
+                onGenerateRoute: (settings) {
+                  switch (settings.name) {
+                    case "/NewDiaryPage":
+                      {
+                        final Diary diary = settings.arguments as Diary;
+                        return MaterialPageRoute(
+                            builder: (context) => NewDiaryPage(
+                                  diary: diary,
+                                ));
+                      }
+                    case "/DiarySummaryPage":
+                      {
+                        final Diary diary = settings.arguments as Diary;
+                        return MaterialPageRoute(
+                            builder: (context) => DiarySummaryPage(
+                                  diary: diary,
+                                ));
+                      }
+                    default:
                       return MaterialPageRoute(
-                          builder: (context) => NewDiaryPage(
-                                diary: diary,
-                              ));
-                    }
-                  case "/DiarySummaryPage":
-                    {
-                      final Diary diary = settings.arguments as Diary;
-                      return MaterialPageRoute(
-                          builder: (context) => DiarySummaryPage(
-                                diary: diary,
-                              ));
-                    }
-                  default:
-                    return MaterialPageRoute(builder: (context) => const Hub());
-                }
-              },
-            ));
-      },
-        child: MediaQuery(data: MediaQuery.of(context).copyWith(textScaleFactor: 1), child: route,)
-    );
+                          builder: (context) => const Hub());
+                  }
+                },
+              ));
+        },
+        child: MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaleFactor: 1),
+          child: _route,
+        ));
   }
 }
 
