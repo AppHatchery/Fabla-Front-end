@@ -74,6 +74,9 @@ dependencies:
   #Notification
   awesome_notifications: ^0.7.4+1
 
+  #URL Launcher
+  url_launcher: ^6.1.14
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

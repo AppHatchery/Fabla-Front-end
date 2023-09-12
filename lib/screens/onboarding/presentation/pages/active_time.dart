@@ -43,7 +43,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Text(
-                        "When would you like to take diaries?",
+                        "What time of day would you like to do your diary?",
                         style: CustomTypography()
                             .headlineLarge(color: CustomColors.textWhite),
                       ),
@@ -58,7 +58,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                             height: height,
                             width: width,
                             image:
-                                "assets/images/active_time.png", // Change Image
+                                "assets/images/active_time.png",
                             onContinue: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -66,8 +66,8 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                                         const NotificationAccessPage())),
                             children: [
                               Text(
-                                "Diary Time",
-                                style: CustomTypography().headlineMedium(),
+                                "Reminder Time",
+                                style: CustomTypography().titleLarge(),
                               ),
                               const SizedBox(
                                 height: 6,

@@ -1,9 +1,12 @@
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welcome.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
 
 import '../screens/onboarding/presentation/pages/login.dart';
+import '../screens/onboarding/presentation/pages/mic_access.dart';
+import '../screens/onboarding/presentation/pages/notification_access.dart';
 
 class RouteService {
   /// Determines the appropriate route based on the participant's status.
@@ -28,16 +31,28 @@ class RouteService {
   ///   );
   /// }
   /// ```
-  Widget getRoute() {
+  Future<Widget> getRoute() async {
+    final setup =
+        await PreferenceService().getBoolPreference(key: 'setup') ?? false;
+    final notificationAccess = await PreferenceService()
+            .getBoolPreference(key: 'notification_requested') ??
+        false;
+    final micAccess =
+        await PreferenceService().getBoolPreference(key: 'mic_requested') ??
+            false;
     final setupRepository = SetupRepository();
     final participant = setupRepository.getParticipant();
 
     if (participant == null) {
       return const LoginPage();
-    } else if (participant.name == "") {
+    } else if (participant.name.isEmpty) {
       return const WelcomePage();
-    } else {
+    } else if (setup || (notificationAccess && micAccess)) {
       return const Hub();
+    } else if (notificationAccess) {
+      return const MicAccessPage();
+    } else {
+      return const NotificationAccessPage();
     }
   }
 }

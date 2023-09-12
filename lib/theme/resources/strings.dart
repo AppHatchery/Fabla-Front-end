@@ -33,6 +33,6 @@ class Strings {
   /// // Output: "Participant ABC123 \n started study on 2023-08-31"
   /// ```
   String participantMetadata(String code, String date) {
-    return "Participant $code \n started study on $date";
+    return 'Participant: $code \nStarted study on: $date';
   }
 }

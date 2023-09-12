@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/main.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
@@ -27,16 +28,16 @@ class _FinishPageState extends State<FinishPage> {
         children: [
           FutureBuilder(
             future: Future.delayed(const Duration(milliseconds: 250)),
-            builder: (context, snapshot){
-              if(snapshot.connectionState == ConnectionState.done){
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
                 return SizedBox(
-                height: height,
-                width: width,
-                child: Lottie.asset(
-                  "assets/animations/confetti.json",
-                  fit: BoxFit.cover,
-                  repeat: false,
-                ));
+                    height: height,
+                    width: width,
+                    child: Lottie.asset(
+                      "assets/animations/confetti.json",
+                      fit: BoxFit.cover,
+                      repeat: false,
+                    ));
               }
               return const SizedBox.shrink();
             },
@@ -77,11 +78,7 @@ class _FinishPageState extends State<FinishPage> {
                         height: 38,
                       ),
                       CustomElevatedButton(
-                        onClick: () => Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const Hub()),
-                            (route) => false),
+                        onClick: _next,
                         text: "GET STARTED",
                         color: CustomColors.fillWhite,
                         shadowColor: CustomColors.fillNormal,
@@ -96,5 +93,15 @@ class _FinishPageState extends State<FinishPage> {
         ],
       )),
     );
+  }
+
+  void _next() async {
+    await PreferenceService().setBoolPreference(key: 'setup', value: true);
+    if (context.mounted) {
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const Hub()),
+          (route) => false);
+    }
   }
 }

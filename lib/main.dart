@@ -31,11 +31,15 @@ void main() async {
   await diaryInit();
   await configureAmplify();
   await NotificationService.init();
-  runApp(const MyApp());
+  final route = await RouteService().getRoute();
+  runApp(MyApp(
+    route: route,
+  ));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final Widget route;
+  const MyApp({super.key, required this.route});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -43,11 +47,11 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final RouteService routeService = RouteService();
-  late Widget route;
+  late Widget _route;
   @override
-  void initState() {
+  initState() {
     NotificationService.setListeners();
-    route = RouteService().getRoute();
+    _route = widget.route;
     super.initState();
   }
 
@@ -106,7 +110,7 @@ class _MyAppState extends State<MyApp> {
         },
         child: MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaleFactor: 1),
-          child: route,
+          child: _route,
         ));
   }
 }
