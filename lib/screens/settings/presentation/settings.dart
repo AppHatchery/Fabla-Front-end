@@ -1,12 +1,9 @@
-import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/screens/settings/widgets/test_microphone_widget.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:permission_handler/permission_handler.dart';
-
-import '../../onboarding/presentation/widgets/list_active_times.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -15,28 +12,43 @@ class Settings extends StatefulWidget {
   State<Settings> createState() => _SettingsState();
 }
 
-class _SettingsState extends State<Settings> {
-  bool light = false;
-  bool light2 = false;
+class _SettingsState extends State<Settings> with WidgetsBindingObserver {
+  bool micCheck = false;
+  bool notificationCheck = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     checkNotificationPermission();
     checkMicrophonePermission();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      checkNotificationPermission();
+      checkMicrophonePermission();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   Future<void> checkNotificationPermission() async {
     final status = await Permission.notification.status;
     setState(() {
-      light2 = status == PermissionStatus.granted;
+      notificationCheck = status == PermissionStatus.granted;
     });
   }
 
   Future<void> checkMicrophonePermission() async {
     final status = await Permission.microphone.status;
     setState(() {
-      light = status == PermissionStatus.granted;
+      micCheck = status == PermissionStatus.granted;
     });
   }
 
@@ -67,11 +79,17 @@ class _SettingsState extends State<Settings> {
                       .titleLarge(color: CustomColors.textNormalContent),
                 ),
                 CupertinoSwitch(
-                  value: light,
-                  onChanged: (bool value) {
-                    setState(() {
-                      light = value;
-                    });
+                  value: micCheck,
+                  onChanged: (bool value) async {
+                    if (!value) {
+                      final status = await Permission.microphone.request();
+                      if (status == PermissionStatus.granted) {
+                        setState(() {
+                          micCheck = value;
+                        });
+                      }
+                    }
+                    openAppSettings().then((_) {});
                   },
                   activeColor: CustomColors.productNormal,
                   trackColor: CustomColors.productBorderNormal,
@@ -79,7 +97,7 @@ class _SettingsState extends State<Settings> {
               ],
             ),
             Visibility(
-              visible: !light,
+              visible: !micCheck,
               child: Column(
                 children: [
                   Text(
@@ -90,21 +108,36 @@ class _SettingsState extends State<Settings> {
                 ],
               ),
             ),
-            Visibility(visible: light, child: const TestMicrophone()),
+            const SizedBox(
+              height: 12,
+            ),
+            Visibility(visible: micCheck, child: const TestMicrophone()),
+
+            ///REMINDERS
+            const SizedBox(
+              height: 24,
+            ),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Reminders",
+                  "Notifications",
                   style: CustomTypography()
                       .titleLarge(color: CustomColors.textNormalContent),
                 ),
                 CupertinoSwitch(
-                  value: light2,
-                  onChanged: (bool value) {
-                    setState(() {
-                      light2 = value;
-                    });
+                  value: notificationCheck,
+                  onChanged: (bool value) async {
+                    if (!value) {
+                      final status = await Permission.notification.request();
+                      if (status == PermissionStatus.granted) {
+                        setState(() {
+                          notificationCheck = value;
+                        });
+                      }
+                    }
+                    openAppSettings().then((_) {});
                   },
                   activeColor: CustomColors.productNormal,
                   trackColor: CustomColors.productBorderNormal,
@@ -112,7 +145,7 @@ class _SettingsState extends State<Settings> {
               ],
             ),
             Visibility(
-              visible: !light2,
+              visible: !notificationCheck,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -129,17 +162,11 @@ class _SettingsState extends State<Settings> {
               ),
             ),
             const SizedBox(height: 12.0),
-            Visibility(visible: light2, child: const ListActiveTimes()),
-            const SizedBox(height: 12.0),
+            // Visibility(
+            //     visible: notificationCheck, child: const ListActiveTimes()),
+            // const SizedBox(height: 12.0),
           ]),
         )),
-        // ElevatedButton(
-        //   onPressed: () {
-        //     openAppSettings();
-        //     //AppSettings.openAppSettings(type: AppSettingsType.settings);
-        //   },
-        //   child: const Text('Open Microphone Settings'),
-        // ),
         Align(
           alignment: Alignment.bottomCenter,
           child: Column(
