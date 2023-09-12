@@ -5,6 +5,7 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary
 import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_icons.dart';
@@ -126,7 +127,7 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
   static const pages = [
     HomePage(),
     DiariesPage(),
-    DiariesPage(),
+    Settings(),
   ];
 
   @override
