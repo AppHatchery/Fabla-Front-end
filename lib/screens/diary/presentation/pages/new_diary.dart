@@ -284,6 +284,7 @@ class _QuestionPageState extends State<QuestionPage> {
           ),
           if (!isClicked)
             ResearchersNote(
+              note: prompt.note,
               onDismissed: (value) => setState(() {
                 isClicked = value;
               }),

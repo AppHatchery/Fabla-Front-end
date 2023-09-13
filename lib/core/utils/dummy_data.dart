@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../screens/diary/data/diary.dart';
 import '../../screens/diary/data/prompt.dart';
 import '../../screens/diary/data/tag.dart';
+import '../../theme/resources/strings.dart';
 import 'statuses.dart';
 import 'types.dart';
 
@@ -40,55 +41,89 @@ List<Diary> exampleDiaries = [
 ];
 
 final List<Prompt> fakePrompts = [
+  //Day 1
   Prompt(
     id: 0,
-    question: "How was your day?",
+    question: "Talk about your day today.",
     responseType: ResponseType.recording,
+    note: Strings.researcherNote,
   ),
   Prompt(
     id: 1,
-    question: "How did you overcome an embarrassing moment today",
+    question:
+        "Talk about a time today when you felt understood or cared for by others, no matter how small.",
     responseType: ResponseType.recording,
+    note: Strings.researcherNoteTwo,
   ),
+  //Day 2
   Prompt(
     id: 2,
-    question: "How was your day?",
+    question: "Talk about your day today.",
     responseType: ResponseType.recording,
+    note: Strings.researcherNote,
   ),
   Prompt(
     id: 3,
-    question: "How did you overcome an embarrassing moment today",
+    question:
+        "Talk about today’s most stressful experience, no matter how small.",
     responseType: ResponseType.recording,
+    note: Strings.researcherNoteTwo,
   ),
+  //Day 3
   Prompt(
     id: 4,
-    question: "How was your day?",
+    question: "Talk about your day today.",
     responseType: ResponseType.recording,
+    note: Strings.researcherNote,
   ),
   Prompt(
     id: 5,
-    question: "How did you overcome an embarrassing moment today",
+    question:
+        "Talk about a time today when you felt understood or cared for by others, no matter how small.",
     responseType: ResponseType.recording,
+    note: Strings.researcherNoteTwo,
   ),
+  //Day 4
   Prompt(
     id: 6,
-    question: "How was your day?",
+    question: "Talk about your day today.",
     responseType: ResponseType.recording,
+    note: Strings.researcherNote,
   ),
   Prompt(
     id: 7,
-    question: "How did you overcome an embarrassing moment today",
+    question:
+        "Talk about today’s most stressful experience, no matter how small.",
     responseType: ResponseType.recording,
+    note: Strings.researcherNoteTwo,
   ),
+  //Day 5
   Prompt(
     id: 8,
-    question: "How was your day?",
+    question: "Talk about your day today.",
     responseType: ResponseType.recording,
+    note: Strings.researcherNote,
   ),
   Prompt(
     id: 9,
-    question: "How did you overcome an embarrassing moment today",
+    question:
+        "Talk about a time today when you felt understood or cared for by others, no matter how small.",
     responseType: ResponseType.recording,
+    note: Strings.researcherNoteTwo,
+  ),
+  //Day 6
+  Prompt(
+    id: 10,
+    question: "Talk about your day today.",
+    responseType: ResponseType.recording,
+    note: Strings.researcherNote,
+  ),
+  Prompt(
+    id: 11,
+    question:
+        "Talk about today’s most stressful experience, no matter how small.",
+    responseType: ResponseType.recording,
+    note: Strings.researcherNoteTwo,
   ),
 ];
 List<Tag> fakeTags = const [
