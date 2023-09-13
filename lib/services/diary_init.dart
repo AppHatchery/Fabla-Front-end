@@ -18,7 +18,7 @@ import '../screens/diary/domain/repository/diary_repository.dart';
 /// Returns:
 /// A Future indicating that the operation may be asynchronous and requires awaiting.
 ///
-Future<void> diaryInit() async {
+Future<void> diaryInit(String code) async {
   final bool isFirstTime =
       await PreferenceService().getBoolPreference(key: 'isFirstTime') ?? true;
 
@@ -26,17 +26,33 @@ Future<void> diaryInit() async {
     PreferenceService().setBoolPreference(key: 'isFirstTime', value: false);
 
     final repository = DiaryRepository();
-    final today = DateTime.now();
+    final start = startDate(code);
     final diaries = <DiaryEntity>[];
 
-    for (var i = 0; i + 1 < fakePrompts.length; i += 2) {
-      final date = today.add(Duration(days: i ~/ 2));
-      final deadline = DateTime(date.year, date.month, date.day);
-      final diary = DiaryEntity(
-          prompts: [i, i + 1], due: deadline, status: DiaryStatus.idle);
-      diaries.add(diary);
-    }
+    if (start != null) {
+      for (var i = 0; i + 1 < fakePrompts.length; i += 2) {
+        final date = start.add(Duration(days: i ~/ 2));
+        final deadline = DateTime(date.year, date.month, date.day);
+        final diary = DiaryEntity(
+            prompts: [i, i + 1], due: deadline, status: DiaryStatus.idle);
+        diaries.add(diary);
+      }
 
-    repository.addDiaries(diaries);
+      repository.addDiaries(diaries);
+    }
   }
+}
+
+DateTime? startDate(String code) {
+  final today = DateTime.now();
+  final nextSunday = today.add(Duration(days: 7 - today.weekday));
+
+  // Assuming that the code have two distinct starting digits
+  if (code.startsWith('1')) {
+    return nextSunday;
+  } else if (code.startsWith('2')) {
+    return nextSunday.add(const Duration(days: 6));
+  }
+
+  return null;
 }

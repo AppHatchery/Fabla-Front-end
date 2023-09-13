@@ -284,4 +284,6 @@ final List<String> studyCodes = [
   "R8W7K6",
   "C5T6I5",
   "V2O5G4",
+  "1001",
+  "2001"
 ];

@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/acti
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/utils/dummy_data.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
 import '../../domain/entities/participant.dart';
@@ -81,6 +82,8 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
   }
 
   Widget loaded(double height, double width, Participant participant) {
+    final start = startDate(participant.studyCode);
+    final end = start?.add(Duration(days: (fakePrompts.length ~/ 2) - 1));
     return Column(
       children: [
         Padding(
@@ -114,8 +117,8 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                     height: 6,
                   ),
                   CustomCalender(
-                    rangeStart: DateTime.now(),
-                    rangeEnd: DateTime.now().add(const Duration(days: 5)),
+                    rangeStart: start,
+                    rangeEnd: end,
                   ),
                 ]),
           ),
@@ -126,5 +129,19 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
 
   void load() {
     setupCubit.load();
+  }
+
+  DateTime? startDate(String code) {
+    final today = DateTime.now();
+    final nextSunday = today.add(Duration(days: 7 - today.weekday));
+
+    // Assuming that the code have two distinct starting digits
+    if (code.startsWith('1')) {
+      return nextSunday;
+    } else if (code.startsWith('2')) {
+      return nextSunday.add(const Duration(days: 6));
+    }
+
+    return null;
   }
 }

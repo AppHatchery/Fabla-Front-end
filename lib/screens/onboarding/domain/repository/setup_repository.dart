@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
+import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -74,6 +75,7 @@ class SetupRepository {
     final code = participant!.studyCode;
 
     final metadata = Strings().participantMetadata(code, date);
+    await diaryInit(code);
 
     final dir = await getTemporaryDirectory();
     final path = p.join(dir.path, "metadata.txt");
