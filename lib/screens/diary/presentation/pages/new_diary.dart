@@ -100,7 +100,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         body: Column(
           children: [
             CustomBarIndicator(
-              pageCount: 2,
+              pageCount: widget.diary.prompts.length,
               currentPage: currentPage,
             ),
             Expanded(
@@ -186,7 +186,7 @@ class _QuestionPageState extends State<QuestionPage> {
   late Prompt prompt;
 
   bool isClicked = false;
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -335,13 +335,12 @@ class _QuestionPageState extends State<QuestionPage> {
   }
 
   void showSuccessModal() {
-    double bottomSuccessModalHeight = MediaQuery.of(context).size.height * 0.6;
     bool isLast = widget.isLastPage ?? true;
 
     widget.scaffoldKey.currentState!.showBottomSheet((context) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
-        duration: Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
 

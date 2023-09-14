@@ -10,149 +10,410 @@ import 'types.dart';
 List<Diary> exampleDiaries = [
   Diary(
       id: 0,
-      prompts: fakePrompts,
+      prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.idle,
       due: DateTime.now()),
   Diary(
       id: 1,
-      prompts: fakePrompts,
+      prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.ongoing,
       due: DateTime.now()),
   Diary(
       id: 2,
-      prompts: fakePrompts,
+      prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.submitted,
       due: DateTime.now()),
   Diary(
       id: 3,
-      prompts: fakePrompts,
+      prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.complete,
       due: DateTime.now()),
   Diary(
       id: 4,
-      prompts: fakePrompts,
+      prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.ongoing,
       due: DateTime.now()),
 ];
 
-final List<Prompt> fakePrompts = [
-  Prompt(
-    id: 0,
-    question: "How was your day?",
-    responseType: ResponseType.recording,
-  ),
-  Prompt(
-    id: 1,
-    question: "How did you overcome an embarrassing moment today",
-    responseType: ResponseType.recording,
-  ),
-  Prompt(
-    id: 2,
-    question: "How was your day?",
-    responseType: ResponseType.recording,
-  ),
-  Prompt(
-    id: 3,
-    question: "How did you overcome an embarrassing moment today",
-    responseType: ResponseType.recording,
-  ),
-  Prompt(
-    id: 4,
-    question: "How was your day?",
-    responseType: ResponseType.recording,
-  ),
-  Prompt(
-    id: 5,
-    question: "How did you overcome an embarrassing moment today",
-    responseType: ResponseType.recording,
-  ),
-  Prompt(
-    id: 6,
-    question: "How was your day?",
-    responseType: ResponseType.recording,
-  ),
-  Prompt(
-    id: 7,
-    question: "How did you overcome an embarrassing moment today",
-    responseType: ResponseType.recording,
-  ),
-  Prompt(
-    id: 8,
-    question: "How was your day?",
-    responseType: ResponseType.recording,
-  ),
-  Prompt(
-    id: 9,
-    question: "How did you overcome an embarrassing moment today",
-    responseType: ResponseType.recording,
-  ),
-];
-
-final List<Prompt> newPrompts = [
-  Prompt(
-      id: 0,
-      question: "How do yo FEEL PHYSICALLY right now?",
-      responseType: ResponseType.slider),
-  Prompt(
-      id: 1,
+final Map<int, List<Prompt>> fakePrompts = {
+  // Day One
+  0: [
+    Prompt(
+        id: 0,
+        question: "How do yo FEEL PHYSICALLY right now?",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 1,
+        question:
+            "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 2,
+        question:
+            "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 3,
+        question: "I felt lonely today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 4,
+        question: "I felt left out today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 5,
+        question: "How much social interaction did you have today?",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 6,
+        question: "I felt understood/cared for by others today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 7,
+        question: "I felt stressed today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 8,
+        question:
+            "Which of the following best describes where you are physically right now? Check all that apply.",
+        responseType: ResponseType.multiple),
+    Prompt(
+        id: 9,
+        question: "How many people are around you right now?",
+        responseType: ResponseType.radio),
+    Prompt(
+        id: 10,
+        question:
+            "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+        responseType: ResponseType.slider),
+    Prompt(
+      id: 11,
+      question: "Talk about your day today.",
+      responseType: ResponseType.recording,
+    ),
+    Prompt(
+      id: 12,
       question:
-          "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
-      responseType: ResponseType.slider),
-  Prompt(
-      id: 2,
+          "Talk about a time today when you felt understood or cared for by others, no matter how small.",
+      responseType: ResponseType.recording,
+    ),
+  ],
+  // Day Two
+  1: [
+    Prompt(
+        id: 0,
+        question: "How do yo FEEL PHYSICALLY right now?",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 1,
+        question:
+            "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 2,
+        question:
+            "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 3,
+        question: "I felt lonely today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 4,
+        question: "I felt left out today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 5,
+        question: "How much social interaction did you have today?",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 6,
+        question: "I felt understood/cared for by others today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 7,
+        question: "I felt stressed today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 8,
+        question:
+            "Which of the following best describes where you are physically right now? Check all that apply.",
+        responseType: ResponseType.multiple),
+    Prompt(
+        id: 9,
+        question: "How many people are around you right now?",
+        responseType: ResponseType.radio),
+    Prompt(
+        id: 10,
+        question:
+            "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+        responseType: ResponseType.slider),
+    Prompt(
+      id: 11,
+      question: "Talk about your day today.",
+      responseType: ResponseType.recording,
+    ),
+    Prompt(
+      id: 12,
       question:
-          "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
-      responseType: ResponseType.slider),
-  Prompt(
-      id: 3,
-      question: "I felt lonely today.",
-      responseType: ResponseType.slider),
-  Prompt(
-      id: 4,
-      question: "I felt left out today.",
-      responseType: ResponseType.slider),
-  Prompt(
-      id: 5,
-      question: "How much social interaction did you have today?",
-      responseType: ResponseType.slider),
-  Prompt(
-      id: 6,
-      question: "I felt understood/cared for by others today.",
-      responseType: ResponseType.slider),
-  Prompt(
-      id: 7,
-      question: "I felt stressed today.",
-      responseType: ResponseType.slider),
-  Prompt(
-      id: 8,
+          "Talk about today’s most stressful experience, no matter how small.",
+      responseType: ResponseType.recording,
+    ),
+  ],
+  // Day Three
+  2: [
+    Prompt(
+        id: 0,
+        question: "How do yo FEEL PHYSICALLY right now?",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 1,
+        question:
+            "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 2,
+        question:
+            "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 3,
+        question: "I felt lonely today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 4,
+        question: "I felt left out today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 5,
+        question: "How much social interaction did you have today?",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 6,
+        question: "I felt understood/cared for by others today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 7,
+        question: "I felt stressed today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 8,
+        question:
+            "Which of the following best describes where you are physically right now? Check all that apply.",
+        responseType: ResponseType.multiple),
+    Prompt(
+        id: 9,
+        question: "How many people are around you right now?",
+        responseType: ResponseType.radio),
+    Prompt(
+        id: 10,
+        question:
+            "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+        responseType: ResponseType.slider),
+    Prompt(
+      id: 11,
+      question: "Talk about your day today.",
+      responseType: ResponseType.recording,
+    ),
+    Prompt(
+      id: 12,
       question:
-          "Which of the following best describes where you are physically right now? Check all that apply.",
-      responseType: ResponseType.multiple),
-  Prompt(
-      id: 9,
-      question: "How many people are around you right now?",
-      responseType: ResponseType.radio),
-  Prompt(
-      id: 10,
+          "Talk about a time today when you felt understood or cared for by others, no matter how small.",
+      responseType: ResponseType.recording,
+    ),
+  ],
+  // Day Four
+  3: [
+    Prompt(
+        id: 0,
+        question: "How do yo FEEL PHYSICALLY right now?",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 1,
+        question:
+            "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 2,
+        question:
+            "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 3,
+        question: "I felt lonely today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 4,
+        question: "I felt left out today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 5,
+        question: "How much social interaction did you have today?",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 6,
+        question: "I felt understood/cared for by others today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 7,
+        question: "I felt stressed today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 8,
+        question:
+            "Which of the following best describes where you are physically right now? Check all that apply.",
+        responseType: ResponseType.multiple),
+    Prompt(
+        id: 9,
+        question: "How many people are around you right now?",
+        responseType: ResponseType.radio),
+    Prompt(
+        id: 10,
+        question:
+            "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+        responseType: ResponseType.slider),
+    Prompt(
+      id: 11,
+      question: "Talk about your day today.",
+      responseType: ResponseType.recording,
+    ),
+    Prompt(
+      id: 12,
       question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
-      responseType: ResponseType.slider),
-  Prompt(
-    id: 11,
-    question: "How was your day?",
-    responseType: ResponseType.recording,
-  ),
-  Prompt(
-    id: 12,
-    question: "How did you overcome an embarrassing moment today",
-    responseType: ResponseType.recording,
-  ),
-];
+          "Talk about today’s most stressful experience, no matter how small.",
+      responseType: ResponseType.recording,
+    ),
+  ],
+  // Day Five
+  4: [
+    Prompt(
+        id: 0,
+        question: "How do yo FEEL PHYSICALLY right now?",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 1,
+        question:
+            "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 2,
+        question:
+            "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 3,
+        question: "I felt lonely today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 4,
+        question: "I felt left out today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 5,
+        question: "How much social interaction did you have today?",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 6,
+        question: "I felt understood/cared for by others today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 7,
+        question: "I felt stressed today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 8,
+        question:
+            "Which of the following best describes where you are physically right now? Check all that apply.",
+        responseType: ResponseType.multiple),
+    Prompt(
+        id: 9,
+        question: "How many people are around you right now?",
+        responseType: ResponseType.radio),
+    Prompt(
+        id: 10,
+        question:
+            "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+        responseType: ResponseType.slider),
+    Prompt(
+      id: 11,
+      question: "Talk about your day today.",
+      responseType: ResponseType.recording,
+    ),
+    Prompt(
+      id: 12,
+      question:
+          "Talk about a time today when you felt understood or cared for by others, no matter how small.",
+      responseType: ResponseType.recording,
+    ),
+  ],
+  // Day Six
+  5: [
+    Prompt(
+        id: 0,
+        question: "How do yo FEEL PHYSICALLY right now?",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 1,
+        question:
+            "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 2,
+        question:
+            "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 3,
+        question: "I felt lonely today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 4,
+        question: "I felt left out today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 5,
+        question: "How much social interaction did you have today?",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 6,
+        question: "I felt understood/cared for by others today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 7,
+        question: "I felt stressed today.",
+        responseType: ResponseType.slider),
+    Prompt(
+        id: 8,
+        question:
+            "Which of the following best describes where you are physically right now? Check all that apply.",
+        responseType: ResponseType.multiple),
+    Prompt(
+        id: 9,
+        question: "How many people are around you right now?",
+        responseType: ResponseType.radio),
+    Prompt(
+        id: 10,
+        question:
+            "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+        responseType: ResponseType.slider),
+    Prompt(
+      id: 11,
+      question: "Talk about your day today.",
+      responseType: ResponseType.recording,
+    ),
+    Prompt(
+      id: 12,
+      question:
+          "Talk about today’s most stressful experience, no matter how small.",
+      responseType: ResponseType.recording,
+    ),
+  ],
+};
 
 final List<Option> multipleOptions = [
   Option(id: 0, option: "At home or in my dorm room"),

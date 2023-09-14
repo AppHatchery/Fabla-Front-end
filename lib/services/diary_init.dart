@@ -29,11 +29,11 @@ Future<void> diaryInit() async {
     final today = DateTime.now();
     final diaries = <DiaryEntity>[];
 
-    for (var i = 0; i + 1 < fakePrompts.length; i += 2) {
-      final date = today.add(Duration(days: i ~/ 2));
+    for (var i = 0; i + 1 < fakePrompts.length; i ++) {
+      final date = today.add(Duration(days: i));
       final deadline = DateTime(date.year, date.month, date.day);
       final diary = DiaryEntity(
-          prompts: [i, i + 1], due: deadline, status: DiaryStatus.idle);
+          prompts: [i], due: deadline, status: DiaryStatus.idle);
       diaries.add(diary);
     }
 
