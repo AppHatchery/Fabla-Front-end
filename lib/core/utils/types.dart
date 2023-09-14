@@ -1,10 +1,6 @@
-enum ResponseType{
-  recording,
-  text,
-  multiple
-}
+enum ResponseType { recording, text, multiple, radio, slider }
 
-enum TagType{
+enum TagType {
   time,
   questions,
   remainder,

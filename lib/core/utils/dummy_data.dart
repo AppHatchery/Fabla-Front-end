@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
 import 'package:flutter/material.dart';
 
 import '../../screens/diary/data/diary.dart';
@@ -91,6 +92,84 @@ final List<Prompt> fakePrompts = [
     responseType: ResponseType.recording,
   ),
 ];
+
+final List<Prompt> newPrompts = [
+  Prompt(
+      id: 0,
+      question: "How do yo FEEL PHYSICALLY right now?",
+      responseType: ResponseType.slider),
+  Prompt(
+      id: 1,
+      question:
+          "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+      responseType: ResponseType.slider),
+  Prompt(
+      id: 2,
+      question:
+          "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
+      responseType: ResponseType.slider),
+  Prompt(
+      id: 3,
+      question: "I felt lonely today.",
+      responseType: ResponseType.slider),
+  Prompt(
+      id: 4,
+      question: "I felt left out today.",
+      responseType: ResponseType.slider),
+  Prompt(
+      id: 5,
+      question: "How much social interaction did you have today?",
+      responseType: ResponseType.slider),
+  Prompt(
+      id: 6,
+      question: "I felt understood/cared for by others today.",
+      responseType: ResponseType.slider),
+  Prompt(
+      id: 7,
+      question: "I felt stressed today.",
+      responseType: ResponseType.slider),
+  Prompt(
+      id: 8,
+      question:
+          "Which of the following best describes where you are physically right now? Check all that apply.",
+      responseType: ResponseType.multiple),
+  Prompt(
+      id: 9,
+      question: "How many people are around you right now?",
+      responseType: ResponseType.radio),
+  Prompt(
+      id: 10,
+      question:
+          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+      responseType: ResponseType.slider),
+  Prompt(
+    id: 11,
+    question: "How was your day?",
+    responseType: ResponseType.recording,
+  ),
+  Prompt(
+    id: 12,
+    question: "How did you overcome an embarrassing moment today",
+    responseType: ResponseType.recording,
+  ),
+];
+
+final List<Option> multipleOptions = [
+  Option(id: 0, option: "At home or in my dorm room"),
+  Option(id: 1, option: "In someone else's home or dorm room"),
+  Option(id: 2, option: "In a car, bus, or other form of transportation"),
+  Option(id: 3, option: "Outside"),
+  Option(id: 4, option: "In a public place(eg., library, restaurant airport)"),
+];
+
+final List<Option> radioOptions = [
+  Option(id: 0, option: "0"),
+  Option(id: 1, option: "1"),
+  Option(id: 2, option: "2"),
+  Option(id: 3, option: "3"),
+  Option(id: 4, option: "4 or more"),
+];
+
 List<Tag> fakeTags = const [
   Tag(text: "60 seconds", type: TagType.time),
   Tag(text: "Multiple questions", type: TagType.questions),
