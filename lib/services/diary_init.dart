@@ -39,6 +39,7 @@ Future<void> diaryInit(String code) async {
       }
 
       repository.addDiaries(diaries);
+      PreferenceService().setIntPreference(key: 'startDate', value: start.millisecondsSinceEpoch);
     }
   }
 }
