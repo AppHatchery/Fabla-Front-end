@@ -18,22 +18,18 @@ class CustomBarIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(pageCount, (index) {
-            return Expanded(
-              child: Container(
-                height: 5,
-                margin: const EdgeInsets.symmetric(horizontal: 5),
-                decoration: BoxDecoration(
-                  color: currentPage == index
-                      ? CustomColors.productNormal
-                      : CustomColors.productBorderNormal,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            );
-          }),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 5),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(30), // Apply borderRadius here
+            child: LinearProgressIndicator(
+              backgroundColor: CustomColors.productBorderNormal,
+              value: (currentPage + 1) / pageCount,
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(CustomColors.yellowDark),
+              minHeight: 6,
+            ),
+          ),
         ),
         const SizedBox(height: 12),
         Container(

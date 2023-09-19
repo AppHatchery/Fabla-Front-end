@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/utils/types.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/options.dart';
 
 import '../domain/entities/answer.dart';
 import 'tip.dart';
@@ -10,6 +11,7 @@ class Prompt {
   String? note;
   Tip? tip;
   Answer? answer;
+  Options? option;
 
   Prompt(
       {this.id = 0,
@@ -17,7 +19,8 @@ class Prompt {
       required this.responseType,
       this.note,
       this.tip,
-      this.answer});
+      this.answer,
+      this.option});
 
   /// Creates a new Prompt object with optional modifications.
   /// This method generates a new Prompt instance based on the current prompt object while allowing specific properties to be updated or changed.
@@ -38,6 +41,7 @@ class Prompt {
     String? note,
     Tip? tip,
     Answer? answer,
+    Options? option,
   }) {
     return Prompt(
       question: question ?? this.question,
@@ -45,6 +49,7 @@ class Prompt {
       note: note ?? this.note,
       tip: tip ?? this.tip,
       answer: answer ?? this.answer,
+      option: option ?? this.option,
     );
   }
 }

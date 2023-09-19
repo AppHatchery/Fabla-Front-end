@@ -3,52 +3,24 @@ import 'package:flutter/material.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
 
-class Trial extends StatelessWidget {
-  const Trial({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CustomColors.fillDisabled,
-      appBar: AppBar(
-          title: const Text(
-        "Trial",
-      )),
-      body: const Column(children: [
-        // Padding(
-        //   padding: EdgeInsets.all(12.0),
-        //   child: CheckboxQuestionCard(
-        //     answers: [
-        //       "Does this feel fake",
-        //       "wish we could turn back time",
-        //       "I am lost in this world,I am lost in this world,"
-        //     ],
-        //   ),
-        // ),
-        SizedBox(
-          height: 12,
-        ),
-        TextQuestionCard(),
-        // SliderQuestionCard(
-        //   scaleMaxText: "Extremely pleasant",
-        //   scaleMinText: "Extremely unpleasant",
-        // ),
-        SizedBox(
-          height: 12,
-        ),
-        RadioQuestionCard(
-          answers: ["0", "1", "2 or more"],
-        )
-      ]),
-    );
-  }
-}
+///These widgets are being used in the QuestionPage class
+///They are used to diplay tbe answer options for each question
+///whether slider option, multiple questions or radio questions
 
 class SliderQuestionCard extends StatefulWidget {
-  final String scaleMinText;
-  final String scaleMaxText;
-  const SliderQuestionCard(
-      {super.key, required this.scaleMinText, required this.scaleMaxText});
+  final String? scaleMinText;
+  final String? scaleMaxText;
+  final int scaleMin;
+  final int scaleMax;
+  final ValueChanged<double>? onSliderValueChanged;
+  const SliderQuestionCard({
+    super.key,
+    required this.scaleMinText,
+    required this.scaleMaxText,
+    this.onSliderValueChanged,
+    required this.scaleMin,
+    required this.scaleMax,
+  });
 
   @override
   State<SliderQuestionCard> createState() => _SliderQuestionCardState();
@@ -56,7 +28,6 @@ class SliderQuestionCard extends StatefulWidget {
 
 class _SliderQuestionCardState extends State<SliderQuestionCard> {
   double _currentSliderValue = 0;
-  double _maxSliderValue = 10;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -68,25 +39,28 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(_currentSliderValue.round().toString()),
+            Text(widget.scaleMin.toString()),
             Expanded(
               child: Slider(
                 value: _currentSliderValue,
-                max: _maxSliderValue,
-                divisions: 10,
+                min: widget.scaleMin.toDouble(),
+                max: widget.scaleMax.toDouble(),
+                divisions: widget.scaleMax - widget.scaleMin,
                 label: _currentSliderValue.round().toString(),
-
                 onChanged: (double value) {
                   setState(() {
                     _currentSliderValue = value;
                   });
+                  if (widget.onSliderValueChanged != null) {
+                    widget.onSliderValueChanged!(_currentSliderValue);
+                  }
                 },
                 activeColor: CustomColors.productNormalActive,
                 inactiveColor: CustomColors.newBlue,
                 //overlayColor:CustomColors.newBlue,
               ),
             ),
-            Text(_maxSliderValue.round().toString()),
+            Text(widget.scaleMax.toString()),
           ],
         ),
         Row(
@@ -95,14 +69,14 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
             SizedBox(
               width: 87,
               child: Text(
-                widget.scaleMinText,
+                widget.scaleMinText!,
                 textAlign: TextAlign.start,
               ),
             ),
             SizedBox(
               width: 87,
               child: Text(
-                widget.scaleMaxText,
+                widget.scaleMaxText!,
                 textAlign: TextAlign.end,
               ),
             ),
@@ -113,124 +87,123 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
   }
 }
 
-class CheckboxQuestionCard extends StatefulWidget {
-  final List<String> answers;
-  const CheckboxQuestionCard({super.key, required this.answers});
+class MultipleQuestion extends StatefulWidget {
+  final List<String> options;
+  final Function(bool) answerAdded;
+
+  const MultipleQuestion(
+      {super.key, required this.options, required this.answerAdded});
 
   @override
-  State<CheckboxQuestionCard> createState() => _CheckboxQuestionCardState();
+  State<MultipleQuestion> createState() => _MultipleQuestionState();
 }
 
-class _CheckboxQuestionCardState extends State<CheckboxQuestionCard> {
-  List<bool> _selected = [];
+class _MultipleQuestionState extends State<MultipleQuestion> {
+  List<bool> isCheckedList = [];
 
   @override
   void initState() {
     super.initState();
-    _selected = List<bool>.filled(widget.answers.length, false);
+    isCheckedList = List.generate(widget.options.length, (_) => false);
   }
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-        shrinkWrap: true,
-        itemCount: widget.answers.length,
-        itemBuilder: (context, index) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 3.0),
-                decoration: BoxDecoration(
-                    color: CustomColors.productLightPrimaryNormalWhite,
-                    borderRadius: BorderRadius.circular(14.0),
-                    border: Border.all(
-                        color: CustomColors.productBorderNormal, width: 2)),
-                child: CheckboxListTile(
-                  title: Text(
-                    widget.answers[index],
-                    style: CustomTypography()
-                        .button(color: CustomColors.productNormalActive),
-                  ),
-                  checkColor: CustomColors.productLightPrimaryNormalWhite,
-                  fillColor: MaterialStateProperty.all(
-                      CustomColors.productNormalActive),
-                  onChanged: (value) {
-                    setState(() {
-                      _selected[index] = value!;
-                    });
-                  },
-                  value: _selected[index],
-                  controlAffinity: ListTileControlAffinity.leading,
+      shrinkWrap: true,
+      itemCount: widget.options.length,
+      physics: const NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 4.0, vertical: 3.0),
+              decoration: BoxDecoration(
+                  color: CustomColors.productLightPrimaryNormalWhite,
+                  borderRadius: BorderRadius.circular(14.0),
+                  border: Border.all(
+                      color: CustomColors.productBorderNormal, width: 2)),
+              child: CheckboxListTile(
+                title: Text(
+                  widget.options[index],
+                  style: CustomTypography()
+                      .button(color: CustomColors.productNormalActive),
                 ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-            ],
-          );
-        });
+                checkColor: CustomColors.productLightPrimaryNormalWhite,
+                fillColor:
+                    MaterialStateProperty.all(CustomColors.productNormalActive),
+                controlAffinity: ListTileControlAffinity.leading,
+                value: isCheckedList[index],
+                onChanged: (value) {
+                  setState(() {
+                    isCheckedList[index] = value!;
+                  });
+                  widget.answerAdded(value!);
+                },
+              )),
+          const SizedBox(
+            height: 12,
+          ),
+        ]);
+      },
+    );
   }
 }
 
-class RadioQuestionCard extends StatefulWidget {
-  final List<String> answers;
-  const RadioQuestionCard({super.key, required this.answers});
+class RadioQuestion extends StatefulWidget {
+  final List<String> options;
+  final Function(String) answerSelected;
+
+  const RadioQuestion(
+      {super.key, required this.options, required this.answerSelected});
 
   @override
-  State<RadioQuestionCard> createState() => _RadioQuestionCardState();
+  State<RadioQuestion> createState() => _RadioQuestionState();
 }
 
-class _RadioQuestionCardState extends State<RadioQuestionCard> {
-  int? _selected;
-
-  @override
-  void initState() {
-    super.initState();
-    _selected = null;
-  }
+class _RadioQuestionState extends State<RadioQuestion> {
+  String? selectedOption;
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-        shrinkWrap: true,
-        itemCount: widget.answers.length,
-        itemBuilder: (context, index) {
-          return Column(
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 3.0),
-                decoration: BoxDecoration(
-                    color: CustomColors.productLightPrimaryNormalWhite,
-                    borderRadius: BorderRadius.circular(14.0),
-                    border: Border.all(
-                        color: CustomColors.productBorderNormal, width: 2)),
-                child: RadioListTile(
-                  title: Text(
-                    widget.answers[index],
-                    style: CustomTypography()
-                        .button(color: CustomColors.productNormalActive),
-                  ),
-                  fillColor: MaterialStateProperty.all(
-                      CustomColors.productNormalActive),
-                  onChanged: (value) {
-                    setState(() {
-                      _selected = index;
-                    });
-                  },
-                  value: index,
-                  groupValue: _selected,
-                  controlAffinity: ListTileControlAffinity.leading,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: widget.options.length,
+      itemBuilder: (context, index) {
+        return Column(children: [
+          Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 3.0),
+              decoration: BoxDecoration(
+                  color: CustomColors.productLightPrimaryNormalWhite,
+                  borderRadius: BorderRadius.circular(14.0),
+                  border: Border.all(
+                      color: CustomColors.productBorderNormal, width: 2)),
+              child: RadioListTile<String>(
+                title: Text(
+                  widget.options[index],
+                  style: CustomTypography()
+                      .button(color: CustomColors.productNormalActive),
                 ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-            ],
-          );
-        });
+                fillColor:
+                    MaterialStateProperty.all(CustomColors.productNormalActive),
+                controlAffinity: ListTileControlAffinity.leading,
+                value: widget.options[index],
+                groupValue: selectedOption,
+                onChanged: (String? value) {
+                  setState(() {
+                    selectedOption = value;
+                  });
+                  widget.answerSelected(value!);
+                },
+              )),
+          const SizedBox(
+            height: 12,
+          ),
+        ]);
+      },
+    );
   }
 }
 
