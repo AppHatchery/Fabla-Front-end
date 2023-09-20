@@ -59,4 +59,6 @@ class CustomColors {
   //Grey
   static const Color greyLight = Color(0xFFD0D0D0);
   static const Color greyDark = Color(0xFFAFAFAF);
+
+  static const Color newBlue = Color(0XFF87BCFF);
 }

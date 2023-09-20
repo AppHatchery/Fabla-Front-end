@@ -31,7 +31,7 @@ class Diary {
   factory Diary.fromEntity(DiaryEntity entity) {
     return Diary(
       id: entity.id,
-      prompts: entity.prompts.map((e) => fakePrompts[e]).toList(),
+      prompts: fakePrompts[entity.prompts[0]] ?? [],
       tags: fakeTags,
       status: entity.status ?? DiaryStatus.idle,
       due: entity.due,
