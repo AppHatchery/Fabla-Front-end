@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../../../core/utils/types.dart';
 import '../../../data/prompt.dart';
 import '../../../domain/repository/answer_repository.dart';
 
@@ -46,17 +47,19 @@ class PromptCubit extends Cubit<PromptState> {
   ///
   /// Parameters:
   /// - [prompt]: The prompt associated with the response.
-  /// - [path]: The file path of the recorded response.
+  /// - [response]: The file path of the recorded response or the selected value.
   ///
   /// Usage example:
   /// ```dart
   /// await saveResponse(myPrompt, '/path/to/recording.wav');
   /// ```
-  Future<void> saveResponse(Prompt prompt, String path) async {
+  Future<void> saveResponse(Prompt prompt, dynamic response) async {
     try {
-      final saved = await _repository.saveResponse(prompt, path);
+      final saved = await _repository.saveResponse(prompt, response);
       if (saved) {
-        showSuccessModal();
+        if(prompt.responseType == ResponseType.recording){
+          showSuccessModal();
+        }
       }
     } catch (e) {
       showErrorModal();
