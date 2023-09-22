@@ -27,6 +27,7 @@ Future<void> diaryInit(String code) async {
 
     final repository = DiaryRepository();
     final start = startDate(code);
+    print('start: $start');
     final diaries = <DiaryEntity>[];
 
     if (start != null) {
@@ -34,7 +35,7 @@ Future<void> diaryInit(String code) async {
         final date = start.add(Duration(days: i ~/ 2));
         final deadline = DateTime(date.year, date.month, date.day);
         final diary = DiaryEntity(
-            prompts: [i, i + 1], due: deadline, status: DiaryStatus.idle);
+            prompts: [i, i + 1], due: deadline, deadline: deadline.toString(), status: DiaryStatus.idle);
         diaries.add(diary);
       }
 
@@ -45,14 +46,15 @@ Future<void> diaryInit(String code) async {
 }
 
 DateTime? startDate(String code) {
-  final today = DateTime.now().toUtc();
+  final today = DateTime.now();
   final nextSunday = today.add(Duration(days: 7 - today.weekday));
 
   // Assuming that the code have two distinct starting digits
   if (code.startsWith('1')) {
-    return nextSunday;
+    return DateTime(nextSunday.year, nextSunday.month, nextSunday.day);
   } else if (code.startsWith('2')) {
-    return nextSunday.add(const Duration(days: 6));
+    final saturday = nextSunday.add(const Duration(days: 6));
+    return DateTime(saturday.year, saturday.month, saturday.day);
   }
 
   return null;

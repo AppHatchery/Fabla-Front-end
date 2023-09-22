@@ -29,12 +29,13 @@ class Diary {
   /// A Diary object representing a diary entry, constructed using information from the provided DiaryEntity.
   ///
   factory Diary.fromEntity(DiaryEntity entity) {
+    final date = DateTime.parse(entity.deadline);
     return Diary(
       id: entity.id,
       prompts: entity.prompts.map((e) => fakePrompts[e]).toList(),
       tags: fakeTags,
       status: entity.status ?? DiaryStatus.idle,
-      due: entity.due,
+      due: date,
     );
   }
 }

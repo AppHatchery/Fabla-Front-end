@@ -30,7 +30,7 @@ class DiaryDAO {
   ///
   DiaryEntity? getDiary(DateTime due) {
     final query =
-        box.query(DiaryEntity_.due.equals(due.millisecondsSinceEpoch)).build();
+        box.query(DiaryEntity_.deadline.equals(due.toString())).build();
     return query.findFirst();
   }
 

@@ -132,7 +132,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
   }
 
   DateTime? startDate(String code) {
-    final today = DateTime.now().toUtc();
+    final today = DateTime.now();
     final nextSunday = today.add(Duration(days: 7 - today.weekday));
 
     // Assuming that the code have two distinct starting digits
