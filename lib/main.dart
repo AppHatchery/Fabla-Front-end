@@ -20,7 +20,6 @@ import 'screens/diary/presentation/pages/diaries.dart';
 import 'screens/diary/presentation/pages/diarysummary.dart';
 import 'screens/home/presentation/cubit/cubit/home_cubit.dart';
 import 'services/amplify_init.dart';
-import 'services/diary_init.dart';
 import 'services/notification_service.dart';
 
 //Global variables
@@ -28,7 +27,6 @@ late ObjectBox objectbox;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   objectbox = await ObjectBox.create();
-  await diaryInit();
   await configureAmplify();
   await NotificationService.init();
   final route = await RouteService().getRoute();

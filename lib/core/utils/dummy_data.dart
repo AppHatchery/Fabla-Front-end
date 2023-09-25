@@ -5,6 +5,7 @@ import '../../screens/diary/data/diary.dart';
 import '../../screens/diary/data/options.dart';
 import '../../screens/diary/data/prompt.dart';
 import '../../screens/diary/data/tag.dart';
+import '../../theme/resources/strings.dart';
 import 'statuses.dart';
 import 'types.dart';
 
@@ -183,12 +184,14 @@ final Map<int, List<Prompt>> fakePrompts = {
       id: 11,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNote,
     ),
     Prompt(
       id: 12,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNoteTwo,
     ),
   ],
   // Day Two
@@ -332,12 +335,14 @@ final Map<int, List<Prompt>> fakePrompts = {
       id: 11,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNote,
     ),
     Prompt(
       id: 12,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNoteTwo,
     ),
   ],
   // Day Three
@@ -481,12 +486,14 @@ final Map<int, List<Prompt>> fakePrompts = {
       id: 11,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNote,
     ),
     Prompt(
       id: 12,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNoteTwo,
     ),
   ],
   // Day Four
@@ -630,12 +637,14 @@ final Map<int, List<Prompt>> fakePrompts = {
       id: 11,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNote,
     ),
     Prompt(
       id: 12,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNoteTwo,
     ),
   ],
   // Day Five
@@ -779,12 +788,14 @@ final Map<int, List<Prompt>> fakePrompts = {
       id: 11,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNote,
     ),
     Prompt(
       id: 12,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNoteTwo,
     ),
   ],
   // Day Six
@@ -928,12 +939,14 @@ final Map<int, List<Prompt>> fakePrompts = {
       id: 11,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNote,
     ),
     Prompt(
       id: 12,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNoteTwo,
     ),
   ],
 };
@@ -1112,4 +1125,6 @@ final List<String> studyCodes = [
   "R8W7K6",
   "C5T6I5",
   "V2O5G4",
+  "1001",
+  "2001"
 ];

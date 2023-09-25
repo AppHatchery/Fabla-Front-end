@@ -4,8 +4,10 @@ import '../custom_colors.dart';
 import '../custom_typography.dart';
 
 class ResearchersNote extends StatelessWidget {
+  final String? note;
   final ValueChanged<bool> onDismissed;
-  const ResearchersNote({super.key, required this.onDismissed});
+  const ResearchersNote(
+      {super.key, required this.note, required this.onDismissed});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +35,8 @@ class ResearchersNote extends StatelessWidget {
           Container(
             alignment: Alignment.centerLeft,
             child: Text(
-              "We recommend that you answer the questions as you see fit and relax and speak your mind.",
+              note ??
+                  "We recommend that you answer the questions as you see fit and relax and speak your mind.",
               style: CustomTypography().bodyLarge(),
             ),
           )

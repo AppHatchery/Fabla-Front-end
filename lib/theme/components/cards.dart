@@ -68,7 +68,8 @@ class DiaryCard extends StatelessWidget {
                 Expanded(
                     flex: 2,
                     child: Text(
-                      "Tell me about your day.",
+                      diary!.prompts[0].question ??
+                          "Talk about your day today.",
                       style: CustomTypography().bodyMedium(),
                     )),
                 Expanded(
