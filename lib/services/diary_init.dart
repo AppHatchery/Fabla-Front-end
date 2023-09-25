@@ -31,7 +31,7 @@ Future<void> diaryInit(String code) async {
     final diaries = <DiaryEntity>[];
 
     if (start != null) {
-    for (var i = 0; i + 1 < fakePrompts.length; i ++) {
+    for (var i = 0; i + 1 <= fakePrompts.length; i ++) {
       final date = start.add(Duration(days: i));
       final deadline = DateTime(date.year, date.month, date.day);
       final diary = DiaryEntity(

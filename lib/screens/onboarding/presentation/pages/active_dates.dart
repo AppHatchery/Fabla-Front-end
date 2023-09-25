@@ -83,7 +83,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
 
   Widget loaded(double height, double width, Participant participant) {
     final start = startDate(participant.studyCode);
-    final end = start?.add(Duration(days: (fakePrompts.length ~/ 2) - 1));
+    final end = start?.add(Duration(days: (fakePrompts.length - 1)));
     return Column(
       children: [
         Padding(

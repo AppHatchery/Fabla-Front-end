@@ -184,12 +184,14 @@ final Map<int, List<Prompt>> fakePrompts = {
       id: 11,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNote,
     ),
     Prompt(
       id: 12,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNoteTwo,
     ),
   ],
   // Day Two
@@ -333,12 +335,14 @@ final Map<int, List<Prompt>> fakePrompts = {
       id: 11,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNote,
     ),
     Prompt(
       id: 12,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNoteTwo,
     ),
   ],
   // Day Three
@@ -482,12 +486,14 @@ final Map<int, List<Prompt>> fakePrompts = {
       id: 11,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNote,
     ),
     Prompt(
       id: 12,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNoteTwo,
     ),
   ],
   // Day Four
@@ -631,12 +637,14 @@ final Map<int, List<Prompt>> fakePrompts = {
       id: 11,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNote,
     ),
     Prompt(
       id: 12,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNoteTwo,
     ),
   ],
   // Day Five
@@ -780,12 +788,14 @@ final Map<int, List<Prompt>> fakePrompts = {
       id: 11,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNote,
     ),
     Prompt(
       id: 12,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNoteTwo,
     ),
   ],
   // Day Six
@@ -929,12 +939,14 @@ final Map<int, List<Prompt>> fakePrompts = {
       id: 11,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNote,
     ),
     Prompt(
       id: 12,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
+      note: Strings.researcherNoteTwo,
     ),
   ],
 };
