@@ -31,18 +31,18 @@ Future<void> diaryInit(String code) async {
     final diaries = <DiaryEntity>[];
 
     if (start != null) {
-      for (var i = 0; i + 1 < fakePrompts.length; i += 2) {
-        final date = start.add(Duration(days: i ~/ 2));
-        final deadline = DateTime(date.year, date.month, date.day);
-        final diary = DiaryEntity(
-            prompts: [i, i + 1], due: deadline, deadline: deadline.toString(), status: DiaryStatus.idle);
+    for (var i = 0; i + 1 < fakePrompts.length; i ++) {
+      final date = start.add(Duration(days: i));
+      final deadline = DateTime(date.year, date.month, date.day);
+      final diary = DiaryEntity(
+          prompts: [i], due: deadline, deadline: deadline.toString(), status: DiaryStatus.idle);
         diaries.add(diary);
-      }
 
+    }
       repository.addDiaries(diaries);
       PreferenceService().setIntPreference(key: 'startDate', value: start.millisecondsSinceEpoch);
-    }
   }
+ }
 }
 
 DateTime? startDate(String code) {

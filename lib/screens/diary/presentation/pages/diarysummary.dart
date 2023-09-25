@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
@@ -186,9 +187,12 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
         //   path: "",
         // ),
         const SizedBox(height: 12),
-        CustomRecordButton(
-          onClick: () => recordResponse(context, prompt),
-          text: "ADD A NEW RESPONSE",
+        Visibility(
+          visible: prompt.responseType == ResponseType.recording,
+          child: CustomRecordButton(
+            onClick: () => recordResponse(context, prompt),
+            text: "ADD A NEW RESPONSE",
+          ),
         ),
         const SizedBox(height: 24),
       ],

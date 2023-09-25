@@ -1,7 +1,10 @@
+import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/utils/statuses.dart';
+import '../../../../core/utils/types.dart';
 import '../../../../main.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/components/indicators.dart';
@@ -67,7 +70,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   bool get isCurrentPageLast => currentPage == widget.diary.prompts.length - 1;
 
-
   void previousPage() {
     if (currentPage > 0) {
       controller.previousPage(
@@ -100,7 +102,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         body: Column(
           children: [
             CustomBarIndicator(
-              pageCount: 2,
+              pageCount: widget.diary.prompts.length,
               currentPage: currentPage,
             ),
             Expanded(
@@ -138,8 +140,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                   });
                 }
               },
-      nextPage: nextPage,
-      isLastPage: isCurrentPageLast,
+              nextPage: nextPage,
+              isLastPage: isCurrentPageLast,
             ))
         .toList();
   }
@@ -169,24 +171,39 @@ class QuestionPage extends StatefulWidget {
   final ValueChanged<bool> answerAdded;
   final VoidCallback nextPage;
   final bool? isLastPage;
-  const QuestionPage(
-      {super.key,
-      required this.diary,
-      required this.prompt,
-      required this.scaffoldKey,
-      required this.answerAdded, required this.nextPage,  this.isLastPage, });
+  const QuestionPage({
+    super.key,
+    required this.diary,
+    required this.prompt,
+    required this.scaffoldKey,
+    required this.answerAdded,
+    required this.nextPage,
+    this.isLastPage,
+  });
 
   @override
   State<QuestionPage> createState() => _QuestionPageState();
-
 }
 
 class _QuestionPageState extends State<QuestionPage> {
   late PromptCubit promptCubit;
   late Prompt prompt;
+  double? sliderValue;
+  bool isChecked = false;
+
+  void updateSliderValue(double value) {
+    setState(() {
+      sliderValue = value;
+    });
+    if (sliderValue != null) {
+      widget.answerAdded(true);
+    } else {
+      widget.answerAdded(false);
+    }
+  }
 
   bool isClicked = false;
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -229,9 +246,7 @@ class _QuestionPageState extends State<QuestionPage> {
               }
             }
           }
-        }
-        )
-    );
+        }));
   }
 
   Widget buildLoading() {
@@ -247,6 +262,43 @@ class _QuestionPageState extends State<QuestionPage> {
   }
 
   Widget buildPrompt(Prompt prompt) {
+    Widget responseWidget;
+
+    if (prompt.responseType == ResponseType.slider) {
+      List<Option> choices = prompt.option!.choices!;
+      int scaleMinValue = int.parse(choices[0].option!);
+      int scaleMaxValue = int.parse(choices[1].option!);
+
+      responseWidget = SliderQuestionCard(
+        scaleMin: scaleMinValue,
+        scaleMax: scaleMaxValue,
+        scaleMinText: prompt.option!.startText,
+        scaleMaxText: prompt.option!.endText,
+        onSliderValueChanged: updateSliderValue,
+      );
+    } else if (prompt.responseType == ResponseType.multiple) {
+      responseWidget = MultipleQuestion(
+        options:
+            prompt.option!.choices!.map((choice) => choice.option!).toList(),
+        answerAdded: (value) {
+          widget.answerAdded(value);
+        },
+      );
+    } else if (prompt.responseType == ResponseType.radio) {
+      responseWidget = RadioQuestion(
+        options:
+            prompt.option!.choices!.map((choice) => choice.option!).toList(),
+        answerSelected: (value) {
+          widget.answerAdded(true);
+        },
+      );
+    } else {
+      responseWidget = CustomRecordButton(
+        onClick: () => recordResponse(context),
+        text: prompt.answer != null ? "ADD NEW RESPONSE" : "RECORD RESPONSE",
+      );
+    }
+
     return SingleChildScrollView(
       controller: _scrollController,
       child: Column(
@@ -298,12 +350,9 @@ class _QuestionPageState extends State<QuestionPage> {
               : const SizedBox.shrink(),
           widget.diary.status == DiaryStatus.submitted
               ? const SizedBox.shrink()
-              : CustomRecordButton(
-                  onClick: () => recordResponse(context),
-                  text: prompt.answer != null
-                      ? "ADD NEW RESPONSE"
-                      : "RECORD RESPONSE"),
-        if(widget.diary.status != DiaryStatus.submitted)   SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+              : responseWidget,
+          if (widget.diary.status != DiaryStatus.submitted)
+            SizedBox(height: MediaQuery.of(context).size.height * 0.3),
           // const CustomTextButton(
           //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
         ],
@@ -336,13 +385,12 @@ class _QuestionPageState extends State<QuestionPage> {
   }
 
   void showSuccessModal() {
-    double bottomSuccessModalHeight = MediaQuery.of(context).size.height * 0.6;
     bool isLast = widget.isLastPage ?? true;
 
     widget.scaffoldKey.currentState!.showBottomSheet((context) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
-        duration: Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
 

@@ -32,7 +32,7 @@ class Diary {
     final date = DateTime.parse(entity.deadline);
     return Diary(
       id: entity.id,
-      prompts: entity.prompts.map((e) => fakePrompts[e]).toList(),
+      prompts: fakePrompts[entity.prompts[0]] ?? [],
       tags: fakeTags,
       status: entity.status ?? DiaryStatus.idle,
       due: date,
