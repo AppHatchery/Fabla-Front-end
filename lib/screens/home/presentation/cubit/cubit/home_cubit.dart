@@ -68,7 +68,7 @@ class HomeCubit extends Cubit<HomeState> {
     final diaries = repository.getAllDiaries();
     final thisWeek = diaries
         .where((element) =>
-            element.due.isAfter(monday) && element.due.isBefore(sunday))
+            element.due.isAfter(monday.subtract(const Duration(days: 1))) && element.due.isBefore(sunday))
         .toList();
     thisWeek.sort((a, b) => a.due.compareTo(b.due));
     return thisWeek;

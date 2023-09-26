@@ -645,7 +645,8 @@ class CalendarCard extends StatefulWidget {
 
 class _CalendarCardState extends State<CalendarCard> {
   final List<Widget> days = [];
-  int diariesLeft = 0;
+  int? diariesLeft;
+  int? completion;
 
   @override
   void initState() {
@@ -689,12 +690,14 @@ class _CalendarCardState extends State<CalendarCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "$diariesLeft diaries left this week",
+                          diariesLeft != null
+                              ? "$diariesLeft diaries left this week"
+                              : "No diaries this week",
                           style: CustomTypography()
                               .bodyLarge(color: CustomColors.fillWhite),
                         ),
                         Text(
-                          encouragement(diariesLeft),
+                          encouragementBasedOnCompletion(completion),
                           style: CustomTypography()
                               .bodyMedium(color: CustomColors.fillWhite),
                         )
@@ -727,12 +730,25 @@ class _CalendarCardState extends State<CalendarCard> {
 
   void prepareDays() {
     final today = DateTime.now().weekday;
-    print("Length is ${widget.diaries.length}");
-    setState(() {
-      diariesLeft = widget.diaries
-          .where((element) => element.status != DiaryStatus.submitted)
-          .length;
-    });
+
+    final anyDiariesThisWeek = widget.diaries.isNotEmpty;
+
+    if (anyDiariesThisWeek) {
+      final length = widget.diaries.length;
+      setState(() {
+        diariesLeft = widget.diaries
+            .where((element) => element.status != DiaryStatus.submitted)
+            .length;
+
+        final percentage = (length - diariesLeft!) * 100 ~/ length;
+        final remainder = percentage % 10;
+        if (remainder > 5) {
+          completion = percentage + (10 - remainder);
+        } else {
+          completion = percentage - remainder;
+        }
+      });
+    }
 
     // Define a map of day abbreviations.
     final Map<int, String> dayAbbreviations = {
@@ -803,26 +819,29 @@ class _CalendarCardState extends State<CalendarCard> {
     );
   }
 
-  String encouragement(int days) {
-    switch (days) {
-      case 0:
-        return "Great job!";
-      case 1:
-        return "You're doing great!";
-      case 2:
-        return "You're on fire!";
-      case 3:
-        return "Keep it up!";
-      case 4:
-        return "You're making progress!";
-      case 5:
-        return "Just a few more to go!";
-      case 6:
-        return "You're off to a great start!";
-      case 7:
-        return "Let's get started!";
-      default:
-        return "Let's get started!";
+  String encouragementBasedOnCompletion(int? percentage) {
+    if (percentage == null) {
+      return "Nothing to see here";
     }
+
+    final messages = {
+      0: "Let's get started!",
+      if (percentage > 0 && percentage <= 10) 10: "One down, few more to go!",
+      if (percentage > 10 && percentage <= 20)
+        20: "You're off to a great start!",
+      if (percentage > 20 && percentage <= 30) 30: "Just a few more to go!",
+      if (percentage > 30 && percentage <= 40) 40: "You're making progress!",
+      if (percentage > 40 && percentage <= 50) 50: "Keep it up!",
+      if (percentage > 50 && percentage <= 60)
+        60: "Halfway there, keep pushing!",
+      if (percentage > 60 && percentage <= 70) 70: "You're doing great!",
+      if (percentage > 70 && percentage <= 80) 80: "You are almost there!",
+      if (percentage > 80 && percentage <= 90)
+        90: "You're making it look easy!",
+      if (percentage > 90 && percentage < 100)
+        99: "You're so close to the finish line!",
+      100: "Great job!",
+    };
+    return messages[percentage] ?? "Nothing to see here";
   }
 }
