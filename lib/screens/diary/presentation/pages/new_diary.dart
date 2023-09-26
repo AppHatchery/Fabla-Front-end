@@ -314,7 +314,7 @@ class _QuestionPageState extends State<QuestionPage> {
                     children: [
                       WidgetSpan(
                         alignment: PlaceholderAlignment.middle,
-                        child: IconButton(
+                        child: prompt.note != null ? IconButton(
                           onPressed: () {
                             setState(() {
                               isClicked = !isClicked;
@@ -326,7 +326,7 @@ class _QuestionPageState extends State<QuestionPage> {
                           color: CustomColors.productNormal,
                           iconSize: 22.0,
                           padding: const EdgeInsets.all(0),
-                        ),
+                        ) : const SizedBox.shrink(),
                       ),
                     ],
                   ),
@@ -335,11 +335,12 @@ class _QuestionPageState extends State<QuestionPage> {
             ],
           ),
           if (!isClicked)
-            ResearchersNote(
+            prompt.note != null ? ResearchersNote(
+              note: prompt.note,
               onDismissed: (value) => setState(() {
                 isClicked = value;
               }),
-            ),
+            ) : const SizedBox.shrink(),
           const SizedBox(height: 24),
           prompt.answer?.recordings.isNotEmpty ?? false
               ? MyResponse(

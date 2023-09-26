@@ -53,6 +53,7 @@ class CustomCalender extends StatelessWidget {
               color: Colors.transparent,
               shape: BoxShape.circle,
               border: Border.all(color: CustomColors.yellowDark, width: 4)),
+              withinRangeTextStyle: CustomTypography().bodyLarge(),
           rangeEndDecoration: BoxDecoration(
               color: Colors.transparent,
               shape: BoxShape.circle,

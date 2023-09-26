@@ -16,10 +16,8 @@ class DiaryCubit extends Cubit<DiaryState>{
     try{
       emit(const DiaryLoading());
       final diary = await repository.getDiary(today);
-      print("Fetching past diaries...");
       if(diary != null){
         List<Diary> unfilterDiaries = [diary];
-        print("Unfiltered Diaries: $unfilterDiaries");
         List<Diary> unSubmittedDiaries = unfilterDiaries
             .where((element) => element.status == DiaryStatus.complete)
             .toList();

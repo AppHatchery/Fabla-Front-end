@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
+import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -76,13 +77,12 @@ class SetupRepository {
     final date = formatDate(today);
     final code = participant!.studyCode;
 
+
     final metadata = Strings()
         .participantMetadata(code, date, formatDate(nextStudyDate));
 
-    final dir = await getTemporaryDirectory();
-    //final path = p.join(dir.path, "metadata.txt");
-    //final file = File(path);
 
+    final dir = await getTemporaryDirectory();
 
     var file3 =  File('${documentsDirectory.path}/metadata.txt');
     if (!file3.existsSync()) {
@@ -91,8 +91,6 @@ class SetupRepository {
       print('file here ${file3.path}');
       uploadMetaDataS3(code, file3);
     }
-
-    //await file.writeAsString(metadata);
     
   }
 

@@ -10,6 +10,7 @@ class DiaryEntity {
   List<int> prompts;
   @Property(type: PropertyType.date)
   DateTime due;
+  String deadline;
   @Transient()
   DiaryStatus? status;
 
@@ -24,7 +25,7 @@ class DiaryEntity {
   }
 
   DiaryEntity(
-      {this.id = 0, required this.prompts, required this.due, this.status});
+      {this.id = 0, required this.prompts, required this.due, required this.deadline,this.status});
 
   /// Ensures the consistency of DiaryStatus enumeration indices.
   /// This private method verifies that the indices of the DiaryStatus enum values correspond to their expected numerical values.
@@ -55,6 +56,7 @@ class DiaryEntity {
       id: model.id,
       prompts: model.prompts.map((e) => e.id).toList(),
       due: model.due,
+      deadline: model.due.toString(),
       status: model.status,
     );
   }
