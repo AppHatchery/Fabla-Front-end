@@ -188,18 +188,12 @@ class QuestionPage extends StatefulWidget {
 class _QuestionPageState extends State<QuestionPage> {
   late PromptCubit promptCubit;
   late Prompt prompt;
-  double? sliderValue;
+
   bool isChecked = false;
 
   void updateSliderValue(double value) {
-    setState(() {
-      sliderValue = value;
-    });
-    if (sliderValue != null) {
-      widget.answerAdded(true);
-    } else {
-      widget.answerAdded(false);
-    }
+    save(prompt, value.toString());
+    widget.answerAdded(true);
   }
 
   bool isClicked = false;
@@ -236,7 +230,8 @@ class _QuestionPageState extends State<QuestionPage> {
           } else if (state is PromptResponseError) {
             showErrorModal();
           } else if (state is PromptLoaded) {
-            if (state.prompt.answer?.recordings.isNotEmpty ?? false) {
+            if (state.prompt.answer?.recordings != null ||
+                state.prompt.answer?.response != null) {
               widget.answerAdded(true);
             } else {
               if (widget.diary.status != DiaryStatus.submitted) {
@@ -270,6 +265,9 @@ class _QuestionPageState extends State<QuestionPage> {
       int scaleMaxValue = int.parse(choices[1].option!);
 
       responseWidget = SliderQuestionCard(
+        value: prompt.answer?.response != null
+            ? double.parse(prompt.answer!.response!)
+            : 0,
         scaleMin: scaleMinValue,
         scaleMax: scaleMaxValue,
         scaleMinText: prompt.option!.startText,
@@ -277,19 +275,39 @@ class _QuestionPageState extends State<QuestionPage> {
         onSliderValueChanged: updateSliderValue,
       );
     } else if (prompt.responseType == ResponseType.multiple) {
+      final selected = prompt.answer?.response != null
+          ? prompt.answer?.response!.split("/ ")
+          : <String>[];
+
       responseWidget = MultipleQuestion(
         options:
             prompt.option!.choices!.map((choice) => choice.option!).toList(),
-        answerAdded: (value) {
-          widget.answerAdded(value);
+        selected: selected,
+        onChanged: (value) {
+          final response = value.join("/ ");
+          print("Response: $response");
+          save(prompt, response);
+
+          if (value.isNotEmpty) {
+            widget.answerAdded(true);
+          } else {
+            widget.answerAdded(false);
+          }
         },
       );
     } else if (prompt.responseType == ResponseType.radio) {
+      final selected = prompt.answer?.response;
       responseWidget = RadioQuestion(
+        value: selected,
         options:
             prompt.option!.choices!.map((choice) => choice.option!).toList(),
-        answerSelected: (value) {
-          widget.answerAdded(true);
+        onChanged: (value) {
+          save(prompt, value);
+          if (value != null) {
+            widget.answerAdded(true);
+          } else {
+            widget.answerAdded(false);
+          }
         },
       );
     } else {
@@ -374,14 +392,19 @@ class _QuestionPageState extends State<QuestionPage> {
         builder: (context) => BottomRecordingModal(
               promptId: prompt.id,
               onSave: (value) {
-                // Change diary status
-                widget.diary.status = DiaryStatus.ongoing;
-                DiaryRepository repository = DiaryRepository();
-                repository.updateDiary(widget.diary);
-
-                promptCubit.saveResponse(prompt, value.toString());
+                save(prompt, value.toString());
               },
             ));
+  }
+
+  void save(Prompt prompt, dynamic response) {
+    // Change diary status
+    if (widget.diary.status == DiaryStatus.idle) {
+      widget.diary.status = DiaryStatus.ongoing;
+      DiaryRepository repository = DiaryRepository();
+      repository.updateDiary(widget.diary);
+    }
+    promptCubit.saveResponse(prompt, response);
   }
 
   void showSuccessModal() {

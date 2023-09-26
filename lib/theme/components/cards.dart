@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
@@ -453,7 +454,11 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
   }
 
   Future<void> delete() async {
-    widget.delete!();
+    final results = await showDialog<bool>(context: context, builder: (context)=> const DeletePopUp());
+
+    if (results == true) {
+      widget.delete!();
+    }
   }
 
   void playerInit() async {

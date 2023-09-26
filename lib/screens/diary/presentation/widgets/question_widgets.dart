@@ -8,6 +8,7 @@ import '../../../../theme/custom_typography.dart';
 ///whether slider option, multiple questions or radio questions
 
 class SliderQuestionCard extends StatefulWidget {
+  final double value;
   final String? scaleMinText;
   final String? scaleMaxText;
   final int scaleMin;
@@ -15,6 +16,7 @@ class SliderQuestionCard extends StatefulWidget {
   final ValueChanged<double>? onSliderValueChanged;
   const SliderQuestionCard({
     super.key,
+    required this.value,
     required this.scaleMinText,
     required this.scaleMaxText,
     this.onSliderValueChanged,
@@ -27,7 +29,6 @@ class SliderQuestionCard extends StatefulWidget {
 }
 
 class _SliderQuestionCardState extends State<SliderQuestionCard> {
-  double _currentSliderValue = 0;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -42,17 +43,14 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
             Text(widget.scaleMin.toString()),
             Expanded(
               child: Slider(
-                value: _currentSliderValue,
+                value: widget.value,
                 min: widget.scaleMin.toDouble(),
                 max: widget.scaleMax.toDouble(),
                 divisions: widget.scaleMax - widget.scaleMin,
-                label: _currentSliderValue.round().toString(),
+                label: widget.value.round().toString(),
                 onChanged: (double value) {
-                  setState(() {
-                    _currentSliderValue = value;
-                  });
                   if (widget.onSliderValueChanged != null) {
-                    widget.onSliderValueChanged!(_currentSliderValue);
+                    widget.onSliderValueChanged!(value);
                   }
                 },
                 activeColor: CustomColors.productNormalActive,
@@ -89,22 +87,26 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
 
 class MultipleQuestion extends StatefulWidget {
   final List<String> options;
-  final Function(bool) answerAdded;
+  final List<String>? selected;
+  final ValueChanged<List<String>>? onChanged;
 
   const MultipleQuestion(
-      {super.key, required this.options, required this.answerAdded});
+      {super.key,
+      required this.options,
+      required this.selected,
+      required this.onChanged});
 
   @override
   State<MultipleQuestion> createState() => _MultipleQuestionState();
 }
 
 class _MultipleQuestionState extends State<MultipleQuestion> {
-  List<bool> isCheckedList = [];
+  late List<String> selectedOptions;
 
   @override
   void initState() {
+    selectedOptions = widget.selected ?? [];
     super.initState();
-    isCheckedList = List.generate(widget.options.length, (_) => false);
   }
 
   @override
@@ -133,12 +135,17 @@ class _MultipleQuestionState extends State<MultipleQuestion> {
                 fillColor:
                     MaterialStateProperty.all(CustomColors.productNormalActive),
                 controlAffinity: ListTileControlAffinity.leading,
-                value: isCheckedList[index],
+                value: selectedOptions.contains(widget.options[index]),
                 onChanged: (value) {
+                  if (value!) {
+                    selectedOptions.add(widget.options[index]);
+                  } else {
+                    selectedOptions.remove(widget.options[index]);
+                  }
+
                   setState(() {
-                    isCheckedList[index] = value!;
+                    widget.onChanged!(selectedOptions);
                   });
-                  widget.answerAdded(value!);
                 },
               )),
           const SizedBox(
@@ -151,18 +158,18 @@ class _MultipleQuestionState extends State<MultipleQuestion> {
 }
 
 class RadioQuestion extends StatefulWidget {
+  final String? value;
   final List<String> options;
-  final Function(String) answerSelected;
+  final ValueChanged<String?> onChanged;
 
   const RadioQuestion(
-      {super.key, required this.options, required this.answerSelected});
+      {super.key, required this.value,required this.options, required this.onChanged});
 
   @override
   State<RadioQuestion> createState() => _RadioQuestionState();
 }
 
 class _RadioQuestionState extends State<RadioQuestion> {
-  String? selectedOption;
 
   @override
   Widget build(BuildContext context) {
@@ -190,12 +197,9 @@ class _RadioQuestionState extends State<RadioQuestion> {
                     MaterialStateProperty.all(CustomColors.productNormalActive),
                 controlAffinity: ListTileControlAffinity.leading,
                 value: widget.options[index],
-                groupValue: selectedOption,
+                groupValue: widget.value,
                 onChanged: (String? value) {
-                  setState(() {
-                    selectedOption = value;
-                  });
-                  widget.answerSelected(value!);
+                  widget.onChanged(value);
                 },
               )),
           const SizedBox(

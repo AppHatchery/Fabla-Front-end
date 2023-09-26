@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:audio_diaries_flutter/core/utils/types.dart';
+
 import '../../../../core/database/dao/answer_dao.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
@@ -47,7 +49,7 @@ class AnswerRepository {
   ///
   /// Parameters:
   /// - [prompt]: The prompt instance associated with the response.
-  /// - [path]: The file path of the recording to be saved.
+  /// - [response]: The file path of the recording to be saved or the selected value.
   ///
   /// Returns:
   /// - A boolean indicating the success of the save operation.
@@ -56,19 +58,31 @@ class AnswerRepository {
   /// ```dart
   /// final saved = await saveResponse(myPrompt, '/path/to/recording.wav');
   /// ```
-  Future<bool> saveResponse(Prompt prompt, String path) async {
+  Future<bool> saveResponse(Prompt prompt, dynamic response) async {
     final isUpdating = prompt.answer != null;
-    final answer = isUpdating
-        ? prompt.answer! // Use the existing answer for updating
-        : Answer(
-            id: 0,
-            promptId: prompt.id,
-            date: DateTime.now()); // Create a new answer
+    late Answer answer;
 
-    // Create a new recording and associate it with the answer
-    final recording = Recording("Test", path, null, DateTime.now());
-    recording.answer.target = answer;
-    answer.recordings.add(recording);
+    if (prompt.responseType == ResponseType.recording) {
+      answer = isUpdating
+          ? prompt.answer! // Use the existing answer for updating
+          : Answer(
+              id: 0,
+              promptId: prompt.id,
+              date: DateTime.now()); // Create a new answer
+      // Create a new recording and associate it with the answer
+      final recording =
+          Recording("Audio Diary", response, null, DateTime.now());
+      recording.answer.target = answer;
+      answer.recordings.add(recording);
+    } else {
+      answer = isUpdating
+          ? prompt.answer!.copyWith(response: response)
+          : Answer(
+              id: 0,
+              promptId: prompt.id,
+              date: DateTime.now(),
+              response: response);
+    }
 
     // Add or update the answer in the database
     dao.addResponse(answer);
