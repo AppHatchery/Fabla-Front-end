@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:path/path.dart' as p;
 import 'package:aws_common/vm.dart';
@@ -39,11 +40,13 @@ Future<bool> upload(String studyCode, Diary diary) async {
 
   for (int i = 0; i < diary.prompts.length; i++) {
     var prompt = diary.prompts[i];
-    var rec = prompt.answer?.recordings;
+    if (prompt.responseType == ResponseType.recording) {
+      var rec = prompt.answer?.recordings;
 
-    for (int r = 0; r < rec!.length; r++) {
-      fileList.add(DiaryAudioData(
-          prompt: i + 1, file: File(rec[r].path), date: rec[r].date));
+      for (int r = 0; r < rec!.length; r++) {
+        fileList.add(DiaryAudioData(
+            prompt: i + 1, file: File(rec[r].path), date: rec[r].date));
+      }
     }
   }
   final uploaded = await uploadFilesToS3(studyCode, fileList);
@@ -77,7 +80,8 @@ Future<bool> upload(String studyCode, Diary diary) async {
 ///   // Handle upload failure.
 /// }
 /// ```
-Future<bool> uploadFilesToS3(String studyCode, List<DiaryAudioData> audioData) async {
+Future<bool> uploadFilesToS3(
+    String studyCode, List<DiaryAudioData> audioData) async {
   for (DiaryAudioData fileData in audioData) {
     var filePath = fileData.file.path;
 
@@ -97,20 +101,21 @@ Future<bool> uploadFilesToS3(String studyCode, List<DiaryAudioData> audioData) a
   }
   return true;
 }
-/// Uploads a file having metadata about the study pertaining the participant to the s3 Bucket of the current participant 
 
-Future<bool> uploadMetaDataS3(var studyCode,File file) async {
-final awsFile = AWSFilePlatform.fromFile(file);
-    try {
-      final uploadResult = await Amplify.Storage.uploadFile(
-        localFile: awsFile,
-        key: "$studyCode/metadata.txt",
-      ).result;
-      print('Uploaded Meta data file: ${uploadResult.uploadedItem.key}');
-    } on StorageException catch (e) {
-      print('Error uploading file: ${e.message}');
-      return false;
-    }
-  
+/// Uploads a file having metadata about the study pertaining the participant to the s3 Bucket of the current participant
+
+Future<bool> uploadMetaDataS3(var studyCode, File file) async {
+  final awsFile = AWSFilePlatform.fromFile(file);
+  try {
+    final uploadResult = await Amplify.Storage.uploadFile(
+      localFile: awsFile,
+      key: "$studyCode/metadata.txt",
+    ).result;
+    print('Uploaded Meta data file: ${uploadResult.uploadedItem.key}');
+  } on StorageException catch (e) {
+    print('Error uploading file: ${e.message}');
+    return false;
+  }
+
   return true;
 }

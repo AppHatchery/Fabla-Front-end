@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Strings {
   static String lorem =
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc cursus orci est, nec pretium diam elementum ut. Donec a metus lobortis, vestibulum elit at, tincidunt sapien. Praesent eget urna id augue elementum mattis non quis turpis. Vivamus lacinia gravida nulla, ac efficitur magna consectetur non. Praesent laoreet turpis tortor, sit amet cursus libero sollicitudin ac. Proin sed mauris quis ipsum dapibus sagittis. Aenean a iaculis lacus. Pellentesque sed ante vel tortor bibendum egestas. \n \n Suspendisse nisl urna, volutpat at elit varius, mollis fermentum ante. Sed iaculis, dolor eu pharetra faucibus, dui sapien elementum ante, eu interdum neque ipsum commodo purus. Vivamus ac urna consequat, placerat libero sit amet, aliquam dui. Quisque efficitur id orci in tempus. Cras tincidunt ante nec congue sollicitudin. Phasellus placerat placerat ligula, sit amet accumsan dolor aliquam ac. Sed in nunc et nisl pretium rhoncus a eget odio. Suspendisse efficitur luctus accumsan. Phasellus blandit metus ut velit rutrum, sed lacinia enim volutpat. Nam mollis, ligula eget dictum ornare, diam nibh sodales mi, vel convallis turpis est vel risus.";
@@ -32,7 +34,23 @@ class Strings {
   /// String metadata = participantMetadata("ABC123", "2023-08-31");
   /// // Output: "Participant ABC123 \n started study on 2023-08-31"
   /// ```
-  String participantMetadata(String code, String date) {
-    return 'Participant: $code \nStarted study on: $date';
+
+  String participantMetadata(String code, String date, String nextStudyDate) {
+
+  Map<String, dynamic> nestedObject = {
+    'participant':code,
+    'start_study_date': date,
+    'next_study_date': nextStudyDate,
+    'recent_submit_date': null,
+    'diaries': {
+      'day1': null,
+      'day2': null,
+      'day3': null,
+      'day4': null,
+      'day5': null,
+      'day6': null,
+    },
+  };
+    return jsonEncode(nestedObject);
   }
 }

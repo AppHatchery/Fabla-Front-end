@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -67,19 +68,68 @@ class SetupRepository {
   /// ```dart
   /// createMetadata(); // Generate and store participant's study metadata.
   /// ```
-  void createMetadata() async {
+
+  void createMetadata(DateTime nextStudyDate) async {
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
     final participant = getParticipant();
     final today = DateTime.now();
     final date = formatDate(today);
     final code = participant!.studyCode;
 
-    final metadata = Strings().participantMetadata(code, date);
+    final metadata = Strings()
+        .participantMetadata(code, date, formatDate(nextStudyDate));
 
     final dir = await getTemporaryDirectory();
-    final path = p.join(dir.path, "metadata.txt");
-    final file = File(path);
+    //final path = p.join(dir.path, "metadata.txt");
+    //final file = File(path);
 
-    await file.writeAsString(metadata);
-    uploadMetaDataS3(code, file);
+
+    var file3 =  File('${documentsDirectory.path}/metadata.txt');
+    if (!file3.existsSync()) {
+      file3.writeAsStringSync(metadata);
+
+      print('file here ${file3.path}');
+      uploadMetaDataS3(code, file3);
+    }
+
+    //await file.writeAsString(metadata);
+    
   }
+
+/// Responsible for updating the metadata once created. This happens when diary has been submitted by participants or it has been submitted systematically.
+
+void updateMetaDataFile(DateTime next_study_date) async {
+  final participant = getParticipant();
+  final code = participant!.studyCode;
+
+
+  Directory documentsDirectory = await getApplicationDocumentsDirectory();
+  final file = File('${documentsDirectory.path}/metadata.txt');
+
+  String contents = file.readAsStringSync();
+  final data = jsonDecode(contents);
+
+  final map = data['diaries'] as Map<String, dynamic>;
+  var stopDayCount = false;
+  map.forEach((key, value) {
+    if (stopDayCount == false) {
+      if (value == null) {
+        
+        map[key] = true;
+        stopDayCount = true;
+        print("values key: $key value: $value");
+      }
+    }
+  });
+  //Updating the metadata content
+  data['diaries'] = map;
+  data['next_study_date']= formatDate(next_study_date);
+  data['recent_submit_date'] = formatDate(DateTime.now());
+  
+  file.writeAsStringSync(jsonEncode(data));
+  uploadMetaDataS3(code, file);
+  
+
+  print("File Contents :${map.length}  ${file.readAsStringSync()}");
+}
 }

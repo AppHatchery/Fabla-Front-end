@@ -97,6 +97,13 @@ class SummaryRepository {
       if (uploaded) {
         diary.status = DiaryStatus.submitted;
         diaryRepository.updateDiary(diary);
+
+        //Update the nextStudy date- TBD with provision of study_start_date
+        DateTime now = DateTime.now();
+        var nextStudyDate =  DateTime(now.year, now.month, now.day, 4, 0, 0).add(const Duration(days: 1));
+
+        repository.updateMetaDataFile(nextStudyDate);
+
         return true;
       } else {
         return false;
