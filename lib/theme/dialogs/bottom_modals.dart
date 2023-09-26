@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -79,6 +80,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   //Recording
   final FlutterSoundRecorder recorder = FlutterSoundRecorder();
   String timer = "00:00:00";
+  Timer? _timer;
+  Duration elapsed = const Duration();
   RecorderState recorderState = RecorderState.isStopped;
 
   @override
@@ -280,6 +283,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     await recorder.pauseRecorder(),
                     setState(() {
                       recorderState = RecorderState.isPaused;
+                      _timer?.cancel();
                     }),
                     redo()
                   },
@@ -317,38 +321,35 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             _ => Container(
                 width: 150,
                 child: IconButton(
-                style: IconButton.styleFrom(
-                  splashFactory: NoSplash.splashFactory,
-                ),
-                onPressed: () => record(),
-                color: CustomColors.warningActive,
-
-                icon: Container(
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 30, vertical: 14.5),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.rectangle,
-                      color: recorderState == RecorderState.isRecording
-                          ? Colors.transparent
-                          : CustomColors.warningFill,
-                      borderRadius: BorderRadius.circular(26),
-                      border: Border.all(
-                          color: recorderState == RecorderState.isRecording
-                              ? CustomColors.textTertiaryContent
-                              : CustomColors.warningActive,
-                          width: 2),
-                    ),
-                    child: recorderState == RecorderState.isRecording
-                        ? const Icon(Icons.pause_rounded, size: 24)
-                        : Text(
-                            "Resume",
-                            style: CustomTypography()
-                                .bodyLarge(color: CustomColors.warningActive),
-                          )
-                ),
-              )
-            ),
+                  style: IconButton.styleFrom(
+                    splashFactory: NoSplash.splashFactory,
+                  ),
+                  onPressed: () => record(),
+                  color: CustomColors.warningActive,
+                  icon: Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 30, vertical: 14.5),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.rectangle,
+                        color: recorderState == RecorderState.isRecording
+                            ? Colors.transparent
+                            : CustomColors.warningFill,
+                        borderRadius: BorderRadius.circular(26),
+                        border: Border.all(
+                            color: recorderState == RecorderState.isRecording
+                                ? CustomColors.textTertiaryContent
+                                : CustomColors.warningActive,
+                            width: 2),
+                      ),
+                      child: recorderState == RecorderState.isRecording
+                          ? const Icon(Icons.pause_rounded, size: 24)
+                          : Text(
+                              "Resume",
+                              style: CustomTypography()
+                                  .bodyLarge(color: CustomColors.warningActive),
+                            )),
+                )),
           },
 
           //Save
@@ -387,14 +388,16 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       androidWillPauseWhenDucked: true,
     ));
 
-    recorder.onProgress!.listen((event) {
-      if (mounted) {
-        setState(() {
-          timer = formatDurationtoHHMMSS(event.duration);
-        });
-      }
-    });
     await recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
+  }
+
+  void startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (time) {
+      setState(() {
+        elapsed = const Duration(seconds: 1) + elapsed;
+        timer = formatDurationtoHHMMSS(elapsed);
+      });
+    });
   }
 
   Future<void> redo() async {
@@ -404,6 +407,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     );
 
     if (showDialogResult == true) {
+      setState(() {
+        elapsed = const Duration();
+        timer = "00:00:00";
+      });
       final stoppedRecorderValue = await recorder.stopRecorder();
 
       if (stoppedRecorderValue != null) {
@@ -421,11 +428,14 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     if (hasPermission) {
       if (recorder.isRecording) {
         await recorder.pauseRecorder();
+        _timer?.cancel();
       } else if (recorder.isPaused) {
         await recorder.resumeRecorder();
+        startTimer();
       } else {
         final path = await getFilePath();
         await recorder.startRecorder(toFile: path);
+        startTimer();
       }
 
       setState(() {
@@ -441,6 +451,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   void save() async {
     try {
       final url = await recorder.stopRecorder();
+      _timer?.cancel();
       setState(() => recorderState = RecorderState.isStopped);
 
       if (url != null) {
@@ -463,7 +474,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         await Directory(p.join(directory.path, widget.promptId.toString()))
             .create(recursive: true);
     final now = DateTime.now();
-    final fileName = 'audio_prompt_${widget.promptId + 1}_${formatDate(now)}.aac';
+    final fileName =
+        'audio_prompt_${widget.promptId + 1}_${formatDate(now)}.aac';
     final filePath = p.join(dir.path, fileName);
     return filePath;
   }
