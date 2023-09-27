@@ -78,32 +78,29 @@ class SetupRepository {
     final code = participant!.studyCode;
 
 
-    final metadata = Strings()
-        .participantMetadata(code, date, formatDate(nextStudyDate));
+    final metadata = Strings().participantMetadata(code, date, formatDate(nextStudyDate));
 
+    final filePath = p.join(documentsDirectory.path, 'metadata.txt');
+    var file =  File(filePath);
+    if (!file.existsSync()) {
+      file.writeAsStringSync(metadata);
 
-    final dir = await getTemporaryDirectory();
-
-    var file3 =  File('${documentsDirectory.path}/metadata.txt');
-    if (!file3.existsSync()) {
-      file3.writeAsStringSync(metadata);
-
-      print('file here ${file3.path}');
-      uploadMetaDataS3(code, file3);
+      print('file here ${file.path}');
+      uploadMetaDataS3(code, file);
     }
     
   }
 
 /// Responsible for updating the metadata once created. This happens when diary has been submitted by participants or it has been submitted systematically.
 
-void updateMetaDataFile(DateTime next_study_date) async {
+void updateMetaDataFile(DateTime nextStudyDate) async {
   final participant = getParticipant();
   final code = participant!.studyCode;
 
-
   Directory documentsDirectory = await getApplicationDocumentsDirectory();
-  final file = File('${documentsDirectory.path}/metadata.txt');
-
+  final filePath = p.join(documentsDirectory.path,'metadata.txt');
+  final file = File(filePath);
+  
   String contents = file.readAsStringSync();
   final data = jsonDecode(contents);
 
@@ -112,7 +109,6 @@ void updateMetaDataFile(DateTime next_study_date) async {
   map.forEach((key, value) {
     if (stopDayCount == false) {
       if (value == null) {
-        
         map[key] = true;
         stopDayCount = true;
         print("values key: $key value: $value");
@@ -121,7 +117,7 @@ void updateMetaDataFile(DateTime next_study_date) async {
   });
   //Updating the metadata content
   data['diaries'] = map;
-  data['next_study_date']= formatDate(next_study_date);
+  data['next_study_date']= formatDate(nextStudyDate);
   data['recent_submit_date'] = formatDate(DateTime.now());
   
   file.writeAsStringSync(jsonEncode(data));

@@ -4,7 +4,6 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/participant_details.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
@@ -22,8 +21,8 @@ class _WelcomePageState extends State<WelcomePage> {
 
   @override
   void initState() {
-    super.initState();
-    metaDataInit();
+    super.initState();//To be edited with start date
+    repository.createMetadata(DateTime.now().add(const Duration(days: 2)));
   }
 
   @override
@@ -106,13 +105,5 @@ class _WelcomePageState extends State<WelcomePage> {
     }
   }
   /// Responsible for Checking whether the metadata file exists or not, if it does not exist, then create one
-  void metaDataInit() async {
-    final documentsDirectory = await getApplicationDocumentsDirectory();
-    if (!await metaDataAlreadyExists(
-        '${documentsDirectory.path}/metadata.txt')) {
-      createMetadata();
-    } else {
-      print("Metadata already exists");
-    }
-  }
+  
 }
