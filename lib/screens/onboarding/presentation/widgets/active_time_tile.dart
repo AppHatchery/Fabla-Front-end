@@ -7,7 +7,8 @@ import '../../../../theme/components/time_picker.dart';
 class ActiveTimeTile extends StatefulWidget {
   final TimeOfDay time;
   final VoidCallback delete;
-  const ActiveTimeTile({super.key, required this.time, required this.delete});
+  final ValueChanged<TimeOfDay>? edit;
+  const ActiveTimeTile({super.key, required this.time, required this.delete, this.edit});
 
   @override
   State<ActiveTimeTile> createState() => _ActiveTimeTileState();
@@ -88,6 +89,7 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
         timeOfDay = time;
         getPeriod(timeOfDay.hour);
       });
+       widget.edit!(timeOfDay);
     }
   }
 }

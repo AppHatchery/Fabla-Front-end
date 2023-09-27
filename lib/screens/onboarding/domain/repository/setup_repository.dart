@@ -1,7 +1,11 @@
 import 'dart:io';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/diary_init.dart';
+import 'package:audio_diaries_flutter/services/notification_service.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -83,5 +87,38 @@ class SetupRepository {
 
     await file.writeAsString(metadata);
     uploadMetaDataS3(code, file);
+  }
+
+  /// Creates and schedules notifications for daily diaries.
+  /// This function retrieves a list of daily diaries from the DiaryRepository,
+  /// then retrieves a list of notification times from SharedPreferences using
+  /// PreferenceService. For each specified notification time and each diary,
+  /// it calculates the notification date and time and schedules a notification
+  /// using NotificationService. The notification will remind the user to write
+  /// their daily diary.
+  void createNotifications() async {
+    final diaryRepository = DiaryRepository();
+    final diaries = diaryRepository.getAllDiaries();
+
+    final timesFromString = await PreferenceService()
+        .getStringListPreference(key: 'reminder_times');
+    final times = timesFromString
+            ?.map((e) => TimeOfDay.fromDateTime(DateTime.parse(e)))
+            .toList() ??
+        [];
+
+    for (final time in times) {
+      for (final diary in diaries) {
+        final date = diary.due;
+
+        final notificationDate =
+            DateTime(date.year, date.month, date.day, time.hour, time.minute);
+
+        await NotificationService.createNotification(
+            title: 'Time for your Daily Diary',
+            body: 'Hi! I am ready to hear from you.',
+            date: notificationDate);
+      }
+    }
   }
 }
