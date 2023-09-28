@@ -115,6 +115,7 @@ class SetupRepository {
             DateTime(date.year, date.month, date.day, time.hour, time.minute);
 
         await NotificationService.createNotification(
+            id: diary.id,
             title: 'Time for your Daily Diary',
             body: 'Hi! I am ready to hear from you.',
             date: notificationDate);

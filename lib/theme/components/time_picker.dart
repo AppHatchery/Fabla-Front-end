@@ -22,15 +22,14 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
   void initState() {
     _date = widget.date ?? const TimeOfDay(hour: 0, minute: 0);
     hoursController = FixedExtentScrollController(
-  initialItem: (_date.hour % 12) == 0 ? 12 : (_date.hour % 12) - 1,
-);
-print("Hours: ${_date.hour % 12}");
-minutesController = FixedExtentScrollController(
-  initialItem: _date.minute,
-);
-periodController = FixedExtentScrollController(
-  initialItem: (_date.hour >= 12) ? 1 : 0,
-);
+      initialItem: (_date.hour % 12) == 0 ? 12 : (_date.hour % 12) - 1,
+    );
+    minutesController = FixedExtentScrollController(
+      initialItem: _date.minute,
+    );
+    periodController = FixedExtentScrollController(
+      initialItem: (_date.hour >= 12) ? 1 : 0,
+    );
     super.initState();
   }
 
@@ -183,13 +182,12 @@ periodController = FixedExtentScrollController(
 
   void save() {
     if (periodController.selectedItem == 1 && _date.hour < 12) {
-    // If PM is selected and the hour is before noon, add 12 hours.
-    _date = TimeOfDay(hour: _date.hour + 12, minute: _date.minute);
-  } else if (periodController.selectedItem == 0 && _date.hour >= 12) {
-    // If AM is selected and the hour is 12 or greater, subtract 12 hours.
-    _date = TimeOfDay(hour: _date.hour - 12, minute: _date.minute);
-  }
-  print("Date: $_date");
+      // If PM is selected and the hour is before noon, add 12 hours.
+      _date = TimeOfDay(hour: _date.hour + 12, minute: _date.minute);
+    } else if (periodController.selectedItem == 0 && _date.hour >= 12) {
+      // If AM is selected and the hour is 12 or greater, subtract 12 hours.
+      _date = TimeOfDay(hour: _date.hour - 12, minute: _date.minute);
+    }
     Navigator.pop(context, _date);
   }
 }
