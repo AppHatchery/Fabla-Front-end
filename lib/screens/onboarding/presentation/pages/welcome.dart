@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/participant_details.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -21,8 +19,8 @@ class _WelcomePageState extends State<WelcomePage> {
 
   @override
   void initState() {
-    super.initState();//To be edited with start date
-    repository.createMetadata(DateTime.now().add(const Duration(days: 2)));
+    createMetadata();
+    super.initState(); //To be edited with start date
   }
 
   @override
@@ -92,18 +90,5 @@ class _WelcomePageState extends State<WelcomePage> {
 
   void scheduleNotifications() {}
 
-  void createMetadata() =>
-  //Add start study date 
-      repository.createMetadata(DateTime.now().add(const Duration(days: 2)));
-
-  Future<bool> metaDataAlreadyExists(String filePath) async {
-    final file = File(filePath);
-    if (file.existsSync()) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-  /// Responsible for Checking whether the metadata file exists or not, if it does not exist, then create one
-  
+  void createMetadata() => repository.createMetadata();
 }
