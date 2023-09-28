@@ -90,7 +90,7 @@ class SetupRepository {
     if (!file.existsSync()) {
       file.writeAsStringSync(metadata);
       print('File content is ${file.readAsStringSync()}');
-      //uploadMetaDataS3(code, file);
+      uploadMetaDataS3(code, file);
     }
   }
 
