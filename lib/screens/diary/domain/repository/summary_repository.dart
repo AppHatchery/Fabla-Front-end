@@ -10,6 +10,7 @@ import 'diary_repository.dart';
 class SummaryRepository {
   final AnswerRepository answerRepository = AnswerRepository();
   final DiaryRepository diaryRepository = DiaryRepository();
+  final SetupRepository setupRepository = SetupRepository();
 
   /// Asynchronous method to load summary information for a Diary object.
   /// This function iterates through the prompts within the provided Diary instance,
@@ -90,13 +91,19 @@ class SummaryRepository {
   ///
   Future<bool> submitDiary(Diary diary) async {
     try {
-      final SetupRepository repository = await SetupRepository();
-      final participant = repository.getParticipant();
+      final participant = setupRepository.getParticipant();
       final uploaded = await upload(participant!.studyCode,diary);
 
       if (uploaded) {
         diary.status = DiaryStatus.submitted;
         diaryRepository.updateDiary(diary);
+
+        //Update the nextStudy date- TBD with provision of study_start_date
+        DateTime now = DateTime.now();
+        var nextStudyDate =  DateTime(now.year, now.month, now.day, 4, 0, 0).add(const Duration(days: 1));
+
+        setupRepository.updateMetaDataFile(nextStudyDate);
+
         return true;
       } else {
         return false;

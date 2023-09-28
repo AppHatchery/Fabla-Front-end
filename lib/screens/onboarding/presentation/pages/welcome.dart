@@ -20,7 +20,7 @@ class _WelcomePageState extends State<WelcomePage> {
   @override
   void initState() {
     createMetadata();
-    super.initState();
+    super.initState(); //To be edited with start date
   }
 
   @override

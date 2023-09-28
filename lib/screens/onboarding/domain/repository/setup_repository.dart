@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/diary_init.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -70,18 +74,70 @@ class SetupRepository {
   /// ```
   void createMetadata() async {
     final participant = getParticipant();
-    final today = DateTime.now();
-    final date = formatDate(today);
-    final code = participant!.studyCode;
 
-    final metadata = Strings().participantMetadata(code, date);
+    final code = participant!.studyCode;
     await diaryInit(code);
 
-    final dir = await getTemporaryDirectory();
-    final path = p.join(dir.path, "metadata.txt");
+    final startDate = DateTime.fromMillisecondsSinceEpoch(
+        await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+    final metadata = Strings().participantMetadata(
+        code, formatDate(startDate), formatDate(startDate));
+
+    final directory = await getApplicationDocumentsDirectory();
+    final path = p.join(directory.path, 'metadata.txt');
     final file = File(path);
 
-    await file.writeAsString(metadata);
-    uploadMetaDataS3(code, file);
+    if (!file.existsSync()) {
+      file.writeAsStringSync(metadata);
+      print('File content is ${file.readAsStringSync()}');
+      uploadMetaDataS3(code, file);
+    }
+  }
+
+  /// Responsible for updating the metadata once created. This happens when diary has been submitted by participants or it has been submitted systematically.
+
+  void updateMetaDataFile(DateTime? nextStudyDate) async {
+    final participant = getParticipant();
+    final code = participant!.studyCode;
+
+    final diaryRepo = DiaryRepository();
+    final allDiaries = diaryRepo.getAllDiaries();
+
+    final directory = await getApplicationDocumentsDirectory();
+    final path = p.join(directory.path, 'metadata.txt');
+    final file = File(path);
+
+    String contents = file.readAsStringSync();
+    final data = jsonDecode(contents);
+    final map = data['diaries'] as Map<String, dynamic>;
+
+    //Check from today and backwards
+    final today =
+        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final todayAndBefore = allDiaries
+        .where((element) =>
+            element.due.isBefore(today.add(const Duration(days: 1))))
+        .toList();
+    if (todayAndBefore.isNotEmpty) {
+      todayAndBefore.sort((a, b) => a.due.compareTo(b.due));
+
+      int day = 1;
+      for (var element in todayAndBefore) {
+        map['day$day'] = element.status == DiaryStatus.submitted;
+        day++;
+      }
+
+      //Updating the metadata content
+      data['diaries'] = map;
+
+      if (nextStudyDate != null) {
+        data['next_study_date'] = formatDate(nextStudyDate);
+        data['recent_submit_date'] = formatDate(DateTime.now());
+        file.writeAsStringSync(jsonEncode(data));
+        uploadMetaDataS3(code, file);
+      } else {
+        file.writeAsStringSync(jsonEncode(data));
+      }
+    }
   }
 }
