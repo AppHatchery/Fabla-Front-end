@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -77,53 +79,66 @@ class SetupRepository {
     final date = formatDate(today);
     final code = participant!.studyCode;
 
-
-    final metadata = Strings().participantMetadata(code, date, formatDate(nextStudyDate));
+    final metadata =
+        Strings().participantMetadata(code, date, formatDate(nextStudyDate));
+    await diaryInit(code);
 
     final filePath = p.join(documentsDirectory.path, 'metadata.txt');
-    var file =  File(filePath);
+    var file = File(filePath);
     if (!file.existsSync()) {
       file.writeAsStringSync(metadata);
 
       print('file here ${file.path}');
       uploadMetaDataS3(code, file);
     }
-    
   }
 
-/// Responsible for updating the metadata once created. This happens when diary has been submitted by participants or it has been submitted systematically.
+  /// Responsible for updating the metadata once created. This happens when diary has been submitted by participants or it has been submitted systematically.
 
-void updateMetaDataFile(DateTime nextStudyDate) async {
-  final participant = getParticipant();
-  final code = participant!.studyCode;
+  void updateMetaDataFile(DateTime nextStudyDate) async {
+    final participant = getParticipant();
+    final code = participant!.studyCode;
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    final filePath = p.join(documentsDirectory.path, 'metadata.txt');
+    final file = File(filePath);
 
-  Directory documentsDirectory = await getApplicationDocumentsDirectory();
-  final filePath = p.join(documentsDirectory.path,'metadata.txt');
-  final file = File(filePath);
-  
-  String contents = file.readAsStringSync();
-  final data = jsonDecode(contents);
+    String contents = file.readAsStringSync();
+    final data = jsonDecode(contents);
 
-  final map = data['diaries'] as Map<String, dynamic>;
-  var stopDayCount = false;
-  map.forEach((key, value) {
-    if (stopDayCount == false) {
-      if (value == null) {
-        map[key] = true;
-        stopDayCount = true;
-        print("values key: $key value: $value");
-      }
-    }
-  });
-  //Updating the metadata content
-  data['diaries'] = map;
-  data['next_study_date']= formatDate(nextStudyDate);
-  data['recent_submit_date'] = formatDate(DateTime.now());
-  
-  file.writeAsStringSync(jsonEncode(data));
-  uploadMetaDataS3(code, file);
-  
+    final map = data['diaries'] as Map<String, dynamic>;
+    final diaryRepo = DiaryRepository();
 
-  print("File Contents :${map.length}  ${file.readAsStringSync()}");
-}
+    final allDiaries = diaryRepo.getAllDiaries();
+
+    //Check from today and backwards
+    final today =
+        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
+            .add(Duration(days: 4));
+    final todayAndBefore = allDiaries
+        .where((element) =>
+            element.due.isBefore(today.add(const Duration(days: 1))))
+        .toList();
+    todayAndBefore.sort((a, b) => a.due.compareTo(b.due));
+
+    print('todays ${formatDate(today)} ${todayAndBefore.length}}');
+    int day = 1;
+    todayAndBefore.forEach((element) {
+      map['day$day'] = element.status == DiaryStatus.submitted;
+      day++;
+
+      print('dues: ${element.due}');
+    });
+
+    print('$map map');
+
+    //Updating the metadata content
+    data['diaries'] = map;
+    data['next_study_date'] = formatDate(nextStudyDate);
+    data['recent_submit_date'] = formatDate(DateTime.now());
+
+    file.writeAsStringSync(jsonEncode(data));
+    //uploadMetaDataS3(code, file);
+
+    print("File Contents :${map.length}  ${file.readAsStringSync()}");
+  }
 }
