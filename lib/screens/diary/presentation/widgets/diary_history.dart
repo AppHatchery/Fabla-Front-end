@@ -14,24 +14,10 @@ class DiaryHistory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentDate = DateTime.now();
-    final filteredDiaries = diaries.where((diary) {
-      final diaryDate = diary.due;
-      final diaryDateWithoutTime = DateTime(
-        diaryDate.year,
-        diaryDate.month,
-        diaryDate.day,
-      );
-      final currentDateWithoutTime = DateTime(
-        currentDate.year,
-        currentDate.month,
-        currentDate.day,
-      );
-      return diaryDateWithoutTime.isBefore(currentDateWithoutTime.add(Duration(days: 1)));
-    }).toList();
+    final due = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 4,0,0).add(const Duration(days: 1));
+    final filteredDiaries = diaries.where((diary) => diary.due.isBefore(due)).toList();
 
     filteredDiaries.sort((a, b) => b.due.compareTo(a.due));
-
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,

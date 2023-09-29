@@ -28,9 +28,9 @@ class DiaryDAO {
   /// A DiaryEntity object representing the diary entry with the specified due date,
   /// or null if no matching entry is found.
   ///
-  DiaryEntity? getDiary(DateTime due) {
+  DiaryEntity? getDiary(DateTime start,DateTime due) {
     final query =
-        box.query(DiaryEntity_.deadline.equals(due.toString())).build();
+        box.query(DiaryEntity_.deadline.equals(due.toString()).and(DiaryEntity_.start.equals(start.toString()))).build();
     return query.findFirst();
   }
 

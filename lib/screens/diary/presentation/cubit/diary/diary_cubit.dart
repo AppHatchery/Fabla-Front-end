@@ -13,9 +13,11 @@ class DiaryCubit extends Cubit<DiaryState>{
   final today =
   DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
   Future<void> loadDiaries() async{
+    final start = DateTime(today.year, today.month, today.day, 4, 0, 0);
+    final due = DateTime(today.year, today.month, today.day, 3, 59, 59).add(const Duration(days: 1));
     try{
       emit(const DiaryLoading());
-      final diary = await repository.getDiary(today);
+      final diary = await repository.getDiary(start, due);
       if(diary != null){
         List<Diary> unfilterDiaries = [diary];
         List<Diary> unSubmittedDiaries = unfilterDiaries

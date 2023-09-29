@@ -274,8 +274,9 @@ class _DiaryPageState extends State<DiariesPage> {
     final date = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
     for(Diary diary in diaries){
-      if(diary.due != date){
-        events.addAll({diary.due: ["Yes"]});
+      final day = DateTime(diary.start.year, diary.start.month, diary.start.day);
+      if(day != date){ 
+        events.addAll({day: ["Yes"]});
       }
     }
   }

@@ -27,8 +27,8 @@ class DiaryRepository {
   /// A DiaryEntity object representing the diary entry with the specified due date, if found,
   /// or null if no matching entry is found in the data source.
   ///
-  DiaryEntity? _getDiaryEntity(DateTime due) {
-    return _diaryDAO.getDiary(due);
+  DiaryEntity? _getDiaryEntity(DateTime start,DateTime due) {
+    return _diaryDAO.getDiary(start, due);
   }
 
   /// Retrieves a list of Diary objects representing all stored diary entries.
@@ -54,8 +54,8 @@ class DiaryRepository {
   /// A Diary object representing the diary entry with the specified due date, if found,
   /// or null if no matching entry is found in the data source.
   ///
-  Diary? getDiary(DateTime due) {
-    final diary = _getDiaryEntity(due);
+  Diary? getDiary(DateTime start,DateTime due) {
+    final diary = _getDiaryEntity(start, due);
     if (diary != null) {
       return Diary.fromEntity(diary);
     }
