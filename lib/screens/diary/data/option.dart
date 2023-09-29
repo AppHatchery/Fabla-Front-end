@@ -1,5 +1,3 @@
-import 'package:audio_diaries_flutter/core/utils/types.dart';
-
 import 'options.dart';
 
 class Option {

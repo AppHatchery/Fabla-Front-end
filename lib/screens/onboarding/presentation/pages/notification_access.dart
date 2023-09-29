@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/mic_access.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -68,6 +69,9 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
         .setBoolPreference(key: 'notification_requested', value: true);
 
     if (results.isGranted) {
+      final repository = SetupRepository();
+      repository.createNotifications();
+      
       if (context.mounted) {
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const MicAccessPage()));

@@ -93,6 +93,7 @@ class NotificationService {
   /// If permission is not granted, the function returns `false`.
   ///
   /// Parameters:
+  /// - [id]: The unique identifier of the scheduled notification
   /// - [title]: The title of the notification.
   /// - [body]: The body of the notification.
   /// - [date]: The date at which the notification should be scheduled.
@@ -111,7 +112,8 @@ class NotificationService {
   /// );
   /// ```
   static Future<bool> createNotification(
-      {required final String title,
+      {final int? id,
+      required final String title,
       required final String body,
       required final DateTime date,
       Map<String, String>? payload}) async {
@@ -121,7 +123,7 @@ class NotificationService {
     return hasPermission
         ? await awesomeNotifications.createNotification(
             content: NotificationContent(
-                id: Random().nextInt(100000),
+                id: id ?? Random().nextInt(100000),
                 channelKey: 'audio-diaries',
                 title: title,
                 body: body,
@@ -157,6 +159,25 @@ class NotificationService {
   /// ```
   static Future<void> cancelAllNotifications() async =>
       await AwesomeNotifications().cancelAllSchedules();
+
+  /// Cancels a scheduled notification with the specified [id].
+  ///
+  /// This function allows you to programmatically cancel a previously scheduled
+  /// notification using its unique identifier [id]. It utilizes the
+  /// `AwesomeNotifications` library to perform the cancellation.
+  ///
+  /// Parameters:
+  ///   - [id]: The unique identifier of the scheduled notification to be canceled.
+  ///
+  /// Usage Example:
+  /// ```dart
+  /// await cancelNotification(123); // Cancels the notification with ID 123.
+  /// ```
+  ///
+  /// Note: This function is asynchronous, so it should be awaited when called.
+
+  static Future<void> cancelNotification(int id) async =>
+      await AwesomeNotifications().cancelSchedule(id);
 
   /// Reschedules a notification with updated information.
   ///

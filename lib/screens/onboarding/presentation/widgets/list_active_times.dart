@@ -7,18 +7,21 @@ import 'active_time_tile.dart';
 import '../../../../theme/components/time_picker.dart';
 
 class ListActiveTimes extends StatefulWidget {
-  const ListActiveTimes({super.key});
+  final List<TimeOfDay> times;
+  const ListActiveTimes({super.key, required this.times});
 
   @override
   State<ListActiveTimes> createState() => _ListActiveTimesState();
 }
 
 class _ListActiveTimesState extends State<ListActiveTimes> {
-  List<TimeOfDay> times = [];
+
 
   @override
   void initState() {
-    times.insert(0, fixedTime);
+    if(widget.times.isEmpty){
+      widget.times.insert(0, fixedTime);
+    }
     super.initState();
   }
 
@@ -31,15 +34,16 @@ class _ListActiveTimesState extends State<ListActiveTimes> {
               padding: const EdgeInsets.all(0),
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
-              itemCount: times.length,
+              itemCount:  widget.times.length,
               itemBuilder: (context, index) {
                 return Padding(
                   padding: EdgeInsets.only(
-                      bottom: index == times.length - 1 ? 0 : 10.0),
+                      bottom: index ==  widget.times.length - 1 ? 0 : 10.0),
                   child: ActiveTimeTile(
-                    time: times[index],
+                    time:  widget.times[index],
                     delete: () =>
-                        {deleteTime(times[index]), Navigator.pop(context)},
+                        {deleteTime( widget.times[index]), Navigator.pop(context)},
+                    edit: (value) => editTime(index, value),
                   ),
                 );
               }),
@@ -69,19 +73,25 @@ class _ListActiveTimesState extends State<ListActiveTimes> {
               ],
             ));
     if (time != null) {
-      if (!times.contains(time)) {
+      if (! widget.times.contains(time)) {
         setState(() {
-          times.add(time);
+           widget.times.add(time);
         });
       }
     }
   }
 
   void deleteTime(TimeOfDay time) {
-    if (times.length > 1) {
+    if ( widget.times.length > 1) {
       setState(() {
-        times.remove(time);
+         widget.times.remove(time);
       });
     }
+  }
+
+  void editTime(int index, TimeOfDay time) async{
+    setState(() {
+        widget.times[index] = time;
+    });
   }
 }
