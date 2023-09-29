@@ -31,18 +31,21 @@ Future<void> diaryInit(String code) async {
     final diaries = <DiaryEntity>[];
 
     if (start != null) {
-    for (var i = 0; i + 1 <= fakePrompts.length; i ++) {
-      final date = start.add(Duration(days: i));
-      final deadline = DateTime(date.year, date.month, date.day);
-      final diary = DiaryEntity(
-          prompts: [i], due: deadline, deadline: deadline.toString(), status: DiaryStatus.idle);
+      for (var i = 0; i + 1 <= fakePrompts.length; i++) {
+        final date = start.add(Duration(days: i));
+        final deadline = DateTime(date.year, date.month, date.day);
+        final diary = DiaryEntity(
+            prompts: [i],
+            due: deadline,
+            deadline: deadline.toString(),
+            status: DiaryStatus.idle);
         diaries.add(diary);
-
-    }
+      }
       repository.addDiaries(diaries);
-      PreferenceService().setIntPreference(key: 'startDate', value: start.millisecondsSinceEpoch);
+      PreferenceService().setIntPreference(
+          key: 'startDate', value: start.millisecondsSinceEpoch);
+    }
   }
- }
 }
 
 DateTime? startDate(String code) {
@@ -55,6 +58,9 @@ DateTime? startDate(String code) {
   } else if (code.startsWith('2')) {
     final saturday = nextSunday.add(const Duration(days: 6));
     return DateTime(saturday.year, saturday.month, saturday.day);
+  } else if (code.startsWith('0')) {
+    return DateTime(
+        DateTime.now().year, DateTime.now().month, DateTime.now().day);
   }
 
   return null;

@@ -140,6 +140,9 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
       return nextSunday;
     } else if (code.startsWith('2')) {
       return nextSunday.add(const Duration(days: 6));
+    } else if (code.startsWith('0')) {
+      return DateTime(
+          DateTime.now().year, DateTime.now().month, DateTime.now().day);
     }
 
     return null;
