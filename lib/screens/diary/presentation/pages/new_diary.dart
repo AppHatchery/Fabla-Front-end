@@ -40,6 +40,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   late int currentPage;
 
   bool ableToContinue = false;
+  bool showCloseIcon = true;
 
   @override
   void initState() {
@@ -98,13 +99,64 @@ class _NewDiaryPageState extends State<NewDiaryPage>
       child: Scaffold(
         key: key,
         backgroundColor: CustomColors.fillNormal,
-        appBar: const CustomAppBar(),
+        appBar: AppBar(
+          backgroundColor: CustomColors.fillNormal,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(context, true);
+                  },
+                  icon: const Icon(CustomIcons.close),
+                  iconSize: 15.0,
+                ),
+                // if (currentPage == 0)
+
+                // else
+                //   IconButton(
+                //     onPressed: previousPage,
+                //     icon: const Icon(Icons.arrow_back),
+                //     iconSize: 25.0,
+                //   ),
+                // IconButton(
+                //   onPressed: () {
+                //     Navigator.pop(context, true);
+                //   },
+                //   icon:
+                //   const Icon(CustomIcons.close),
+                //   iconSize: 15.0,
+                // ),
+                Expanded(
+                  child: CustomBarIndicator(
+                      pageCount: widget.diary.prompts.length,
+                      currentPage: currentPage),
+                ),
+                TextButton(
+                  onPressed: () {
+                    print("Skip clicked!");
+                  },
+                  child: Text(
+                    "Skip",
+                    style: CustomTypography()
+                        .titleSmall(color: CustomColors.textNormalContent),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
         body: Column(
           children: [
-            CustomBarIndicator(
-              pageCount: widget.diary.prompts.length,
-              currentPage: currentPage,
-            ),
+            Container(
+                padding: const EdgeInsets.only(left: 15),
+                alignment: Alignment.topLeft,
+                child: Text(
+                  "Question ${currentPage + 1}/${widget.diary.prompts.length}",
+                  style: CustomTypography().button(),
+                )),
             Expanded(
               child: PageView(
                 physics: const NeverScrollableScrollPhysics(),
@@ -112,14 +164,45 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                 children: pages(),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 34),
-              alignment: Alignment.bottomCenter,
-              child: CustomFlatButton(
-                isDisabled: !ableToContinue,
-                onClick: () => nextPage(),
-                text: "CONTINUE",
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Visibility(
+                    visible: currentPage != 0,
+                    child: Container(
+                      padding: const EdgeInsets.only(
+                          left: 16, right: 16, bottom: 34),
+                      width: 90,
+                      height: 97,
+                      alignment: Alignment.topCenter,
+                      child: CustomElevatedIconButton(
+                        onClick: () {
+                          previousPage();
+                        },
+                        icon: Icons.arrow_back,
+                        //iconSize: 25.0,
+                        iconColor: CustomColors.productNormal,
+                        color: CustomColors.fillNormal,
+                        shadowColor: Colors.transparent,
+                        border: Border.all(
+                          color: CustomColors.productBorderNormal,
+                          width: 1,
+                        ),
+                      ),
+                    )),
+                Expanded(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.only(left: 16, right: 16, bottom: 34),
+                    alignment: Alignment.bottomCenter,
+                    child: CustomFlatButton(
+                      isDisabled: !ableToContinue,
+                      onClick: () => nextPage(),
+                      text: "CONTINUE",
+                    ),
+                  ),
+                )
+              ],
             ),
           ],
         ),
@@ -190,6 +273,7 @@ class _QuestionPageState extends State<QuestionPage> {
   late Prompt prompt;
 
   bool isChecked = false;
+  bool inEnabled = true;
 
   void updateSliderValue(double value) {
     save(prompt, value.toString());
@@ -267,12 +351,13 @@ class _QuestionPageState extends State<QuestionPage> {
       responseWidget = SliderQuestionCard(
         value: prompt.answer?.response != null
             ? double.parse(prompt.answer!.response!)
-            : 0,
+            : null,
         scaleMin: scaleMinValue,
         scaleMax: scaleMaxValue,
         scaleMinText: prompt.option!.startText,
         scaleMaxText: prompt.option!.endText,
         onSliderValueChanged: updateSliderValue,
+        isSliderEnabled: inEnabled,
       );
     } else if (prompt.responseType == ResponseType.multiple) {
       final selected = prompt.answer?.response != null
@@ -332,19 +417,21 @@ class _QuestionPageState extends State<QuestionPage> {
                     children: [
                       WidgetSpan(
                         alignment: PlaceholderAlignment.middle,
-                        child: prompt.note != null ? IconButton(
-                          onPressed: () {
-                            setState(() {
-                              isClicked = !isClicked;
-                            });
-                          },
-                          icon: Icon(isClicked
-                              ? CustomIcons.note
-                              : CustomIcons.note_1),
-                          color: CustomColors.productNormal,
-                          iconSize: 22.0,
-                          padding: const EdgeInsets.all(0),
-                        ) : const SizedBox.shrink(),
+                        child: prompt.note != null
+                            ? IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    isClicked = !isClicked;
+                                  });
+                                },
+                                icon: Icon(isClicked
+                                    ? CustomIcons.note
+                                    : CustomIcons.note_1),
+                                color: CustomColors.productNormal,
+                                iconSize: 22.0,
+                                padding: const EdgeInsets.all(0),
+                              )
+                            : const SizedBox.shrink(),
                       ),
                     ],
                   ),
@@ -353,12 +440,14 @@ class _QuestionPageState extends State<QuestionPage> {
             ],
           ),
           if (!isClicked)
-            prompt.note != null ? ResearchersNote(
-              note: prompt.note,
-              onDismissed: (value) => setState(() {
-                isClicked = value;
-              }),
-            ) : const SizedBox.shrink(),
+            prompt.note != null
+                ? ResearchersNote(
+                    note: prompt.note,
+                    onDismissed: (value) => setState(() {
+                      isClicked = value;
+                    }),
+                  )
+                : const SizedBox.shrink(),
           const SizedBox(height: 24),
           prompt.answer?.recordings.isNotEmpty ?? false
               ? MyResponse(
@@ -369,7 +458,8 @@ class _QuestionPageState extends State<QuestionPage> {
           widget.diary.status == DiaryStatus.submitted
               ? const SizedBox.shrink()
               : responseWidget,
-          if (widget.diary.status != DiaryStatus.submitted)
+          if (widget.diary.status != DiaryStatus.submitted &&
+              prompt.responseType == ResponseType.recording)
             SizedBox(height: MediaQuery.of(context).size.height * 0.3),
           // const CustomTextButton(
           //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),

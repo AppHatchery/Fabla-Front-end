@@ -1,7 +1,9 @@
 import 'package:objectbox/objectbox.dart';
 
+import '../../../../core/utils/dummy_data.dart';
 import '../../../../core/utils/statuses.dart';
 import '../../data/diary.dart';
+import '../../data/prompt.dart';
 
 @Entity()
 class DiaryEntity {
@@ -25,7 +27,11 @@ class DiaryEntity {
   }
 
   DiaryEntity(
-      {this.id = 0, required this.prompts, required this.due, required this.deadline,this.status});
+      {this.id = 0,
+      required this.prompts,
+      required this.due,
+      required this.deadline,
+      this.status});
 
   /// Ensures the consistency of DiaryStatus enumeration indices.
   /// This private method verifies that the indices of the DiaryStatus enum values correspond to their expected numerical values.
@@ -54,10 +60,21 @@ class DiaryEntity {
   factory DiaryEntity.fromModel(Diary model) {
     return DiaryEntity(
       id: model.id,
-      prompts: model.prompts.map((e) => e.id).toList(),
+      prompts: [findKeyForId(model.prompts.first.id, fakePrompts)],
       due: model.due,
       deadline: model.due.toString(),
       status: model.status,
     );
   }
+}
+
+int findKeyForId(int targetId, Map<int, List<Prompt>> prompts) {
+  for (final entry in prompts.entries) {
+    final idList = entry.value.map((prompt) => prompt.id).toList();
+    if (idList.contains(targetId)) {
+      return entry.key;
+    }
+  }
+  // Return -1 or another appropriate value if the ID is not found.
+  return -1;
 }
