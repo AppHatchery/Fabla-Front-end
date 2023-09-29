@@ -7,6 +7,7 @@ import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repo
 import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
