@@ -41,6 +41,7 @@ class DiaryEntity {
     assert(DiaryStatus.ongoing.index == 1);
     assert(DiaryStatus.complete.index == 2);
     assert(DiaryStatus.submitted.index == 3);
+    assert(DiaryStatus.missed.index == 4);
   }
 
   /// Factory constructor that creates a DiaryEntity object from a Diary model.

@@ -1,3 +1,5 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+
 import '../../../../core/database/dao/diary_dao.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
@@ -14,7 +16,23 @@ class DiaryRepository {
   /// A list of DiaryEntity objects representing all stored diary entries.
   ///
   List<DiaryEntity> _getAllDiariesEntities() {
-    return _diaryDAO.getAllDiaries();
+    final diaries = _diaryDAO.getAllDiaries();
+    final due = DateTime(DateTime.now().year, DateTime.now().month,
+            DateTime.now().day, 4, 0, 0);
+    final unSubmittedDiaries = diaries
+        .where((diary) => diary.due.isBefore(due))
+        .where((element) => element.status != DiaryStatus.submitted)
+        .toList();
+    
+    if(unSubmittedDiaries.isNotEmpty){
+      for(final diary in unSubmittedDiaries){
+        diary.status = DiaryStatus.missed;
+      }
+
+      _diaryDAO.updateDiaries(unSubmittedDiaries);
+      return _diaryDAO.getAllDiaries();
+    }
+    return diaries;
   }
 
   /// Retrieves a DiaryEntity object from the data source based on a specified due date.
@@ -27,7 +45,7 @@ class DiaryRepository {
   /// A DiaryEntity object representing the diary entry with the specified due date, if found,
   /// or null if no matching entry is found in the data source.
   ///
-  DiaryEntity? _getDiaryEntity(DateTime start,DateTime due) {
+  DiaryEntity? _getDiaryEntity(DateTime start, DateTime due) {
     return _diaryDAO.getDiary(start, due);
   }
 
@@ -54,7 +72,7 @@ class DiaryRepository {
   /// A Diary object representing the diary entry with the specified due date, if found,
   /// or null if no matching entry is found in the data source.
   ///
-  Diary? getDiary(DateTime start,DateTime due) {
+  Diary? getDiary(DateTime start, DateTime due) {
     final diary = _getDiaryEntity(start, due);
     if (diary != null) {
       return Diary.fromEntity(diary);

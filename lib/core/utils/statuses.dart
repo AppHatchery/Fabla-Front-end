@@ -3,6 +3,7 @@ enum DiaryStatus {
   ongoing,
   complete,
   submitted,
+  missed
 }
 
 enum RecorderState {

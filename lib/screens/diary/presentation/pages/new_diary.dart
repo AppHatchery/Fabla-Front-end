@@ -45,6 +45,11 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   void initState() {
     controller = PageController();
     controllerInit();
+    if(widget.diary.status == DiaryStatus.submitted || widget.diary.status == DiaryStatus.missed){
+      setState(() {
+        ableToContinue = true;
+      });
+    }
     super.initState();
   }
 
@@ -234,7 +239,7 @@ class _QuestionPageState extends State<QuestionPage> {
                 state.prompt.answer?.response != null) {
               widget.answerAdded(true);
             } else {
-              if (widget.diary.status != DiaryStatus.submitted) {
+              if (widget.diary.status != DiaryStatus.submitted && widget.diary.status != DiaryStatus.missed) {
                 widget.answerAdded(false);
               } else {
                 widget.answerAdded(true);
@@ -366,7 +371,7 @@ class _QuestionPageState extends State<QuestionPage> {
                   status: widget.diary.status,
                   recordings: prompt.answer!.recordings)
               : const SizedBox.shrink(),
-          widget.diary.status == DiaryStatus.submitted
+          widget.diary.status == DiaryStatus.submitted || widget.diary.status == DiaryStatus.missed
               ? const SizedBox.shrink()
               : responseWidget,
           if (widget.diary.status != DiaryStatus.submitted)
