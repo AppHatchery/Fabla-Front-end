@@ -61,6 +61,12 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+    repositories {
+        maven {
+            url "https://software.mobile.pendo.io/artifactory/androidx-release"
+        }
+    mavenCentral()
+    }
 }
 
 flutter {
