@@ -17,16 +17,18 @@ class DiaryRepository {
   ///
   List<DiaryEntity> _getAllDiariesEntities() {
     final diaries = _diaryDAO.getAllDiaries();
-    final due = DateTime(DateTime.now().year, DateTime.now().month,
-            DateTime.now().day, 4, 0, 0);
+    final now = DateTime.now();
+    final due = DateTime(now.year, now.month, now.day, 4, 0, 0);
     final unSubmittedDiaries = diaries
         .where((diary) => diary.due.isBefore(due))
         .where((element) => element.status != DiaryStatus.submitted)
         .toList();
-    
-    if(unSubmittedDiaries.isNotEmpty){
-      for(final diary in unSubmittedDiaries){
-        diary.status = DiaryStatus.missed;
+
+    if (unSubmittedDiaries.isNotEmpty) {
+      for (final diary in unSubmittedDiaries) {
+        if (now.isAfter(due)) {
+          diary.status = DiaryStatus.missed;
+        }
       }
 
       _diaryDAO.updateDiaries(unSubmittedDiaries);

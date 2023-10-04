@@ -12,8 +12,7 @@ class HomeCubit extends Cubit<HomeState> {
   HomeCubit() : super(const HomeInitial());
   DiaryRepository repository = DiaryRepository();
   final SetupRepository setupRepository = SetupRepository();
-  final today =
-      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+  final today = DateTime.now();
 
   /// Asynchronous method to load and organize Diary objects for display on the home screen.
   /// This function initiates the loading process of Diary objects and their organization for display on the home screen.
@@ -28,8 +27,14 @@ class HomeCubit extends Cubit<HomeState> {
   /// A Future indicating that the operation may be asynchronous and requires awaiting.
   ///
   Future<void> loadDiaries() async {
-    final start = DateTime(today.year, today.month, today.day, 4, 0, 0);
-    final due = DateTime(today.year, today.month, today.day, 3, 59, 59).add(const Duration(days: 1));
+    final start = today.hour >= 4
+        ? DateTime(today.year, today.month, today.day, 4, 0, 0)
+        : DateTime(today.year, today.month, today.day, 4, 0, 0)
+            .subtract(const Duration(days: 1));
+    final due = today.hour >= 4
+        ? DateTime(today.year, today.month, today.day, 3, 59, 59)
+            .add(const Duration(days: 1))
+        : DateTime(today.year, today.month, today.day, 3, 59, 59);
     try {
       emit(const HomeLoading());
       final diary = await repository.getDiary(start, due);
@@ -70,7 +75,8 @@ class HomeCubit extends Cubit<HomeState> {
     final diaries = repository.getAllDiaries();
     final thisWeek = diaries
         .where((element) =>
-            element.due.isAfter(monday.subtract(const Duration(days: 1))) && element.due.isBefore(sunday))
+            element.due.isAfter(monday.subtract(const Duration(days: 1))) &&
+            element.due.isBefore(sunday))
         .toList();
     thisWeek.sort((a, b) => a.due.compareTo(b.due));
     return thisWeek;

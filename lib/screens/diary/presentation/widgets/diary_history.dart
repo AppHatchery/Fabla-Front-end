@@ -14,8 +14,13 @@ class DiaryHistory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final due = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 4,0,0).add(const Duration(days: 1));
-    final filteredDiaries = diaries.where((diary) => diary.due.isBefore(due)).toList();
+    final now = DateTime.now();
+    final due = now.hour >= 4
+        ? DateTime(now.year, now.month, now.day, 4, 0, 0)
+            .add(const Duration(days: 1))
+        : DateTime(now.year, now.month, now.day, 4, 0, 0);
+    final filteredDiaries =
+        diaries.where((diary) => diary.due.isBefore(due)).toList();
 
     filteredDiaries.sort((a, b) => b.due.compareTo(a.due));
 
@@ -25,15 +30,13 @@ class DiaryHistory extends StatelessWidget {
       children: [
         for (var diary in filteredDiaries)
           Column(
-
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _formatDate(diary.due),
+                _formatDate(diary.start),
                 style: CustomTypography()
                     .titleLarge(color: CustomColors.textNormalContent),
                 textAlign: TextAlign.left,
-
               ),
               const SizedBox(height: 6),
               DiaryCard(
@@ -47,6 +50,7 @@ class DiaryHistory extends StatelessWidget {
     );
   }
 }
+
 String _formatDate(DateTime date) {
   final DateFormat formatter = DateFormat("MMMM d',' y");
   return formatter.format(date);
