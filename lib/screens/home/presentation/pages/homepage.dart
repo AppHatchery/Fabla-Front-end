@@ -20,17 +20,31 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late HomeCubit homeCubit;
   String _name = "";
   late List<Diary> diaries;
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     homeCubit = BlocProvider.of<HomeCubit>(context);
     fetchData(context);
     getParticipant();
-    diaries = homeCubit.getAllDiariesThisWeek();
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      fetchData(context);
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
@@ -151,6 +165,7 @@ class _HomePageState extends State<HomePage> {
 
   void fetchData(BuildContext context) {
     homeCubit.loadDiaries();
+    diaries = homeCubit.getAllDiariesThisWeek();
   }
 
   void refresh(bool shouldRefresh) {

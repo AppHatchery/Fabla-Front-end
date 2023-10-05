@@ -23,13 +23,14 @@ class DiariesPage extends StatefulWidget {
 
 enum Calendar { list, calendar }
 
-class _DiaryPageState extends State<DiariesPage> {
+class _DiaryPageState extends State<DiariesPage> with WidgetsBindingObserver{
   late DiaryCubit diaryCubit;
   late DiaryHistoryCubit historyCubit;
   Map<DateTime, List<String>> events = {};
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     historyCubit = BlocProvider.of<DiaryHistoryCubit>(context);
     fetchHistoryData(context);
     diaryCubit = BlocProvider.of<DiaryCubit>(context);
@@ -41,6 +42,21 @@ class _DiaryPageState extends State<DiariesPage> {
   bool isListButtonSelected = true;
   Calendar calendarView = Calendar.list;
   DateTime currentDate = DateTime.now();
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      fetchHistoryData(context);
+      fetchData(context);
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

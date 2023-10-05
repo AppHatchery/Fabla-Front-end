@@ -10,8 +10,9 @@ part 'diary_state.dart';
 class DiaryCubit extends Cubit<DiaryState> {
   DiaryCubit() : super(const DiaryInitial());
   DiaryRepository repository = DiaryRepository();
-  final today = DateTime.now();
+  
   Future<void> loadDiaries() async {
+    final today = DateTime.now();
     final start = today.hour >= 4
         ? DateTime(today.year, today.month, today.day, 4, 0, 0)
         : DateTime(today.year, today.month, today.day, 4, 0, 0)
