@@ -7,16 +7,24 @@ import '../../../data/diary.dart';
 
 part 'diary_state.dart';
 
-class DiaryCubit extends Cubit<DiaryState>{
+class DiaryCubit extends Cubit<DiaryState> {
   DiaryCubit() : super(const DiaryInitial());
   DiaryRepository repository = DiaryRepository();
-  final today =
-  DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-  Future<void> loadDiaries() async{
-    try{
+  
+  Future<void> loadDiaries() async {
+    final today = DateTime.now();
+    final start = today.hour >= 4
+        ? DateTime(today.year, today.month, today.day, 4, 0, 0)
+        : DateTime(today.year, today.month, today.day, 4, 0, 0)
+            .subtract(const Duration(days: 1));
+    final due = today.hour >= 4
+        ? DateTime(today.year, today.month, today.day, 3, 59, 59)
+            .add(const Duration(days: 1))
+        : DateTime(today.year, today.month, today.day, 3, 59, 59);
+    try {
       emit(const DiaryLoading());
-      final diary = await repository.getDiary(today);
-      if(diary != null){
+      final diary = await repository.getDiary(start, due);
+      if (diary != null) {
         List<Diary> unfilterDiaries = [diary];
         List<Diary> unSubmittedDiaries = unfilterDiaries
             .where((element) => element.status == DiaryStatus.complete)
@@ -27,12 +35,11 @@ class DiaryCubit extends Cubit<DiaryState>{
         diaries
             .sort((a, b) => a.status.toString().compareTo(b.status.toString()));
         emit(DiaryLoaded(diaries, unSubmittedDiaries));
-      }else{
+      } else {
         emit(const DiaryLoaded([], []));
       }
-    } catch(e){
+    } catch (e) {
       emit(const DiaryError("Something went wrong"));
     }
   }
-
 }

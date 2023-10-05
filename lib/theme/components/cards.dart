@@ -5,7 +5,6 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../core/utils/formatter.dart';
 import '../../core/utils/statuses.dart';
@@ -25,9 +24,10 @@ class DiaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(diary?.status == DiaryStatus.submitted || diary?.status == DiaryStatus.missed);
     return Container(
       decoration: BoxDecoration(
-        color: diary?.status == DiaryStatus.submitted
+        color: diary?.status == DiaryStatus.submitted || diary?.status == DiaryStatus.missed
             ? CustomColors.fillNormal
             : CustomColors.fillWhite,
         borderRadius: BorderRadius.circular(12),
@@ -58,7 +58,7 @@ class DiaryCard extends StatelessWidget {
                 alignment: WrapAlignment.start,
                 runAlignment: WrapAlignment.start,
                 crossAxisAlignment: WrapCrossAlignment.start,
-                children: [for (var tag in diary!.tags) TagPill(tag: tag)],
+                children: [for (var tag in diary!.tags) TagPill(status: diary!.status,tag: tag)],
               ),
             ),
             const SizedBox(
@@ -82,15 +82,16 @@ class DiaryCard extends StatelessWidget {
                       DiaryStatus.idle => "Start",
                       DiaryStatus.ongoing => "Continue",
                       DiaryStatus.submitted => "View",
+                      DiaryStatus.missed => "View",
                     },
-                    color: diary?.status == DiaryStatus.submitted
+                    color: diary?.status == DiaryStatus.submitted || diary?.status == DiaryStatus.missed
                         ? CustomColors.fillNormal
                         : CustomColors.productNormal,
-                    border: diary?.status == DiaryStatus.submitted
+                    border: diary?.status == DiaryStatus.submitted || diary?.status == DiaryStatus.missed
                         ? Border.all(
                             color: CustomColors.productNormal, width: 2)
                         : const Border(),
-                    textColor: diary?.status == DiaryStatus.submitted
+                    textColor: diary?.status == DiaryStatus.submitted || diary?.status == DiaryStatus.missed
                         ? CustomColors.productNormal
                         : CustomColors.textWhite,
                   ),
@@ -119,21 +120,30 @@ class DiaryCard extends StatelessWidget {
 
 /// Used in [DiaryCard]
 class TagPill extends StatelessWidget {
+  final DiaryStatus status;
   final Tag tag;
   const TagPill({
     super.key,
+    required this.status,
     required this.tag,
   });
 
   @override
   Widget build(BuildContext context) {
-    Tuple2<Color, Color> colors = getColorFromString(tag.text);
+    //Tuple2<Color, Color> colors = getColorFromString(tag.text);
+    final color = switch (status) {
+      DiaryStatus.idle => CustomColors.productNormal,
+      DiaryStatus.submitted => CustomColors.darkGreen,
+      DiaryStatus.complete => CustomColors.productNormal,
+      DiaryStatus.ongoing => CustomColors.productNormal,
+      DiaryStatus.missed => CustomColors.warningActive,
+    };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
           shape: BoxShape.rectangle,
           borderRadius: BorderRadius.circular(5),
-          color: colors.item1),
+          color: color),
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
@@ -143,13 +153,13 @@ class TagPill extends StatelessWidget {
               TagType.remainder => Icons.contrast_rounded,
               TagType.questions => Icons.quiz_outlined,
             },
-            color: colors.item2,
+            color: CustomColors.fillWhite,
           ),
           const SizedBox(
             width: 5,
           ),
           Text(tag.text,
-              style: CustomTypography().caption(color: colors.item2)),
+              style: CustomTypography().caption(color: CustomColors.fillWhite)),
         ],
       ),
     );

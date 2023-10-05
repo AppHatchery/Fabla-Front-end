@@ -14,7 +14,7 @@ class DiaryCalender extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentDate = DateTime.now();
+    final currentDate = diaries.isNotEmpty ? diaries[0].start : DateTime.now();
     final formattedDate = DateFormat("MMMM d',' y").format(currentDate);
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -36,6 +36,7 @@ class DiaryCalender extends StatelessWidget {
           itemCount: diaries.length,
           itemBuilder: (context, index) {
             final diary = diaries[index];
+            print("DIARY |||| -> diary start: ${diary.start} & diary due: ${diary.due}");
             return DiaryCard(
               diary: diary,
               refresh: refresh,

@@ -15,30 +15,35 @@ List<Diary> exampleDiaries = [
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.idle,
+      start: DateTime.now(),
       due: DateTime.now()),
   Diary(
       id: 1,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.ongoing,
+      start: DateTime.now(),
       due: DateTime.now()),
   Diary(
       id: 2,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.submitted,
+      start: DateTime.now(),
       due: DateTime.now()),
   Diary(
       id: 3,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.complete,
+      start: DateTime.now(),
       due: DateTime.now()),
   Diary(
       id: 4,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.ongoing,
+      start: DateTime.now(),
       due: DateTime.now()),
 ];
 
@@ -972,6 +977,10 @@ List<Tag> fakeTags = const [
   Tag(text: "Multiple questions", type: TagType.questions),
 ];
 
+const Tag missedTag = Tag(text: "Missed", type: TagType.time);
+const Tag onGoingTag = Tag(text: "Ongoing", type: TagType.time);
+const Tag doneTag = Tag(text: "Done", type: TagType.time);
+
 const TimeOfDay fixedTime = TimeOfDay(hour: 9, minute: 0);
 
 final List<String> studyCodes = [
@@ -1146,5 +1155,6 @@ final List<String> studyCodes = [
   "2007",
   "2008",
   "2009",
-  "2010"
+  "2010",
+  "0000"
 ];

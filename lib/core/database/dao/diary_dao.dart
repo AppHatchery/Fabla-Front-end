@@ -28,9 +28,9 @@ class DiaryDAO {
   /// A DiaryEntity object representing the diary entry with the specified due date,
   /// or null if no matching entry is found.
   ///
-  DiaryEntity? getDiary(DateTime due) {
+  DiaryEntity? getDiary(DateTime start,DateTime due) {
     final query =
-        box.query(DiaryEntity_.deadline.equals(due.toString())).build();
+        box.query(DiaryEntity_.deadline.equals(due.toString()).and(DiaryEntity_.start.equals(start.toString()))).build();
     return query.findFirst();
   }
 
@@ -60,5 +60,19 @@ class DiaryDAO {
   ///
   void updateDiary(DiaryEntity diary) {
     box.put(diary);
+  }
+  
+  /// Updates multiple existing DiaryEntity objects in the database.
+  /// This function modifies the properties of a specific diary entry within the storage box.
+  ///
+  /// Parameters:
+  /// - [diaries]: The List of DiaryEntity objects representing the entries to be updated.
+  ///
+  /// Note:
+  /// This function efficiently applies changes to a multiple diary entries within the storage box.
+  /// It ensures that the modified data replaces the existing entries while preserving its unique identifier.
+  ///
+  void updateDiaries(List<DiaryEntity> diaries) {
+    box.putMany(diaries);
   }
 }
