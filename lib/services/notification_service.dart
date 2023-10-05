@@ -177,7 +177,7 @@ class NotificationService {
   /// Note: This function is asynchronous, so it should be awaited when called.
 
   static Future<void> cancelNotification(int id) async =>
-      await AwesomeNotifications().cancelSchedule(id);
+      await AwesomeNotifications().cancel(id);
 
   /// Reschedules a notification with updated information.
   ///
