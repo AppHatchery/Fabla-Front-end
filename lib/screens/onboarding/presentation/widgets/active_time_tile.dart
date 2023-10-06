@@ -8,7 +8,8 @@ class ActiveTimeTile extends StatefulWidget {
   final TimeOfDay time;
   final VoidCallback delete;
   final ValueChanged<TimeOfDay>? edit;
-  const ActiveTimeTile({super.key, required this.time, required this.delete, this.edit});
+  const ActiveTimeTile(
+      {super.key, required this.time, required this.delete, this.edit});
 
   @override
   State<ActiveTimeTile> createState() => _ActiveTimeTileState();
@@ -74,22 +75,23 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
   void pickDate(TimeOfDay? date) async {
     final time = await showModalBottomSheet(
         backgroundColor: CustomColors.fillWhite,
+        isScrollControlled: true,
         context: context,
-        builder: (context) => Wrap(
-              children: [
-                CustomTimePicker(
+        builder: (context) => LayoutBuilder(builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: CustomTimePicker(
                   date: date,
                   onDelete: () => date != null ? widget.delete() : null,
                 ),
-              ],
-            ));
+              );
+            }));
 
     if (time != null) {
       setState(() {
         timeOfDay = time;
         getPeriod(timeOfDay.hour);
       });
-       widget.edit!(timeOfDay);
+      widget.edit!(timeOfDay);
     }
   }
 }
