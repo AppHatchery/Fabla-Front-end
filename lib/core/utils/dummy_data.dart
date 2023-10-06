@@ -47,7 +47,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   0: [
     Prompt(
       id: 0,
-      question: "How do yo FEEL PHYSICALLY right now?",
+      question: "How do you FEEL PHYSICALLY right now?",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -61,7 +61,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 1,
       question:
-          "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -169,7 +169,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 10,
       question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -198,7 +198,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   1: [
     Prompt(
       id: 13,
-      question: "How do yo FEEL PHYSICALLY right now?",
+      question: "How do you FEEL PHYSICALLY right now?",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -212,7 +212,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 14,
       question:
-          "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -320,7 +320,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 23,
       question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -349,7 +349,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   2: [
     Prompt(
       id: 26,
-      question: "How do yo FEEL PHYSICALLY right now?",
+      question: "How do you FEEL PHYSICALLY right now?",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -363,7 +363,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 27,
       question:
-          "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -471,7 +471,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 36,
       question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -500,7 +500,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   3: [
     Prompt(
       id: 39,
-      question: "How do yo FEEL PHYSICALLY right now?",
+      question: "How do you FEEL PHYSICALLY right now?",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -514,7 +514,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 40,
       question:
-          "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -622,7 +622,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 49,
       question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -651,7 +651,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   4: [
     Prompt(
       id: 52,
-      question: "How do yo FEEL PHYSICALLY right now?",
+      question: "How do you FEEL PHYSICALLY right now?",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -665,7 +665,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 53,
       question:
-          "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -773,7 +773,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 62,
       question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -802,7 +802,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   5: [
     Prompt(
       id: 65,
-      question: "How do yo FEEL PHYSICALLY right now?",
+      question: "How do you FEEL PHYSICALLY right now?",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -816,7 +816,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 66,
       question:
-          "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -924,7 +924,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 75,
       question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,

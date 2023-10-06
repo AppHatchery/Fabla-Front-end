@@ -23,22 +23,22 @@ class CustomBarIndicator extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(30), // Apply borderRadius here
             child: LinearProgressIndicator(
-              backgroundColor: CustomColors.productBorderNormal,
+              backgroundColor: CustomColors.greyDarker,
               value: (currentPage + 1) / pageCount,
               valueColor:
                   const AlwaysStoppedAnimation<Color>(CustomColors.yellowDark),
-              minHeight: 6,
+              minHeight: 12,
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        Container(
-            padding: const EdgeInsets.only(left: 5),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Q${currentPage + 1}/$pageCount",
-              style: CustomTypography().bodyMedium(),
-            ))
+        // const SizedBox(height: 12),
+        // Container(
+        //     padding: const EdgeInsets.only(left: 5),
+        //     alignment: Alignment.centerLeft,
+        //     child: Text(
+        //       "Question ${currentPage + 1}/$pageCount",
+        //       style: CustomTypography().bodyMedium(),
+        //     ))
       ],
     );
   }

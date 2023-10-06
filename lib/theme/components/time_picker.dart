@@ -171,9 +171,9 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                 )),
               ],
             ),
-            const SizedBox(
-              height: 24,
-            ),
+            // const SizedBox(
+            //   height: 24,
+            // ),
           ],
         ),
       ),
