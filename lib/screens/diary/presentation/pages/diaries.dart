@@ -160,40 +160,40 @@ class _DiaryPageState extends State<DiariesPage> with WidgetsBindingObserver {
                 ),
               ),
               const SizedBox(height: 24),
-              Expanded(
-                child: Visibility(
-                    visible: calendarView == Calendar.calendar,
-                    replacement: BlocConsumer<DiaryHistoryCubit, DiaryHistoryState>(
-                          listener: (context, state) {},
-                          builder: (context, state) {
-                            if (state is DiaryHistoryInitial) {
-                              return initialDiaryHistory();
-                            } else if (state is DiaryHistoryLoading) {
-                              return historyLoading();
-                            } else if (state is DiaryHistoryLoaded) {
-                              return loadedDiaryHistory(
-                                  state.diaries, state.unSubmittedDiaries);
-                            } else {
-                              return initialDiaryHistory();
-                            }
-                          },
-                        ),
-                    child: BlocConsumer<DiaryCubit, DiaryState>(
+              calendarView == Calendar.calendar
+                  ? Expanded(
+                      child: BlocConsumer<DiaryCubit, DiaryState>(
+                        listener: (context, state) {},
+                        builder: (context, state) {
+                          if (state is DiaryInitial) {
+                            return initialDiary();
+                          } else if (state is DiaryLoading) {
+                            return loading();
+                          } else if (state is DiaryLoaded) {
+                            return loadedDiary(
+                                state.diaries, state.unSubmittedDiaries);
+                          } else {
+                            return initialDiary();
+                          }
+                        },
+                      ),
+                    )
+                  : Expanded(
+                      child: BlocConsumer<DiaryHistoryCubit, DiaryHistoryState>(
                       listener: (context, state) {},
                       builder: (context, state) {
-                        if (state is DiaryInitial) {
-                          return initialDiary();
-                        } else if (state is DiaryLoading) {
-                          return loading();
-                        } else if (state is DiaryLoaded) {
-                          return loadedDiary(
+                        if (state is DiaryHistoryInitial) {
+                          return initialDiaryHistory();
+                        } else if (state is DiaryHistoryLoading) {
+                          return historyLoading();
+                        } else if (state is DiaryHistoryLoaded) {
+                          return loadedDiaryHistory(
                               state.diaries, state.unSubmittedDiaries);
                         } else {
-                          return initialDiary();
+                          return initialDiaryHistory();
                         }
                       },
-                    )),
-              ),
+                    ))
             ],
           ),
         ));
@@ -219,13 +219,15 @@ class _DiaryPageState extends State<DiariesPage> with WidgetsBindingObserver {
       children: [
         unSubmittedDiaries.isNotEmpty
             ? Expanded(
-              child: UnsubmittedDiaryList(
+                child: UnsubmittedDiaryList(
                   diaries: unSubmittedDiaries,
                   refresh: (value) => refresh(value),
                 ),
-            )
+              )
             : const SizedBox.shrink(),
-        Expanded(child: DiaryHistory(diaries: diaries, refresh: (value) => refresh(value))),
+        Expanded(
+            child: DiaryHistory(
+                diaries: diaries, refresh: (value) => refresh(value))),
       ],
     );
   }
