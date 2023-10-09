@@ -91,13 +91,26 @@ class SummaryCubit extends Cubit<SummaryState> {
   /// Note:
   /// Any exceptions that occur during the submission process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
+  // void submitDiary(Diary diary) async {
+  //   try {
+  //     _summaryRepository.submitDiary(diary).then((value) {
+  //       if (value) emit(const SummarySubmitted());
+  //     });
+  //   } catch (e) {
+  //     print("Error submitting diary: $e");
+  //   } finally {
+  //     loadSummary(diary);
+  //   }
+  // }
+
   void submitDiary(Diary diary) async {
     try {
-      _summaryRepository.submitDiary(diary).then((value) {
-        if (value) emit(const SummarySubmitted());
-      });
+      emit(const SubmitLoading());
+      await _summaryRepository.submitDiary(diary);
+      emit(const SummarySubmitted());
     } catch (e) {
       print("Error submitting diary: $e");
+      emit(const SubmitError());
     } finally {
       loadSummary(diary);
     }

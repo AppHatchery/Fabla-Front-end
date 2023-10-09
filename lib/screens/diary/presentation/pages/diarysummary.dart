@@ -46,40 +46,47 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CustomColors.fillNormal,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: CustomColors.fillNormal,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const Hub()),
-                (route) => false);
-          },
-          icon: const Icon(CustomIcons.close),
-          iconSize: 15.0,
-        ),
-        title: Text(
-          "My Responses",
-          style: CustomTypography().titleMedium(
-            color: CustomColors.textNormalContent,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: BlocConsumer<SummaryCubit, SummaryState>(builder: (context, state) {
-        if (state is SummaryInitial) {
-          return initial();
-        } else if (state is SummaryLoading) {
-          return loading();
-        } else if (state is SummaryLoaded) {
-          return content(state.diary, context);
-        } else {
-          return initial();
-        }
-      }, listener: (context, state) {
+    return BlocConsumer<SummaryCubit, SummaryState>(
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: CustomColors.fillNormal,
+          appBar: (state is SubmitLoading || state is SubmitError)
+              ? null
+              : AppBar(
+                  automaticallyImplyLeading: false,
+                  backgroundColor: CustomColors.fillNormal,
+                  leading: IconButton(
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => const Hub()),
+                          (route) => false);
+                    },
+                    icon: const Icon(CustomIcons.close),
+                    iconSize: 15.0,
+                  ),
+                  title: Text(
+                    "My Responses",
+                    style: CustomTypography().titleMedium(
+                      color: CustomColors.textNormalContent,
+                    ),
+                  ),
+                  centerTitle: true,
+                ),
+          body: state is SummaryInitial
+              ? initial()
+              : state is SummaryLoading
+                  ? loading()
+                  : state is SummaryLoaded
+                      ? content(state.diary, context)
+                      : state is SubmitLoading
+                          ? submitLoading()
+                          : state is SubmitError
+                              ? submitError()
+                              : initial(),
+        );
+      },
+      listener: (context, state) {
         if (state is SummarySubmitted) {
           Navigator.pushAndRemoveUntil(
               context,
@@ -87,8 +94,107 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
                   builder: (context) => const DiaryCompletionPage()),
               (route) => false);
         }
-      }),
+      },
     );
+  }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     backgroundColor: CustomColors.fillNormal,
+  //     appBar:
+  //      AppBar(
+  //       automaticallyImplyLeading: false,
+  //       backgroundColor: CustomColors.fillNormal,
+  //       leading: IconButton(
+  //         onPressed: () {
+  //           Navigator.pushAndRemoveUntil(
+  //               context,
+  //               MaterialPageRoute(builder: (context) => const Hub()),
+  //               (route) => false);
+  //         },
+  //         icon: const Icon(CustomIcons.close),
+  //         iconSize: 15.0,
+  //       ),
+  //       title: Text(
+  //         "My Responses",
+  //         style: CustomTypography().titleMedium(
+  //           color: CustomColors.textNormalContent,
+  //         ),
+  //       ),
+  //       centerTitle: true,
+  //     ),
+  //     body: BlocConsumer<SummaryCubit, SummaryState>(builder: (context, state) {
+  //       if (state is SummaryInitial) {
+  //         return initial();
+  //       } else if (state is SummaryLoading) {
+  //         return loading();
+  //       } else if (state is SummaryLoaded) {
+  //         return content(state.diary, context);
+  //       } else if (state is SubmitLoading) {
+  //         return submitLoading();
+  //       } else if (state is SubmitError) {
+  //         return submitError();
+  //       } else {
+  //         return initial();
+  //       }
+  //     }, listener: (context, state) {
+  //       if (state is SummarySubmitted) {
+  //         Navigator.pushAndRemoveUntil(
+  //             context,
+  //             MaterialPageRoute(
+  //                 builder: (context) => const DiaryCompletionPage()),
+  //             (route) => false);
+  //       }
+  //     }),
+  //   );
+  // }
+
+  Widget submitLoading() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(
+            color: CustomColors.productNormalActive,
+          ),
+          Text(
+            "Submitting...",
+            style: CustomTypography()
+                .headlineLarge(color: CustomColors.greyDarker),
+          ),
+          Text(
+            "Hang tight while we process your responses - almost there!",
+            style: CustomTypography().bodyMedium(
+              color: CustomColors.textSecondaryContent,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget submitError() {
+    return Center(
+        child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const ImageIcon(AssetImage("assets/images/icon_error.png")),
+        Text(
+          "Oops! Something went wrong.",
+          style:
+              CustomTypography().headlineLarge(color: CustomColors.greyDarker),
+        ),
+        Text(
+          "Don't worry! We're here to help. Please reach out to us at [our@email.com] for assistance.",
+          style: CustomTypography().bodyMedium(
+            color: CustomColors.textSecondaryContent,
+          ),
+        ),
+      ],
+    ));
   }
 
   Widget loading() {
