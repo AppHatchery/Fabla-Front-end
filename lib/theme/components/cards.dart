@@ -25,6 +25,13 @@ class DiaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    late String preview;
+    if(diary?.status == DiaryStatus.submitted || diary?.status == DiaryStatus.missed) {
+      preview  = 'Day ${diary?.id} - Study Name';
+    } else {
+      preview = 'Day ${diary?.id} - ${diary!.prompts[0].question!}';
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: diary?.status == DiaryStatus.submitted ||
@@ -75,8 +82,7 @@ class DiaryCard extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.only(right: 12),
                       child: Text(
-                        diary!.prompts[0].question ??
-                            "Talk about your day today.",
+                        preview,
                         style: CustomTypography().bodyLarge(),
                       ),
                     )),
