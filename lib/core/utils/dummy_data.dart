@@ -18,30 +18,35 @@ final List<Diary> dummyDiaries  = [
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.idle,
+      start: DateTime.now(),
       due: DateTime.now()),
   Diary(
       id: 1,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.ongoing,
+      start: DateTime.now(),
       due: DateTime.now()),
   Diary(
       id: 2,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.submitted,
+      start: DateTime.now(),
       due: DateTime.now()),
   Diary(
       id: 3,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.complete,
+      start: DateTime.now(),
       due: DateTime.now()),
   Diary(
       id: 4,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.ongoing,
+      start: DateTime.now(),
       due: DateTime.now()),
 ];
 
@@ -1256,5 +1261,6 @@ final List<String> studyCodes = [
   "2008",
   "2009",
   "2010",
-  "0000"
+  "0000",
+  "10002"
 ];

@@ -144,7 +144,7 @@ class SetupRepository {
         file.writeAsStringSync(jsonEncode(data));
       }
     }
-  }≠≠≠
+  }
 //Data interaction to graphql database online; you have [participantExist]
 
   ///Code checks if participant is available in the database
@@ -212,16 +212,17 @@ class SetupRepository {
       safePrint("Participant Already exists or Submission error");
 
     }
-    
-    
-     /// Creates and schedules notifications for daily diaries.
+}
+
+ /// Creates and schedules notifications for daily diaries.
   /// This function retrieves a list of daily diaries from the DiaryRepository,
   /// then retrieves a list of notification times from SharedPreferences using
   /// PreferenceService. For each specified notification time and each diary,
   /// it calculates the notification date and time and schedules a notification
   /// using NotificationService. The notification will remind the user to write
   /// their daily diary.
-  void createNotifications() async {
+  /// 
+ void createNotifications() async {
     final diaryRepository = DiaryRepository();
     final diaries = diaryRepository.getAllDiaries();
 
@@ -248,4 +249,5 @@ class SetupRepository {
 
     }
   }
+
 }
