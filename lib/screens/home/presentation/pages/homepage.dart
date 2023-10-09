@@ -57,7 +57,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         backgroundColor: CustomColors.fillNormal,
         appBar: AppBar(
           toolbarHeight: 105.h,
-          backgroundColor: CustomColors.productNormal,
+          backgroundColor: CustomColors.backgroundSecondary,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(0),
             child: Container(
