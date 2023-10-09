@@ -46,9 +46,10 @@ Future<bool> upload(String studyCode, Diary diary) async {
       if (prompt.responseType == ResponseType.recording) {
         var rec = prompt.answer?.recordings;
 
+
         for (int r = 0; r < rec!.length; r++) {
           fileList.add(DiaryAudioData(
-              prompt: i + 1, file: File(rec[r].path), date: rec[r].date));
+               prompt: i + 1, file: File(rec[r].path), date: diary.start));
         }
       } else {
         questions.add(Question(

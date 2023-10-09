@@ -34,7 +34,7 @@
     },
     {
       "id": "2:930454942769669084",
-      "lastPropertyId": "5:8336795554543669080",
+      "lastPropertyId": "7:9197226751651940744",
       "name": "DiaryEntity",
       "properties": [
         {
@@ -61,6 +61,11 @@
         {
           "id": "5:8336795554543669080",
           "name": "deadline",
+          "type": 9
+        },
+        {
+          "id": "7:9197226751651940744",
+          "name": "start",
           "type": 9
         }
       ],
@@ -141,7 +146,9 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    1045951133810677779
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

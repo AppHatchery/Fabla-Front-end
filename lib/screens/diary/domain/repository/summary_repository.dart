@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 
 import '../../../../core/utils/statuses.dart';
+import '../../../../services/notification_service.dart';
 import '../../data/diary.dart';
 import '../../data/prompt.dart';
 import 'answer_repository.dart';
@@ -94,9 +95,12 @@ class SummaryRepository {
       final participant = setupRepository.getParticipant();
       final uploaded = await upload(participant!.studyCode,diary);
 
+
       if (uploaded) {
         diary.status = DiaryStatus.submitted;
         diaryRepository.updateDiary(diary);
+
+        await NotificationService.cancelNotification(diary.id);
 
         //Update the nextStudy date- TBD with provision of study_start_date
         DateTime now = DateTime.now();

@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/notification_access.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/list_active_times.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../theme/custom_colors.dart';
@@ -14,6 +15,7 @@ class ActiveTimePage extends StatefulWidget {
 }
 
 class _ActiveTimePageState extends State<ActiveTimePage> {
+  List<TimeOfDay> times = [];
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
@@ -57,13 +59,8 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                         child: AvatarBackground(
                             height: height,
                             width: width,
-                            image:
-                                "assets/images/active_time.png",
-                            onContinue: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const NotificationAccessPage())),
+                            image: "assets/images/active_time.png",
+                            onContinue: () => navigateToNextPage(),
                             children: [
                               Text(
                                 "Reminder Time",
@@ -72,7 +69,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                               const SizedBox(
                                 height: 6,
                               ),
-                              const ListActiveTimes(),
+                              ListActiveTimes(times: times),
                             ]),
                       ),
                     )
@@ -82,5 +79,18 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
             );
           }),
         ));
+  }
+
+  void navigateToNextPage() async {
+    final value = times.map((e) => DateTime(0,0,0, e.hour, e.minute).toString()).toList();
+    await PreferenceService().setStringListPreference(key: "reminder_times", value: value);
+
+
+    if (context.mounted) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const NotificationAccessPage()));
+    }
   }
 }

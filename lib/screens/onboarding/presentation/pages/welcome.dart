@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/part
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../services/pendo_service.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/resources/strings.dart';
@@ -23,7 +24,9 @@ class _WelcomePageState extends State<WelcomePage> {
     createMetadata();
     SetupRepository repos = SetupRepository();
     repos.apiCreateParticipant(repos.getParticipant()!.studyCode);
-    super.initState(); //To be edited with start date
+    startPendo();
+    super.initState();
+
   }
 
   @override
@@ -91,7 +94,11 @@ class _WelcomePageState extends State<WelcomePage> {
             builder: (context) => const ParticipantDetailsPage()));
   }
 
-  void scheduleNotifications() {}
+   startPendo() async {
+    final repository = SetupRepository();
+    final participant = repository.getParticipant();
+    await PendoService.start(participant!.studyCode.toString());
+  }
 
   void createMetadata() => repository.createMetadata();
 }

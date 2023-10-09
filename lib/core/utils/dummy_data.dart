@@ -51,30 +51,35 @@ List<Diary> exampleDiaries = [
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.idle,
+      start: DateTime.now(),
       due: DateTime.now()),
   Diary(
       id: 1,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.ongoing,
+      start: DateTime.now(),
       due: DateTime.now()),
   Diary(
       id: 2,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.submitted,
+      start: DateTime.now(),
       due: DateTime.now()),
   Diary(
       id: 3,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.complete,
+      start: DateTime.now(),
       due: DateTime.now()),
   Diary(
       id: 4,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.ongoing,
+      start: DateTime.now(),
       due: DateTime.now()),
 ];
 
@@ -83,7 +88,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   0: [
     Prompt(
       id: 0,
-      question: "How do yo FEEL PHYSICALLY right now?",
+      question: "How do you FEEL PHYSICALLY right now?",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -98,7 +103,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 1,
       question:
-          "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -214,7 +219,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 10,
       question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -243,7 +248,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   1: [
     Prompt(
       id: 13,
-      question: "How do yo FEEL PHYSICALLY right now?",
+      question: "How do you FEEL PHYSICALLY right now?",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -258,7 +263,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 14,
       question:
-          "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -375,7 +380,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 23,
       question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -405,7 +410,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   2: [
     Prompt(
       id: 26,
-      question: "How do yo FEEL PHYSICALLY right now?",
+      question: "How do you FEEL PHYSICALLY right now?",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -420,7 +425,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 27,
       question:
-          "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -537,7 +542,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 36,
       question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -567,7 +572,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   3: [
     Prompt(
       id: 39,
-      question: "How do yo FEEL PHYSICALLY right now?",
+      question: "How do you FEEL PHYSICALLY right now?",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -582,7 +587,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 40,
       question:
-          "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -699,7 +704,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 49,
       question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -729,7 +734,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   4: [
     Prompt(
       id: 52,
-      question: "How do yo FEEL PHYSICALLY right now?",
+      question: "How do you FEEL PHYSICALLY right now?",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -744,7 +749,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 53,
       question:
-          "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -861,7 +866,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 62,
       question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -891,7 +896,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   5: [
     Prompt(
       id: 65,
-      question: "How do yo FEEL PHYSICALLY right now?",
+      question: "How do you FEEL PHYSICALLY right now?",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -906,7 +911,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 66,
       question:
-          "How do yo FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -1023,7 +1028,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 75,
       question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spitits.",
+          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
       responseType: ResponseType.slider,
       option: Options.returnOptions(
           type: OptionsType.slider,
@@ -1071,6 +1076,10 @@ List<Tag> fakeTags = const [
   Tag(text: "60 seconds", type: TagType.time),
   Tag(text: "Multiple questions", type: TagType.questions),
 ];
+
+const Tag missedTag = Tag(text: "Missed", type: TagType.time);
+const Tag onGoingTag = Tag(text: "Ongoing", type: TagType.time);
+const Tag doneTag = Tag(text: "Done", type: TagType.time);
 
 const TimeOfDay fixedTime = TimeOfDay(hour: 9, minute: 0);
 
@@ -1225,6 +1234,27 @@ final List<String> studyCodes = [
   "R8W7K6",
   "C5T6I5",
   "V2O5G4",
+  "1000",
   "1001",
-  "2001"
+  "1002",
+  "1003",
+  "1004",
+  "1005",
+  "1006",
+  "1007",
+  "1008",
+  "1009",
+  "1010",
+  "2000",
+  "2001",
+  "2002",
+  "2003",
+  "2004",
+  "2005",
+  "2006",
+  "2007",
+  "2008",
+  "2009",
+  "2010",
+  "0000"
 ];

@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +13,7 @@ import '../../../../theme/components/cards.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
 import '../../../../theme/dialogs/bottom_modals.dart';
+import '../../data/option.dart';
 import 'diarycompletion.dart';
 
 ///This page holds all the questions that have been answered by the user
@@ -32,6 +34,8 @@ class DiarySummaryPage extends StatefulWidget {
 class _DiarySummaryPageState extends State<DiarySummaryPage> {
   late SummaryCubit summaryCubit;
   int? expandedCardId;
+  bool isSliderEnabled = false;
+  Map<int, bool> sliderEnabledStates = {};
 
   @override
   void initState() {
@@ -109,7 +113,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
-                  "Review your responses",
+                  "Response Summary",
                   style: CustomTypography()
                       .headlineMedium(color: CustomColors.textNormalContent),
                 ),
@@ -150,53 +154,150 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
   }
 
   Widget buildPrompt(Prompt prompt, int index) {
+    if (!sliderEnabledStates.containsKey(index)) {
+      sliderEnabledStates[index] = false;
+    }
+    List<Option>? choices = prompt.option?.choices;
+    int scaleMinValue = 0;
+    int scaleMaxValue = 100;
+
+    if (choices != null && choices.length >= 2) {
+      try {
+        scaleMinValue = int.parse(choices[0].option!);
+        scaleMaxValue = int.parse(choices[1].option!);
+      } catch (e) {
+        print("Parsing error: $e");
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          prompt.question.toString(),
-          style: CustomTypography()
-              .titleMedium(color: CustomColors.textNormalContent),
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4.0),
+            color: CustomColors.productLightPrimaryNormalWhite,
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      "Q ${index + 1}. ${prompt.question}",
+                    ),
+                  ),
+                  // IconButton(
+                  //     onPressed: () {
+                  //       setState(() {
+                  //         sliderEnabledStates[index] =
+                  //             !sliderEnabledStates[index]!;
+                  //       });
+                  //     },
+                  //     icon: Icon(CustomIcons.editNote))
+                  // const SizedBox(height: 12),
+                ],
+              ),
+              Column(
+                children: [
+                  Visibility(
+                    visible: prompt.responseType == ResponseType.slider,
+                    child: prompt.answer?.response != null
+                        ? SliderQuestionCard(
+                            scaleMin: scaleMinValue,
+                            scaleMax: scaleMaxValue,
+                            scaleMinText: prompt.option?.startText,
+                            scaleMaxText: prompt.option?.endText,
+                            isSliderEnabled: false,
+                            value: double.tryParse(prompt.answer!.response!) ??
+                                0.0,
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  Visibility(
+                    visible: prompt.responseType == ResponseType.multiple,
+                    child: prompt.answer?.response != null
+                        ? MultipleQuestionSummary(
+                            answers: extractAnswers(prompt.answer!.response!),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  Visibility(
+                    visible: prompt.responseType == ResponseType.radio,
+                    child: prompt.answer?.response != null
+                        ? RadioQuestionSummary(
+                            selectedOption: prompt.answer!.response!,
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  Visibility(
+                    visible: prompt.responseType == ResponseType.recording,
+                    child: prompt.answer?.recordings != null
+                        ? ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: prompt.answer!.recordings.length,
+                            itemBuilder: (context, index) => Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 6.0),
+                                  child: AudioDiaryCard(
+                                      recording:
+                                          prompt.answer!.recordings[index],
+                                      delete: () => deleteResponse(
+                                          prompt,
+                                          prompt
+                                              .answer!.recordings[index].path),
+                                      isExpanded: expandedCardId ==
+                                          prompt.answer!.recordings[index].id,
+                                      onTap: () {
+                                        setState(() {
+                                          expandedCardId = expandedCardId ==
+                                                  prompt.answer!
+                                                      .recordings[index].id
+                                              ? null
+                                              : prompt
+                                                  .answer!.recordings[index].id;
+                                        });
+                                      }),
+                                ))
+                        : const SizedBox.shrink(),
+                  )
+                ],
+              )
+            ],
+          ),
         ),
-        const SizedBox(height: 12),
 
-        prompt.answer?.recordings != null
-            ? ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: prompt.answer!.recordings.length,
-                itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6.0),
-                      child: AudioDiaryCard(
-                          recording: prompt.answer!.recordings[index],
-                          delete: () => deleteResponse(
-                              prompt, prompt.answer!.recordings[index].path),
-                          isExpanded: expandedCardId ==
-                              prompt.answer!.recordings[index].id,
-                          onTap: () {
-                            setState(() {
-                              expandedCardId = expandedCardId ==
-                                      prompt.answer!.recordings[index].id
-                                  ? null
-                                  : prompt.answer!.recordings[index].id;
-                            });
-                          }),
-                    ))
-            : const SizedBox.shrink(),
         // const AudioDiaryCard(
         //   path: "",
         // ),
         const SizedBox(height: 12),
-        Visibility(
-          visible: prompt.responseType == ResponseType.recording,
-          child: CustomRecordButton(
-            onClick: () => recordResponse(context, prompt),
-            text: "ADD A NEW RESPONSE",
-          ),
-        ),
-        const SizedBox(height: 24),
+        // Visibility(
+        //   visible: prompt.responseType == ResponseType.recording,
+        //   child: CustomRecordButton(
+        //     onClick: () => recordResponse(context, prompt),
+        //     text: "ADD A NEW RESPONSE",
+        //   ),
+        // ),
+        // const SizedBox(height: 24),
       ],
     );
+  }
+
+  List<String> extractAnswers(String response) {
+    final answerList = <String>[];
+    final lines = response.split(RegExp(r'\d+\.'));
+
+    for (var line in lines) {
+      line = line.trim();
+      if (line.isNotEmpty) {
+        answerList.addAll(line.split('/').map((item) => item.trim()));
+      }
+    }
+
+    return answerList;
   }
 
   void loadDiary(BuildContext context) {
