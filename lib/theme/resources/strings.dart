@@ -16,6 +16,8 @@ class Strings {
 
   static String confetti = "🎉";
 
+  static String champagne = "🍾";
+
   static String researcherNote = "Please try to talk without stopping for about 5 minutes. Talk about whatever comes to your mind, as if you were sharing with a friend. Do not worry about pauses, stutters, or having the right things to say. We are interested in anything about your experience today that you are willing to share.";
   
   static String researcherNoteTwo = "Please try to talk without stopping for about 5 minutes. Talk about whatever comes to your mind, as if you were sharing with a friend. Do not worry about pauses, stutters, or having the right things to say. We are interested in anything about your experience today that you are willing to share. \n \nIt is OK if there is overlap with what you talked about for the previous question.";

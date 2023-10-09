@@ -24,7 +24,6 @@ class DiaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(diary?.status == DiaryStatus.submitted || diary?.status == DiaryStatus.missed);
     return Container(
       decoration: BoxDecoration(
         color: diary?.status == DiaryStatus.submitted || diary?.status == DiaryStatus.missed

@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/empty_state.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -24,30 +25,41 @@ class DiaryHistory extends StatelessWidget {
 
     filteredDiaries.sort((a, b) => b.due.compareTo(a.due));
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var diary in filteredDiaries)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _formatDate(diary.start),
-                style: CustomTypography()
-                    .titleLarge(color: CustomColors.textNormalContent),
-                textAlign: TextAlign.left,
-              ),
-              const SizedBox(height: 6),
-              DiaryCard(
-                diary: diary,
-                refresh: (value) => refresh(value),
-              ),
-              const SizedBox(height: 12),
-            ],
-          ),
-      ],
-    );
+    return filteredDiaries.isNotEmpty
+        ? SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: filteredDiaries.length,
+                  itemBuilder: (context, index) {
+                    final diary = filteredDiaries[index];
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _formatDate(diary.start),
+                          style: CustomTypography().titleLarge(
+                              color: CustomColors.textNormalContent),
+                          textAlign: TextAlign.left,
+                        ),
+                        const SizedBox(height: 6),
+                        DiaryCard(
+                          diary: diary,
+                          refresh: (value) => refresh(value),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    );
+                  },
+                )
+              ],
+            ),
+          )
+        : const BeforeStartWidget();
   }
 }
 
