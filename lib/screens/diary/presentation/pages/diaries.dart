@@ -16,6 +16,7 @@ import '../../../home/presentation/widgets/unsubmitted_diary_list.dart';
 import '../../data/diary.dart';
 import '../widgets/custom_calender.dart';
 import '../widgets/custom_toggle_buttons.dart';
+import '../widgets/empty_state.dart';
 
 class DiariesPage extends StatefulWidget {
   const DiariesPage({super.key});
@@ -215,7 +216,9 @@ class _DiaryPageState extends State<DiariesPage> with WidgetsBindingObserver {
 
   Widget loadedDiaryHistory(
       List<Diary> diaries, List<Diary> unSubmittedDiaries) {
-    return Column(
+
+    final empty = unSubmittedDiaries.isEmpty && diaries.isEmpty;
+    return !empty ? Column(
       children: [
         unSubmittedDiaries.isNotEmpty
             ? Expanded(
@@ -229,7 +232,7 @@ class _DiaryPageState extends State<DiariesPage> with WidgetsBindingObserver {
             child: DiaryHistory(
                 diaries: diaries, refresh: (value) => refresh(value))),
       ],
-    );
+    ) : const BeforeStartWidget();
   }
 
   void fetchHistoryData(BuildContext context) async {
