@@ -17,6 +17,9 @@
       },
       "storage": {
         "audiodiariesbucket": {}
+      },
+      "api": {
+        "audiodiaries01": {}
       }
     }
   }

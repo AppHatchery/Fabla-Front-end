@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/participant_details.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -20,6 +21,8 @@ class _WelcomePageState extends State<WelcomePage> {
   @override
   void initState() {
     createMetadata();
+    SetupRepository repos = SetupRepository();
+    repos.apiCreateParticipant(repos.getParticipant()!.studyCode);
     super.initState(); //To be edited with start date
   }
 

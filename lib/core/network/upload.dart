@@ -1,10 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/questions.dart';
 import 'package:path/path.dart' as p;
 import 'package:aws_common/vm.dart';
-
 import '../../screens/diary/data/diary_audio_data.dart';
 import '../utils/formatter.dart';
 
@@ -36,21 +37,33 @@ import '../utils/formatter.dart';
 /// }
 /// ```
 Future<bool> upload(String studyCode, Diary diary) async {
-  List<DiaryAudioData> fileList = [];
+  try {
+    List<DiaryAudioData> fileList = [];
+    List<Question> questions = [];
 
-  for (int i = 0; i < diary.prompts.length; i++) {
-    var prompt = diary.prompts[i];
-    if (prompt.responseType == ResponseType.recording) {
-      var rec = prompt.answer?.recordings;
+    for (int i = 0; i < diary.prompts.length; i++) {
+      var prompt = diary.prompts[i];
+      if (prompt.responseType == ResponseType.recording) {
+        var rec = prompt.answer?.recordings;
 
-      for (int r = 0; r < rec!.length; r++) {
-        fileList.add(DiaryAudioData(
-            prompt: i + 1, file: File(rec[r].path), date: rec[r].date));
+        for (int r = 0; r < rec!.length; r++) {
+          fileList.add(DiaryAudioData(
+              prompt: i + 1, file: File(rec[r].path), date: rec[r].date));
+        }
+      } else {
+        questions.add(Question(
+            questionType: prompt.questionType,
+            answer: prompt.answer!.response!));
       }
     }
+    final questionsSubmitted =
+        await apiSubmitSurveyQuestions(studyCode, diary, questions);
+    final audioSubmitted = await uploadFilesToS3(studyCode, fileList);
+    return questionsSubmitted && audioSubmitted;
+  } catch (e) {
+    print("$e");
+    return false;
   }
-  final uploaded = await uploadFilesToS3(studyCode, fileList);
-  return uploaded;
 }
 
 /// Uploads a list of audio files to an S3 storage location.
@@ -116,6 +129,142 @@ Future<bool> uploadMetaDataS3(var studyCode, File file) async {
     print('Error uploading file: ${e.message}');
     return false;
   }
-
   return true;
+}
+
+Question? filterQuestionByType(List<Question> objectList, QuestionType type) {
+  try {
+    return objectList.firstWhere((obj) => obj.questionType == type);
+  } catch (e) {
+    return null;
+  }
+}
+
+///Submits all diary questions to dynamo db by updating empty questions slots on tha particular participant
+///Example initial, 10001 - PHYSICALLY_1 ="", then updated to, -> 10001 - PHYSICALLY_1="3"
+///
+Future<bool> apiSubmitSurveyQuestions(
+    String studycode, Diary diary, List<Question> questions) async {
+  try {
+    String graphQLDocument = '''
+      query ListFiles {
+        listParticipants(filter:{ _deleted:{attributeExists:false}, STUDYCODE: { eq: $studycode } }) {
+          items { 
+            id
+            STUDYCODE
+            _version
+          }
+        }
+      }
+    ''';
+    var operation = Amplify.API.query(
+      request: GraphQLRequest<String>(
+        document: graphQLDocument,
+        variables: {'STUDYCODE': studycode},
+      ),
+    );
+    var response = await operation.response;
+    var data = response.data;
+
+    if (data != null) {
+      Map<String, dynamic> jsonMap = jsonDecode(data);
+      final participantList = jsonMap["listParticipants"]["items"];
+      dynamic id = participantList.first['id'];
+      int version = participantList.first['_version'];
+
+      final uploaded = uploadQuestions(id, studycode, version, diary, questions);
+      return uploaded;
+    } else {
+      response.errors.forEach((element) {
+        safePrint('${element.toJson()}   ${element.message};');
+      });
+      response.errors.first;
+      safePrint("false false");
+      return false;
+    }
+  } catch (e) {
+    print('Error checking if $studycode exists: $e');
+    return false;
+  }
+}
+
+Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
+    Diary diary, List<Question> questions) async {
+  var physically = filterQuestionByType(questions, QuestionType.physically)!.answer;
+  var emotionally = filterQuestionByType(questions, QuestionType.emotionally)!.answer;
+  var intensity = filterQuestionByType(questions, QuestionType.intensity)!.answer;
+  var lonely = filterQuestionByType(questions, QuestionType.lonely)!.answer;
+  var leftout = filterQuestionByType(questions, QuestionType.leftout)!.answer;
+  var socialinteraction = filterQuestionByType(questions, QuestionType.socialinteraction)!.answer;
+  var understood = filterQuestionByType(questions, QuestionType.understood)!.answer;
+  var stressed = filterQuestionByType(questions, QuestionType.stressed)!.answer;
+  var whereyouare = filterQuestionByType(questions, QuestionType.whereyouare)!.answer;
+  var peoplearoundyou = filterQuestionByType(questions, QuestionType.peoplearoundyou)!.answer;
+  var drinks = filterQuestionByType(questions, QuestionType.drinks)!.answer;
+
+  int day = diary.id;
+
+  final input = {
+    'id': id,
+    'STUDYCODE': '$studyCode',
+    'PHYSICALLY_$day': physically,
+    'EMOTIONALLY_$day': emotionally,
+    'INTENSITY_$day': intensity,
+    'LONELY_$day': lonely,
+    'LEFT_OUT_$day': leftout,
+    'SOCIAL_INTERACTION_$day': socialinteraction,
+    'UNDERSTOOD_$day': understood,
+    'STRESSED_$day': stressed,
+    'WHERE_YOU_ARE_$day': whereyouare,
+    'PEOPLE_AROUND_YOU_$day': peoplearoundyou,
+    'DRINKS_$day': drinks,
+    '_version': entryVersion
+  };
+
+  try {
+    String graphQLDocument = '''
+      mutation UpdateParticipants(\$input: UpdateParticipantsInput!) {
+          updateParticipants(input: \$input) {
+            id
+            STUDYCODE
+            PHYSICALLY_$day
+            EMOTIONALLY_$day
+            INTENSITY_$day
+            LONELY_$day
+            LEFT_OUT_$day
+            SOCIAL_INTERACTION_$day
+            UNDERSTOOD_$day
+            STRESSED_$day
+            WHERE_YOU_ARE_$day
+            PEOPLE_AROUND_YOU_$day
+            DRINKS_$day
+            _version
+          }
+        }
+    ''';
+
+    var operation = Amplify.API.query(
+      request: GraphQLRequest<String>(
+        document: graphQLDocument,
+        variables: {'input': input},
+      ),
+    );
+    var response = await operation.response;
+    var data = response.data;
+
+    if (data != null) {
+      safePrint("Questions submitted");
+      return true;
+    } else {
+      response.errors.forEach((element) {
+        safePrint('${element.message};');
+      });
+      response.errors.first;
+      safePrint("false false  ${response.errors.first}");
+      return false;
+    }
+  } catch (e) {
+    print('Error checking if ID exists: $e');
+    return false;
+  }
 }
