@@ -59,8 +59,11 @@ class AvatarBackground extends StatelessWidget {
                       ),
                     ),
                   ),
-                  CustomElevatedButton(
-                      onClick: () => onContinue(), text: "CONTINUE")
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: CustomElevatedButton(
+                        onClick: () => onContinue(), text: "CONTINUE"),
+                  )
                 ],
               ),
             ))

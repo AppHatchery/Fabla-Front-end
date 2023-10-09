@@ -83,7 +83,9 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
 
   void navigateToNextPage() async {
     final value = times.map((e) => DateTime(0,0,0, e.hour, e.minute).toString()).toList();
-    await PreferenceService().setStringListPreference(key: "reminder_times", value: value);
+    if(value.isNotEmpty){
+      await PreferenceService().setStringListPreference(key: "reminder_times", value: value);
+    }
 
 
     if (context.mounted) {

@@ -36,19 +36,36 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SizedBox(
-              child: Column(children: [
-                Text(
-                  "Enable notifications so you won’t miss the diary!",
-                  style: CustomTypography()
-                      .headlineLarge(color: CustomColors.textWhite),
+            Expanded(
+              child: SizedBox(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 24,
+                  ),
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              "Enable notifications so you won’t miss the diary!",
+                              style: CustomTypography()
+                                  .headlineLarge(color: CustomColors.textWhite),
+                            ),
+                            const SizedBox(height: 40.0),
+                            Image.asset(
+                              "assets/images/notification_example.png",
+                              width: width,
+                            ),
+                          ],
+                        ),
+                        Image.asset(
+                          "assets/images/notification_access.png",
+                          width: width,
+                        ),
+                      ]),
                 ),
-                const SizedBox(height: 16.0),
-                Image.asset(
-                  "assets/images/notification_access.png",
-                  width: width,
-                ),
-              ]),
+              ),
             ),
             CustomElevatedButton(
               onClick: () => navigateToNextPage(),
@@ -71,7 +88,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
     if (results.isGranted) {
       final repository = SetupRepository();
       repository.createNotifications();
-      
+
       if (context.mounted) {
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const MicAccessPage()));
