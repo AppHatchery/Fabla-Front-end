@@ -94,6 +94,10 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
             MaterialPageRoute(builder: (context) => const MicAccessPage()));
       }
     } else {
+      if (context.mounted) {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const MicAccessPage()));
+      }
       //TODO: Show error
     }
   }

@@ -218,20 +218,19 @@ class _DiaryPageState extends State<DiariesPage> with WidgetsBindingObserver {
       List<Diary> diaries, List<Diary> unSubmittedDiaries) {
 
     final empty = unSubmittedDiaries.isEmpty && diaries.isEmpty;
-    return !empty ? Column(
-      children: [
-        unSubmittedDiaries.isNotEmpty
-            ? Expanded(
-                child: UnsubmittedDiaryList(
-                  diaries: unSubmittedDiaries,
-                  refresh: (value) => refresh(value),
-                ),
+    return !empty ? SingleChildScrollView(
+      child: Column(
+        children: [
+          unSubmittedDiaries.isNotEmpty
+              ? UnsubmittedDiaryList(
+                diaries: unSubmittedDiaries,
+                refresh: (value) => refresh(value),
               )
-            : const SizedBox.shrink(),
-        Expanded(
-            child: DiaryHistory(
-                diaries: diaries, refresh: (value) => refresh(value))),
-      ],
+              : const SizedBox.shrink(),
+          diaries.isNotEmpty ? DiaryHistory(
+              diaries: diaries, refresh: (value) => refresh(value)) : const SizedBox.shrink(),
+        ],
+      ),
     ) : const BeforeStartWidget();
   }
 

@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/empty_state.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +24,7 @@ class DiaryHistory extends StatelessWidget {
 
     filteredDiaries.sort((a, b) => b.due.compareTo(a.due));
 
-    return filteredDiaries.isNotEmpty ? SingleChildScrollView(
+    return SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,7 +56,7 @@ class DiaryHistory extends StatelessWidget {
                 )
               ],
             ),
-          ): const BeforeStartWidget()
+          )
         ;
   }
 }
