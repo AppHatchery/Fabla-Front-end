@@ -16,6 +16,17 @@ class NotificationAccessPage extends StatefulWidget {
 }
 
 class _NotificationAccessPageState extends State<NotificationAccessPage> {
+
+  bool canGoBack = false;
+
+  @override
+  void initState() {
+    if(Navigator.of(context).canPop()) {
+      canGoBack = true;
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -23,13 +34,13 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
       backgroundColor: CustomColors.backgroundSecondary,
       appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
-        leading: IconButton(
+        leading: canGoBack ? IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(
               Icons.arrow_back_rounded,
               color: CustomColors.fillWhite,
               size: 32,
-            )),
+            )) : null,
       ),
       body: Padding(
         padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),

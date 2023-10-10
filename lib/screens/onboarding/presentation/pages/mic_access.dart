@@ -23,9 +23,13 @@ class _MicAccessPageState extends State<MicAccessPage> {
   late FlutterSoundRecorder recorder;
   bool permission = false;
   bool requested = false;
+  bool canGoBack = false;
 
   @override
   void initState() {
+    if(Navigator.of(context).canPop()) {
+      canGoBack = true;
+    }
     recorder = FlutterSoundRecorder();
     recorderInit();
     super.initState();
@@ -44,13 +48,14 @@ class _MicAccessPageState extends State<MicAccessPage> {
         backgroundColor: CustomColors.backgroundSecondary,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
-          leading: IconButton(
+          leading: canGoBack ? IconButton(
               onPressed: () => Navigator.pop(context),
               icon: const Icon(
                 Icons.arrow_back_rounded,
                 color: CustomColors.fillWhite,
                 size: 32,
-              )),
+              )) : null,
+          
         ),
         body: Padding(
           padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
@@ -210,6 +215,8 @@ class _MicAccessPageState extends State<MicAccessPage> {
     });
     if (permission) {
       if (requested) {
+        await PreferenceService()
+        .setBoolPreference(key: 'mic_requested', value: requested);
         if (context.mounted) {
           Navigator.pushAndRemoveUntil(
               context,
@@ -221,8 +228,6 @@ class _MicAccessPageState extends State<MicAccessPage> {
       }
     }
     requested = true;
-    await PreferenceService()
-        .setBoolPreference(key: 'mic_requested', value: requested);
   }
 
   void openPermissionSettings() async {
