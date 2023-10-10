@@ -169,6 +169,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
                 onClick: () => navigateToNextPage(),
                 text: permission ? "CONTINUE" : "ALLOW",
                 color: CustomColors.fillWhite,
+                isDisabled: requested == true && permission == false,
                 shadowColor: CustomColors.productBorderNormal,
                 textColor: CustomColors.productNormalActive,
               )
