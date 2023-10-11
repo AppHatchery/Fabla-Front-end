@@ -23,9 +23,13 @@ class _MicAccessPageState extends State<MicAccessPage> {
   late FlutterSoundRecorder recorder;
   bool permission = false;
   bool requested = false;
+  bool canGoBack = false;
 
   @override
   void initState() {
+    if(Navigator.of(context).canPop()) {
+      canGoBack = true;
+    }
     recorder = FlutterSoundRecorder();
     recorderInit();
     super.initState();
@@ -44,101 +48,128 @@ class _MicAccessPageState extends State<MicAccessPage> {
         backgroundColor: CustomColors.backgroundSecondary,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
-          leading: IconButton(
+          leading: canGoBack ? IconButton(
               onPressed: () => Navigator.pop(context),
               icon: const Icon(
                 Icons.arrow_back_rounded,
                 color: CustomColors.fillWhite,
                 size: 32,
-              )),
+              )) : null,
+          
         ),
         body: Padding(
           padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SizedBox(
-                child: Column(children: [
-                  Text(
-                    "Let’s enable the microphone access.",
-                    style: CustomTypography()
-                        .headlineLarge(color: CustomColors.textWhite),
-                  ),
-                  const SizedBox(height: 16.0),
-                  MicTester(
-                    permission: permission,
-                    width: width,
-                    recorder: recorder,
-                  ),
-                  const SizedBox(height: 24),
-                  requested == true && permission == false
-                      ? Container(
-                          width: width,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: CustomColors.warningFill,
-                            border: Border.all(
-                              color: CustomColors.warningActive,
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(11),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+              Expanded(
+                child: SizedBox(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                      Column(
+                        children: [
+                          Text(
+                        "Let’s enable the microphone access.",
+                        style: CustomTypography()
+                            .headlineLarge(color: CustomColors.textWhite),
+                      ),
+                      const SizedBox(height: 40.0),
+                      MicTester(
+                        permission: permission,
+                        width: width,
+                        recorder: recorder,
+                      ),
+                      const SizedBox(height: 24),
+                                
+                      
+                      requested == true && permission == false
+                          ? Container(
+                              width: width,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: CustomColors.warningFill,
+                                border: Border.all(
+                                  color: CustomColors.warningActive,
+                                  width: 2,
+                                ),
+                                borderRadius: BorderRadius.circular(11),
+                              ),
+                              child: Column(
                                 children: [
-                                  const Icon(CustomIcons.cancel,
-                                      size: 20,
-                                      color: CustomColors.warningActive),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  Flexible(
-                                    child: Text(
-                                      "Oops! You need to enable microphone access to use the recording diary.",
-                                      style: CustomTypography().bodyLarge(
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Icon(CustomIcons.cancel,
+                                          size: 20,
                                           color: CustomColors.warningActive),
-                                    ),
-                                  )
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 20, width: 20),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  TextButton(
-                                      style: TextButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 4),
-                                        alignment: Alignment.center,
-                                        backgroundColor:
-                                            CustomColors.warningActive,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(11),
-                                        ),
+                                      const SizedBox(
+                                        width: 10,
                                       ),
-                                      onPressed: openPermissionSettings,
-                                      child: Text("Open Settings",
+                                      Flexible(
+                                        child: Text(
+                                          "Oops! You need to enable microphone access to use the recording diary.",
                                           style: CustomTypography().bodyLarge(
-                                              color: CustomColors.textWhite)))
+                                              color: CustomColors.warningActive),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 20, width: 20),
+                                      const SizedBox(
+                                        width: 10,
+                                      ),
+                                      TextButton(
+                                          style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 4),
+                                            alignment: Alignment.center,
+                                            backgroundColor:
+                                                CustomColors.warningActive,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(11),
+                                            ),
+                                          ),
+                                          onPressed: openPermissionSettings,
+                                          child: Text("Open Settings",
+                                              style: CustomTypography().bodyLarge(
+                                                  color: CustomColors.textWhite)))
+                                    ],
+                                  ),
                                 ],
                               ),
-                            ],
-                          ),
-                        )
-                      : const SizedBox.shrink()
-                ]),
+                            )
+                          : const SizedBox.shrink(),
+                        ],
+                      ),
+                                
+                      
+                      Visibility(
+                      visible: permission,
+                      replacement: Image.asset(
+                        "assets/images/mic_access.png",
+                        width: width,
+                      ),
+                      child: Image.asset(
+                        "assets/images/check_mic.png",
+                        width: width,
+                      )),
+                    ]),
+                  ),
+                ),
               ),
               CustomElevatedButton(
                 onClick: () => navigateToNextPage(),
                 text: permission ? "CONTINUE" : "ALLOW",
                 color: CustomColors.fillWhite,
+                isDisabled: requested == true && permission == false,
                 shadowColor: CustomColors.productBorderNormal,
                 textColor: CustomColors.productNormalActive,
               )
@@ -185,6 +216,8 @@ class _MicAccessPageState extends State<MicAccessPage> {
     });
     if (permission) {
       if (requested) {
+        await PreferenceService()
+        .setBoolPreference(key: 'mic_requested', value: requested);
         if (context.mounted) {
           Navigator.pushAndRemoveUntil(
               context,
@@ -196,8 +229,6 @@ class _MicAccessPageState extends State<MicAccessPage> {
       }
     }
     requested = true;
-    await PreferenceService()
-        .setBoolPreference(key: 'mic_requested', value: requested);
   }
 
   void openPermissionSettings() async {

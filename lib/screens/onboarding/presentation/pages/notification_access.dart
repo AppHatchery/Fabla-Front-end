@@ -16,6 +16,17 @@ class NotificationAccessPage extends StatefulWidget {
 }
 
 class _NotificationAccessPageState extends State<NotificationAccessPage> {
+
+  bool canGoBack = false;
+
+  @override
+  void initState() {
+    if(Navigator.of(context).canPop()) {
+      canGoBack = true;
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -23,32 +34,49 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
       backgroundColor: CustomColors.backgroundSecondary,
       appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
-        leading: IconButton(
+        leading: canGoBack ? IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(
               Icons.arrow_back_rounded,
               color: CustomColors.fillWhite,
               size: 32,
-            )),
+            )) : null,
       ),
       body: Padding(
         padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SizedBox(
-              child: Column(children: [
-                Text(
-                  "Enable notifications so you won’t miss the diary!",
-                  style: CustomTypography()
-                      .headlineLarge(color: CustomColors.textWhite),
+            Expanded(
+              child: SizedBox(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 24,
+                  ),
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              "Enable notifications so you won’t miss the diary!",
+                              style: CustomTypography()
+                                  .headlineLarge(color: CustomColors.textWhite),
+                            ),
+                            const SizedBox(height: 40.0),
+                            Image.asset(
+                              "assets/images/notification_example.png",
+                              width: width,
+                            ),
+                          ],
+                        ),
+                        Image.asset(
+                          "assets/images/notification_access.png",
+                          width: width,
+                        ),
+                      ]),
                 ),
-                const SizedBox(height: 16.0),
-                Image.asset(
-                  "assets/images/notification_access.png",
-                  width: width,
-                ),
-              ]),
+              ),
             ),
             CustomElevatedButton(
               onClick: () => navigateToNextPage(),
@@ -71,12 +99,16 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
     if (results.isGranted) {
       final repository = SetupRepository();
       repository.createNotifications();
-      
+
       if (context.mounted) {
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const MicAccessPage()));
       }
     } else {
+      if (context.mounted) {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const MicAccessPage()));
+      }
       //TODO: Show error
     }
   }

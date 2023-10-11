@@ -23,57 +23,36 @@ class _MicTesterState extends State<MicTester> {
   Widget build(BuildContext context) {
     return SizedBox(
       width: widget.width,
-      child: Stack(
-        children: [
-          Padding(
-              padding: const EdgeInsets.only(bottom: 40.0),
-              child: Visibility(
-                  visible: widget.permission,
-                  replacement: Image.asset(
-                    "assets/images/mic_access.png",
-                    width: widget.width,
-                  ),
-                  child: Image.asset(
-                    "assets/images/check_mic.png",
-                    width: widget.width,
-                  ))),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 60,
-              width: widget.width,
-              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
-              decoration: BoxDecoration(
-                color: CustomColors.fillWhite,
-                border: Border.all(
-                    color: CustomColors.productBorderNormal, width: 2),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: const [
-                  BoxShadow(
-                    color: CustomColors.productBorderNormal,
-                    blurRadius: 0,
-                    offset: Offset(0, 2),
-                  ),
-                ],
+      child: Container(
+          height: 60,
+          width: widget.width,
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+          decoration: BoxDecoration(
+            color: CustomColors.fillWhite,
+            border: Border.all(
+                color: CustomColors.productBorderNormal, width: 2),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: const [
+              BoxShadow(
+                color: CustomColors.productBorderNormal,
+                blurRadius: 0,
+                offset: Offset(0, 2),
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(CustomIcons.keyboardVoice,
-                      color: CustomColors.productNormal),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                  Expanded(child: MicGauge(recorder: widget.recorder)),
-                ],
-              ),
-            ),
+            ],
           ),
-        ],
-      ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(CustomIcons.keyboardVoice,
+                  color: CustomColors.productNormal),
+              const SizedBox(
+                width: 12,
+              ),
+              Expanded(child: MicGauge(recorder: widget.recorder)),
+            ],
+          ),
+        ),
     );
   }
 }

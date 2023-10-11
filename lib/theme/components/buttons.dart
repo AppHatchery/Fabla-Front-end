@@ -46,7 +46,7 @@ class CustomElevatedButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 6.0),
         child: Ink(
           decoration: BoxDecoration(
-            color: color,
+            color: isDisabled ? CustomColors.fillDisabled: color,
             borderRadius: BorderRadius.circular(12),
             border: border,
             boxShadow: [
@@ -71,7 +71,7 @@ class CustomElevatedButton extends StatelessWidget {
               child: Center(
                   child: Text(text.toString(),
                       style: CustomTypography().button(
-                        color: textColor ?? CustomColors.fillWhite,
+                        color: isDisabled ? CustomColors.textTertiaryContent : textColor ?? CustomColors.fillWhite,
                       ))),
             ),
           ),

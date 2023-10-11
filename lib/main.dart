@@ -10,7 +10,7 @@ import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dar
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
-import 'package:audio_diaries_flutter/theme/custom_icons.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -147,7 +147,10 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: TabBarView(controller: tabController, children: pages),
+      body: TabBarView(
+          physics: const NeverScrollableScrollPhysics(),
+          controller: tabController,
+          children: pages),
       bottomNavigationBar: Material(
         color: CustomColors.fillWhite,
         child: TabBar(
@@ -171,15 +174,15 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
 
   static const navigationBars = <Tab>[
     Tab(
-      icon: Icon(CustomIcons.home),
-      text: "Home",
+      icon: Icon(CupertinoIcons.text_badge_checkmark),
+      text: "Study",
     ),
     Tab(
-      icon: Icon(CustomIcons.albumOutline),
-      text: "Diary",
+      icon: Icon(Icons.history),
+      text: "History",
     ),
     Tab(
-      icon: Icon(Icons.settings),
+      icon: Icon(Icons.settings_outlined),
       text: "Settings",
     ),
   ];
