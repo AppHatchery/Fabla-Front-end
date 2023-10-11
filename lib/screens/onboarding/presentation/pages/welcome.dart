@@ -40,7 +40,7 @@ class _WelcomePageState extends State<WelcomePage> {
             width: width,
             child: const RiveAnimation.asset(
                 'assets/animations/onboarding/onboarding_welcome.riv',
-                fit: BoxFit.cover),
+                fit: BoxFit.fitHeight),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),

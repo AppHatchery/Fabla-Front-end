@@ -17,12 +17,11 @@ class NotificationAccessPage extends StatefulWidget {
 }
 
 class _NotificationAccessPageState extends State<NotificationAccessPage> {
-
   bool canGoBack = false;
 
   @override
   void initState() {
-    if(Navigator.of(context).canPop()) {
+    if (Navigator.of(context).canPop()) {
       canGoBack = true;
     }
     super.initState();
@@ -31,31 +30,37 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final height =  MediaQuery.of(context).size.height;
+    final height = MediaQuery.of(context).size.height;
     return Scaffold(
       backgroundColor: CustomColors.backgroundSecondary,
       appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
-        leading: canGoBack ? IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
-            )) : null,
+        leading: canGoBack
+            ? IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: CustomColors.fillWhite,
+                  size: 32,
+                ))
+            : null,
       ),
       body: Stack(
         children: [
-          SizedBox(
-            height: height,
-            width: width,
-            child: const RiveAnimation.asset(
-                'assets/animations/onboarding/onboarding_getnotified.riv',
-                fit: BoxFit.cover),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: SizedBox(
+              height: height >= 700 ? height * 0.75 : height * 0.65,
+              width: width,
+              child: const RiveAnimation.asset(
+                  'assets/animations/onboarding/onboarding_getnotified.riv',
+                  fit: BoxFit.fitWidth),
+            ),
           ),
-
           Padding(
-            padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
+            padding:
+                const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

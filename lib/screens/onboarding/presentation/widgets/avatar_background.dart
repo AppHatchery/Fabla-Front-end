@@ -36,11 +36,11 @@ class AvatarBackground extends StatelessWidget {
                 image,
                 width: width,
               ) : SizedBox(
-                height: height * 0.55,
+                height: height > 750 ? height * 0.55 : height * 0.65,
                 width: width,
                 child: RiveAnimation.asset(
                   animation!,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fitWidth,
                 ),
               )
             )),
@@ -78,7 +78,7 @@ class AvatarBackground extends StatelessWidget {
                   )
                 ],
               ),
-            ))
+            )) 
       ],
     );
   }
