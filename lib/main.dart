@@ -5,14 +5,17 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/dia
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -44,6 +47,7 @@ void main() async {
   objectbox = await ObjectBox.create();
   await configureAmplify();
   await NotificationService.init();
+  await PendoService.init();
   final route = await RouteService().getRoute();
   runApp(MyApp(
     route: route,
@@ -146,6 +150,7 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     tabController = TabController(length: pages.length, vsync: this);
+    startPendo();
     super.initState();
   }
 
@@ -158,7 +163,10 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: TabBarView(controller: tabController, children: pages),
+      body: TabBarView(
+          physics: const NeverScrollableScrollPhysics(),
+          controller: tabController,
+          children: pages),
       bottomNavigationBar: Material(
         color: CustomColors.fillWhite,
         child: TabBar(
@@ -174,17 +182,23 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
     );
   }
 
+  startPendo() async {
+    final repository = SetupRepository();
+    final participant = repository.getParticipant();
+    await PendoService.start(participant!.studyCode.toString());
+  }
+
   static const navigationBars = <Tab>[
     Tab(
-      icon: Icon(CustomIcons.home),
-      text: "Home",
+      icon: Icon(CupertinoIcons.text_badge_checkmark),
+      text: "Study",
     ),
     Tab(
-      icon: Icon(CustomIcons.albumOutline),
-      text: "Diary",
+      icon: Icon(Icons.history),
+      text: "History",
     ),
     Tab(
-      icon: Icon(Icons.settings),
+      icon: Icon(Icons.settings_outlined),
       text: "Settings",
     ),
   ];

@@ -1,11 +1,11 @@
-import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:tuple/tuple.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../core/utils/formatter.dart';
 import '../../core/utils/statuses.dart';
@@ -25,9 +25,17 @@ class DiaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    late String preview;
+    if(diary?.status == DiaryStatus.submitted || diary?.status == DiaryStatus.missed) {
+      preview  = 'Day ${diary?.id} - Study Name';
+    } else {
+      preview = 'Day ${diary?.id} - ${diary!.prompts[0].question!}';
+    }
+
     return Container(
       decoration: BoxDecoration(
-        color: diary?.status == DiaryStatus.submitted
+        color: diary?.status == DiaryStatus.submitted ||
+                diary?.status == DiaryStatus.missed
             ? CustomColors.fillNormal
             : CustomColors.fillWhite,
         borderRadius: BorderRadius.circular(12),
@@ -58,7 +66,10 @@ class DiaryCard extends StatelessWidget {
                 alignment: WrapAlignment.start,
                 runAlignment: WrapAlignment.start,
                 crossAxisAlignment: WrapCrossAlignment.start,
-                children: [for (var tag in diary!.tags) TagPill(tag: tag)],
+                children: [
+                  for (var tag in diary!.tags)
+                    TagPill(status: diary!.status, tag: tag)
+                ],
               ),
             ),
             const SizedBox(
@@ -68,10 +79,12 @@ class DiaryCard extends StatelessWidget {
               children: [
                 Expanded(
                     flex: 2,
-                    child: Text(
-                      diary!.prompts[0].question ??
-                          "Talk about your day today.",
-                      style: CustomTypography().bodyMedium(),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: Text(
+                        preview,
+                        style: CustomTypography().bodyLarge(),
+                      ),
                     )),
                 Expanded(
                   flex: 1,
@@ -82,15 +95,19 @@ class DiaryCard extends StatelessWidget {
                       DiaryStatus.idle => "Start",
                       DiaryStatus.ongoing => "Continue",
                       DiaryStatus.submitted => "View",
+                      DiaryStatus.missed => "View",
                     },
-                    color: diary?.status == DiaryStatus.submitted
+                    color: diary?.status == DiaryStatus.submitted ||
+                            diary?.status == DiaryStatus.missed
                         ? CustomColors.fillNormal
                         : CustomColors.productNormal,
-                    border: diary?.status == DiaryStatus.submitted
+                    border: diary?.status == DiaryStatus.submitted ||
+                            diary?.status == DiaryStatus.missed
                         ? Border.all(
                             color: CustomColors.productNormal, width: 2)
                         : const Border(),
-                    textColor: diary?.status == DiaryStatus.submitted
+                    textColor: diary?.status == DiaryStatus.submitted ||
+                            diary?.status == DiaryStatus.missed
                         ? CustomColors.productNormal
                         : CustomColors.textWhite,
                   ),
@@ -119,37 +136,103 @@ class DiaryCard extends StatelessWidget {
 
 /// Used in [DiaryCard]
 class TagPill extends StatelessWidget {
+  final DiaryStatus status;
   final Tag tag;
   const TagPill({
     super.key,
+    required this.status,
     required this.tag,
   });
 
   @override
   Widget build(BuildContext context) {
-    Tuple2<Color, Color> colors = getColorFromString(tag.text);
+    late Color background;
+    switch (tag.text) {
+      case "Done":
+        background = CustomColors.darkGreen;
+        break;
+      case "Missed":
+        background = CustomColors.warningActive;
+        break;
+      case "Awaiting Submission":
+        background = CustomColors.orangeDark;
+        break;
+      case "Ongoing":
+        background = CustomColors.productNormal;
+        break;
+      case "Ready to Start":
+        background = CustomColors.yellowDark;
+        break;
+      case "13 Questions":
+        background = CustomColors.yellowLight;
+        break;
+      case "12 Minutes":
+        background = const Color(0xFFEEEEFC);
+        break;
+      default:
+        background = CustomColors.productNormal;
+        break;
+    }
+
+    late Color foreground;
+    switch (tag.text) {
+      case "13 Questions":
+        foreground = CustomColors.yellowDark;
+        break;
+      case "12 Minutes":
+        foreground = const Color(0xFF0147A0);
+        break;
+      default:
+        foreground = CustomColors.textWhite;
+        break;
+    }
+
+    late IconData icon;
+    switch (tag.text) {
+      case "13 Questions":
+        icon = CupertinoIcons.question_circle;
+        break;
+      case "12 Minutes":
+        icon = Icons.access_time_rounded;
+        break;
+      case "Done":
+        icon = Icons.done_rounded;
+        break;
+      case "Missed":
+        icon = Icons.block_rounded;
+        break;
+      case "Awaiting Submission":
+        icon = CupertinoIcons.cloud_upload;
+        break;
+      case "Ongoing":
+        icon = Icons.rotate_right_outlined;
+        break;
+      case "Ready to Start":
+        icon = CupertinoIcons.chevron_right_circle;
+        break;
+      default:
+        icon = Icons.access_time_rounded;
+        break;
+    }
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
       decoration: BoxDecoration(
           shape: BoxShape.rectangle,
           borderRadius: BorderRadius.circular(5),
-          color: colors.item1),
+          color: background),
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Icon(
-            switch (tag.type) {
-              TagType.time => Icons.access_time_rounded,
-              TagType.remainder => Icons.contrast_rounded,
-              TagType.questions => Icons.quiz_outlined,
-            },
-            color: colors.item2,
+            icon,
+            color: foreground,
+            size: 15.sp,
           ),
           const SizedBox(
             width: 5,
           ),
-          Text(tag.text,
-              style: CustomTypography().caption(color: colors.item2)),
+          Text(tag.text, style: CustomTypography().caption(color: foreground)),
         ],
       ),
     );
@@ -454,7 +537,8 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
   }
 
   Future<void> delete() async {
-    final results = await showDialog<bool>(context: context, builder: (context)=> const DeletePopUp());
+    final results = await showDialog<bool>(
+        context: context, builder: (context) => const DeletePopUp());
 
     if (results == true) {
       widget.delete!();

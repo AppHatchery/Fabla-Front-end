@@ -3,7 +3,9 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../../core/utils/statuses.dart';
+import '../../../../../core/utils/types.dart';
 import '../../../../diary/data/diary.dart';
+import '../../../../diary/data/tag.dart';
 import '../../../../diary/domain/repository/diary_repository.dart';
 
 part 'home_state.dart';
@@ -12,8 +14,6 @@ class HomeCubit extends Cubit<HomeState> {
   HomeCubit() : super(const HomeInitial());
   DiaryRepository repository = DiaryRepository();
   final SetupRepository setupRepository = SetupRepository();
-  final today =
-      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
   /// Asynchronous method to load and organize Diary objects for display on the home screen.
   /// This function initiates the loading process of Diary objects and their organization for display on the home screen.
@@ -28,11 +28,24 @@ class HomeCubit extends Cubit<HomeState> {
   /// A Future indicating that the operation may be asynchronous and requires awaiting.
   ///
   Future<void> loadDiaries() async {
+    final today = DateTime.now();
+    final start = today.hour >= 4
+        ? DateTime(today.year, today.month, today.day, 4, 0, 0)
+        : DateTime(today.year, today.month, today.day, 4, 0, 0)
+            .subtract(const Duration(days: 1));
+    final due = today.hour >= 4
+        ? DateTime(today.year, today.month, today.day, 3, 59, 59)
+            .add(const Duration(days: 1))
+        : DateTime(today.year, today.month, today.day, 3, 59, 59);
     try {
       emit(const HomeLoading());
-      final diary = await repository.getDiary(today);
+      final diary = await repository.getDiary(start, due);
       if (diary != null) {
-        List<Diary> unfilterDiaries = [diary];
+        final updated = Diary.copyWith(diary: diary, tags: [
+          const Tag(text: "13 Questions", type: TagType.questions),
+          const Tag(text: "12 Minutes", type: TagType.time)
+        ]);
+        List<Diary> unfilterDiaries = [updated];
         List<Diary> unSubmittedDiaries = unfilterDiaries
             .where((element) => element.status == DiaryStatus.complete)
             .toList();
@@ -68,7 +81,8 @@ class HomeCubit extends Cubit<HomeState> {
     final diaries = repository.getAllDiaries();
     final thisWeek = diaries
         .where((element) =>
-            element.due.isAfter(monday.subtract(const Duration(days: 1))) && element.due.isBefore(sunday))
+            element.due.isAfter(monday.subtract(const Duration(days: 1))) &&
+            element.due.isBefore(sunday))
         .toList();
     thisWeek.sort((a, b) => a.due.compareTo(b.due));
     return thisWeek;

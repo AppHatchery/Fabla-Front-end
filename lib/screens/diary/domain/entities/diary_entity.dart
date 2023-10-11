@@ -12,6 +12,7 @@ class DiaryEntity {
   List<int> prompts;
   @Property(type: PropertyType.date)
   DateTime due;
+  String start;
   String deadline;
   @Transient()
   DiaryStatus? status;
@@ -26,12 +27,8 @@ class DiaryEntity {
     status = DiaryStatus.values[index ?? 0];
   }
 
-  DiaryEntity(
-      {this.id = 0,
-      required this.prompts,
-      required this.due,
-      required this.deadline,
-      this.status});
+  DiaryEntity({this.id = 0, required this.prompts, required this.due, required this.start, required this.deadline,this.status});
+
 
   /// Ensures the consistency of DiaryStatus enumeration indices.
   /// This private method verifies that the indices of the DiaryStatus enum values correspond to their expected numerical values.
@@ -46,6 +43,7 @@ class DiaryEntity {
     assert(DiaryStatus.ongoing.index == 1);
     assert(DiaryStatus.complete.index == 2);
     assert(DiaryStatus.submitted.index == 3);
+    assert(DiaryStatus.missed.index == 4);
   }
 
   /// Factory constructor that creates a DiaryEntity object from a Diary model.
@@ -62,6 +60,7 @@ class DiaryEntity {
       id: model.id,
       prompts: [findKeyForId(model.prompts.first.id, fakePrompts)],
       due: model.due,
+      start: model.start.toString(),
       deadline: model.due.toString(),
       status: model.status,
     );

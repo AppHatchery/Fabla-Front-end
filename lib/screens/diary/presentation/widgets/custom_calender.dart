@@ -14,6 +14,8 @@ class CustomCalender extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final today =
+        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     return Container(
       decoration: BoxDecoration(
         color: CustomColors.fillWhite,
@@ -41,19 +43,25 @@ class CustomCalender extends StatelessWidget {
           markerSize: 6,
           markerDecoration: const BoxDecoration(
               color: CustomColors.productNormal, shape: BoxShape.circle),
-          todayDecoration: const BoxDecoration(
-              color: CustomColors.productNormal, shape: BoxShape.circle),
+          todayDecoration: BoxDecoration(
+              color: CustomColors.productNormal,
+              shape: BoxShape.circle,
+              border: Border.all(color: CustomColors.productNormal, width: 4)),
           rangeHighlightColor: Colors.transparent,
-          rangeStartTextStyle: CustomTypography().bodyLarge(),
+          rangeStartTextStyle: CustomTypography().bodyLarge(
+              color:
+                  today == rangeStart ? CustomColors.fillWhite : Colors.black),
           rangeStartDecoration: BoxDecoration(
-              color: CustomColors.productBorderNormal,
+              color: today == rangeStart
+                  ? CustomColors.productNormal
+                  : Colors.transparent,
               shape: BoxShape.circle,
               border: Border.all(color: CustomColors.yellowDark, width: 4)),
           withinRangeDecoration: BoxDecoration(
               color: Colors.transparent,
               shape: BoxShape.circle,
               border: Border.all(color: CustomColors.yellowDark, width: 4)),
-              withinRangeTextStyle: CustomTypography().bodyLarge(),
+          withinRangeTextStyle: CustomTypography().bodyLarge(),
           rangeEndDecoration: BoxDecoration(
               color: Colors.transparent,
               shape: BoxShape.circle,

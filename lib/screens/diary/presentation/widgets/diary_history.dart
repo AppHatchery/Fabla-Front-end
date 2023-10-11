@@ -14,53 +14,53 @@ class DiaryHistory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentDate = DateTime.now();
-    final filteredDiaries = diaries.where((diary) {
-      final diaryDate = diary.due;
-      final diaryDateWithoutTime = DateTime(
-        diaryDate.year,
-        diaryDate.month,
-        diaryDate.day,
-      );
-      final currentDateWithoutTime = DateTime(
-        currentDate.year,
-        currentDate.month,
-        currentDate.day,
-      );
-      return diaryDateWithoutTime.isBefore(currentDateWithoutTime.add(Duration(days: 1)));
-    }).toList();
+    final now = DateTime.now();
+    final due = now.hour >= 4
+        ? DateTime(now.year, now.month, now.day, 4, 0, 0)
+            .add(const Duration(days: 1))
+        : DateTime(now.year, now.month, now.day, 4, 0, 0);
+    final filteredDiaries =
+        diaries.where((diary) => diary.due.isBefore(due)).toList();
 
     filteredDiaries.sort((a, b) => b.due.compareTo(a.due));
 
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var diary in filteredDiaries)
-          Column(
-
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _formatDate(diary.due),
-                style: CustomTypography()
-                    .titleLarge(color: CustomColors.textNormalContent),
-                textAlign: TextAlign.left,
-
-              ),
-              const SizedBox(height: 6),
-              DiaryCard(
-                diary: diary,
-                refresh: (value) => refresh(value),
-              ),
-              const SizedBox(height: 12),
-            ],
-          ),
-      ],
-    );
+    return SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: filteredDiaries.length,
+                  itemBuilder: (context, index) {
+                    final diary = filteredDiaries[index];
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _formatDate(diary.start),
+                          style: CustomTypography().titleLarge(
+                              color: CustomColors.textNormalContent),
+                          textAlign: TextAlign.left,
+                        ),
+                        const SizedBox(height: 6),
+                        DiaryCard(
+                          diary: diary,
+                          refresh: (value) => refresh(value),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    );
+                  },
+                )
+              ],
+            ),
+          )
+        ;
   }
 }
+
 String _formatDate(DateTime date) {
   final DateFormat formatter = DateFormat("MMMM d',' y");
   return formatter.format(date);

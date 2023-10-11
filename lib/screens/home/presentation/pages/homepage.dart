@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/unsubmitted_diary_list.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -12,6 +13,7 @@ import '../../../../theme/dialogs/pop_ups.dart';
 import '../../../../theme/resources/strings.dart';
 import '../../../diary/data/diary.dart';
 import '../cubit/cubit/home_cubit.dart';
+import '../widgets/empty_state.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,17 +22,32 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late HomeCubit homeCubit;
   String _name = "";
   late List<Diary> diaries;
+  late DateTime startDate;
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     homeCubit = BlocProvider.of<HomeCubit>(context);
     fetchData(context);
     getParticipant();
-    diaries = homeCubit.getAllDiariesThisWeek();
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      fetchData(context);
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
@@ -40,7 +57,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: CustomColors.fillNormal,
         appBar: AppBar(
           toolbarHeight: 105.h,
-          backgroundColor: CustomColors.productNormal,
+          backgroundColor: CustomColors.backgroundSecondary,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(0),
             child: Container(
@@ -90,32 +107,21 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-          child: ListView(
-            children: [
-              CalendarCard(
-                diaries: diaries,
-              ),
-              const SizedBox(
-                height: 24,
-              ),
-              BlocConsumer<HomeCubit, HomeState>(
-                  listener: (context, state) {},
-                  builder: (context, state) {
-                    if (state is HomeInitial) {
-                      return initialHome();
-                    } else if (state is HomeLoading) {
-                      return loading();
-                    } else if (state is HomeLoaded) {
-                      return loadedHome(
-                          state.diaries, state.unSubmittedDiaries);
-                    } else {
-                      return initialHome();
-                    }
-                  })
-            ],
-          ),
-        ));
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: BlocConsumer<HomeCubit, HomeState>(
+                listener: (context, state) {},
+                builder: (context, state) {
+                  if (state is HomeInitial) {
+                    return initialHome();
+                  } else if (state is HomeLoading) {
+                    return loading();
+                  } else if (state is HomeLoaded) {
+                    return loadedHome(state.diaries, state.unSubmittedDiaries);
+                  } else {
+                    return initialHome();
+                  }
+                })));
   }
 
   Widget loading() {
@@ -131,9 +137,48 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget loadedHome(List<Diary> diaries, List<Diary> unSubmittedDiaries) {
+    final today = DateTime.now();
+    if (today.isBefore(startDate)) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CalendarCard(
+            diaries: diaries,
+          ),
+          const SizedBox(
+            height: 24,
+          ),
+          Text(
+            "Today's Diary",
+            style: CustomTypography().headlineMedium(),
+            textAlign: TextAlign.left,
+          ),
+
+          const Expanded(child: FreeDayWidget()),
+        ],
+      );
+    } else if (today.isAfter(startDate.add(const Duration(days: 6)))) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Today's Diary",
+            style: CustomTypography().headlineMedium(),
+            textAlign: TextAlign.left,
+          ),
+          const Expanded(child: EndStateWidget()),
+        ],
+      );
+    }
     return SingleChildScrollView(
       child: Column(
         children: [
+          CalendarCard(
+            diaries: diaries,
+          ),
+          const SizedBox(
+            height: 24,
+          ),
           unSubmittedDiaries.isNotEmpty
               ? UnsubmittedDiaryList(
                   diaries: unSubmittedDiaries,
@@ -149,8 +194,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void fetchData(BuildContext context) {
+  void fetchData(BuildContext context) async {
     homeCubit.loadDiaries();
+    diaries = homeCubit.getAllDiariesThisWeek();
+    startDate = DateTime.fromMillisecondsSinceEpoch(
+        await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
   }
 
   void refresh(bool shouldRefresh) {

@@ -51,6 +51,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                     child: Text(
                       "Reminder Time",
                       style: CustomTypography().titleLarge(),
+                      textAlign: TextAlign.center,
                     )),
                 Expanded(
                   flex: 1,
@@ -67,10 +68,6 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
             ),
             const SizedBox(
               height: 32,
-            ),
-            Text(
-              "Reminder Time",
-              style: CustomTypography().titleLarge(),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -171,9 +168,9 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                 )),
               ],
             ),
-            const SizedBox(
-              height: 24,
-            ),
+            // const SizedBox(
+            //   height: 24,
+            // ),
           ],
         ),
       ),
