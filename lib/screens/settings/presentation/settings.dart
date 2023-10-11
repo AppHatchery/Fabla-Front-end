@@ -161,11 +161,6 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                 ],
               ),
             ),
-            const SizedBox(height: 12.0),
-            TextButton(
-              onPressed: () => throw Exception(),
-              child: const Text("Throw Test Exception"),
-            ),
             // Visibility(
             //     visible: notificationCheck, child: const ListActiveTimes()),
             // const SizedBox(height: 12.0),
