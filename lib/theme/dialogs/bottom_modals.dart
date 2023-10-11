@@ -10,6 +10,7 @@ import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:rive/rive.dart';
 
 import '../../core/utils/formatter.dart';
 import '../components/buttons.dart';
@@ -205,19 +206,27 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          "New Diary",
-          style: CustomTypography().headlineMedium(),
+        const Expanded(flex: 1, child: SizedBox()),
+        Expanded(
+          flex: 2,
+          child: Text(
+            "New Diary",
+            style: CustomTypography().headlineMedium(),
+            textAlign: TextAlign.center,
+          ),
         ),
         const SizedBox(
           width: 5,
         ),
-        const IconButton(
-            onPressed: null,
-            icon: Icon(
-              CustomIcons.editNote,
-              size: 24,
-            ))
+        Expanded(
+          flex: 1,
+          child: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(
+                Icons.close_rounded,
+                size: 24,
+              )),
+        )
       ],
     );
   }

@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:rive/rive.dart';
 
 import '../../../../services/preference_service.dart';
 import '../../../../theme/custom_colors.dart';
@@ -30,6 +31,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final height =  MediaQuery.of(context).size.height;
     return Scaffold(
       backgroundColor: CustomColors.backgroundSecondary,
       appBar: AppBar(
@@ -42,51 +44,55 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
               size: 32,
             )) : null,
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: SizedBox(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    bottom: 24,
+      body: Stack(
+        children: [
+          SizedBox(
+            height: height,
+            width: width,
+            child: const RiveAnimation.asset(
+                'assets/animations/onboarding/onboarding_getnotified.riv',
+                fit: BoxFit.cover),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        bottom: 24,
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            "Enable notifications so you won’t miss the diary!",
+                            style: CustomTypography()
+                                .headlineLarge(color: CustomColors.textWhite),
+                          ),
+                          const SizedBox(height: 40.0),
+                          Image.asset(
+                            "assets/images/notification_example.png",
+                            width: width,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          children: [
-                            Text(
-                              "Enable notifications so you won’t miss the diary!",
-                              style: CustomTypography()
-                                  .headlineLarge(color: CustomColors.textWhite),
-                            ),
-                            const SizedBox(height: 40.0),
-                            Image.asset(
-                              "assets/images/notification_example.png",
-                              width: width,
-                            ),
-                          ],
-                        ),
-                        Image.asset(
-                          "assets/images/notification_access.png",
-                          width: width,
-                        ),
-                      ]),
                 ),
-              ),
+                CustomElevatedButton(
+                  onClick: () => navigateToNextPage(),
+                  text: "CONTINUE",
+                  color: CustomColors.fillWhite,
+                  shadowColor: CustomColors.productBorderNormal,
+                  textColor: CustomColors.productNormalActive,
+                )
+              ],
             ),
-            CustomElevatedButton(
-              onClick: () => navigateToNextPage(),
-              text: "CONTINUE",
-              color: CustomColors.fillWhite,
-              shadowColor: CustomColors.productBorderNormal,
-              textColor: CustomColors.productNormalActive,
-            )
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

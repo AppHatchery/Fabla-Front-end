@@ -23,7 +23,7 @@ class _ParticipantNameState extends State<ParticipantName> {
       children: [
         Text(
           "Name",
-          style: CustomTypography().titleSmall(),
+          style: CustomTypography().titleLarge(),
         ),
         const SizedBox(
           height: 12,

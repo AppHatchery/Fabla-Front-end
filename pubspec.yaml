@@ -65,6 +65,7 @@ dependencies:
 
   #Animations
   lottie: ^2.6.0
+  rive: ^0.11.17
 
   #Amplify
   amplify_flutter: ^1.0.0
@@ -100,6 +101,8 @@ flutter:
   assets:
     - assets/images/
     - assets/animations/
+    - assets/animations/onboarding/
+    - assets/animations/recording/
 
   fonts:
     - family: Rubik

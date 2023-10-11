@@ -1,7 +1,7 @@
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+import 'package:rive/rive.dart';
 
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
@@ -26,21 +26,12 @@ class _FinishPageState extends State<FinishPage> {
       body: SafeArea(
           child: Stack(
         children: [
-          FutureBuilder(
-            future: Future.delayed(const Duration(milliseconds: 250)),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return SizedBox(
-                    height: height,
-                    width: width,
-                    child: Lottie.asset(
-                      "assets/animations/confetti.json",
-                      fit: BoxFit.cover,
-                      repeat: false,
-                    ));
-              }
-              return const SizedBox.shrink();
-            },
+          SizedBox(
+            height: height,
+            width: width,
+            child: const RiveAnimation.asset(
+                'assets/animations/onboarding/onboarding_congrats.riv',
+                fit: BoxFit.cover),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -70,13 +61,13 @@ class _FinishPageState extends State<FinishPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Image.asset(
-                        "assets/images/finish_image.png",
-                        width: width,
-                      ),
-                      const SizedBox(
-                        height: 38,
-                      ),
+                      // Image.asset(
+                      //   "assets/images/finish_image.png",
+                      //   width: width,
+                      // ),
+                      // const SizedBox(
+                      //   height: 38,
+                      // ),
                       CustomElevatedButton(
                         onClick: _next,
                         text: "GET STARTED",

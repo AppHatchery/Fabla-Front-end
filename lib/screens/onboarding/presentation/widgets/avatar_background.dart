@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rive/rive.dart';
 
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
@@ -8,6 +9,8 @@ class AvatarBackground extends StatelessWidget {
   final double height;
   final double width;
   final String image;
+  final String avatarType;
+  final String? animation;
   final VoidCallback onContinue;
   const AvatarBackground(
       {super.key,
@@ -15,6 +18,8 @@ class AvatarBackground extends StatelessWidget {
       required this.height,
       required this.width,
       required this.image,
+      this.avatarType = "image",
+      this.animation,
       required this.onContinue});
 
   @override
@@ -27,10 +32,17 @@ class AvatarBackground extends StatelessWidget {
             right: 0,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Image.asset(
+              child: avatarType == "image" ? Image.asset(
                 image,
                 width: width,
-              ),
+              ) : SizedBox(
+                height: height * 0.55,
+                width: width,
+                child: RiveAnimation.asset(
+                  animation!,
+                  fit: BoxFit.cover,
+                ),
+              )
             )),
         Positioned(
             top: height > 860 ? 130 : 100,
