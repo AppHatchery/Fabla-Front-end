@@ -148,7 +148,7 @@ Future<bool> apiSubmitSurveyQuestions(
   try {
     String graphQLDocument = '''
       query ListFiles {
-        listParticipants(filter:{ _deleted:{attributeExists:false}, studycode: { eq: $studycode } }) {
+        listParticipants(filter:{ _deleted:{attributeExists:false}, studycode: { eq: "$studycode" } }) {
           items { 
             id
             studycode
@@ -171,7 +171,6 @@ Future<bool> apiSubmitSurveyQuestions(
       final participantList = jsonMap["listParticipants"]["items"];
       dynamic id = participantList.first['id'];
       int version = participantList.first['_version'];
-
       final uploaded =
           uploadQuestions(id, studycode, version, diary, questions);
       return uploaded;
@@ -212,7 +211,7 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
 
   final input = {
     'id': id,
-    'studycode': '$studyCode',
+    'studycode': studyCode,
     'physically_$day': physically,
     'emotionally_$day': emotionally,
     'intensity_$day': intensity,

@@ -152,7 +152,7 @@ class SetupRepository {
     try {
       String graphQLDocument = '''
       query ListFiles {
-        listParticipants(filter: { _deleted:{attributeExists:false}, studycode: { eq: $studycode } }) {
+        listParticipants(filter: { _deleted:{attributeExists:false}, studycode: { eq: "$studycode" } }) {
           items {
             id
             studycode
