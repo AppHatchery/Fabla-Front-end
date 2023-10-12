@@ -46,7 +46,6 @@ Future<bool> upload(String studyCode, Diary diary) async {
       if (prompt.responseType == ResponseType.recording) {
         var rec = prompt.answer?.recordings;
 
-
         for (int r = 0; r < rec!.length; r++) {
           fileList.add(DiaryAudioData(
                prompt: i + 1, file: File(rec[r].path), date: diary.start));
@@ -149,10 +148,10 @@ Future<bool> apiSubmitSurveyQuestions(
   try {
     String graphQLDocument = '''
       query ListFiles {
-        listParticipants(filter:{ _deleted:{attributeExists:false}, STUDYCODE: { eq: $studycode } }) {
+        listParticipants(filter:{ _deleted:{attributeExists:false}, studycode: { eq: $studycode } }) {
           items { 
             id
-            STUDYCODE
+            studycode
             _version
           }
         }
@@ -161,7 +160,7 @@ Future<bool> apiSubmitSurveyQuestions(
     var operation = Amplify.API.query(
       request: GraphQLRequest<String>(
         document: graphQLDocument,
-        variables: {'STUDYCODE': studycode},
+        variables: {'studycode': studycode},
       ),
     );
     var response = await operation.response;
@@ -173,14 +172,13 @@ Future<bool> apiSubmitSurveyQuestions(
       dynamic id = participantList.first['id'];
       int version = participantList.first['_version'];
 
-      final uploaded = uploadQuestions(id, studycode, version, diary, questions);
+      final uploaded =
+          uploadQuestions(id, studycode, version, diary, questions);
       return uploaded;
     } else {
       response.errors.forEach((element) {
         safePrint('${element.toJson()}   ${element.message};');
       });
-      response.errors.first;
-      safePrint("false false");
       return false;
     }
   } catch (e) {
@@ -191,34 +189,41 @@ Future<bool> apiSubmitSurveyQuestions(
 
 Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
     Diary diary, List<Question> questions) async {
-  var physically = filterQuestionByType(questions, QuestionType.physically)!.answer;
-  var emotionally = filterQuestionByType(questions, QuestionType.emotionally)!.answer;
-  var intensity = filterQuestionByType(questions, QuestionType.intensity)!.answer;
+  var physically =
+      filterQuestionByType(questions, QuestionType.physically)!.answer;
+  var emotionally =
+      filterQuestionByType(questions, QuestionType.emotionally)!.answer;
+  var intensity =
+      filterQuestionByType(questions, QuestionType.intensity)!.answer;
   var lonely = filterQuestionByType(questions, QuestionType.lonely)!.answer;
   var leftout = filterQuestionByType(questions, QuestionType.leftout)!.answer;
-  var socialinteraction = filterQuestionByType(questions, QuestionType.socialinteraction)!.answer;
-  var understood = filterQuestionByType(questions, QuestionType.understood)!.answer;
+  var socialinteraction =
+      filterQuestionByType(questions, QuestionType.socialinteraction)!.answer;
+  var understood =
+      filterQuestionByType(questions, QuestionType.understood)!.answer;
   var stressed = filterQuestionByType(questions, QuestionType.stressed)!.answer;
-  var whereyouare = filterQuestionByType(questions, QuestionType.whereyouare)!.answer;
-  var peoplearoundyou = filterQuestionByType(questions, QuestionType.peoplearoundyou)!.answer;
+  var whereyouare =
+      filterQuestionByType(questions, QuestionType.whereyouare)!.answer;
+  var peoplearoundyou =
+      filterQuestionByType(questions, QuestionType.peoplearoundyou)!.answer;
   var drinks = filterQuestionByType(questions, QuestionType.drinks)!.answer;
 
   int day = diary.id;
 
   final input = {
     'id': id,
-    'STUDYCODE': '$studyCode',
-    'PHYSICALLY_$day': physically,
-    'EMOTIONALLY_$day': emotionally,
-    'INTENSITY_$day': intensity,
-    'LONELY_$day': lonely,
-    'LEFT_OUT_$day': leftout,
-    'SOCIAL_INTERACTION_$day': socialinteraction,
-    'UNDERSTOOD_$day': understood,
-    'STRESSED_$day': stressed,
-    'WHERE_YOU_ARE_$day': whereyouare,
-    'PEOPLE_AROUND_YOU_$day': peoplearoundyou,
-    'DRINKS_$day': drinks,
+    'studycode': '$studyCode',
+    'physically_$day': physically,
+    'emotionally_$day': emotionally,
+    'intensity_$day': intensity,
+    'lonely_$day': lonely,
+    'left_out_$day': leftout,
+    'social_interaction_$day': socialinteraction,
+    'understood_$day': understood,
+    'stressed_$day': stressed,
+    'where_you_are_$day': whereyouare,
+    'people_around_you_$day': peoplearoundyou,
+    'drinks_$day': drinks,
     '_version': entryVersion
   };
 
@@ -227,18 +232,18 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
       mutation UpdateParticipants(\$input: UpdateParticipantsInput!) {
           updateParticipants(input: \$input) {
             id
-            STUDYCODE
-            PHYSICALLY_$day
-            EMOTIONALLY_$day
-            INTENSITY_$day
-            LONELY_$day
-            LEFT_OUT_$day
-            SOCIAL_INTERACTION_$day
-            UNDERSTOOD_$day
-            STRESSED_$day
-            WHERE_YOU_ARE_$day
-            PEOPLE_AROUND_YOU_$day
-            DRINKS_$day
+            studycode
+            physically_$day
+            emotionally_$day
+            intensity_$day
+            lonely_$day
+            left_out_$day
+            social_interaction_$day
+            understood_$day
+            stressed_$day
+            where_you_are_$day
+            people_around_you_$day
+            drinks_$day
             _version
           }
         }
@@ -260,8 +265,6 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
       response.errors.forEach((element) {
         safePrint('${element.message};');
       });
-      response.errors.first;
-      safePrint("false false  ${response.errors.first}");
       return false;
     }
   } catch (e) {

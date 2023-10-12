@@ -21,14 +21,16 @@
 
 import 'package:amplify_core/amplify_core.dart' as amplify_core;
 import 'Participants.dart';
+import 'UserMetadata.dart';
 
 export 'Participants.dart';
+export 'UserMetadata.dart';
 
 class ModelProvider implements amplify_core.ModelProviderInterface {
   @override
-  String version = "f4172ec55d2248afafd631ed7677a829";
+  String version = "68975697caa0bad89bfc8d5110a7bed2";
   @override
-  List<amplify_core.ModelSchema> modelSchemas = [Participants.schema];
+  List<amplify_core.ModelSchema> modelSchemas = [Participants.schema, UserMetadata.schema];
   @override
   List<amplify_core.ModelSchema> customTypeSchemas = [];
   static final ModelProvider _instance = ModelProvider();
@@ -39,6 +41,8 @@ class ModelProvider implements amplify_core.ModelProviderInterface {
     switch(modelName) {
       case "Participants":
         return Participants.classType;
+      case "UserMetadata":
+        return UserMetadata.classType;
       default:
         throw Exception("Failed to find model in model provider for model name: " + modelName);
     }

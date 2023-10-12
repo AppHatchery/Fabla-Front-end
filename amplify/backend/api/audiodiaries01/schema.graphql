@@ -1,75 +1,83 @@
-# This "input" configures a global authorization rule to enable public access to
-# all models in this schema. Learn more about authorization rules here: https://docs.amplify.aws/cli/graphql/authorization-rules
-input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONLY!
+type UserMetadata @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  participant: String
+  start_study_date: String
+  next_study_date: String
+  recent_submit_date: String
+  day1: String
+  day2: String
+  day3: String
+  day4: String
+  day5: String
+  day6: String
+}
 
-type Participants @model {
-  STUDYCODE:ID!,
-  PHYSICALLY_1:Int,
-  PHYSICALLY_2:Int,
-  PHYSICALLY_3:Int,
-  PHYSICALLY_4:Int,
-  PHYSICALLY_5:Int,
-  PHYSICALLY_6:Int,
-  EMOTIONALLY_1:Int,
-  EMOTIONALLY_2:Int,
-  EMOTIONALLY_3:Int,
-  EMOTIONALLY_4:Int,
-  EMOTIONALLY_5:Int,
-  EMOTIONALLY_6:Int,
-  INTENSITY_1:Int,
-  INTENSITY_2:Int,
-  INTENSITY_3:Int,
-  INTENSITY_4:Int,
-  INTENSITY_5:Int,
-  INTENSITY_6:Int,
-  LONELY_1:Int,
-  LONELY_2:Int,
-  LONELY_3:Int,
-  LONELY_4:Int,
-  LONELY_5:Int,
-  LONELY_6:Int,
-  LEFT_OUT_1:Int,
-  LEFT_OUT_2:Int,
-  LEFT_OUT_3:Int,
-  LEFT_OUT_4:Int,
-  LEFT_OUT_5:Int,
-  LEFT_OUT_6:Int,
-  SOCIAL_INTERACTION_1:Int,
-  SOCIAL_INTERACTION_2:Int,
-  SOCIAL_INTERACTION_3:Int,
-  SOCIAL_INTERACTION_4:Int,
-  SOCIAL_INTERACTION_5:Int,
-  SOCIAL_INTERACTION_6:Int,
-  UNDERSTOOD_1:Int,
-  UNDERSTOOD_2:Int,
-  UNDERSTOOD_3:Int,
-  UNDERSTOOD_4:Int,
-  UNDERSTOOD_5:Int,
-  UNDERSTOOD_6:Int,
-  STRESSED_1:Int,
-  STRESSED_2:Int,
-  STRESSED_3:Int,
-  STRESSED_4:Int,
-  STRESSED_5:Int,
-  STRESSED_6:Int,
-  WHERE_YOU_ARE_1:String,
-  WHERE_YOU_ARE_2:String,
-  WHERE_YOU_ARE_3:String,
-  WHERE_YOU_ARE_4:String,
-  WHERE_YOU_ARE_5:String,
-  WHERE_YOU_ARE_6:String,
-  PEOPLE_AROUND_YOU_1:String,
-  PEOPLE_AROUND_YOU_2:String,
-  PEOPLE_AROUND_YOU_3:String,
-  PEOPLE_AROUND_YOU_4:String,
-  PEOPLE_AROUND_YOU_5:String,
-  PEOPLE_AROUND_YOU_6:String,
-  DRINKS_1:Int,
-  DRINKS_2:Int,
-  DRINKS_3:Int,
-  DRINKS_4:Int,
-  DRINKS_5:Int,
-  DRINKS_6:Int,
-  STARTTIME:String
-  ENDTIME:String
+type Participants @model @auth(rules: [{allow: public}]) {
+  studycode: ID!
+  physically_1: Int
+  physically_2: Int
+  physically_3: Int
+  physically_4: Int
+  physically_5: Int
+  physically_6: Int
+  emotionally_1: Int
+  emotionally_2: Int
+  emotionally_3: Int
+  emotionally_4: Int
+  emotionally_5: Int
+  emotionally_6: Int
+  intensity_1: Int
+  intensity_2: Int
+  intensity_3: Int
+  intensity_4: Int
+  intensity_5: Int
+  intensity_6: Int
+  lonely_1: Int
+  lonely_2: Int
+  lonely_3: Int
+  lonely_4: Int
+  lonely_5: Int
+  lonely_6: Int
+  left_out_1: Int
+  left_out_2: Int
+  left_out_3: Int
+  left_out_4: Int
+  left_out_5: Int
+  left_out_6: Int
+  social_interaction_1: Int
+  social_interaction_2: Int
+  social_interaction_3: Int
+  social_interaction_4: Int
+  social_interaction_5: Int
+  social_interaction_6: Int
+  understood_1: Int
+  understood_2: Int
+  understood_3: Int
+  understood_4: Int
+  understood_5: Int
+  understood_6: Int
+  stressed_1: Int
+  stressed_2: Int
+  stressed_3: Int
+  stressed_4: Int
+  stressed_5: Int
+  stressed_6: Int
+  where_you_are_1: String
+  where_you_are_2: String
+  where_you_are_3: String
+  where_you_are_4: String
+  where_you_are_5: String
+  where_you_are_6: String
+  people_around_you_1: String
+  people_around_you_2: String
+  people_around_you_3: String
+  people_around_you_4: String
+  people_around_you_5: String
+  people_around_you_6: String
+  drinks_1: Int
+  drinks_2: Int
+  drinks_3: Int
+  drinks_4: Int
+  drinks_5: Int
+  drinks_6: Int
 }

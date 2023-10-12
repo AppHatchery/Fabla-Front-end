@@ -152,12 +152,10 @@ class SetupRepository {
     try {
       String graphQLDocument = '''
       query ListFiles {
-        listParticipants(filter: { _deleted:{attributeExists:false}, STUDYCODE: { eq: $studycode } }) {
+        listParticipants(filter: { _deleted:{attributeExists:false}, studycode: { eq: $studycode } }) {
           items {
             id
-            STUDYCODE
-            PHYSICALLY_1
-            EMOTIONALLY_1
+            studycode
             _deleted
           }
         }
@@ -166,7 +164,7 @@ class SetupRepository {
       var operation = Amplify.API.query(
         request: GraphQLRequest<String>(
           document: graphQLDocument,
-          variables: {'STUDYCODE': studycode},
+          variables: {'studycode': studycode},
         ),
       );
       var response = await operation.response;
@@ -194,7 +192,7 @@ class SetupRepository {
   Future<void> apiCreateParticipant(String studycode) async {
     if (!await participantExist(studycode)) {
       try {
-        final participant = Participants(STUDYCODE: studycode);
+        final participant = Participants(studycode: studycode);
         final request = ModelMutations.create(participant);
         final response = await Amplify.API.mutate(request: request).response;
 
@@ -204,7 +202,7 @@ class SetupRepository {
           return;
         }
         safePrint(
-            'Participant Added Mutation result: ${participantData.STUDYCODE}');
+            'Participant Added Mutation result: ${participantData.studycode}');
       } on ApiException catch (e) {
         safePrint('Mutation failed: $e');
       }
