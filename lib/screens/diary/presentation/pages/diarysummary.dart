@@ -94,15 +94,10 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
       },
       listener: (context, state) {
         if (state is SummarySubmitted) {
-          Navigator.of(context).pushAndRemoveUntil(
-              _completionRoute(), (Route<dynamic> route) => false);
-          // Navigator.of(context).pushReplacement(_completionRoute()).then((_) {
-          //   summaryCubit.loadSummary(widget.diary);
-          // });
+          Navigator.of(context).pushReplacement(_completionRoute()).then((_) {
+            summaryCubit.loadSummary(widget.diary);
+          });
         }
-        // if (state is SummarySubmitted) {
-        //   Navigator.of(context).push(_completionRoute());
-        // }
       },
     );
   }
@@ -119,8 +114,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>
           const DiaryCompletionPage(),
-      transitionDuration: const Duration(milliseconds: 1300),
-      reverseTransitionDuration: const Duration(milliseconds: 1300),
+      transitionDuration: const Duration(milliseconds: 1200),
+      reverseTransitionDuration: const Duration(milliseconds: 1200),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         var screenSize = MediaQuery.of(context).size;
         var centerCircleClipper =
@@ -369,135 +364,3 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
     summaryCubit.submitDiary(widget.diary);
   }
 }
-
-//return AnimatedBuilder(
-        //   animation: radiusTweenAnimation,
-        //   builder: (context, child) {
-        //     return ClipPath(
-        //       clipper: CircleTransitionClipper(
-        //           center: centerCircleClipper,
-        //           radius: radiusTweenAnimation.value),
-        //       child: child,
-        //     );
-        //   },
-        //   child: child,
-        // );
-// pushAndRemoveUntil(
-          //     context,
-          //     MaterialPageRoute(
-          //         builder: (context) => const DiaryCompletionPage()),
-          //     (route) => false);
- // @override
-  // Widget build(BuildContext context) {
-  //   return BlocConsumer<SummaryCubit, SummaryState>(
-  //     builder: (context, state) {
-  //       return Scaffold(
-  //         backgroundColor: CustomColors.fillNormal,
-  //         appBar: (state is SubmitLoading || state is SubmitError)
-  //             ? null
-  //             : AppBar(
-  //                 automaticallyImplyLeading: false,
-  //                 backgroundColor: CustomColors.fillNormal,
-  //                 leading: IconButton(
-  //                   onPressed: () {
-  //                     Navigator.pushAndRemoveUntil(
-  //                         context,
-  //                         MaterialPageRoute(builder: (context) => const Hub()),
-  //                         (route) => false);
-  //                   },
-  //                   icon: const Icon(CustomIcons.close),
-  //                   iconSize: 15.0,
-  //                 ),
-  //                 title: Text(
-  //                   "My Responses",
-  //                   style: CustomTypography().titleMedium(
-  //                     color: CustomColors.textNormalContent,
-  //                   ),
-  //                 ),
-  //                 centerTitle: true,
-  //               ),
-  //         body: state is SummaryInitial
-  //             ? initial()
-  //             : state is SummaryLoading
-  //                 ? loading()
-  //                 : state is SummaryLoaded
-  //                     ? content(state.diary, context)
-  //                     : state is SubmitLoading
-  //                         ? submitLoading()
-  //                         : state is SubmitError
-  //                             ? submitError()
-  //                             : initial(),
-  //       );
-  //     },
-  //     listener: (context, state) {
-  //       if (state is SummarySubmitted) {
-  //         Navigator.pushAndRemoveUntil(
-  //             context,
-  //             MaterialPageRoute(
-  //                 builder: (context) => const DiaryCompletionPage()),
-  //             (route) => false);
-  //       }
-  //     },
-  //   );
-  // }
-
-// IconButton(
-                  //     onPressed: () {
-                  //       setState(() {
-                  //         sliderEnabledStates[index] =
-                  //             !sliderEnabledStates[index]!;
-                  //       });
-                  //     },
-                  //     icon: Icon(CustomIcons.editNote))
-                  // const SizedBox(height: 12),
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     backgroundColor: CustomColors.fillNormal,
-  //     appBar:
-  //      AppBar(
-  //       automaticallyImplyLeading: false,
-  //       backgroundColor: CustomColors.fillNormal,
-  //       leading: IconButton(
-  //         onPressed: () {
-  //           Navigator.pushAndRemoveUntil(
-  //               context,
-  //               MaterialPageRoute(builder: (context) => const Hub()),
-  //               (route) => false);
-  //         },
-  //         icon: const Icon(CustomIcons.close),
-  //         iconSize: 15.0,
-  //       ),
-  //       title: Text(
-  //         "My Responses",
-  //         style: CustomTypography().titleMedium(
-  //           color: CustomColors.textNormalContent,
-  //         ),
-  //       ),
-  //       centerTitle: true,
-  //     ),
-  //     body: BlocConsumer<SummaryCubit, SummaryState>(builder: (context, state) {
-  //       if (state is SummaryInitial) {
-  //         return initial();
-  //       } else if (state is SummaryLoading) {
-  //         return loading();
-  //       } else if (state is SummaryLoaded) {
-  //         return content(state.diary, context);
-  //       } else if (state is SubmitLoading) {
-  //         return submitLoading();
-  //       } else if (state is SubmitError) {
-  //         return submitError();
-  //       } else {
-  //         return initial();
-  //       }
-  //     }, listener: (context, state) {
-  //       if (state is SummarySubmitted) {
-  //         Navigator.pushAndRemoveUntil(
-  //             context,
-  //             MaterialPageRoute(
-  //                 builder: (context) => const DiaryCompletionPage()),
-  //             (route) => false);
-  //       }
-  //     }),
-  //   );
-  // }

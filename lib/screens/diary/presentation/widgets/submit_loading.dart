@@ -11,6 +11,18 @@ class SubmitLoadingPage extends StatefulWidget {
 }
 
 class _SubmitLoadingPageState extends State<SubmitLoadingPage> {
+  String loadingText = "Submitting...";
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 5), () {
+      setState(() {
+        loadingText = "Processing...";
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -22,7 +34,7 @@ class _SubmitLoadingPageState extends State<SubmitLoadingPage> {
             color: CustomColors.productNormalActive,
           ),
           Text(
-            "Submitting...",
+            loadingText,
             style: CustomTypography()
                 .headlineMedium(color: CustomColors.textSecondaryContent),
           ),
@@ -31,6 +43,7 @@ class _SubmitLoadingPageState extends State<SubmitLoadingPage> {
             style: CustomTypography().bodyLarge(
               color: CustomColors.textSecondaryContent,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

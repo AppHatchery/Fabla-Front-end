@@ -76,9 +76,8 @@ class DiaryCompletionPage extends StatelessWidget {
                   alignment: Alignment.bottomCenter,
                   child: CustomFlatButton(
                     onClick: () {
-                      Navigator.of(context).push(_completionRoute());
-                      // Navigator.push(context,
-                      //     MaterialPageRoute(builder: (context) => const Hub()));
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => const Hub()));
                     },
                     text: "Return Home",
                     color: CustomColors.productLightPrimaryNormalWhite,
@@ -90,31 +89,6 @@ class DiaryCompletionPage extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Route _completionRoute() {
-    return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => const Hub(),
-      transitionDuration: const Duration(milliseconds: 1000),
-      reverseTransitionDuration: const Duration(milliseconds: 1000),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        var screenSize = MediaQuery.of(context).size;
-        var centerCircleClipper =
-            Offset(screenSize.width / 2, screenSize.height / 2);
-
-        double beginRadius = 0.0;
-        double endRadius = screenSize.height * 1.2;
-
-        var radiusTween = Tween(begin: beginRadius, end: endRadius);
-        var radiusTweenAnimation = animation.drive(radiusTween);
-
-        return ClipPath(
-          clipper: CircleTransitionClipper(
-              center: centerCircleClipper, radius: radiusTweenAnimation.value),
-          child: child,
-        );
-      },
     );
   }
 }

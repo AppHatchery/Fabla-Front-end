@@ -111,8 +111,6 @@ class SummaryCubit extends Cubit<SummaryState> {
     } catch (e) {
       print("Error submitting diary: $e");
       emit(const SubmitError());
-    } finally {
-      loadSummary(diary);
     }
   }
 }
