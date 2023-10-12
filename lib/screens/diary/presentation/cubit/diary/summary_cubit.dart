@@ -106,8 +106,12 @@ class SummaryCubit extends Cubit<SummaryState> {
   void submitDiary(Diary diary) async {
     try {
       emit(const SubmitLoading());
-      await _summaryRepository.submitDiary(diary);
-      emit(const SummarySubmitted());
+      final result = await _summaryRepository.submitDiary(diary);
+      if (result) {
+        emit(const SummarySubmitted());
+      } else {
+        emit(const SubmitError());
+      }
     } catch (e) {
       print("Error submitting diary: $e");
       emit(const SubmitError());

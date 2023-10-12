@@ -17,48 +17,63 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Center(
-            child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.error,
-                color: CustomColors.warningActive,
-                size: 48,
-              ),
-              Text(
-                "Oops! Something went wrong.",
-                style: CustomTypography()
-                    .headlineMedium(color: CustomColors.textSecondaryContent),
-              ),
-              Text(
-                "Don't worry! We're here to help. Please reach out to us at [our@email.com] for assistance.",
-                style: CustomTypography().bodyLarge(
-                  color: CustomColors.textSecondaryContent,
-                ),
-                textAlign: TextAlign.center,
-              )
-            ],
-          ),
-        ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: CustomFlatButton(
-            onClick: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const Hub()));
-            },
-            text: "Return Home",
-            color: CustomColors.productLightPrimaryNormalWhite,
-            textColor: CustomColors.productDark,
-          ),
-        )
-      ],
-    )));
+            child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 30.0, vertical: 12.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error,
+                            color: CustomColors.warningActive,
+                            size: 48,
+                          ),
+                          const SizedBox(
+                            height: 24,
+                          ),
+                          Text(
+                            "Oops! Something went wrong.",
+                            style: CustomTypography().headlineMedium(
+                                color: CustomColors.textSecondaryContent),
+                          ),
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          Text(
+                            "Don't worry! We're here to help. Please reach out to us at [our@email.com] for assistance.",
+                            style: CustomTypography().bodyLarge(
+                              color: CustomColors.textSecondaryContent,
+                            ),
+                            textAlign: TextAlign.center,
+                          )
+                        ],
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: CustomElevatedButton(
+                        onClick: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const Hub()));
+                        },
+                        text: "Return Home",
+                        color: CustomColors.productNormal,
+                        textColor: CustomColors.textWhite,
+                        shadowColor: CustomColors.productNormalActive,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 32,
+                    ),
+                  ],
+                ))));
   }
 }

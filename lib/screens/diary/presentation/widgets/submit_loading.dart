@@ -31,12 +31,19 @@ class _SubmitLoadingPageState extends State<SubmitLoadingPage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const CircularProgressIndicator(
+            strokeWidth: 6,
             color: CustomColors.productNormalActive,
+          ),
+          const SizedBox(
+            height: 24,
           ),
           Text(
             loadingText,
             style: CustomTypography()
                 .headlineMedium(color: CustomColors.textSecondaryContent),
+          ),
+          const SizedBox(
+            height: 12,
           ),
           Text(
             "Hang tight while we process your responses - almost there!",

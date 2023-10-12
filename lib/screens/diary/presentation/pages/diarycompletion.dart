@@ -5,7 +5,6 @@ import 'package:lottie/lottie.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
-import '../widgets/circle_transition_clipper.dart';
 
 /// this is the last page in the New Daily Diary flow
 /// The button leads to the home page
