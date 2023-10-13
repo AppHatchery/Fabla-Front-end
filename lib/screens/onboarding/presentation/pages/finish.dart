@@ -29,9 +29,17 @@ class _FinishPageState extends State<FinishPage> {
           SizedBox(
             height: height,
             width: width,
-            child: const RiveAnimation.asset(
-                'assets/animations/onboarding/onboarding_congrats.riv',
-                fit: BoxFit.cover),
+            child: FutureBuilder(
+                future: Future.delayed(const Duration(milliseconds: 150)),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    return const RiveAnimation.asset(
+                        'assets/animations/onboarding/onboarding_congrats.riv',
+                        fit: BoxFit.cover);
+                  }
+
+                  return const SizedBox.shrink();
+                }),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),

@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 
@@ -13,21 +14,38 @@ import '../custom_icons.dart';
 /// [message] is the message of the pop up. - String?
 ///
 /// [image] is the image to display. - String?
-class BottomTipPopUp extends StatelessWidget {
+class BottomTipPopUp extends StatefulWidget {
   final String title;
   final String message;
   final String image;
-  const BottomTipPopUp(
-      {super.key,
-      required this.title,
-      required this.message,
-      required this.image});
+  final bool dontShowAgain;
+  const BottomTipPopUp({
+    super.key,
+    required this.title,
+    required this.message,
+    required this.image,
+    required this.dontShowAgain,
+  });
+
+  @override
+  State<BottomTipPopUp> createState() => _BottomTipPopUpState();
+}
+
+class _BottomTipPopUpState extends State<BottomTipPopUp> {
+  late bool _dontShowAgain;
+
+  @override
+  void initState() {
+    _dontShowAgain = widget.dontShowAgain;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     return Container(
       width: width,
+      // color: CustomColors.fillWhite,
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 34),
       constraints: const BoxConstraints.tightFor(),
       child: Column(
@@ -36,59 +54,70 @@ class BottomTipPopUp extends StatelessWidget {
           //Title
           Row(
             children: [
-              const Expanded(
-                  child: SizedBox(
-                height: 24,
-                width: 24,
-              )),
+              // const Expanded(
+              //     child: SizedBox(
+              //   height: 24,
+              //   width: 24,
+              // )),
               Expanded(
                   child: SizedBox(
-                child: Text(title,
+                child: Text(widget.title,
                     style: CustomTypography().headlineMedium(),
                     textAlign: TextAlign.center),
               )),
-              Expanded(
-                  child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  height: 24,
-                  width: 24,
-                  alignment: Alignment.centerRight,
-                  child: const Icon(CustomIcons.close, color: Colors.black),
-                ),
-              )),
+              // Expanded(
+              //     child: GestureDetector(
+              //   onTap: () => Navigator.pop(context),
+              //   child: Container(
+              //     height: 24,
+              //     width: 24,
+              //     alignment: Alignment.centerRight,
+              //     child: const Icon(CustomIcons.close, color: Colors.black),
+              //   ),
+              // )),
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 24),
+
+          SizedBox(
+              height: 100,
+              child: Image.asset(widget.image, fit: BoxFit.contain)),
+
+          const SizedBox(height: 24),
 
           //Message
-          Text(message,
+          Text(widget.message,
               style: CustomTypography().bodyLarge(),
               textAlign: TextAlign.center),
 
-          const SizedBox(height: 24),
-
-          SizedBox(height: 150, child: Image.asset(image, fit: BoxFit.contain)),
-
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
 
           Container(
               alignment: Alignment.center,
               child: IntrinsicWidth(
                 child: CustomCheckbox(
-                    value: true,
+                    value: _dontShowAgain,
                     label: "Don't show me again",
-                    onChanged: (value) => print(value)),
+                    onChanged: (value) => {
+                          setState(() {
+                            _dontShowAgain = value!;
+                          }),
+                        }),
               )),
 
-          const SizedBox(height: 17),
+          const SizedBox(height: 12),
 
-          CustomElevatedButton(
-              onClick: () => Navigator.pop(context), text: "GOT IT!")
+          CustomFlatButton(
+              onClick: _save, text: "GOT IT!")
         ],
       ),
     );
+  }
+
+  void _save() async {
+    await PreferenceService().setBoolPreference(key: "show_diary_tip", value: !_dontShowAgain);
+    if(mounted) Navigator.pop(context);
   }
 }
 
@@ -116,113 +145,119 @@ class BottomResearcherInfoPopUp extends StatelessWidget {
       required this.studyDescription,
       required this.organisation,
       required this.duration,
-      required this.researcher, this.actions=const []});
+      required this.researcher,
+      this.actions = const []});
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     return Container(
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 34),
-      constraints: const BoxConstraints.tightFor(),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Study Name
-          Text(
-            studyName,
-            style: CustomTypography().titleMedium(),
-            textAlign: TextAlign.center,
-          ),
-
-          const SizedBox(
-            height: 24,
-          ),
-
-          // Organisation
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(CustomIcons.assuredWorkload, size: 16),
-              const SizedBox(
-                width: 12,
-              ),
-              Text(
-                organisation,
-                style: CustomTypography().bodyMedium(),
-              ),
-            ],
-          ),
-
-          const SizedBox(
-            height: 12,
-          ),
-
-          // Duration
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(CustomIcons.calendarMonth, size: 16),
-              const SizedBox(
-                width: 12,
-              ),
-              Text(
-                duration,
-                style: CustomTypography().bodyMedium(),
-              ),
-            ],
-          ),
-
-          const SizedBox(
-            height: 12,
-          ),
-
-          // Researcher
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(CustomIcons.person, size: 16),
-              const SizedBox(
-                width: 12,
-              ),
-              Text(
-                researcher,
-                style: CustomTypography().bodyMedium(),
-              ),
-            ],
-          ),
-
-          const SizedBox(
-            height: 24,
-          ),
-
-          // Study Description
-          SizedBox(
-              child: Text(
-            studyDescription,
-            style: CustomTypography().bodyMedium(),
-          )),
-
-          const SizedBox(
-            height: 32,
-          ),
-
-          actions!.isNotEmpty? Column(
-            children: actions!,
-          ):Container()
-
-          //Confirmation
-          // CustomElevatedButton(
-          //     onClick: () => Navigator.pop(context), text: "CONFIRM JOINING"),
-          // const SizedBox(
-          //   height: 16,
-          // ),
-          // //Deny
-          // CustomTextButton(
-          //     onClick: () => Navigator.pop(context),
-          //     text: "I have a problem with joining the study")
-        ],
+      constraints: BoxConstraints(maxHeight: height * 0.75, maxWidth: width),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Study Name
+            Text(
+              studyName,
+              style: CustomTypography().titleMedium(),
+              textAlign: TextAlign.center,
+            ),
+      
+            const SizedBox(
+              height: 24,
+            ),
+      
+            // Organisation
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(CustomIcons.assuredWorkload, size: 16),
+                const SizedBox(
+                  width: 12,
+                ),
+                Text(
+                  organisation,
+                  style: CustomTypography().bodyMedium(),
+                ),
+              ],
+            ),
+      
+            const SizedBox(
+              height: 12,
+            ),
+      
+            // Duration
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(CustomIcons.calendarMonth, size: 16),
+                const SizedBox(
+                  width: 12,
+                ),
+                Text(
+                  duration,
+                  style: CustomTypography().bodyMedium(),
+                ),
+              ],
+            ),
+      
+            const SizedBox(
+              height: 12,
+            ),
+      
+            // Researcher
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(CustomIcons.person, size: 16),
+                const SizedBox(
+                  width: 12,
+                ),
+                Text(
+                  researcher,
+                  style: CustomTypography().bodyMedium(),
+                ),
+              ],
+            ),
+      
+            const SizedBox(
+              height: 24,
+            ),
+      
+            // Study Description
+            SizedBox(
+                child: Text(
+              studyDescription,
+              style: CustomTypography().bodyMedium(),
+            )),
+      
+            const SizedBox(
+              height: 32,
+            ),
+      
+            actions!.isNotEmpty
+                ? Column(
+                    children: actions!,
+                  )
+                : Container()
+      
+            //Confirmation
+            // CustomElevatedButton(
+            //     onClick: () => Navigator.pop(context), text: "CONFIRM JOINING"),
+            // const SizedBox(
+            //   height: 16,
+            // ),
+            // //Deny
+            // CustomTextButton(
+            //     onClick: () => Navigator.pop(context),
+            //     text: "I have a problem with joining the study")
+          ],
+        ),
       ),
     );
   }
@@ -541,7 +576,7 @@ class _RedoPopUpState extends State<RedoPopUp> {
                     child: CustomCheckbox(
                         value: _dontShowAgain,
                         label: "Don't show me again",
-                        onChanged: (value){
+                        onChanged: (value) {
                           setState(() {
                             _dontShowAgain = value!;
                           });
