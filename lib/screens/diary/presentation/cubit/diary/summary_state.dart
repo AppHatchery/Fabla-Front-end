@@ -30,3 +30,11 @@ final class SummaryError extends SummaryState {
 final class SummarySubmitted extends SummaryState {
   const SummarySubmitted();
 }
+
+final class SubmitLoading extends SummaryState {
+  const SubmitLoading();
+}
+
+final class SubmitError extends SummaryState {
+  const SubmitError();
+}

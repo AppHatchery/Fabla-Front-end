@@ -3,7 +3,10 @@ import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/circle_transition_clipper.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/submit_error.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/submit_loading.dart';
 import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -45,49 +48,91 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CustomColors.fillNormal,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: CustomColors.fillNormal,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const Hub()),
-                (route) => false);
-          },
-          icon: const Icon(CustomIcons.close),
-          iconSize: 15.0,
-        ),
-        title: Text(
-          "My Responses",
-          style: CustomTypography().titleMedium(
-            color: CustomColors.textNormalContent,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: BlocConsumer<SummaryCubit, SummaryState>(builder: (context, state) {
-        if (state is SummaryInitial) {
-          return initial();
-        } else if (state is SummaryLoading) {
-          return loading();
-        } else if (state is SummaryLoaded) {
-          return content(state.diary, context);
-        } else {
-          return initial();
-        }
-      }, listener: (context, state) {
+    return BlocConsumer<SummaryCubit, SummaryState>(
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: CustomColors.fillNormal,
+          appBar: (state is SubmitLoading || state is SubmitError)
+              ? null
+              : AppBar(
+                  automaticallyImplyLeading: false,
+                  backgroundColor: CustomColors.fillNormal,
+                  leading: IconButton(
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => const Hub()),
+                          (route) => false);
+                    },
+                    icon: const Icon(CustomIcons.close),
+                    iconSize: 15.0,
+                  ),
+                  title: Text(
+                    "My Responses",
+                    style: CustomTypography().titleMedium(
+                      color: CustomColors.textNormalContent,
+                    ),
+                  ),
+                  centerTitle: true,
+                ),
+          body: state is SummaryInitial
+              ? initial()
+              : state is SummaryLoading
+                  ? loading()
+                  : state is SummaryLoaded
+                      ? content(state.diary, context)
+                      : state is SubmitLoading
+                          ? submitLoading()
+                          : state is SummarySubmitted
+                              ? submitLoading()
+                              : state is SubmitError
+                                  ? submitError()
+                                  : initial(),
+        );
+      },
+      listener: (context, state) {
         if (state is SummarySubmitted) {
-          Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const DiaryCompletionPage()),
-              (route) => false);
+          Navigator.of(context).pushReplacement(_completionRoute()).then((_) {
+            summaryCubit.loadSummary(widget.diary);
+          });
         }
-      }),
+      },
+    );
+  }
+
+  Widget submitLoading() {
+    return const SubmitLoadingPage();
+  }
+
+  Widget submitError() {
+    return const SubmitErrorPage();
+  }
+
+  Route _completionRoute() {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          const DiaryCompletionPage(),
+      transitionDuration: const Duration(milliseconds: 1200),
+      reverseTransitionDuration: const Duration(milliseconds: 1200),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        var screenSize = MediaQuery.of(context).size;
+        var centerCircleClipper =
+            Offset(screenSize.width / 2, screenSize.height / 2);
+
+        double beginRadius = 0.0;
+        double endRadius = screenSize.height * 1.2;
+
+        var radiusTween = Tween(begin: beginRadius, end: endRadius);
+        var radiusTweenAnimation = animation.drive(radiusTween);
+
+        return ClipPath(
+          clipper: CircleTransitionClipper(
+              center: centerCircleClipper, radius: radiusTweenAnimation.value),
+          child: child,
+        );
+      },
     );
   }
 
@@ -189,15 +234,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
                       "Q ${index + 1}. ${prompt.question}",
                     ),
                   ),
-                  // IconButton(
-                  //     onPressed: () {
-                  //       setState(() {
-                  //         sliderEnabledStates[index] =
-                  //             !sliderEnabledStates[index]!;
-                  //       });
-                  //     },
-                  //     icon: Icon(CustomIcons.editNote))
-                  // const SizedBox(height: 12),
                 ],
               ),
               Column(
