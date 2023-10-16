@@ -28,7 +28,7 @@ export 'UserMetadata.dart';
 
 class ModelProvider implements amplify_core.ModelProviderInterface {
   @override
-  String version = "68975697caa0bad89bfc8d5110a7bed2";
+  String version = "be829ec2ff191938e647f04eccf0996f";
   @override
   List<amplify_core.ModelSchema> modelSchemas = [Participants.schema, UserMetadata.schema];
   @override

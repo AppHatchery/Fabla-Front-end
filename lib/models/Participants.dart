@@ -94,6 +94,18 @@ class Participants extends amplify_core.Model {
   final int? _drinks_4;
   final int? _drinks_5;
   final int? _drinks_6;
+  final String? _starttime_1;
+  final String? _starttime_2;
+  final String? _starttime_3;
+  final String? _starttime_4;
+  final String? _starttime_5;
+  final String? _starttime_6;
+  final String? _endtime_1;
+  final String? _endtime_2;
+  final String? _endtime_3;
+  final String? _endtime_4;
+  final String? _endtime_5;
+  final String? _endtime_6;
   final amplify_core.TemporalDateTime? _createdAt;
   final amplify_core.TemporalDateTime? _updatedAt;
 
@@ -387,6 +399,54 @@ class Participants extends amplify_core.Model {
     return _drinks_6;
   }
   
+  String? get starttime_1 {
+    return _starttime_1;
+  }
+  
+  String? get starttime_2 {
+    return _starttime_2;
+  }
+  
+  String? get starttime_3 {
+    return _starttime_3;
+  }
+  
+  String? get starttime_4 {
+    return _starttime_4;
+  }
+  
+  String? get starttime_5 {
+    return _starttime_5;
+  }
+  
+  String? get starttime_6 {
+    return _starttime_6;
+  }
+  
+  String? get endtime_1 {
+    return _endtime_1;
+  }
+  
+  String? get endtime_2 {
+    return _endtime_2;
+  }
+  
+  String? get endtime_3 {
+    return _endtime_3;
+  }
+  
+  String? get endtime_4 {
+    return _endtime_4;
+  }
+  
+  String? get endtime_5 {
+    return _endtime_5;
+  }
+  
+  String? get endtime_6 {
+    return _endtime_6;
+  }
+  
   amplify_core.TemporalDateTime? get createdAt {
     return _createdAt;
   }
@@ -395,9 +455,9 @@ class Participants extends amplify_core.Model {
     return _updatedAt;
   }
   
-  const Participants._internal({required this.id, required studycode, physically_1, physically_2, physically_3, physically_4, physically_5, physically_6, emotionally_1, emotionally_2, emotionally_3, emotionally_4, emotionally_5, emotionally_6, intensity_1, intensity_2, intensity_3, intensity_4, intensity_5, intensity_6, lonely_1, lonely_2, lonely_3, lonely_4, lonely_5, lonely_6, left_out_1, left_out_2, left_out_3, left_out_4, left_out_5, left_out_6, social_interaction_1, social_interaction_2, social_interaction_3, social_interaction_4, social_interaction_5, social_interaction_6, understood_1, understood_2, understood_3, understood_4, understood_5, understood_6, stressed_1, stressed_2, stressed_3, stressed_4, stressed_5, stressed_6, where_you_are_1, where_you_are_2, where_you_are_3, where_you_are_4, where_you_are_5, where_you_are_6, people_around_you_1, people_around_you_2, people_around_you_3, people_around_you_4, people_around_you_5, people_around_you_6, drinks_1, drinks_2, drinks_3, drinks_4, drinks_5, drinks_6, createdAt, updatedAt}): _studycode = studycode, _physically_1 = physically_1, _physically_2 = physically_2, _physically_3 = physically_3, _physically_4 = physically_4, _physically_5 = physically_5, _physically_6 = physically_6, _emotionally_1 = emotionally_1, _emotionally_2 = emotionally_2, _emotionally_3 = emotionally_3, _emotionally_4 = emotionally_4, _emotionally_5 = emotionally_5, _emotionally_6 = emotionally_6, _intensity_1 = intensity_1, _intensity_2 = intensity_2, _intensity_3 = intensity_3, _intensity_4 = intensity_4, _intensity_5 = intensity_5, _intensity_6 = intensity_6, _lonely_1 = lonely_1, _lonely_2 = lonely_2, _lonely_3 = lonely_3, _lonely_4 = lonely_4, _lonely_5 = lonely_5, _lonely_6 = lonely_6, _left_out_1 = left_out_1, _left_out_2 = left_out_2, _left_out_3 = left_out_3, _left_out_4 = left_out_4, _left_out_5 = left_out_5, _left_out_6 = left_out_6, _social_interaction_1 = social_interaction_1, _social_interaction_2 = social_interaction_2, _social_interaction_3 = social_interaction_3, _social_interaction_4 = social_interaction_4, _social_interaction_5 = social_interaction_5, _social_interaction_6 = social_interaction_6, _understood_1 = understood_1, _understood_2 = understood_2, _understood_3 = understood_3, _understood_4 = understood_4, _understood_5 = understood_5, _understood_6 = understood_6, _stressed_1 = stressed_1, _stressed_2 = stressed_2, _stressed_3 = stressed_3, _stressed_4 = stressed_4, _stressed_5 = stressed_5, _stressed_6 = stressed_6, _where_you_are_1 = where_you_are_1, _where_you_are_2 = where_you_are_2, _where_you_are_3 = where_you_are_3, _where_you_are_4 = where_you_are_4, _where_you_are_5 = where_you_are_5, _where_you_are_6 = where_you_are_6, _people_around_you_1 = people_around_you_1, _people_around_you_2 = people_around_you_2, _people_around_you_3 = people_around_you_3, _people_around_you_4 = people_around_you_4, _people_around_you_5 = people_around_you_5, _people_around_you_6 = people_around_you_6, _drinks_1 = drinks_1, _drinks_2 = drinks_2, _drinks_3 = drinks_3, _drinks_4 = drinks_4, _drinks_5 = drinks_5, _drinks_6 = drinks_6, _createdAt = createdAt, _updatedAt = updatedAt;
+  const Participants._internal({required this.id, required studycode, physically_1, physically_2, physically_3, physically_4, physically_5, physically_6, emotionally_1, emotionally_2, emotionally_3, emotionally_4, emotionally_5, emotionally_6, intensity_1, intensity_2, intensity_3, intensity_4, intensity_5, intensity_6, lonely_1, lonely_2, lonely_3, lonely_4, lonely_5, lonely_6, left_out_1, left_out_2, left_out_3, left_out_4, left_out_5, left_out_6, social_interaction_1, social_interaction_2, social_interaction_3, social_interaction_4, social_interaction_5, social_interaction_6, understood_1, understood_2, understood_3, understood_4, understood_5, understood_6, stressed_1, stressed_2, stressed_3, stressed_4, stressed_5, stressed_6, where_you_are_1, where_you_are_2, where_you_are_3, where_you_are_4, where_you_are_5, where_you_are_6, people_around_you_1, people_around_you_2, people_around_you_3, people_around_you_4, people_around_you_5, people_around_you_6, drinks_1, drinks_2, drinks_3, drinks_4, drinks_5, drinks_6, starttime_1, starttime_2, starttime_3, starttime_4, starttime_5, starttime_6, endtime_1, endtime_2, endtime_3, endtime_4, endtime_5, endtime_6, createdAt, updatedAt}): _studycode = studycode, _physically_1 = physically_1, _physically_2 = physically_2, _physically_3 = physically_3, _physically_4 = physically_4, _physically_5 = physically_5, _physically_6 = physically_6, _emotionally_1 = emotionally_1, _emotionally_2 = emotionally_2, _emotionally_3 = emotionally_3, _emotionally_4 = emotionally_4, _emotionally_5 = emotionally_5, _emotionally_6 = emotionally_6, _intensity_1 = intensity_1, _intensity_2 = intensity_2, _intensity_3 = intensity_3, _intensity_4 = intensity_4, _intensity_5 = intensity_5, _intensity_6 = intensity_6, _lonely_1 = lonely_1, _lonely_2 = lonely_2, _lonely_3 = lonely_3, _lonely_4 = lonely_4, _lonely_5 = lonely_5, _lonely_6 = lonely_6, _left_out_1 = left_out_1, _left_out_2 = left_out_2, _left_out_3 = left_out_3, _left_out_4 = left_out_4, _left_out_5 = left_out_5, _left_out_6 = left_out_6, _social_interaction_1 = social_interaction_1, _social_interaction_2 = social_interaction_2, _social_interaction_3 = social_interaction_3, _social_interaction_4 = social_interaction_4, _social_interaction_5 = social_interaction_5, _social_interaction_6 = social_interaction_6, _understood_1 = understood_1, _understood_2 = understood_2, _understood_3 = understood_3, _understood_4 = understood_4, _understood_5 = understood_5, _understood_6 = understood_6, _stressed_1 = stressed_1, _stressed_2 = stressed_2, _stressed_3 = stressed_3, _stressed_4 = stressed_4, _stressed_5 = stressed_5, _stressed_6 = stressed_6, _where_you_are_1 = where_you_are_1, _where_you_are_2 = where_you_are_2, _where_you_are_3 = where_you_are_3, _where_you_are_4 = where_you_are_4, _where_you_are_5 = where_you_are_5, _where_you_are_6 = where_you_are_6, _people_around_you_1 = people_around_you_1, _people_around_you_2 = people_around_you_2, _people_around_you_3 = people_around_you_3, _people_around_you_4 = people_around_you_4, _people_around_you_5 = people_around_you_5, _people_around_you_6 = people_around_you_6, _drinks_1 = drinks_1, _drinks_2 = drinks_2, _drinks_3 = drinks_3, _drinks_4 = drinks_4, _drinks_5 = drinks_5, _drinks_6 = drinks_6, _starttime_1 = starttime_1, _starttime_2 = starttime_2, _starttime_3 = starttime_3, _starttime_4 = starttime_4, _starttime_5 = starttime_5, _starttime_6 = starttime_6, _endtime_1 = endtime_1, _endtime_2 = endtime_2, _endtime_3 = endtime_3, _endtime_4 = endtime_4, _endtime_5 = endtime_5, _endtime_6 = endtime_6, _createdAt = createdAt, _updatedAt = updatedAt;
   
-  factory Participants({String? id, required String studycode, int? physically_1, int? physically_2, int? physically_3, int? physically_4, int? physically_5, int? physically_6, int? emotionally_1, int? emotionally_2, int? emotionally_3, int? emotionally_4, int? emotionally_5, int? emotionally_6, int? intensity_1, int? intensity_2, int? intensity_3, int? intensity_4, int? intensity_5, int? intensity_6, int? lonely_1, int? lonely_2, int? lonely_3, int? lonely_4, int? lonely_5, int? lonely_6, int? left_out_1, int? left_out_2, int? left_out_3, int? left_out_4, int? left_out_5, int? left_out_6, int? social_interaction_1, int? social_interaction_2, int? social_interaction_3, int? social_interaction_4, int? social_interaction_5, int? social_interaction_6, int? understood_1, int? understood_2, int? understood_3, int? understood_4, int? understood_5, int? understood_6, int? stressed_1, int? stressed_2, int? stressed_3, int? stressed_4, int? stressed_5, int? stressed_6, String? where_you_are_1, String? where_you_are_2, String? where_you_are_3, String? where_you_are_4, String? where_you_are_5, String? where_you_are_6, String? people_around_you_1, String? people_around_you_2, String? people_around_you_3, String? people_around_you_4, String? people_around_you_5, String? people_around_you_6, int? drinks_1, int? drinks_2, int? drinks_3, int? drinks_4, int? drinks_5, int? drinks_6}) {
+  factory Participants({String? id, required String studycode, int? physically_1, int? physically_2, int? physically_3, int? physically_4, int? physically_5, int? physically_6, int? emotionally_1, int? emotionally_2, int? emotionally_3, int? emotionally_4, int? emotionally_5, int? emotionally_6, int? intensity_1, int? intensity_2, int? intensity_3, int? intensity_4, int? intensity_5, int? intensity_6, int? lonely_1, int? lonely_2, int? lonely_3, int? lonely_4, int? lonely_5, int? lonely_6, int? left_out_1, int? left_out_2, int? left_out_3, int? left_out_4, int? left_out_5, int? left_out_6, int? social_interaction_1, int? social_interaction_2, int? social_interaction_3, int? social_interaction_4, int? social_interaction_5, int? social_interaction_6, int? understood_1, int? understood_2, int? understood_3, int? understood_4, int? understood_5, int? understood_6, int? stressed_1, int? stressed_2, int? stressed_3, int? stressed_4, int? stressed_5, int? stressed_6, String? where_you_are_1, String? where_you_are_2, String? where_you_are_3, String? where_you_are_4, String? where_you_are_5, String? where_you_are_6, String? people_around_you_1, String? people_around_you_2, String? people_around_you_3, String? people_around_you_4, String? people_around_you_5, String? people_around_you_6, int? drinks_1, int? drinks_2, int? drinks_3, int? drinks_4, int? drinks_5, int? drinks_6, String? starttime_1, String? starttime_2, String? starttime_3, String? starttime_4, String? starttime_5, String? starttime_6, String? endtime_1, String? endtime_2, String? endtime_3, String? endtime_4, String? endtime_5, String? endtime_6}) {
     return Participants._internal(
       id: id == null ? amplify_core.UUID.getUUID() : id,
       studycode: studycode,
@@ -466,7 +526,19 @@ class Participants extends amplify_core.Model {
       drinks_3: drinks_3,
       drinks_4: drinks_4,
       drinks_5: drinks_5,
-      drinks_6: drinks_6);
+      drinks_6: drinks_6,
+      starttime_1: starttime_1,
+      starttime_2: starttime_2,
+      starttime_3: starttime_3,
+      starttime_4: starttime_4,
+      starttime_5: starttime_5,
+      starttime_6: starttime_6,
+      endtime_1: endtime_1,
+      endtime_2: endtime_2,
+      endtime_3: endtime_3,
+      endtime_4: endtime_4,
+      endtime_5: endtime_5,
+      endtime_6: endtime_6);
   }
   
   bool equals(Object other) {
@@ -544,7 +616,19 @@ class Participants extends amplify_core.Model {
       _drinks_3 == other._drinks_3 &&
       _drinks_4 == other._drinks_4 &&
       _drinks_5 == other._drinks_5 &&
-      _drinks_6 == other._drinks_6;
+      _drinks_6 == other._drinks_6 &&
+      _starttime_1 == other._starttime_1 &&
+      _starttime_2 == other._starttime_2 &&
+      _starttime_3 == other._starttime_3 &&
+      _starttime_4 == other._starttime_4 &&
+      _starttime_5 == other._starttime_5 &&
+      _starttime_6 == other._starttime_6 &&
+      _endtime_1 == other._endtime_1 &&
+      _endtime_2 == other._endtime_2 &&
+      _endtime_3 == other._endtime_3 &&
+      _endtime_4 == other._endtime_4 &&
+      _endtime_5 == other._endtime_5 &&
+      _endtime_6 == other._endtime_6;
   }
   
   @override
@@ -623,6 +707,18 @@ class Participants extends amplify_core.Model {
     buffer.write("drinks_4=" + (_drinks_4 != null ? _drinks_4!.toString() : "null") + ", ");
     buffer.write("drinks_5=" + (_drinks_5 != null ? _drinks_5!.toString() : "null") + ", ");
     buffer.write("drinks_6=" + (_drinks_6 != null ? _drinks_6!.toString() : "null") + ", ");
+    buffer.write("starttime_1=" + "$_starttime_1" + ", ");
+    buffer.write("starttime_2=" + "$_starttime_2" + ", ");
+    buffer.write("starttime_3=" + "$_starttime_3" + ", ");
+    buffer.write("starttime_4=" + "$_starttime_4" + ", ");
+    buffer.write("starttime_5=" + "$_starttime_5" + ", ");
+    buffer.write("starttime_6=" + "$_starttime_6" + ", ");
+    buffer.write("endtime_1=" + "$_endtime_1" + ", ");
+    buffer.write("endtime_2=" + "$_endtime_2" + ", ");
+    buffer.write("endtime_3=" + "$_endtime_3" + ", ");
+    buffer.write("endtime_4=" + "$_endtime_4" + ", ");
+    buffer.write("endtime_5=" + "$_endtime_5" + ", ");
+    buffer.write("endtime_6=" + "$_endtime_6" + ", ");
     buffer.write("createdAt=" + (_createdAt != null ? _createdAt!.format() : "null") + ", ");
     buffer.write("updatedAt=" + (_updatedAt != null ? _updatedAt!.format() : "null"));
     buffer.write("}");
@@ -630,7 +726,7 @@ class Participants extends amplify_core.Model {
     return buffer.toString();
   }
   
-  Participants copyWith({String? studycode, int? physically_1, int? physically_2, int? physically_3, int? physically_4, int? physically_5, int? physically_6, int? emotionally_1, int? emotionally_2, int? emotionally_3, int? emotionally_4, int? emotionally_5, int? emotionally_6, int? intensity_1, int? intensity_2, int? intensity_3, int? intensity_4, int? intensity_5, int? intensity_6, int? lonely_1, int? lonely_2, int? lonely_3, int? lonely_4, int? lonely_5, int? lonely_6, int? left_out_1, int? left_out_2, int? left_out_3, int? left_out_4, int? left_out_5, int? left_out_6, int? social_interaction_1, int? social_interaction_2, int? social_interaction_3, int? social_interaction_4, int? social_interaction_5, int? social_interaction_6, int? understood_1, int? understood_2, int? understood_3, int? understood_4, int? understood_5, int? understood_6, int? stressed_1, int? stressed_2, int? stressed_3, int? stressed_4, int? stressed_5, int? stressed_6, String? where_you_are_1, String? where_you_are_2, String? where_you_are_3, String? where_you_are_4, String? where_you_are_5, String? where_you_are_6, String? people_around_you_1, String? people_around_you_2, String? people_around_you_3, String? people_around_you_4, String? people_around_you_5, String? people_around_you_6, int? drinks_1, int? drinks_2, int? drinks_3, int? drinks_4, int? drinks_5, int? drinks_6}) {
+  Participants copyWith({String? studycode, int? physically_1, int? physically_2, int? physically_3, int? physically_4, int? physically_5, int? physically_6, int? emotionally_1, int? emotionally_2, int? emotionally_3, int? emotionally_4, int? emotionally_5, int? emotionally_6, int? intensity_1, int? intensity_2, int? intensity_3, int? intensity_4, int? intensity_5, int? intensity_6, int? lonely_1, int? lonely_2, int? lonely_3, int? lonely_4, int? lonely_5, int? lonely_6, int? left_out_1, int? left_out_2, int? left_out_3, int? left_out_4, int? left_out_5, int? left_out_6, int? social_interaction_1, int? social_interaction_2, int? social_interaction_3, int? social_interaction_4, int? social_interaction_5, int? social_interaction_6, int? understood_1, int? understood_2, int? understood_3, int? understood_4, int? understood_5, int? understood_6, int? stressed_1, int? stressed_2, int? stressed_3, int? stressed_4, int? stressed_5, int? stressed_6, String? where_you_are_1, String? where_you_are_2, String? where_you_are_3, String? where_you_are_4, String? where_you_are_5, String? where_you_are_6, String? people_around_you_1, String? people_around_you_2, String? people_around_you_3, String? people_around_you_4, String? people_around_you_5, String? people_around_you_6, int? drinks_1, int? drinks_2, int? drinks_3, int? drinks_4, int? drinks_5, int? drinks_6, String? starttime_1, String? starttime_2, String? starttime_3, String? starttime_4, String? starttime_5, String? starttime_6, String? endtime_1, String? endtime_2, String? endtime_3, String? endtime_4, String? endtime_5, String? endtime_6}) {
     return Participants._internal(
       id: id,
       studycode: studycode ?? this.studycode,
@@ -699,7 +795,19 @@ class Participants extends amplify_core.Model {
       drinks_3: drinks_3 ?? this.drinks_3,
       drinks_4: drinks_4 ?? this.drinks_4,
       drinks_5: drinks_5 ?? this.drinks_5,
-      drinks_6: drinks_6 ?? this.drinks_6);
+      drinks_6: drinks_6 ?? this.drinks_6,
+      starttime_1: starttime_1 ?? this.starttime_1,
+      starttime_2: starttime_2 ?? this.starttime_2,
+      starttime_3: starttime_3 ?? this.starttime_3,
+      starttime_4: starttime_4 ?? this.starttime_4,
+      starttime_5: starttime_5 ?? this.starttime_5,
+      starttime_6: starttime_6 ?? this.starttime_6,
+      endtime_1: endtime_1 ?? this.endtime_1,
+      endtime_2: endtime_2 ?? this.endtime_2,
+      endtime_3: endtime_3 ?? this.endtime_3,
+      endtime_4: endtime_4 ?? this.endtime_4,
+      endtime_5: endtime_5 ?? this.endtime_5,
+      endtime_6: endtime_6 ?? this.endtime_6);
   }
   
   Participants copyWithModelFieldValues({
@@ -769,7 +877,19 @@ class Participants extends amplify_core.Model {
     ModelFieldValue<int?>? drinks_3,
     ModelFieldValue<int?>? drinks_4,
     ModelFieldValue<int?>? drinks_5,
-    ModelFieldValue<int?>? drinks_6
+    ModelFieldValue<int?>? drinks_6,
+    ModelFieldValue<String?>? starttime_1,
+    ModelFieldValue<String?>? starttime_2,
+    ModelFieldValue<String?>? starttime_3,
+    ModelFieldValue<String?>? starttime_4,
+    ModelFieldValue<String?>? starttime_5,
+    ModelFieldValue<String?>? starttime_6,
+    ModelFieldValue<String?>? endtime_1,
+    ModelFieldValue<String?>? endtime_2,
+    ModelFieldValue<String?>? endtime_3,
+    ModelFieldValue<String?>? endtime_4,
+    ModelFieldValue<String?>? endtime_5,
+    ModelFieldValue<String?>? endtime_6
   }) {
     return Participants._internal(
       id: id,
@@ -839,7 +959,19 @@ class Participants extends amplify_core.Model {
       drinks_3: drinks_3 == null ? this.drinks_3 : drinks_3.value,
       drinks_4: drinks_4 == null ? this.drinks_4 : drinks_4.value,
       drinks_5: drinks_5 == null ? this.drinks_5 : drinks_5.value,
-      drinks_6: drinks_6 == null ? this.drinks_6 : drinks_6.value
+      drinks_6: drinks_6 == null ? this.drinks_6 : drinks_6.value,
+      starttime_1: starttime_1 == null ? this.starttime_1 : starttime_1.value,
+      starttime_2: starttime_2 == null ? this.starttime_2 : starttime_2.value,
+      starttime_3: starttime_3 == null ? this.starttime_3 : starttime_3.value,
+      starttime_4: starttime_4 == null ? this.starttime_4 : starttime_4.value,
+      starttime_5: starttime_5 == null ? this.starttime_5 : starttime_5.value,
+      starttime_6: starttime_6 == null ? this.starttime_6 : starttime_6.value,
+      endtime_1: endtime_1 == null ? this.endtime_1 : endtime_1.value,
+      endtime_2: endtime_2 == null ? this.endtime_2 : endtime_2.value,
+      endtime_3: endtime_3 == null ? this.endtime_3 : endtime_3.value,
+      endtime_4: endtime_4 == null ? this.endtime_4 : endtime_4.value,
+      endtime_5: endtime_5 == null ? this.endtime_5 : endtime_5.value,
+      endtime_6: endtime_6 == null ? this.endtime_6 : endtime_6.value
     );
   }
   
@@ -912,11 +1044,23 @@ class Participants extends amplify_core.Model {
       _drinks_4 = (json['drinks_4'] as num?)?.toInt(),
       _drinks_5 = (json['drinks_5'] as num?)?.toInt(),
       _drinks_6 = (json['drinks_6'] as num?)?.toInt(),
+      _starttime_1 = json['starttime_1'],
+      _starttime_2 = json['starttime_2'],
+      _starttime_3 = json['starttime_3'],
+      _starttime_4 = json['starttime_4'],
+      _starttime_5 = json['starttime_5'],
+      _starttime_6 = json['starttime_6'],
+      _endtime_1 = json['endtime_1'],
+      _endtime_2 = json['endtime_2'],
+      _endtime_3 = json['endtime_3'],
+      _endtime_4 = json['endtime_4'],
+      _endtime_5 = json['endtime_5'],
+      _endtime_6 = json['endtime_6'],
       _createdAt = json['createdAt'] != null ? amplify_core.TemporalDateTime.fromString(json['createdAt']) : null,
       _updatedAt = json['updatedAt'] != null ? amplify_core.TemporalDateTime.fromString(json['updatedAt']) : null;
   
   Map<String, dynamic> toJson() => {
-    'id': id, 'studycode': _studycode, 'physically_1': _physically_1, 'physically_2': _physically_2, 'physically_3': _physically_3, 'physically_4': _physically_4, 'physically_5': _physically_5, 'physically_6': _physically_6, 'emotionally_1': _emotionally_1, 'emotionally_2': _emotionally_2, 'emotionally_3': _emotionally_3, 'emotionally_4': _emotionally_4, 'emotionally_5': _emotionally_5, 'emotionally_6': _emotionally_6, 'intensity_1': _intensity_1, 'intensity_2': _intensity_2, 'intensity_3': _intensity_3, 'intensity_4': _intensity_4, 'intensity_5': _intensity_5, 'intensity_6': _intensity_6, 'lonely_1': _lonely_1, 'lonely_2': _lonely_2, 'lonely_3': _lonely_3, 'lonely_4': _lonely_4, 'lonely_5': _lonely_5, 'lonely_6': _lonely_6, 'left_out_1': _left_out_1, 'left_out_2': _left_out_2, 'left_out_3': _left_out_3, 'left_out_4': _left_out_4, 'left_out_5': _left_out_5, 'left_out_6': _left_out_6, 'social_interaction_1': _social_interaction_1, 'social_interaction_2': _social_interaction_2, 'social_interaction_3': _social_interaction_3, 'social_interaction_4': _social_interaction_4, 'social_interaction_5': _social_interaction_5, 'social_interaction_6': _social_interaction_6, 'understood_1': _understood_1, 'understood_2': _understood_2, 'understood_3': _understood_3, 'understood_4': _understood_4, 'understood_5': _understood_5, 'understood_6': _understood_6, 'stressed_1': _stressed_1, 'stressed_2': _stressed_2, 'stressed_3': _stressed_3, 'stressed_4': _stressed_4, 'stressed_5': _stressed_5, 'stressed_6': _stressed_6, 'where_you_are_1': _where_you_are_1, 'where_you_are_2': _where_you_are_2, 'where_you_are_3': _where_you_are_3, 'where_you_are_4': _where_you_are_4, 'where_you_are_5': _where_you_are_5, 'where_you_are_6': _where_you_are_6, 'people_around_you_1': _people_around_you_1, 'people_around_you_2': _people_around_you_2, 'people_around_you_3': _people_around_you_3, 'people_around_you_4': _people_around_you_4, 'people_around_you_5': _people_around_you_5, 'people_around_you_6': _people_around_you_6, 'drinks_1': _drinks_1, 'drinks_2': _drinks_2, 'drinks_3': _drinks_3, 'drinks_4': _drinks_4, 'drinks_5': _drinks_5, 'drinks_6': _drinks_6, 'createdAt': _createdAt?.format(), 'updatedAt': _updatedAt?.format()
+    'id': id, 'studycode': _studycode, 'physically_1': _physically_1, 'physically_2': _physically_2, 'physically_3': _physically_3, 'physically_4': _physically_4, 'physically_5': _physically_5, 'physically_6': _physically_6, 'emotionally_1': _emotionally_1, 'emotionally_2': _emotionally_2, 'emotionally_3': _emotionally_3, 'emotionally_4': _emotionally_4, 'emotionally_5': _emotionally_5, 'emotionally_6': _emotionally_6, 'intensity_1': _intensity_1, 'intensity_2': _intensity_2, 'intensity_3': _intensity_3, 'intensity_4': _intensity_4, 'intensity_5': _intensity_5, 'intensity_6': _intensity_6, 'lonely_1': _lonely_1, 'lonely_2': _lonely_2, 'lonely_3': _lonely_3, 'lonely_4': _lonely_4, 'lonely_5': _lonely_5, 'lonely_6': _lonely_6, 'left_out_1': _left_out_1, 'left_out_2': _left_out_2, 'left_out_3': _left_out_3, 'left_out_4': _left_out_4, 'left_out_5': _left_out_5, 'left_out_6': _left_out_6, 'social_interaction_1': _social_interaction_1, 'social_interaction_2': _social_interaction_2, 'social_interaction_3': _social_interaction_3, 'social_interaction_4': _social_interaction_4, 'social_interaction_5': _social_interaction_5, 'social_interaction_6': _social_interaction_6, 'understood_1': _understood_1, 'understood_2': _understood_2, 'understood_3': _understood_3, 'understood_4': _understood_4, 'understood_5': _understood_5, 'understood_6': _understood_6, 'stressed_1': _stressed_1, 'stressed_2': _stressed_2, 'stressed_3': _stressed_3, 'stressed_4': _stressed_4, 'stressed_5': _stressed_5, 'stressed_6': _stressed_6, 'where_you_are_1': _where_you_are_1, 'where_you_are_2': _where_you_are_2, 'where_you_are_3': _where_you_are_3, 'where_you_are_4': _where_you_are_4, 'where_you_are_5': _where_you_are_5, 'where_you_are_6': _where_you_are_6, 'people_around_you_1': _people_around_you_1, 'people_around_you_2': _people_around_you_2, 'people_around_you_3': _people_around_you_3, 'people_around_you_4': _people_around_you_4, 'people_around_you_5': _people_around_you_5, 'people_around_you_6': _people_around_you_6, 'drinks_1': _drinks_1, 'drinks_2': _drinks_2, 'drinks_3': _drinks_3, 'drinks_4': _drinks_4, 'drinks_5': _drinks_5, 'drinks_6': _drinks_6, 'starttime_1': _starttime_1, 'starttime_2': _starttime_2, 'starttime_3': _starttime_3, 'starttime_4': _starttime_4, 'starttime_5': _starttime_5, 'starttime_6': _starttime_6, 'endtime_1': _endtime_1, 'endtime_2': _endtime_2, 'endtime_3': _endtime_3, 'endtime_4': _endtime_4, 'endtime_5': _endtime_5, 'endtime_6': _endtime_6, 'createdAt': _createdAt?.format(), 'updatedAt': _updatedAt?.format()
   };
   
   Map<String, Object?> toMap() => {
@@ -988,6 +1132,18 @@ class Participants extends amplify_core.Model {
     'drinks_4': _drinks_4,
     'drinks_5': _drinks_5,
     'drinks_6': _drinks_6,
+    'starttime_1': _starttime_1,
+    'starttime_2': _starttime_2,
+    'starttime_3': _starttime_3,
+    'starttime_4': _starttime_4,
+    'starttime_5': _starttime_5,
+    'starttime_6': _starttime_6,
+    'endtime_1': _endtime_1,
+    'endtime_2': _endtime_2,
+    'endtime_3': _endtime_3,
+    'endtime_4': _endtime_4,
+    'endtime_5': _endtime_5,
+    'endtime_6': _endtime_6,
     'createdAt': _createdAt,
     'updatedAt': _updatedAt
   };
@@ -1061,6 +1217,18 @@ class Participants extends amplify_core.Model {
   static final DRINKS_4 = amplify_core.QueryField(fieldName: "drinks_4");
   static final DRINKS_5 = amplify_core.QueryField(fieldName: "drinks_5");
   static final DRINKS_6 = amplify_core.QueryField(fieldName: "drinks_6");
+  static final STARTTIME_1 = amplify_core.QueryField(fieldName: "starttime_1");
+  static final STARTTIME_2 = amplify_core.QueryField(fieldName: "starttime_2");
+  static final STARTTIME_3 = amplify_core.QueryField(fieldName: "starttime_3");
+  static final STARTTIME_4 = amplify_core.QueryField(fieldName: "starttime_4");
+  static final STARTTIME_5 = amplify_core.QueryField(fieldName: "starttime_5");
+  static final STARTTIME_6 = amplify_core.QueryField(fieldName: "starttime_6");
+  static final ENDTIME_1 = amplify_core.QueryField(fieldName: "endtime_1");
+  static final ENDTIME_2 = amplify_core.QueryField(fieldName: "endtime_2");
+  static final ENDTIME_3 = amplify_core.QueryField(fieldName: "endtime_3");
+  static final ENDTIME_4 = amplify_core.QueryField(fieldName: "endtime_4");
+  static final ENDTIME_5 = amplify_core.QueryField(fieldName: "endtime_5");
+  static final ENDTIME_6 = amplify_core.QueryField(fieldName: "endtime_6");
   static var schema = amplify_core.Model.defineSchema(define: (amplify_core.ModelSchemaDefinition modelSchemaDefinition) {
     modelSchemaDefinition.name = "Participants";
     modelSchemaDefinition.pluralName = "Participants";
@@ -1478,6 +1646,78 @@ class Participants extends amplify_core.Model {
       key: Participants.DRINKS_6,
       isRequired: false,
       ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.int)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: Participants.STARTTIME_1,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: Participants.STARTTIME_2,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: Participants.STARTTIME_3,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: Participants.STARTTIME_4,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: Participants.STARTTIME_5,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: Participants.STARTTIME_6,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: Participants.ENDTIME_1,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: Participants.ENDTIME_2,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: Participants.ENDTIME_3,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: Participants.ENDTIME_4,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: Participants.ENDTIME_5,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: Participants.ENDTIME_6,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
     ));
     
     modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.nonQueryField(

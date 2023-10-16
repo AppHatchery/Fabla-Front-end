@@ -1,3 +1,5 @@
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +19,6 @@ import '../../data/diary.dart';
 import '../../data/prompt.dart';
 import '../../domain/repository/diary_repository.dart';
 import '../cubit/prompt/prompt_cubit.dart';
-import '../widgets/custom_app_bar.dart';
 import '../widgets/my_responses.dart';
 import 'diarysummary.dart';
 
@@ -50,6 +51,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
       setState(() {
         ableToContinue = true;
       });
+    }
+    if(widget.diary.status == DiaryStatus.idle){
+      participantsDiaryStartDate(widget.diary);
     }
     super.initState();
   }

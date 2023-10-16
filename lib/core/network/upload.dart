@@ -4,6 +4,7 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/questions.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:path/path.dart' as p;
 import 'package:aws_common/vm.dart';
 import '../../screens/diary/data/diary_audio_data.dart';
@@ -48,7 +49,7 @@ Future<bool> upload(String studyCode, Diary diary) async {
 
         for (int r = 0; r < rec!.length; r++) {
           fileList.add(DiaryAudioData(
-               prompt: i + 1, file: File(rec[r].path), date: diary.start));
+              prompt: i + 1, file: File(rec[r].path), date: diary.start));
         }
       } else {
         questions.add(Question(
@@ -208,6 +209,7 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
   var drinks = filterQuestionByType(questions, QuestionType.drinks)!.answer;
 
   int day = diary.id;
+  final endtime= DateTime.now();
 
   final input = {
     'id': id,
@@ -223,6 +225,7 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
     'where_you_are_$day': whereyouare,
     'people_around_you_$day': peoplearoundyou,
     'drinks_$day': drinks,
+    'endtime_$day': formatDate(endtime),
     '_version': entryVersion
   };
 
@@ -243,6 +246,7 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
             where_you_are_$day
             people_around_you_$day
             drinks_$day
+            endtime_$day
             _version
           }
         }
@@ -267,7 +271,111 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
       return false;
     }
   } catch (e) {
-    print('Error checking if ID exists: $e');
+    print('Exception: $e');
     return false;
+  }
+}
+
+Future<GqlApiRequestStateUpdate> participantsDiaryStartDate(Diary? diary) async {
+
+  int day = diary!.id;
+  DateTime diaryStartTime = DateTime.now();
+  SetupRepository repo = SetupRepository();
+  GqlApiRequestStateUpdate updateState = GqlApiRequestStateUpdate.idle;
+  final studycode = repo.getParticipant()!.studyCode;
+
+  if (await repo.participantExist(studycode)) {
+    final map = await apiGetParticipant(studycode);
+    safePrint("map: $map");
+    final id = map.first['id'];
+    int version  = map.first['_version'];
+    final input = {
+      'id': id,
+      'studycode': studycode,
+      'starttime_$day': formatDate(diaryStartTime),
+      '_version': version
+    };
+    try {
+      String graphQLDocument = '''
+      mutation UpdateParticipants(\$input: UpdateParticipantsInput!) {
+          updateParticipants(input: \$input) {
+            id
+            studycode
+            starttime_$day
+            _version
+          }
+        }
+    ''';
+
+      var operation = Amplify.API.query(
+        request: GraphQLRequest<String>(
+          document: graphQLDocument,
+          variables: {'input': input},
+        ),
+      );
+      var response = await operation.response;
+      var data = response.data;
+
+      if (data != null) {
+        safePrint("Diary started updated startdate ${formatDate(diaryStartTime)}");
+        updateState =GqlApiRequestStateUpdate.updated;
+        return updateState;
+      } else {
+        response.errors.forEach((element) {
+          safePrint('${element.message};');
+        });
+        updateState =GqlApiRequestStateUpdate.error;
+        return updateState;
+      }
+    } catch (e) {
+      print('Exception: $e');
+      return GqlApiRequestStateUpdate.error;
+    }
+    
+  }else{
+    updateState= GqlApiRequestStateUpdate.notfound;
+    return updateState;
+  }
+}
+
+enum GqlApiRequestStateUpdate { idle, updated, error, notfound }
+
+Future<dynamic> apiGetParticipant(String studycode) async {
+  String graphQLDocument = '''
+      query ListFiles {
+        listParticipants(filter:{ _deleted:{attributeExists:false}, studycode: { eq: "$studycode" } }) {
+          items { 
+            id
+            studycode
+            _version
+          }
+        }
+      }
+    ''';
+
+  try {
+    var operation = Amplify.API.query(
+      request: GraphQLRequest<String>(
+        document: graphQLDocument,
+        variables: {'studycode': studycode},
+      ),
+    );
+    var response = await operation.response;
+    var data = response.data;
+
+    if (data != null) {
+      
+      Map<String, dynamic> jsonMap = jsonDecode(data);
+      final participantList = jsonMap["listParticipants"]["items"];
+      return participantList;
+    } else {
+      response.errors.forEach((element) {
+        safePrint('${element.toJson()}   ${element.message};');
+      });
+      return null;
+    }
+  } catch (e) {
+    print('Error checking if $studycode exists: $e');
+    return null;
   }
 }
