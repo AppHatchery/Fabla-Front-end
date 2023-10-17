@@ -52,21 +52,21 @@ class _LoginPageState extends State<LoginPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Image.asset(
-                            "assets/images/avatar_diary.png",
+                            "assets/images/logo_white.png",
                             height: 52,
                             width: 52,
                           ),
                           const SizedBox(
                             height: 24,
                           ),
-                          Text("Welcome to Dayrio! ${Strings.wavingEmoji}",
+                          Text("Welcome to Fabla! ${Strings.wavingEmoji}",
                               style: CustomTypography().headlineLarge(
                                   color: CustomColors.textWhite)),
                           const SizedBox(
                             height: 24,
                           ),
                           Text(
-                              "Dayrio is a tool for EMA, audio diary research and more ${Strings.telescope}",
+                              "Fabla is a tool for EMA, audio diary research and more ${Strings.telescope}",
                               style: CustomTypography()
                                   .titleSmall(color: CustomColors.textWhite)),
                           const SizedBox(

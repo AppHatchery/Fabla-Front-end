@@ -24,7 +24,7 @@ class NotificationService {
         [
           NotificationChannel(
               channelKey: "audio-diaries",
-              channelName: "Dayrio",
+              channelName: "Fabla",
               channelDescription: "Reminders for Daily Diary Entries",
               channelShowBadge: false,
               defaultColor: CustomColors.fillWhite,

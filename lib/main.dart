@@ -12,12 +12,12 @@ import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dar
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
-import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:io' show Platform;
 
@@ -34,7 +34,8 @@ import 'services/notification_service.dart';
 //Global variables
 late ObjectBox objectbox;
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding); // Start Splash Screen
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -53,6 +54,7 @@ void main() async {
   runApp(MyApp(
     route: route,
   ));
+  FlutterNativeSplash.remove(); // Close Splash Screen
 }
 
 class MyApp extends StatefulWidget {
