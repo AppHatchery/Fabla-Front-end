@@ -25,6 +25,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
     }
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
@@ -33,13 +34,15 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
         backgroundColor: CustomColors.backgroundSecondary,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
-          leading: canGoBack ? IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(
-                Icons.arrow_back_rounded,
-                color: CustomColors.fillWhite,
-                size: 32,
-              )) : null,
+          leading: canGoBack
+              ? IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: CustomColors.fillWhite,
+                    size: 32,
+                  ))
+              : null,
         ),
         body: SafeArea(
           bottom: false,
@@ -69,6 +72,9 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                             height: height,
                             width: width,
                             image: "assets/images/active_time.png",
+                            avatarType: "animation",
+                            animation:
+                                "assets/animations/onboarding/onboarding_remindersetting.riv",
                             onContinue: () => navigateToNextPage(),
                             children: [
                               Text(
@@ -91,9 +97,12 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
   }
 
   void navigateToNextPage() async {
-    final value = times.map((e) => DateTime(0,0,0, e.hour, e.minute).toString()).toList();
-    if(value.isNotEmpty){
-      await PreferenceService().setStringListPreference(key: "reminder_times", value: value);
+    final value = times
+        .map((e) => DateTime(0, 0, 0, e.hour, e.minute).toString())
+        .toList();
+    if (value.isNotEmpty) {
+      await PreferenceService()
+          .setStringListPreference(key: "reminder_times", value: value);
     }
 
     await PreferenceService()

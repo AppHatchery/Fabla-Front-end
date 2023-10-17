@@ -19,6 +19,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'dart:io' show Platform;
 
 import 'core/database/object_box.dart';
 import 'firebase_options.dart';
@@ -162,6 +163,7 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final isIos = Platform.isIOS;
     return Scaffold(
       body: TabBarView(
           physics: const NeverScrollableScrollPhysics(),
@@ -177,6 +179,8 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
           indicatorColor: Colors.transparent,
           indicatorWeight: 2,
           indicator: null,
+          padding: EdgeInsets.only(bottom: isIos ? 34 : 0),
+          dividerColor: Colors.transparent,
         ),
       ),
     );

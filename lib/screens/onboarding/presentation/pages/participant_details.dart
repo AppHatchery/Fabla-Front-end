@@ -111,7 +111,9 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
     return AvatarBackground(
         height: height,
         width: width,
-        image: "assets/images/avatar_ask_name.png",
+        image: "",
+        avatarType: "animation",
+        animation: "assets/animations/onboarding/onboarding_nameinput.riv",
         onContinue: () => saveName(),
         children: [
           ParticipantName(controller: controller),
@@ -122,7 +124,9 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
     return AvatarBackground(
         height: height,
         width: width,
-        image: "assets/images/avatar_ask_name.png",
+        image: "",
+        avatarType: "animation",
+        animation: "assets/animations/onboarding/onboarding_nameinput.riv",
         onContinue: () => saveName(),
         children: [
           ParticipantName(controller: controller),
@@ -133,7 +137,9 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
     return AvatarBackground(
         height: height,
         width: width,
-        image: "assets/images/avatar_ask_name.png",
+        image: "",
+        avatarType: "animation",
+        animation: "assets/animations/onboarding/onboarding_nameinput.riv",
         onContinue: () => saveName(),
         children: [
           ParticipantName(controller: controller),

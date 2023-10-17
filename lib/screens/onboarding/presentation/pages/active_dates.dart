@@ -111,6 +111,9 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                 height: height,
                 width: width,
                 image: "assets/images/active_dates.png",
+                avatarType: "animation",
+                animation:
+                    "assets/animations/onboarding/onboarding_activedays.riv",
                 onContinue: navigateToNextPage,
                 children: [
                   Text(
