@@ -12,6 +12,8 @@ class Prompt {
   Tip? tip;
   Answer? answer;
   Options? option;
+  QuestionType? questionType;
+
 
   Prompt(
       {this.id = 0,
@@ -20,7 +22,8 @@ class Prompt {
       this.note,
       this.tip,
       this.answer,
-      this.option});
+      this.option,
+      this.questionType});
 
   /// Creates a new Prompt object with optional modifications.
   /// This method generates a new Prompt instance based on the current prompt object while allowing specific properties to be updated or changed.
@@ -42,6 +45,7 @@ class Prompt {
     Tip? tip,
     Answer? answer,
     Options? option,
+    QuestionType? questionType,
   }) {
     return Prompt(
       question: question ?? this.question,
@@ -50,6 +54,7 @@ class Prompt {
       tip: tip ?? this.tip,
       answer: answer ?? this.answer,
       option: option ?? this.option,
+      questionType: questionType ?? this.questionType,
     );
   }
 }

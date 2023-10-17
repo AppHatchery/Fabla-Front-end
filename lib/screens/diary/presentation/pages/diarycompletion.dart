@@ -21,22 +21,23 @@ class DiaryCompletionPage extends StatelessWidget {
         children: [
           FutureBuilder(
             future: Future.delayed(const Duration(milliseconds: 250)),
-            builder: (context, snapshot){
-              if(snapshot.connectionState == ConnectionState.done){
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
                 return SizedBox(
-                height: height,
-                width: width,
-                child: Lottie.asset(
-                  "assets/animations/confetti.json",
-                  fit: BoxFit.cover,
-                  repeat: false,
-                ));
+                    height: height,
+                    width: width,
+                    child: Lottie.asset(
+                      "assets/animations/confetti.json",
+                      fit: BoxFit.cover,
+                      repeat: false,
+                    ));
               }
               return const SizedBox.shrink();
             },
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 12.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 30.0, vertical: 12.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,

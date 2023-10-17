@@ -10,6 +10,7 @@ import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:rive/rive.dart';
 
 import '../../core/utils/formatter.dart';
 import '../components/buttons.dart';
@@ -100,6 +101,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final contentHeight =
         screenHeight >= 850 ? screenHeight * 0.5 : screenHeight * 0.65;
@@ -108,12 +110,35 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       color: Colors.transparent,
       child: Stack(
         children: [
+          //Avatar
+          Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: SizedBox(
+                  height: 160,
+                  width: width,
+                  child: switch (recorderState) {
+                    RecorderState.isStopped => const RiveAnimation.asset(
+                        'assets/animations/recording/recording_before.riv',
+                        fit: BoxFit.fitWidth,
+                      ),
+                    RecorderState.isRecording => const RiveAnimation.asset(
+                        'assets/animations/recording/recording_ongoing.riv',
+                        fit: BoxFit.fitWidth,
+                      ),
+                    RecorderState.isPaused => const RiveAnimation.asset(
+                        'assets/animations/recording/recording_pause.riv',
+                        fit: BoxFit.fitWidth,
+                      ),
+                  })),
+
           Positioned(
             top: 100,
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.only(top: 30, bottom: 24),
+              padding: const EdgeInsets.only(top: 10, bottom: 24),
               height: contentHeight - 100,
               decoration: const BoxDecoration(
                   color: Colors.white,
@@ -124,8 +149,17 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  //handle
+                  Container(
+                    height: 5,
+                    width: 45,
+                    decoration: BoxDecoration(
+                        color: const Color(0xFFBCBCC1),
+                        borderRadius: BorderRadius.circular(50)),
+                  ),
+
                   //Tab Indicator
-                  tabIndicatos(),
+                  //tabIndicatos(),
 
                   const SizedBox(
                     height: 15,
@@ -142,37 +176,19 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   recordingTimer(),
 
                   const SizedBox(
-                    height: 24,
+                    height: 34,
                   ),
                   // Waveform & Transcript
                   waveFormAndTranscript(),
 
                   const SizedBox(
-                    height: 24,
+                    height: 34,
                   ),
 
                   // Controls
                   recordingControls(),
                 ],
               ),
-            ),
-          ),
-
-          // Avatar
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 19.86),
-                    height: 150,
-                    child: Image.asset("assets/images/avatar_listening.png"),
-                  ),
-                ),
-              ],
             ),
           ),
         ],
@@ -205,19 +221,30 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          "New Diary",
-          style: CustomTypography().headlineMedium(),
+        const Expanded(flex: 1, child: SizedBox()),
+        Expanded(
+          flex: 2,
+          child: Text(
+            "New Diary",
+            style: CustomTypography().headlineMedium(),
+            textAlign: TextAlign.center,
+          ),
         ),
         const SizedBox(
           width: 5,
         ),
-        const IconButton(
-            onPressed: null,
-            icon: Icon(
-              CustomIcons.editNote,
-              size: 24,
-            ))
+        Expanded(
+          flex: 1,
+          child: Container(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.close_rounded,
+                  size: 24,
+                )),
+          ),
+        )
       ],
     );
   }
@@ -280,12 +307,15 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           //Redo
           TextButton(
               onPressed: () async => {
-                    await recorder.pauseRecorder(),
-                    setState(() {
-                      recorderState = RecorderState.isPaused;
-                      _timer?.cancel();
-                    }),
-                    redo()
+                    if (elapsed.inSeconds > 0)
+                      {
+                        await recorder.pauseRecorder(),
+                        setState(() {
+                          recorderState = RecorderState.isPaused;
+                          _timer?.cancel();
+                        }),
+                        redo()
+                      }
                   },
               child: Padding(
                 padding:
@@ -304,9 +334,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 ),
                 onPressed: () => record(),
                 icon: Container(
-                  height: 60,
-                  width: 60,
-                  padding: const EdgeInsets.all(4),
+                  height: 50,
+                  width: 50,
+                  padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
                       color: Colors.transparent,
                       shape: BoxShape.circle,
@@ -319,42 +349,52 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   ),
                 )),
             _ => Container(
-                width: 150,
-                child: IconButton(
-                  style: IconButton.styleFrom(
-                    splashFactory: NoSplash.splashFactory,
-                  ),
-                  onPressed: () => record(),
-                  color: CustomColors.warningActive,
-                  icon: Container(
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 30, vertical: 14.5),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.rectangle,
-                        color: recorderState == RecorderState.isRecording
-                            ? Colors.transparent
-                            : CustomColors.warningFill,
-                        borderRadius: BorderRadius.circular(26),
-                        border: Border.all(
-                            color: recorderState == RecorderState.isRecording
-                                ? CustomColors.textTertiaryContent
-                                : CustomColors.warningActive,
-                            width: 2),
-                      ),
-                      child: recorderState == RecorderState.isRecording
-                          ? const Icon(Icons.pause_rounded, size: 24)
-                          : Text(
-                              "Resume",
+                  child: IconButton(
+                style: IconButton.styleFrom(
+                  splashFactory: NoSplash.splashFactory,
+                ),
+                onPressed: () => record(),
+                color: CustomColors.warningActive,
+                icon: Container(
+                    width: 110,
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.rectangle,
+                      borderRadius: BorderRadius.circular(26),
+                      border: Border.all(
+                          color: recorderState == RecorderState.isRecording
+                              ? CustomColors.textTertiaryContent
+                              : CustomColors.warningActive,
+                          width: 2),
+                    ),
+                    child: recorderState == RecorderState.isRecording
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 5.5),
+                            child: Icon(Icons.pause_rounded, size: 24),
+                          )
+                        : Container(
+                            width: 106,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(26),
+                              color: CustomColors.warningFill,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 5.5),
+                            child: Text(
+                              "RESUME",
                               style: CustomTypography()
-                                  .bodyLarge(color: CustomColors.warningActive),
-                            )),
-                )),
+                                  .button(color: CustomColors.warningActive),
+                            ),
+                          )),
+              )),
           },
 
           //Save
           TextButton(
-              onPressed: () => {save(), Navigator.pop(context)},
+              onPressed: () => {
+                    if (elapsed.inSeconds > 0) {save(), Navigator.pop(context)}
+                  },
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 20.0, vertical: 9.5),
@@ -393,10 +433,12 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   void startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (time) {
-      setState(() {
-        elapsed = const Duration(seconds: 1) + elapsed;
-        timer = formatDurationtoHHMMSS(elapsed);
-      });
+      if (mounted) {
+        setState(() {
+          elapsed = const Duration(seconds: 1) + elapsed;
+          timer = formatDurationtoHHMMSS(elapsed);
+        });
+      }
     });
   }
 
@@ -407,10 +449,12 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     );
 
     if (showDialogResult == true) {
-      setState(() {
-        elapsed = const Duration();
-        timer = "00:00:00";
-      });
+      if (mounted) {
+        setState(() {
+          elapsed = const Duration();
+          timer = "00:00:00";
+        });
+      }
       final stoppedRecorderValue = await recorder.stopRecorder();
 
       if (stoppedRecorderValue != null) {
@@ -438,11 +482,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         startTimer();
       }
 
-      setState(() {
-        recorderState = recorder.isRecording
-            ? RecorderState.isRecording
-            : RecorderState.isPaused;
-      });
+      if (mounted) {
+        setState(() {
+          recorderState = recorder.isRecording
+              ? RecorderState.isRecording
+              : RecorderState.isPaused;
+        });
+      }
     } else {
       /* TODO: Show Permission Error */ null;
     }
@@ -452,7 +498,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     try {
       final url = await recorder.stopRecorder();
       _timer?.cancel();
-      setState(() => recorderState = RecorderState.isStopped);
+      if (mounted) setState(() => recorderState = RecorderState.isStopped);
 
       if (url != null) {
         final file = await changeFileName(url);
@@ -495,10 +541,14 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 /// Bottom Modal for when the user has successfull answered a prompt.
 class BottomSuccessModal extends StatelessWidget {
   final VoidCallback? onNextQuestionClicked;
+  final VoidCallback? previousPage;
   final String text;
 
   const BottomSuccessModal(
-      {super.key, this.onNextQuestionClicked, required this.text});
+      {super.key,
+      this.previousPage,
+      this.onNextQuestionClicked,
+      required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -545,6 +595,27 @@ class BottomSuccessModal extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
+                          child: CustomElevatedIconButton(
+                            onClick: () {
+                              Navigator.pop(context);
+                              previousPage?.call();
+                            },
+                            icon: Icons.arrow_back,
+                            //iconSize: 25.0,
+                            iconColor: CustomColors.productNormal,
+                            color: CustomColors.fillNormal,
+                            shadowColor: Colors.transparent,
+                            border: Border.all(
+                              color: CustomColors.productBorderNormal,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 12,
+                        ),
+                        Expanded(
+                          flex: 4,
                           child: Padding(
                             padding: const EdgeInsets.all(0.0),
                             child: CustomElevatedButton(

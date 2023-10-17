@@ -9,6 +9,47 @@ import '../../theme/resources/strings.dart';
 import 'statuses.dart';
 import 'types.dart';
 
+
+
+
+final List<Diary> dummyDiaries  = [
+  Diary(
+      id: 0,
+      prompts: fakePrompts[0] ?? [],
+      tags: fakeTags,
+      status: DiaryStatus.idle,
+      start: DateTime.now(),
+      due: DateTime.now()),
+  Diary(
+      id: 1,
+      prompts: fakePrompts[0] ?? [],
+      tags: fakeTags,
+      status: DiaryStatus.ongoing,
+      start: DateTime.now(),
+      due: DateTime.now()),
+  Diary(
+      id: 2,
+      prompts: fakePrompts[0] ?? [],
+      tags: fakeTags,
+      status: DiaryStatus.submitted,
+      start: DateTime.now(),
+      due: DateTime.now()),
+  Diary(
+      id: 3,
+      prompts: fakePrompts[0] ?? [],
+      tags: fakeTags,
+      status: DiaryStatus.complete,
+      start: DateTime.now(),
+      due: DateTime.now()),
+  Diary(
+      id: 4,
+      prompts: fakePrompts[0] ?? [],
+      tags: fakeTags,
+      status: DiaryStatus.ongoing,
+      start: DateTime.now(),
+      due: DateTime.now()),
+];
+
 List<Diary> exampleDiaries = [
   Diary(
       id: 0,
@@ -62,6 +103,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.physically
     ),
     Prompt(
       id: 1,
@@ -76,6 +118,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "-5"),
             Option(id: 1, option: "5"),
           ]),
+          questionType: QuestionType.emotionally
     ),
     Prompt(
       id: 2,
@@ -90,6 +133,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.intensity
     ),
     Prompt(
       id: 3,
@@ -103,6 +147,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.lonely
     ),
     Prompt(
       id: 4,
@@ -116,6 +161,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.leftout
     ),
     Prompt(
       id: 5,
@@ -129,6 +175,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.socialinteraction
     ),
     Prompt(
       id: 6,
@@ -142,6 +189,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.understood
     ),
     Prompt(
       id: 7,
@@ -154,7 +202,7 @@ final Map<int, List<Prompt>> fakePrompts = {
           choices: [
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
-          ]),
+          ]),questionType: QuestionType.stressed
     ),
     Prompt(
       id: 8,
@@ -163,6 +211,7 @@ final Map<int, List<Prompt>> fakePrompts = {
       responseType: ResponseType.multiple,
       option: Options.returnOptions(
           type: OptionsType.multiple, choices: multipleOptions),
+          questionType: QuestionType.whereyouare
     ),
     Prompt(
       id: 9,
@@ -170,6 +219,7 @@ final Map<int, List<Prompt>> fakePrompts = {
       responseType: ResponseType.radio,
       option:
           Options.returnOptions(type: OptionsType.radio, choices: radioOptions),
+          questionType: QuestionType.peoplearoundyou
     ),
     Prompt(
       id: 10,
@@ -183,7 +233,7 @@ final Map<int, List<Prompt>> fakePrompts = {
           choices: [
             Option(id: 0, option: "0"),
             Option(id: 1, option: "12"),
-          ]),
+          ]),questionType: QuestionType.drinks
     ),
     Prompt(
       id: 11,
@@ -213,6 +263,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.physically
     ),
     Prompt(
       id: 14,
@@ -227,6 +278,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "-5"),
             Option(id: 1, option: "5"),
           ]),
+          questionType: QuestionType.emotionally
     ),
     Prompt(
       id: 15,
@@ -241,6 +293,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.intensity
     ),
     Prompt(
       id: 16,
@@ -254,6 +307,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.lonely
     ),
     Prompt(
       id: 17,
@@ -267,6 +321,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.leftout
     ),
     Prompt(
       id: 18,
@@ -280,6 +335,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.socialinteraction
     ),
     Prompt(
       id: 19,
@@ -293,6 +349,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+        questionType: QuestionType.understood
     ),
     Prompt(
       id: 20,
@@ -306,6 +363,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.stressed
     ),
     Prompt(
       id: 21,
@@ -314,6 +372,7 @@ final Map<int, List<Prompt>> fakePrompts = {
       responseType: ResponseType.multiple,
       option: Options.returnOptions(
           type: OptionsType.multiple, choices: multipleOptions),
+          questionType: QuestionType.whereyouare
     ),
     Prompt(
       id: 22,
@@ -321,6 +380,7 @@ final Map<int, List<Prompt>> fakePrompts = {
       responseType: ResponseType.radio,
       option:
           Options.returnOptions(type: OptionsType.radio, choices: radioOptions),
+          questionType: QuestionType.peoplearoundyou
     ),
     Prompt(
       id: 23,
@@ -335,6 +395,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "12"),
           ]),
+          questionType: QuestionType.drinks
     ),
     Prompt(
       id: 24,
@@ -364,6 +425,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.physically
     ),
     Prompt(
       id: 27,
@@ -378,6 +440,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "-5"),
             Option(id: 1, option: "5"),
           ]),
+        questionType: QuestionType.emotionally
     ),
     Prompt(
       id: 28,
@@ -392,6 +455,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+        questionType: QuestionType.intensity
     ),
     Prompt(
       id: 29,
@@ -405,6 +469,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.lonely
     ),
     Prompt(
       id: 30,
@@ -418,6 +483,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.leftout
     ),
     Prompt(
       id: 31,
@@ -431,6 +497,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.socialinteraction
     ),
     Prompt(
       id: 32,
@@ -444,6 +511,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.understood
     ),
     Prompt(
       id: 33,
@@ -457,6 +525,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.stressed
     ),
     Prompt(
       id: 34,
@@ -465,6 +534,7 @@ final Map<int, List<Prompt>> fakePrompts = {
       responseType: ResponseType.multiple,
       option: Options.returnOptions(
           type: OptionsType.multiple, choices: multipleOptions),
+          questionType: QuestionType.whereyouare
     ),
     Prompt(
       id: 35,
@@ -472,6 +542,7 @@ final Map<int, List<Prompt>> fakePrompts = {
       responseType: ResponseType.radio,
       option:
           Options.returnOptions(type: OptionsType.radio, choices: radioOptions),
+          questionType: QuestionType.peoplearoundyou
     ),
     Prompt(
       id: 36,
@@ -486,6 +557,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "12"),
           ]),
+          questionType: QuestionType.drinks
     ),
     Prompt(
       id: 37,
@@ -515,6 +587,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.physically
     ),
     Prompt(
       id: 40,
@@ -529,6 +602,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "-5"),
             Option(id: 1, option: "5"),
           ]),
+          questionType: QuestionType.emotionally
     ),
     Prompt(
       id: 41,
@@ -543,6 +617,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.intensity
     ),
     Prompt(
       id: 42,
@@ -556,6 +631,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.lonely
     ),
     Prompt(
       id: 43,
@@ -569,6 +645,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.leftout
     ),
     Prompt(
       id: 44,
@@ -582,6 +659,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.socialinteraction
     ),
     Prompt(
       id: 45,
@@ -595,6 +673,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.understood
     ),
     Prompt(
       id: 46,
@@ -608,6 +687,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.stressed
     ),
     Prompt(
       id: 47,
@@ -616,6 +696,7 @@ final Map<int, List<Prompt>> fakePrompts = {
       responseType: ResponseType.multiple,
       option: Options.returnOptions(
           type: OptionsType.multiple, choices: multipleOptions),
+          questionType: QuestionType.whereyouare
     ),
     Prompt(
       id: 48,
@@ -623,6 +704,7 @@ final Map<int, List<Prompt>> fakePrompts = {
       responseType: ResponseType.radio,
       option:
           Options.returnOptions(type: OptionsType.radio, choices: radioOptions),
+          questionType: QuestionType.peoplearoundyou
     ),
     Prompt(
       id: 49,
@@ -637,6 +719,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "12"),
           ]),
+          questionType: QuestionType.drinks
     ),
     Prompt(
       id: 50,
@@ -666,6 +749,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.physically
     ),
     Prompt(
       id: 53,
@@ -680,6 +764,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "-5"),
             Option(id: 1, option: "5"),
           ]),
+          questionType: QuestionType.emotionally
     ),
     Prompt(
       id: 54,
@@ -694,6 +779,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.intensity
     ),
     Prompt(
       id: 55,
@@ -707,6 +793,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.lonely
     ),
     Prompt(
       id: 56,
@@ -720,6 +807,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.leftout
     ),
     Prompt(
       id: 57,
@@ -733,6 +821,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.socialinteraction
     ),
     Prompt(
       id: 58,
@@ -746,6 +835,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.understood
     ),
     Prompt(
       id: 59,
@@ -759,6 +849,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.stressed
     ),
     Prompt(
       id: 60,
@@ -767,6 +858,7 @@ final Map<int, List<Prompt>> fakePrompts = {
       responseType: ResponseType.multiple,
       option: Options.returnOptions(
           type: OptionsType.multiple, choices: multipleOptions),
+          questionType: QuestionType.whereyouare
     ),
     Prompt(
       id: 61,
@@ -774,6 +866,7 @@ final Map<int, List<Prompt>> fakePrompts = {
       responseType: ResponseType.radio,
       option:
           Options.returnOptions(type: OptionsType.radio, choices: radioOptions),
+          questionType: QuestionType.peoplearoundyou
     ),
     Prompt(
       id: 62,
@@ -788,6 +881,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "12"),
           ]),
+          questionType: QuestionType.drinks
     ),
     Prompt(
       id: 63,
@@ -817,6 +911,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.physically
     ),
     Prompt(
       id: 66,
@@ -831,6 +926,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "-5"),
             Option(id: 1, option: "5"),
           ]),
+          questionType: QuestionType.emotionally
     ),
     Prompt(
       id: 67,
@@ -845,6 +941,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.intensity
     ),
     Prompt(
       id: 68,
@@ -858,6 +955,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.lonely
     ),
     Prompt(
       id: 69,
@@ -871,6 +969,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.leftout
     ),
     Prompt(
       id: 70,
@@ -884,6 +983,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.socialinteraction
     ),
     Prompt(
       id: 71,
@@ -897,6 +997,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.understood
     ),
     Prompt(
       id: 72,
@@ -910,6 +1011,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "10"),
           ]),
+          questionType: QuestionType.stressed
     ),
     Prompt(
       id: 73,
@@ -918,6 +1020,7 @@ final Map<int, List<Prompt>> fakePrompts = {
       responseType: ResponseType.multiple,
       option: Options.returnOptions(
           type: OptionsType.multiple, choices: multipleOptions),
+          questionType: QuestionType.whereyouare
     ),
     Prompt(
       id: 74,
@@ -925,6 +1028,7 @@ final Map<int, List<Prompt>> fakePrompts = {
       responseType: ResponseType.radio,
       option:
           Options.returnOptions(type: OptionsType.radio, choices: radioOptions),
+          questionType: QuestionType.peoplearoundyou
     ),
     Prompt(
       id: 75,
@@ -939,6 +1043,7 @@ final Map<int, List<Prompt>> fakePrompts = {
             Option(id: 0, option: "0"),
             Option(id: 1, option: "12"),
           ]),
+          questionType: QuestionType.drinks
     ),
     Prompt(
       id: 76,

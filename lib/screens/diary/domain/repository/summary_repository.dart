@@ -1,3 +1,4 @@
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 
@@ -107,7 +108,6 @@ class SummaryRepository {
         var nextStudyDate =  DateTime(now.year, now.month, now.day, 4, 0, 0).add(const Duration(days: 1));
 
         setupRepository.updateMetaDataFile(nextStudyDate);
-
         return true;
       } else {
         return false;

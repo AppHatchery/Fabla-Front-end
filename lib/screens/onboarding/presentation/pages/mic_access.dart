@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:rive/rive.dart';
 
 import '../../../../services/preference_service.dart';
 import '../../../../theme/components/buttons.dart';
@@ -27,7 +28,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
 
   @override
   void initState() {
-    if(Navigator.of(context).canPop()) {
+    if (Navigator.of(context).canPop()) {
       canGoBack = true;
     }
     recorder = FlutterSoundRecorder();
@@ -48,14 +49,15 @@ class _MicAccessPageState extends State<MicAccessPage> {
         backgroundColor: CustomColors.backgroundSecondary,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
-          leading: canGoBack ? IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(
-                Icons.arrow_back_rounded,
-                color: CustomColors.fillWhite,
-                size: 32,
-              )) : null,
-          
+          leading: canGoBack
+              ? IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: CustomColors.fillWhite,
+                    size: 32,
+                  ))
+              : null,
         ),
         body: Padding(
           padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
@@ -67,107 +69,127 @@ class _MicAccessPageState extends State<MicAccessPage> {
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 24),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                      Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                        "Let’s enable the microphone access.",
-                        style: CustomTypography()
-                            .headlineLarge(color: CustomColors.textWhite),
-                      ),
-                      const SizedBox(height: 40.0),
-                      MicTester(
-                        permission: permission,
-                        width: width,
-                        recorder: recorder,
-                      ),
-                      const SizedBox(height: 24),
-                                
-                      
-                      requested == true && permission == false
-                          ? Container(
-                              width: width,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: CustomColors.warningFill,
-                                border: Border.all(
-                                  color: CustomColors.warningActive,
-                                  width: 2,
-                                ),
-                                borderRadius: BorderRadius.circular(11),
+                          Column(
+                            children: [
+                              Text(
+                                "Let’s enable the microphone access.",
+                                style: CustomTypography().headlineLarge(
+                                    color: CustomColors.textWhite),
                               ),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Icon(CustomIcons.cancel,
-                                          size: 20,
-                                          color: CustomColors.warningActive),
-                                      const SizedBox(
-                                        width: 10,
-                                      ),
-                                      Flexible(
-                                        child: Text(
-                                          "Oops! You need to enable microphone access to use the recording diary.",
-                                          style: CustomTypography().bodyLarge(
-                                              color: CustomColors.warningActive),
+                              const SizedBox(height: 40.0),
+                              MicTester(
+                                permission: permission,
+                                width: width,
+                                recorder: recorder,
+                              ),
+                              const SizedBox(height: 24),
+                              requested == true && permission == false
+                                  ? Container(
+                                      width: width,
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: CustomColors.warningFill,
+                                        border: Border.all(
+                                          color: CustomColors.warningActive,
+                                          width: 2,
                                         ),
-                                      )
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const SizedBox(height: 20, width: 20),
-                                      const SizedBox(
-                                        width: 10,
+                                        borderRadius: BorderRadius.circular(11),
                                       ),
-                                      TextButton(
-                                          style: TextButton.styleFrom(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8, vertical: 4),
-                                            alignment: Alignment.center,
-                                            backgroundColor:
-                                                CustomColors.warningActive,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(11),
-                                            ),
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const Icon(CustomIcons.cancel,
+                                                  size: 20,
+                                                  color: CustomColors
+                                                      .warningActive),
+                                              const SizedBox(
+                                                width: 10,
+                                              ),
+                                              Flexible(
+                                                child: Text(
+                                                  "Oops! You need to enable microphone access to use the recording diary.",
+                                                  style: CustomTypography()
+                                                      .bodyLarge(
+                                                          color: CustomColors
+                                                              .warningActive),
+                                                ),
+                                              )
+                                            ],
                                           ),
-                                          onPressed: openPermissionSettings,
-                                          child: Text("Open Settings",
-                                              style: CustomTypography().bodyLarge(
-                                                  color: CustomColors.textWhite)))
-                                    ],
-                                  ),
-                                ],
+                                          const SizedBox(height: 12),
+                                          Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const SizedBox(
+                                                  height: 20, width: 20),
+                                              const SizedBox(
+                                                width: 10,
+                                              ),
+                                              TextButton(
+                                                  style: TextButton.styleFrom(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 4),
+                                                    alignment: Alignment.center,
+                                                    backgroundColor:
+                                                        CustomColors
+                                                            .warningActive,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              11),
+                                                    ),
+                                                  ),
+                                                  onPressed:
+                                                      openPermissionSettings,
+                                                  child: Text("Open Settings",
+                                                      style: CustomTypography()
+                                                          .bodyLarge(
+                                                              color: CustomColors
+                                                                  .textWhite)))
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : const SizedBox.shrink(),
+                            ],
+                          ),
+                          Visibility(
+                              visible: permission,
+                              replacement: SizedBox(
+                                height: 150,
+                                width: width,
+                                child: requested == true && permission == false
+                                    ? const RiveAnimation.asset(
+                                        'assets/animations/onboarding/micaccess_denial.riv',
+                                        fit: BoxFit.fitHeight)
+                                    : const RiveAnimation.asset(
+                                        'assets/animations/onboarding/micaccess.riv',
+                                        fit: BoxFit.fitHeight),
                               ),
-                            )
-                          : const SizedBox.shrink(),
-                        ],
-                      ),
-                                
-                      
-                      Visibility(
-                      visible: permission,
-                      replacement: Image.asset(
-                        "assets/images/mic_access.png",
-                        width: width,
-                      ),
-                      child: Image.asset(
-                        "assets/images/check_mic.png",
-                        width: width,
-                      )),
-                    ]),
+                              child: SizedBox(
+                                height: 150,
+                                width: width,
+                                child: const RiveAnimation.asset(
+                                    'assets/animations/onboarding/micaccess_ongoing.riv',
+                                    fit: BoxFit.fitHeight),
+                              )),
+                        ]),
                   ),
                 ),
               ),
               CustomElevatedButton(
                 onClick: () => navigateToNextPage(),
-                text: permission ? "CONTINUE" : "ALLOW",
+                text: "CONTINUE",
                 color: CustomColors.fillWhite,
                 isDisabled: requested == true && permission == false,
                 shadowColor: CustomColors.productBorderNormal,
@@ -217,7 +239,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
     if (permission) {
       if (requested) {
         await PreferenceService()
-        .setBoolPreference(key: 'mic_requested', value: requested);
+            .setBoolPreference(key: 'mic_requested', value: requested);
         if (context.mounted) {
           Navigator.pushAndRemoveUntil(
               context,
