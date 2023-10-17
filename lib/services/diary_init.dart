@@ -27,7 +27,6 @@ Future<void> diaryInit(String code) async {
 
     final repository = DiaryRepository();
     final startDate = _startDate(code);
-    print('start: $startDate');
     final diaries = <DiaryEntity>[];
 
     if (startDate != null) {
@@ -52,18 +51,21 @@ Future<void> diaryInit(String code) async {
 }
 
 DateTime? _startDate(String code) {
-  final today = DateTime.now();
-  final nextSunday = today.add(Duration(days: 7 - today.weekday));
+  // final today = DateTime.now();
+  // final nextSunday = today.add(Duration(days: 7 - today.weekday));
+  final _code = int.parse(code);
 
   // Assuming that the code have two distinct starting digits
-  if (code.startsWith('1')) {
-    return DateTime(nextSunday.year, nextSunday.month, nextSunday.day);
-  } else if (code.startsWith('2')) {
-    final saturday = nextSunday.add(const Duration(days: 6));
-    return DateTime(saturday.year, saturday.month, saturday.day);
-  } else if (code.startsWith('0')) {
+   if (code.startsWith('0')) {
     return DateTime(
         DateTime.now().year, DateTime.now().month, DateTime.now().day);
+  } else if (_code.isOdd) {
+    // return DateTime(nextSunday.year, nextSunday.month, nextSunday.day);
+    return DateTime(2023, 11, 12);
+  } else if (_code.isEven) {
+    // final saturday = nextSunday.add(const Duration(days: 6));
+    // return DateTime(saturday.year, saturday.month, saturday.day);
+    return DateTime(2023, 11, 6);
   }
 
   return null;

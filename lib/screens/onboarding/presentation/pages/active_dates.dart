@@ -146,18 +146,21 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
   }
 
   DateTime? startDate(String code) {
-    final today = DateTime.now();
-    final nextSunday = today.add(Duration(days: 7 - today.weekday));
+    // final today = DateTime.now();
+    // final nextSunday = today.add(Duration(days: 7 - today.weekday));
+    final _code = int.parse(code);
 
     // Assuming that the code have two distinct starting digits
-    if (code.startsWith('1')) {
-      return nextSunday;
-    } else if (code.startsWith('2')) {
-      return nextSunday.add(const Duration(days: 6));
-    } else if (code.startsWith('0')) {
+    if (code.startsWith('0')) {
       return DateTime(
           DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    }
+    } else if (_code.isOdd) {
+      // return nextSunday;
+      return DateTime(2023, 11, 12);
+    } else if (_code.isEven) {
+      // return nextSunday.add(const Duration(days: 6));
+      return DateTime(2023, 11, 6);
+    } 
 
     return null;
   }

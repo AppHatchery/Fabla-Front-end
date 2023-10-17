@@ -68,5 +68,5 @@ class LoginRepository {
   ///   // Display an error message indicating invalid code...
   /// }
   /// ```
-  Future<bool> verify(String code) async => studyCodes.contains(code);
+  Future<bool> verify(int code) async => participantCodes.contains(code) || code == 0000;
 }
