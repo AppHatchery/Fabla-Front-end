@@ -199,7 +199,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
               ),
               const SizedBox(height: 24),
               Text(
-                "Dayrio Version 1.1",
+                "Fabla Version 1.1",
                 style: CustomTypography()
                     .bodyMedium(color: CustomColors.textSecondaryContent),
               ),
