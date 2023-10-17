@@ -269,8 +269,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                       BottomTipPopUp(
                         title: 'Tips for You',
                         message:
-                            'Find a quiet and peaceful spot before sharing your thoughts in the diary!',
-                        image: 'assets/images/park.png',
+                            "You can find a quiet place before we start. We can't wait to hear your valuable insights!",
+                        image: 'assets/images/living_room.png',
                         dontShowAgain: !show,
                       ),
                     ],

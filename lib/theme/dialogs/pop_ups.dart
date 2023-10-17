@@ -18,13 +18,13 @@ class BottomTipPopUp extends StatefulWidget {
   final String title;
   final String message;
   final String image;
-  final bool dontShowAgain;
+  final bool? dontShowAgain;
   const BottomTipPopUp({
     super.key,
     required this.title,
     required this.message,
     required this.image,
-    required this.dontShowAgain,
+    this.dontShowAgain,
   });
 
   @override
@@ -32,7 +32,7 @@ class BottomTipPopUp extends StatefulWidget {
 }
 
 class _BottomTipPopUpState extends State<BottomTipPopUp> {
-  late bool _dontShowAgain;
+  late bool? _dontShowAgain;
 
   @override
   void initState() {
@@ -93,31 +93,35 @@ class _BottomTipPopUpState extends State<BottomTipPopUp> {
 
           const SizedBox(height: 32),
 
-          Container(
-              alignment: Alignment.center,
-              child: IntrinsicWidth(
-                child: CustomCheckbox(
-                    value: _dontShowAgain,
-                    label: "Don't show me again",
-                    onChanged: (value) => {
-                          setState(() {
-                            _dontShowAgain = value!;
-                          }),
-                        }),
-              )),
+          _dontShowAgain != null
+              ? Container(
+                  alignment: Alignment.center,
+                  child: IntrinsicWidth(
+                    child: CustomCheckbox(
+                        value: _dontShowAgain!,
+                        label: "Don't show me again",
+                        onChanged: (value) => {
+                              setState(() {
+                                _dontShowAgain = value!;
+                              }),
+                            }),
+                  ))
+              : const SizedBox.shrink(),
 
           const SizedBox(height: 12),
 
-          CustomFlatButton(
-              onClick: _save, text: "GOT IT!")
+          CustomFlatButton(onClick: _save, text: "GOT IT!")
         ],
       ),
     );
   }
 
   void _save() async {
-    await PreferenceService().setBoolPreference(key: "show_diary_tip", value: !_dontShowAgain);
-    if(mounted) Navigator.pop(context);
+    if (_dontShowAgain != null) {
+      await PreferenceService()
+          .setBoolPreference(key: "show_diary_tip", value: !_dontShowAgain!);
+    }
+    if (mounted) Navigator.pop(context);
   }
 }
 
@@ -167,11 +171,11 @@ class BottomResearcherInfoPopUp extends StatelessWidget {
               style: CustomTypography().titleMedium(),
               textAlign: TextAlign.center,
             ),
-      
+
             const SizedBox(
               height: 24,
             ),
-      
+
             // Organisation
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -186,11 +190,11 @@ class BottomResearcherInfoPopUp extends StatelessWidget {
                 ),
               ],
             ),
-      
+
             const SizedBox(
               height: 12,
             ),
-      
+
             // Duration
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -205,11 +209,11 @@ class BottomResearcherInfoPopUp extends StatelessWidget {
                 ),
               ],
             ),
-      
+
             const SizedBox(
               height: 12,
             ),
-      
+
             // Researcher
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -224,28 +228,28 @@ class BottomResearcherInfoPopUp extends StatelessWidget {
                 ),
               ],
             ),
-      
+
             const SizedBox(
               height: 24,
             ),
-      
+
             // Study Description
             SizedBox(
                 child: Text(
               studyDescription,
               style: CustomTypography().bodyMedium(),
             )),
-      
+
             const SizedBox(
               height: 32,
             ),
-      
+
             actions!.isNotEmpty
                 ? Column(
                     children: actions!,
                   )
                 : Container()
-      
+
             //Confirmation
             // CustomElevatedButton(
             //     onClick: () => Navigator.pop(context), text: "CONFIRM JOINING"),
