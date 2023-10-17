@@ -7,8 +7,13 @@ class Strings {
   static String loremHalf =
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc cursus orci est, nec pretium diam elementum ut. Donec a metus lobortis, vestibulum elit at, tincidunt sapien. Praesent eget urna id augue elementum mattis non quis turpis.";
 
-  static String studyDescription =
-      "Hi, welcome to our study! In this study, participants will use audio diaries to record their daily thoughts, feelings, and experiences, providing invaluable insights into how everyday life impacts our emotional well-being. \n \n By participating, you are not only contributing to groundbreaking mental health research but also embarking on a journey of self-discovery. Your audio diary entries will serve as a personal chronicle of your emotional journey, fostering a deeper understanding of your own emotional patterns. We appreciate your time and commitment, and thank you for your contribution to this crucial study.";
+  static String studyDescription = 'The purpose of this study is to test a smartphone app for daily diary research called Fabla, to find out how well it works and how easy it is for people to use. Fabla is a new app developed by the Georgia CTSA AppHatchery. The study will also assess how people’s spoken reports about their day compare to their written reports about their day. Participation in this study takes about two weeks to complete. \n\nDuring the daily diary study, you will be asked to respond to some questions every day before you go to bed for two weeks. The daily diary will take about 10 minutes to complete each time, and it asks you to share about:\n\n\u2022 how your day was,\n\u2022 your interactions with other people that day,\n\u2022 and whether anything stressful happened.\n\nIf you have questions about the study procedures, appointments, research-related injuries or bad reactions, or other questions or concerns about the research or your part in it, contact the Principal Investigator at 404-727-1360.';
+
+  static String studyName = "Vocalized Daily Diary";
+
+  static String studyDuration = "Nov 2023";
+
+  static String researcherName = "Dr. Deanna Kaplan";
 
   static String wavingEmoji = "👋";
 
@@ -18,9 +23,11 @@ class Strings {
 
   static String champagne = "🍾";
 
-  static String researcherNote = "Please try to talk without stopping for about 5 minutes. Talk about whatever comes to your mind, as if you were sharing with a friend. Do not worry about pauses, stutters, or having the right things to say. We are interested in anything about your experience today that you are willing to share.";
-  
-  static String researcherNoteTwo = "Please try to talk without stopping for about 5 minutes. Talk about whatever comes to your mind, as if you were sharing with a friend. Do not worry about pauses, stutters, or having the right things to say. We are interested in anything about your experience today that you are willing to share. \n \nIt is OK if there is overlap with what you talked about for the previous question.";
+  static String researcherNote =
+      "Please try to talk without stopping for about 5 minutes. Talk about whatever comes to your mind, as if you were sharing with a friend. Do not worry about pauses, stutters, or having the right things to say. We are interested in anything about your experience today that you are willing to share.";
+
+  static String researcherNoteTwo =
+      "Please try to talk without stopping for about 5 minutes. Talk about whatever comes to your mind, as if you were sharing with a friend. Do not worry about pauses, stutters, or having the right things to say. We are interested in anything about your experience today that you are willing to share. \n \nIt is OK if there is overlap with what you talked about for the previous question.";
 
   /// Generates a participant metadata string based on provided code and date.
   ///
@@ -42,21 +49,20 @@ class Strings {
   /// ```
 
   String participantMetadata(String code, String date, String nextStudyDate) {
-
-  Map<String, dynamic> nestedObject = {
-    'participant':code,
-    'start_study_date': date,
-    'next_study_date': nextStudyDate,
-    'recent_submit_date': null,
-    'diaries': {
-      'day1': null,
-      'day2': null,
-      'day3': null,
-      'day4': null,
-      'day5': null,
-      'day6': null,
-    },
-  };
+    Map<String, dynamic> nestedObject = {
+      'participant': code,
+      'start_study_date': date,
+      'next_study_date': nextStudyDate,
+      'recent_submit_date': null,
+      'diaries': {
+        'day1': null,
+        'day2': null,
+        'day3': null,
+        'day4': null,
+        'day5': null,
+        'day6': null,
+      },
+    };
     return jsonEncode(nestedObject);
   }
 }
