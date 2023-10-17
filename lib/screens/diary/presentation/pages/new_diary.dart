@@ -1,3 +1,5 @@
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -54,6 +56,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
       });
     }
     showTip();
+    if(widget.diary.status == DiaryStatus.idle){
+      participantsDiaryStartDate(widget.diary);
+    }
     super.initState();
   }
 

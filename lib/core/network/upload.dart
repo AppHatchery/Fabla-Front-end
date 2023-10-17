@@ -1,10 +1,12 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/questions.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:path/path.dart' as p;
 import 'package:aws_common/vm.dart';
-
 import '../../screens/diary/data/diary_audio_data.dart';
 import '../utils/formatter.dart';
 
@@ -36,21 +38,33 @@ import '../utils/formatter.dart';
 /// }
 /// ```
 Future<bool> upload(String studyCode, Diary diary) async {
-  List<DiaryAudioData> fileList = [];
+  try {
+    List<DiaryAudioData> fileList = [];
+    List<Question> questions = [];
 
-  for (int i = 0; i < diary.prompts.length; i++) {
-    var prompt = diary.prompts[i];
-    if (prompt.responseType == ResponseType.recording) {
-      var rec = prompt.answer?.recordings;
+    for (int i = 0; i < diary.prompts.length; i++) {
+      var prompt = diary.prompts[i];
+      if (prompt.responseType == ResponseType.recording) {
+        var rec = prompt.answer?.recordings;
 
-      for (int r = 0; r < rec!.length; r++) {
-        fileList.add(DiaryAudioData(
-            prompt: i + 1, file: File(rec[r].path), date: diary.start));
+        for (int r = 0; r < rec!.length; r++) {
+          fileList.add(DiaryAudioData(
+              prompt: i + 1, file: File(rec[r].path), date: diary.start));
+        }
+      } else {
+        questions.add(Question(
+            questionType: prompt.questionType,
+            answer: prompt.answer!.response!));
       }
     }
+    final questionsSubmitted =
+        await apiSubmitSurveyQuestions(studyCode, diary, questions);
+    final audioSubmitted = await uploadFilesToS3(studyCode, fileList);
+    return questionsSubmitted && audioSubmitted;
+  } catch (e) {
+    print("$e");
+    return false;
   }
-  final uploaded = await uploadFilesToS3(studyCode, fileList);
-  return uploaded;
 }
 
 /// Uploads a list of audio files to an S3 storage location.
@@ -116,6 +130,252 @@ Future<bool> uploadMetaDataS3(var studyCode, File file) async {
     print('Error uploading file: ${e.message}');
     return false;
   }
-
   return true;
+}
+
+Question? filterQuestionByType(List<Question> objectList, QuestionType type) {
+  try {
+    return objectList.firstWhere((obj) => obj.questionType == type);
+  } catch (e) {
+    return null;
+  }
+}
+
+///Submits all diary questions to dynamo db by updating empty questions slots on tha particular participant
+///Example initial, 10001 - PHYSICALLY_1 ="", then updated to, -> 10001 - PHYSICALLY_1="3"
+///
+Future<bool> apiSubmitSurveyQuestions(
+    String studycode, Diary diary, List<Question> questions) async {
+  try {
+    String graphQLDocument = '''
+      query ListFiles {
+        listParticipants(filter:{ _deleted:{attributeExists:false}, studycode: { eq: "$studycode" } }) {
+          items { 
+            id
+            studycode
+            _version
+          }
+        }
+      }
+    ''';
+    var operation = Amplify.API.query(
+      request: GraphQLRequest<String>(
+        document: graphQLDocument,
+        variables: {'studycode': studycode},
+      ),
+    );
+    var response = await operation.response;
+    var data = response.data;
+
+    if (data != null) {
+      Map<String, dynamic> jsonMap = jsonDecode(data);
+      final participantList = jsonMap["listParticipants"]["items"];
+      dynamic id = participantList.first['id'];
+      int version = participantList.first['_version'];
+      final uploaded =
+          uploadQuestions(id, studycode, version, diary, questions);
+      return uploaded;
+    } else {
+      response.errors.forEach((element) {
+        safePrint('${element.toJson()}   ${element.message};');
+      });
+      return false;
+    }
+  } catch (e) {
+    print('Error checking if $studycode exists: $e');
+    return false;
+  }
+}
+
+Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
+    Diary diary, List<Question> questions) async {
+  var physically =
+      filterQuestionByType(questions, QuestionType.physically)!.answer;
+  var emotionally =
+      filterQuestionByType(questions, QuestionType.emotionally)!.answer;
+  var intensity =
+      filterQuestionByType(questions, QuestionType.intensity)!.answer;
+  var lonely = filterQuestionByType(questions, QuestionType.lonely)!.answer;
+  var leftout = filterQuestionByType(questions, QuestionType.leftout)!.answer;
+  var socialinteraction =
+      filterQuestionByType(questions, QuestionType.socialinteraction)!.answer;
+  var understood =
+      filterQuestionByType(questions, QuestionType.understood)!.answer;
+  var stressed = filterQuestionByType(questions, QuestionType.stressed)!.answer;
+  var whereyouare =
+      filterQuestionByType(questions, QuestionType.whereyouare)!.answer;
+  var peoplearoundyou =
+      filterQuestionByType(questions, QuestionType.peoplearoundyou)!.answer;
+  var drinks = filterQuestionByType(questions, QuestionType.drinks)!.answer;
+
+  int day = diary.id;
+  final endtime= DateTime.now();
+
+  final input = {
+    'id': id,
+    'studycode': studyCode,
+    'physically_$day': physically,
+    'emotionally_$day': emotionally,
+    'intensity_$day': intensity,
+    'lonely_$day': lonely,
+    'left_out_$day': leftout,
+    'social_interaction_$day': socialinteraction,
+    'understood_$day': understood,
+    'stressed_$day': stressed,
+    'where_you_are_$day': whereyouare,
+    'people_around_you_$day': peoplearoundyou,
+    'drinks_$day': drinks,
+    'endtime_$day': formatDate(endtime),
+    '_version': entryVersion
+  };
+
+  try {
+    String graphQLDocument = '''
+      mutation UpdateParticipants(\$input: UpdateParticipantsInput!) {
+          updateParticipants(input: \$input) {
+            id
+            studycode
+            physically_$day
+            emotionally_$day
+            intensity_$day
+            lonely_$day
+            left_out_$day
+            social_interaction_$day
+            understood_$day
+            stressed_$day
+            where_you_are_$day
+            people_around_you_$day
+            drinks_$day
+            endtime_$day
+            _version
+          }
+        }
+    ''';
+
+    var operation = Amplify.API.query(
+      request: GraphQLRequest<String>(
+        document: graphQLDocument,
+        variables: {'input': input},
+      ),
+    );
+    var response = await operation.response;
+    var data = response.data;
+
+    if (data != null) {
+      safePrint("Questions submitted");
+      return true;
+    } else {
+      response.errors.forEach((element) {
+        safePrint('${element.message};');
+      });
+      return false;
+    }
+  } catch (e) {
+    print('Exception: $e');
+    return false;
+  }
+}
+
+Future<GqlApiRequestStateUpdate> participantsDiaryStartDate(Diary? diary) async {
+
+  int day = diary!.id;
+  DateTime diaryStartTime = DateTime.now();
+  SetupRepository repo = SetupRepository();
+  GqlApiRequestStateUpdate updateState = GqlApiRequestStateUpdate.idle;
+  final studycode = repo.getParticipant()!.studyCode;
+
+  if (await repo.participantExist(studycode)) {
+    final map = await apiGetParticipant(studycode);
+    safePrint("map: $map");
+    final id = map.first['id'];
+    int version  = map.first['_version'];
+    final input = {
+      'id': id,
+      'studycode': studycode,
+      'starttime_$day': formatDate(diaryStartTime),
+      '_version': version
+    };
+    try {
+      String graphQLDocument = '''
+      mutation UpdateParticipants(\$input: UpdateParticipantsInput!) {
+          updateParticipants(input: \$input) {
+            id
+            studycode
+            starttime_$day
+            _version
+          }
+        }
+    ''';
+
+      var operation = Amplify.API.query(
+        request: GraphQLRequest<String>(
+          document: graphQLDocument,
+          variables: {'input': input},
+        ),
+      );
+      var response = await operation.response;
+      var data = response.data;
+
+      if (data != null) {
+        safePrint("Diary started updated startdate ${formatDate(diaryStartTime)}");
+        updateState =GqlApiRequestStateUpdate.updated;
+        return updateState;
+      } else {
+        response.errors.forEach((element) {
+          safePrint('${element.message};');
+        });
+        updateState =GqlApiRequestStateUpdate.error;
+        return updateState;
+      }
+    } catch (e) {
+      print('Exception: $e');
+      return GqlApiRequestStateUpdate.error;
+    }
+    
+  }else{
+    updateState= GqlApiRequestStateUpdate.notfound;
+    return updateState;
+  }
+}
+
+enum GqlApiRequestStateUpdate { idle, updated, error, notfound }
+
+Future<dynamic> apiGetParticipant(String studycode) async {
+  String graphQLDocument = '''
+      query ListFiles {
+        listParticipants(filter:{ _deleted:{attributeExists:false}, studycode: { eq: "$studycode" } }) {
+          items { 
+            id
+            studycode
+            _version
+          }
+        }
+      }
+    ''';
+
+  try {
+    var operation = Amplify.API.query(
+      request: GraphQLRequest<String>(
+        document: graphQLDocument,
+        variables: {'studycode': studycode},
+      ),
+    );
+    var response = await operation.response;
+    var data = response.data;
+
+    if (data != null) {
+      
+      Map<String, dynamic> jsonMap = jsonDecode(data);
+      final participantList = jsonMap["listParticipants"]["items"];
+      return participantList;
+    } else {
+      response.errors.forEach((element) {
+        safePrint('${element.toJson()}   ${element.message};');
+      });
+      return null;
+    }
+  } catch (e) {
+    print('Error checking if $studycode exists: $e');
+    return null;
+  }
 }

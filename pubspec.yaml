@@ -36,6 +36,10 @@ dependencies:
   #Formating
   intl: ^0.18.1
 
+  #firebase
+  firebase_core: ^2.16.0
+  firebase_crashlytics: ^3.3.6
+
   permission_handler: ^10.4.3
 
   #Audio recording & playback
@@ -71,6 +75,8 @@ dependencies:
   amplify_flutter: ^1.0.0
   amplify_auth_cognito: ^1.0.0
   amplify_storage_s3: ^1.0.0
+  amplify_datastore: ^1.4.2
+  amplify_api: ^1.0.0
 
   #Notification
   awesome_notifications: ^0.7.4+1

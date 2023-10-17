@@ -161,7 +161,6 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                 ],
               ),
             ),
-            const SizedBox(height: 12.0),
             // Visibility(
             //     visible: notificationCheck, child: const ListActiveTimes()),
             // const SizedBox(height: 12.0),

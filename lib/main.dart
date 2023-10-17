@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_history_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
@@ -10,6 +12,9 @@ import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dar
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:audio_diaries_flutter/theme/custom_icons.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +22,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:io' show Platform;
 
 import 'core/database/object_box.dart';
+import 'firebase_options.dart';
 import 'screens/diary/data/diary.dart';
 import 'screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'screens/diary/presentation/pages/diaries.dart';
@@ -29,6 +35,16 @@ import 'services/notification_service.dart';
 late ObjectBox objectbox;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FlutterError.onError = (errorDetails) {
+    FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
   objectbox = await ObjectBox.create();
   await configureAmplify();
   await NotificationService.init();
