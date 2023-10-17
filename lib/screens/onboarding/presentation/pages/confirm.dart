@@ -51,30 +51,30 @@ class ConfrimJoiningPage extends StatelessWidget {
                     const SizedBox(
                       height: 24,
                     ),
-                    const ConfrimTile(
+                    ConfrimTile(
                       title: "Research Name",
-                      info: "A Study of Audio Diary for Emotion Regulation",
-                      icon: Icon(
+                      info: Strings.studyName,
+                      icon: const Icon(
                         Icons.assured_workload_rounded,
                       ),
                     ),
                     const SizedBox(
                       height: 12,
                     ),
-                    const ConfrimTile(
+                    ConfrimTile(
                       title: "Research Duration",
-                      info: "Jun 2023 - Oct 2023",
-                      icon: Icon(
+                      info: Strings.studyDuration,
+                      icon: const Icon(
                         Icons.calendar_month_outlined,
                       ),
                     ),
                     const SizedBox(
                       height: 12,
                     ),
-                    const ConfrimTile(
+                    ConfrimTile(
                       title: "Researcher Name",
-                      info: "Dr. Jane Doe",
-                      icon: Icon(
+                      info: Strings.researcherName,
+                      icon: const Icon(
                         Icons.person_outline_rounded,
                       ),
                     ),
@@ -90,8 +90,7 @@ class ConfrimJoiningPage extends StatelessWidget {
                               fontFamily: CustomTypography.fontName,
                               fontSize: 18.sp,
                               decoration: TextDecoration.underline,
-                              decorationColor: CustomColors.textWhite
-                              ),
+                              decorationColor: CustomColors.textWhite),
                         ))
                   ],
                 ),
@@ -128,18 +127,18 @@ class ConfrimJoiningPage extends StatelessWidget {
     );
   }
 
-  void showResearchDetails(BuildContext context){
-     showModalBottomSheet(
+  void showResearchDetails(BuildContext context) {
+    showModalBottomSheet(
         context: context,
         isScrollControlled: true,
         builder: (context) => Wrap(
               children: [
                 BottomResearcherInfoPopUp(
-                    studyName: "Audio Diary Study for Emotional Regulation.  ",
+                    studyName: Strings.studyName,
                     studyDescription: Strings.studyDescription,
                     organisation: "Emory School of Medicine",
-                    duration: "Oct 2022 - Aug 2023",
-                    researcher: "Dr. Jane Doe")
+                    duration: Strings.studyDuration,
+                    researcher: Strings.researcherName)
               ],
             ));
   }

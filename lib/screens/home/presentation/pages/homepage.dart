@@ -221,11 +221,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         builder: (context) => Wrap(
               children: [
                 BottomResearcherInfoPopUp(
-                    studyName: "Audio Diary Study for Emotional Regulation.  ",
+                    studyName: Strings.studyName,
                     studyDescription: Strings.studyDescription,
                     organisation: "Emory School of Medicine",
-                    duration: "Oct 2022 - Aug 2023",
-                    researcher: "Dr. Jane Doe")
+                    duration: Strings.studyDuration,
+                    researcher: Strings.researcherName)
               ],
             ));
   }
