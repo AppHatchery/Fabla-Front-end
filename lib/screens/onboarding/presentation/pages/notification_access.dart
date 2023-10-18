@@ -39,7 +39,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
             SizedBox(
               child: Column(children: [
                 Text(
-                  "Enable notifications so you won’t miss the diary!",
+                  "Turn on notifications for timely reminders!",
                   style: CustomTypography()
                       .headlineLarge(color: CustomColors.textWhite),
                 ),
@@ -71,7 +71,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
     if (results.isGranted) {
       final repository = SetupRepository();
       repository.createNotifications();
-      
+
       if (context.mounted) {
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const MicAccessPage()));

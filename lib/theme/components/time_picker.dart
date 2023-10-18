@@ -105,12 +105,12 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                         ),
                         Expanded(
                           child: SizedBox(
-                            // height: 200,
-                            // width: 80,
+                            height: 200,
+                            width: 80,
                             child: ListWheelScrollView.useDelegate(
                               controller: minutesController,
                               onSelectedItemChanged: (value) => setState(() {
-                                _date = _date.replacing(minute: value);
+                                _date = _date.replacing(minute: value * 5);
                               }),
                               physics: const FixedExtentScrollPhysics(),
                               perspective: 0.01,
@@ -120,9 +120,9 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                               squeeze: 2,
                               childDelegate: ListWheelChildBuilderDelegate(
                                 builder: (context, index) {
-                                  return Minutes(mins: index);
+                                  return Minutes(mins: index * 5);
                                 },
-                                childCount: 60,
+                                childCount: 12,
                               ),
                             ),
                           ),
@@ -159,21 +159,6 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
               height: 24,
             ),
             CustomElevatedButton(onClick: () => save(), text: "SAVE"),
-            Row(
-              children: [
-                Expanded(
-                    child: CustomTextButton(
-                  onClick: () => widget.onDelete != null
-                      ? widget.onDelete!()
-                      : Navigator.pop(context),
-                  text: "DELETE",
-                  textColor: CustomColors.warningActive,
-                )),
-              ],
-            ),
-            // const SizedBox(
-            //   height: 24,
-            // ),
           ],
         ),
       ),

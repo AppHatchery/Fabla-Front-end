@@ -41,9 +41,9 @@ class _ListActiveTimesState extends State<ListActiveTimes> {
                     time: widget.times[index],
                     delete: () => {
                       deleteTime(widget.times[index]),
-                      Navigator.pop(context)
                     },
                     edit: (value) => editTime(index, value),
+                    isEnabled: true,
                   ),
                 );
               }),

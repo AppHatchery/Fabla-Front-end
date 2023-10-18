@@ -1,14 +1,11 @@
-import 'package:audio_diaries_flutter/objectbox.g.dart';
+import 'package:audio_diaries_flutter/screens/settings/widgets/settings_active_reminders.dart';
 import 'package:audio_diaries_flutter/screens/settings/widgets/test_microphone_widget.dart';
-import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
-import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../../onboarding/presentation/widgets/list_active_times.dart';
+import '../../../services/preference_service.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -59,6 +56,19 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
     });
   }
 
+  void loadReminders() async {
+    final reminders = await PreferenceService()
+        .getStringListPreference(key: 'reminder_times');
+    if (reminders != null) {
+      for (String reminder in reminders) {
+        TimeOfDay time = TimeOfDay.fromDateTime(DateTime.parse(reminder));
+        setState(() {
+          times.add(time);
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,10 +117,42 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(
-                                    CustomIcons.micOff,
-                                    color: CustomColors.productNormalActive,
-                                    size: 46,
+                                  Stack(
+                                    children: <Widget>[
+                                      const Icon(
+                                        Icons.mic,
+                                        color: CustomColors.productNormalActive,
+                                        size: 46,
+                                      ),
+                                      Positioned(
+                                        right: 7,
+                                        top: 3,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(1),
+                                          decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(50),
+                                              border: Border.all(
+                                                width: 1,
+                                                color: Colors.white,
+                                              )),
+                                          constraints: const BoxConstraints(
+                                            minWidth: 15,
+                                            minHeight: 15,
+                                          ),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(1),
+                                            decoration: BoxDecoration(
+                                              color: CustomColors
+                                                  .productNormalActive,
+                                              borderRadius:
+                                                  BorderRadius.circular(50),
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    ],
                                   ),
                                   const SizedBox(
                                     width: 20,
@@ -182,10 +224,42 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(
-                                    CustomIcons.micOff,
-                                    color: CustomColors.productNormalActive,
-                                    size: 46,
+                                  Stack(
+                                    children: <Widget>[
+                                      const Icon(
+                                        Icons.notifications,
+                                        color: CustomColors.productNormalActive,
+                                        size: 46,
+                                      ),
+                                      Positioned(
+                                        right: 6,
+                                        top: 6,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(1),
+                                          decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(50),
+                                              border: Border.all(
+                                                width: 1,
+                                                color: Colors.white,
+                                              )),
+                                          constraints: const BoxConstraints(
+                                            minWidth: 15,
+                                            minHeight: 15,
+                                          ),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(1),
+                                            decoration: BoxDecoration(
+                                              color: CustomColors
+                                                  .productNormalActive,
+                                              borderRadius:
+                                                  BorderRadius.circular(50),
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    ],
                                   ),
                                   const SizedBox(
                                     width: 20,
@@ -223,75 +297,30 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                               ),
                             )),
                         const SizedBox(height: 12.0),
-                        Visibility(
-                            visible: notificationCheck,
-                            child: Column(children: [
-                              Visibility(
-                                visible: isButtonVisible,
-                                child: CustomElevatedButton(
-                                  onClick: () {
-                                    setState(() {
-                                      isButtonVisible = false;
-                                    });
-                                  },
-                                  text: 'Add a Reminder Time',
-                                  textColor: CustomColors.productNormalActive,
-                                  color: CustomColors.fillWhite,
-                                  border: Border.all(
-                                      color: CustomColors.productBorderNormal,
-                                      width: 1),
-                                  shadowColor: CustomColors.productBorderNormal,
-                                ),
-                              ),
-                              Visibility(
-                                visible: !isButtonVisible,
-                                child: ListActiveTimes(
-                                  times: times,
-                                ),
-                              ),
-                            ])),
+                        ActiveReminders(
+                          times: times,
+                          isEnabled: notificationCheck,
+                        ),
                         const SizedBox(height: 12.0),
                       ]),
                 ),
+                //
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Column(
                     children: [
-                      Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            TextButton(
-                              onPressed: () {},
-                              child: Text(
-                                "Privacy & Terms",
-                                style: CustomTypography().bodyMedium(
-                                    color: CustomColors.textSecondaryContent),
-                              ),
-                            ),
-                            Text(
-                              "|",
-                              style: CustomTypography().bodyMedium(
-                                  color: CustomColors.textSecondaryContent),
-                            ),
-                            TextButton(
-                              onPressed: () {},
-                              child: Text(
-                                "Provide Feedback",
-                                style: CustomTypography().bodyMedium(
-                                    color: CustomColors.textSecondaryContent),
-                              ),
-                            ),
-                          ]),
-                      const SizedBox(height: 12),
-                      Image.asset(
-                        "assets/images/emory_logo.png",
-                      ),
-                      const SizedBox(height: 24),
                       Text(
-                        "Dayrio Version 1.1",
+                        "Audio Diaries 1.0",
                         style: CustomTypography().bodyMedium(
                             color: CustomColors.textSecondaryContent),
                       ),
+                      const SizedBox(height: 12),
+                      Image.asset(
+                        "assets/images/emory_image.png",
+                        width: 150,
+                        height: 42,
+                      ),
+                      const SizedBox(height: 12),
                       Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -311,63 +340,3 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
         ]));
   }
 }
-
-// Column(
-//   children: [
-//     Text(
-//       "You must enable microphone access to record audio diaries.",
-//       style: CustomTypography()
-//           .bodyMedium(color: CustomColors.textTertiaryContent),
-//     )
-//   ],
-// ),
-
-// Column(
-//   mainAxisAlignment: MainAxisAlignment.start,
-//   children: [
-//     Row(
-//       children: [
-//         Text(
-//           "Enable notifications so you won't miss the diary!",
-//           style: CustomTypography().bodyMedium(
-//               color:
-//                   CustomColors.textTertiaryContent),
-//         ),
-//       ],
-//     ),
-//   ],
-// ),
-// CupertinoSwitch(
-//   value: notificationCheck,
-//   onChanged: (bool value) async {
-//     if (!value) {
-//       final status =
-//           await Permission.notification.request();
-//       if (status == PermissionStatus.granted) {
-//         setState(() {
-//           notificationCheck = value;
-//         });
-//       }
-//     }
-//     openAppSettings().then((_) {});
-//   },
-//   activeColor: CustomColors.productNormal,
-//   trackColor: CustomColors.productBorderNormal,
-// )
-// CupertinoSwitch(
-//   value: micCheck,
-//   onChanged: (bool value) async {
-//     if (!value) {
-//       final status =
-//           await Permission.microphone.request();
-//       if (status == PermissionStatus.granted) {
-//         setState(() {
-//           micCheck = value;
-//         });
-//       }
-//     }
-//     openAppSettings().then((_) {});
-//   },
-//   activeColor: CustomColors.productNormal,
-//   trackColor: CustomColors.productBorderNormal,
-// )
