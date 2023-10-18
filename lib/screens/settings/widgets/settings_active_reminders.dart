@@ -77,7 +77,7 @@ class _ActiveRemindersState extends State<ActiveReminders> {
               : Text(
                   noReminderText,
                   style: CustomTypography()
-                      .titleMedium(color: CustomColors.textNormalContent),
+                      .titleSmall(color: CustomColors.textTertiaryContent),
                   textAlign: TextAlign.start,
                 ),
         ),
