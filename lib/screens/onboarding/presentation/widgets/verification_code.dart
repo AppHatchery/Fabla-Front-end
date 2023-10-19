@@ -24,7 +24,7 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Verification Code",
+          "Participant ID",
           style: CustomTypography().titleSmall(color: CustomColors.textWhite),
         ),
         const SizedBox(
@@ -34,7 +34,7 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
           keyboardType: TextInputType.number,
           controller: widget.controller,
           error: widget.error,
-          hint: "Enter your verification code...",
+          hint: "Enter your participant ID...",
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           filled: true,
           borderRadius: BorderRadius.circular(11),

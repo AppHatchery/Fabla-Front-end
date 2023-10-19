@@ -190,7 +190,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> launchEmail() async {
     final uri = Uri(
         scheme: "mailto",
-        path: "johnDoe@example.com",
+        path: "support@apphatchery.org",
         query: encodeQueryParameters(<String, String>{
           'subject': 'Need help with the verification code',
           'body': 'I have a problem with my study code:'
