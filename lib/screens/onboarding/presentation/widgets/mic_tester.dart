@@ -8,11 +8,13 @@ class MicTester extends StatefulWidget {
   final bool permission;
   final double width;
   final FlutterSoundRecorder recorder;
+  final Function? request;
   const MicTester(
       {super.key,
       required this.permission,
       required this.width,
-      required this.recorder});
+      required this.recorder,
+      this.request});
 
   @override
   State<MicTester> createState() => _MicTesterState();
@@ -44,8 +46,15 @@ class _MicTesterState extends State<MicTester> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(CustomIcons.keyboardVoice,
-                  color: CustomColors.productNormal),
+              GestureDetector(
+                onTap: (){
+                  if(widget.request != null && mounted){
+                    widget.request!();
+                  }
+                },
+                child: const Icon(CustomIcons.keyboardVoice,
+                    color: CustomColors.productNormal),
+              ),
               const SizedBox(
                 width: 12,
               ),
