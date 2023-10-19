@@ -64,7 +64,7 @@ class _WelcomePageState extends State<WelcomePage> {
                         height: 16,
                       ),
                       Text(
-                          "You are now checked in our study. Thank you so much for joining our research! ${Strings.confetti}",
+                          "You are now checked into our study. Thank you so much for joining our research! ${Strings.confetti}",
                           style: CustomTypography()
                               .bodyLarge(color: CustomColors.textWhite)),
                     ],
