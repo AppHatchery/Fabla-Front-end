@@ -57,7 +57,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Text(
-                        "What time of day would you like to do your diary?",
+                        "When would you like to receive reminders?",
                         style: CustomTypography()
                             .headlineLarge(color: CustomColors.textWhite),
                       ),
@@ -78,7 +78,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                             onContinue: () => navigateToNextPage(),
                             children: [
                               Text(
-                                "Reminder Time",
+                                "Reminder",
                                 style: CustomTypography().titleLarge(),
                               ),
                               const SizedBox(
@@ -100,6 +100,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
     final value = times
         .map((e) => DateTime(0, 0, 0, e.hour, e.minute).toString())
         .toList();
+
     if (value.isNotEmpty) {
       await PreferenceService()
           .setStringListPreference(key: "reminder_times", value: value);

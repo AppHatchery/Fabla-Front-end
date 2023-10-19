@@ -3,13 +3,19 @@ import 'package:flutter/material.dart';
 
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/components/time_picker.dart';
+import '../../../../theme/custom_icons.dart';
 
 class ActiveTimeTile extends StatefulWidget {
   final TimeOfDay time;
   final VoidCallback delete;
   final ValueChanged<TimeOfDay>? edit;
+  final bool isEnabled;
   const ActiveTimeTile(
-      {super.key, required this.time, required this.delete, this.edit});
+      {super.key,
+      required this.time,
+      required this.delete,
+      this.edit,
+      required this.isEnabled});
 
   @override
   State<ActiveTimeTile> createState() => _ActiveTimeTileState();
@@ -31,7 +37,9 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       decoration: BoxDecoration(
-          color: CustomColors.fillWhite,
+          color: widget.isEnabled
+              ? CustomColors.fillWhite
+              : CustomColors.fillDisabled,
           borderRadius: BorderRadius.circular(20),
           border:
               Border.all(color: CustomColors.productBorderNormal, width: 2)),
@@ -43,18 +51,47 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
             children: [
               Text(
                 period,
-                style: CustomTypography().titleLarge(),
+                style: CustomTypography().titleLarge(
+                    color: widget.isEnabled
+                        ? CustomColors.textNormalContent
+                        : CustomColors.textTertiaryContent),
               ),
               Text(
                 localizations.formatTimeOfDay(timeOfDay),
-                style: CustomTypography().titleMedium(),
+                style: CustomTypography().titleMedium(
+                    color: widget.isEnabled
+                        ? CustomColors.textNormalContent
+                        : CustomColors.textTertiaryContent),
               ),
             ],
           ),
-          IconButton(
-              onPressed: () => pickDate(timeOfDay),
-              icon: const Icon(Icons.edit_outlined,
-                  color: CustomColors.textSecondaryContent))
+          Row(
+            children: [
+              IconButton(
+                  onPressed:
+                      widget.isEnabled ? () => pickDate(timeOfDay) : null,
+                  icon: Icon(
+                    Icons.edit_outlined,
+                    color: widget.isEnabled
+                        ? CustomColors.productNormal
+                        : CustomColors.textTertiaryContent,
+                    size: 24,
+                  )),
+              IconButton(
+                  onPressed: widget.isEnabled
+                      ? () {
+                          widget.delete();
+                        }
+                      : null,
+                  icon: Icon(
+                    CustomIcons.delete,
+                    color: widget.isEnabled
+                        ? CustomColors.warningActive
+                        : CustomColors.textTertiaryContent,
+                    size: 24,
+                  )),
+            ],
+          ),
         ],
       ),
     );

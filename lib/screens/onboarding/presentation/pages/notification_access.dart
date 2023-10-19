@@ -73,7 +73,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
                       child: Column(
                         children: [
                           Text(
-                            "Enable notifications so you won’t miss the diary!",
+                            "Turn on notifications for timely reminders!",
                             style: CustomTypography()
                                 .headlineLarge(color: CustomColors.textWhite),
                           ),
