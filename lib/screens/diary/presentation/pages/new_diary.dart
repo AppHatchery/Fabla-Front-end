@@ -56,7 +56,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
       });
     }
     showTip();
-    if(widget.diary.status == DiaryStatus.idle){
+    if (widget.diary.status == DiaryStatus.idle) {
       participantsDiaryStartDate(widget.diary);
     }
     super.initState();
@@ -148,16 +148,20 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                       pageCount: widget.diary.prompts.length,
                       currentPage: currentPage),
                 ),
-                TextButton(
-                  onPressed: () {
-                    print("Skip clicked!");
-                  },
-                  child: Text(
-                    "Skip",
-                    style: CustomTypography()
-                        .titleSmall(color: CustomColors.textNormalContent),
-                  ),
+                const SizedBox(
+                  width: 17,
                 ),
+                //functionality of the skip button to be added later on
+                // TextButton(
+                //   onPressed: () {
+                //     print("Skip clicked!");
+                //   },
+                //   child: Text(
+                //     "Skip",
+                //     style: CustomTypography()
+                //         .titleSmall(color: CustomColors.textNormalContent),
+                //   ),
+                // ),
               ],
             ),
           ),
