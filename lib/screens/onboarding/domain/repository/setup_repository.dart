@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:amplify_api/amplify_api.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
@@ -208,19 +209,21 @@ class SetupRepository {
       }
     } else {
       safePrint("Participant Already exists or Submission error");
-
     }
-}
+  }
 
- /// Creates and schedules notifications for daily diaries.
+  /// Creates and schedules notifications for daily diaries.
   /// This function retrieves a list of daily diaries from the DiaryRepository,
   /// then retrieves a list of notification times from SharedPreferences using
   /// PreferenceService. For each specified notification time and each diary,
   /// it calculates the notification date and time and schedules a notification
   /// using NotificationService. The notification will remind the user to write
   /// their daily diary.
-  /// 
- void createNotifications() async {
+  ///
+  void createNotifications() async {
+    // Cancel all existing notifications
+    await NotificationService.cancelAllNotifications();
+
     final diaryRepository = DiaryRepository();
     final diaries = diaryRepository.getAllDiaries();
 
@@ -230,22 +233,71 @@ class SetupRepository {
             ?.map((e) => TimeOfDay.fromDateTime(DateTime.parse(e)))
             .toList() ??
         [];
+    times.sort((a, b) =>
+        (a.hour + a.minute / 60.0).compareTo(b.hour + b.minute / 60.0));
 
+    List<TimeOfDay> dayReminders = times.where((element) => element.hour < 19).toList();
+    List<TimeOfDay> nightReminders = times.where((element) => element.hour >= 19).toList();
+
+    if(nightReminders.isEmpty) nightReminders.add(const TimeOfDay(hour: 21, minute: 00));
+
+    final diaryNotifications = <int, List<int>>{};
+
+    // Schedule notifications for each diary and each time.
     for (final time in times) {
       for (final diary in diaries) {
-        final date = diary.due;
+        final diaryId = diary.id;
 
+        // Initialize the list if it doesn't exist for the diary
+        diaryNotifications.putIfAbsent(diaryId, () => []);
+
+        final date = diary.start;
         final notificationDate =
             DateTime(date.year, date.month, date.day, time.hour, time.minute);
 
+        final id = Random().nextInt(100000);
+        final isDiary1 = diaryId == 1;
+        final isSecondReminder = times.indexOf(time) > 0;
+
+        // Define notification title and body based on diary and reminder
+        final title = isDiary1
+            ? 'Get Started on Your Diary Journey!'
+            : 'Keep Going on Your Diary Journey!';
+        final body = isDiary1
+            ? isSecondReminder
+                ? "Hey there! Just another check-in. Don’t forget to do your diary today."
+                : "Hey there! It's time to start your diary. Your insights matter! Tap here to begin now."
+            : isSecondReminder
+                ? "Hey there! Just another check-in. Don’t forget to do your diary today."
+                : "Hey there! You're doing great, but it's time to continue with your next diary. Your insights matter! Tap here to begin now.";
+
         await NotificationService.createNotification(
-            id: diary.id,
-            title: 'Time for your Daily Diary',
-            body: 'Hi! I am ready to hear from you.',
-            date: notificationDate);
+            id: id, title: title, body: body, date: notificationDate);
+
+        // Add the notification ID to the diary's list
+        diaryNotifications[diaryId]!.add(id);
       }
-
     }
-  }
+    //Save to Shared Preferences
+    final jsonMap = diaryNotifications.map(
+      (key, value) => MapEntry(key.toString(), value),
+    );
+    final encoded = json.encode(jsonMap);
 
+    PreferenceService()
+        .setStringPreference(key: 'diary_notifications', value: encoded);
+
+    // Schedule notifications for day before start
+    final time =
+        times.isNotEmpty ? times[0] : const TimeOfDay(hour: 17, minute: 0);
+    final date = diaries[0].start.subtract(const Duration(days: 1));
+    final notificationDate =
+        DateTime(date.year, date.month, date.day, time.hour, time.minute);
+
+    await NotificationService.createNotification(
+        title: 'Get Ready - Your Study Starts Tomorrow!',
+        body:
+            "Hey there! We're excited to remind you that your Daily Diary study is just around the corner. Tomorrow, we embark on this exciting journey together. Your insights will make a difference!",
+        date: notificationDate);
+  }
 }
