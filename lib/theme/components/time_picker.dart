@@ -51,6 +51,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                     child: Text(
                       "Reminder Time",
                       style: CustomTypography().titleLarge(),
+                      textAlign: TextAlign.center,
                     )),
                 Expanded(
                   flex: 1,

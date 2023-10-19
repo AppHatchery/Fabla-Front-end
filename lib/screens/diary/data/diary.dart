@@ -1,5 +1,4 @@
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/core/utils/types.dart';
 
 import '../../../core/utils/dummy_data.dart';
 import '../domain/entities/diary_entity.dart';
@@ -34,22 +33,30 @@ class Diary {
   factory Diary.fromEntity(DiaryEntity entity) {
     final date = DateTime.parse(entity.deadline);
     final start = DateTime.parse(entity.start);
-    final tag = Tag(
-        text: switch (entity.status) {
-          DiaryStatus.idle => "Idle",
-          DiaryStatus.ongoing => "Ongoing",
-          DiaryStatus.complete => "Ongoing",
-          DiaryStatus.submitted => "Done",
-          DiaryStatus.missed => "Missed",
-          null => "Idle"
-        },
-        type: TagType.time);
     return Diary(
         id: entity.id,
         prompts: fakePrompts[entity.prompts[0]] ?? [],
-        tags: [tag],
+        tags: [],
         status: entity.status ?? DiaryStatus.idle,
         due: date,
         start: start);
+  }
+
+  factory Diary.copyWith(
+      {Diary? diary,
+      int? id,
+      List<Prompt>? prompts,
+      List<Tag>? tags,
+      DiaryStatus? status,
+      DateTime? due,
+      DateTime? start}) {
+    return Diary(
+      id: id ?? diary!.id,
+      prompts: prompts ?? diary!.prompts,
+      tags: tags ?? diary!.tags,
+      status: status ?? diary!.status,
+      due: due ?? diary!.due,
+      start: start ?? diary!.start,
+    );
   }
 }

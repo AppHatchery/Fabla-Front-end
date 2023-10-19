@@ -56,7 +56,7 @@ class _MyResponseState extends State<MyResponse> {
                   recording: widget.recordings[index],
                   delete: () => deleteResponse(
                       widget.prompt, widget.recordings[index].path),
-                  viewOnly: widget.status == DiaryStatus.submitted,
+                  viewOnly: false,
                   isExpanded: expandedCardId == widget.recordings[index].id,
                   onTap: () {
                     setState(() {

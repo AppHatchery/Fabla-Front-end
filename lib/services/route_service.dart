@@ -1,5 +1,8 @@
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_dates.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_time.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/finish.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welcome.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +40,12 @@ class RouteService {
     final notificationAccess = await PreferenceService()
             .getBoolPreference(key: 'notification_requested') ??
         false;
+    final remindersSet =
+        await PreferenceService().getBoolPreference(key: 'reminders_set') ??
+            false;
+    final activeDates =
+        await PreferenceService().getBoolPreference(key: 'active_dates_seen') ??
+            false;
     final micAccess =
         await PreferenceService().getBoolPreference(key: 'mic_requested') ??
             false;
@@ -47,12 +56,18 @@ class RouteService {
       return const LoginPage();
     } else if (participant.name.isEmpty) {
       return const WelcomePage();
-    } else if (setup || (notificationAccess && micAccess)) {
+    } else if (setup) {
       return const Hub();
-    } else if (notificationAccess) {
+    } else if (activeDates == false) {
+      return const ActiveDatesPage();
+    } else if (remindersSet == false) {
+      return const ActiveTimePage();
+    } else if (notificationAccess == false) {
+      return const NotificationAccessPage();
+    } else if (micAccess == false) {
       return const MicAccessPage();
     } else {
-      return const NotificationAccessPage();
+      return const FinishPage();
     }
   }
 }

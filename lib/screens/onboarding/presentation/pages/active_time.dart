@@ -16,6 +16,16 @@ class ActiveTimePage extends StatefulWidget {
 
 class _ActiveTimePageState extends State<ActiveTimePage> {
   List<TimeOfDay> times = [];
+  bool canGoBack = false;
+
+  @override
+  void initState() {
+    if (Navigator.of(context).canPop()) {
+      canGoBack = true;
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
@@ -24,13 +34,15 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
         backgroundColor: CustomColors.backgroundSecondary,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
-          leading: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(
-                Icons.arrow_back_rounded,
-                color: CustomColors.fillWhite,
-                size: 32,
-              )),
+          leading: canGoBack
+              ? IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: CustomColors.fillWhite,
+                    size: 32,
+                  ))
+              : null,
         ),
         body: SafeArea(
           bottom: false,
@@ -60,6 +72,9 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                             height: height,
                             width: width,
                             image: "assets/images/active_time.png",
+                            avatarType: "animation",
+                            animation:
+                                "assets/animations/onboarding/onboarding_remindersetting.riv",
                             onContinue: () => navigateToNextPage(),
                             children: [
                               Text(
@@ -85,9 +100,14 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
     final value = times
         .map((e) => DateTime(0, 0, 0, e.hour, e.minute).toString())
         .toList();
-    await PreferenceService()
-        .setStringListPreference(key: "reminder_times", value: value);
 
+    if (value.isNotEmpty) {
+      await PreferenceService()
+          .setStringListPreference(key: "reminder_times", value: value);
+    }
+
+    await PreferenceService()
+        .setBoolPreference(key: 'reminders_set', value: true);
     if (context.mounted) {
       Navigator.push(
           context,

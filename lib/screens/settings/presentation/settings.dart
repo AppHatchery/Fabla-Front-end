@@ -309,7 +309,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                   child: Column(
                     children: [
                       Text(
-                        "Audio Diaries 1.0",
+                        "Fabla 1.0",
                         style: CustomTypography().bodyMedium(
                             color: CustomColors.textSecondaryContent),
                       ),
@@ -331,6 +331,8 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                           ]),
                     ],
                   ),
+
+
                 ),
                 const SizedBox(height: 16),
               ]),

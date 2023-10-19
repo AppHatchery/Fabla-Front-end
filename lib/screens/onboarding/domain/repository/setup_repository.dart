@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:amplify_api/amplify_api.dart';
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/models/Participants.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
@@ -10,7 +13,6 @@ import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-
 import '../../../../core/database/dao/participant_dao.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
@@ -74,6 +76,7 @@ class SetupRepository {
   /// ```dart
   /// createMetadata(); // Generate and store participant's study metadata.
   /// ```
+
   void createMetadata() async {
     final participant = getParticipant();
 
@@ -142,15 +145,82 @@ class SetupRepository {
       }
     }
   }
+//Data interaction to graphql database online; you have [participantExist]
 
-  /// Creates and schedules notifications for daily diaries.
+  ///Code checks if participant is available in the database
+  Future<bool> participantExist(String studycode) async {
+    try {
+      String graphQLDocument = '''
+      query ListFiles {
+        listParticipants(filter: { _deleted:{attributeExists:false}, studycode: { eq: "$studycode" } }) {
+          items {
+            id
+            studycode
+            _deleted
+          }
+        }
+      }
+    ''';
+      var operation = Amplify.API.query(
+        request: GraphQLRequest<String>(
+          document: graphQLDocument,
+          variables: {'studycode': studycode},
+        ),
+      );
+      var response = await operation.response;
+      var data = response.data;
+      if (data != null) {
+        Map<String, dynamic> jsonMap = jsonDecode(data);
+        final participantList = jsonMap["listParticipants"]["items"];
+        if (participantList.length > 0) {
+          return true;
+        }
+        safePrint("dataa: $data");
+        return false;
+      } else {
+        response.errors.forEach((element) {
+          safePrint('${element.message}.');
+        });
+        return false;
+      }
+    } catch (e) {
+      print('$e');
+      return false;
+    }
+  }
+
+  Future<void> apiCreateParticipant(String studycode) async {
+    if (!await participantExist(studycode)) {
+      try {
+        final participant = Participants(studycode: studycode);
+        final request = ModelMutations.create(participant);
+        final response = await Amplify.API.mutate(request: request).response;
+
+        final participantData = response.data;
+        if (participantData == null) {
+          safePrint('errors: ${response.errors}');
+          return;
+        }
+        safePrint(
+            'Participant Added Mutation result: ${participantData.studycode}');
+      } on ApiException catch (e) {
+        safePrint('Mutation failed: $e');
+      }
+    } else {
+      safePrint("Participant Already exists or Submission error");
+
+    }
+}
+
+ /// Creates and schedules notifications for daily diaries.
   /// This function retrieves a list of daily diaries from the DiaryRepository,
   /// then retrieves a list of notification times from SharedPreferences using
   /// PreferenceService. For each specified notification time and each diary,
   /// it calculates the notification date and time and schedules a notification
   /// using NotificationService. The notification will remind the user to write
   /// their daily diary.
-  void createNotifications() async {
+  /// 
+ void createNotifications() async {
     final diaryRepository = DiaryRepository();
     final diaries = diaryRepository.getAllDiaries();
 
@@ -174,6 +244,8 @@ class SetupRepository {
             body: 'Hi! I am ready to hear from you.',
             date: notificationDate);
       }
+
     }
   }
+
 }

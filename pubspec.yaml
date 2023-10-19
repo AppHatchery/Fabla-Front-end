@@ -36,6 +36,10 @@ dependencies:
   #Formating
   intl: ^0.18.1
 
+  #firebase
+  firebase_core: ^2.16.0
+  firebase_crashlytics: ^3.3.6
+
   permission_handler: ^10.4.3
 
   #Audio recording & playback
@@ -65,11 +69,14 @@ dependencies:
 
   #Animations
   lottie: ^2.6.0
+  rive: ^0.11.17
 
   #Amplify
   amplify_flutter: ^1.0.0
   amplify_auth_cognito: ^1.0.0
   amplify_storage_s3: ^1.0.0
+  amplify_datastore: ^1.4.2
+  amplify_api: ^1.0.0
 
   #Notification
   awesome_notifications: ^0.7.4+1
@@ -80,6 +87,9 @@ dependencies:
   #Pendo
   pendo_sdk: ^2.22.0
 
+  #Splash
+  flutter_native_splash: ^2.3.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -88,8 +98,27 @@ dev_dependencies:
   build_runner: ^2.0.0
   objectbox_generator: any
 
+  #Icon
+  flutter_launcher_icons: "^0.13.1"
+
   flutter_lints: ^2.0.0
 
+
+#Icon Configuration
+flutter_launcher_icons:
+  image_path: "assets/images/logo_white.png"
+  ios: true
+  android: true
+  min_sdk_android: 24
+
+#Splash Configuration
+flutter_native_splash:
+  color: "#5B89FF"
+  color_dark: "#5B89FF"
+  image: "assets/images/logo_white.png"
+  android: true
+  ios: true
+  web: false
 
 # The following section is specific to Flutter packages.
 flutter:
@@ -100,6 +129,8 @@ flutter:
   assets:
     - assets/images/
     - assets/animations/
+    - assets/animations/onboarding/
+    - assets/animations/recording/
 
   fonts:
     - family: Rubik

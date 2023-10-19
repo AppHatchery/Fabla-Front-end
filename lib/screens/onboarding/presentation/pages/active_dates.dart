@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/utils/dummy_data.dart';
+import '../../../../services/preference_service.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
 import '../../domain/entities/participant.dart';
@@ -19,9 +20,13 @@ class ActiveDatesPage extends StatefulWidget {
 
 class _ActiveDatesPageState extends State<ActiveDatesPage> {
   late SetupCubit setupCubit;
+  bool canGoBack = false;
 
   @override
   void initState() {
+    if (Navigator.of(context).canPop()) {
+      canGoBack = true;
+    }
     setupCubit = BlocProvider.of<SetupCubit>(context);
     load();
     super.initState();
@@ -35,13 +40,15 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
         backgroundColor: CustomColors.backgroundSecondary,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
-          leading: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(
-                Icons.arrow_back_rounded,
-                color: CustomColors.fillWhite,
-                size: 32,
-              )),
+          leading: canGoBack
+              ? IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: CustomColors.fillWhite,
+                    size: 32,
+                  ))
+              : null,
         ),
         body: SafeArea(
           bottom: false,
@@ -104,10 +111,10 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                 height: height,
                 width: width,
                 image: "assets/images/active_dates.png",
-                onContinue: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ActiveTimePage())),
+                avatarType: "animation",
+                animation:
+                    "assets/animations/onboarding/onboarding_activedays.riv",
+                onContinue: navigateToNextPage,
                 children: [
                   Text(
                     "Diary Calendar",
@@ -127,20 +134,36 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
     );
   }
 
+  void navigateToNextPage() async {
+    await PreferenceService()
+        .setBoolPreference(key: 'active_dates_seen', value: true);
+
+    if (context.mounted) {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const ActiveTimePage()));
+    }
+  }
+
   void load() {
     setupCubit.load();
   }
 
   DateTime? startDate(String code) {
-    final today = DateTime.now();
-    final nextSunday = today.add(Duration(days: 7 - today.weekday));
+    // final today = DateTime.now();
+    // final nextSunday = today.add(Duration(days: 7 - today.weekday));
+    final _code = int.parse(code);
 
     // Assuming that the code have two distinct starting digits
-    if (code.startsWith('1')) {
-      return nextSunday;
-    } else if (code.startsWith('2')) {
-      return nextSunday.add(const Duration(days: 6));
-    }
+    if (code.startsWith('0')) {
+      return DateTime(
+          DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    } else if (_code.isOdd) {
+      // return nextSunday;
+      return DateTime(2023, 11, 12);
+    } else if (_code.isEven) {
+      // return nextSunday.add(const Duration(days: 6));
+      return DateTime(2023, 11, 6);
+    } 
 
     return null;
   }

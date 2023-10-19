@@ -57,7 +57,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         backgroundColor: CustomColors.fillNormal,
         appBar: AppBar(
           toolbarHeight: 105.h,
-          backgroundColor: CustomColors.productNormal,
+          backgroundColor: CustomColors.backgroundSecondary,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(0),
             child: Container(
@@ -138,6 +138,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Widget loadedHome(List<Diary> diaries, List<Diary> unSubmittedDiaries) {
     final today = DateTime.now();
+    show4AmTip();
     if (today.isBefore(startDate)) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,7 +154,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             style: CustomTypography().headlineMedium(),
             textAlign: TextAlign.left,
           ),
-
           const Expanded(child: FreeDayWidget()),
         ],
       );
@@ -221,12 +221,38 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         builder: (context) => Wrap(
               children: [
                 BottomResearcherInfoPopUp(
-                    studyName: "Audio Diary Study for Emotional Regulation.  ",
+                    studyName: Strings.studyName,
                     studyDescription: Strings.studyDescription,
                     organisation: "Emory School of Medicine",
-                    duration: "Oct 2022 - Aug 2023",
-                    researcher: "Dr. Jane Doe")
+                    duration: Strings.studyDuration,
+                    researcher: Strings.researcherName)
               ],
             ));
+  }
+
+  void show4AmTip() async {
+    final show =
+        await PreferenceService().getBoolPreference(key: 'show_home_tip') ??
+            true;
+    if (mounted && show) {
+      Future.delayed(const Duration(milliseconds: 500), () async {
+        showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => const Wrap(
+                  children: [
+                    BottomTipPopUp(
+                      title: "Upload Diaries Until 4 AM",
+                      message:
+                          "Night owl? No need to rush! Share your diaries leisurely until 4 AM the next day! 🌙",
+                      image: 'assets/images/midnight.png',
+                    )
+                  ],
+                ));
+
+        await PreferenceService()
+            .setBoolPreference(key: 'show_home_tip', value: false);
+      });
+    }
   }
 }

@@ -26,7 +26,7 @@ class DiaryRepository {
 
     if (unSubmittedDiaries.isNotEmpty) {
       for (final diary in unSubmittedDiaries) {
-        if (now.isAfter(due)) {
+        if (now.isAfter(due) && diary.status != DiaryStatus.complete) {
           diary.status = DiaryStatus.missed;
         }
       }

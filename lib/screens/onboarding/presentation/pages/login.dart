@@ -52,21 +52,21 @@ class _LoginPageState extends State<LoginPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Image.asset(
-                            "assets/images/avatar_diary.png",
+                            "assets/images/logo_white.png",
                             height: 52,
                             width: 52,
                           ),
                           const SizedBox(
                             height: 24,
                           ),
-                          Text("Welcome to Dayrio! ${Strings.wavingEmoji}",
+                          Text("Welcome to Fabla! ${Strings.wavingEmoji}",
                               style: CustomTypography().headlineLarge(
                                   color: CustomColors.textWhite)),
                           const SizedBox(
                             height: 24,
                           ),
                           Text(
-                              "Dayrio is a tool for EMA, audio diary research and more ${Strings.telescope}",
+                              "Fabla is a tool for EMA, audio diary research and more ${Strings.telescope}",
                               style: CustomTypography()
                                   .titleSmall(color: CustomColors.textWhite)),
                           const SizedBox(
@@ -177,8 +177,13 @@ class _LoginPageState extends State<LoginPage> {
   void login() {
     if (controller.text.isNotEmpty) {
       final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
-      final code = controller.text.substring(0, lastNonSpaceIndex + 1);
+      final text = controller.text.substring(0, lastNonSpaceIndex + 1);
+      final code = int.tryParse(text);;
+      if(code != null){
       loginCubit.login(code);
+      }else{
+        
+      }
     }
   }
 
@@ -187,7 +192,7 @@ class _LoginPageState extends State<LoginPage> {
         scheme: "mailto",
         path: "johnDoe@example.com",
         query: encodeQueryParameters(<String, String>{
-          'subject': 'Need help with the verfication code',
+          'subject': 'Need help with the verification code',
           'body': 'I have a problem with my study code:'
         }));
 

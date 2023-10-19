@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
+import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../theme/components/buttons.dart';
@@ -28,25 +29,37 @@ class _ListActiveTimesState extends State<ListActiveTimes> {
     return Column(
       children: [
         SizedBox(
-          child: ListView.builder(
-              padding: const EdgeInsets.all(0),
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: widget.times.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: EdgeInsets.only(
-                      bottom: index == widget.times.length - 1 ? 0 : 10.0),
-                  child: ActiveTimeTile(
-                    time: widget.times[index],
-                    delete: () => {
-                      deleteTime(widget.times[index]),
-                    },
-                    edit: (value) => editTime(index, value),
-                    isEnabled: true,
-                  ),
-                );
-              }),
+          child: widget.times.isNotEmpty
+              ? ListView.builder(
+                  padding: const EdgeInsets.all(0),
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: widget.times.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: EdgeInsets.only(
+                          bottom: index == widget.times.length - 1 ? 0 : 10.0),
+                      child: ActiveTimeTile(
+                        time: widget.times[index],
+                        delete: () => {
+                          deleteTime(widget.times[index]),
+                          Navigator.pop(context)
+                        },
+                        edit: (value) => editTime(index, value),
+                         isEnabled: true,
+                      ),
+                    );
+                  })
+              : Row(
+                children: [
+                  Text(
+                      "No scheduled diary time",
+                      style: CustomTypography()
+                          .titleSmall(color: CustomColors.textSecondaryContent),
+                      
+                    ),
+                ],
+              ),
         ),
         const SizedBox(
           height: 12,
@@ -67,6 +80,7 @@ class _ListActiveTimesState extends State<ListActiveTimes> {
     final time = await showModalBottomSheet(
         backgroundColor: CustomColors.fillWhite,
         isScrollControlled: true,
+        enableDrag: false,
         context: context,
         builder: (context) => LayoutBuilder(builder: (context, constraints) {
               return const SingleChildScrollView(
@@ -83,11 +97,9 @@ class _ListActiveTimesState extends State<ListActiveTimes> {
   }
 
   void deleteTime(TimeOfDay time) {
-    if (widget.times.length > 1) {
-      setState(() {
-        widget.times.remove(time);
-      });
-    }
+    setState(() {
+      widget.times.remove(time);
+    });
   }
 
   void editTime(int index, TimeOfDay time) async {

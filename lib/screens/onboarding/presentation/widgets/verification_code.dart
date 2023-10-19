@@ -31,6 +31,7 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
           height: 6,
         ),
         CustomTextField(
+          keyboardType: TextInputType.number,
           controller: widget.controller,
           error: widget.error,
           hint: "Enter your verification code...",

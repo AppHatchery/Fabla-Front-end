@@ -113,6 +113,7 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
     final time = await showModalBottomSheet(
         backgroundColor: CustomColors.fillWhite,
         isScrollControlled: true,
+        enableDrag: false,
         context: context,
         builder: (context) => LayoutBuilder(builder: (context, constraints) {
               return SingleChildScrollView(

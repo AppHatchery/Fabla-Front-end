@@ -3,7 +3,9 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../../core/utils/statuses.dart';
+import '../../../../../core/utils/types.dart';
 import '../../../../diary/data/diary.dart';
+import '../../../../diary/data/tag.dart';
 import '../../../../diary/domain/repository/diary_repository.dart';
 
 part 'home_state.dart';
@@ -39,7 +41,11 @@ class HomeCubit extends Cubit<HomeState> {
       emit(const HomeLoading());
       final diary = await repository.getDiary(start, due);
       if (diary != null) {
-        List<Diary> unfilterDiaries = [diary];
+        final updated = Diary.copyWith(diary: diary, tags: [
+          const Tag(text: "13 Questions", type: TagType.questions),
+          const Tag(text: "12 Minutes", type: TagType.time)
+        ]);
+        List<Diary> unfilterDiaries = [updated];
         List<Diary> unSubmittedDiaries = unfilterDiaries
             .where((element) => element.status == DiaryStatus.complete)
             .toList();

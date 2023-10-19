@@ -11,3 +11,18 @@ enum TagType {
   questions,
   remainder,
 }
+
+
+enum QuestionType {
+  physically,
+  emotionally,
+  intensity,
+  lonely,
+  leftout,
+  socialinteraction,
+  understood,
+  stressed,
+  whereyouare,
+  peoplearoundyou,
+  drinks
+}
