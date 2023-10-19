@@ -11,9 +11,11 @@ class Strings {
 
   static String studyName = "Vocalized Daily Diary";
 
-  static String studyDuration = "Nov 2023";
+  static String studyDuration = "November 2023";
 
   static String researcherName = "Dr. Deanna Kaplan";
+
+  static String organisation = "Emory University School of Medicine";
 
   static String wavingEmoji = "👋";
 

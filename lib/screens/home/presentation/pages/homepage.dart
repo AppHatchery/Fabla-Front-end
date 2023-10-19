@@ -220,10 +220,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         isScrollControlled: true,
         builder: (context) => Wrap(
               children: [
-                BottomResearcherInfoPopUp(
+                BottomStudyInfoPopUp(
                     studyName: Strings.studyName,
-                    studyDescription: Strings.studyDescription,
-                    organisation: "Emory School of Medicine",
+                    //studyDescription: Strings.studyDescription,
+                    organisation: Strings.organisation,
                     duration: Strings.studyDuration,
                     researcher: Strings.researcherName)
               ],

@@ -38,21 +38,21 @@ class ConfrimJoiningPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Research Information",
+                    Text("Study Information",
                         style: CustomTypography()
                             .headlineLarge(color: CustomColors.textWhite)),
                     const SizedBox(
                       height: 16,
                     ),
                     Text(
-                        "Below is the study information associated with your verification code.",
+                        "Below is the study information associated with your participant ID.",
                         style: CustomTypography()
                             .bodyLarge(color: CustomColors.textWhite)),
                     const SizedBox(
                       height: 24,
                     ),
                     ConfrimTile(
-                      title: "Research Name",
+                      title: "Study Name",
                       info: Strings.studyName,
                       icon: const Icon(
                         Icons.assured_workload_rounded,
@@ -62,7 +62,7 @@ class ConfrimJoiningPage extends StatelessWidget {
                       height: 12,
                     ),
                     ConfrimTile(
-                      title: "Research Duration",
+                      title: "Study Duration",
                       info: Strings.studyDuration,
                       icon: const Icon(
                         Icons.calendar_month_outlined,
@@ -84,7 +84,7 @@ class ConfrimJoiningPage extends StatelessWidget {
                     TextButton(
                         onPressed: () => showResearchDetails(context),
                         child: Text(
-                          "View Research Details",
+                          "View Study Details",
                           style: TextStyle(
                               color: CustomColors.textWhite,
                               fontFamily: CustomTypography.fontName,
@@ -112,7 +112,7 @@ class ConfrimJoiningPage extends StatelessWidget {
                           MaterialPageRoute(
                               builder: (context) => const WelcomePage()),
                           (route) => false),
-                      text: "CONFIRM JOINING",
+                      text: "Confirm Joining",
                       color: CustomColors.fillWhite,
                       shadowColor: CustomColors.productBorderNormal,
                       textColor: CustomColors.productNormalActive,
@@ -133,10 +133,10 @@ class ConfrimJoiningPage extends StatelessWidget {
         isScrollControlled: true,
         builder: (context) => Wrap(
               children: [
-                BottomResearcherInfoPopUp(
+                BottomStudyInfoPopUp(
                     studyName: Strings.studyName,
-                    studyDescription: Strings.studyDescription,
-                    organisation: "Emory School of Medicine",
+                    //studyDescription: Strings.studyDescription,
+                    organisation: Strings.organisation,
                     duration: Strings.studyDuration,
                     researcher: Strings.researcherName)
               ],
