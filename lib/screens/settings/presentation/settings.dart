@@ -82,8 +82,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
           ),
           centerTitle: true,
         ),
-        body: Column(// Add this line
-            children: [
+        body: Column(children: [
           Expanded(
             child: SingleChildScrollView(
               child: Column(children: [
@@ -317,8 +316,8 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                       const SizedBox(height: 12),
                       Image.asset(
                         "assets/images/emory_image.png",
-                        width: 150,
-                        height: 42,
+                        width: 180,
+                        height: 55,
                       ),
                       const SizedBox(height: 12),
                       Row(

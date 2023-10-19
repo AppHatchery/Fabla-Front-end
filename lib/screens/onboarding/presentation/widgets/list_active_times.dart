@@ -53,7 +53,7 @@ class _ListActiveTimesState extends State<ListActiveTimes> {
         ),
         CustomElevatedButton(
           onClick: () => pickDate(),
-          text: "ADD A DIARY TIME",
+          text: "ADD A REMINDER",
           textColor: CustomColors.productNormalActive,
           color: CustomColors.fillWhite,
           border: Border.all(color: CustomColors.productBorderNormal, width: 2),
