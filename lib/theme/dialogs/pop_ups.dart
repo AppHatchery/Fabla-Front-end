@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../components/buttons.dart';
@@ -260,6 +261,373 @@ class BottomResearcherInfoPopUp extends StatelessWidget {
             // CustomTextButton(
             //     onClick: () => Navigator.pop(context),
             //     text: "I have a problem with joining the study")
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class BottomStudyInfoPopUp extends StatelessWidget {
+  final String studyName;
+  final String organisation;
+  final String duration;
+  final String researcher;
+  const BottomStudyInfoPopUp(
+      {super.key,
+      required this.studyName,
+      required this.organisation,
+      required this.duration,
+      required this.researcher});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+    return Container(
+      width: width,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 34),
+      decoration: const BoxDecoration(
+        color: CustomColors.fillWhite,
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24), topRight: Radius.circular(24))
+      ),
+      constraints: BoxConstraints(maxHeight: height * 0.75, maxWidth: width),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  flex: 1,
+                  child: SizedBox(),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    "Study Information",
+                    style: CustomTypography().headlineMedium(),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(
+              height: 24,
+            ),
+
+            // Study Name
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(CupertinoIcons.doc_plaintext, size: 16), 
+                const SizedBox(
+                  width: 12,
+                ),
+                Text(
+                  studyName,
+                  style: CustomTypography().bodyMedium(),
+                ),
+              ],
+            ),
+
+            const SizedBox(
+              height: 12,
+            ),
+
+            // Organisation
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(CustomIcons.assuredWorkload, size: 16),
+                const SizedBox(
+                  width: 12,
+                ),
+                Text(
+                  organisation,
+                  style: CustomTypography().bodyMedium(),
+                ),
+              ],
+            ),
+
+            const SizedBox(
+              height: 12,
+            ),
+
+            // Duration
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(CustomIcons.calendarMonth, size: 16),
+                const SizedBox(
+                  width: 12,
+                ),
+                Text(
+                  duration,
+                  style: CustomTypography().bodyMedium(),
+                ),
+              ],
+            ),
+
+            const SizedBox(
+              height: 12,
+            ),
+
+            // Researcher
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(CustomIcons.person, size: 16),
+                const SizedBox(
+                  width: 12,
+                ),
+                Text(
+                  researcher,
+                  style: CustomTypography().bodyMedium(),
+                ),
+              ],
+            ),
+
+            const SizedBox(
+              height: 24,
+            ),
+
+            // Time and Completion Rates
+            Row(
+              children: [
+                Text(
+                  "Time and Completion Rates",
+                  style: CustomTypography().titleLarge(),
+                ),
+              ],
+            ),
+
+            const SizedBox(
+              height: 6,
+            ),
+
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("\u2022",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: CustomTypography().bodyMedium(), children: [
+                      TextSpan(
+                          text: "The deadline for submitting a diary is ",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                      TextSpan(
+                        text: "4 AM ",
+                        style: CustomTypography()
+                            .bodyMedium(weight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                          text: "the following day.",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("\u2022",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: CustomTypography().bodyMedium(), children: [
+                      TextSpan(
+                          text: "If you miss a submission, you ",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                      TextSpan(
+                        text: "will not be able to submit ",
+                        style: CustomTypography()
+                            .bodyMedium(weight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                          text: "unless it is due to technical issues.",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("\u2022",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: CustomTypography().bodyMedium(), children: [
+                      TextSpan(
+                          text:
+                              "To earn extra credit from your instructor, you will need to respond to ",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                      TextSpan(
+                        text: "at least 65% ",
+                        style: CustomTypography()
+                            .bodyMedium(weight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                          text: "of the daily diaries.",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(
+              height: 24,
+            ),
+
+            //OverView
+            Row(
+              children: [
+                Text(
+                  "Study Overview",
+                  style: CustomTypography().titleLarge(),
+                ),
+              ],
+            ),
+
+            const SizedBox(
+              height: 6,
+            ),
+
+            Text(
+              "The purpose of this study is to test a smartphone app for daily diary research called Fabla, to find out how well it works and how easy it is for people to use. Fabla is a new app developed by the Georgia CTSA AppHatchery. The study will also assess how people's spoken reports about their day compare to their written reports about their day. Participation in this study takes about two weeks to complete.",
+              style: CustomTypography()
+                  .bodyMedium(color: CustomColors.textSecondaryContent),
+            ),
+
+            const SizedBox(
+              height: 16,
+            ),
+
+            Text.rich(
+              TextSpan(style: CustomTypography().bodyMedium(), children: [
+                TextSpan(
+                    text:
+                        "During the daily diary study, you will be asked to respond to some questions every day before you go to bed for two weeks. The daily diary will take about ",
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textSecondaryContent)),
+                TextSpan(
+                  text: "10 minutes ",
+                  style: CustomTypography().bodyMedium(weight: FontWeight.bold),
+                ),
+                TextSpan(
+                    text:
+                        "to complete each time, and it asks you to share about:",
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textSecondaryContent)),
+              ]),
+            ),
+
+            const SizedBox(
+              height: 16,
+            ),
+
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("\u2022",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text("how your day was,",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("\u2022",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text("your interactions with other people that day,",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("\u2022",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text("and whether anything stressful happened.",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+              ],
+            ),
+
+            const SizedBox(
+              height: 16,
+            ),
+
+            Text.rich(
+              TextSpan(style: CustomTypography().bodyMedium(), children: [
+                TextSpan(
+                    text:
+                        "If you have questions about the study procedures, appointments, research-related injuries or bad reactions, or other questions or concerns about the research or your part in it, contact the Principal Investigator at ",
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textSecondaryContent)),
+                TextSpan(
+                  text: "404-727-1360",
+                  style: CustomTypography().bodyMedium(weight: FontWeight.bold),
+                ),
+              ]),
+            ),
           ],
         ),
       ),

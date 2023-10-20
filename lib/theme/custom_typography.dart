@@ -84,10 +84,10 @@ class CustomTypography {
     );
   }
 
-  TextStyle bodyMedium({Color color = Colors.black}) {
+  TextStyle bodyMedium({Color color = Colors.black, weight = FontWeight.normal}) {
     return TextStyle(
       fontFamily: fontName,
-      fontWeight: FontWeight.normal,
+      fontWeight: weight,
       fontSize: 14.sp,
       color: color,
       letterSpacing: 0,

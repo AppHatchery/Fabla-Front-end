@@ -74,7 +74,9 @@ class _MicAccessPageState extends State<MicAccessPage> {
                           Column(
                             children: [
                               Text(
-                                "Let’s enable the microphone access.",
+                                permission
+                                    ? "Great, let's test your microphone volume!"
+                                    : "Please enable the microphone access",
                                 style: CustomTypography().headlineLarge(
                                     color: CustomColors.textWhite),
                               ),
@@ -83,6 +85,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
                                 permission: permission,
                                 width: width,
                                 recorder: recorder,
+                                request: () => _requestPermission(),
                               ),
                               const SizedBox(height: 24),
                               requested == true && permission == false
@@ -250,7 +253,19 @@ class _MicAccessPageState extends State<MicAccessPage> {
         startRecorder();
       }
     }
-    requested = true;
+    
+    if(mounted) requested = true;
+  }
+
+  void _requestPermission() async{
+    final results = await Permission.microphone.request();
+    setState(() {
+      permission = results.isGranted;
+    });
+
+    if (permission) startRecorder();
+
+    if(mounted) requested = true;
   }
 
   void openPermissionSettings() async {

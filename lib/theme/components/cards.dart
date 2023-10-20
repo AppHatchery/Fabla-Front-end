@@ -91,7 +91,7 @@ class DiaryCard extends StatelessWidget {
                   child: CustomElevatedButton(
                     onClick: () => navigateToDiary(context),
                     text: switch (diary!.status) {
-                      DiaryStatus.complete => "Submit",
+                      DiaryStatus.complete => "Continue",
                       DiaryStatus.idle => "Start",
                       DiaryStatus.ongoing => "Continue",
                       DiaryStatus.submitted => "View",
