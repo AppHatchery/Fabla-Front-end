@@ -1,5 +1,4 @@
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
-import 'package:audio_diaries_flutter/screens/home/presentation/widgets/unsubmitted_diary_list.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
@@ -26,7 +25,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late HomeCubit homeCubit;
   String _name = "";
   late List<Diary> diaries;
-  late DateTime startDate;
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -108,7 +106,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         ),
         body: Padding(
             padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                const EdgeInsets.symmetric(horizontal: 16.0),
             child: BlocConsumer<HomeCubit, HomeState>(
                 listener: (context, state) {},
                 builder: (context, state) {
@@ -117,7 +115,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   } else if (state is HomeLoading) {
                     return loading();
                   } else if (state is HomeLoaded) {
-                    return loadedHome(state.diaries, state.unSubmittedDiaries);
+                    return loadedHome(state.diaries, state.startDate);
                   } else {
                     return initialHome();
                   }
@@ -136,13 +134,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return Container();
   }
 
-  Widget loadedHome(List<Diary> diaries, List<Diary> unSubmittedDiaries) {
+  Widget loadedHome(List<Diary> diaries, DateTime startDate) {
     final today = DateTime.now();
     show4AmTip();
     if (today.isBefore(startDate)) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(
+            height: 24,
+          ),
           CalendarCard(
             diaries: diaries,
           ),
@@ -161,8 +162,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(
+            height: 24,
+          ),
           Text(
-            "Today's Diary",
+            "Today's Tasks",
             style: CustomTypography().headlineMedium(),
             textAlign: TextAlign.left,
           ),
@@ -173,20 +177,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return SingleChildScrollView(
       child: Column(
         children: [
+          const SizedBox(
+            height: 24,
+          ),
           CalendarCard(
             diaries: diaries,
           ),
           const SizedBox(
             height: 24,
-          ),
-          unSubmittedDiaries.isNotEmpty
-              ? UnsubmittedDiaryList(
-                  diaries: unSubmittedDiaries,
-                  refresh: (value) => refresh(value),
-                )
-              : const SizedBox.shrink(),
-          const SizedBox(
-            height: 12,
           ),
           TodaysDiaryList(diaries: diaries, refresh: (value) => refresh(value))
         ],
@@ -197,8 +195,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void fetchData(BuildContext context) async {
     homeCubit.loadDiaries();
     diaries = homeCubit.getAllDiariesThisWeek();
-    startDate = DateTime.fromMillisecondsSinceEpoch(
-        await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
   }
 
   void refresh(bool shouldRefresh) {

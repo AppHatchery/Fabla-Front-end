@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_history_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
@@ -35,7 +37,8 @@ import 'services/notification_service.dart';
 late ObjectBox objectbox;
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding); // Start Splash Screen
+  FlutterNativeSplash.preserve(
+      widgetsBinding: widgetsBinding); // Start Splash Screen
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -144,6 +147,7 @@ class Hub extends StatefulWidget {
 
 class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
   late TabController tabController;
+  List<Tab> navigationBars = [];
   static const pages = [
     HomePage(),
     DiariesPage(),
@@ -154,6 +158,7 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
   void initState() {
     tabController = TabController(length: pages.length, vsync: this);
     startPendo();
+    _makeNavBars();
     super.initState();
   }
 
@@ -194,18 +199,32 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
     await PendoService.start(participant!.studyCode.toString());
   }
 
-  static const navigationBars = <Tab>[
-    Tab(
-      icon: Icon(CupertinoIcons.text_badge_checkmark),
-      text: "Study",
-    ),
-    Tab(
-      icon: Icon(Icons.history),
-      text: "History",
-    ),
-    Tab(
-      icon: Icon(Icons.settings_outlined),
-      text: "Settings",
-    ),
-  ];
+  _makeNavBars() {
+    final repository = DiaryRepository();
+    final diaries = repository.getAllDiaries();
+    final count = diaries
+        .where((element) => element.status == DiaryStatus.complete)
+        .length;
+
+    navigationBars.addAll(<Tab>[
+      const Tab(
+        icon: Icon(CupertinoIcons.text_badge_checkmark),
+        text: "Study",
+      ),
+      Tab(
+        icon: count > 0
+            ? Badge(
+                backgroundColor: CustomColors.warningActive,
+                textColor: CustomColors.fillWhite,
+                label: Text(count.toString()),
+                child: const Icon(Icons.history))
+            : const Icon(Icons.history),
+        text: "History",
+      ),
+      const Tab(
+        icon: Icon(Icons.settings_outlined),
+        text: "Settings",
+      ),
+    ]);
+  }
 }

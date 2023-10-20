@@ -17,11 +17,11 @@ class HomeLoading extends HomeState {
 
 class HomeLoaded extends HomeState {
   final List<Diary> diaries;
-  final List<Diary> unSubmittedDiaries;
-  const HomeLoaded(this.diaries, this.unSubmittedDiaries);
+  final DateTime startDate;
+  const HomeLoaded(this.diaries, this.startDate);
 
   @override
-  List<Object> get props => [diaries];
+  List<Object> get props => [diaries, startDate];
 }
 
 class HomeError extends HomeState {

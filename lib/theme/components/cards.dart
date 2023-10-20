@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_responses.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
@@ -26,8 +27,9 @@ class DiaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     late String preview;
-    if(diary?.status == DiaryStatus.submitted || diary?.status == DiaryStatus.missed) {
-      preview  = 'Day ${diary?.id} - Study Name';
+    if (diary?.status == DiaryStatus.submitted ||
+        diary?.status == DiaryStatus.missed) {
+      preview = 'Day ${diary?.id} - ${Strings.studyName}';
     } else {
       preview = 'Day ${diary?.id} - ${diary!.prompts[0].question!}';
     }
@@ -123,6 +125,14 @@ class DiaryCard extends StatelessWidget {
   void navigateToDiary(BuildContext context) async {
     if (diary!.status == DiaryStatus.complete) {
       Navigator.pushNamed(context, '/DiarySummaryPage', arguments: diary);
+    } else if (diary!.status == DiaryStatus.submitted ||
+        diary!.status == DiaryStatus.missed) {
+      showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => Wrap(
+                children: [ReviewResponses(diary: diary!)],
+              ));
     } else {
       final results = await Navigator.of(context)
           .pushNamed("/NewDiaryPage", arguments: diary);
