@@ -90,7 +90,9 @@ class _StreakCalendarState extends State<StreakCalendar> {
     late Color foreground;
 
     if (isToday) {
-      color = CustomColors.productNormalActive;
+      color = isComplete != null && isComplete
+          ? const Color(0xFF1FBE4C)
+          : CustomColors.productNormalActive;
       foreground = CustomColors.textWhite;
     } else if (isComplete == null) {
       color = Colors.transparent;
