@@ -56,7 +56,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
       });
     }
     showTip();
-    if(widget.diary.status == DiaryStatus.idle){
+    if (widget.diary.status == DiaryStatus.idle) {
       participantsDiaryStartDate(widget.diary);
     }
     super.initState();
@@ -122,6 +122,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               children: [
                 IconButton(
                   onPressed: () {
+                    if (widget.diary.status == DiaryStatus.ongoing) {
+                      scheduleContinueDiaryNotifications(widget.diary.id);
+                    }
                     Navigator.pop(context, true);
                   },
                   icon: const Icon(CustomIcons.close),
@@ -311,7 +314,8 @@ class QuestionPage extends StatefulWidget {
   State<QuestionPage> createState() => _QuestionPageState();
 }
 
-class _QuestionPageState extends State<QuestionPage> with WidgetsBindingObserver {
+class _QuestionPageState extends State<QuestionPage>
+    with WidgetsBindingObserver {
   late PromptCubit promptCubit;
   late Prompt prompt;
 
@@ -347,7 +351,9 @@ class _QuestionPageState extends State<QuestionPage> with WidgetsBindingObserver
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.paused:
-         if(widget.diary.status == DiaryStatus.ongoing) scheduleContinueDiaryNotifications(widget.diary.id);
+        if (widget.diary.status == DiaryStatus.ongoing) {
+          scheduleContinueDiaryNotifications(widget.diary.id);
+        }
         break;
       default:
     }
@@ -566,7 +572,7 @@ class _QuestionPageState extends State<QuestionPage> with WidgetsBindingObserver
       repository.updateDiary(widget.diary);
     }
     promptCubit.saveResponse(prompt, response);
-
+    cancelAllDiaryNotifications(widget.diary.id);
     if (!isClicked) {
       setState(() {
         isClicked = true;

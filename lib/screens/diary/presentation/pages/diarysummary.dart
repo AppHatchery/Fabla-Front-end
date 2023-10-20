@@ -80,6 +80,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   backgroundColor: CustomColors.fillNormal,
                   leading: IconButton(
                     onPressed: () {
+                      scheduleSubmitDiaryNotification(widget.diary.id);
                       Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(builder: (context) => const Hub()),

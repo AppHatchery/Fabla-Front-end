@@ -236,10 +236,8 @@ class SetupRepository {
     times.sort((a, b) =>
         (a.hour + a.minute / 60.0).compareTo(b.hour + b.minute / 60.0));
 
-    List<TimeOfDay> dayReminders = times.where((element) => element.hour < 19).toList();
-    List<TimeOfDay> nightReminders = times.where((element) => element.hour >= 19).toList();
-
-    if(nightReminders.isEmpty) nightReminders.add(const TimeOfDay(hour: 21, minute: 00));
+    List<TimeOfDay> lateReminders =
+        times.where((element) => element.hour >= 19).toList();
 
     final diaryNotifications = <int, List<int>>{};
 
@@ -278,6 +276,52 @@ class SetupRepository {
         diaryNotifications[diaryId]!.add(id);
       }
     }
+
+    // Schedule late reminders
+    final last = lateReminders.lastOrNull;
+    //If there is a late reminder and it is not past 12am
+    if (last != null && last.hour + 3 < 24) {
+      for (final diary in diaries) {
+        final diaryId = diary.id;
+
+        final date = diary.start;
+        final notificationDate = DateTime(
+            date.year, date.month, date.day, last.hour + 3, last.minute);
+
+        final id = Random().nextInt(100000);
+
+        const title = "Let's Get Started on Your Diary!";
+        const body =
+            "Hey, it looks like you haven't started your diary yet. Don't worry; it's not too late to begin! Your insights are valuable, so let's start today. Click here to begin now.";
+
+        await NotificationService.createNotification(
+            id: id, title: title, body: body, date: notificationDate);
+
+        // Add the notification ID to the diary's list
+        diaryNotifications[diaryId]!.add(id);
+      }
+    } else if (lateReminders.isEmpty) {
+      for (final diary in diaries) {
+        final diaryId = diary.id;
+
+        final date = diary.start;
+        final notificationDate =
+            DateTime(date.year, date.month, date.day, 21, 0);
+
+        final id = Random().nextInt(100000);
+
+        const title = "Let's Get Started on Your Diary!";
+        const body =
+            "Hey, it looks like you haven't started your diary yet. Don't worry; it's not too late to begin! Your insights are valuable, so let's start today. Click here to begin now.";
+
+        await NotificationService.createNotification(
+            id: id, title: title, body: body, date: notificationDate);
+
+        // Add the notification ID to the diary's list
+        diaryNotifications[diaryId]!.add(id);
+      }
+    }
+
     //Save to Shared Preferences
     final jsonMap = diaryNotifications.map(
       (key, value) => MapEntry(key.toString(), value),
