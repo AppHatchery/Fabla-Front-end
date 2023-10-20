@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,15 +13,15 @@ import '../../data/prompt.dart';
 import '../cubit/diary/summary_cubit.dart';
 import 'question_widgets.dart';
 
-class ReviewResponses extends StatefulWidget {
+class ReviewDiary extends StatefulWidget {
   final Diary diary;
-  const ReviewResponses({super.key, required this.diary});
+  const ReviewDiary({super.key, required this.diary});
 
   @override
-  State<ReviewResponses> createState() => _ReviewResponsesState();
+  State<ReviewDiary> createState() => _ReviewDiaryState();
 }
 
-class _ReviewResponsesState extends State<ReviewResponses> {
+class _ReviewDiaryState extends State<ReviewDiary> {
   late SummaryCubit summaryCubit;
   int? expandedCardId;
   bool isSliderEnabled = false;
@@ -81,7 +82,10 @@ class _ReviewResponsesState extends State<ReviewResponses> {
                 Expanded(
                   flex: 3,
                   child: Text(
-                    "Response of ${_formatDate(diary.start)}",
+                    diary.status == DiaryStatus.missed ||
+                            diary.start.isBefore(DateTime.now())
+                        ? "Response of ${_formatDate(diary.start)}"
+                        : "Upcoming Diary for ${_formatDate(diary.start)}",
                     style: CustomTypography().bodyLarge(),
                     textAlign: TextAlign.center,
                   ),
@@ -105,9 +109,12 @@ class _ReviewResponsesState extends State<ReviewResponses> {
           ),
           const SizedBox(height: 24),
           Padding(
-             padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              "Response Summary",
+              diary.status == DiaryStatus.missed ||
+                      diary.start.isBefore(DateTime.now())
+                  ? "Response Summary"
+                  : "Prompts Preview",
               style: CustomTypography()
                   .headlineMedium(color: CustomColors.textNormalContent),
             ),
@@ -115,14 +122,13 @@ class _ReviewResponsesState extends State<ReviewResponses> {
           const SizedBox(height: 24),
           Expanded(
               child: Padding(
-                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: ListView.builder(
-                    shrinkWrap: true,
-                    
-                    itemCount: diary.prompts.length,
-                    itemBuilder: (context, index) =>
-                        buildPrompt(diary.prompts[index], index)),
-              )),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: diary.prompts.length,
+                itemBuilder: (context, index) =>
+                    buildPrompt(diary.prompts[index], index)),
+          )),
         ],
       ),
     );
@@ -136,7 +142,9 @@ class _ReviewResponsesState extends State<ReviewResponses> {
     int scaleMinValue = 0;
     int scaleMaxValue = 100;
 
-    if (prompt.responseType == ResponseType.slider && choices != null && choices.length >= 2) {
+    if (prompt.responseType == ResponseType.slider &&
+        choices != null &&
+        choices.length >= 2) {
       try {
         scaleMinValue = int.parse(choices[0].option!);
         scaleMaxValue = int.parse(choices[1].option!);

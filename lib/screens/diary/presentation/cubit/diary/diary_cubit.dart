@@ -42,6 +42,7 @@ class DiaryCubit extends Cubit<DiaryState> {
   }
 
   List<Tag> _getTags(Diary diary) {
+    final today = DateTime.now();
     List<Tag> tags = [];
 
     if (diary.status == DiaryStatus.submitted) {
@@ -52,6 +53,11 @@ class DiaryCubit extends Cubit<DiaryState> {
       tags.add(const Tag(text: "Awaiting Submission", type: TagType.time));
     } else if (diary.status == DiaryStatus.ongoing) {
       tags.add(const Tag(text: "Ongoing", type: TagType.time));
+    } else if (diary.status == DiaryStatus.idle && diary.start.isAfter(today)) {
+      tags.addAll([
+        const Tag(text: "13 Questions", type: TagType.questions),
+        const Tag(text: "12 Minutes", type: TagType.time)
+      ]);
     } else if (diary.status == DiaryStatus.idle) {
       tags.add(const Tag(text: "Ready to Start", type: TagType.time));
     }

@@ -212,13 +212,13 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
         text: "Study",
       ),
       Tab(
-        icon: count > 0
-            ? Badge(
-                backgroundColor: CustomColors.warningActive,
-                textColor: CustomColors.fillWhite,
-                label: Text(count.toString()),
-                child: const Icon(Icons.history))
-            : const Icon(Icons.history),
+        icon: Badge(
+          backgroundColor: CustomColors.warningActive,
+          textColor: CustomColors.fillWhite,
+          label: Text(count.toString()),
+          isLabelVisible: count > 0,
+          child: const Icon(Icons.history),
+        ),
         text: "History",
       ),
       const Tab(

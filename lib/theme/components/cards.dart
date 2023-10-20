@@ -1,5 +1,5 @@
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
-import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_responses.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
@@ -28,7 +28,8 @@ class DiaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     late String preview;
     if (diary?.status == DiaryStatus.submitted ||
-        diary?.status == DiaryStatus.missed) {
+        diary?.status == DiaryStatus.missed ||
+        diary!.start.isAfter(DateTime.now())) {
       preview = 'Day ${diary?.id} - ${Strings.studyName}';
     } else {
       preview = 'Day ${diary?.id} - ${diary!.prompts[0].question!}';
@@ -37,7 +38,8 @@ class DiaryCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: diary?.status == DiaryStatus.submitted ||
-                diary?.status == DiaryStatus.missed
+                diary?.status == DiaryStatus.missed ||
+                diary!.start.isAfter(DateTime.now())
             ? CustomColors.fillNormal
             : CustomColors.fillWhite,
         borderRadius: BorderRadius.circular(12),
@@ -92,24 +94,29 @@ class DiaryCard extends StatelessWidget {
                   flex: 1,
                   child: CustomElevatedButton(
                     onClick: () => navigateToDiary(context),
-                    text: switch (diary!.status) {
-                      DiaryStatus.complete => "Continue",
-                      DiaryStatus.idle => "Start",
-                      DiaryStatus.ongoing => "Continue",
-                      DiaryStatus.submitted => "View",
-                      DiaryStatus.missed => "View",
-                    },
+                    text: diary!.start.isAfter(DateTime.now())
+                        ? "Preview"
+                        : switch (diary!.status) {
+                            DiaryStatus.complete => "Continue",
+                            DiaryStatus.idle => "Start",
+                            DiaryStatus.ongoing => "Continue",
+                            DiaryStatus.submitted => "View",
+                            DiaryStatus.missed => "View",
+                          },
                     color: diary?.status == DiaryStatus.submitted ||
-                            diary?.status == DiaryStatus.missed
+                            diary?.status == DiaryStatus.missed ||
+                            diary!.start.isAfter(DateTime.now())
                         ? CustomColors.fillNormal
                         : CustomColors.productNormal,
                     border: diary?.status == DiaryStatus.submitted ||
-                            diary?.status == DiaryStatus.missed
+                            diary?.status == DiaryStatus.missed ||
+                            diary!.start.isAfter(DateTime.now())
                         ? Border.all(
                             color: CustomColors.productNormal, width: 2)
                         : const Border(),
                     textColor: diary?.status == DiaryStatus.submitted ||
-                            diary?.status == DiaryStatus.missed
+                            diary?.status == DiaryStatus.missed ||
+                            diary!.start.isAfter(DateTime.now())
                         ? CustomColors.productNormal
                         : CustomColors.textWhite,
                   ),
@@ -126,12 +133,13 @@ class DiaryCard extends StatelessWidget {
     if (diary!.status == DiaryStatus.complete) {
       Navigator.pushNamed(context, '/DiarySummaryPage', arguments: diary);
     } else if (diary!.status == DiaryStatus.submitted ||
-        diary!.status == DiaryStatus.missed) {
+        diary!.status == DiaryStatus.missed ||
+        diary!.start.isAfter(DateTime.now())) {
       showModalBottomSheet(
           context: context,
           isScrollControlled: true,
           builder: (context) => Wrap(
-                children: [ReviewResponses(diary: diary!)],
+                children: [ReviewDiary(diary: diary!)],
               ));
     } else {
       final results = await Navigator.of(context)
