@@ -594,21 +594,19 @@ class BottomSuccessModal extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        Expanded(
-                          child: CustomElevatedIconButton(
-                            onClick: () {
-                              Navigator.pop(context);
-                              previousPage?.call();
-                            },
-                            icon: Icons.arrow_back,
-                            //iconSize: 25.0,
-                            iconColor: CustomColors.productNormal,
-                            color: CustomColors.fillNormal,
-                            shadowColor: Colors.transparent,
-                            border: Border.all(
-                              color: CustomColors.productBorderNormal,
-                              width: 1,
-                            ),
+                        CustomElevatedIconButton(
+                          onClick: () {
+                            Navigator.pop(context);
+                            previousPage?.call();
+                          },
+                          icon: Icons.arrow_back,
+                          //iconSize: 25.0,
+                          iconColor: CustomColors.productNormal,
+                          color: CustomColors.fillNormal,
+                          shadowColor: Colors.transparent,
+                          border: Border.all(
+                            color: CustomColors.productBorderNormal,
+                            width: 2,
                           ),
                         ),
                         const SizedBox(
@@ -618,7 +616,7 @@ class BottomSuccessModal extends StatelessWidget {
                           flex: 4,
                           child: Padding(
                             padding: const EdgeInsets.all(0.0),
-                            child: CustomElevatedButton(
+                            child: CustomFlatButton(
                               onClick: () {
                                 Navigator.pop(context);
                                 onNextQuestionClicked?.call();

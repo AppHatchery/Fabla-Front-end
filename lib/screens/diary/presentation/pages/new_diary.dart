@@ -168,13 +168,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         ),
         body: Column(
           children: [
-            Container(
-                padding: const EdgeInsets.only(left: 15),
-                alignment: Alignment.topLeft,
-                child: Text(
-                  "Question ${currentPage + 1}/${widget.diary.prompts.length}",
-                  style: CustomTypography().button(),
-                )),
             Expanded(
               child: PageView(
                 physics: const NeverScrollableScrollPhysics(),
@@ -182,17 +175,13 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                 children: pages(),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Visibility(
-                    visible: currentPage != 0,
-                    child: Container(
-                      padding: const EdgeInsets.only(
-                          left: 16, right: 16, bottom: 34),
-                      width: 90,
-                      height: 97,
-                      alignment: Alignment.topCenter,
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 34),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Visibility(
+                      visible: currentPage != 0,
                       child: CustomElevatedIconButton(
                         onClick: () {
                           previousPage();
@@ -204,23 +193,21 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                         shadowColor: Colors.transparent,
                         border: Border.all(
                           color: CustomColors.productBorderNormal,
-                          width: 1,
+                          width: 2,
                         ),
-                      ),
-                    )),
-                Expanded(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.only(left: 16, right: 16, bottom: 34),
-                    alignment: Alignment.bottomCenter,
+                      )),
+
+                  const SizedBox(width: 12,),
+                  Expanded(
+                    flex: 3,
                     child: CustomFlatButton(
                       isDisabled: !ableToContinue,
                       onClick: () => nextPage(),
                       text: "CONTINUE",
                     ),
-                  ),
-                )
-              ],
+                  )
+                ],
+              ),
             ),
           ],
         ),
@@ -231,6 +218,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   List<QuestionPage> pages() {
     return widget.diary.prompts
         .map((e) => QuestionPage(
+              currentPage: currentPage,
               diary: widget.diary,
               prompt: e,
               scaffoldKey: key,
@@ -297,6 +285,7 @@ class QuestionPage extends StatefulWidget {
   final Prompt prompt;
   final GlobalKey<ScaffoldState> scaffoldKey;
   final ValueChanged<bool> answerAdded;
+  final int currentPage;
   final VoidCallback nextPage;
   final VoidCallback previousPage;
   final bool? isLastPage;
@@ -305,6 +294,7 @@ class QuestionPage extends StatefulWidget {
     required this.diary,
     required this.prompt,
     required this.scaffoldKey,
+    required this.currentPage,
     required this.answerAdded,
     required this.previousPage,
     required this.nextPage,
@@ -343,7 +333,7 @@ class _QuestionPageState extends State<QuestionPage> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child:
             BlocConsumer<PromptCubit, PromptState>(builder: (context, state) {
           if (state is PromptInitial) {
@@ -420,7 +410,6 @@ class _QuestionPageState extends State<QuestionPage> {
         selected: selected,
         onChanged: (value) {
           final response = value.join("/ ");
-          print("Response: $response");
           save(prompt, response);
 
           if (value.isNotEmpty) {
@@ -464,45 +453,89 @@ class _QuestionPageState extends State<QuestionPage> {
       child: Column(
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
+                    style: CustomTypography().button(),
+                  )),
+              GestureDetector(
+                onTap: () => {
+                  if (prompt.note != null)
+                    {
+                      setState(() {
+                        isClicked = !isClicked;
+                      })
+                    }
+                  else
+                    {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("No tips available for this question."),
+                          duration: Duration(seconds: 3),
+                        ),
+                      )
+                    }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(7),
+                    border: Border.all(
+                      color: CustomColors.productBorderNormal,
+                      width: 2,
+                    ),
+                    color: CustomColors.fillNormal,
+                  ),
+                  child: Row(children: [
+                    Icon(
+                      Icons.description_outlined,
+                      color: !isClicked && prompt.note != null
+                          ? CustomColors.productNormalActive
+                          : Colors.black,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Tips",
+                      style: CustomTypography().bodyLarge(
+                          color: !isClicked && prompt.note != null
+                              ? CustomColors.productNormalActive
+                              : Colors.black),
+                    )
+                  ]),
+                ),
+              )
+            ],
+          ),
+
+          const SizedBox(
+            height: 12,
+          ),
+
+          Row(
             children: [
               Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    text: prompt.question,
-                    style: CustomTypography()
-                        .titleLarge(color: CustomColors.textNormalContent),
-                    children: [
-                      WidgetSpan(
-                        alignment: PlaceholderAlignment.middle,
-                        child: prompt.note != null
-                            ? IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    isClicked = !isClicked;
-                                  });
-                                },
-                                icon: Icon(isClicked
-                                    ? CustomIcons.note
-                                    : CustomIcons.note_1),
-                                color: CustomColors.productNormal,
-                                iconSize: 22.0,
-                                padding: const EdgeInsets.all(0),
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                    ],
-                  ),
+                child: Text(
+                  prompt.question.toString(),
+                  style: CustomTypography()
+                      .titleLarge(),
                 ),
               ),
             ],
           ),
           if (!isClicked)
             prompt.note != null
-                ? ResearchersNote(
-                    note: prompt.note,
-                    onDismissed: (value) => setState(() {
-                      isClicked = value;
-                    }),
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 12.0),
+                    child: ResearchersNote(
+                      note: prompt.note,
+                      onDismissed: (value) => setState(() {
+                        isClicked = value;
+                      }),
+                    ),
                   )
                 : const SizedBox.shrink(),
           const SizedBox(height: 24),

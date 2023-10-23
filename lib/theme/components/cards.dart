@@ -26,8 +26,9 @@ class DiaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     late String preview;
-    if(diary?.status == DiaryStatus.submitted || diary?.status == DiaryStatus.missed) {
-      preview  = 'Day ${diary?.id} - Study Name';
+    if (diary?.status == DiaryStatus.submitted ||
+        diary?.status == DiaryStatus.missed) {
+      preview = 'Day ${diary?.id} - Study Name';
     } else {
       preview = 'Day ${diary?.id} - ${diary!.prompts[0].question!}';
     }
@@ -329,16 +330,20 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                         // transcript(),
                         /// Remove sized if transcript is available
                         const SizedBox(
-                          height: 10,
+                          height: 18,
                         ),
                         slider(width),
                       ],
                     )),
                 Visibility(
-                    visible: !widget.isExpanded,
-                    child: const SizedBox(
-                      height: 12,
-                    )),
+                  visible: !widget.isExpanded,
+                  replacement: const SizedBox(
+                    height: 24,
+                  ),
+                  child: const SizedBox(
+                    height: 12,
+                  ),
+                ),
                 controls(),
               ],
             ),
@@ -416,13 +421,14 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
         SizedBox(
             width: width,
             child: SliderTheme(
-              data: const SliderThemeData(
-                trackHeight: 3,
-                activeTrackColor: CustomColors.productNormal,
-                thumbColor: CustomColors.productNormal,
-                inactiveTrackColor: CustomColors.productBorderNormal,
-                thumbShape: RoundSliderThumbShape(enabledThumbRadius: 5),
-              ),
+              data: SliderThemeData(
+                  trackHeight: 3,
+                  activeTrackColor: CustomColors.productNormal,
+                  thumbColor: CustomColors.productNormal,
+                  inactiveTrackColor: CustomColors.productBorderNormal,
+                  thumbShape:
+                      const RoundSliderThumbShape(enabledThumbRadius: 5),
+                  overlayShape: SliderComponentShape.noOverlay),
               child: Slider(
                 value: currentSliderPosition,
                 max: maxSliderPosition,
@@ -463,20 +469,23 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                   children: [
                     IconButton(
                       onPressed: () => rewind(),
-                      icon: const Icon(CustomIcons.backupLeft_15s),
+                      icon: const Icon(CupertinoIcons.gobackward_15),
                       color: Colors.black,
+                      iconSize: 24,
                     ),
                     IconButton(
                       onPressed: () => play(),
                       icon: Icon(isPlaying
-                          ? CustomIcons.pause
-                          : CustomIcons.playArrow),
+                          ? CupertinoIcons.pause_fill
+                          : CupertinoIcons.play_arrow_solid),
                       color: Colors.black,
+                      iconSize: 24,
                     ),
                     IconButton(
                       onPressed: () => forward(),
-                      icon: const Icon(CustomIcons.forwardRight_15s),
+                      icon: const Icon(CupertinoIcons.goforward_15),
                       color: Colors.black,
+                      iconSize: 24,
                     ),
                   ],
                 ),
@@ -484,18 +493,15 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
           Expanded(
               child: widget.viewOnly
                   ? const SizedBox()
-                  : GestureDetector(
-                      onTap: () => delete(),
-                      child: const SizedBox(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Icon(
-                            CustomIcons.delete,
-                            color: CustomColors.warningActive,
-                          ),
-                        ),
-                      ),
-                    )),
+                  : Container(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      onPressed: () => delete(),
+                      icon: const Icon(CupertinoIcons.delete),
+                      color: CustomColors.warningActive,
+                      iconSize: 24,
+                    ),
+                  )),
         ],
       ),
     );

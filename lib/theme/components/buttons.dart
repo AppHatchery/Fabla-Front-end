@@ -149,7 +149,7 @@ class CustomElevatedIconButton extends StatelessWidget {
                     },
             child: Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
               child: Center(
                   child: Icon(
                 icon,
