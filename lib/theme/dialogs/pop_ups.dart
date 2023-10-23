@@ -111,7 +111,7 @@ class _BottomTipPopUpState extends State<BottomTipPopUp> {
 
           const SizedBox(height: 12),
 
-          CustomFlatButton(onClick: _save, text: "GOT IT!")
+          CustomFlatButton(onClick: _save, text: "Got It!")
         ],
       ),
     );
@@ -288,10 +288,9 @@ class BottomStudyInfoPopUp extends StatelessWidget {
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 34),
       decoration: const BoxDecoration(
-        color: CustomColors.fillWhite,
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24), topRight: Radius.circular(24))
-      ),
+          color: CustomColors.fillWhite,
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24), topRight: Radius.circular(24))),
       constraints: BoxConstraints(maxHeight: height * 0.75, maxWidth: width),
       child: SingleChildScrollView(
         child: Column(
@@ -333,7 +332,7 @@ class BottomStudyInfoPopUp extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(CupertinoIcons.doc_plaintext, size: 16), 
+                const Icon(CupertinoIcons.doc_plaintext, size: 16),
                 const SizedBox(
                   width: 12,
                 ),
@@ -872,7 +871,7 @@ class WarningPopUp extends StatelessWidget {
                   Expanded(
                     child: CustomFlatButton(
                       onClick: () => Navigator.pop(context),
-                      text: "CANCEL",
+                      text: "Cancel",
                       color: CustomColors.greyLight,
                     ),
                   ),
@@ -882,7 +881,7 @@ class WarningPopUp extends StatelessWidget {
                   Expanded(
                     child: CustomFlatButton(
                       onClick: () => Navigator.pop(context),
-                      text: "CHANGE RESPONSE",
+                      text: "Change Response",
                       color: CustomColors.warningActive,
                     ),
                   ),
@@ -965,7 +964,7 @@ class _RedoPopUpState extends State<RedoPopUp> {
                   Expanded(
                     child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, false),
-                      text: "CANCEL",
+                      text: "Cancel",
                       color: CustomColors.greyLight,
                     ),
                   ),
@@ -975,7 +974,7 @@ class _RedoPopUpState extends State<RedoPopUp> {
                   Expanded(
                     child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, true),
-                      text: "YES",
+                      text: "Yes",
                       color: CustomColors.warningActive,
                     ),
                   ),
@@ -1034,7 +1033,7 @@ class DeletePopUp extends StatelessWidget {
                   Expanded(
                     child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, false),
-                      text: "CANCEL",
+                      text: "Cancel",
                       color: CustomColors.greyLight,
                     ),
                   ),
@@ -1044,7 +1043,7 @@ class DeletePopUp extends StatelessWidget {
                   Expanded(
                     child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, true),
-                      text: "DELETE",
+                      text: "Delete",
                       color: CustomColors.warningActive,
                     ),
                   ),
