@@ -27,7 +27,6 @@ class _WelcomePageState extends State<WelcomePage> {
     repos.apiCreateParticipant(repos.getParticipant()!.studyCode);
     startPendo();
     super.initState();
-
   }
 
   @override
@@ -82,11 +81,10 @@ class _WelcomePageState extends State<WelcomePage> {
                       // const SizedBox(
                       //   height: 27,
                       // ),
-                      CustomElevatedButton(
+                      CustomFlatButton(
                         onClick: () => navigateToNextPage(),
-                        text: "CONTINUE",
+                        text: "Continue",
                         color: CustomColors.fillWhite,
-                        shadowColor: CustomColors.productBorderNormal,
                         textColor: CustomColors.productNormalActive,
                       )
                     ],

@@ -26,8 +26,9 @@ class DiaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     late String preview;
-    if(diary?.status == DiaryStatus.submitted || diary?.status == DiaryStatus.missed) {
-      preview  = 'Day ${diary?.id} - Study Name';
+    if (diary?.status == DiaryStatus.submitted ||
+        diary?.status == DiaryStatus.missed) {
+      preview = 'Day ${diary?.id} - Study Name';
     } else {
       preview = 'Day ${diary?.id} - ${diary!.prompts[0].question!}';
     }

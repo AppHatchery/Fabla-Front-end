@@ -618,7 +618,7 @@ class BottomSuccessModal extends StatelessWidget {
                           flex: 4,
                           child: Padding(
                             padding: const EdgeInsets.all(0.0),
-                            child: CustomElevatedButton(
+                            child: CustomFlatButton(
                               onClick: () {
                                 Navigator.pop(context);
                                 onNextQuestionClicked?.call();
@@ -686,9 +686,8 @@ class BottomErrorModal extends StatelessWidget {
                           flex: 3,
                           child: CustomElevatedButton(
                             onClick: () => Navigator.pop(context),
-                            text: "TRY AGAIN",
+                            text: "Try Again",
                             color: CustomColors.warningActive,
-                            shadowColor: const Color(0xFFC72C1E),
                           ),
                         ),
                         const SizedBox(

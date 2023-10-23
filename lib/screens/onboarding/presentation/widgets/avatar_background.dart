@@ -31,19 +31,20 @@ class AvatarBackground extends StatelessWidget {
             left: 0,
             right: 0,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: avatarType == "image" ? Image.asset(
-                image,
-                width: width,
-              ) : SizedBox(
-                height: height > 750 ? height * 0.55 : height * 0.65,
-                width: width,
-                child: RiveAnimation.asset(
-                  animation!,
-                  fit: BoxFit.fitWidth,
-                ),
-              )
-            )),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: avatarType == "image"
+                    ? Image.asset(
+                        image,
+                        width: width,
+                      )
+                    : SizedBox(
+                        height: height > 750 ? height * 0.55 : height * 0.65,
+                        width: width,
+                        child: RiveAnimation.asset(
+                          animation!,
+                          fit: BoxFit.fitWidth,
+                        ),
+                      ))),
         Positioned(
             top: height > 860 ? 130 : 100,
             left: 0,
@@ -73,12 +74,12 @@ class AvatarBackground extends StatelessWidget {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
-                    child: CustomElevatedButton(
-                        onClick: () => onContinue(), text: "CONTINUE"),
+                    child: CustomFlatButton(
+                        onClick: () => onContinue(), text: "Continue"),
                   )
                 ],
               ),
-            )) 
+            ))
       ],
     );
   }
