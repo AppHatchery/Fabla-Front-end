@@ -445,7 +445,7 @@ class _QuestionPageState extends State<QuestionPage> {
               onClick: () => recordResponse(context),
               text: prompt.answer != null
                   ? "ADD NEW RESPONSE"
-                  : "RECORD RESPONSE",
+                  : "RECORD MY RESPONSE",
             );
     }
 
