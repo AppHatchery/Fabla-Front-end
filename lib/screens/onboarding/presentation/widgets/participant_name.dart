@@ -22,7 +22,7 @@ class _ParticipantNameState extends State<ParticipantName> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Name",
+          "Nickname",
           style: CustomTypography().titleLarge(),
         ),
         const SizedBox(
@@ -30,7 +30,7 @@ class _ParticipantNameState extends State<ParticipantName> {
         ),
         CustomTextField(
           controller: widget.controller,
-          hint: "Enter your name",
+          hint: "Enter a nickname",
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           filled: true,
           borderRadius: BorderRadius.circular(11),

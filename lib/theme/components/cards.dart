@@ -28,7 +28,7 @@ class DiaryCard extends StatelessWidget {
     late String preview;
     if (diary?.status == DiaryStatus.submitted ||
         diary?.status == DiaryStatus.missed) {
-      preview = 'Day ${diary?.id} - Study Name';
+      preview = 'Day ${diary?.id} - Vocalized Daily Diary';
     } else {
       preview = 'Day ${diary?.id} - ${diary!.prompts[0].question!}';
     }
