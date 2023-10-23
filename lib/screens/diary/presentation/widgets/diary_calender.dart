@@ -20,14 +20,14 @@ class DiaryCalender extends StatefulWidget {
 
 class _DiaryCalenderState extends State<DiaryCalender> {
   late DiaryCubit diaryCubit;
-  Map<DateTime, List<String>> events = {};
+  late List<Diary> diaries;
 
   DateTime today = DateTime.now();
 
   @override
   void initState() {
+    diaries = _getAllDiaries();
     diaryCubit = BlocProvider.of<DiaryCubit>(context);
-    _getAllDiaries();
     _fetchData(context);
     super.initState();
   }
@@ -38,10 +38,10 @@ class _DiaryCalenderState extends State<DiaryCalender> {
       child: Column(
         children: [
           CustomCalender(
-              events: events,
-              selectDate: _changeDate,
-            ),
-            const SizedBox(height: 24),
+            diaries: diaries,
+            selectDate: _changeDate,
+          ),
+          const SizedBox(height: 24),
           BlocBuilder<DiaryCubit, DiaryState>(
             builder: (context, state) {
               if (state is DiaryInitial) {
@@ -60,21 +60,9 @@ class _DiaryCalenderState extends State<DiaryCalender> {
     );
   }
 
-  void _getAllDiaries() {
+  List<Diary> _getAllDiaries() {
     final DiaryRepository repository = DiaryRepository();
-    List<Diary> diaries = repository.getAllDiaries();
-    final date =
-        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-
-    for (Diary diary in diaries) {
-      final day =
-          DateTime(diary.start.year, diary.start.month, diary.start.day);
-      if (day != date) {
-        events.addAll({
-          day: ["Yes"]
-        });
-      }
-    }
+    return repository.getAllDiaries();
   }
 
   void _fetchData(BuildContext context) async {
