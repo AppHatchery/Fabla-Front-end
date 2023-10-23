@@ -115,6 +115,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         backgroundColor: CustomColors.fillNormal,
         appBar: AppBar(
           backgroundColor: CustomColors.fillNormal,
+          automaticallyImplyLeading: false,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(0),
             child: Row(
@@ -538,7 +539,7 @@ class _QuestionPageState extends State<QuestionPage> {
                     ),
                   )
                 : const SizedBox.shrink(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 112),
           prompt.answer?.recordings.isNotEmpty ?? false
               ? MyResponse(
                   prompt: prompt,

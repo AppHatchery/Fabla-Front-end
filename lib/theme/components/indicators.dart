@@ -28,6 +28,7 @@ class CustomBarIndicator extends StatelessWidget {
               valueColor:
                   const AlwaysStoppedAnimation<Color>(CustomColors.yellowDark),
               minHeight: 12,
+              borderRadius: BorderRadius.circular(30),
             ),
           ),
         ),
