@@ -89,7 +89,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
                 ),
                 CustomElevatedButton(
                   onClick: () => navigateToNextPage(),
-                  text: "CONTINUE",
+                  text: "Allow",
                   color: CustomColors.fillWhite,
                   shadowColor: CustomColors.productBorderNormal,
                   textColor: CustomColors.productNormalActive,

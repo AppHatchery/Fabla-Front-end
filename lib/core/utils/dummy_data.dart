@@ -1086,7 +1086,7 @@ const Tag missedTag = Tag(text: "Missed", type: TagType.time);
 const Tag onGoingTag = Tag(text: "Ongoing", type: TagType.time);
 const Tag doneTag = Tag(text: "Done", type: TagType.time);
 
-const TimeOfDay fixedTime = TimeOfDay(hour: 9, minute: 0);
+const TimeOfDay fixedTime = TimeOfDay(hour: 18, minute: 0);
 
 final List<int> participantCodes = [
   1010,

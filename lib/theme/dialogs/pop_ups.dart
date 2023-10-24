@@ -126,6 +126,149 @@ class _BottomTipPopUpState extends State<BottomTipPopUp> {
   }
 }
 
+class CustomBottomTipPopUp extends StatefulWidget {
+  const CustomBottomTipPopUp({super.key});
+
+  @override
+  State<CustomBottomTipPopUp> createState() => _CustomBottomTipPopUpState();
+}
+
+class _CustomBottomTipPopUpState extends State<CustomBottomTipPopUp> {
+  bool dontShowAgain = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+      width: width,
+      // color: CustomColors.fillWhite,
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 34),
+      constraints: const BoxConstraints.tightFor(),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          SizedBox(
+              height: 100,
+              child:
+                  Image.asset('assets/images/idea.png', fit: BoxFit.contain)),
+
+          //Title
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              // const Expanded(
+              //     child: SizedBox(
+              //   height: 24,
+              //   width: 24,
+              // )),
+              Expanded(
+                  child: SizedBox(
+                child: Text('Privacy and Audio Quality Assurance',
+                    style: CustomTypography().headlineMedium(),
+                    textAlign: TextAlign.center),
+              )),
+              // Expanded(
+              //     child: GestureDetector(
+              //   onTap: () => Navigator.pop(context),
+              //   child: Container(
+              //     height: 24,
+              //     width: 24,
+              //     alignment: Alignment.centerRight,
+              //     child: const Icon(CustomIcons.close, color: Colors.black),
+              //   ),
+              // )),
+            ],
+          ),
+
+          const SizedBox(height: 32),
+
+          //Message
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.privacy_tip_outlined, color: Colors.black),
+              const SizedBox(
+                width: 12,
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Your privacy matters',
+                      style:
+                          CustomTypography().bodyLarge(weight: FontWeight.w600),
+                    ),
+                    Text(
+                      'Participant anonymity is ensured using participant ID, not personal information, in all records and publications.',
+                      style: CustomTypography()
+                          .bodyLarge(color: CustomColors.textTertiaryContent),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.chair_outlined, color: Colors.black),
+              const SizedBox(
+                width: 12,
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Quiet spot for clear recordings',
+                      style:
+                          CustomTypography().bodyLarge(weight: FontWeight.w600),
+                    ),
+                    Text(
+                      'Find a quiet place before we start so we can ensure the quality of the audio diary.',
+                      style: CustomTypography()
+                          .bodyLarge(color: CustomColors.textTertiaryContent),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 32),
+
+          Container(
+              alignment: Alignment.center,
+              child: IntrinsicWidth(
+                child: CustomCheckbox(
+                    value: dontShowAgain,
+                    label: "Don't show me again",
+                    onChanged: (value) => {
+                          setState(() {
+                            dontShowAgain = value!;
+                          }),
+                        }),
+              )),
+
+          const SizedBox(height: 12),
+
+          CustomFlatButton(onClick: _save, text: "GOT IT!")
+        ],
+      ),
+    );
+  }
+
+  void _save() async {
+    await PreferenceService()
+        .setBoolPreference(key: "show_diary_tip", value: !dontShowAgain);
+    if (mounted) Navigator.pop(context);
+  }
+}
+
 /// Pop up for showing the research information.
 ///
 /// [studyName] is the name of the study. - String?
@@ -288,10 +431,9 @@ class BottomStudyInfoPopUp extends StatelessWidget {
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 34),
       decoration: const BoxDecoration(
-        color: CustomColors.fillWhite,
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24), topRight: Radius.circular(24))
-      ),
+          color: CustomColors.fillWhite,
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24), topRight: Radius.circular(24))),
       constraints: BoxConstraints(maxHeight: height * 0.75, maxWidth: width),
       child: SingleChildScrollView(
         child: Column(
@@ -333,7 +475,7 @@ class BottomStudyInfoPopUp extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(CupertinoIcons.doc_plaintext, size: 16), 
+                const Icon(CupertinoIcons.doc_plaintext, size: 16),
                 const SizedBox(
                   width: 12,
                 ),

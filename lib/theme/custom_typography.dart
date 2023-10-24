@@ -74,10 +74,10 @@ class CustomTypography {
     );
   }
 
-  TextStyle bodyLarge({Color color = Colors.black}) {
+  TextStyle bodyLarge({Color color = Colors.black, weight = FontWeight.normal}) {
     return TextStyle(
       fontFamily: fontName,
-      fontWeight: FontWeight.normal,
+      fontWeight: weight,
       fontSize: 16.sp,
       color: color,
       letterSpacing: 0,

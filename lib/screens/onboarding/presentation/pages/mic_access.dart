@@ -192,7 +192,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
               ),
               CustomElevatedButton(
                 onClick: () => navigateToNextPage(),
-                text: "CONTINUE",
+                text: "Allow",
                 color: CustomColors.fillWhite,
                 isDisabled: requested == true && permission == false,
                 shadowColor: CustomColors.productBorderNormal,

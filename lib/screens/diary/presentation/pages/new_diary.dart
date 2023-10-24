@@ -263,16 +263,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               backgroundColor: Colors.white,
               context: context,
               isScrollControlled: true,
-              builder: (context) => Wrap(
-                    children: [
-                      BottomTipPopUp(
-                        title: 'Tips for You',
-                        message:
-                            "You can find a quiet place before we start. We can't wait to hear your valuable insights!",
-                        image: 'assets/images/living_room.png',
-                        dontShowAgain: !show,
-                      ),
-                    ],
+              builder: (context) => const Wrap(
+                    children: [CustomBottomTipPopUp()],
                   )));
     }
   }
@@ -482,7 +474,6 @@ class _QuestionPageState extends State<QuestionPage> {
                               content:
                                   Text("No tips available for this question."),
                               duration: Duration(seconds: 3),
-                              backgroundColor: CustomColors.productNormalActive,
                             ),
                           ),
                           if (mounted)
