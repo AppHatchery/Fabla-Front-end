@@ -1,3 +1,5 @@
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/unsubmitted_diary_list.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -33,6 +35,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     homeCubit = BlocProvider.of<HomeCubit>(context);
     fetchData(context);
     getParticipant();
+    //safePrint("satrt");
+    //getDiaries();
+
     super.initState();
   }
 

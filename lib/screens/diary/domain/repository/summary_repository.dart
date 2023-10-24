@@ -107,7 +107,7 @@ class SummaryRepository {
         DateTime now = DateTime.now();
         var nextStudyDate =  DateTime(now.year, now.month, now.day, 4, 0, 0).add(const Duration(days: 1));
 
-        setupRepository.updateMetaDataFile(nextStudyDate);
+        //setupRepository.updateMetaDataFile(nextStudyDate);
         return true;
       } else {
         return false;

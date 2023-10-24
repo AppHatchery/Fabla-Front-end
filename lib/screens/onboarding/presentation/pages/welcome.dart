@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/participant_details.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -21,10 +22,16 @@ class _WelcomePageState extends State<WelcomePage> {
 
   @override
   void initState() {
+    
     createMetadata();
+    
     SetupRepository repos = SetupRepository();
-    repos.apiCreateParticipant(repos.getParticipant()!.studyCode);
+    repos.apiCreateMetadata(repos.getParticipant()!.studyCode);
+    /*repos.apiCreateParticipant(repos.getParticipant()!.studyCode);
     startPendo();
+    */
+
+    //repos.recordExists(GqlModelType.userMetatdata,repos.getParticipant()!.studyCode);
     super.initState();
 
   }

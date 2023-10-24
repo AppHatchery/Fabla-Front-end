@@ -1,7 +1,11 @@
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/questions.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -118,6 +122,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                 IconButton(
                   onPressed: () {
                     Navigator.pop(context, true);
+                    showPrompts(widget.diary);
                   },
                   icon: const Icon(CustomIcons.close),
                   iconSize: 15.0,
@@ -527,4 +532,28 @@ class _QuestionPageState extends State<QuestionPage> {
     widget.scaffoldKey.currentState!
         .showBottomSheet((context) => const BottomErrorModal());
   }
+
+
+  
 }
+Future<void> showPrompts(Diary diary)async {
+
+  SetupRepository srepo =  SetupRepository();
+
+  
+  SummaryRepository surepo =  SummaryRepository();
+  var diary2 = await surepo.loadSummary(diary);
+
+
+  
+  
+    /*diary2.prompts.forEach((element) {
+      if(element.answer!=null){
+        safePrint("${element.answer}");
+      }
+      
+    });*/
+
+  partialUpload(srepo.getParticipant()!.studyCode, diary2);
+
+  }

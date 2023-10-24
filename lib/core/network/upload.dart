@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:path/path.dart' as p;
 import 'package:aws_common/vm.dart';
 import '../../screens/diary/data/diary_audio_data.dart';
@@ -60,7 +62,33 @@ Future<bool> upload(String studyCode, Diary diary) async {
     final questionsSubmitted =
         await apiSubmitSurveyQuestions(studyCode, diary, questions);
     final audioSubmitted = await uploadFilesToS3(studyCode, fileList);
-    return questionsSubmitted && audioSubmitted;
+
+    updateMetataData(diary);
+
+    return questionsSubmitted; //&& audioSubmitted;
+  } catch (e) {
+    print("$e");
+    return false;
+  }
+}
+
+Future<bool> partialUpload(String studyCode, Diary diary) async {
+  try {
+    List<Question> questions = [];
+
+    for (int i = 0; i < diary.prompts.length; i++) {
+      var prompt = diary.prompts[i];
+      if (prompt.responseType != ResponseType.recording && prompt.answer !=null) {
+        questions.add(Question(
+            questionType: prompt.questionType,
+            answer: prompt.answer!.response!));
+      }
+    }
+    final map = getQuestions(diary.id, questions);
+    safePrint("map: $map");
+    //final questionsSubmitted = await apiSubmitSurveyQuestions(studyCode, diary, questions);
+
+    return true; //&& audioSubmitted;
   } catch (e) {
     print("$e");
     return false;
@@ -209,7 +237,7 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
   var drinks = filterQuestionByType(questions, QuestionType.drinks)!.answer;
 
   int day = diary.id;
-  final endtime= DateTime.now();
+  final endtime = DateTime.now();
 
   final input = {
     'id': id,
@@ -276,8 +304,8 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
   }
 }
 
-Future<GqlApiRequestStateUpdate> participantsDiaryStartDate(Diary? diary) async {
-
+Future<GqlApiRequestStateUpdate> participantsDiaryStartDate(
+    Diary? diary) async {
   int day = diary!.id;
   DateTime diaryStartTime = DateTime.now();
   SetupRepository repo = SetupRepository();
@@ -288,7 +316,7 @@ Future<GqlApiRequestStateUpdate> participantsDiaryStartDate(Diary? diary) async 
     final map = await apiGetParticipant(studycode);
     safePrint("map: $map");
     final id = map.first['id'];
-    int version  = map.first['_version'];
+    int version = map.first['_version'];
     final input = {
       'id': id,
       'studycode': studycode,
@@ -317,23 +345,23 @@ Future<GqlApiRequestStateUpdate> participantsDiaryStartDate(Diary? diary) async 
       var data = response.data;
 
       if (data != null) {
-        safePrint("Diary started updated startdate ${formatDate(diaryStartTime)}");
-        updateState =GqlApiRequestStateUpdate.updated;
+        safePrint(
+            "Diary started updated startdate ${formatDate(diaryStartTime)}");
+        updateState = GqlApiRequestStateUpdate.updated;
         return updateState;
       } else {
         response.errors.forEach((element) {
           safePrint('${element.message};');
         });
-        updateState =GqlApiRequestStateUpdate.error;
+        updateState = GqlApiRequestStateUpdate.error;
         return updateState;
       }
     } catch (e) {
       print('Exception: $e');
       return GqlApiRequestStateUpdate.error;
     }
-    
-  }else{
-    updateState= GqlApiRequestStateUpdate.notfound;
+  } else {
+    updateState = GqlApiRequestStateUpdate.notfound;
     return updateState;
   }
 }
@@ -364,9 +392,9 @@ Future<dynamic> apiGetParticipant(String studycode) async {
     var data = response.data;
 
     if (data != null) {
-      
       Map<String, dynamic> jsonMap = jsonDecode(data);
       final participantList = jsonMap["listParticipants"]["items"];
+      safePrint("metadata updated");
       return participantList;
     } else {
       response.errors.forEach((element) {
@@ -377,5 +405,277 @@ Future<dynamic> apiGetParticipant(String studycode) async {
   } catch (e) {
     print('Error checking if $studycode exists: $e');
     return null;
+  }
+}
+
+//FINISH WITH FUNCTION Experiment
+
+Future<dynamic> apiGetUseMetaData(String studycode) async {
+  String graphQLDocument = '''
+      query ListFiles {
+        listUserMetadata(filter:{ _deleted:{attributeExists:false}, participant: { eq: "$studycode" } }) {
+          items { 
+            id
+            participant
+            _version
+          }
+        }
+      }
+    ''';
+
+  try {
+    var operation = Amplify.API.query(
+      request: GraphQLRequest<String>(
+        document: graphQLDocument,
+        variables: {'participant': studycode},
+      ),
+    );
+    var response = await operation.response;
+    var data = response.data;
+
+    if (data != null) {
+      Map<String, dynamic> jsonMap = jsonDecode(data);
+      final participantList = jsonMap["listUserMetadata"]["items"];
+      return participantList;
+    } else {
+      response.errors.forEach((element) {
+        safePrint('${element.toJson()}   ${element.message};');
+      });
+      return null;
+    }
+  } catch (e) {
+    print('Error checking if $studycode exists: $e');
+    return null;
+  }
+}
+
+Future<GqlApiRequestStateUpdate> updateMetataData(Diary? diary) async {
+  final day = diary!.id;
+  DateTime diaryStartTime = DateTime.now();
+  SetupRepository repo = SetupRepository();
+  GqlApiRequestStateUpdate updateState = GqlApiRequestStateUpdate.idle;
+  final studycode = repo.getParticipant()!.studyCode;
+
+  if (await repo.recordExists(GqlModelType.userMetatdata, studycode)) {
+    final map = await apiGetUseMetaData(studycode);
+    final id = map.first['id'];
+    int version = map.first['_version'];
+
+    final dateNow = DateTime.now();
+    final recentSubmittedDate = formatDate(DateTime.now());
+
+    final nextStudyDate = formatDate(
+        DateTime(dateNow.year, dateNow.month, dateNow.day)
+            .add(const Duration(days: 1)));
+
+    final nsd = parametersNextStudydate(nextStudyDate, day);
+
+    final input = {
+      'id': id,
+      'participant': studycode,
+      '_version': version,
+      'day$day': 'true',
+      'next_study_date': nsd,
+      'recent_submit_date': recentSubmittedDate
+    };
+
+    safePrint("this is input: $input");
+    try {
+      String graphQLDocument = '''
+      mutation UpdateUserMetadata(\$input: UpdateUserMetadataInput!) {
+          updateUserMetadata(input: \$input) {
+            id
+            participant
+            _version
+            day$day
+            next_study_date
+            recent_submit_date
+          }
+        }
+    ''';
+
+      safePrint("graphQL query $graphQLDocument");
+      var operation = Amplify.API.query(
+        request: GraphQLRequest<String>(
+          document: graphQLDocument,
+          variables: {'input': input},
+        ),
+      );
+      var response = await operation.response;
+      var data = response.data;
+
+      if (data != null) {
+        safePrint("metadate is updated ${formatDate(diaryStartTime)}");
+        updateState = GqlApiRequestStateUpdate.updated;
+        return updateState;
+      } else {
+        for (var element in response.errors) {
+          safePrint('${element.message};');
+        }
+        updateState = GqlApiRequestStateUpdate.error;
+        return updateState;
+      }
+    } catch (e) {
+      print('Exception: $e');
+      return GqlApiRequestStateUpdate.error;
+    }
+  } else {
+    updateState = GqlApiRequestStateUpdate.notfound;
+    return updateState;
+  }
+}
+
+Future<bool> partialSubmission(dynamic id, String studyCode, int entryVersion,
+    Diary diary, List<Question> questions) async {
+  var physically =
+      filterQuestionByType(questions, QuestionType.physically)!.answer;
+  var emotionally =
+      filterQuestionByType(questions, QuestionType.emotionally)!.answer;
+  var intensity =
+      filterQuestionByType(questions, QuestionType.intensity)!.answer;
+  var lonely = filterQuestionByType(questions, QuestionType.lonely)!.answer;
+  var leftout = filterQuestionByType(questions, QuestionType.leftout)!.answer;
+  var socialinteraction =
+      filterQuestionByType(questions, QuestionType.socialinteraction)!.answer;
+  var understood =
+      filterQuestionByType(questions, QuestionType.understood)!.answer;
+  var stressed = filterQuestionByType(questions, QuestionType.stressed)!.answer;
+  var whereyouare =
+      filterQuestionByType(questions, QuestionType.whereyouare)!.answer;
+  var peoplearoundyou =
+      filterQuestionByType(questions, QuestionType.peoplearoundyou)!.answer;
+  var drinks = filterQuestionByType(questions, QuestionType.drinks)!.answer;
+
+  int day = diary.id;
+  final endtime = DateTime.now();
+
+  final input = {
+    'id': id,
+    'studycode': studyCode,
+    'physically_$day': physically,
+    'emotionally_$day': emotionally,
+    'intensity_$day': intensity,
+    'lonely_$day': lonely,
+    'left_out_$day': leftout,
+    'social_interaction_$day': socialinteraction,
+    'understood_$day': understood,
+    'stressed_$day': stressed,
+    'where_you_are_$day': whereyouare,
+    'people_around_you_$day': peoplearoundyou,
+    'drinks_$day': drinks,
+    'endtime_$day': formatDate(endtime),
+    '_version': entryVersion
+  };
+
+  try {
+    String graphQLDocument = '''
+      mutation UpdateParticipants(\$input: UpdateParticipantsInput!) {
+          updateParticipants(input: \$input) {
+            id
+            studycode
+            physically_$day
+            emotionally_$day
+            intensity_$day
+            lonely_$day
+            left_out_$day
+            social_interaction_$day
+            understood_$day
+            stressed_$day
+            where_you_are_$day
+            people_around_you_$day
+            drinks_$day
+            endtime_$day
+            _version
+          }
+        }
+    ''';
+
+    var operation = Amplify.API.query(
+      request: GraphQLRequest<String>(
+        document: graphQLDocument,
+        variables: {'input': input},
+      ),
+    );
+    var response = await operation.response;
+    var data = response.data;
+
+    if (data != null) {
+      safePrint("Questions submitted");
+      return true;
+    } else {
+      response.errors.forEach((element) {
+        safePrint('${element.message};');
+      });
+      return false;
+    }
+  } catch (e) {
+    print('Exception: $e');
+    return false;
+  }
+}
+
+
+
+Map<String,dynamic> getQuestions(int day, List<Question> r){
+  
+Map<String,dynamic> map ={};
+  r.forEach((element) {
+    var type = element.questionType;
+    
+    switch(type){
+      case QuestionType.physically:
+        map['physically_$day'] = element.answer!;
+        break;
+      case QuestionType.emotionally:
+        map['emotionally_$day'] = element.answer!;
+        break;
+      case QuestionType.intensity:
+       map['intensity_$day'] = element.answer!;
+        break;
+      case QuestionType.lonely:
+        map['lonely_$day'] = element.answer!;
+        break;
+      case QuestionType.leftout:
+        map['left_out_$day'] = element.answer!;
+        break;
+      case QuestionType.socialinteraction:
+        map['social_interaction_$day'] = element.answer!;
+        break;
+      case QuestionType.understood:
+        map['understood_$day'] = element.answer!;
+        break;
+      case QuestionType.stressed:
+        map['stressed_$day'] = element.answer!;
+        break;
+      case QuestionType.whereyouare:
+        map['where_you_are_$day'] = element.answer!;
+        break;
+      case QuestionType.peoplearoundyou:
+        map['people_around_you_$day'] = element.answer!;
+        break;
+      case QuestionType.drinks:
+        map['drinks_$day'] = element.answer!;
+        break;
+      case null:
+        // TODO: Handle this case.
+    }
+  });
+  
+
+
+
+
+
+
+
+return map;
+}
+
+/// It makes sure that when you are in day 6 it returns no date
+String parametersNextStudydate(String date, int day) {
+  if (day != 6) {
+    return date;
+  } else {
+    return "";
   }
 }

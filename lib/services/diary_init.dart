@@ -26,7 +26,7 @@ Future<void> diaryInit(String code) async {
     PreferenceService().setBoolPreference(key: 'isFirstTime', value: false);
 
     final repository = DiaryRepository();
-    final startDate = _startDate(code);
+    final startDate = _startDate(code); 
     print('start: $startDate');
     final diaries = <DiaryEntity>[];
 
@@ -57,7 +57,8 @@ DateTime? _startDate(String code) {
 
   // Assuming that the code have two distinct starting digits
   if (code.startsWith('1')) {
-    return DateTime(nextSunday.year, nextSunday.month, nextSunday.day);
+    return DateTime.now();
+    //return DateTime(nextSunday.year, nextSunday.month, nextSunday.day); --revert this back
   } else if (code.startsWith('2')) {
     final saturday = nextSunday.add(const Duration(days: 6));
     return DateTime(saturday.year, saturday.month, saturday.day);

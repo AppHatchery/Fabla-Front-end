@@ -151,7 +151,8 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
 
     // Assuming that the code have two distinct starting digits
     if (code.startsWith('1')) {
-      return nextSunday;
+      return DateTime.now();
+      //return nextSunday; --revert this back
     } else if (code.startsWith('2')) {
       return nextSunday.add(const Duration(days: 6));
     } else if (code.startsWith('0')) {

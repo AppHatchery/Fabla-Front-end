@@ -5,7 +5,9 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/models/Participants.dart';
+import 'package:audio_diaries_flutter/models/UserMetadata.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
@@ -189,6 +191,8 @@ class SetupRepository {
     }
   }
 
+  //---Experiment
+
   Future<void> apiCreateParticipant(String studycode) async {
     if (!await participantExist(studycode)) {
       try {
@@ -208,19 +212,138 @@ class SetupRepository {
       }
     } else {
       safePrint("Participant Already exists or Submission error");
-
     }
-}
+  }
+//CURRENT TASK TEST OUT THIS FUCTION 
+  Future<bool> recordExists(GqlModelType modelType, String studycode) async {
+    try {
+      switch (modelType) {
+        case GqlModelType.participant:
+          String graphQLDocument = '''
+              query ListFiles {
+                listParticipants(filter: { _deleted:{attributeExists:false}, studycode: { eq: "$studycode" } }) {
+                  items {
+                    id
+                    studycode
+                    _deleted
+                  }
+                }
+              }
+            ''';
+          var operation = Amplify.API.query(
+            request: GraphQLRequest<String>(
+              document: graphQLDocument,
+              variables: {'studycode': studycode},
+            ),
+          );
+          var response = await operation.response;
+          var data = response.data;
+          if (data != null) {
+            Map<String, dynamic> jsonMap = jsonDecode(data);
+            final participantList = jsonMap["listParticipants"]["items"];
+            if (participantList.length > 0) {
+              return true;
+            }
+            safePrint("dataa: $data");
+            return false;
+          } else {
+            response.errors.forEach((element) {
+              safePrint('${element.message}.');
+            });
+            return false;
+          }
 
- /// Creates and schedules notifications for daily diaries.
+        case GqlModelType.userMetatdata:
+          String graphQLDocument = '''
+            query ListFiles {
+              listUserMetadata(filter: {participant: {eq: "$studycode"}, _deleted: {attributeExists: false}}) {
+                items {
+                  id
+                  _deleted
+                }
+              }
+            }
+
+
+            ''';
+          var operation = Amplify.API.query(
+            request: GraphQLRequest<String>(
+              document: graphQLDocument,
+              variables: {'participant': studycode},
+            ),
+          );
+          var response = await operation.response;
+          var data = response.data;
+          if (data != null) {
+            Map<String, dynamic> jsonMap = jsonDecode(data);
+            final participantList = jsonMap["listUserMetadata"]["items"];
+            if (participantList.length > 0) {
+              return true;
+            }
+            safePrint("dataa: $data");
+            return false;
+          } else {
+            response.errors.forEach((element) {
+              safePrint('${element.message}.');
+            });
+            return false;
+          }
+      }
+    } catch (e) {
+       print('$e');
+      return false;
+    }
+  }
+
+
+  
+
+  Future<void> apiCreateMetadata(String studycode) async {
+    if (!await recordExists(GqlModelType.userMetatdata, studycode)) {
+      try {
+        final startDate = DateTime.fromMillisecondsSinceEpoch(
+            await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+        final participant = UserMetadata(
+          participant: studycode,
+          start_study_date: formatDate(startDate),
+          next_study_date: formatDate(startDate),
+          day1: "null",
+          day2: "null",
+          day3: "null",
+          day4: "null",
+          day5: "null",
+          day6: "null",
+        );
+        final request = ModelMutations.create(participant);
+        final response = await Amplify.API.mutate(request: request).response;
+
+        final participantData = response.data;
+        if (participantData != null) {
+          safePrint('Metadata Created mutation result: ${participantData.participant}');
+          
+        }else{
+          safePrint('errors: ${response.errors}');
+        }
+      } on ApiException catch (e) {
+        safePrint('Mutation failed: $e');
+      }
+    } else {
+      safePrint("Metadata record already exists or Submission error");
+    }
+  }
+
+
+
+
+  /// Creates and schedules notifications for daily diaries.
   /// This function retrieves a list of daily diaries from the DiaryRepository,
   /// then retrieves a list of notification times from SharedPreferences using
   /// PreferenceService. For each specified notification time and each diary,
   /// it calculates the notification date and time and schedules a notification
   /// using NotificationService. The notification will remind the user to write
   /// their daily diary.
-  /// 
- void createNotifications() async {
+  ///
+  void createNotifications() async {
     final diaryRepository = DiaryRepository();
     final diaries = diaryRepository.getAllDiaries();
 
@@ -244,8 +367,6 @@ class SetupRepository {
             body: 'Hi! I am ready to hear from you.',
             date: notificationDate);
       }
-
     }
   }
-
 }

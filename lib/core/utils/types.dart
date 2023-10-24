@@ -26,3 +26,8 @@ enum QuestionType {
   peoplearoundyou,
   drinks
 }
+
+enum GqlModelType {
+  participant,
+  userMetatdata,
+}
