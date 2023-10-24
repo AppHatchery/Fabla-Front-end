@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../../../../core/utils/statuses.dart';
 import '../../../../../core/utils/types.dart';
+import '../../../../../services/preference_service.dart';
 import '../../../data/diary.dart';
 import '../../../data/tag.dart';
 
@@ -13,8 +14,11 @@ class DiaryCubit extends Cubit<DiaryState> {
   DiaryCubit() : super(const DiaryInitial());
   DiaryRepository repository = DiaryRepository();
 
-  Future<void> loadDiaries() async {
-    final today = DateTime.now();
+  Future<void> loadDiaries({DateTime? date}) async {
+    final today = date ?? DateTime.now();
+    final startDate = DateTime.fromMillisecondsSinceEpoch(
+        await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+
     final start = today.hour >= 4
         ? DateTime(today.year, today.month, today.day, 4, 0, 0)
         : DateTime(today.year, today.month, today.day, 4, 0, 0)
@@ -25,21 +29,12 @@ class DiaryCubit extends Cubit<DiaryState> {
         : DateTime(today.year, today.month, today.day, 3, 59, 59);
     try {
       emit(const DiaryLoading());
-      final diary = await repository.getDiary(start, due);
+      final diary = repository.getDiary(start, due);
       if (diary != null) {
         final updated = Diary.copyWith(diary: diary, tags: _getTags(diary));
-        List<Diary> unfilterDiaries = [updated];
-        List<Diary> unSubmittedDiaries = unfilterDiaries
-            .where((element) => element.status == DiaryStatus.complete)
-            .toList();
-        List<Diary> diaries = unfilterDiaries
-            .where((element) => element.status != DiaryStatus.complete)
-            .toList();
-        diaries
-            .sort((a, b) => a.status.toString().compareTo(b.status.toString()));
-        emit(DiaryLoaded(diaries, unSubmittedDiaries));
+        emit(DiaryLoaded([updated], startDate));
       } else {
-        emit(const DiaryLoaded([], []));
+        emit(DiaryLoaded(const [], startDate));
       }
     } catch (e) {
       emit(const DiaryError("Something went wrong"));
@@ -47,6 +42,7 @@ class DiaryCubit extends Cubit<DiaryState> {
   }
 
   List<Tag> _getTags(Diary diary) {
+    final today = DateTime.now();
     List<Tag> tags = [];
 
     if (diary.status == DiaryStatus.submitted) {
@@ -57,6 +53,11 @@ class DiaryCubit extends Cubit<DiaryState> {
       tags.add(const Tag(text: "Awaiting Submission", type: TagType.time));
     } else if (diary.status == DiaryStatus.ongoing) {
       tags.add(const Tag(text: "Ongoing", type: TagType.time));
+    } else if (diary.status == DiaryStatus.idle && diary.start.isAfter(today)) {
+      tags.addAll([
+        const Tag(text: "13 Questions", type: TagType.questions),
+        const Tag(text: "12 Minutes", type: TagType.time)
+      ]);
     } else if (diary.status == DiaryStatus.idle) {
       tags.add(const Tag(text: "Ready to Start", type: TagType.time));
     }

@@ -17,12 +17,12 @@ class DiaryLoading extends DiaryState {
 
 class DiaryLoaded extends DiaryState{
   final List<Diary> diaries;
-  final List<Diary> unSubmittedDiaries;
-  const DiaryLoaded(this.diaries, this.unSubmittedDiaries);
+  final DateTime startDate;
+  const DiaryLoaded(this.diaries, this.startDate);
 
 
   @override
-  List<Object> get props => [diaries];
+  List<Object> get props => [diaries, startDate];
 }
 
 class DiaryError extends DiaryState{

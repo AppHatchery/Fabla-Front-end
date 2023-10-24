@@ -205,7 +205,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
     int scaleMinValue = 0;
     int scaleMaxValue = 100;
 
-    if (choices != null && choices.length >= 2) {
+    if (prompt.responseType == ResponseType.slider && choices != null && choices.length >= 2) {
       try {
         scaleMinValue = int.parse(choices[0].option!);
         scaleMaxValue = int.parse(choices[1].option!);

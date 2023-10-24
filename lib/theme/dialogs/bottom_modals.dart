@@ -429,6 +429,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     ));
 
     await recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
+
+    Future.delayed(const Duration(milliseconds: 350), () => record());
   }
 
   void startTimer() {
