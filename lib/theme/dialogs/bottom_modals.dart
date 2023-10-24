@@ -429,6 +429,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     ));
 
     await recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
+
+    Future.delayed(const Duration(milliseconds: 350), () => record());
   }
 
   void startTimer() {
@@ -684,9 +686,8 @@ class BottomErrorModal extends StatelessWidget {
                           flex: 3,
                           child: CustomElevatedButton(
                             onClick: () => Navigator.pop(context),
-                            text: "TRY AGAIN",
+                            text: "Try Again",
                             color: CustomColors.warningActive,
-                            shadowColor: const Color(0xFFC72C1E),
                           ),
                         ),
                         const SizedBox(

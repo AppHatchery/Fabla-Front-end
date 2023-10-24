@@ -141,11 +141,10 @@ class _LoginPageState extends State<LoginPage> {
         const SizedBox(
           height: 24,
         ),
-        CustomElevatedButton(
+        CustomFlatButton(
           onClick: () => login(),
-          text: "LOGIN",
+          text: "Login",
           color: CustomColors.fillWhite,
-          shadowColor: CustomColors.fillNormal,
           textColor: CustomColors.productNormalActive,
         )
       ],
@@ -163,11 +162,10 @@ class _LoginPageState extends State<LoginPage> {
         const SizedBox(
           height: 24,
         ),
-        CustomElevatedButton(
+        CustomFlatButton(
           onClick: () => login(),
-          text: "LOGIN",
+          text: "Login",
           color: CustomColors.fillWhite,
-          shadowColor: CustomColors.productBorderNormal,
           textColor: CustomColors.productNormalActive,
         )
       ],
@@ -178,12 +176,11 @@ class _LoginPageState extends State<LoginPage> {
     if (controller.text.isNotEmpty) {
       final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
       final text = controller.text.substring(0, lastNonSpaceIndex + 1);
-      final code = int.tryParse(text);;
-      if(code != null){
-      loginCubit.login(code);
-      }else{
-        
-      }
+      final code = int.tryParse(text);
+      ;
+      if (code != null) {
+        loginCubit.login(code);
+      } else {}
     }
   }
 

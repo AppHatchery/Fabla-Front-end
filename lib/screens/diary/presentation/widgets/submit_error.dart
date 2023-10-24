@@ -57,7 +57,7 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                     ),
                     Align(
                       alignment: Alignment.bottomCenter,
-                      child: CustomElevatedButton(
+                      child: CustomFlatButton(
                         onClick: () {
                           Navigator.push(
                               context,
@@ -67,7 +67,6 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                         text: "Return Home",
                         color: CustomColors.productNormal,
                         textColor: CustomColors.textWhite,
-                        shadowColor: CustomColors.productNormalActive,
                       ),
                     ),
                     const SizedBox(

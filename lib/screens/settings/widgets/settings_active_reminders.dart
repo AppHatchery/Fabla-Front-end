@@ -86,7 +86,7 @@ class _ActiveRemindersState extends State<ActiveReminders> {
         ),
         CustomElevatedButton(
           onClick: widget.isEnabled ? () => pickDate() : null,
-          text: "ADD A REMINDER TIME",
+          text: "Add a Reminder Time",
           textColor: widget.isEnabled
               ? CustomColors.productNormalActive
               : CustomColors.textTertiaryContent,
@@ -94,7 +94,6 @@ class _ActiveRemindersState extends State<ActiveReminders> {
               ? CustomColors.fillWhite
               : CustomColors.fillDisabled,
           border: Border.all(color: CustomColors.productBorderNormal, width: 2),
-          shadowColor: CustomColors.productBorderNormal,
         ),
       ],
     );

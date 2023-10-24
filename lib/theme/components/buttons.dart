@@ -22,7 +22,6 @@ class CustomElevatedButton extends StatelessWidget {
   final VoidCallback? onClick;
   final String? text;
   final Color color;
-  final Color shadowColor;
   final Border border;
   final double? elevation;
   final bool isDisabled;
@@ -32,7 +31,6 @@ class CustomElevatedButton extends StatelessWidget {
       required this.onClick,
       required this.text,
       this.color = CustomColors.productNormal,
-      this.shadowColor = CustomColors.productNormalActive,
       this.border = const Border(),
       this.elevation = 4.5,
       this.isDisabled = false,
@@ -49,13 +47,13 @@ class CustomElevatedButton extends StatelessWidget {
             color: isDisabled ? CustomColors.fillDisabled : color,
             borderRadius: BorderRadius.circular(12),
             border: border,
-            boxShadow: [
-              BoxShadow(
-                color: shadowColor,
-                blurRadius: 0,
-                offset: Offset(0, elevation!),
-              ),
-            ],
+            // boxShadow: [
+            //   BoxShadow(
+            //     color: shadowColor,
+            //     blurRadius: 0,
+            //     offset: Offset(0, elevation!),
+            //   ),
+            // ],
             shape: BoxShape.rectangle,
           ),
           child: InkWell(
@@ -288,13 +286,13 @@ class CustomRecordButton extends StatelessWidget {
             color: const Color.fromARGB(255, 255, 255, 255),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.grey.shade200, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.shade400,
-                blurRadius: 0,
-                offset: const Offset(0, 4.5),
-              ),
-            ],
+            // boxShadow: [
+            //   BoxShadow(
+            //     color: Colors.grey.shade400,
+            //     blurRadius: 0,
+            //     offset: const Offset(0, 4.5),
+            //   ),
+            // ],
             shape: BoxShape.rectangle,
           ),
           child: InkWell(

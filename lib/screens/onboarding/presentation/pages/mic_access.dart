@@ -190,12 +190,11 @@ class _MicAccessPageState extends State<MicAccessPage> {
                   ),
                 ),
               ),
-              CustomElevatedButton(
+              CustomFlatButton(
                 onClick: () => navigateToNextPage(),
                 text: "Allow",
                 color: CustomColors.fillWhite,
                 isDisabled: requested == true && permission == false,
-                shadowColor: CustomColors.productBorderNormal,
                 textColor: CustomColors.productNormalActive,
               )
             ],
@@ -253,11 +252,11 @@ class _MicAccessPageState extends State<MicAccessPage> {
         startRecorder();
       }
     }
-    
-    if(mounted) requested = true;
+
+    if (mounted) requested = true;
   }
 
-  void _requestPermission() async{
+  void _requestPermission() async {
     final results = await Permission.microphone.request();
     setState(() {
       permission = results.isGranted;
@@ -265,7 +264,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
 
     if (permission) startRecorder();
 
-    if(mounted) requested = true;
+    if (mounted) requested = true;
   }
 
   void openPermissionSettings() async {

@@ -81,6 +81,11 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                 .titleLarge(color: CustomColors.textNormalContent),
           ),
           centerTitle: true,
+          shape: const Border(
+            bottom: BorderSide(
+              color: CustomColors.productBorderNormal,
+              width: 2,
+            ))
         ),
         body: Column(children: [
           Expanded(

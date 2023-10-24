@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../../../../core/utils/statuses.dart';
 import '../../../../../core/utils/types.dart';
+import '../../../../../services/preference_service.dart';
 import '../../../../diary/data/diary.dart';
 import '../../../../diary/data/tag.dart';
 import '../../../../diary/domain/repository/diary_repository.dart';
@@ -37,26 +38,18 @@ class HomeCubit extends Cubit<HomeState> {
         ? DateTime(today.year, today.month, today.day, 3, 59, 59)
             .add(const Duration(days: 1))
         : DateTime(today.year, today.month, today.day, 3, 59, 59);
+    final startDate = DateTime.fromMillisecondsSinceEpoch(
+        await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+
     try {
       emit(const HomeLoading());
-      final diary = await repository.getDiary(start, due);
+      final diary = repository.getDiary(start, due);
       if (diary != null) {
-        final updated = Diary.copyWith(diary: diary, tags: [
-          const Tag(text: "13 Questions", type: TagType.questions),
-          const Tag(text: "12 Minutes", type: TagType.time)
-        ]);
-        List<Diary> unfilterDiaries = [updated];
-        List<Diary> unSubmittedDiaries = unfilterDiaries
-            .where((element) => element.status == DiaryStatus.complete)
-            .toList();
-        List<Diary> diaries = unfilterDiaries
-            .where((element) => element.status != DiaryStatus.complete)
-            .toList();
-        diaries
-            .sort((a, b) => a.status.toString().compareTo(b.status.toString()));
-        emit(HomeLoaded(diaries, unSubmittedDiaries));
+        final updated = Diary.copyWith(diary: diary, tags: _getTags(diary));
+
+        emit(HomeLoaded([updated], startDate));
       } else {
-        emit(const HomeLoaded([], []));
+        emit(HomeLoaded(const [], startDate));
       }
     } catch (e) {
       emit(const HomeError("Something went wrong"));
@@ -87,4 +80,25 @@ class HomeCubit extends Cubit<HomeState> {
     thisWeek.sort((a, b) => a.due.compareTo(b.due));
     return thisWeek;
   }
+}
+
+List<Tag> _getTags(Diary diary) {
+  List<Tag> tags = [];
+
+  if (diary.status == DiaryStatus.submitted) {
+    tags.add(const Tag(text: "Done", type: TagType.time));
+  } else if (diary.status == DiaryStatus.missed) {
+    tags.add(const Tag(text: "Missed", type: TagType.time));
+  } else if (diary.status == DiaryStatus.complete) {
+    tags.add(const Tag(text: "Awaiting Submission", type: TagType.time));
+  } else if (diary.status == DiaryStatus.ongoing) {
+    tags.add(const Tag(text: "Ongoing", type: TagType.time));
+  } else if (diary.status == DiaryStatus.idle) {
+    tags.addAll([
+      const Tag(text: "13 Questions", type: TagType.questions),
+      const Tag(text: "12 Minutes", type: TagType.time)
+    ]);
+  }
+
+  return tags;
 }

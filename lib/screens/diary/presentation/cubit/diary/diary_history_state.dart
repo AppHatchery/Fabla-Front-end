@@ -17,11 +17,10 @@ class DiaryHistoryLoading extends DiaryHistoryState {
 
 class DiaryHistoryLoaded extends DiaryHistoryState {
   final List<Diary> diaries;
-  final List<Diary> unSubmittedDiaries;
-  const DiaryHistoryLoaded(this.diaries, this.unSubmittedDiaries);
+  const DiaryHistoryLoaded(this.diaries);
 
   @override
-  List<Object> get props  => [diaries,unSubmittedDiaries];
+  List<Object> get props  => [diaries];
 }
 
 class DiaryHistoryError extends DiaryHistoryState{

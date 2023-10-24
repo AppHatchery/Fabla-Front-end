@@ -205,7 +205,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                     child: CustomFlatButton(
                       isDisabled: !ableToContinue,
                       onClick: () => nextPage(),
-                      text: "CONTINUE",
+                      text: "Continue",
                     ),
                   )
                 ],
@@ -439,8 +439,8 @@ class _QuestionPageState extends State<QuestionPage> {
           : CustomRecordButton(
               onClick: () => recordResponse(context),
               text: prompt.answer != null
-                  ? "ADD NEW RESPONSE"
-                  : "RECORD MY RESPONSE",
+                  ? "Add New Response"
+                  : "Record My Response",
             );
     }
 
@@ -622,7 +622,7 @@ class _QuestionPageState extends State<QuestionPage> {
       return BottomSuccessModal(
         previousPage: () => widget.previousPage(),
         onNextQuestionClicked: widget.nextPage,
-        text: isLast ? "REVIEW SUMMARY" : "NEXT QUESTION",
+        text: isLast ? "Review Summary" : "Next Question",
       );
     });
   }
