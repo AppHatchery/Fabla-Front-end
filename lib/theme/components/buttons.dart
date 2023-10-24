@@ -46,7 +46,7 @@ class CustomElevatedButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 6.0),
         child: Ink(
           decoration: BoxDecoration(
-            color: isDisabled ? CustomColors.fillDisabled: color,
+            color: isDisabled ? CustomColors.fillDisabled : color,
             borderRadius: BorderRadius.circular(12),
             border: border,
             boxShadow: [
@@ -71,7 +71,9 @@ class CustomElevatedButton extends StatelessWidget {
               child: Center(
                   child: Text(text.toString(),
                       style: CustomTypography().button(
-                        color: isDisabled ? CustomColors.textTertiaryContent : textColor ?? CustomColors.fillWhite,
+                        color: isDisabled
+                            ? CustomColors.textTertiaryContent
+                            : textColor ?? CustomColors.fillWhite,
                       ))),
             ),
           ),
@@ -238,7 +240,7 @@ class CustomTextButton extends StatelessWidget {
     super.key,
     required this.onClick,
     required this.text,
-    this.textColor =  CustomColors.productNormal,
+    this.textColor = CustomColors.productNormal,
     this.isDisabled = false,
   });
 
@@ -304,10 +306,20 @@ class CustomRecordButton extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 10.0, vertical: 18.0),
               child: Center(
-                  child: Text(
-                text.toString(),
-                style: CustomTypography()
-                    .button(color: CustomColors.productNormalActive),
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.mic,
+                      color: CustomColors.productNormalActive),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  Text(
+                    text.toString(),
+                    style: CustomTypography()
+                        .button(color: CustomColors.productNormalActive),
+                  ),
+                ],
               )),
             ),
           ),

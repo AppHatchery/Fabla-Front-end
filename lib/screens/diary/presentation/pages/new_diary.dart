@@ -197,8 +197,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                           width: 2,
                         ),
                       )),
-
-                  const SizedBox(width: 12,),
+                  const SizedBox(
+                    width: 12,
+                  ),
                   Expanded(
                     flex: 3,
                     child: CustomFlatButton(
@@ -381,6 +382,8 @@ class _QuestionPageState extends State<QuestionPage> {
     return Container();
   }
 
+  bool isSnackBarVisible = false;
+
   Widget buildPrompt(Prompt prompt) {
     Widget responseWidget;
 
@@ -472,11 +475,33 @@ class _QuestionPageState extends State<QuestionPage> {
                     }
                   else
                     {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("No tips available for this question."),
-                          duration: Duration(seconds: 3),
-                        ),
+                      if (!isSnackBarVisible)
+                        {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text("No tips available for this question."),
+                              duration: Duration(seconds: 3),
+                              backgroundColor: CustomColors.productNormalActive,
+                            ),
+                          ),
+                          if (mounted)
+                            {
+                              setState(() {
+                                isSnackBarVisible = true;
+                              }),
+                            }
+                        },
+                      Future.delayed(
+                        const Duration(seconds: 4),
+                        () => {
+                          if (mounted)
+                            {
+                              setState(() {
+                                isSnackBarVisible = false;
+                              })
+                            }
+                        },
                       )
                     }
                 },
@@ -521,8 +546,7 @@ class _QuestionPageState extends State<QuestionPage> {
               Expanded(
                 child: Text(
                   prompt.question.toString(),
-                  style: CustomTypography()
-                      .titleLarge(),
+                  style: CustomTypography().titleLarge(),
                 ),
               ),
             ],
