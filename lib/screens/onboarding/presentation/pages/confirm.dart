@@ -106,7 +106,7 @@ class ConfrimJoiningPage extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 34),
                 child: Column(
                   children: [
-                    CustomElevatedButton(
+                    CustomFlatButton(
                       onClick: () => Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
@@ -114,7 +114,6 @@ class ConfrimJoiningPage extends StatelessWidget {
                           (route) => false),
                       text: "Confirm Joining",
                       color: CustomColors.fillWhite,
-                      shadowColor: CustomColors.productBorderNormal,
                       textColor: CustomColors.productNormalActive,
                     ),
 

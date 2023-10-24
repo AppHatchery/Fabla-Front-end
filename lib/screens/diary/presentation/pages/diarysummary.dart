@@ -185,12 +185,11 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
             padding:
                 const EdgeInsets.only(bottom: 34, top: 24, left: 16, right: 16),
             alignment: Alignment.bottomCenter,
-            child: CustomElevatedButton(
+            child: CustomFlatButton(
               onClick: () => submitDiary(),
-              text: "SUBMIT MY RESPONSE",
+              text: "Submit My Response",
               color: CustomColors.productNormal,
               textColor: CustomColors.textWhite,
-              shadowColor: CustomColors.productNormalActive,
             ),
           ),
         ),

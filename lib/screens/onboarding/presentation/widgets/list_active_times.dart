@@ -46,31 +46,30 @@ class _ListActiveTimesState extends State<ListActiveTimes> {
                           Navigator.pop(context)
                         },
                         edit: (value) => editTime(index, value),
-                         isEnabled: true,
+                        isEnabled: true,
                       ),
                     );
                   })
               : Row(
-                children: [
-                  Text(
+                  children: [
+                    Text(
                       "No scheduled diary time",
                       style: CustomTypography()
                           .titleSmall(color: CustomColors.textSecondaryContent),
-                      
                     ),
-                ],
-              ),
+                  ],
+                ),
         ),
         const SizedBox(
           height: 12,
         ),
         CustomElevatedButton(
           onClick: () => pickDate(),
-          text: "ADD A REMINDER",
+          text: "Add a Reminder",
           textColor: CustomColors.productNormalActive,
           color: CustomColors.fillWhite,
           border: Border.all(color: CustomColors.productBorderNormal, width: 2),
-          shadowColor: CustomColors.productBorderNormal,
+          // shadowColor: CustomColors.productBorderNormal,
         )
       ],
     );

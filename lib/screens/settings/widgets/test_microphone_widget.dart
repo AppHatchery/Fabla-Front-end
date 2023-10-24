@@ -68,7 +68,7 @@ class _TestMicrophoneState extends State<TestMicrophone> {
                             borderRadius: BorderRadius.circular(12)),
                         backgroundColor: CustomColors.productNormal),
                     child: Text(
-                      isRecording ? "STOP TEST" : "TEST MICROPHONE",
+                      isRecording ? "Stop Test" : "Test Microphone",
                       style: CustomTypography()
                           .title(color: CustomColors.textWhite),
                       textAlign: TextAlign.center,

@@ -204,7 +204,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                         shadowColor: Colors.transparent,
                         border: Border.all(
                           color: CustomColors.productBorderNormal,
-                          width: 1,
+                          width: 2,
                         ),
                       ),
                     )),
@@ -216,7 +216,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                     child: CustomFlatButton(
                       isDisabled: !ableToContinue,
                       onClick: () => nextPage(),
-                      text: "CONTINUE",
+                      text: "Continue",
                     ),
                   ),
                 )
@@ -454,8 +454,8 @@ class _QuestionPageState extends State<QuestionPage> {
           : CustomRecordButton(
               onClick: () => recordResponse(context),
               text: prompt.answer != null
-                  ? "ADD NEW RESPONSE"
-                  : "RECORD RESPONSE",
+                  ? "Add New Response"
+                  : "Record Response",
             );
     }
 
@@ -573,7 +573,7 @@ class _QuestionPageState extends State<QuestionPage> {
       return BottomSuccessModal(
         previousPage: () => widget.previousPage(),
         onNextQuestionClicked: widget.nextPage,
-        text: isLast ? "REVIEW SUMMARY" : "NEXT QUESTION",
+        text: isLast ? "Review Summary" : "Next Question",
       );
     });
   }
