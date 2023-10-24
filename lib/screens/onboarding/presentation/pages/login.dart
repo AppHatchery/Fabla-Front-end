@@ -101,7 +101,7 @@ class _LoginPageState extends State<LoginPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Need help with the verification code? ",
+                          "Need help with the participant ID? ",
                           style: CustomTypography()
                               .bodyMedium(color: CustomColors.textWhite),
                         ),
@@ -189,8 +189,8 @@ class _LoginPageState extends State<LoginPage> {
         scheme: "mailto",
         path: "support@apphatchery.org",
         query: encodeQueryParameters(<String, String>{
-          'subject': 'Need help with the verification code',
-          'body': 'I have a problem with my study code:'
+          'subject': 'Need help with the participant ID',
+          'body': 'I have a problem with my participant ID:'
         }));
 
     await launchUrl(uri);

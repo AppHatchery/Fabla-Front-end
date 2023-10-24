@@ -38,7 +38,7 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+      padding: const EdgeInsets.fromLTRB(24.0, 60.0, 24.0, 16.0),
       decoration: BoxDecoration(
           color: CustomColors.productLightPrimaryNormalWhite,
           borderRadius: BorderRadius.circular(14.0)),
@@ -46,30 +46,55 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(widget.scaleMin.toString()),
+            Text(
+              widget.scaleMin.toString(),
+              style: CustomTypography().button(),
+            ),
             Expanded(
-              child: Slider(
-                value: widget.value != null ? widget.value! : 0,
-                min: widget.scaleMin.toDouble(),
-                max: widget.scaleMax.toDouble(),
-                divisions: widget.scaleMax - widget.scaleMin,
-                label: widget.value?.round().toString(),
-                onChanged: widget.isSliderEnabled
-                    ? (double value) {
-                        if (widget.onSliderValueChanged != null) {
-                          widget.onSliderValueChanged!(value);
-                        }
-                      }
-                    : null,
-                activeColor: widget.value != null
-                    ? CustomColors.productNormalActive
-                    : Colors.grey,
-                inactiveColor: CustomColors.textTertiaryContent,
-                //overlayColor:CustomColors.newBlue,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                child: SliderTheme(
+                  data: SliderThemeData(
+                      thumbColor: widget.value != null
+                          ? CustomColors.productNormalActive
+                          : CustomColors.textSecondaryContent,
+                      activeTrackColor: widget.value != null
+                          ? CustomColors.productNormalActive
+                          : CustomColors.textSecondaryContent,
+                      inactiveTrackColor: CustomColors.textTertiaryContent,
+                      activeTickMarkColor: CustomColors.productNormalActive,
+                      inactiveTickMarkColor: CustomColors.textNormalContent.withOpacity(0.35),
+                      overlayShape: SliderComponentShape.noOverlay,
+                      valueIndicatorColor: CustomColors.productNormalActive,
+                      trackHeight: 6,
+                      valueIndicatorTextStyle: CustomTypography()
+                          .bodyLarge(color: CustomColors.textWhite)),
+                  child: Slider(
+                    value: widget.value != null ? widget.value! : 0,
+                    min: widget.scaleMin.toDouble(),
+                    max: widget.scaleMax.toDouble(),
+                    divisions: widget.scaleMax - widget.scaleMin,
+                    label: widget.value?.round().toString(),
+                    onChanged: widget.isSliderEnabled
+                        ? (double value) {
+                            if (widget.onSliderValueChanged != null) {
+                              widget.onSliderValueChanged!(value);
+                            }
+                          }
+                        : null,
+                    //overlayColor:CustomColors.newBlue,
+                  ),
+                ),
               ),
             ),
-            Text(widget.scaleMax.toString()),
+            Text(
+              widget.scaleMax.toString(),
+              style: CustomTypography().button(),
+            ),
           ],
+        ),
+        const SizedBox(
+          height: 12,
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -79,6 +104,7 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
               child: Text(
                 widget.scaleMinText!,
                 textAlign: TextAlign.start,
+                style: CustomTypography().bodyLarge(),
               ),
             ),
             SizedBox(
@@ -86,6 +112,7 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
               child: Text(
                 widget.scaleMaxText!,
                 textAlign: TextAlign.end,
+                style: CustomTypography().bodyLarge(),
               ),
             ),
           ],
@@ -148,9 +175,10 @@ class _MultipleQuestionState extends State<MultipleQuestion> {
                 title: Text(
                   widget.options[index],
                   style: CustomTypography().button(
-                      color: !widget.disabled
+                      color: selectedOptions.contains(widget.options[index]) &&
+                              !widget.disabled
                           ? CustomColors.productNormalActive
-                          : CustomColors.textTertiaryContent),
+                          : Colors.black),
                 ),
                 checkColor: CustomColors.productLightPrimaryNormalWhite,
                 fillColor: selectedOptions.contains(widget.options[index]) &&
@@ -232,11 +260,15 @@ class _RadioQuestionState extends State<RadioQuestion> {
                   widget.options[index],
                   style: CustomTypography().button(
                       color: !widget.disabled
-                          ? CustomColors.productNormalActive
+                          ? widget.options[index] == widget.value
+                              ? CustomColors.productNormalActive
+                              : Colors.black
                           : CustomColors.textTertiaryContent),
                 ),
                 fillColor: MaterialStateProperty.all(!widget.disabled
-                    ? CustomColors.productNormalActive
+                    ? widget.options[index] == widget.value
+                        ? CustomColors.productNormalActive
+                        : Colors.black
                     : CustomColors.textTertiaryContent),
                 controlAffinity: ListTileControlAffinity.leading,
                 value: widget.options[index],

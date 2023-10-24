@@ -59,7 +59,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Text(
-                          "What is your name?",
+                          "Enter a nickname for the study.",
                           style: CustomTypography()
                               .headlineLarge(color: CustomColors.textWhite),
                         ),

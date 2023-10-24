@@ -207,7 +207,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 8,
       question:
-          "Which of the following best describes where you are physically right now? Check all that apply.",
+          "Which of the following best describes where you are physically right now? (Check all that apply)",
       responseType: ResponseType.multiple,
       option: Options.returnOptions(
           type: OptionsType.multiple, choices: multipleOptions),
@@ -368,7 +368,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 21,
       question:
-          "Which of the following best describes where you are physically right now? Check all that apply.",
+          "Which of the following best describes where you are physically right now? (Check all that apply)",
       responseType: ResponseType.multiple,
       option: Options.returnOptions(
           type: OptionsType.multiple, choices: multipleOptions),
@@ -530,7 +530,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 34,
       question:
-          "Which of the following best describes where you are physically right now? Check all that apply.",
+          "Which of the following best describes where you are physically right now? (Check all that apply)",
       responseType: ResponseType.multiple,
       option: Options.returnOptions(
           type: OptionsType.multiple, choices: multipleOptions),
@@ -692,7 +692,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 47,
       question:
-          "Which of the following best describes where you are physically right now? Check all that apply.",
+          "Which of the following best describes where you are physically right now? (Check all that apply)",
       responseType: ResponseType.multiple,
       option: Options.returnOptions(
           type: OptionsType.multiple, choices: multipleOptions),
@@ -854,7 +854,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 60,
       question:
-          "Which of the following best describes where you are physically right now? Check all that apply.",
+          "Which of the following best describes where you are physically right now? (Check all that apply)",
       responseType: ResponseType.multiple,
       option: Options.returnOptions(
           type: OptionsType.multiple, choices: multipleOptions),
@@ -1016,7 +1016,7 @@ final Map<int, List<Prompt>> fakePrompts = {
     Prompt(
       id: 73,
       question:
-          "Which of the following best describes where you are physically right now? Check all that apply.",
+          "Which of the following best describes where you are physically right now? (Check all that apply)",
       responseType: ResponseType.multiple,
       option: Options.returnOptions(
           type: OptionsType.multiple, choices: multipleOptions),
@@ -1086,7 +1086,7 @@ const Tag missedTag = Tag(text: "Missed", type: TagType.time);
 const Tag onGoingTag = Tag(text: "Ongoing", type: TagType.time);
 const Tag doneTag = Tag(text: "Done", type: TagType.time);
 
-const TimeOfDay fixedTime = TimeOfDay(hour: 9, minute: 0);
+const TimeOfDay fixedTime = TimeOfDay(hour: 18, minute: 0);
 
 final List<int> participantCodes = [
   1010,

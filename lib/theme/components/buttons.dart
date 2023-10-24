@@ -149,7 +149,7 @@ class CustomElevatedIconButton extends StatelessWidget {
                     },
             child: Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
               child: Center(
                   child: Icon(
                 icon,
@@ -304,10 +304,20 @@ class CustomRecordButton extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 10.0, vertical: 18.0),
               child: Center(
-                  child: Text(
-                text.toString(),
-                style: CustomTypography()
-                    .button(color: CustomColors.productNormalActive),
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.mic,
+                      color: CustomColors.productNormalActive),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  Text(
+                    text.toString(),
+                    style: CustomTypography()
+                        .button(color: CustomColors.productNormalActive),
+                  ),
+                ],
               )),
             ),
           ),

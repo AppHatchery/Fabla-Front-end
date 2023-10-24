@@ -82,7 +82,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                                 style: CustomTypography().titleLarge(),
                               ),
                               const SizedBox(
-                                height: 6,
+                                height: 12,
                               ),
                               ListActiveTimes(times: times),
                             ]),
