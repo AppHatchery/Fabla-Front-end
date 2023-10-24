@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../custom_colors.dart';
-import '../custom_typography.dart';
 
 /// Custom Bar Indicator.
 ///

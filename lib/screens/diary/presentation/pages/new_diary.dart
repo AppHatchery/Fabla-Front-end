@@ -1,5 +1,5 @@
-import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
+import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -123,6 +123,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               children: [
                 IconButton(
                   onPressed: () {
+                    if (widget.diary.status == DiaryStatus.ongoing) {
+                      scheduleContinueDiaryNotifications(widget.diary.id);
+                    }
                     Navigator.pop(context, true);
                   },
                   icon: const Icon(CustomIcons.close),
@@ -299,7 +302,8 @@ class QuestionPage extends StatefulWidget {
   State<QuestionPage> createState() => _QuestionPageState();
 }
 
-class _QuestionPageState extends State<QuestionPage> {
+class _QuestionPageState extends State<QuestionPage>
+    with WidgetsBindingObserver {
   late PromptCubit promptCubit;
   late Prompt prompt;
 
@@ -316,12 +320,32 @@ class _QuestionPageState extends State<QuestionPage> {
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     prompt = widget.prompt;
     disabled = widget.diary.status == DiaryStatus.submitted ||
         widget.diary.status == DiaryStatus.missed;
     promptCubit = BlocProvider.of<PromptCubit>(context);
     loadPrompt(context);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.paused:
+        if (widget.diary.status == DiaryStatus.ongoing) {
+          scheduleContinueDiaryNotifications(widget.diary.id);
+        }
+        break;
+      default:
+    }
+    super.didChangeAppLifecycleState(state);
   }
 
   @override
@@ -601,7 +625,7 @@ class _QuestionPageState extends State<QuestionPage> {
       repository.updateDiary(widget.diary);
     }
     promptCubit.saveResponse(prompt, response);
-
+    cancelAllDiaryNotifications(widget.diary.id);
     if (!isClicked) {
       setState(() {
         isClicked = true;

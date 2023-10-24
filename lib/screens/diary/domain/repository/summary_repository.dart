@@ -1,9 +1,8 @@
-import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 
+import '../../../../core/usecases/notifications.dart';
 import '../../../../core/utils/statuses.dart';
-import '../../../../services/notification_service.dart';
 import '../../data/diary.dart';
 import '../../data/prompt.dart';
 import 'answer_repository.dart';
@@ -94,18 +93,18 @@ class SummaryRepository {
   Future<bool> submitDiary(Diary diary) async {
     try {
       final participant = setupRepository.getParticipant();
-      final uploaded = await upload(participant!.studyCode,diary);
-
+      final uploaded = await upload(participant!.studyCode, diary);
 
       if (uploaded) {
         diary.status = DiaryStatus.submitted;
         diaryRepository.updateDiary(diary);
 
-        await NotificationService.cancelNotification(diary.id);
+        cancelAllDiaryNotifications(diary.id);
 
         //Update the nextStudy date- TBD with provision of study_start_date
         DateTime now = DateTime.now();
-        var nextStudyDate =  DateTime(now.year, now.month, now.day, 4, 0, 0).add(const Duration(days: 1));
+        var nextStudyDate = DateTime(now.year, now.month, now.day, 4, 0, 0)
+            .add(const Duration(days: 1));
 
         setupRepository.updateMetaDataFile(nextStudyDate);
         return true;

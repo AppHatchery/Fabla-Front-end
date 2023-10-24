@@ -56,9 +56,8 @@ DateTime? _startDate(String code) {
   final _code = int.parse(code);
 
   // Assuming that the code have two distinct starting digits
-   if (code.startsWith('0')) {
-    return DateTime(
-        DateTime.now().year, DateTime.now().month, DateTime.now().day);
+  if (code.startsWith('0')) {
+    return DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
   } else if (_code.isOdd) {
     // return DateTime(nextSunday.year, nextSunday.month, nextSunday.day);
     return DateTime(2023, 11, 12);
