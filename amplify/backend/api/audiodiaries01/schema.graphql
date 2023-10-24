@@ -74,22 +74,16 @@ type Participants @model @auth(rules: [{allow: public}]) {
   people_around_you_4: String
   people_around_you_5: String
   people_around_you_6: String
-  drinks_1: Int
-  drinks_2: Int
-  drinks_3: Int
-  drinks_4: Int
-  drinks_5: Int
-  drinks_6: Int  
-  starttime_1:String
-  starttime_2:String
-  starttime_3:String
-  starttime_4:String
-  starttime_5:String
-  starttime_6:String
-  endtime_1:String
-  endtime_2:String
-  endtime_3:String
-  endtime_4:String
-  endtime_5:String
-  endtime_6:String
-}
+  starttime_1: String
+  starttime_2: String
+  starttime_3: String
+  starttime_4: String
+  starttime_5: String
+  starttime_6: String
+  endtime_1: String
+  endtime_2: String
+  endtime_3: String
+  endtime_4: String
+  endtime_5: String
+  endtime_6: String
+} 
