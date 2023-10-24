@@ -1,8 +1,8 @@
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/unsubmitted_diary_list.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
-import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -143,9 +143,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CalendarCard(
-            diaries: diaries,
-          ),
+          const StreakCalendar(),
           const SizedBox(
             height: 24,
           ),
@@ -173,9 +171,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return SingleChildScrollView(
       child: Column(
         children: [
-          CalendarCard(
-            diaries: diaries,
-          ),
+          const StreakCalendar(),
           const SizedBox(
             height: 24,
           ),
