@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+
 import '../../services/notification_service.dart';
 import '../../services/preference_service.dart';
 
@@ -201,4 +203,22 @@ void scheduleSubmitDiaryNotification(int id) async {
           .setStringPreference(key: 'diary_notifications', value: encoded);
     }
   }
+}
+
+/// Re-schedules all diary-related notifications.
+///
+/// This function is responsible for re-scheduling all diary-related notifications. It first removes
+/// the existing diary notifications stored in the app's preferences. Then, it initializes a new
+/// [SetupRepository] and calls its `createNotifications` method to recreate and schedule the
+/// diary notifications.
+///
+/// Usage example:
+/// ```dart
+/// reScheduleAllNotifications();
+/// ```
+void reScheduleAllNotifications() async {
+  await PreferenceService().removePreference(key: 'diary_notifications');
+
+  final repository = SetupRepository();
+  repository.createNotifications();
 }
