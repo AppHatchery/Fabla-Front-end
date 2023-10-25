@@ -9,10 +9,7 @@ import '../../theme/resources/strings.dart';
 import 'statuses.dart';
 import 'types.dart';
 
-
-
-
-final List<Diary> dummyDiaries  = [
+final List<Diary> dummyDiaries = [
   Diary(
       id: 0,
       prompts: fakePrompts[0] ?? [],
@@ -92,157 +89,135 @@ final Map<int, List<Prompt>> fakePrompts = {
   // Day One
   0: [
     Prompt(
-      id: 0,
-      question: "How do you FEEL PHYSICALLY right now?",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Very bad",
-          endText: "Very good",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.physically
-    ),
+        id: 0,
+        question: "How do you FEEL PHYSICALLY right now?",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Very bad",
+            endText: "Very good",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.physically),
     Prompt(
-      id: 1,
-      question:
-          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Extremely unpleasant",
-          endText: "Extremely pleasant",
-          choices: [
-            Option(id: 0, option: "-5"),
-            Option(id: 1, option: "5"),
-          ]),
-          questionType: QuestionType.emotionally
-    ),
+        id: 1,
+        question:
+            "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Extremely unpleasant",
+            endText: "Extremely pleasant",
+            choices: [
+              Option(id: 0, option: "-5"),
+              Option(id: 1, option: "5"),
+            ]),
+        questionType: QuestionType.emotionally),
     Prompt(
-      id: 2,
-      question:
-          "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Least intense",
-          endText: "Most intense",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.intensity
-    ),
+        id: 2,
+        question:
+            "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Least intense",
+            endText: "Most intense",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.intensity),
     Prompt(
-      id: 3,
-      question: "I felt lonely today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "Extremely",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.lonely
-    ),
+        id: 3,
+        question: "I felt lonely today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "Extremely",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.lonely),
     Prompt(
-      id: 4,
-      question: "I felt left out today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "Extremely",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.leftout
-    ),
+        id: 4,
+        question: "I felt left out today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "Extremely",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.leftout),
     Prompt(
-      id: 5,
-      question: "How much social interaction did you have today?",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.socialinteraction
-    ),
+        id: 5,
+        question: "How much social interaction did you have today?",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.socialinteraction),
     Prompt(
-      id: 6,
-      question: "I felt understood/cared for by others today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.understood
-    ),
+        id: 6,
+        question: "I felt understood/cared for by others today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.understood),
     Prompt(
-      id: 7,
-      question: "I felt stressed today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),questionType: QuestionType.stressed
-    ),
+        id: 7,
+        question: "I felt stressed today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.stressed),
     Prompt(
-      id: 8,
-      question:
-          "Which of the following best describes where you are physically right now? (Check all that apply)",
-      responseType: ResponseType.multiple,
-      option: Options.returnOptions(
-          type: OptionsType.multiple, choices: multipleOptions),
-          questionType: QuestionType.whereyouare
-    ),
+        id: 8,
+        question:
+            "Which of the following best describes where you are physically right now? Check all that apply.",
+        responseType: ResponseType.multiple,
+        option: Options.returnOptions(
+            type: OptionsType.multiple, choices: multipleOptions),
+        questionType: QuestionType.whereyouare),
     Prompt(
-      id: 9,
-      question: "How many people are around you right now?",
-      responseType: ResponseType.radio,
-      option:
-          Options.returnOptions(type: OptionsType.radio, choices: radioOptions),
-          questionType: QuestionType.peoplearoundyou
-    ),
+        id: 9,
+        question: "How many people are around you right now?",
+        responseType: ResponseType.radio,
+        option: Options.returnOptions(
+            type: OptionsType.radio, choices: radioOptions),
+        questionType: QuestionType.peoplearoundyou),
+
     Prompt(
       id: 10,
-      question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "12"),
-          ]),questionType: QuestionType.drinks
-    ),
-    Prompt(
-      id: 11,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
       note: Strings.researcherNote,
     ),
     Prompt(
-      id: 12,
+      id: 11,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
@@ -252,159 +227,134 @@ final Map<int, List<Prompt>> fakePrompts = {
   // Day Two
   1: [
     Prompt(
-      id: 13,
-      question: "How do you FEEL PHYSICALLY right now?",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Very bad",
-          endText: "Very good",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.physically
-    ),
+        id: 12,
+        question: "How do you FEEL PHYSICALLY right now?",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Very bad",
+            endText: "Very good",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.physically),
     Prompt(
-      id: 14,
-      question:
-          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Extremely unpleasant",
-          endText: "Extremely pleasant",
-          choices: [
-            Option(id: 0, option: "-5"),
-            Option(id: 1, option: "5"),
-          ]),
-          questionType: QuestionType.emotionally
-    ),
+        id: 13,
+        question:
+            "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Extremely unpleasant",
+            endText: "Extremely pleasant",
+            choices: [
+              Option(id: 0, option: "-5"),
+              Option(id: 1, option: "5"),
+            ]),
+        questionType: QuestionType.emotionally),
     Prompt(
-      id: 15,
-      question:
-          "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Least intense",
-          endText: "Most intense",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.intensity
-    ),
+        id: 14,
+        question:
+            "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Least intense",
+            endText: "Most intense",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.intensity),
     Prompt(
-      id: 16,
-      question: "I felt lonely today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "Extremely",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.lonely
-    ),
+        id: 15,
+        question: "I felt lonely today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "Extremely",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.lonely),
     Prompt(
-      id: 17,
-      question: "I felt left out today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "Extremely",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.leftout
-    ),
+        id: 16,
+        question: "I felt left out today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "Extremely",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.leftout),
     Prompt(
-      id: 18,
-      question: "How much social interaction did you have today?",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.socialinteraction
-    ),
+        id: 17,
+        question: "How much social interaction did you have today?",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.socialinteraction),
     Prompt(
-      id: 19,
-      question: "I felt understood/cared for by others today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-        questionType: QuestionType.understood
-    ),
+        id: 18,
+        question: "I felt understood/cared for by others today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.understood),
     Prompt(
-      id: 20,
-      question: "I felt stressed today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.stressed
-    ),
+        id: 19,
+        question: "I felt stressed today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.stressed),
     Prompt(
-      id: 21,
-      question:
-          "Which of the following best describes where you are physically right now? (Check all that apply)",
-      responseType: ResponseType.multiple,
-      option: Options.returnOptions(
-          type: OptionsType.multiple, choices: multipleOptions),
-          questionType: QuestionType.whereyouare
-    ),
+        id: 20,
+        question:
+            "Which of the following best describes where you are physically right now? Check all that apply.",
+        responseType: ResponseType.multiple,
+        option: Options.returnOptions(
+            type: OptionsType.multiple, choices: multipleOptions),
+        questionType: QuestionType.whereyouare),
+    Prompt(
+        id: 21,
+        question: "How many people are around you right now?",
+        responseType: ResponseType.radio,
+        option: Options.returnOptions(
+            type: OptionsType.radio, choices: radioOptions),
+        questionType: QuestionType.peoplearoundyou),
     Prompt(
       id: 22,
-      question: "How many people are around you right now?",
-      responseType: ResponseType.radio,
-      option:
-          Options.returnOptions(type: OptionsType.radio, choices: radioOptions),
-          questionType: QuestionType.peoplearoundyou
-    ),
-    Prompt(
-      id: 23,
-      question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "12"),
-          ]),
-          questionType: QuestionType.drinks
-    ),
-    Prompt(
-      id: 24,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
       note: Strings.researcherNote,
     ),
     Prompt(
-      id: 25,
+      id: 23,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
@@ -414,159 +364,135 @@ final Map<int, List<Prompt>> fakePrompts = {
   // Day Three
   2: [
     Prompt(
-      id: 26,
-      question: "How do you FEEL PHYSICALLY right now?",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Very bad",
-          endText: "Very good",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.physically
-    ),
+        id: 24,
+        question: "How do you FEEL PHYSICALLY right now?",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Very bad",
+            endText: "Very good",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.physically),
     Prompt(
-      id: 27,
-      question:
-          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Extremely unpleasant",
-          endText: "Extremely pleasant",
-          choices: [
-            Option(id: 0, option: "-5"),
-            Option(id: 1, option: "5"),
-          ]),
-        questionType: QuestionType.emotionally
-    ),
+        id: 25,
+        question:
+            "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Extremely unpleasant",
+            endText: "Extremely pleasant",
+            choices: [
+              Option(id: 0, option: "-5"),
+              Option(id: 1, option: "5"),
+            ]),
+        questionType: QuestionType.emotionally),
     Prompt(
-      id: 28,
-      question:
-          "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Least intense",
-          endText: "Most intense",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-        questionType: QuestionType.intensity
-    ),
+        id: 26,
+        question:
+            "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Least intense",
+            endText: "Most intense",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.intensity),
     Prompt(
-      id: 29,
-      question: "I felt lonely today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "Extremely",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.lonely
-    ),
+        id: 27,
+        question: "I felt lonely today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "Extremely",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.lonely),
     Prompt(
-      id: 30,
-      question: "I felt left out today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "Extremely",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.leftout
-    ),
+        id: 28,
+        question: "I felt left out today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "Extremely",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.leftout),
     Prompt(
-      id: 31,
-      question: "How much social interaction did you have today?",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.socialinteraction
-    ),
+        id: 29,
+        question: "How much social interaction did you have today?",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.socialinteraction),
     Prompt(
-      id: 32,
-      question: "I felt understood/cared for by others today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.understood
-    ),
+        id: 30,
+        question: "I felt understood/cared for by others today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.understood),
     Prompt(
-      id: 33,
-      question: "I felt stressed today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.stressed
-    ),
+        id: 31,
+        question: "I felt stressed today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.stressed),
+    Prompt(
+        id: 32,
+        question:
+            "Which of the following best describes where you are physically right now? Check all that apply.",
+        responseType: ResponseType.multiple,
+        option: Options.returnOptions(
+            type: OptionsType.multiple, choices: multipleOptions),
+        questionType: QuestionType.whereyouare),
+    Prompt(
+        id: 33,
+        question: "How many people are around you right now?",
+        responseType: ResponseType.radio,
+        option: Options.returnOptions(
+            type: OptionsType.radio, choices: radioOptions),
+        questionType: QuestionType.peoplearoundyou),
+
     Prompt(
       id: 34,
-      question:
-          "Which of the following best describes where you are physically right now? (Check all that apply)",
-      responseType: ResponseType.multiple,
-      option: Options.returnOptions(
-          type: OptionsType.multiple, choices: multipleOptions),
-          questionType: QuestionType.whereyouare
-    ),
-    Prompt(
-      id: 35,
-      question: "How many people are around you right now?",
-      responseType: ResponseType.radio,
-      option:
-          Options.returnOptions(type: OptionsType.radio, choices: radioOptions),
-          questionType: QuestionType.peoplearoundyou
-    ),
-    Prompt(
-      id: 36,
-      question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "12"),
-          ]),
-          questionType: QuestionType.drinks
-    ),
-    Prompt(
-      id: 37,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
       note: Strings.researcherNote,
     ),
     Prompt(
-      id: 38,
+      id: 35,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
@@ -576,159 +502,134 @@ final Map<int, List<Prompt>> fakePrompts = {
   // Day Four
   3: [
     Prompt(
-      id: 39,
-      question: "How do you FEEL PHYSICALLY right now?",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Very bad",
-          endText: "Very good",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.physically
-    ),
+        id: 36,
+        question: "How do you FEEL PHYSICALLY right now?",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Very bad",
+            endText: "Very good",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.physically),
     Prompt(
-      id: 40,
-      question:
-          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Extremely unpleasant",
-          endText: "Extremely pleasant",
-          choices: [
-            Option(id: 0, option: "-5"),
-            Option(id: 1, option: "5"),
-          ]),
-          questionType: QuestionType.emotionally
-    ),
+        id: 37,
+        question:
+            "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Extremely unpleasant",
+            endText: "Extremely pleasant",
+            choices: [
+              Option(id: 0, option: "-5"),
+              Option(id: 1, option: "5"),
+            ]),
+        questionType: QuestionType.emotionally),
     Prompt(
-      id: 41,
-      question:
-          "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Least intense",
-          endText: "Most intense",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.intensity
-    ),
+        id: 38,
+        question:
+            "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Least intense",
+            endText: "Most intense",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.intensity),
     Prompt(
-      id: 42,
-      question: "I felt lonely today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "Extremely",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.lonely
-    ),
+        id: 39,
+        question: "I felt lonely today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "Extremely",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.lonely),
     Prompt(
-      id: 43,
-      question: "I felt left out today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "Extremely",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.leftout
-    ),
+        id: 40,
+        question: "I felt left out today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "Extremely",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.leftout),
     Prompt(
-      id: 44,
-      question: "How much social interaction did you have today?",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.socialinteraction
-    ),
+        id: 41,
+        question: "How much social interaction did you have today?",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.socialinteraction),
     Prompt(
-      id: 45,
-      question: "I felt understood/cared for by others today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.understood
-    ),
+        id: 42,
+        question: "I felt understood/cared for by others today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.understood),
+    Prompt(
+        id: 43,
+        question: "I felt stressed today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.stressed),
+    Prompt(
+        id: 44,
+        question:
+            "Which of the following best describes where you are physically right now? Check all that apply.",
+        responseType: ResponseType.multiple,
+        option: Options.returnOptions(
+            type: OptionsType.multiple, choices: multipleOptions),
+        questionType: QuestionType.whereyouare),
+    Prompt(
+        id: 45,
+        question: "How many people are around you right now?",
+        responseType: ResponseType.radio,
+        option: Options.returnOptions(
+            type: OptionsType.radio, choices: radioOptions),
+        questionType: QuestionType.peoplearoundyou),
     Prompt(
       id: 46,
-      question: "I felt stressed today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.stressed
-    ),
-    Prompt(
-      id: 47,
-      question:
-          "Which of the following best describes where you are physically right now? (Check all that apply)",
-      responseType: ResponseType.multiple,
-      option: Options.returnOptions(
-          type: OptionsType.multiple, choices: multipleOptions),
-          questionType: QuestionType.whereyouare
-    ),
-    Prompt(
-      id: 48,
-      question: "How many people are around you right now?",
-      responseType: ResponseType.radio,
-      option:
-          Options.returnOptions(type: OptionsType.radio, choices: radioOptions),
-          questionType: QuestionType.peoplearoundyou
-    ),
-    Prompt(
-      id: 49,
-      question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "12"),
-          ]),
-          questionType: QuestionType.drinks
-    ),
-    Prompt(
-      id: 50,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
       note: Strings.researcherNote,
     ),
     Prompt(
-      id: 51,
+      id: 47,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
@@ -738,159 +639,134 @@ final Map<int, List<Prompt>> fakePrompts = {
   // Day Five
   4: [
     Prompt(
-      id: 52,
-      question: "How do you FEEL PHYSICALLY right now?",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Very bad",
-          endText: "Very good",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.physically
-    ),
+        id: 48,
+        question: "How do you FEEL PHYSICALLY right now?",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Very bad",
+            endText: "Very good",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.physically),
     Prompt(
-      id: 53,
-      question:
-          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Extremely unpleasant",
-          endText: "Extremely pleasant",
-          choices: [
-            Option(id: 0, option: "-5"),
-            Option(id: 1, option: "5"),
-          ]),
-          questionType: QuestionType.emotionally
-    ),
+        id: 49,
+        question:
+            "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Extremely unpleasant",
+            endText: "Extremely pleasant",
+            choices: [
+              Option(id: 0, option: "-5"),
+              Option(id: 1, option: "5"),
+            ]),
+        questionType: QuestionType.emotionally),
     Prompt(
-      id: 54,
-      question:
-          "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Least intense",
-          endText: "Most intense",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.intensity
-    ),
+        id: 50,
+        question:
+            "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Least intense",
+            endText: "Most intense",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.intensity),
     Prompt(
-      id: 55,
-      question: "I felt lonely today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "Extremely",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.lonely
-    ),
+        id: 51,
+        question: "I felt lonely today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "Extremely",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.lonely),
     Prompt(
-      id: 56,
-      question: "I felt left out today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "Extremely",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.leftout
-    ),
+        id: 52,
+        question: "I felt left out today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "Extremely",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.leftout),
     Prompt(
-      id: 57,
-      question: "How much social interaction did you have today?",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.socialinteraction
-    ),
+        id: 53,
+        question: "How much social interaction did you have today?",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.socialinteraction),
+    Prompt(
+        id: 54,
+        question: "I felt understood/cared for by others today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.understood),
+    Prompt(
+        id: 55,
+        question: "I felt stressed today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.stressed),
+    Prompt(
+        id: 56,
+        question:
+            "Which of the following best describes where you are physically right now? Check all that apply.",
+        responseType: ResponseType.multiple,
+        option: Options.returnOptions(
+            type: OptionsType.multiple, choices: multipleOptions),
+        questionType: QuestionType.whereyouare),
+    Prompt(
+        id: 57,
+        question: "How many people are around you right now?",
+        responseType: ResponseType.radio,
+        option: Options.returnOptions(
+            type: OptionsType.radio, choices: radioOptions),
+        questionType: QuestionType.peoplearoundyou),
     Prompt(
       id: 58,
-      question: "I felt understood/cared for by others today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.understood
-    ),
-    Prompt(
-      id: 59,
-      question: "I felt stressed today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.stressed
-    ),
-    Prompt(
-      id: 60,
-      question:
-          "Which of the following best describes where you are physically right now? (Check all that apply)",
-      responseType: ResponseType.multiple,
-      option: Options.returnOptions(
-          type: OptionsType.multiple, choices: multipleOptions),
-          questionType: QuestionType.whereyouare
-    ),
-    Prompt(
-      id: 61,
-      question: "How many people are around you right now?",
-      responseType: ResponseType.radio,
-      option:
-          Options.returnOptions(type: OptionsType.radio, choices: radioOptions),
-          questionType: QuestionType.peoplearoundyou
-    ),
-    Prompt(
-      id: 62,
-      question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "12"),
-          ]),
-          questionType: QuestionType.drinks
-    ),
-    Prompt(
-      id: 63,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
       note: Strings.researcherNote,
     ),
     Prompt(
-      id: 64,
+      id: 59,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,
@@ -900,159 +776,134 @@ final Map<int, List<Prompt>> fakePrompts = {
   // Day Six
   5: [
     Prompt(
-      id: 65,
-      question: "How do you FEEL PHYSICALLY right now?",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Very bad",
-          endText: "Very good",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.physically
-    ),
+        id: 60,
+        question: "How do you FEEL PHYSICALLY right now?",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Very bad",
+            endText: "Very good",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.physically),
     Prompt(
-      id: 66,
-      question:
-          "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Extremely unpleasant",
-          endText: "Extremely pleasant",
-          choices: [
-            Option(id: 0, option: "-5"),
-            Option(id: 1, option: "5"),
-          ]),
-          questionType: QuestionType.emotionally
-    ),
+        id: 61,
+        question:
+            "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Extremely unpleasant",
+            endText: "Extremely pleasant",
+            choices: [
+              Option(id: 0, option: "-5"),
+              Option(id: 1, option: "5"),
+            ]),
+        questionType: QuestionType.emotionally),
     Prompt(
-      id: 67,
-      question:
-          "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Least intense",
-          endText: "Most intense",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.intensity
-    ),
+        id: 62,
+        question:
+            "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Least intense",
+            endText: "Most intense",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.intensity),
     Prompt(
-      id: 68,
-      question: "I felt lonely today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "Extremely",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.lonely
-    ),
+        id: 63,
+        question: "I felt lonely today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "Extremely",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.lonely),
     Prompt(
-      id: 69,
-      question: "I felt left out today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "Extremely",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.leftout
-    ),
+        id: 64,
+        question: "I felt left out today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "Extremely",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.leftout),
+    Prompt(
+        id: 65,
+        question: "How much social interaction did you have today?",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.socialinteraction),
+    Prompt(
+        id: 66,
+        question: "I felt understood/cared for by others today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.understood),
+    Prompt(
+        id: 67,
+        question: "I felt stressed today.",
+        responseType: ResponseType.slider,
+        option: Options.returnOptions(
+            type: OptionsType.slider,
+            startText: "Not at all",
+            endText: "A lot",
+            choices: [
+              Option(id: 0, option: "0"),
+              Option(id: 1, option: "10"),
+            ]),
+        questionType: QuestionType.stressed),
+    Prompt(
+        id: 68,
+        question:
+            "Which of the following best describes where you are physically right now? Check all that apply.",
+        responseType: ResponseType.multiple,
+        option: Options.returnOptions(
+            type: OptionsType.multiple, choices: multipleOptions),
+        questionType: QuestionType.whereyouare),
+    Prompt(
+        id: 69,
+        question: "How many people are around you right now?",
+        responseType: ResponseType.radio,
+        option: Options.returnOptions(
+            type: OptionsType.radio, choices: radioOptions),
+        questionType: QuestionType.peoplearoundyou),
     Prompt(
       id: 70,
-      question: "How much social interaction did you have today?",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.socialinteraction
-    ),
-    Prompt(
-      id: 71,
-      question: "I felt understood/cared for by others today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.understood
-    ),
-    Prompt(
-      id: 72,
-      question: "I felt stressed today.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "10"),
-          ]),
-          questionType: QuestionType.stressed
-    ),
-    Prompt(
-      id: 73,
-      question:
-          "Which of the following best describes where you are physically right now? (Check all that apply)",
-      responseType: ResponseType.multiple,
-      option: Options.returnOptions(
-          type: OptionsType.multiple, choices: multipleOptions),
-          questionType: QuestionType.whereyouare
-    ),
-    Prompt(
-      id: 74,
-      question: "How many people are around you right now?",
-      responseType: ResponseType.radio,
-      option:
-          Options.returnOptions(type: OptionsType.radio, choices: radioOptions),
-          questionType: QuestionType.peoplearoundyou
-    ),
-    Prompt(
-      id: 75,
-      question:
-          "How many drinks of alcohol have you had in the last 24 hours? A drink is 12 ounces of beer, 5 ounces of wine, or 1.5 ounces of distilled spirits.",
-      responseType: ResponseType.slider,
-      option: Options.returnOptions(
-          type: OptionsType.slider,
-          startText: "Not at all",
-          endText: "A lot",
-          choices: [
-            Option(id: 0, option: "0"),
-            Option(id: 1, option: "12"),
-          ]),
-          questionType: QuestionType.drinks
-    ),
-    Prompt(
-      id: 76,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
       note: Strings.researcherNote,
     ),
     Prompt(
-      id: 77,
+      id: 71,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
       responseType: ResponseType.recording,

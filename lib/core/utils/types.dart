@@ -12,7 +12,6 @@ enum TagType {
   remainder,
 }
 
-
 enum QuestionType {
   physically,
   emotionally,
@@ -24,5 +23,4 @@ enum QuestionType {
   stressed,
   whereyouare,
   peoplearoundyou,
-  drinks
 }
