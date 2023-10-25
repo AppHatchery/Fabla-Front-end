@@ -114,10 +114,9 @@ class _CustomCalenderState extends State<CustomCalender> {
           defaultBuilder: (context, day, focusedDay) {
             final hasDiary = widget.diaries?.where((element) => isSameDay(
                 element.start,
-                DateTime(day.year, day.month, day.day, 4, 0, 0)));
+                DateTime(day.year, day.month, day.day, 4, 0, 0))) ?? [];
 
-            final isComplete = widget.diaries
-                    ?.where((element) => isSameDay(element.start,
+            final isComplete = hasDiary.where((element) => isSameDay(element.start,
                         DateTime(day.year, day.month, day.day, 4, 0, 0)))
                     .firstOrNull
                     ?.status ==
@@ -127,7 +126,7 @@ class _CustomCalenderState extends State<CustomCalender> {
               margin: const EdgeInsets.all(4),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                  color: hasDiary!.isNotEmpty
+                  color: hasDiary.isNotEmpty
                       ? isComplete
                           ? const Color(0xFF1FBE4C)
                           : const Color(0xFFB4D5FF).withOpacity(0.5)
