@@ -38,7 +38,11 @@ class AvatarBackground extends StatelessWidget {
                         width: width,
                       )
                     : SizedBox(
-                        height: height > 750 ? height * 0.55 : height * 0.65,
+                        height: height > 750
+                            ? height > 850
+                                ? height * 0.5
+                                : height * 0.55
+                            : height * 0.65,
                         width: width,
                         child: RiveAnimation.asset(
                           animation!,
