@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
@@ -26,8 +27,10 @@ class DiaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     late String preview;
-    if(diary?.status == DiaryStatus.submitted || diary?.status == DiaryStatus.missed) {
-      preview  = 'Day ${diary?.id} - Study Name';
+    if (diary?.status == DiaryStatus.submitted ||
+        diary?.status == DiaryStatus.missed ||
+        diary!.start.isAfter(DateTime.now())) {
+      preview = 'Day ${diary?.id} - ${Strings.studyName}';
     } else {
       preview = 'Day ${diary?.id} - ${diary!.prompts[0].question!}';
     }
@@ -35,7 +38,8 @@ class DiaryCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: diary?.status == DiaryStatus.submitted ||
-                diary?.status == DiaryStatus.missed
+                diary?.status == DiaryStatus.missed ||
+                diary!.start.isAfter(DateTime.now())
             ? CustomColors.fillNormal
             : CustomColors.fillWhite,
         borderRadius: BorderRadius.circular(12),
@@ -90,24 +94,29 @@ class DiaryCard extends StatelessWidget {
                   flex: 1,
                   child: CustomElevatedButton(
                     onClick: () => navigateToDiary(context),
-                    text: switch (diary!.status) {
-                      DiaryStatus.complete => "Continue",
-                      DiaryStatus.idle => "Start",
-                      DiaryStatus.ongoing => "Continue",
-                      DiaryStatus.submitted => "View",
-                      DiaryStatus.missed => "View",
-                    },
+                    text: diary!.start.isAfter(DateTime.now())
+                        ? "Preview"
+                        : switch (diary!.status) {
+                            DiaryStatus.complete => "Continue",
+                            DiaryStatus.idle => "Start",
+                            DiaryStatus.ongoing => "Continue",
+                            DiaryStatus.submitted => "View",
+                            DiaryStatus.missed => "View",
+                          },
                     color: diary?.status == DiaryStatus.submitted ||
-                            diary?.status == DiaryStatus.missed
+                            diary?.status == DiaryStatus.missed ||
+                            diary!.start.isAfter(DateTime.now())
                         ? CustomColors.fillNormal
                         : CustomColors.productNormal,
                     border: diary?.status == DiaryStatus.submitted ||
-                            diary?.status == DiaryStatus.missed
+                            diary?.status == DiaryStatus.missed ||
+                            diary!.start.isAfter(DateTime.now())
                         ? Border.all(
                             color: CustomColors.productNormal, width: 2)
                         : const Border(),
                     textColor: diary?.status == DiaryStatus.submitted ||
-                            diary?.status == DiaryStatus.missed
+                            diary?.status == DiaryStatus.missed ||
+                            diary!.start.isAfter(DateTime.now())
                         ? CustomColors.productNormal
                         : CustomColors.textWhite,
                   ),
@@ -123,6 +132,15 @@ class DiaryCard extends StatelessWidget {
   void navigateToDiary(BuildContext context) async {
     if (diary!.status == DiaryStatus.complete) {
       Navigator.pushNamed(context, '/DiarySummaryPage', arguments: diary);
+    } else if (diary!.status == DiaryStatus.submitted ||
+        diary!.status == DiaryStatus.missed ||
+        diary!.start.isAfter(DateTime.now())) {
+      showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => Wrap(
+                children: [ReviewDiary(diary: diary!)],
+              ));
     } else {
       final results = await Navigator.of(context)
           .pushNamed("/NewDiaryPage", arguments: diary);
@@ -329,16 +347,20 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                         // transcript(),
                         /// Remove sized if transcript is available
                         const SizedBox(
-                          height: 10,
+                          height: 18,
                         ),
                         slider(width),
                       ],
                     )),
                 Visibility(
-                    visible: !widget.isExpanded,
-                    child: const SizedBox(
-                      height: 12,
-                    )),
+                  visible: !widget.isExpanded,
+                  replacement: const SizedBox(
+                    height: 24,
+                  ),
+                  child: const SizedBox(
+                    height: 12,
+                  ),
+                ),
                 controls(),
               ],
             ),
@@ -416,13 +438,14 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
         SizedBox(
             width: width,
             child: SliderTheme(
-              data: const SliderThemeData(
-                trackHeight: 3,
-                activeTrackColor: CustomColors.productNormal,
-                thumbColor: CustomColors.productNormal,
-                inactiveTrackColor: CustomColors.productBorderNormal,
-                thumbShape: RoundSliderThumbShape(enabledThumbRadius: 5),
-              ),
+              data: SliderThemeData(
+                  trackHeight: 3,
+                  activeTrackColor: CustomColors.productNormal,
+                  thumbColor: CustomColors.productNormal,
+                  inactiveTrackColor: CustomColors.productBorderNormal,
+                  thumbShape:
+                      const RoundSliderThumbShape(enabledThumbRadius: 5),
+                  overlayShape: SliderComponentShape.noOverlay),
               child: Slider(
                 value: currentSliderPosition,
                 max: maxSliderPosition,
@@ -463,20 +486,23 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                   children: [
                     IconButton(
                       onPressed: () => rewind(),
-                      icon: const Icon(CustomIcons.backupLeft_15s),
+                      icon: const Icon(CupertinoIcons.gobackward_15),
                       color: Colors.black,
+                      iconSize: 24,
                     ),
                     IconButton(
                       onPressed: () => play(),
                       icon: Icon(isPlaying
-                          ? CustomIcons.pause
-                          : CustomIcons.playArrow),
+                          ? CupertinoIcons.pause_fill
+                          : CupertinoIcons.play_arrow_solid),
                       color: Colors.black,
+                      iconSize: 24,
                     ),
                     IconButton(
                       onPressed: () => forward(),
-                      icon: const Icon(CustomIcons.forwardRight_15s),
+                      icon: const Icon(CupertinoIcons.goforward_15),
                       color: Colors.black,
+                      iconSize: 24,
                     ),
                   ],
                 ),
@@ -484,18 +510,15 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
           Expanded(
               child: widget.viewOnly
                   ? const SizedBox()
-                  : GestureDetector(
-                      onTap: () => delete(),
-                      child: const SizedBox(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Icon(
-                            CustomIcons.delete,
-                            color: CustomColors.warningActive,
-                          ),
-                        ),
-                      ),
-                    )),
+                  : Container(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      onPressed: () => delete(),
+                      icon: const Icon(CupertinoIcons.delete),
+                      color: CustomColors.warningActive,
+                      iconSize: 24,
+                    ),
+                  )),
         ],
       ),
     );

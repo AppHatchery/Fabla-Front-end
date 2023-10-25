@@ -101,7 +101,7 @@ class _LoginPageState extends State<LoginPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Need help with the verification code? ",
+                          "Need help with the participant ID? ",
                           style: CustomTypography()
                               .bodyMedium(color: CustomColors.textWhite),
                         ),
@@ -141,11 +141,10 @@ class _LoginPageState extends State<LoginPage> {
         const SizedBox(
           height: 24,
         ),
-        CustomElevatedButton(
+        CustomFlatButton(
           onClick: () => login(),
-          text: "LOGIN",
+          text: "Login",
           color: CustomColors.fillWhite,
-          shadowColor: CustomColors.fillNormal,
           textColor: CustomColors.productNormalActive,
         )
       ],
@@ -163,11 +162,10 @@ class _LoginPageState extends State<LoginPage> {
         const SizedBox(
           height: 24,
         ),
-        CustomElevatedButton(
+        CustomFlatButton(
           onClick: () => login(),
-          text: "LOGIN",
+          text: "Login",
           color: CustomColors.fillWhite,
-          shadowColor: CustomColors.productBorderNormal,
           textColor: CustomColors.productNormalActive,
         )
       ],
@@ -178,12 +176,11 @@ class _LoginPageState extends State<LoginPage> {
     if (controller.text.isNotEmpty) {
       final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
       final text = controller.text.substring(0, lastNonSpaceIndex + 1);
-      final code = int.tryParse(text);;
-      if(code != null){
-      loginCubit.login(code);
-      }else{
-        
-      }
+      final code = int.tryParse(text);
+      ;
+      if (code != null) {
+        loginCubit.login(code);
+      } else {}
     }
   }
 
@@ -192,8 +189,8 @@ class _LoginPageState extends State<LoginPage> {
         scheme: "mailto",
         path: "support@apphatchery.org",
         query: encodeQueryParameters(<String, String>{
-          'subject': 'Need help with the verification code',
-          'body': 'I have a problem with my study code:'
+          'subject': 'Need help with the participant ID',
+          'body': 'I have a problem with my participant ID:'
         }));
 
     await launchUrl(uri);

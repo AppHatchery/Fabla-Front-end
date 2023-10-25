@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/participant_details.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -27,7 +26,6 @@ class _WelcomePageState extends State<WelcomePage> {
     repos.apiCreateParticipant(repos.getParticipant()!.studyCode);
     startPendo();
     super.initState();
-
   }
 
   @override
@@ -82,11 +80,10 @@ class _WelcomePageState extends State<WelcomePage> {
                       // const SizedBox(
                       //   height: 27,
                       // ),
-                      CustomElevatedButton(
+                      CustomFlatButton(
                         onClick: () => navigateToNextPage(),
-                        text: "CONTINUE",
+                        text: "Continue",
                         color: CustomColors.fillWhite,
-                        shadowColor: CustomColors.productBorderNormal,
                         textColor: CustomColors.productNormalActive,
                       )
                     ],

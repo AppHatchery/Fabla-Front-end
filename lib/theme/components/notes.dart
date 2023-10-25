@@ -14,7 +14,7 @@ class ResearchersNote extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: CustomColors.productLightBackground,
+        color: CustomColors.fillWhite,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -23,12 +23,12 @@ class ResearchersNote extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Research's Note:",
-                style: CustomTypography().title(),
+                "Research's Tips:",
+                style: CustomTypography().bodyMedium(),
               ),
               GestureDetector(
                   onTap: () => onDismissed(true),
-                  child: const Icon(Icons.close_rounded))
+                  child: const Icon(Icons.close_rounded, size: 18,))
             ],
           ),
           const SizedBox(height: 8),
@@ -37,7 +37,7 @@ class ResearchersNote extends StatelessWidget {
             child: Text(
               note ??
                   "We recommend that you answer the questions as you see fit and relax and speak your mind.",
-              style: CustomTypography().bodyLarge(),
+              style: CustomTypography().bodyMedium(),
             ),
           )
         ],

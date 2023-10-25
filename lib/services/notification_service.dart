@@ -158,7 +158,7 @@ class NotificationService {
   /// NotificationService.cancelAllNotifications(); // Cancel all scheduled and active notifications.
   /// ```
   static Future<void> cancelAllNotifications() async =>
-      await AwesomeNotifications().cancelAllSchedules();
+      await AwesomeNotifications().cancelAll();
 
   /// Cancels a scheduled notification with the specified [id].
   ///

@@ -17,19 +17,24 @@ class DiaryHistoryCubit extends Cubit<DiaryHistoryState> {
     try {
       emit(const DiaryHistoryLoading());
       //final diary = await repository.getAllDiaries();
-      List<Diary> unfilteredDiaries = await repository.getAllDiaries();
+      List<Diary> unfilteredDiaries = repository.getAllDiaries();
+
+      final now = DateTime.now();
+      final due = now.hour >= 4
+          ? DateTime(now.year, now.month, now.day, 4, 0, 0)
+              .add(const Duration(days: 1))
+          : DateTime(now.year, now.month, now.day, 4, 0, 0);
+
+      final filteredDiaries =
+          unfilteredDiaries.where((diary) => diary.due.isBefore(due)).toList();
+
+      filteredDiaries.sort((a, b) => b.due.compareTo(a.due));
+
       for (var diary in unfilteredDiaries) {
         diary.tags = _getTags(diary);
       }
-      List<Diary> unSubmittedDiaries = unfilteredDiaries
-          .where((element) => element.status == DiaryStatus.complete)
-          .toList();
-      List<Diary> diaries = unfilteredDiaries
-          .where((element) => element.status != DiaryStatus.complete)
-          .toList();
-      diaries
-          .sort((a, b) => a.status.toString().compareTo(b.status.toString()));
-      emit(DiaryHistoryLoaded(diaries, unSubmittedDiaries));
+      
+      emit(DiaryHistoryLoaded(filteredDiaries));
     } catch (e) {
       emit(const DiaryHistoryError("Something went wrong"));
     }

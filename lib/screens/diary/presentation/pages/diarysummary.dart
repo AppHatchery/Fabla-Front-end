@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -34,7 +35,8 @@ class DiarySummaryPage extends StatefulWidget {
   State<DiarySummaryPage> createState() => _DiarySummaryPageState();
 }
 
-class _DiarySummaryPageState extends State<DiarySummaryPage> {
+class _DiarySummaryPageState extends State<DiarySummaryPage>
+    with WidgetsBindingObserver {
   late SummaryCubit summaryCubit;
   int? expandedCardId;
   bool isSliderEnabled = false;
@@ -42,12 +44,29 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     summaryCubit = BlocProvider.of<SummaryCubit>(context);
     loadDiary(context);
     super.initState();
   }
 
   @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.paused:
+          scheduleSubmitDiaryNotification(widget.diary.id);
+        break;
+      default:
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SummaryCubit, SummaryState>(
@@ -61,6 +80,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
                   backgroundColor: CustomColors.fillNormal,
                   leading: IconButton(
                     onPressed: () {
+                      scheduleSubmitDiaryNotification(widget.diary.id);
                       Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(builder: (context) => const Hub()),
@@ -185,12 +205,11 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
             padding:
                 const EdgeInsets.only(bottom: 34, top: 24, left: 16, right: 16),
             alignment: Alignment.bottomCenter,
-            child: CustomElevatedButton(
+            child: CustomFlatButton(
               onClick: () => submitDiary(),
-              text: "SUBMIT MY RESPONSE",
+              text: "Submit My Response",
               color: CustomColors.productNormal,
               textColor: CustomColors.textWhite,
-              shadowColor: CustomColors.productNormalActive,
             ),
           ),
         ),
@@ -206,7 +225,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage> {
     int scaleMinValue = 0;
     int scaleMaxValue = 100;
 
-    if (choices != null && choices.length >= 2) {
+    if (prompt.responseType == ResponseType.slider && choices != null && choices.length >= 2) {
       try {
         scaleMinValue = int.parse(choices[0].option!);
         scaleMaxValue = int.parse(choices[1].option!);

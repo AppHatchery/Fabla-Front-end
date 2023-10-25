@@ -76,11 +76,10 @@ class _FinishPageState extends State<FinishPage> {
                       // const SizedBox(
                       //   height: 38,
                       // ),
-                      CustomElevatedButton(
+                      CustomFlatButton(
                         onClick: _next,
-                        text: "GET STARTED",
+                        text: "Get Started",
                         color: CustomColors.fillWhite,
-                        shadowColor: CustomColors.fillNormal,
                         textColor: CustomColors.productNormalActive,
                       )
                     ],

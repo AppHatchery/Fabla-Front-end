@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../custom_colors.dart';
-import '../custom_typography.dart';
 
 /// Custom Bar Indicator.
 ///
@@ -28,6 +27,7 @@ class CustomBarIndicator extends StatelessWidget {
               valueColor:
                   const AlwaysStoppedAnimation<Color>(CustomColors.yellowDark),
               minHeight: 12,
+              borderRadius: BorderRadius.circular(30),
             ),
           ),
         ),
