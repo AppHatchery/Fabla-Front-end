@@ -41,10 +41,7 @@ class _ListActiveTimesState extends State<ListActiveTimes> {
                           bottom: index == widget.times.length - 1 ? 0 : 10.0),
                       child: ActiveTimeTile(
                         time: widget.times[index],
-                        delete: () => {
-                          deleteTime(widget.times[index]),
-                          Navigator.pop(context)
-                        },
+                        delete: () => deleteTime(widget.times[index]),
                         edit: (value) => editTime(index, value),
                         isEnabled: true,
                       ),
