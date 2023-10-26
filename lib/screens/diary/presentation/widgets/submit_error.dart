@@ -46,7 +46,7 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                             height: 12,
                           ),
                           Text(
-                            "Don't worry! We're here to help. Please reach out to us at [our@email.com] for assistance.",
+                            "Don't worry! We're here to help. Please reach out to us at [support@apphatchery.org] for assistance.",
                             style: CustomTypography().bodyLarge(
                               color: CustomColors.textSecondaryContent,
                             ),
