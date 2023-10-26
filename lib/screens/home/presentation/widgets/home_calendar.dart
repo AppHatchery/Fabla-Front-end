@@ -136,23 +136,17 @@ class _StreakCalendarState extends State<StreakCalendar> {
     days.clear();
     final now = DateTime.now();
     final today = now.weekday;
-    DateTime sunday = now.subtract(Duration(days: now.weekday - 1));
-    DateTime saturday = sunday.add(const Duration(days: 6));
+    DateTime sunday = now.subtract(Duration(days: now.weekday));
 
     //Get all the diaries
     final diaries = DiaryRepository().getAllDiaries();
-    final thisWeek = diaries
-        .where((element) =>
-            element.start.isAfter(sunday.subtract(const Duration(days: 1))) &&
-            element.start.isBefore(saturday.add(const Duration(days: 1))))
-        .toList();
 
-    if (thisWeek.isEmpty || diaries.first.start.isAfter(now)) {
+    if (diaries.first.start.isAfter(now)) {
       final difference = diaries.first.start.difference(now).inDays + 1;
       heading = "$difference days left for your first diary";
       message = "See you later!";
     } else {
-      final left = thisWeek
+      final left = diaries
           .where((element) =>
               element.status != DiaryStatus.submitted &&
               element.start.isAfter(now.subtract(const Duration(days: 1))))
@@ -170,7 +164,7 @@ class _StreakCalendarState extends State<StreakCalendar> {
     for (final d in _days) {
       final isToday = d.weekday == today;
       final todayDiaries =
-          thisWeek.where((element) => element.start.day == d.day).toList();
+          diaries.where((element) => element.start.day == d.day).toList();
       final diary = todayDiaries.firstOrNull;
       final isComplete =
           diary == null ? null : diary.status == DiaryStatus.submitted;
@@ -182,12 +176,12 @@ class _StreakCalendarState extends State<StreakCalendar> {
 
   // Define a map of day abbreviations.
   final Map<int, String> _dayAbbreviations = {
-    1: "S",
-    2: "M",
-    3: "T",
-    4: "W",
-    5: "T",
-    6: "F",
+    1: "M",
+    2: "T",
+    3: "W",
+    4: "T",
+    5: "F",
+    6: "S",
     7: "S",
   };
 }
