@@ -504,7 +504,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
       if (url != null) {
         final file = await changeFileName(url);
-        widget.onSave?.call(file.path);
+        final name = p.basename(file.path);
+        widget.onSave?.call(name);
       }
     } catch (e) {
       // TODO: Show Error
@@ -519,7 +520,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Future<String> getFilePath() async {
     final directory = await getApplicationDocumentsDirectory();
     final dir =
-        await Directory(p.join(directory.path, widget.promptId.toString()))
+        await Directory(p.join(directory.path, 'recordings'))
             .create(recursive: true);
     final now = DateTime.now();
     final fileName =

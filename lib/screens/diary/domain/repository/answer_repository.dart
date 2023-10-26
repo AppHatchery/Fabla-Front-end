@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/utils/types.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 import '../../../../core/database/dao/answer_dao.dart';
 import '../../../../main.dart';
@@ -112,7 +114,10 @@ class AnswerRepository {
   Future<void> removeResponse(Prompt prompt, String path) async {
     try {
       // Delete the recording file from the file system
-      final file = File(path);
+      final dir = await getApplicationDocumentsDirectory();
+      final _path = p.join(dir.path, 'recordings', path);
+
+      final file = File(_path);
       await file.delete();
 
       final answer = prompt.answer;
