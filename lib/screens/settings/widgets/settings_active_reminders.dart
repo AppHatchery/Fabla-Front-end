@@ -1,5 +1,5 @@
+import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../services/preference_service.dart';
 import '../../../theme/components/buttons.dart';
@@ -21,29 +21,19 @@ class ActiveReminders extends StatefulWidget {
 class _ActiveRemindersState extends State<ActiveReminders> {
   late String noReminderText = "No Scheduled Reminder Time";
 
-  Future<List<String>?> getReminders() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getStringList('reminder_times');
-  }
-
   @override
   void initState() {
     super.initState();
     PreferenceService()
         .getStringListPreference(key: 'reminder_times')
         .then((reminders) {
-      if (reminders == null || reminders.isEmpty) {
-        setState(() {
-          noReminderText = "No Scheduled Reminder Time";
-        });
-      } else {
-        for (String reminder in reminders) {
-          TimeOfDay time = TimeOfDay.fromDateTime(DateTime.parse(reminder));
-          setState(() {
-            widget.times.add(time);
-          });
-        }
-      }
+      final times = reminders
+              ?.map((e) => TimeOfDay.fromDateTime(DateTime.parse(e)))
+              .toList() ??
+          [];
+      setState(() {
+        widget.times.addAll(times);
+      });
     });
   }
 
@@ -116,7 +106,7 @@ class _ActiveRemindersState extends State<ActiveReminders> {
         });
       }
     }
-    updatePreferences();
+    update();
   }
 
   void deleteTime(TimeOfDay time) {
@@ -124,7 +114,7 @@ class _ActiveRemindersState extends State<ActiveReminders> {
       setState(() {
         widget.times.remove(time);
       });
-      updatePreferences();
+      update();
     }
   }
 
@@ -132,14 +122,18 @@ class _ActiveRemindersState extends State<ActiveReminders> {
     setState(() {
       widget.times[index] = time;
     });
-    updatePreferences();
+    update();
   }
 
-  void updatePreferences() async {
+  void update() async {
+    // Update Shared Preferences
     final value = widget.times
         .map((e) => DateTime(0, 0, 0, e.hour, e.minute).toString())
         .toList();
     await PreferenceService()
         .setStringListPreference(key: "reminder_times", value: value);
+
+    // Update Notifications
+    reScheduleAllNotifications();
   }
 }
