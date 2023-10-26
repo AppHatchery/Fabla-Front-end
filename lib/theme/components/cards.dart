@@ -7,6 +7,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 import '../../core/utils/formatter.dart';
 import '../../core/utils/statuses.dart';
@@ -569,8 +571,10 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
   }
 
   void playerInit() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final path = p.join(dir.path, 'recordings', widget.recording.path);
     audioPlayer = AudioPlayer()
-      ..setSourceDeviceFile(widget.recording.path)
+      ..setSourceDeviceFile(path)
       ..setReleaseMode(ReleaseMode.stop)
       ..setPlayerMode(PlayerMode.mediaPlayer);
 

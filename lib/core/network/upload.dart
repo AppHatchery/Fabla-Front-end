@@ -7,6 +7,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:path/path.dart' as p;
 import 'package:aws_common/vm.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../screens/diary/data/diary_audio_data.dart';
 import '../utils/formatter.dart';
 
@@ -38,6 +39,7 @@ import '../utils/formatter.dart';
 /// }
 /// ```
 Future<bool> upload(String studyCode, Diary diary) async {
+  final dir = await getApplicationDocumentsDirectory();
   try {
     List<DiaryAudioData> fileList = [];
     List<Question> questions = [];
@@ -46,10 +48,12 @@ Future<bool> upload(String studyCode, Diary diary) async {
       var prompt = diary.prompts[i];
       if (prompt.responseType == ResponseType.recording) {
         var rec = prompt.answer?.recordings;
+        
 
         for (int r = 0; r < rec!.length; r++) {
+          final path = p.join(dir.path, 'recordings',rec[r].path);
           fileList.add(DiaryAudioData(
-              prompt: i + 1, file: File(rec[r].path), date: diary.start));
+              prompt: i + 1, file: File(path), date: diary.start));
         }
       } else {
         if (prompt.answer != null) {
