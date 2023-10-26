@@ -148,7 +148,7 @@ class _StreakCalendarState extends State<StreakCalendar> {
         .toList();
 
     if (thisWeek.isEmpty || diaries.first.start.isAfter(now)) {
-      final difference = diaries.first.start.difference(sunday).inDays;
+      final difference = diaries.first.start.difference(now).inDays + 1;
       heading = "$difference days left for your first diary";
       message = "See you later!";
     } else {
