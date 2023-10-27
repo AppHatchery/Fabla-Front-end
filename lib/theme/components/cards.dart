@@ -111,7 +111,8 @@ class DiaryCard extends StatelessWidget {
                           DiaryStatus.submitted => "View",
                           DiaryStatus.missed => "View",
                         },
-                        "page": getPageName,
+                        "page": getPageName().toString()
+                        //"${getPageName}"
                       });
                     },
                     text: diary!.start.isAfter(DateTime.now())

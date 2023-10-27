@@ -206,6 +206,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                       visible: currentPage != 0,
                       child: CustomElevatedIconButton(
                         onClick: () {
+                          PendoService.track(
+                              " DiaryBack", {"study_day": "${DateTime.now()}"});
                           previousPage();
                         },
                         icon: Icons.arrow_back,
