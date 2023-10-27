@@ -6,7 +6,6 @@ const String _accountID = "Validation-Study-Fall23";
 const String _testID = "Test-Fall23";
 
 class PendoService {
-
   /// Initializes the Pendo Flutter plugin with the given Pendo key.
   ///
   /// This function sets up Pendo by invoking the `PendoFlutterPlugin.setup`
@@ -38,7 +37,7 @@ class PendoService {
   ///   - A Future<void> representing the asynchronous session start process.
   static Future<void> start(String code) async {
     try {
-      if (!foundation.kDebugMode) {
+      if (foundation.kDebugMode) {
         await PendoFlutterPlugin.startSession(code, _testID, null, null);
       }
     } catch (e) {
