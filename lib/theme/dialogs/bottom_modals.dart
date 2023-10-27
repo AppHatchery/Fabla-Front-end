@@ -239,7 +239,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           child: Container(
             alignment: Alignment.centerRight,
             child: IconButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  PendoService.track("RecordingModalDismissed", {
+                    "dismissal_path": "close",
+                    "study_date": "${DateTime.now()}",
+                  });
+                  Navigator.pop(context);
+                },
                 icon: const Icon(
                   Icons.close_rounded,
                   size: 24,
@@ -422,7 +428,11 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           //Save
           TextButton(
               onPressed: () => {
-                    if (elapsed.inSeconds > 0) {save(), Navigator.pop(context)}
+                    if (elapsed.inSeconds > 0) {save(), Navigator.pop(context)},
+                    PendoService.track("RecordingModalDismissed", {
+                      "dismissal_path": "save",
+                      "study_date": "${DateTime.now()}",
+                    })
                   },
               child: Padding(
                 padding:
