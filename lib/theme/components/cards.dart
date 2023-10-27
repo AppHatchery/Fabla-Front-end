@@ -338,6 +338,11 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    if (widget.isExpanded) {
+      PendoService.track("AudioOpen", {
+        "study_date": "${DateTime.now()}",
+      });
+    }
     return SizedBox(
       width: width,
       child: GestureDetector(
