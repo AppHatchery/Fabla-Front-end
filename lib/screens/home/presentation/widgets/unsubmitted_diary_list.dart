@@ -34,6 +34,7 @@ class UnsubmittedDiaryList extends StatelessWidget {
                 child: DiaryCard(
                   diary: diaries[index],
                   refresh: (value) => refresh(value),
+                  getPageName: () => "",
                 ),
               );
             },

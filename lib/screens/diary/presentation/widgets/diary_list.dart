@@ -94,6 +94,7 @@ class _DiaryListState extends State<DiaryList> {
                     DiaryCard(
                       diary: diary,
                       refresh: (value) => refresh(value),
+                      getPageName: () => "history_list",
                     ),
                     const SizedBox(height: 12),
                   ],

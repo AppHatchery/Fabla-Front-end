@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
@@ -24,7 +25,12 @@ import 'buttons.dart';
 class DiaryCard extends StatelessWidget {
   final Diary? diary;
   final ValueChanged<bool> refresh;
-  const DiaryCard({super.key, required this.diary, required this.refresh});
+  final String Function() getPageName;
+  const DiaryCard(
+      {super.key,
+      required this.diary,
+      required this.refresh,
+      required this.getPageName});
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +101,19 @@ class DiaryCard extends StatelessWidget {
                 Expanded(
                   flex: 1,
                   child: CustomElevatedButton(
-                    onClick: () => navigateToDiary(context),
+                    onClick: () {
+                      navigateToDiary(context);
+                      PendoService.track("DiaryView", {
+                        "action": switch (diary!.status) {
+                          DiaryStatus.complete => "Continue",
+                          DiaryStatus.idle => "Start",
+                          DiaryStatus.ongoing => "Continue",
+                          DiaryStatus.submitted => "View",
+                          DiaryStatus.missed => "View",
+                        },
+                        "page": getPageName,
+                      });
+                    },
                     text: diary!.start.isAfter(DateTime.now())
                         ? "Preview"
                         : switch (diary!.status) {
@@ -513,14 +531,14 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
               child: widget.viewOnly
                   ? const SizedBox()
                   : Container(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      onPressed: () => delete(),
-                      icon: const Icon(CupertinoIcons.delete),
-                      color: CustomColors.warningActive,
-                      iconSize: 24,
-                    ),
-                  )),
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        onPressed: () => delete(),
+                        icon: const Icon(CupertinoIcons.delete),
+                        color: CustomColors.warningActive,
+                        iconSize: 24,
+                      ),
+                    )),
         ],
       ),
     );

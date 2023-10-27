@@ -105,8 +105,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ),
         ),
         body: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: BlocConsumer<HomeCubit, HomeState>(
                 listener: (context, state) {},
                 builder: (context, state) {
@@ -145,7 +144,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             height: 24,
           ),
           const StreakCalendar(),
-
           const SizedBox(
             height: 24,
           ),
@@ -180,11 +178,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             height: 24,
           ),
           const StreakCalendar(),
-
           const SizedBox(
             height: 24,
           ),
-          TodaysDiaryList(diaries: diaries, refresh: (value) => refresh(value))
+          TodaysDiaryList(
+            diaries: diaries,
+            refresh: (value) => refresh(value),
+            getPageName: () => "home",
+          )
         ],
       ),
     );

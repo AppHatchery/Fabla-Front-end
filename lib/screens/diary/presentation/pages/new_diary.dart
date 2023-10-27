@@ -145,7 +145,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                       "Question_number_at_exit": "${currentPage + 1}",
                       "studyDate": "${DateTime.now()}"
                     });
-                    formatDate(widget.diary.due);
                   },
                   icon: const Icon(CustomIcons.close),
                   iconSize: 15.0,

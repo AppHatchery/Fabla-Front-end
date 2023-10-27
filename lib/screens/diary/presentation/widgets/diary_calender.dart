@@ -149,6 +149,7 @@ class _DiaryCalenderState extends State<DiaryCalender> {
                   DiaryCard(
                     diary: diary,
                     refresh: _refresh,
+                    getPageName: () => "history_calender",
                   ),
                 ],
               );
