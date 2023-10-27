@@ -60,7 +60,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.paused:
-          scheduleSubmitDiaryNotification(widget.diary.id);
+        scheduleSubmitDiaryNotification(widget.diary.id);
         break;
       default:
     }
@@ -225,7 +225,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     int scaleMinValue = 0;
     int scaleMaxValue = 100;
 
-    if (prompt.responseType == ResponseType.slider && choices != null && choices.length >= 2) {
+    if (prompt.responseType == ResponseType.slider &&
+        choices != null &&
+        choices.length >= 2) {
       try {
         scaleMinValue = int.parse(choices[0].option!);
         scaleMaxValue = int.parse(choices[1].option!);
@@ -298,24 +300,23 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 6.0),
                                   child: AudioDiaryCard(
-                                      recording:
-                                          prompt.answer!.recordings[index],
-                                      delete: () => deleteResponse(
-                                          prompt,
-                                          prompt
-                                              .answer!.recordings[index].path),
-                                      isExpanded: expandedCardId ==
-                                          prompt.answer!.recordings[index].id,
-                                      onTap: () {
-                                        setState(() {
-                                          expandedCardId = expandedCardId ==
-                                                  prompt.answer!
-                                                      .recordings[index].id
-                                              ? null
-                                              : prompt
-                                                  .answer!.recordings[index].id;
-                                        });
-                                      }),
+                                    recording: prompt.answer!.recordings[index],
+                                    delete: () => deleteResponse(prompt,
+                                        prompt.answer!.recordings[index].path),
+                                    isExpanded: expandedCardId ==
+                                        prompt.answer!.recordings[index].id,
+                                    onTap: () {
+                                      setState(() {
+                                        expandedCardId = expandedCardId ==
+                                                prompt.answer!.recordings[index]
+                                                    .id
+                                            ? null
+                                            : prompt
+                                                .answer!.recordings[index].id;
+                                      });
+                                    },
+                                    promptId: prompt.id,
+                                  ),
                                 ))
                         : const SizedBox.shrink(),
                   )

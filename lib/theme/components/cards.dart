@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -299,6 +300,7 @@ class AudioDiaryCard extends StatefulWidget {
   final bool viewOnly;
   final bool isExpanded;
   final VoidCallback? onTap;
+  final int promptId;
   const AudioDiaryCard({
     super.key,
     required this.recording,
@@ -306,6 +308,7 @@ class AudioDiaryCard extends StatefulWidget {
     this.viewOnly = false,
     this.isExpanded = false,
     this.onTap,
+    required this.promptId,
   });
 
   @override
@@ -506,13 +509,27 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      onPressed: () => rewind(),
+                      onPressed: () {
+                        rewind();
+                        PendoService.track("AudioControl", {
+                          "action": "backward",
+                          "study_date": "${DateTime.now()}",
+                          "prompt_number": "${widget.promptId + 1}"
+                        });
+                      },
                       icon: const Icon(CupertinoIcons.gobackward_15),
                       color: Colors.black,
                       iconSize: 24,
                     ),
                     IconButton(
-                      onPressed: () => play(),
+                      onPressed: () {
+                        PendoService.track("AudioControl", {
+                          "action": "play",
+                          "study_date": "${DateTime.now()}",
+                          "prompt_number": "${widget.promptId + 1}"
+                        });
+                        play();
+                      },
                       icon: Icon(isPlaying
                           ? CupertinoIcons.pause_fill
                           : CupertinoIcons.play_arrow_solid),
@@ -520,7 +537,14 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                       iconSize: 24,
                     ),
                     IconButton(
-                      onPressed: () => forward(),
+                      onPressed: () {
+                        PendoService.track("AudioControl", {
+                          "action": "forward",
+                          "study_date": "${DateTime.now()}",
+                          "prompt_number": "${widget.promptId + 1}"
+                        });
+                        forward();
+                      },
                       icon: const Icon(CupertinoIcons.goforward_15),
                       color: Colors.black,
                       iconSize: 24,
@@ -534,7 +558,14 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                   : Container(
                       alignment: Alignment.centerRight,
                       child: IconButton(
-                        onPressed: () => delete(),
+                        onPressed: () {
+                          PendoService.track("AudioControl", {
+                            "action": "delete",
+                            "study_date": "${DateTime.now()}",
+                            "prompt_number": "${widget.promptId + 1}"
+                          });
+                          delete();
+                        },
                         icon: const Icon(CupertinoIcons.delete),
                         color: CustomColors.warningActive,
                         iconSize: 24,

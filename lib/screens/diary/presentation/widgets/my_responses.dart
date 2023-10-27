@@ -31,11 +31,10 @@ class MyResponse extends StatefulWidget {
 }
 
 class _MyResponseState extends State<MyResponse> {
-   int? expandedCardId;
+  int? expandedCardId;
 
   @override
   Widget build(BuildContext context) {
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -60,13 +59,16 @@ class _MyResponseState extends State<MyResponse> {
                   isExpanded: expandedCardId == widget.recordings[index].id,
                   onTap: () {
                     setState(() {
-                      expandedCardId = expandedCardId == widget.recordings[index].id ? null : widget.recordings[index].id;
+                      expandedCardId =
+                          expandedCardId == widget.recordings[index].id
+                              ? null
+                              : widget.recordings[index].id;
                     });
                   },
+                  promptId: widget.prompt.id,
                 ),
               );
-            }
-        ),
+            }),
         const SizedBox(height: 12),
       ],
     );

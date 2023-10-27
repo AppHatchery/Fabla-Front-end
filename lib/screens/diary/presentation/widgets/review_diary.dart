@@ -217,24 +217,23 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 6.0),
                                   child: AudioDiaryCard(
-                                      recording:
-                                          prompt.answer!.recordings[index],
-                                      delete: () => deleteResponse(
-                                          prompt,
-                                          prompt
-                                              .answer!.recordings[index].path),
-                                      isExpanded: expandedCardId ==
-                                          prompt.answer!.recordings[index].id,
-                                      onTap: () {
-                                        setState(() {
-                                          expandedCardId = expandedCardId ==
-                                                  prompt.answer!
-                                                      .recordings[index].id
-                                              ? null
-                                              : prompt
-                                                  .answer!.recordings[index].id;
-                                        });
-                                      }),
+                                    recording: prompt.answer!.recordings[index],
+                                    delete: () => deleteResponse(prompt,
+                                        prompt.answer!.recordings[index].path),
+                                    isExpanded: expandedCardId ==
+                                        prompt.answer!.recordings[index].id,
+                                    onTap: () {
+                                      setState(() {
+                                        expandedCardId = expandedCardId ==
+                                                prompt.answer!.recordings[index]
+                                                    .id
+                                            ? null
+                                            : prompt
+                                                .answer!.recordings[index].id;
+                                      });
+                                    },
+                                    promptId: prompt.id,
+                                  ),
                                 ))
                         : const SizedBox.shrink(),
                   )
