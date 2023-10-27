@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/diary_calender.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/diary_list.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../theme/custom_colors.dart';
@@ -20,6 +21,7 @@ class _DiaryPageState extends State<DiariesPage> with TickerProviderStateMixin {
 
   @override
   void initState() {
+    PendoService.track("HistoryTab", {"study_day": "${DateTime.now()}"});
     _tabController = TabController(length: 2, vsync: this);
     super.initState();
   }
@@ -42,19 +44,13 @@ class _DiaryPageState extends State<DiariesPage> with TickerProviderStateMixin {
             splashFactory: NoSplash.splashFactory,
           ),
           backgroundColor: CustomColors.fillNormal,
-          
         ),
         body: Padding(
           padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 12.0),
           child: TabBarView(
-            controller: _tabController, 
-            physics: const NeverScrollableScrollPhysics(),
-            children: const [
-            DiaryList(),
-            DiaryCalender(
-            )
-          ]),
+              controller: _tabController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: const [DiaryList(), DiaryCalender()]),
         ));
   }
-
 }
