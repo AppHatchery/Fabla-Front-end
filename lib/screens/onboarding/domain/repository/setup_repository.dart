@@ -6,7 +6,9 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/models/Participants.dart';
+import 'package:audio_diaries_flutter/models/UserMetadata.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
@@ -100,6 +102,7 @@ class SetupRepository {
     }
   }
 
+
   /// Responsible for updating the metadata once created. This happens when diary has been submitted by participants or it has been submitted systematically.
 
   void updateMetaDataFile(DateTime? nextStudyDate) async {
@@ -146,6 +149,134 @@ class SetupRepository {
       }
     }
   }
+
+
+
+
+
+
+Future<void> apiCreateMetadata(String studycode) async {
+    if (!await recordExists(GqlModelType.userMetatdata, studycode)) {
+      try {
+        final startDate = DateTime.fromMillisecondsSinceEpoch(
+            await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+        final participant = UserMetadata(
+          participant: studycode,
+          start_study_date: formatDate(startDate),
+          next_study_date: formatDate(startDate),
+          day1: "null",
+          day2: "null",
+          day3: "null",
+          day4: "null",
+          day5: "null",
+          day6: "null",
+        );
+        final request = ModelMutations.create(participant);
+        final response = await Amplify.API.mutate(request: request).response;
+
+        final participantData = response.data;
+        if (participantData != null) {
+          safePrint('Metadata Created mutation result: ${participantData.participant}');
+          
+        }else{
+          safePrint('errors: ${response.errors}');
+        }
+      } on ApiException catch (e) {
+        safePrint('Mutation failed: $e');
+      }
+    } else {
+      safePrint("Metadata record already exists or Submission error");
+    }
+  }
+
+
+
+
+//CURRENT TASK TEST OUT THIS FUCTION 
+  Future<bool> recordExists(GqlModelType modelType, String studycode) async {
+    try {
+      switch (modelType) {
+        case GqlModelType.participant:
+          String graphQLDocument = '''
+              query ListFiles {
+                listParticipants(filter: { _deleted:{attributeExists:false}, studycode: { eq: "$studycode" } }) {
+                  items {
+                    id
+                    studycode
+                    _deleted
+                  }
+                }
+              }
+            ''';
+          var operation = Amplify.API.query(
+            request: GraphQLRequest<String>(
+              document: graphQLDocument,
+              variables: {'studycode': studycode},
+            ),
+          );
+          var response = await operation.response;
+          var data = response.data;
+          if (data != null) {
+            Map<String, dynamic> jsonMap = jsonDecode(data);
+            final participantList = jsonMap["listParticipants"]["items"];
+            if (participantList.length > 0) {
+              return true;
+            }
+            safePrint("dataa: $data");
+            return false;
+          } else {
+            response.errors.forEach((element) {
+              safePrint('${element.message}.');
+            });
+            return false;
+          }
+
+        case GqlModelType.userMetatdata:
+          String graphQLDocument = '''
+            query ListFiles {
+              listUserMetadata(filter: {participant: {eq: "$studycode"}, _deleted: {attributeExists: false}}) {
+                items {
+                  id
+                  _deleted
+                }
+              }
+            }
+
+
+            ''';
+          var operation = Amplify.API.query(
+            request: GraphQLRequest<String>(
+              document: graphQLDocument,
+              variables: {'participant': studycode},
+            ),
+          );
+          var response = await operation.response;
+          var data = response.data;
+          if (data != null) {
+            Map<String, dynamic> jsonMap = jsonDecode(data);
+            final participantList = jsonMap["listUserMetadata"]["items"];
+            if (participantList.length > 0) {
+              return true;
+            }
+            safePrint("dataa: $data");
+            return false;
+          } else {
+            response.errors.forEach((element) {
+              safePrint('${element.message}.');
+            });
+            return false;
+          }
+      }
+    } catch (e) {
+       print('$e');
+      return false;
+    }
+  }
+
+
+
+
+
 //Data interaction to graphql database online; you have [participantExist]
 
   ///Code checks if participant is available in the database
@@ -176,7 +307,7 @@ class SetupRepository {
         if (participantList.length > 0) {
           return true;
         }
-        safePrint("dataa: $data");
+        print("dataa: $data");
         return false;
       } else {
         response.errors.forEach((element) {
@@ -199,16 +330,16 @@ class SetupRepository {
 
         final participantData = response.data;
         if (participantData == null) {
-          safePrint('errors: ${response.errors}');
+          print('errors: ${response.errors}');
           return;
         }
-        safePrint(
+        print(
             'Participant Added Mutation result: ${participantData.studycode}');
       } on ApiException catch (e) {
-        safePrint('Mutation failed: $e');
+        print('Mutation failed: $e');
       }
     } else {
-      safePrint("Participant Already exists or Submission error");
+      print("Participant Already exists or Submission error");
     }
   }
 
