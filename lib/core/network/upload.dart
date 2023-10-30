@@ -357,7 +357,7 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
   input['endtime_$day'] = formatDate(endtime);
 
   final directory = await getTemporaryDirectory();
-  final path = p.join(directory.path, 'responses_dairy_${diary.id}.json');
+  final path = p.join(directory.path, 'responses_diary_${diary.id}.json');
   final file = File(path);
   file.writeAsString(jsonEncode(responseMap));
 
