@@ -148,6 +148,22 @@ Future<bool> uploadMetaDataS3(var studyCode, File file) async {
   return true;
 }
 
+Future<bool> uploadFileS3(var studyCode, File file) async {
+  final awsFile = AWSFilePlatform.fromFile(file);
+  try {
+    final name = p.basename(file.path);
+    final uploadResult = await Amplify.Storage.uploadFile(
+      localFile: awsFile,
+      key: "$studyCode/$name",
+    ).result;
+    print('Uploaded Meta data file: ${uploadResult.uploadedItem.key}');
+    return true;
+  } on StorageException catch (e) {
+    print('Error uploading file: ${e.message}');
+    return false;
+  }
+}
+
 Question? filterQuestionByType(List<Question> objectList, QuestionType type) {
   try {
     return objectList.firstWhere((obj) => obj.questionType == type);
@@ -172,9 +188,7 @@ Future<bool> apiSubmitSurveyQuestions(
 
     ''';
     var operation = Amplify.API.query(
-      request: GraphQLRequest<String>(
-        document: graphQLDocument
-      ),
+      request: GraphQLRequest<String>(document: graphQLDocument),
     );
     var response = await operation.response;
     var data = response.data;
@@ -348,7 +362,10 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
   input.addAll(responseMap);
   input['endtime_$day'] = formatDate(endtime);
 
-  print("input: $input vs $responseMap");
+  final directory = await getTemporaryDirectory();
+  final path = p.join(directory.path, 'responses_dairy_${diary.id}.json');
+  final file = File(path);
+  file.writeAsString(responseMap.toString());
 
   final parameters = responseMap.keys.toList().join("\t\t\n");
   try {
@@ -371,7 +388,9 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
     var response = await operation.response;
     var data = response.data;
 
-    if (data != null) {
+    final uploaded = await uploadFileS3(studyCode, file);
+
+    if (data != null && uploaded) {
       safePrint("Questions submitted");
       return true;
     } else {
