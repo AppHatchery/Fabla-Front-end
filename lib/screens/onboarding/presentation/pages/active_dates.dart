@@ -162,7 +162,8 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
       return DateTime(2023, 11, 12);
     } else if (_code.isEven) {
       // return nextSunday.add(const Duration(days: 6));
-      return DateTime(2023, 11, 6);
+      //return DateTime(2023, 11, 6);
+      return DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     } 
 
     return null;

@@ -49,7 +49,7 @@ Future<bool> upload(String studyCode, Diary diary) async {
       var prompt = diary.prompts[i];
 
       if (prompt.answer != null) {
-        submittedPrompt ++;
+        submittedPrompt++;
 
         if (prompt.responseType == ResponseType.recording) {
           var rec = prompt.answer?.recordings;
@@ -60,10 +60,9 @@ Future<bool> upload(String studyCode, Diary diary) async {
                 prompt: i + 1, file: File(path), date: diary.start));
           }
         } else {
-            questions.add(Question(
-                questionType: prompt.questionType,
-                answer: prompt.answer!.response!));
-          
+          questions.add(Question(
+              questionType: prompt.questionType,
+              answer: prompt.answer!.response!));
         }
       }
     }
@@ -73,8 +72,8 @@ Future<bool> upload(String studyCode, Diary diary) async {
         await apiSubmitSurveyQuestions(studyCode, diary, resMap);
     final audioSubmitted = await uploadFilesToS3(studyCode, fileList);
 
-
-    print("uploaded questions $questionsSubmitted uploaded audio $audioSubmitted submitted prompt $submittedPrompt");
+    print(
+        "uploaded questions $questionsSubmitted uploaded audio $audioSubmitted submitted prompt $submittedPrompt");
 
     return questionsSubmitted && audioSubmitted;
   } catch (e) {
@@ -165,19 +164,16 @@ Future<bool> apiSubmitSurveyQuestions(
   try {
     String graphQLDocument = '''
       query ListFiles {
-        listParticipants(filter:{ _deleted:{attributeExists:false}, studycode: { eq: "$studycode" } }) {
-          items { 
-            id
-            studycode
-            _version
-          }
-        }
-      }
+  getParticipantsDev(id: $studycode){
+    id
+    _version
+  }
+}
+
     ''';
     var operation = Amplify.API.query(
       request: GraphQLRequest<String>(
-        document: graphQLDocument,
-        variables: {'studycode': studycode},
+        document: graphQLDocument
       ),
     );
     var response = await operation.response;
@@ -186,9 +182,9 @@ Future<bool> apiSubmitSurveyQuestions(
     if (data != null) {
       Map<String, dynamic> jsonMap = jsonDecode(data);
       print("map size: $jsonMap");
-      final participantList = jsonMap["listParticipants"]["items"];
-      dynamic id = participantList.first['id'];
-      int version = participantList.first['_version'];
+      final participantList = jsonMap["getParticipantsDev"];
+      dynamic id = participantList['id'];
+      int version = participantList['_version'];
       final uploaded = uploadQuestions(id, studycode, version, diary, map);
       return uploaded;
     } else {
@@ -216,20 +212,16 @@ Future<GqlApiRequestStateUpdate> participantsDiaryStartDate(
   if (await repo.participantExist(studycode)) {
     final map = await apiGetParticipant(studycode);
     safePrint("map: $map");
-    final id = map.first['id'];
-    int version = map.first['_version'];
+    final id = map['id'];
     final input = {
       'id': id,
-      'studycode': studycode,
       'starttime_$day': formatDate(diaryStartTime),
-      '_version': version
     };
     try {
       String graphQLDocument = '''
-      mutation UpdateParticipants(\$input: UpdateParticipantsInput!) {
-          updateParticipants(input: \$input) {
+      mutation UpdateParticipantsDev(\$input: UpdateParticipantsDevInput!) {
+          updateParticipantsDev(input: \$input) {
             id
-            studycode
             starttime_$day
             _version
           }
@@ -270,14 +262,10 @@ Future<GqlApiRequestStateUpdate> participantsDiaryStartDate(
 enum GqlApiRequestStateUpdate { idle, updated, error, notfound }
 
 Future<dynamic> apiGetParticipant(String studycode) async {
-  String graphQLDocument = '''
-      query ListFiles {
-        listParticipants(filter:{ _deleted:{attributeExists:false}, studycode: { eq: "$studycode" } }) {
-          items { 
-            id
-            studycode
-            _version
-          }
+  String graphQLDocumentDev = '''
+        query ListFiles {
+          getParticipantsDev(id: $studycode){
+          id
         }
       }
     ''';
@@ -285,8 +273,7 @@ Future<dynamic> apiGetParticipant(String studycode) async {
   try {
     var operation = Amplify.API.query(
       request: GraphQLRequest<String>(
-        document: graphQLDocument,
-        variables: {'studycode': studycode},
+        document: graphQLDocumentDev,
       ),
     );
     var response = await operation.response;
@@ -294,7 +281,8 @@ Future<dynamic> apiGetParticipant(String studycode) async {
 
     if (data != null) {
       Map<String, dynamic> jsonMap = jsonDecode(data);
-      final participantList = jsonMap["listParticipants"]["items"];
+      print("jsson map: $jsonMap ");
+      final participantList = jsonMap["getParticipantsDev"];
       return participantList;
     } else {
       response.errors.forEach((element) {
@@ -356,17 +344,18 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
   int day = diary.id;
   final endtime = DateTime.now();
 
-  final input = {'id': id, 'studycode': studyCode, '_version': entryVersion};
+  final input = {'id': id, '_version': entryVersion};
   input.addAll(responseMap);
   input['endtime_$day'] = formatDate(endtime);
+
+  print("input: $input vs $responseMap");
 
   final parameters = responseMap.keys.toList().join("\t\t\n");
   try {
     String graphQLDocument = '''
-      mutation UpdateParticipants(\$input: UpdateParticipantsInput!) {
-          updateParticipants(input: \$input) {
+      mutation UpdateParticipantsDev(\$input: UpdateParticipantsDevInput!) {
+          updateParticipantsDev(input: \$input) {
             id
-            studycode
             _version
             $parameters
           }
@@ -445,8 +434,8 @@ Future<GqlApiRequestStateUpdate> updateMetataData(Diary? diary) async {
 
   if (await repo.recordExists(GqlModelType.userMetatdata, studycode)) {
     final map = await apiGetUseMetaData(studycode);
-    final id = map.first['id'];
-    int version = map.first['_version'];
+    final id = map['id'];
+    int version = map['_version'];
 
     final dateNow = DateTime.now();
     final recentSubmittedDate = formatDate(DateTime.now());

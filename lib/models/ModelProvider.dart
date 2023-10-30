@@ -21,16 +21,20 @@
 
 import 'package:amplify_core/amplify_core.dart' as amplify_core;
 import 'Participants.dart';
+import 'ParticipantsDev.dart';
+import 'ParticipantsNew.dart';
 import 'UserMetadata.dart';
 
 export 'Participants.dart';
+export 'ParticipantsDev.dart';
+export 'ParticipantsNew.dart';
 export 'UserMetadata.dart';
 
 class ModelProvider implements amplify_core.ModelProviderInterface {
   @override
-  String version = "c3135da088692e4c68dbd227fe93d3bf";
+  String version = "9dbf0abec9782b99551c90ff589a294c";
   @override
-  List<amplify_core.ModelSchema> modelSchemas = [Participants.schema, UserMetadata.schema];
+  List<amplify_core.ModelSchema> modelSchemas = [Participants.schema, ParticipantsDev.schema, ParticipantsNew.schema, UserMetadata.schema];
   @override
   List<amplify_core.ModelSchema> customTypeSchemas = [];
   static final ModelProvider _instance = ModelProvider();
@@ -41,6 +45,10 @@ class ModelProvider implements amplify_core.ModelProviderInterface {
     switch(modelName) {
       case "Participants":
         return Participants.classType;
+      case "ParticipantsDev":
+        return ParticipantsDev.classType;
+      case "ParticipantsNew":
+        return ParticipantsNew.classType;
       case "UserMetadata":
         return UserMetadata.classType;
       default:

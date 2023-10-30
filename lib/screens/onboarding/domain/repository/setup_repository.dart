@@ -8,6 +8,8 @@ import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/models/Participants.dart';
+import 'package:audio_diaries_flutter/models/ParticipantsDev.dart';
+import 'package:audio_diaries_flutter/models/ParticipantsNew.dart';
 import 'package:audio_diaries_flutter/models/UserMetadata.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/diary_init.dart';
@@ -197,28 +199,26 @@ Future<void> apiCreateMetadata(String studycode) async {
     try {
       switch (modelType) {
         case GqlModelType.participant:
-          String graphQLDocument = '''
-              query ListFiles {
-                listParticipants(filter: { _deleted:{attributeExists:false}, studycode: { eq: "$studycode" } }) {
-                  items {
-                    id
-                    studycode
-                    _deleted
-                  }
-                }
-              }
-            ''';
-          var operation = Amplify.API.query(
-            request: GraphQLRequest<String>(
-              document: graphQLDocument,
-              variables: {'studycode': studycode},
-            ),
-          );
+         String graphQLDocumentDev = '''
+        query ListFiles {
+          getParticipantsDev(id: ""){
+            id
+            _deleted
+          } 
+      }
+    ''';
+
+      var operation = Amplify.API.query(
+        request: GraphQLRequest<String>(
+          document: graphQLDocumentDev,
+          variables: {'id': studycode},
+        ),
+      );
           var response = await operation.response;
           var data = response.data;
           if (data != null) {
             Map<String, dynamic> jsonMap = jsonDecode(data);
-            final participantList = jsonMap["listParticipants"]["items"];
+            final participantList = jsonMap["getParticipantsDev"];
             if (participantList.length > 0) {
               return true;
             }
@@ -282,28 +282,30 @@ Future<void> apiCreateMetadata(String studycode) async {
   ///Code checks if participant is available in the database
   Future<bool> participantExist(String studycode) async {
     try {
-      String graphQLDocument = '''
-      query ListFiles {
-        listParticipants(filter: { _deleted:{attributeExists:false}, studycode: { eq: "$studycode" } }) {
-          items {
+      
+
+String graphQLDocumentDev = '''
+        query ListFiles {
+          getParticipantsDev(id: "$studycode"){
             id
-            studycode
-            _deleted
           }
         }
-      }
     ''';
+
+
       var operation = Amplify.API.query(
         request: GraphQLRequest<String>(
-          document: graphQLDocument,
-          variables: {'studycode': studycode},
+          document: graphQLDocumentDev
         ),
       );
       var response = await operation.response;
       var data = response.data;
+      print("check data $data ");
       if (data != null) {
         Map<String, dynamic> jsonMap = jsonDecode(data);
-        final participantList = jsonMap["listParticipants"]["items"];
+        print("jm: $jsonMap");
+        final participantList = jsonMap["getParticipantsDev"];
+
         if (participantList.length > 0) {
           return true;
         }
@@ -322,9 +324,9 @@ Future<void> apiCreateMetadata(String studycode) async {
   }
 
   Future<void> apiCreateParticipant(String studycode) async {
-    if (!await participantExist(studycode)) {
+    
       try {
-        final participant = Participants(studycode: studycode);
+        final participant = ParticipantsDev(id: studycode);
         final request = ModelMutations.create(participant);
         final response = await Amplify.API.mutate(request: request).response;
 
@@ -334,13 +336,11 @@ Future<void> apiCreateMetadata(String studycode) async {
           return;
         }
         print(
-            'Participant Added Mutation result: ${participantData.studycode}');
+            'Participant Added Mutation result: ${participantData.id}');
       } on ApiException catch (e) {
         print('Mutation failed: $e');
       }
-    } else {
-      print("Participant Already exists or Submission error");
-    }
+    
   }
 
   /// Creates and schedules notifications for daily diaries.
