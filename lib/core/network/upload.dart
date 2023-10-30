@@ -43,14 +43,11 @@ Future<bool> upload(String studyCode, Diary diary) async {
   try {
     List<DiaryAudioData> fileList = [];
     List<Question> questions = [];
-    int submittedPrompt = 0;
 
     for (int i = 0; i < diary.prompts.length; i++) {
       var prompt = diary.prompts[i];
 
       if (prompt.answer != null) {
-        submittedPrompt++;
-
         if (prompt.responseType == ResponseType.recording) {
           var rec = prompt.answer?.recordings;
 
@@ -71,9 +68,6 @@ Future<bool> upload(String studyCode, Diary diary) async {
     final questionsSubmitted =
         await apiSubmitSurveyQuestions(studyCode, diary, resMap);
     final audioSubmitted = await uploadFilesToS3(studyCode, fileList);
-
-    print(
-        "uploaded questions $questionsSubmitted uploaded audio $audioSubmitted submitted prompt $submittedPrompt");
 
     return questionsSubmitted && audioSubmitted;
   } catch (e) {
@@ -365,7 +359,7 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
   final directory = await getTemporaryDirectory();
   final path = p.join(directory.path, 'responses_dairy_${diary.id}.json');
   final file = File(path);
-  file.writeAsString(responseMap.toString());
+  file.writeAsString(jsonEncode(responseMap));
 
   final parameters = responseMap.keys.toList().join("\t\t\n");
   try {

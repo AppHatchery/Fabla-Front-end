@@ -332,6 +332,7 @@ String graphQLDocumentDev = '''
 
         final participantData = response.data;
         if (participantData == null) {
+          print('Probably user already exists');
           print('errors: ${response.errors}');
           return;
         }
