@@ -39,6 +39,8 @@ class PendoService {
     try {
       if (foundation.kDebugMode) {
         await PendoFlutterPlugin.startSession(code, _testID, null, null);
+      } else {
+        await PendoFlutterPlugin.startSession(code, _accountID, null, null);
       }
     } catch (e) {
       print('Error starting Pendo session: $e');
