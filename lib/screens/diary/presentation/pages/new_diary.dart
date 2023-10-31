@@ -2,8 +2,10 @@ import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
@@ -139,7 +141,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                   onPressed: () {
                     if (widget.diary.status == DiaryStatus.ongoing) {
                       scheduleContinueDiaryNotifications(widget.diary.id);
+
                     }
+                    partialDataUpload(widget.diary);
                     Navigator.pop(context, true);
                     PendoService.track("ExitSurvey", {
                       "Question_number_at_exit": "${currentPage + 1}",
@@ -361,6 +365,7 @@ class _QuestionPageState extends State<QuestionPage>
       case AppLifecycleState.paused:
         if (widget.diary.status == DiaryStatus.ongoing) {
           scheduleContinueDiaryNotifications(widget.diary.id);
+          partialDataUpload(widget.diary);
         }
         break;
       default:
@@ -676,3 +681,15 @@ class _QuestionPageState extends State<QuestionPage>
         .showBottomSheet((context) => const BottomErrorModal());
   }
 }
+
+
+Future<void> partialDataUpload(Diary diary)async {
+
+  SetupRepository srepo =  SetupRepository();
+  SummaryRepository surepo =  SummaryRepository();
+  var diary2 = await surepo.loadSummary(diary);
+
+  upload(srepo.getParticipant()!.studyCode, diary2);
+
+
+  }

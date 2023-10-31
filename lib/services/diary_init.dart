@@ -65,6 +65,7 @@ DateTime? _startDate(String code) {
     // final saturday = nextSunday.add(const Duration(days: 6));
     // return DateTime(saturday.year, saturday.month, saturday.day);
     return DateTime(2023, 11, 6);
+    //return DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);// -- diary start today
   }
 
   return null;
