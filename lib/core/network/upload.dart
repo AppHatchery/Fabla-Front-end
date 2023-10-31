@@ -206,7 +206,6 @@ Future<bool> apiSubmitSurveyQuestions(
     return false;
   }
 }
-
 // META DATA FUNCTIONS
 
 Future<GqlApiRequestStateUpdate> participantsDiaryStartDate(
@@ -221,10 +220,14 @@ Future<GqlApiRequestStateUpdate> participantsDiaryStartDate(
     final map = await apiGetParticipant(studycode);
     safePrint("map: $map");
     final id = map['id'];
+    final version = map['_version'];
+
     final input = {
       'id': id,
       'starttime_$day': formatDate(diaryStartTime),
+      '_version': version
     };
+    //safePrint("StartTime: $input");
     try {
       String graphQLDocument = '''
       mutation UpdateParticipantsDev(\$input: UpdateParticipantsDevInput!) {
@@ -247,7 +250,7 @@ Future<GqlApiRequestStateUpdate> participantsDiaryStartDate(
 
       if (data != null) {
         safePrint(
-            "Diary started updated startdate ${formatDate(diaryStartTime)}");
+            "${data} Diary started updated startdate ${formatDate(diaryStartTime)}");
         updateState = GqlApiRequestStateUpdate.updated;
         return updateState;
       } else {
@@ -274,6 +277,7 @@ Future<dynamic> apiGetParticipant(String studycode) async {
         query ListFiles {
           getParticipantsDev(id: $studycode){
           id
+          _version
         }
       }
     ''';
@@ -385,7 +389,7 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
     final uploaded = await uploadFileS3(studyCode, file);
 
     if (data != null && uploaded) {
-      safePrint("Questions submitted");
+      print("Questions submitted");
       return true;
     } else {
       response.errors.forEach((element) {
