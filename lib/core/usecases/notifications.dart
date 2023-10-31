@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:flutter/material.dart';
 
 import '../../services/notification_service.dart';
 import '../../services/pendo_service.dart';
@@ -125,7 +126,7 @@ void scheduleContinueDiaryNotifications(int id) async {
         "scheduled_by": "auto",
         "notification_type": "continue",
         "number_of_reminders": dates.length,
-        "reminder_times": dates.map((e) => "${e.hour}:${e.minute}").toList(),
+        "reminder_times": dates.map((e) => TimeOfDay(hour: e.hour, minute: e.minute).toString()).toList(),
       });
 
       final updatedJsonMap = Map<String, dynamic>.fromEntries(notifications
@@ -208,7 +209,7 @@ void scheduleSubmitDiaryNotification(int id) async {
         "scheduled_by": "auto",
         "notification_type": "submit",
         "number_of_reminders": dates.length,
-        "reminder_times": dates.map((e) => "${e.hour}:${e.minute}").toList(),
+        "reminder_times": dates.map((e) => TimeOfDay(hour: e.hour, minute: e.minute).toString()).toList(),
       });
 
       final updatedJsonMap = Map<String, dynamic>.fromEntries(notifications
