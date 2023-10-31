@@ -21,7 +21,9 @@ class _WelcomePageState extends State<WelcomePage> {
 
   @override
   void initState() {
+    final code = repository.getParticipant()!.studyCode;
     createMetadata();
+    //repository.participantExist(code);
     SetupRepository repos = SetupRepository();
     repos.apiCreateParticipant(repos.getParticipant()!.studyCode);
     startPendo();

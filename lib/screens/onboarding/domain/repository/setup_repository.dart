@@ -6,7 +6,12 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/models/Participants.dart';
+import 'package:audio_diaries_flutter/models/ParticipantsDev.dart';
+import 'package:audio_diaries_flutter/models/ParticipantsNew.dart';
+import 'package:audio_diaries_flutter/models/UserMetadata.dart';
+import 'package:audio_diaries_flutter/models/UserMetadataDev.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
@@ -146,37 +151,169 @@ class SetupRepository {
       }
     }
   }
+
+  Future<void> apiCreateMetadata(String studycode) async {
+    if (!await recordExists(GqlModelType.userMetatdata, studycode)) {
+      try {
+        final startDate = DateTime.fromMillisecondsSinceEpoch(
+            await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+        final participant = UserMetadata(
+          participant: studycode,
+          start_study_date: formatDate(startDate),
+          next_study_date: formatDate(startDate),
+          day1: "null",
+          day2: "null",
+          day3: "null",
+          day4: "null",
+          day5: "null",
+          day6: "null",
+        );
+        final request = ModelMutations.create(participant);
+        final response = await Amplify.API.mutate(request: request).response;
+
+        final participantData = response.data;
+        if (participantData != null) {
+          safePrint(
+              'Metadata Created mutation result: ${participantData.participant}');
+        } else {
+          safePrint('errors: ${response.errors}');
+        }
+      } on ApiException catch (e) {
+        safePrint('Mutation failed: $e');
+      }
+    } else {
+      safePrint("Metadata record already exists or Submission error");
+    }
+  }
+
+  Future<void> apiCreateMetadataDev(String studycode) async {
+    final startDate = DateTime.fromMillisecondsSinceEpoch(
+        await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+
+    try {
+      final metadata = UserMetadataDev(
+        id: studycode,
+        start_study_date: formatDate(startDate),
+        next_study_date: formatDate(startDate),
+        day1: "null",
+        day2: "null",
+        day3: "null",
+        day4: "null",
+        day5: "null",
+        day6: "null",
+      );
+      final request = ModelMutations.create(metadata);
+      final response = await Amplify.API.mutate(request: request).response;
+
+      final metadataData = response.data;
+      if (metadataData == null) {
+        print('Metadata already exist');
+        print('errors: ${response.errors}');
+        return;
+      }
+      print('Metadata Added Mutation result: ${metadataData.id}');
+    } on ApiException catch (e) {
+      print('Mutation failed: $e');
+    }
+  }
+
+//CURRENT TASK TEST OUT THIS FUCTION
+  Future<bool> recordExists(GqlModelType modelType, String studycode) async {
+    try {
+      switch (modelType) {
+        case GqlModelType.participant:
+          String graphQLDocumentDev = '''
+        query ListFiles {
+          getParticipantsDev(id: $studycode){
+            id
+            _deleted
+          } 
+      }
+    ''';
+
+          var operation = Amplify.API.query(
+            request: GraphQLRequest<String>(document: graphQLDocumentDev),
+          );
+          var response = await operation.response;
+          var data = response.data;
+          if (data != null) {
+            Map<String, dynamic> jsonMap = jsonDecode(data);
+            final participantList = jsonMap["getParticipantsDev"];
+            if (participantList.length > 0) {
+              return true;
+            }
+            safePrint("dataa: $data");
+            return false;
+          } else {
+            response.errors.forEach((element) {
+              safePrint('${element.message}.');
+            });
+            return false;
+          }
+
+        case GqlModelType.userMetatdata:
+          String graphQLDocumentDev = '''
+        query ListFiles {
+          getUserMetadataDev(id: "$studycode"){
+            id
+          }
+        }
+    ''';
+
+          var operation = Amplify.API.query(
+            request: GraphQLRequest<String>(document: graphQLDocumentDev),
+          );
+          var response = await operation.response;
+          var data = response.data;
+          if (data != null) {
+            Map<String, dynamic> jsonMap = jsonDecode(data);
+            final participantList = jsonMap["getUserMetadataDev"];
+            if (participantList.length > 0) {
+              return true;
+            }
+            safePrint("dataa: $data");
+            return false;
+          } else {
+            response.errors.forEach((element) {
+              safePrint('${element.message}.');
+            });
+            return false;
+          }
+      }
+    } catch (e) {
+      print('$e');
+      return false;
+    }
+  }
+
 //Data interaction to graphql database online; you have [participantExist]
 
   ///Code checks if participant is available in the database
   Future<bool> participantExist(String studycode) async {
     try {
-      String graphQLDocument = '''
-      query ListFiles {
-        listParticipants(filter: { _deleted:{attributeExists:false}, studycode: { eq: "$studycode" } }) {
-          items {
+      String graphQLDocumentDev = '''
+        query ListFiles {
+          getParticipantsDev(id: "$studycode"){
             id
-            studycode
-            _deleted
           }
         }
-      }
     ''';
+
       var operation = Amplify.API.query(
-        request: GraphQLRequest<String>(
-          document: graphQLDocument,
-          variables: {'studycode': studycode},
-        ),
+        request: GraphQLRequest<String>(document: graphQLDocumentDev),
       );
       var response = await operation.response;
       var data = response.data;
+      print("check data $data ");
       if (data != null) {
         Map<String, dynamic> jsonMap = jsonDecode(data);
-        final participantList = jsonMap["listParticipants"]["items"];
+        print("jm: $jsonMap");
+        final participantList = jsonMap["getParticipantsDev"];
+
         if (participantList.length > 0) {
           return true;
         }
-        safePrint("dataa: $data");
+        print("dataa: $data");
         return false;
       } else {
         response.errors.forEach((element) {
@@ -191,24 +328,22 @@ class SetupRepository {
   }
 
   Future<void> apiCreateParticipant(String studycode) async {
-    if (!await participantExist(studycode)) {
-      try {
-        final participant = Participants(studycode: studycode);
-        final request = ModelMutations.create(participant);
-        final response = await Amplify.API.mutate(request: request).response;
+    try {
+      final participant = ParticipantsDev(id: studycode);
+      final request = ModelMutations.create(participant);
+      final response = await Amplify.API.mutate(request: request).response;
 
-        final participantData = response.data;
-        if (participantData == null) {
-          safePrint('errors: ${response.errors}');
-          return;
-        }
-        safePrint(
-            'Participant Added Mutation result: ${participantData.studycode}');
-      } on ApiException catch (e) {
-        safePrint('Mutation failed: $e');
+      final participantData = response.data;
+      if (participantData == null) {
+        print('Probably user already exists');
+        print('errors: ${response.errors}');
+        return;
+      } else {
+        apiCreateMetadataDev(studycode);
+        print('Participant Added Mutation result: ${participantData.id}');
       }
-    } else {
-      safePrint("Participant Already exists or Submission error");
+    } on ApiException catch (e) {
+      print('Mutation failed: $e');
     }
   }
 
