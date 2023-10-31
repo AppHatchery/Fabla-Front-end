@@ -157,6 +157,10 @@ class DiaryCard extends StatelessWidget {
     } else if (diary!.status == DiaryStatus.submitted ||
         diary!.status == DiaryStatus.missed ||
         diary!.start.isAfter(DateTime.now())) {
+      PendoService.track("ViewOldDiary", {
+        "study_day": "${diary!.due}",
+        "diary_day_viewed": "${DateTime.now()}"
+      });
       showModalBottomSheet(
           context: context,
           isScrollControlled: true,
