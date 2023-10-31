@@ -119,7 +119,7 @@ Future<bool> uploadFilesToS3(
       ).result;
       print('Uploaded file: ${uploadResult.uploadedItem.key}');
     } on StorageException catch (e) {
-      PendoService.track("RecordingError", {"errorcode":e.message});
+      PendoService.track("UploadError", {"errorcode":"s3 diary"});
       print('Error uploading file: ${e.message}');
       return false;
     }
@@ -138,7 +138,7 @@ Future<bool> uploadMetaDataS3(var studyCode, File file) async {
     ).result;
     print('Uploaded Meta data file: ${uploadResult.uploadedItem.key}');
   } on StorageException catch (e) {
-    PendoService.track("UploadError", {"errorcode":e.message});
+    PendoService.track("UploadError", {"errorcode":"S3 metadata"});
     print('Error uploading file: ${e.message}');
     return false;
   }
@@ -194,7 +194,7 @@ Future<bool> apiSubmitSurveyQuestions(
       return false;
     }
   } catch (e) {
-    PendoService.track("UploadError", {"errorcode":e});
+    PendoService.track("UploadError", {"errorcode":"GraphQL diary"});
     print('Error checking if $studycode exists: $e');
     return false;
   }
@@ -298,7 +298,7 @@ Future<dynamic> apiGetParticipant(String studycode) async {
       return null;
     }
   } catch (e) {
-    PendoService.track("UploadError", {"errorcode":e});
+    PendoService.track("UploadError", {"errorcode":"GraphQL get participant"});
     print('Error checking if $studycode exists: $e');
     return null;
   }
