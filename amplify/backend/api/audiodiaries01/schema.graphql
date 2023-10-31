@@ -12,6 +12,19 @@ type UserMetadata @model @auth(rules: [{allow: public}]) {
   day6: String
 }
 
+type UserMetadataDev @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  start_study_date: String
+  next_study_date: String
+  recent_submit_date: String
+  day1: String
+  day2: String
+  day3: String
+  day4: String
+  day5: String
+  day6: String
+}
+
 type Participants @model @auth(rules: [{allow: public}]) {
   studycode: ID!
   physically_1: Int

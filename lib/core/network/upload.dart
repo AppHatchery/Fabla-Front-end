@@ -43,11 +43,14 @@ Future<bool> upload(String studyCode, Diary diary) async {
   try {
     List<DiaryAudioData> fileList = [];
     List<Question> questions = [];
+    int responseSize = 0;
 
     for (int i = 0; i < diary.prompts.length; i++) {
       var prompt = diary.prompts[i];
 
       if (prompt.answer != null) {
+        responseSize++;
+
         if (prompt.responseType == ResponseType.recording) {
           var rec = prompt.answer?.recordings;
 
@@ -63,11 +66,17 @@ Future<bool> upload(String studyCode, Diary diary) async {
         }
       }
     }
+
     final resMap = getResponses(diary.id, questions);
 
     final questionsSubmitted =
         await apiSubmitSurveyQuestions(studyCode, diary, resMap);
     final audioSubmitted = await uploadFilesToS3(studyCode, fileList);
+
+    //write to metadata
+    if (responseSize == 12) {
+      updateMetataData(diary);
+    }
 
     return questionsSubmitted && audioSubmitted;
   } catch (e) {
@@ -150,7 +159,7 @@ Future<bool> uploadFileS3(var studyCode, File file) async {
       localFile: awsFile,
       key: "$studyCode/$name",
     ).result;
-    print('Uploaded Meta data file: ${uploadResult.uploadedItem.key}');
+    print('Uploaded file to s3: ${uploadResult.uploadedItem.key}');
     return true;
   } on StorageException catch (e) {
     print('Error uploading file: ${e.message}');
@@ -355,10 +364,12 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
     Diary diary, Map<String, dynamic> responseMap) async {
   int day = diary.id;
   final endtime = DateTime.now();
+  if(responseMap.length == 10){ 
+    responseMap['endtime_$day']=formatDate(endtime);
+  }
 
   final input = {'id': id, '_version': entryVersion};
   input.addAll(responseMap);
-  input['endtime_$day'] = formatDate(endtime);
 
   final directory = await getTemporaryDirectory();
   final path = p.join(directory.path, 'responses_diary_${diary.id}.json');
@@ -404,14 +415,11 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
 }
 
 Future<dynamic> apiGetUseMetaData(String studycode) async {
-  String graphQLDocument = '''
-      query ListFiles {
-        listUserMetadata(filter:{ _deleted:{attributeExists:false}, participant: { eq: "$studycode" } }) {
-          items { 
-            id
-            participant
-            _version
-          }
+  String graphQLDocumentDev = '''
+        query ListFiles {
+          getUserMetadataDev(id: $studycode){
+          id
+          _version
         }
       }
     ''';
@@ -419,8 +427,7 @@ Future<dynamic> apiGetUseMetaData(String studycode) async {
   try {
     var operation = Amplify.API.query(
       request: GraphQLRequest<String>(
-        document: graphQLDocument,
-        variables: {'participant': studycode},
+        document: graphQLDocumentDev,
       ),
     );
     var response = await operation.response;
@@ -428,7 +435,8 @@ Future<dynamic> apiGetUseMetaData(String studycode) async {
 
     if (data != null) {
       Map<String, dynamic> jsonMap = jsonDecode(data);
-      final participantList = jsonMap["listUserMetadata"]["items"];
+      //print("jsson map: $jsonMap ");
+      final participantList = jsonMap["getUserMetadataDev"];
       return participantList;
     } else {
       response.errors.forEach((element) {
@@ -465,20 +473,16 @@ Future<GqlApiRequestStateUpdate> updateMetataData(Diary? diary) async {
 
     final input = {
       'id': id,
-      'participant': studycode,
       '_version': version,
       'day$day': 'true',
       'next_study_date': nsd,
       'recent_submit_date': recentSubmittedDate
     };
-
-    safePrint("this is input: $input");
     try {
       String graphQLDocument = '''
-      mutation UpdateUserMetadata(\$input: UpdateUserMetadataInput!) {
-          updateUserMetadata(input: \$input) {
+      mutation UpdateUserMetadataDev(\$input: UpdateUserMetadataDevInput!) {
+          updateUserMetadataDev(input: \$input) {
             id
-            participant
             _version
             day$day
             next_study_date
@@ -487,7 +491,6 @@ Future<GqlApiRequestStateUpdate> updateMetataData(Diary? diary) async {
         }
     ''';
 
-      safePrint("graphQL query $graphQLDocument");
       var operation = Amplify.API.query(
         request: GraphQLRequest<String>(
           document: graphQLDocument,
@@ -498,8 +501,8 @@ Future<GqlApiRequestStateUpdate> updateMetataData(Diary? diary) async {
       var data = response.data;
 
       if (data != null) {
-        safePrint("metadate is updated ${formatDate(diaryStartTime)}");
         updateState = GqlApiRequestStateUpdate.updated;
+        print("metadata updated to true for this day");
         return updateState;
       } else {
         for (var element in response.errors) {

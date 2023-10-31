@@ -11,6 +11,7 @@ import 'package:audio_diaries_flutter/models/Participants.dart';
 import 'package:audio_diaries_flutter/models/ParticipantsDev.dart';
 import 'package:audio_diaries_flutter/models/ParticipantsNew.dart';
 import 'package:audio_diaries_flutter/models/UserMetadata.dart';
+import 'package:audio_diaries_flutter/models/UserMetadataDev.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
@@ -104,7 +105,6 @@ class SetupRepository {
     }
   }
 
-
   /// Responsible for updating the metadata once created. This happens when diary has been submitted by participants or it has been submitted systematically.
 
   void updateMetaDataFile(DateTime? nextStudyDate) async {
@@ -152,12 +152,7 @@ class SetupRepository {
     }
   }
 
-
-
-
-
-
-Future<void> apiCreateMetadata(String studycode) async {
+  Future<void> apiCreateMetadata(String studycode) async {
     if (!await recordExists(GqlModelType.userMetatdata, studycode)) {
       try {
         final startDate = DateTime.fromMillisecondsSinceEpoch(
@@ -178,9 +173,9 @@ Future<void> apiCreateMetadata(String studycode) async {
 
         final participantData = response.data;
         if (participantData != null) {
-          safePrint('Metadata Created mutation result: ${participantData.participant}');
-          
-        }else{
+          safePrint(
+              'Metadata Created mutation result: ${participantData.participant}');
+        } else {
           safePrint('errors: ${response.errors}');
         }
       } on ApiException catch (e) {
@@ -191,29 +186,54 @@ Future<void> apiCreateMetadata(String studycode) async {
     }
   }
 
+  Future<void> apiCreateMetadataDev(String studycode) async {
+    final startDate = DateTime.fromMillisecondsSinceEpoch(
+        await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
 
+    try {
+      final metadata = UserMetadataDev(
+        id: studycode,
+        start_study_date: formatDate(startDate),
+        next_study_date: formatDate(startDate),
+        day1: "null",
+        day2: "null",
+        day3: "null",
+        day4: "null",
+        day5: "null",
+        day6: "null",
+      );
+      final request = ModelMutations.create(metadata);
+      final response = await Amplify.API.mutate(request: request).response;
 
+      final metadataData = response.data;
+      if (metadataData == null) {
+        print('Metadata already exist');
+        print('errors: ${response.errors}');
+        return;
+      }
+      print('Metadata Added Mutation result: ${metadataData.id}');
+    } on ApiException catch (e) {
+      print('Mutation failed: $e');
+    }
+  }
 
-//CURRENT TASK TEST OUT THIS FUCTION 
+//CURRENT TASK TEST OUT THIS FUCTION
   Future<bool> recordExists(GqlModelType modelType, String studycode) async {
     try {
       switch (modelType) {
         case GqlModelType.participant:
-         String graphQLDocumentDev = '''
+          String graphQLDocumentDev = '''
         query ListFiles {
-          getParticipantsDev(id: ""){
+          getParticipantsDev(id: $studycode){
             id
             _deleted
           } 
       }
     ''';
 
-      var operation = Amplify.API.query(
-        request: GraphQLRequest<String>(
-          document: graphQLDocumentDev,
-          variables: {'id': studycode},
-        ),
-      );
+          var operation = Amplify.API.query(
+            request: GraphQLRequest<String>(document: graphQLDocumentDev),
+          );
           var response = await operation.response;
           var data = response.data;
           if (data != null) {
@@ -232,29 +252,22 @@ Future<void> apiCreateMetadata(String studycode) async {
           }
 
         case GqlModelType.userMetatdata:
-          String graphQLDocument = '''
-            query ListFiles {
-              listUserMetadata(filter: {participant: {eq: "$studycode"}, _deleted: {attributeExists: false}}) {
-                items {
-                  id
-                  _deleted
-                }
-              }
-            }
+          String graphQLDocumentDev = '''
+        query ListFiles {
+          getUserMetadataDev(id: "$studycode"){
+            id
+          }
+        }
+    ''';
 
-
-            ''';
           var operation = Amplify.API.query(
-            request: GraphQLRequest<String>(
-              document: graphQLDocument,
-              variables: {'participant': studycode},
-            ),
+            request: GraphQLRequest<String>(document: graphQLDocumentDev),
           );
           var response = await operation.response;
           var data = response.data;
           if (data != null) {
             Map<String, dynamic> jsonMap = jsonDecode(data);
-            final participantList = jsonMap["listUserMetadata"]["items"];
+            final participantList = jsonMap["getUserMetadataDev"];
             if (participantList.length > 0) {
               return true;
             }
@@ -268,23 +281,17 @@ Future<void> apiCreateMetadata(String studycode) async {
           }
       }
     } catch (e) {
-       print('$e');
+      print('$e');
       return false;
     }
   }
-
-
-
-
 
 //Data interaction to graphql database online; you have [participantExist]
 
   ///Code checks if participant is available in the database
   Future<bool> participantExist(String studycode) async {
     try {
-      
-
-String graphQLDocumentDev = '''
+      String graphQLDocumentDev = '''
         query ListFiles {
           getParticipantsDev(id: "$studycode"){
             id
@@ -292,11 +299,8 @@ String graphQLDocumentDev = '''
         }
     ''';
 
-
       var operation = Amplify.API.query(
-        request: GraphQLRequest<String>(
-          document: graphQLDocumentDev
-        ),
+        request: GraphQLRequest<String>(document: graphQLDocumentDev),
       );
       var response = await operation.response;
       var data = response.data;
@@ -324,24 +328,23 @@ String graphQLDocumentDev = '''
   }
 
   Future<void> apiCreateParticipant(String studycode) async {
-    
-      try {
-        final participant = ParticipantsDev(id: studycode);
-        final request = ModelMutations.create(participant);
-        final response = await Amplify.API.mutate(request: request).response;
+    try {
+      final participant = ParticipantsDev(id: studycode);
+      final request = ModelMutations.create(participant);
+      final response = await Amplify.API.mutate(request: request).response;
 
-        final participantData = response.data;
-        if (participantData == null) {
-          print('Probably user already exists');
-          print('errors: ${response.errors}');
-          return;
-        }
-        print(
-            'Participant Added Mutation result: ${participantData.id}');
-      } on ApiException catch (e) {
-        print('Mutation failed: $e');
+      final participantData = response.data;
+      if (participantData == null) {
+        print('Probably user already exists');
+        print('errors: ${response.errors}');
+        return;
+      } else {
+        apiCreateMetadataDev(studycode);
+        print('Participant Added Mutation result: ${participantData.id}');
       }
-    
+    } on ApiException catch (e) {
+      print('Mutation failed: $e');
+    }
   }
 
   /// Creates and schedules notifications for daily diaries.
