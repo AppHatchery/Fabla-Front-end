@@ -108,6 +108,9 @@ class _WelcomePageState extends State<WelcomePage> {
     final repository = SetupRepository();
     final participant = repository.getParticipant();
     await PendoService.start(participant!.studyCode.toString());
+
+    await PendoService.track(
+        "StudyLogin", {"datetime": DateTime.now().toString()});
   }
 
   void createMetadata() => repository.createMetadata();

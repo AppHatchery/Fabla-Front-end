@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart';
 
+import '../../../../services/pendo_service.dart';
 import '../../../../services/preference_service.dart';
 import '../../../../theme/custom_colors.dart';
 
@@ -106,6 +107,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
     await PreferenceService()
         .setBoolPreference(key: 'notification_requested', value: true);
 
+    await PendoService.track("NotificationAccess", {"state": results.name});
     if (results.isGranted) {
       final repository = SetupRepository();
       repository.createNotifications();
