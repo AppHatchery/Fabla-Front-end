@@ -23,9 +23,7 @@ class _WelcomePageState extends State<WelcomePage> {
   void initState() {
     final code = repository.getParticipant()!.studyCode;
     createMetadata();
-    //repository.participantExist(code);
-    SetupRepository repos = SetupRepository();
-    repos.apiCreateParticipant(repos.getParticipant()!.studyCode);
+    //repository.apiCreateParticipant(code);
     startPendo();
     super.initState();
   }

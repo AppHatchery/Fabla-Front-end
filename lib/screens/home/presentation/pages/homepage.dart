@@ -218,6 +218,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   void showResearchInformation() {
+    startTimer();
     showModalBottomSheet(
         context: context,
         isScrollControlled: true,

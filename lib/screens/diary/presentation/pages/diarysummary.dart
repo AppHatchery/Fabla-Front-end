@@ -16,7 +16,9 @@ import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:audioplayers/audioplayers.dart';
-//import 'package:just_audio/just_audio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+// import 'package:just_audio/just_audio.dart';
 
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/components/cards.dart';
@@ -120,55 +122,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
       },
       listener: (context, state) async {
         if (state is SummarySubmitted) {
+          pendoEvent();
           Navigator.of(context).pushReplacement(_completionRoute()).then((_) {
             summaryCubit.loadSummary(widget.diary);
-          });
-          int audioPromptCount = 0;
-          int totalRecordingCount = 0;
-          List<int> individualRecordingSizes = [];
-          int totalRecordingDurationInSeconds = 0;
-
-          for (int promptNumber = 0;
-              promptNumber < widget.diary.prompts.length;
-              promptNumber++) {
-            Prompt prompt = widget.diary.prompts[promptNumber];
-            if (prompt.responseType == ResponseType.recording) {
-              audioPromptCount++;
-              if (prompt.answer?.recordings != null) {
-                totalRecordingCount += prompt.answer!.recordings.length;
-                for (Recording recording in prompt.answer!.recordings) {
-                  File recordingFile = File(recording.path);
-                  if (recordingFile.existsSync()) {
-                    int fileSize = recordingFile.lengthSync();
-                    individualRecordingSizes.add(fileSize);
-
-                    AudioPlayer audioPlayer = AudioPlayer();
-                    Duration recordingDuration = Duration(seconds: 0);
-
-                    audioPlayer.onDurationChanged.listen((Duration duration) {
-                      if (duration != null) {
-                        recordingDuration = duration;
-                        totalRecordingDurationInSeconds +=
-                            recordingDuration.inSeconds;
-                      } else {}
-                    });
-                  }
-                }
-              }
-            }
-          }
-          print("audioPromptCount: $audioPromptCount");
-          print("totalRecordingCount: $totalRecordingCount");
-          print("individualRecordingSizes: $individualRecordingSizes");
-          print(
-              "totalRecordingDurationInSeconds: $totalRecordingDurationInSeconds");
-
-          PendoService.track("ResponseTime", {
-            "prompt_number": "${audioPromptCount}",
-            "number_of_audio_recordings": "${totalRecordingCount}",
-            "individual_recording_length(s)": "${individualRecordingSizes}",
-            "total_recording_length": "${totalRecordingDurationInSeconds}",
-            "study_code": "${DateTime.now()}"
           });
         }
       },
@@ -434,6 +390,45 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   }
 
   void submitDiary() {
-    summaryCubit.submitDiary(widget.diary);
+    //summaryCubit.submitDiary(widget.diary);
+  }
+
+  void pendoEvent() async {
+    for (final prompt in widget.diary.prompts) {
+      int audioPromptCount = 0;
+      int totalRecordingCount = 0;
+      List<int> individualRecordingSizes = [];
+      int totalRecordingDurationInSeconds = 0;
+      if (prompt.responseType == ResponseType.recording) {
+        audioPromptCount = widget.diary.prompts.indexOf(prompt) + 1;
+        if (prompt.answer?.recordings != null) {
+          totalRecordingCount += prompt.answer!.recordings.length;
+
+          for (Recording recording in prompt.answer!.recordings) {
+            final dir = await getApplicationDocumentsDirectory();
+            final path = p.join(dir.path, 'recordings', recording.path);
+            File recordingFile = File(path);
+
+            if (recordingFile.existsSync()) {
+              AudioPlayer audioPlayer = AudioPlayer()
+                ..setSourceDeviceFile(path);
+
+              final duration = await audioPlayer.onDurationChanged.first;
+
+              individualRecordingSizes.add(duration.inSeconds);
+              totalRecordingDurationInSeconds += duration.inSeconds;
+            }
+          }
+
+          PendoService.track("ResponseTime", {
+            "prompt_number": "$audioPromptCount",
+            "number_of_audio_recordings": "$totalRecordingCount",
+            "individual_recording_length(s)": "$individualRecordingSizes",
+            "total_recording_length": "$totalRecordingDurationInSeconds",
+            "study_day": "day ${widget.diary.id}"
+          });
+        }
+      }
+    }
   }
 }
