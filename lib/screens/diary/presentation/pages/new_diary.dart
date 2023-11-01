@@ -72,7 +72,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     if (state == AppLifecycleState.paused) {
       PendoService.track("ExitSurvey", {
         "Question_number_at_exit": "${currentPage + 1}",
-        "studyDate": "${DateTime.now()}"
+        "studyDate": "${widget.diary.id}"
       });
     }
   }
@@ -141,13 +141,12 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                   onPressed: () {
                     if (widget.diary.status == DiaryStatus.ongoing) {
                       scheduleContinueDiaryNotifications(widget.diary.id);
-
                     }
                     //partialDataUpload(widget.diary);
                     Navigator.pop(context, true);
                     PendoService.track("ExitSurvey", {
                       "Question_number_at_exit": "${currentPage + 1}",
-                      "studyDate": "${DateTime.now()}"
+                      "studyDate": "${widget.diary.id}"
                     });
                   },
                   icon: const Icon(CustomIcons.close),
@@ -210,8 +209,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                       visible: currentPage != 0,
                       child: CustomElevatedIconButton(
                         onClick: () {
-                          PendoService.track(
-                              " DiaryBack", {"study_day": "${DateTime.now()}"});
+                          PendoService.track(" DiaryBack",
+                              {"study_day": "${widget.diary.id}"});
                           previousPage();
                         },
                         icon: Icons.arrow_back,
@@ -682,14 +681,10 @@ class _QuestionPageState extends State<QuestionPage>
   }
 }
 
-
-Future<void> partialDataUpload(Diary diary)async {
-
-  SetupRepository srepo =  SetupRepository();
-  SummaryRepository surepo =  SummaryRepository();
+Future<void> partialDataUpload(Diary diary) async {
+  SetupRepository srepo = SetupRepository();
+  SummaryRepository surepo = SummaryRepository();
   var diary2 = await surepo.loadSummary(diary);
 
   upload(srepo.getParticipant()!.studyCode, diary2);
-
-
-  }
+}

@@ -112,7 +112,8 @@ class DiaryCard extends StatelessWidget {
                           DiaryStatus.submitted => "View",
                           DiaryStatus.missed => "View",
                         },
-                        "page": getPageName().toString()
+                        "page": getPageName().toString(),
+                        "study_day": "${diary!.id}",
                         //"${getPageName}"
                       });
                     },
@@ -158,7 +159,7 @@ class DiaryCard extends StatelessWidget {
         diary!.status == DiaryStatus.missed ||
         diary!.start.isAfter(DateTime.now())) {
       PendoService.track("ViewOldDiary", {
-        "study_day": "${diary!.due}",
+        "study_day": "${diary!.id}",
         "diary_day_viewed": "${DateTime.now()}"
       });
       showModalBottomSheet(
