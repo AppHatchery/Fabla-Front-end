@@ -70,7 +70,7 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
                       valueIndicatorTextStyle: CustomTypography()
                           .bodyLarge(color: CustomColors.textWhite)),
                   child: Slider(
-                    value: widget.value != null ? widget.value! : 0,
+                    value: widget.value ?? 0,
                     min: widget.scaleMin.toDouble(),
                     max: widget.scaleMax.toDouble(),
                     divisions: widget.scaleMax - widget.scaleMin,
