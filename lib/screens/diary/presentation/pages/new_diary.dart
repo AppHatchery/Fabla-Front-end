@@ -2,12 +2,15 @@ import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/pages/custom_carousel.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rive/rive.dart';
 
 import '../../../../core/utils/statuses.dart';
 import '../../../../core/utils/types.dart';
@@ -43,13 +46,17 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   final GlobalKey<ScaffoldState> key = GlobalKey<ScaffoldState>();
   late PageController controller;
   late int currentPage;
+  late CarouselController carouselController;
 
   bool ableToContinue = false;
   bool showCloseIcon = true;
 
+  //get page => currentPage = widget.diary.prompts.length;
+
   @override
   void initState() {
-    controller = PageController();
+    carouselController = CarouselController();
+    controller = PageController(viewportFraction: 0.8, initialPage: 0);
     controllerInit();
     if (widget.diary.status == DiaryStatus.submitted ||
         widget.diary.status == DiaryStatus.missed) {
@@ -66,6 +73,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   void nextPage() {
     if (currentPage < widget.diary.prompts.length - 1) {
+      carouselController.nextPage();
       controller.nextPage(
           duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
@@ -89,6 +97,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   void previousPage() {
     if (currentPage > 0) {
+      carouselController.previousPage();
       controller.previousPage(
           duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
@@ -101,6 +110,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   @override
   void dispose() {
+    //carouselController;
     controller.dispose();
     super.dispose();
   }
@@ -127,32 +137,13 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                   onPressed: () {
                     if (widget.diary.status == DiaryStatus.ongoing) {
                       scheduleContinueDiaryNotifications(widget.diary.id);
-
                     }
                     partialDataUpload(widget.diary);
                     Navigator.pop(context, true);
-
-
                   },
                   icon: const Icon(CustomIcons.close),
                   iconSize: 15.0,
                 ),
-                // if (currentPage == 0)
-
-                // else
-                //   IconButton(
-                //     onPressed: previousPage,
-                //     icon: const Icon(Icons.arrow_back),
-                //     iconSize: 25.0,
-                //   ),
-                // IconButton(
-                //   onPressed: () {
-                //     Navigator.pop(context, true);
-                //   },
-                //   icon:
-                //   const Icon(CustomIcons.close),
-                //   iconSize: 15.0,
-                // ),
                 Expanded(
                   child: CustomBarIndicator(
                       pageCount: widget.diary.prompts.length,
@@ -161,17 +152,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                 const SizedBox(
                   width: 17,
                 ),
-                //functionality of the skip button to be added later on
-                // TextButton(
-                //   onPressed: () {
-                //     print("Skip clicked!");
-                //   },
-                //   child: Text(
-                //     "Skip",
-                //     style: CustomTypography()
-                //         .titleSmall(color: CustomColors.textNormalContent),
-                //   ),
-                // ),
               ],
             ),
           ),
@@ -179,11 +159,40 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         body: Column(
           children: [
             Expanded(
-              child: PageView(
-                physics: const NeverScrollableScrollPhysics(),
-                controller: controller,
-                children: pages(),
+              child: CustomCarousel(
+                pages: pages(),
+                onPageChanged: (index) {
+                  setState(() {
+                    currentPage = index;
+                  });
+                },
               ),
+              //      CarouselSlider(
+              //   disableGesture: false,
+              //   items: pages(),
+              //   options: CarouselOptions(
+              //     height: 900,
+              //     //aspectRatio: 16 / 9,
+              //     viewportFraction: 0.89,
+              //     initialPage: 0,
+              //     enableInfiniteScroll: false,
+              //     reverse: false,
+              //     autoPlay: true,
+              //     scrollPhysics: const NeverScrollableScrollPhysics(),
+              //     scrollDirection: Axis.horizontal,
+              //     onPageChanged: (index, reason) {
+              //       setState(() {
+              //         currentPage = index;
+              //       });
+              //     },
+              //   ),
+              //   carouselController: carouselController,
+              // )
+              // PageView(
+              //   physics: const NeverScrollableScrollPhysics(),
+              //   controller: controller,
+              //   children: pages(),
+              // ),
             ),
             Padding(
               padding: const EdgeInsets.only(left: 16, right: 16, bottom: 34),
@@ -226,7 +235,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     );
   }
 
-  List<QuestionPage> pages() {
+  List<Widget> pages() {
     return widget.diary.prompts
         .map((e) => QuestionPage(
               currentPage: currentPage,
@@ -477,129 +486,133 @@ class _QuestionPageState extends State<QuestionPage>
 
     return SingleChildScrollView(
       controller: _scrollController,
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
-                    style: CustomTypography().button(),
-                  )),
-              GestureDetector(
-                onTap: () => {
-                  if (prompt.note != null)
-                    {
-                      setState(() {
-                        isClicked = !isClicked;
-                      })
-                    }
-                  else
-                    {
-                      if (!isSnackBarVisible)
-                        {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content:
-                                  Text("No tips available for this question."),
-                              duration: Duration(seconds: 3),
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        color: CustomColors.fillWhite,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
+                      style: CustomTypography().button(),
+                    )),
+                GestureDetector(
+                  onTap: () => {
+                    if (prompt.note != null)
+                      {
+                        setState(() {
+                          isClicked = !isClicked;
+                        })
+                      }
+                    else
+                      {
+                        if (!isSnackBarVisible)
+                          {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    "No tips available for this question."),
+                                duration: Duration(seconds: 3),
+                              ),
                             ),
-                          ),
-                          if (mounted)
-                            {
-                              setState(() {
-                                isSnackBarVisible = true;
-                              }),
-                            }
-                        },
-                      Future.delayed(
-                        const Duration(seconds: 4),
-                        () => {
-                          if (mounted)
-                            {
-                              setState(() {
-                                isSnackBarVisible = false;
-                              })
-                            }
-                        },
+                            if (mounted)
+                              {
+                                setState(() {
+                                  isSnackBarVisible = true;
+                                }),
+                              }
+                          },
+                        Future.delayed(
+                          const Duration(seconds: 4),
+                          () => {
+                            if (mounted)
+                              {
+                                setState(() {
+                                  isSnackBarVisible = false;
+                                })
+                              }
+                          },
+                        )
+                      }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(7),
+                      border: Border.all(
+                        color: CustomColors.productBorderNormal,
+                        width: 2,
+                      ),
+                      color: CustomColors.fillNormal,
+                    ),
+                    child: Row(children: [
+                      Icon(
+                        Icons.description_outlined,
+                        color: !isClicked && prompt.note != null
+                            ? CustomColors.productNormalActive
+                            : Colors.black,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        "Tips",
+                        style: CustomTypography().bodyLarge(
+                            color: !isClicked && prompt.note != null
+                                ? CustomColors.productNormalActive
+                                : Colors.black),
                       )
-                    }
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(7),
-                    border: Border.all(
-                      color: CustomColors.productBorderNormal,
-                      width: 2,
-                    ),
-                    color: CustomColors.fillNormal,
+                    ]),
                   ),
-                  child: Row(children: [
-                    Icon(
-                      Icons.description_outlined,
-                      color: !isClicked && prompt.note != null
-                          ? CustomColors.productNormalActive
-                          : Colors.black,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      "Tips",
-                      style: CustomTypography().bodyLarge(
-                          color: !isClicked && prompt.note != null
-                              ? CustomColors.productNormalActive
-                              : Colors.black),
+                )
+              ],
+            ),
+
+            const SizedBox(
+              height: 12,
+            ),
+
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    prompt.question.toString(),
+                    style: CustomTypography().titleLarge(),
+                  ),
+                ),
+              ],
+            ),
+            if (!isClicked)
+              prompt.note != null
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 12.0),
+                      child: ResearchersNote(
+                        note: prompt.note,
+                        onDismissed: (value) => setState(() {
+                          isClicked = value;
+                        }),
+                      ),
                     )
-                  ]),
-                ),
-              )
-            ],
-          ),
-
-          const SizedBox(
-            height: 12,
-          ),
-
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  prompt.question.toString(),
-                  style: CustomTypography().titleLarge(),
-                ),
-              ),
-            ],
-          ),
-          if (!isClicked)
-            prompt.note != null
-                ? Padding(
-                    padding: const EdgeInsets.only(top: 12.0),
-                    child: ResearchersNote(
-                      note: prompt.note,
-                      onDismissed: (value) => setState(() {
-                        isClicked = value;
-                      }),
-                    ),
-                  )
+                  : const SizedBox.shrink(),
+            const SizedBox(height: 112),
+            prompt.answer?.recordings.isNotEmpty ?? false
+                ? MyResponse(
+                    prompt: prompt,
+                    status: widget.diary.status,
+                    recordings: prompt.answer!.recordings)
                 : const SizedBox.shrink(),
-          const SizedBox(height: 112),
-          prompt.answer?.recordings.isNotEmpty ?? false
-              ? MyResponse(
-                  prompt: prompt,
-                  status: widget.diary.status,
-                  recordings: prompt.answer!.recordings)
-              : const SizedBox.shrink(),
-          responseWidget,
-          if (widget.diary.status != DiaryStatus.submitted &&
-              widget.diary.status != DiaryStatus.missed &&
-              prompt.responseType == ResponseType.recording)
-            SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-          // const CustomTextButton(
-          //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
-        ],
+            responseWidget,
+            if (widget.diary.status != DiaryStatus.submitted &&
+                widget.diary.status != DiaryStatus.missed &&
+                prompt.responseType == ResponseType.recording)
+              SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+            // const CustomTextButton(
+            //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
+          ],
+        ),
       ),
     );
   }
@@ -664,14 +677,27 @@ class _QuestionPageState extends State<QuestionPage>
   }
 }
 
-
-Future<void> partialDataUpload(Diary diary)async {
-
-  SetupRepository srepo =  SetupRepository();
-  SummaryRepository surepo =  SummaryRepository();
+Future<void> partialDataUpload(Diary diary) async {
+  SetupRepository srepo = SetupRepository();
+  SummaryRepository surepo = SummaryRepository();
   var diary2 = await surepo.loadSummary(diary);
 
   upload(srepo.getParticipant()!.studyCode, diary2);
+}
 
+class Example extends StatefulWidget {
+  final String question;
+  const Example({Key? key, required this.question}) : super(key: key);
 
+  @override
+  _ExampleState createState() => _ExampleState();
+}
+
+class _ExampleState extends State<Example> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Text(widget.question),
+    );
   }
+}

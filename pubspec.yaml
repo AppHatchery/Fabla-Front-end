@@ -90,6 +90,8 @@ dependencies:
   #Splash
   flutter_native_splash: ^2.3.4
 
+  carousel_slider: ^4.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
