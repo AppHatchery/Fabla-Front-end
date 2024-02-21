@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../theme/custom_colors.dart';
@@ -63,7 +64,8 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
                           : CustomColors.textSecondaryContent,
                       inactiveTrackColor: CustomColors.textTertiaryContent,
                       activeTickMarkColor: CustomColors.productNormalActive,
-                      inactiveTickMarkColor: CustomColors.textNormalContent.withOpacity(0.35),
+                      inactiveTickMarkColor:
+                          CustomColors.textNormalContent.withOpacity(0.35),
                       overlayShape: SliderComponentShape.noOverlay,
                       valueIndicatorColor: CustomColors.productNormalActive,
                       trackHeight: 6,
@@ -285,6 +287,53 @@ class _RadioQuestionState extends State<RadioQuestion> {
         ]);
       },
     );
+  }
+}
+
+class AudioTextCard extends StatefulWidget {
+  final VoidCallback? onClick;
+  final String? text;
+  final VoidCallback? onTextClick;
+  final String? textButtonText;
+  const AudioTextCard(
+      {super.key,
+      this.onClick,
+      this.text,
+      this.onTextClick,
+      this.textButtonText});
+
+  @override
+  State<AudioTextCard> createState() => _AudioTextCardState();
+}
+
+class _AudioTextCardState extends State<AudioTextCard> {
+  bool isRecordButtonVisible = true;
+  bool isTextButtonVisible = true;
+
+  void toggleVisibility() {
+    setState(() {
+      isRecordButtonVisible = !isRecordButtonVisible;
+      isTextButtonVisible = !isTextButtonVisible;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomRecordButton(
+              onClick: widget.onClick,
+              text: widget.text,
+            ),
+            CustomTextAnswerButton(
+              onClick: widget.onTextClick,
+              text: widget.textButtonText,
+            )
+          ],
+        ));
   }
 }
 
