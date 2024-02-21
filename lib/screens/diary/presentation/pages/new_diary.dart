@@ -241,7 +241,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                 controller: controller,
                 children: pages(),
                 onPageChanged: (pageIdx) => controller.animateToPage(pageIdx,
-                    duration: const Duration(milliseconds: 1000),
+                    duration: const Duration(milliseconds: 500),
                     curve: Curves.fastEaseInToSlowEaseOut),
               ),
             ),
