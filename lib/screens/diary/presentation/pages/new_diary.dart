@@ -127,12 +127,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                   onPressed: () {
                     if (widget.diary.status == DiaryStatus.ongoing) {
                       scheduleContinueDiaryNotifications(widget.diary.id);
-
                     }
                     partialDataUpload(widget.diary);
                     Navigator.pop(context, true);
-
-
                   },
                   icon: const Icon(CustomIcons.close),
                   iconSize: 15.0,
@@ -614,12 +611,21 @@ class _QuestionPageState extends State<QuestionPage>
         context: context,
         isScrollControlled: true,
         isDismissible: false,
-        enableDrag: true,
+        enableDrag: false,
         elevation: 0,
-        builder: (context) => BottomRecordingModal(
-              promptId: prompt.id,
-              onSave: (value) {
-                save(prompt, value.toString());
+        useSafeArea: true,
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) {
+                return BottomTextModal(
+                  promptId: prompt.id,
+                  question: prompt.question!,
+                  scrollController: scrollController,
+                  onSave: (value) {
+                    save(prompt, value.toString());
+                  },
+                );
               },
             ));
   }
@@ -664,14 +670,11 @@ class _QuestionPageState extends State<QuestionPage>
   }
 }
 
-
-Future<void> partialDataUpload(Diary diary)async {
-
-  SetupRepository srepo =  SetupRepository();
-  SummaryRepository surepo =  SummaryRepository();
+Future<void> partialDataUpload(Diary diary) async {
+  SetupRepository srepo = SetupRepository();
+  SummaryRepository surepo = SummaryRepository();
   var diary2 = await surepo.loadSummary(diary);
 
   upload(srepo.getParticipant()!.studyCode, diary2);
+}
 
-
-  }

@@ -90,6 +90,9 @@ dependencies:
   #Splash
   flutter_native_splash: ^2.3.4
 
+  #Misc
+  dotted_border: ^2.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

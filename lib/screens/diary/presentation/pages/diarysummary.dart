@@ -60,7 +60,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.paused:
-          scheduleSubmitDiaryNotification(widget.diary.id);
+        scheduleSubmitDiaryNotification(widget.diary.id);
         break;
       default:
     }
@@ -225,7 +225,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     int scaleMinValue = 0;
     int scaleMaxValue = 100;
 
-    if (prompt.responseType == ResponseType.slider && choices != null && choices.length >= 2) {
+    if (prompt.responseType == ResponseType.slider &&
+        choices != null &&
+        choices.length >= 2) {
       try {
         scaleMinValue = int.parse(choices[0].option!);
         scaleMaxValue = int.parse(choices[1].option!);
@@ -366,13 +368,19 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         isScrollControlled: true,
         // isDismissible: false,
         // enableDrag: false,
-        builder: (context) => BottomRecordingModal(
-              promptId: prompt.id,
-              onSave: (value) {
-                summaryCubit.saveResponse(
-                    widget.diary, prompt, value.toString());
-              },
-            ));
+        builder: (context) => DraggableScrollableSheet(
+            initialChildSize: 1,
+            snap: true,
+            builder: (context, scrollController) {
+              return BottomRecordingModal(
+                promptId: prompt.id,
+                question: prompt.question!,
+                onSave: (value) {
+                  summaryCubit.saveResponse(
+                      widget.diary, prompt, value.toString());
+                },
+              );
+            }));
   }
 
   void deleteResponse(Prompt prompt, String path) {

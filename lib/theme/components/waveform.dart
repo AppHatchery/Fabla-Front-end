@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 
@@ -111,8 +113,15 @@ class WaveformPainter extends CustomPainter {
     const barPadding = 6;
 
     final middleBarX = size.width / 2 - barWidth / 2;
+    // Find the maximum decibel value
+    final maxDecibel = decibelValues.isNotEmpty
+        ? decibelValues.reduce((a, b) => a > b ? a : b)
+        : 1.0;
+    final scaledMaxValue = maxValue < maxDecibel
+        ? maxDecibel
+        : maxValue; // Ensure spike height doesn't exceed maxValue
+    final spikeHeight = scaledMaxValue;
     final centerBarHeight = maxValue;
-    final spikeHeight = maxValue;
     final centerBarY = centerY - centerBarHeight / 2;
 
     final paint = Paint()
@@ -121,14 +130,14 @@ class WaveformPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final middleSpikePaint = Paint()
-      ..color = CustomColors.productNormal
+      ..color = CustomColors.productNormalActive
       ..strokeWidth = 12.0
       ..style = PaintingStyle.fill;
 
     double x = size.width / 2 - barWidth / 2;
 
     for (final decibelValue in decibelValues) {
-      final barHeight = (decibelValue / spikeHeight) * centerY;
+      final barHeight = max(1, (decibelValue / spikeHeight) * centerY);
 
       canvas.drawRRect(
         RRect.fromLTRBR(
