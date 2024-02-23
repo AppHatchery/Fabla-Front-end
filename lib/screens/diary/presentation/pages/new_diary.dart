@@ -155,32 +155,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                       currentPage: currentPage),
                 ),
                 const SizedBox(
-                  width: 10,
-                ),
-                Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(7),
-                      border: Border.all(
-                        color: CustomColors.productBorderNormal,
-                        width: 2,
-                      ),
-                      color: CustomColors.fillNormal,
-                    ),
-                    child: Row(children: [
-                      const Icon(
-                        Icons.description_outlined,
-                        color: Colors.black,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        "Tips",
-                        style:
-                            CustomTypography().bodyLarge(color: Colors.black),
-                      )
-                    ])),
-                const SizedBox(
                   width: 15,
                 ),
               ],
@@ -190,63 +164,27 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         body: Column(
           children: [
             Expanded(
-              child:
-                  // CarouselSlider.builder(
-                  //   itemCount: widget.diary.prompts.length,
-                  //   disableGesture: false,
-                  //   options: CarouselOptions(
-                  //     height: 900,
-                  //     //aspectRatio: 16 / 9,
-                  //     viewportFraction: 0.89,
-                  //     initialPage: 0,
-                  //     enableInfiniteScroll: false,
-                  //     reverse: false,
-                  //     autoPlay: false,
-                  //     scrollPhysics: const NeverScrollableScrollPhysics(),
-                  //     scrollDirection: Axis.horizontal,
-                  //     onPageChanged: (index, reason) {
-                  //       print("Changing the page to $index and reason $reason");
-
-                  //       setState(() {
-                  //         currentPage = index;
-                  //       });
-                  //     },
-                  //   ),
-                  //   carouselController: carouselController,
-                  //   itemBuilder: (context, index, realIndex) {
-                  //     var prompt = widget.diary.prompts[index];
-                  //     return QuestionPage(
-                  //       currentPage: currentPage,
-                  //       diary: widget.diary,
-                  //       prompt: prompt,
-                  //       scaffoldKey: key,
-                  //       answerAdded: (value) {
-                  //         print(
-                  //             "index = $index, currentpage = $currentPage -> is it equal ${currentPage == index}, is it eqaul to real ${currentPage == realIndex}");
-
-                  //         if (mounted && currentPage == index) {
-                  //           setState(() {
-                  //             ableToContinue = value;
-                  //           });
-                  //         }
-                  //       },
-                  //       previousPage: previousPage,
-                  //       nextPage: nextPage,
-                  //       isLastPage: isCurrentPageLast,
-                  //     );
-                  //   },
-                  // ),
-                  PageView(
-                physics: const NeverScrollableScrollPhysics(),
-                controller: controller,
-                children: pages(),
-                onPageChanged: (pageIdx) => controller.animateToPage(pageIdx,
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.fastEaseInToSlowEaseOut),
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                ),
+                child: PageView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  controller: controller,
+                  children: pages(),
+                  onPageChanged: (pageIdx) => controller.animateToPage(pageIdx,
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.fastEaseInToSlowEaseOut),
+                ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 34),
+              padding: const EdgeInsets.only(
+                left: 16,
+                right: 16,
+                bottom: 30,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -259,7 +197,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                         icon: Icons.arrow_back,
                         //iconSize: 25.0,
                         iconColor: CustomColors.productNormal,
-                        color: CustomColors.fillNormal,
+                        color: CustomColors.fillWhite,
                         shadowColor: Colors.transparent,
                         border: Border.all(
                           color: CustomColors.productBorderNormal,
@@ -560,20 +498,30 @@ class _QuestionPageState extends State<QuestionPage>
               onTextClick: () {},
               textButtonText: "Text My Response",
             );
+    }
 
-      // CustomRecordButton(
-      //     onClick: () => recordResponse(context),
-      //     text: prompt.answer != null
-      //         ? "Add New Response"
-      //         : "Record My Response",
-      //   );
+    String questionTip;
+
+    if (prompt.responseType == ResponseType.slider) {
+      questionTip = "Please use the wheel to rate:";
+    } else if (prompt.responseType == ResponseType.multiple) {
+      questionTip = "Please check all that apply:";
+    } else if (prompt.responseType == ResponseType.radio) {
+      questionTip = "Please check 1 option:";
+    } else {
+      questionTip = "You only need to take one response.";
     }
 
     return SingleChildScrollView(
       controller: _scrollController,
       child: Container(
+        padding: const EdgeInsets.all(24),
         width: MediaQuery.of(context).size.width,
-        color: CustomColors.fillWhite,
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+          color: CustomColors.fillWhite,
+        ),
         child: Column(
           children: [
             Row(
@@ -603,28 +551,17 @@ class _QuestionPageState extends State<QuestionPage>
                 ),
               ],
             ),
-            const Row(
+            Row(
               children: [
                 Expanded(
                   child: Text(
-                    "You only need to take one response.",
-                    style: TextStyle(color: CustomColors.textTertiaryContent),
+                    questionTip,
+                    style: const TextStyle(
+                        color: CustomColors.textTertiaryContent),
                   ),
                 )
               ],
             ),
-            if (!isClicked)
-              prompt.note != null
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 12.0),
-                      child: ResearchersNote(
-                        note: prompt.note,
-                        onDismissed: (value) => setState(() {
-                          isClicked = value;
-                        }),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
             const SizedBox(height: 112),
             prompt.answer?.recordings.isNotEmpty ?? false
                 ? MyResponse(
