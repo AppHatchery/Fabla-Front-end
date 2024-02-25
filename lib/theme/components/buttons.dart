@@ -280,7 +280,7 @@ class CustomRecordButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: 10.0),
         child: Ink(
           decoration: BoxDecoration(
             color: CustomColors.productNormal,
@@ -301,9 +301,10 @@ class CustomRecordButton extends StatelessWidget {
             onTap: () => {
               if (onClick != null) {onClick!()}
             },
-            child: Padding(
+            child: Container(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 18.0),
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+              width: MediaQuery.of(context).size.width,
               child: Center(
                   child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -338,19 +339,12 @@ class CustomTextAnswerButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: 10.0),
         child: Ink(
           decoration: BoxDecoration(
             color: const Color.fromARGB(255, 255, 255, 255),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: CustomColors.productNormal, width: 1),
-            // boxShadow: [
-            //   BoxShadow(
-            //     color: Colors.grey.shade400,
-            //     blurRadius: 0,
-            //     offset: const Offset(0, 4.5),
-            //   ),
-            // ],
             shape: BoxShape.rectangle,
           ),
           child: InkWell(
@@ -358,9 +352,10 @@ class CustomTextAnswerButton extends StatelessWidget {
             onTap: () => {
               if (onClick != null) {onClick!()}
             },
-            child: Padding(
+            child: Container(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 18.0),
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+              width: MediaQuery.of(context).size.width,
               child: Center(
                   child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,

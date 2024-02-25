@@ -324,14 +324,26 @@ class _AudioTextCardState extends State<AudioTextCard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CustomRecordButton(
-              onClick: widget.onClick,
-              text: widget.text,
+            Visibility(
+              visible: isRecordButtonVisible,
+              child: CustomRecordButton(
+                onClick: () {
+                  widget.onClick!();
+                  toggleVisibility();
+                },
+                text: widget.text,
+              ),
             ),
-            CustomTextAnswerButton(
-              onClick: widget.onTextClick,
-              text: widget.textButtonText,
-            )
+            Visibility(
+              visible: isTextButtonVisible,
+              child: CustomTextAnswerButton(
+                onClick: () {
+                  widget.onTextClick!();
+                  toggleVisibility();
+                },
+                text: widget.textButtonText,
+              ),
+            ),
           ],
         ));
   }

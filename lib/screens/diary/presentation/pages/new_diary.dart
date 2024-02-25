@@ -517,7 +517,7 @@ class _QuestionPageState extends State<QuestionPage>
       child: Container(
         padding: const EdgeInsets.all(24),
         width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height * 0.8,
+        height: MediaQuery.of(context).size.height,
         decoration: const BoxDecoration(
           borderRadius: BorderRadius.all(Radius.circular(10)),
           color: CustomColors.fillWhite,
