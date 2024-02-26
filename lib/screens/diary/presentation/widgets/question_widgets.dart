@@ -39,7 +39,8 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24.0, 60.0, 24.0, 16.0),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(5.0, 60.0, 5.0, 16.0),
       decoration: BoxDecoration(
           color: CustomColors.productLightPrimaryNormalWhite,
           borderRadius: BorderRadius.circular(14.0)),
@@ -57,18 +58,18 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
                 child: SliderTheme(
                   data: SliderThemeData(
                       thumbColor: widget.value != null
-                          ? CustomColors.productNormalActive
-                          : CustomColors.textSecondaryContent,
+                          ? CustomColors.productNormal
+                          : CustomColors.fillDisabled,
                       activeTrackColor: widget.value != null
-                          ? CustomColors.productNormalActive
-                          : CustomColors.textSecondaryContent,
-                      inactiveTrackColor: CustomColors.textTertiaryContent,
-                      activeTickMarkColor: CustomColors.productNormalActive,
+                          ? CustomColors.productNormal
+                          : CustomColors.fillDisabled,
+                      inactiveTrackColor: CustomColors.fillDisabled,
+                      activeTickMarkColor: CustomColors.productNormal,
                       inactiveTickMarkColor:
                           CustomColors.textNormalContent.withOpacity(0.35),
                       overlayShape: SliderComponentShape.noOverlay,
-                      valueIndicatorColor: CustomColors.productNormalActive,
-                      trackHeight: 6,
+                      valueIndicatorColor: CustomColors.productNormal,
+                      trackHeight: 4,
                       valueIndicatorTextStyle: CustomTypography()
                           .bodyLarge(color: CustomColors.textWhite)),
                   child: Slider(

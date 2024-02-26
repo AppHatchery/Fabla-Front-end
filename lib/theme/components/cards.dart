@@ -603,6 +603,165 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
   }
 }
 
+class NewAudioCard extends StatefulWidget {
+  final Recording recording;
+  final VoidCallback? delete;
+  final bool viewOnly;
+  const NewAudioCard(
+      {super.key,
+      required this.recording,
+      this.delete,
+      required this.viewOnly});
+
+  @override
+  State<NewAudioCard> createState() => _NewAudioCardState();
+}
+
+class _NewAudioCardState extends State<NewAudioCard> {
+  late AudioPlayer audioPlayer;
+  bool isPlaying = false;
+  double currentSliderPosition = 0;
+  double maxSliderPosition = 0;
+  Duration maxDuration = Duration.zero;
+
+  @override
+  void initState() {
+    playerInit();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    audioPlayer.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+      width: width,
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+      decoration: BoxDecoration(
+        color: CustomColors.grey,
+        borderRadius: BorderRadius.circular(12),
+        shape: BoxShape.rectangle,
+      ),
+      child: Row(
+        children: [
+          Container(
+              alignment: Alignment.center,
+              width: 24,
+              height: 24,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: CustomColors.productNormalActive,
+              ),
+              child: IconButton(
+                onPressed: () => play(),
+                icon: Icon(isPlaying
+                    ? CupertinoIcons.pause_fill
+                    : CupertinoIcons.play_arrow_solid),
+                color: CustomColors.fillWhite,
+                iconSize: 10,
+              )),
+          const SizedBox(width: 3),
+          Expanded(
+            child: slider(),
+          ),
+          Row(
+            children: [
+              Text(formatDuration(currentSliderPosition.toInt())),
+              const Text(" / "),
+              Text(formatDuration(maxDuration.inMilliseconds.toInt()))
+            ],
+          ),
+          IconButton(
+            onPressed: () => delete(),
+            icon: const Icon(CupertinoIcons.delete),
+            color: CustomColors.warningActive,
+            iconSize: 20,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> play() async =>
+      isPlaying ? await audioPlayer.pause() : await audioPlayer.resume();
+
+  Future<void> seek(double value) async {
+    currentSliderPosition = value;
+    await audioPlayer.seek(Duration(milliseconds: value.toInt()));
+    if (!isPlaying) {
+      await audioPlayer.resume();
+    }
+  }
+
+  Future<void> delete() async {
+    final results = await showDialog<bool>(
+        context: context, builder: (context) => const DeletePopUp());
+
+    if (results == true) {
+      widget.delete!();
+    }
+  }
+
+  Widget slider() {
+    return Column(
+      children: [
+        SizedBox(
+            child: SliderTheme(
+          data: SliderThemeData(
+              trackHeight: 5,
+              activeTrackColor: CustomColors.productNormalActive,
+              thumbColor: CustomColors.productNormalActive,
+              inactiveTrackColor: CustomColors.greyTrack,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+              overlayShape: SliderComponentShape.noOverlay),
+          child: Slider(
+            value: currentSliderPosition,
+            max: maxSliderPosition,
+            onChanged: (val) => seek(val),
+          ),
+        )),
+      ],
+    );
+  }
+
+  void playerInit() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final path = p.join(dir.path, 'recordings', widget.recording.path);
+    audioPlayer = AudioPlayer()
+      ..setSourceDeviceFile(path)
+      ..setReleaseMode(ReleaseMode.stop)
+      ..setPlayerMode(PlayerMode.mediaPlayer);
+
+    audioPlayer.onPositionChanged.listen((event) {
+      if (mounted) {
+        setState(() {
+          currentSliderPosition = event.inMilliseconds.toDouble();
+        });
+      }
+    });
+    audioPlayer.onPlayerStateChanged.listen((event) {
+      if (mounted) {
+        setState(() {
+          isPlaying = event == PlayerState.playing;
+        });
+      }
+    });
+    audioPlayer.onDurationChanged.listen((event) {
+      if (mounted) {
+        setState(() {
+          maxDuration = event;
+          maxSliderPosition = event.inMilliseconds.toDouble();
+        });
+      }
+    });
+  }
+}
+
 /// Text Diary Card
 ///
 /// This is the card that is displayed when the user has written a text diary.
