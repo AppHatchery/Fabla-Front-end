@@ -366,10 +366,12 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         backgroundColor: Colors.transparent,
         context: context,
         isScrollControlled: true,
-        // isDismissible: false,
-        // enableDrag: false,
+        isDismissible: false,
+        enableDrag: false,
+        useSafeArea: true,
         builder: (context) => DraggableScrollableSheet(
             initialChildSize: 1,
+            minChildSize: 1,
             snap: true,
             builder: (context, scrollController) {
               return BottomRecordingModal(

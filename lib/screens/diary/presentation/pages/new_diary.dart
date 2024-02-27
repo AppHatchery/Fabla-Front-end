@@ -616,12 +616,12 @@ class _QuestionPageState extends State<QuestionPage>
         useSafeArea: true,
         builder: (context) => DraggableScrollableSheet(
               initialChildSize: 1,
+              minChildSize: 1,
               snap: true,
               builder: (context, scrollController) {
-                return BottomTextModal(
+                return BottomRecordingModal(
                   promptId: prompt.id,
                   question: prompt.question!,
-                  scrollController: scrollController,
                   onSave: (value) {
                     save(prompt, value.toString());
                   },

@@ -437,6 +437,7 @@ class BottomTextModal extends StatefulWidget {
 class _BottomTextModalState extends State<BottomTextModal>
     with WidgetsBindingObserver {
   late TextEditingController textController;
+  late GlobalKey fieldKey;
 
   late OverlayEntry? _overlayEntry;
   double keyboardHeight = 0;
@@ -445,15 +446,24 @@ class _BottomTextModalState extends State<BottomTextModal>
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     textController = TextEditingController();
+    fieldKey = GlobalKey();
     _overlayEntry = null;
     super.initState();
   }
 
   @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    textController.dispose();
+    hideOverlay();
+    super.dispose();
+  }
+
+  @override
   void didChangeMetrics() {
-    if (mounted && checkDevice()) {
+    if (mounted) {
       final size = View.of(context).viewInsets.bottom;
-      if (size > 0) {
+      if (size > 0 && checkDevice()) {
         showOverlay(context);
       } else {
         hideOverlay();
@@ -520,7 +530,7 @@ class _BottomTextModalState extends State<BottomTextModal>
               responseField(),
 
               SizedBox(
-                height: keyboardHeight / 2,
+                height: keyboardHeight * 0.65,
               )
             ],
           ),
@@ -610,7 +620,11 @@ class _BottomTextModalState extends State<BottomTextModal>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextField(
+            key: fieldKey,
             controller: textController,
+            onTap: () {
+              Scrollable.ensureVisible(fieldKey.currentContext!);
+            },
             maxLines: 5,
             cursorColor: CustomColors.productNormal,
             style: CustomTypography().bodyLarge(),
