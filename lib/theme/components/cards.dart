@@ -513,14 +513,14 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
               child: widget.viewOnly
                   ? const SizedBox()
                   : Container(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      onPressed: () => delete(),
-                      icon: const Icon(CupertinoIcons.delete),
-                      color: CustomColors.warningActive,
-                      iconSize: 24,
-                    ),
-                  )),
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        onPressed: () => delete(),
+                        icon: const Icon(CupertinoIcons.delete),
+                        color: CustomColors.warningActive,
+                        iconSize: 24,
+                      ),
+                    )),
         ],
       ),
     );
@@ -759,6 +759,64 @@ class _NewAudioCardState extends State<NewAudioCard> {
         });
       }
     });
+  }
+}
+
+// The Text Diary card is being used to create the Text diary Response
+// It takes in the answer and the delete and edit function
+class TextAnswerCard extends StatefulWidget {
+  final String answer;
+  final VoidCallback? delete;
+  final VoidCallback? edit;
+  const TextAnswerCard(
+      {super.key, required this.answer, this.delete, this.edit});
+
+  @override
+  State<TextAnswerCard> createState() => _TextAnswerCardState();
+}
+
+class _TextAnswerCardState extends State<TextAnswerCard> {
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+      width: width,
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+      decoration: BoxDecoration(
+        color: CustomColors.grey,
+        borderRadius: BorderRadius.circular(12),
+        shape: BoxShape.rectangle,
+      ),
+      child: Row(children: [
+        Expanded(
+          child: Text(widget.answer,
+              style: CustomTypography().bodyMedium(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
+        ),
+        IconButton(
+          onPressed: () => widget.edit,
+          icon: const Icon(Icons.edit),
+          color: CustomColors.productNormal,
+          iconSize: 20,
+        ),
+        IconButton(
+          onPressed: () => delete(),
+          icon: const Icon(CupertinoIcons.delete),
+          color: CustomColors.warningActive,
+          iconSize: 20,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> delete() async {
+    final results = await showDialog<bool>(
+        context: context, builder: (context) => const DeletePopUp());
+
+    if (results == true) {
+      widget.delete!();
+    }
   }
 }
 

@@ -6,6 +6,7 @@ import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_re
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -435,6 +436,11 @@ class _QuestionPageState extends State<QuestionPage>
 
   Widget buildPrompt(BuildContext context, Prompt prompt) {
     Widget responseWidget;
+    Widget audiTextWidget;
+    Widget textWidget;
+
+    Widget randomText;
+    if (prompt.responseType == ResponseType.recording) {}
     if (prompt.responseType == ResponseType.slider) {
       List<Option> choices = prompt.option!.choices!;
       int scaleMinValue = int.parse(choices[0].option!);
@@ -488,18 +494,22 @@ class _QuestionPageState extends State<QuestionPage>
         },
         disabled: disabled,
       );
-    } else {
+    } else if (prompt.responseType == ResponseType.recording ||
+        prompt.responseType == ResponseType.text) {
+      bool hasRecordingOrResponse = prompt.answer?.recordings.isNotEmpty ??
+          false || prompt.answer?.response != null;
       responseWidget = widget.diary.status == DiaryStatus.submitted ||
-              widget.diary.status == DiaryStatus.missed
+              widget.diary.status == DiaryStatus.missed ||
+              hasRecordingOrResponse
           ? const SizedBox.shrink()
           : AudioTextCard(
               onClick: () => recordResponse(context),
-              text: prompt.answer != null
-                  ? "Add New Response"
-                  : "Record My Response",
+              text: "Record My Response",
               onTextClick: () {},
               textButtonText: "Text My Response",
             );
+    } else {
+      responseWidget = const SizedBox.shrink();
     }
 
     String questionTip;
@@ -512,6 +522,25 @@ class _QuestionPageState extends State<QuestionPage>
       questionTip = "Please check 1 option:";
     } else {
       questionTip = "You only need to take one response.";
+    }
+
+// the auditTextWidget and textWidget are the widgets that display the user's response
+    if (prompt.responseType == ResponseType.recording ||
+        prompt.responseType == ResponseType.text) {
+      audiTextWidget = prompt.answer?.recordings.isNotEmpty ?? false
+          ? MyResponse(
+              prompt: prompt,
+              status: widget.diary.status,
+              recordings: prompt.answer!.recordings)
+          : const SizedBox.shrink();
+      textWidget = prompt.answer?.response != null
+          ? TextAnswerCard(
+              answer: prompt.answer!.response!,
+            )
+          : const SizedBox.shrink();
+    } else {
+      audiTextWidget = const SizedBox.shrink();
+      textWidget = const SizedBox.shrink();
     }
 
     return SingleChildScrollView(
@@ -566,13 +595,10 @@ class _QuestionPageState extends State<QuestionPage>
                   ],
                 ),
                 const SizedBox(height: 112),
-                prompt.answer?.recordings.isNotEmpty ?? false
-                    ? MyResponse(
-                        prompt: prompt,
-                        status: widget.diary.status,
-                        recordings: prompt.answer!.recordings)
-                    : responseWidget,
 
+                audiTextWidget,
+                textWidget,
+                responseWidget,
                 if (widget.diary.status != DiaryStatus.submitted &&
                     widget.diary.status != DiaryStatus.missed &&
                     prompt.responseType == ResponseType.recording)
