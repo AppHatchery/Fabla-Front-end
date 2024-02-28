@@ -90,20 +90,20 @@ class SetupRepository {
     final code = participant!.studyCode;
     await diaryInit(code);
 
-    // final startDate = DateTime.fromMillisecondsSinceEpoch(
-    //     await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
-    // final metadata = Strings().participantMetadata(
-    //     code, formatDate(startDate), formatDate(startDate));
+    final startDate = DateTime.fromMillisecondsSinceEpoch(
+        await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+    final metadata = Strings().participantMetadata(
+        code, formatDate(startDate), formatDate(startDate));
 
-    // final directory = await getApplicationDocumentsDirectory();
-    // final path = p.join(directory.path, 'metadata.txt');
-    // final file = File(path);
+    final directory = await getApplicationDocumentsDirectory();
+    final path = p.join(directory.path, 'metadata.txt');
+    final file = File(path);
 
-    // if (!file.existsSync()) {
-    //   file.writeAsStringSync(metadata);
-    //   print('File content is ${file.readAsStringSync()}');
-    //   //uploadMetaDataS3(code, file);
-    // }
+    if (!file.existsSync()) {
+      file.writeAsStringSync(metadata);
+      print('File content is ${file.readAsStringSync()}');
+      uploadMetaDataS3(code, file);
+    }
   }
 
   /// Responsible for updating the metadata once created. This happens when diary has been submitted by participants or it has been submitted systematically.

@@ -390,7 +390,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   }
 
   void submitDiary() {
-    //summaryCubit.submitDiary(widget.diary);
+    summaryCubit.submitDiary(widget.diary);
   }
 
   void pendoEvent() async {

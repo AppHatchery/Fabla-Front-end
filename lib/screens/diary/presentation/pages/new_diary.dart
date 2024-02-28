@@ -61,7 +61,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     }
     showTip();
     if (widget.diary.status == DiaryStatus.idle) {
-      //participantsDiaryStartDate(widget.diary);
+      participantsDiaryStartDate(widget.diary);
     }
     super.initState();
     WidgetsBinding.instance.addObserver(this);
@@ -142,7 +142,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                     if (widget.diary.status == DiaryStatus.ongoing) {
                       scheduleContinueDiaryNotifications(widget.diary.id);
                     }
-                    //partialDataUpload(widget.diary);
+                    partialDataUpload(widget.diary);
                     Navigator.pop(context, true);
                     PendoService.track("ExitSurvey", {
                       "Question_number_at_exit": "${currentPage + 1}",
@@ -364,7 +364,7 @@ class _QuestionPageState extends State<QuestionPage>
       case AppLifecycleState.paused:
         if (widget.diary.status == DiaryStatus.ongoing) {
           scheduleContinueDiaryNotifications(widget.diary.id);
-          //partialDataUpload(widget.diary);
+          partialDataUpload(widget.diary);
         }
         break;
       default:
