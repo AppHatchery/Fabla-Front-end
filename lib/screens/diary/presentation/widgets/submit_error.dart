@@ -75,10 +75,10 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                       alignment: Alignment.bottomCenter,
                       child: CustomFlatButton(
                         onClick: () {
-                          Navigator.push(
+                          Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const Hub()));
+                                  builder: (context) => const Hub()), (route) => false);
                         },
                         text: "Return Home",
                         color: CustomColors.productNormal,

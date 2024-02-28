@@ -31,6 +31,8 @@ class _DiaryPageState extends State<DiariesPage> with TickerProviderStateMixin {
     return Scaffold(
         backgroundColor: CustomColors.fillNormal,
         appBar: AppBar(
+          automaticallyImplyLeading: false,
+          centerTitle: true,
           title: TabBar(
             controller: _tabController,
             labelColor: CustomColors.productNormalActive,
