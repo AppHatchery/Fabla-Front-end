@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/main.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
@@ -95,6 +96,12 @@ class _FinishPageState extends State<FinishPage> {
 
   void _next() async {
     await PreferenceService().setBoolPreference(key: 'setup', value: true);
+    final start = DateTime.fromMillisecondsSinceEpoch(
+        await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+
+    await PendoService.track("FinishOnBoarding",
+        {"datetime": DateTime.now().toString(), "startDate": start.toString()});
+
     if (context.mounted) {
       Navigator.pushAndRemoveUntil(
           context,

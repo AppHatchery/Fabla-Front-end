@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:flutter/material.dart';
 
 import '../../services/notification_service.dart';
+import '../../services/pendo_service.dart';
 import '../../services/preference_service.dart';
 
 /// Cancels all scheduled diary notifications for a specific diary with the given [id].
@@ -119,6 +121,14 @@ void scheduleContinueDiaryNotifications(int id) async {
         notifications[id]!.add(notificationID);
       }
 
+      await PendoService.track("ScheduleReminder", {
+        "page": "diary",
+        "scheduled_by": "auto",
+        "notification_type": "continue",
+        "number_of_reminders": dates.length,
+        "reminder_times": dates.map((e) => TimeOfDay(hour: e.hour, minute: e.minute).toString()).toList(),
+      });
+
       final updatedJsonMap = Map<String, dynamic>.fromEntries(notifications
           .entries
           .map((entry) => MapEntry(entry.key.toString(), entry.value)));
@@ -194,6 +204,14 @@ void scheduleSubmitDiaryNotification(int id) async {
         notifications[id]!.add(notificationID);
       }
 
+      await PendoService.track("ScheduleReminder", {
+        "page": "summary",
+        "scheduled_by": "auto",
+        "notification_type": "submit",
+        "number_of_reminders": dates.length,
+        "reminder_times": dates.map((e) => TimeOfDay(hour: e.hour, minute: e.minute).toString()).toList(),
+      });
+
       final updatedJsonMap = Map<String, dynamic>.fromEntries(notifications
           .entries
           .map((entry) => MapEntry(entry.key.toString(), entry.value)));
@@ -220,5 +238,5 @@ void reScheduleAllNotifications() async {
   await PreferenceService().removePreference(key: 'diary_notifications');
 
   final repository = SetupRepository();
-  repository.createNotifications();
+  repository.createNotifications(page: "settings");
 }

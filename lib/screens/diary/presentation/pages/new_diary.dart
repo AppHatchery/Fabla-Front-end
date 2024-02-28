@@ -1,8 +1,10 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
@@ -39,7 +41,7 @@ class NewDiaryPage extends StatefulWidget {
 }
 
 class _NewDiaryPageState extends State<NewDiaryPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> key = GlobalKey<ScaffoldState>();
   late PageController controller;
   late int currentPage;
@@ -62,6 +64,17 @@ class _NewDiaryPageState extends State<NewDiaryPage>
       participantsDiaryStartDate(widget.diary);
     }
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      PendoService.track("ExitSurvey", {
+        "Question_number_at_exit": "${currentPage + 1}",
+        "studyDate": "${widget.diary.id}"
+      });
+    }
   }
 
   void nextPage() {
@@ -102,6 +115,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   @override
   void dispose() {
     controller.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -127,12 +141,13 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                   onPressed: () {
                     if (widget.diary.status == DiaryStatus.ongoing) {
                       scheduleContinueDiaryNotifications(widget.diary.id);
-
                     }
                     partialDataUpload(widget.diary);
                     Navigator.pop(context, true);
-
-
+                    PendoService.track("ExitSurvey", {
+                      "Question_number_at_exit": "${currentPage + 1}",
+                      "studyDate": "${widget.diary.id}"
+                    });
                   },
                   icon: const Icon(CustomIcons.close),
                   iconSize: 15.0,
@@ -194,6 +209,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                       visible: currentPage != 0,
                       child: CustomElevatedIconButton(
                         onClick: () {
+                          PendoService.track(" DiaryBack",
+                              {"study_day": "${widget.diary.id}"});
                           previousPage();
                         },
                         icon: Icons.arrow_back,
@@ -664,14 +681,10 @@ class _QuestionPageState extends State<QuestionPage>
   }
 }
 
-
-Future<void> partialDataUpload(Diary diary)async {
-
-  SetupRepository srepo =  SetupRepository();
-  SummaryRepository surepo =  SummaryRepository();
+Future<void> partialDataUpload(Diary diary) async {
+  SetupRepository srepo = SetupRepository();
+  SummaryRepository surepo = SummaryRepository();
   var diary2 = await surepo.loadSummary(diary);
 
   upload(srepo.getParticipant()!.studyCode, diary2);
-
-
-  }
+}
