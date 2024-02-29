@@ -27,7 +27,7 @@ class PromptCubit extends Cubit<PromptState> {
   /// ```
   Future<void> loadPrompt(Prompt prompt) async {
     try {
-      emit(const PromptLoading());
+      emit(PromptLoading(prompt));
       final newPrompt = await _repository.load(prompt);
       emit(PromptLoaded(newPrompt));
     } catch (e) {
