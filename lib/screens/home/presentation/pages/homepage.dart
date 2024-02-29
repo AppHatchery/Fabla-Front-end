@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -8,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../services/pendo_service.dart';
 import '../../../../theme/dialogs/pop_ups.dart';
 import '../../../../theme/resources/strings.dart';
 import '../../../diary/data/diary.dart';
@@ -25,6 +28,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late HomeCubit homeCubit;
   String _name = "";
   late List<Diary> diaries;
+
+  late Timer? timer;
+  int secondsSpent = 0;
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -45,6 +52,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    timer?.cancel();
     super.dispose();
   }
 
@@ -105,8 +113,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ),
         ),
         body: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: BlocConsumer<HomeCubit, HomeState>(
                 listener: (context, state) {},
                 builder: (context, state) {
@@ -145,7 +152,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             height: 24,
           ),
           const StreakCalendar(),
-
           const SizedBox(
             height: 24,
           ),
@@ -180,11 +186,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             height: 24,
           ),
           const StreakCalendar(),
-
           const SizedBox(
             height: 24,
           ),
-          TodaysDiaryList(diaries: diaries, refresh: (value) => refresh(value))
+          TodaysDiaryList(
+            diaries: diaries,
+            refresh: (value) => refresh(value),
+            getPageName: () => "home",
+          )
         ],
       ),
     );
@@ -209,6 +218,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   void showResearchInformation() {
+    startTimer();
     showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -221,7 +231,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     duration: Strings.studyDuration,
                     researcher: Strings.researcherName)
               ],
-            ));
+            )).then((value) async => {
+          stopTimer(),
+          await PendoService.track("ResearchDetails",
+              {"page": "homepage", "time_on_page": "$secondsSpent"})
+        });
   }
 
   void show4AmTip() async {
@@ -249,4 +263,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       });
     }
   }
+
+  void startTimer() {
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        secondsSpent++;
+      });
+    });
+  }
+
+  void stopTimer() {
+    timer?.cancel();
+  }
+
+  void resetTimer() => setState(() => secondsSpent = 0);
 }

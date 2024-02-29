@@ -23,9 +23,7 @@ class _WelcomePageState extends State<WelcomePage> {
   void initState() {
     final code = repository.getParticipant()!.studyCode;
     createMetadata();
-    //repository.participantExist(code);
-    SetupRepository repos = SetupRepository();
-    repos.apiCreateParticipant(repos.getParticipant()!.studyCode);
+    repository.apiCreateParticipant(code);
     startPendo();
     super.initState();
   }
@@ -110,6 +108,9 @@ class _WelcomePageState extends State<WelcomePage> {
     final repository = SetupRepository();
     final participant = repository.getParticipant();
     await PendoService.start(participant!.studyCode.toString());
+
+    await PendoService.track(
+        "StudyLogin", {"datetime": DateTime.now().toString()});
   }
 
   void createMetadata() => repository.createMetadata();

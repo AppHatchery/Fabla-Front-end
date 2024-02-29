@@ -80,6 +80,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
             style: CustomTypography()
                 .titleLarge(color: CustomColors.textNormalContent),
           ),
+          automaticallyImplyLeading: false,
           centerTitle: true,
           shape: const Border(
             bottom: BorderSide(

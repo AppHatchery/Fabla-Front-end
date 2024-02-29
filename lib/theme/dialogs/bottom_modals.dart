@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_session/audio_session.dart';
@@ -238,7 +239,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           child: Container(
             alignment: Alignment.centerRight,
             child: IconButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  PendoService.track("RecordingModalDismissed", {
+                    "dismissal_path": "close",
+                    "study_date": "${DateTime.now()}",
+                  });
+                  Navigator.pop(context);
+                },
                 icon: const Icon(
                   Icons.close_rounded,
                   size: 24,
@@ -315,7 +322,12 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                           _timer?.cancel();
                         }),
                         redo()
-                      }
+                      },
+                    PendoService.track("RecordingControl", {
+                      "action": "redo",
+                      "study_date": "${DateTime.now()}",
+                      "prompt_number": "${widget.promptId + 1}"
+                    }),
                   },
               child: Padding(
                 padding:
@@ -332,7 +344,14 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 style: IconButton.styleFrom(
                   splashFactory: NoSplash.splashFactory,
                 ),
-                onPressed: () => record(),
+                onPressed: () {
+                  record();
+                  PendoService.track("RecordingControl", {
+                    "action": "stop",
+                    "study_date": "${DateTime.now()}",
+                    "prompt_number": "${widget.promptId + 1}"
+                  });
+                },
                 icon: Container(
                   height: 50,
                   width: 50,
@@ -353,7 +372,23 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 style: IconButton.styleFrom(
                   splashFactory: NoSplash.splashFactory,
                 ),
-                onPressed: () => record(),
+                onPressed: () {
+                  if (recorderState == RecorderState.isPaused) {
+                    PendoService.track("RecordingControl", {
+                      "action": "resume",
+                      "study_date": "${DateTime.now()}",
+                      "prompt_number": "${widget.promptId + 1}"
+                    });
+                  } else if (recorderState == RecorderState.isRecording) {
+                    PendoService.track("RecordingControl", {
+                      "action": "stop",
+                      "study_date": "${DateTime.now()}",
+                      "prompt_number": "${widget.promptId + 1}"
+                    });
+                  }
+
+                  record();
+                },
                 color: CustomColors.warningActive,
                 icon: Container(
                     width: 110,
@@ -393,7 +428,11 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           //Save
           TextButton(
               onPressed: () => {
-                    if (elapsed.inSeconds > 0) {save(), Navigator.pop(context)}
+                    if (elapsed.inSeconds > 0) {save(), Navigator.pop(context)},
+                    PendoService.track("RecordingModalDismissed", {
+                      "dismissal_path": "save",
+                      "study_date": "${DateTime.now()}",
+                    })
                   },
               child: Padding(
                 padding:
@@ -519,9 +558,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Future<String> getFilePath() async {
     final directory = await getApplicationDocumentsDirectory();
-    final dir =
-        await Directory(p.join(directory.path, 'recordings'))
-            .create(recursive: true);
+    final dir = await Directory(p.join(directory.path, 'recordings'))
+        .create(recursive: true);
     final now = DateTime.now();
     final fileName =
         'audio_prompt_${widget.promptId + 1}_${formatDate(now)}.aac';

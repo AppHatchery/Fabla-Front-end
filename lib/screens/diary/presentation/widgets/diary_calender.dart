@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -29,6 +30,7 @@ class _DiaryCalenderState extends State<DiaryCalender> {
     diaries = _getAllDiaries();
     diaryCubit = BlocProvider.of<DiaryCubit>(context);
     _fetchData(context);
+    PendoService.track("CalenderTab", {"study_day": "${DateTime.now()}"});
     super.initState();
   }
 
@@ -147,6 +149,7 @@ class _DiaryCalenderState extends State<DiaryCalender> {
                   DiaryCard(
                     diary: diary,
                     refresh: _refresh,
+                    getPageName: () => "history_calender",
                   ),
                 ],
               );
