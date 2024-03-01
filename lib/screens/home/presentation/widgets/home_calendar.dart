@@ -15,6 +15,34 @@ class StudyCalendar extends StatefulWidget {
 }
 
 class _StudyCalendarState extends State<StudyCalendar> {
+  late List<DateTime> selectedRange;
+  late PageController? pageController;
+  late DateTime focusedDay;
+  late DateTime startDate;
+  late DateTime endDate;
+  late DateTime today;
+
+  @override
+  void initState() {
+    today =
+        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    startDate = DateTime(
+        today.subtract(const Duration(days: 15)).year,
+        today.subtract(const Duration(days: 15)).month,
+        today.subtract(const Duration(days: 15)).day);
+    endDate = DateTime(
+        today.add(const Duration(days: 15)).year,
+        today.add(const Duration(days: 15)).month,
+        today.add(const Duration(days: 15)).day,
+        0);
+    pageController = null;
+    final monday = today.subtract(Duration(days: today.weekday - 1));
+    selectedRange =
+        List.generate(7, (index) => monday.add(Duration(days: index)));
+    focusedDay = today;
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -101,9 +129,6 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   Widget calendar() {
-    final today =
-        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -123,9 +148,10 @@ class _StudyCalendarState extends State<StudyCalendar> {
           child: TableCalendar(
             firstDay: DateTime.utc(2010, 10, 16),
             lastDay: DateTime.utc(2060, 3, 14),
-            focusedDay: today,
-            rangeStartDay: today.subtract(const Duration(days: 15)),
-            rangeEndDay: today.add(const Duration(days: 15)),
+            focusedDay: focusedDay,
+            currentDay: today,
+            rangeStartDay: startDate,
+            rangeEndDay: endDate,
             headerStyle: const HeaderStyle(
                 titleCentered: false,
                 formatButtonVisible: false,
@@ -134,24 +160,24 @@ class _StudyCalendarState extends State<StudyCalendar> {
             calendarStyle: CalendarStyle(
               outsideTextStyle: CustomTypography()
                   .bodyLarge(color: CustomColors.textTertiaryContent),
-              rangeStartTextStyle: CustomTypography()
-                  .bodyLarge(color: CustomColors.textTertiaryContent),
-              withinRangeTextStyle: CustomTypography()
-                  .bodyLarge(color: CustomColors.textTertiaryContent),
+              rangeStartTextStyle:
+                  CustomTypography().bodyLarge(color: Colors.transparent),
+              withinRangeTextStyle:
+                  CustomTypography().bodyLarge(color: Colors.transparent),
               rangeHighlightColor: CustomColors.productLightBackground,
-              rangeStartDecoration: const BoxDecoration(
-                color: CustomColors.productLightBackground,
-                shape: BoxShape.circle,
-              ),
               todayDecoration: const BoxDecoration(
-                  color: CustomColors.productNormalActive,
-                  shape: BoxShape.circle),
+                  color: CustomColors.productDark, shape: BoxShape.circle),
             ),
             startingDayOfWeek: StartingDayOfWeek.monday,
             daysOfWeekHeight: 45,
+            // rowHeight: 55, - affecting star when lower than 52
+            onDaySelected: _onDaySelected,
+            onCalendarCreated: (controller) {
+              pageController = controller;
+            },
             calendarBuilders: CalendarBuilders(
               headerTitleBuilder: (context, day) => Padding(
-                padding: const EdgeInsets.only(bottom:12),
+                padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -159,15 +185,17 @@ class _StudyCalendarState extends State<StudyCalendar> {
                       padding: const EdgeInsets.only(left: 20),
                       child: Text(
                         getMonthYear(day),
-                        style: CustomTypography()
-                            .titleSmall(color: CustomColors.textSecondaryContent),
+                        style: CustomTypography().titleSmall(
+                            color: CustomColors.textSecondaryContent),
                       ),
                     ),
                     SizedBox(
                       child: Row(
                         children: [
                           GestureDetector(
-                            onTap: () => null,
+                            onTap: () => pageController?.previousPage(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.ease),
                             child: const SizedBox(
                                 height: 24,
                                 width: 24,
@@ -175,6 +203,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
                           ),
                           const SizedBox(width: 12),
                           GestureDetector(
+                            onTap: () => pageController?.nextPage(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.ease),
                             child: const SizedBox(
                                 height: 24,
                                 width: 24,
@@ -186,55 +217,192 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   ],
                 ),
               ),
-              dowBuilder: (context, day) => Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.only(bottom: 8),
-                decoration: const BoxDecoration(
-                    border: Border(
-                        bottom: BorderSide(
-                            width: 1,
-                            color: CustomColors.productBorderNormal))),
-                child: Center(
-                  child: Text(
-                    DateFormat.E().format(day)[0],
-                    style: CustomTypography()
-                        .titleSmall(color: CustomColors.textSecondaryContent),
-                  ),
-                ),
-              ),
-              defaultBuilder: (context, day, focusedDay) => Container(
-                margin: const EdgeInsets.all(4),
-                alignment: Alignment.center,
-                child: Text(
-                  day.day.toString(),
-                  style: CustomTypography()
-                      .bodyLarge(color: CustomColors.textSecondaryContent),
-                ),
-              ),
-              rangeEndBuilder: (context, day, focusedDay) => Container(
-                margin: const EdgeInsets.all(5),
-                decoration: const BoxDecoration(
-                  color: CustomColors.productLightBackground,
-                  shape: BoxShape.circle,
-                ),
-                child: ClipPath(
-                  clipper: StarClipper(8),
-                  child: Container(
-                    alignment: Alignment.center,
-                    color: CustomColors.yellowDark,
+              dowBuilder: (context, day) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.only(bottom: 8),
+                  decoration: const BoxDecoration(
+                      border: Border(
+                          bottom: BorderSide(
+                              width: 0.6,
+                              color: CustomColors.productBorderNormal))),
+                  child: Center(
                     child: Text(
-                      day.day.toString(),
+                      DateFormat.E().format(day)[0],
                       style: CustomTypography()
-                          .bodyLarge(color: CustomColors.textWhite),
+                          .titleSmall(color: CustomColors.textSecondaryContent),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
+              defaultBuilder: (context, day, focusedDay) {
+                final isDayInRange = selectedRange.contains(day);
+                final isMonday = selectedRange.first == day;
+                final isSunday = selectedRange.last == day;
+
+                final margin = isDayInRange
+                    ? const EdgeInsets.symmetric(vertical: 4)
+                    : const EdgeInsets.all(4);
+
+                final borderRadius = isDayInRange
+                    ? BorderRadius.only(
+                        topLeft:
+                            isMonday ? const Radius.circular(100) : Radius.zero,
+                        bottomLeft:
+                            isMonday ? const Radius.circular(100) : Radius.zero,
+                        topRight:
+                            isSunday ? const Radius.circular(100) : Radius.zero,
+                        bottomRight:
+                            isSunday ? const Radius.circular(100) : Radius.zero,
+                      )
+                    : null;
+
+                final color =
+                    isDayInRange ? CustomColors.productNormalActive : null;
+
+                final textColor = isDayInRange
+                    ? CustomColors.textWhite
+                    : CustomColors.textTertiaryContent;
+
+                return Container(
+                  margin: margin,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: borderRadius,
+                    color: color,
+                  ),
+                  child: Text(
+                    day.day.toString(),
+                    style: CustomTypography().bodyLarge(color: textColor),
+                  ),
+                );
+              },
+              rangeStartBuilder: (context, day, focusedDay) {
+                final isDayInRange = selectedRange.contains(day);
+                final isStart =
+                    startDate == DateTime(day.year, day.month, day.day);
+
+                if (isStart) {
+                  return const SizedBox.shrink();
+                }
+
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isDayInRange
+                        ? CustomColors.productNormalActive
+                        : CustomColors.productLightBackground,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    day.day.toString(),
+                    style: CustomTypography().bodyLarge(
+                      color: isDayInRange
+                          ? CustomColors.textWhite
+                          : CustomColors.textTertiaryContent,
+                    ),
+                  ),
+                );
+              },
+              rangeHighlightBuilder: (context, day, isWithinRange) {
+                final isDayInRange = selectedRange.contains(day);
+                final isMonday = selectedRange.first == day;
+                final isSunday = selectedRange.last == day;
+
+                final startOfWeek =
+                    day.subtract(Duration(days: day.weekday - 1));
+                final isMondayOfDay = startOfWeek == day;
+                final isSundayOfDay =
+                    startOfWeek.add(const Duration(days: 6)) == day;
+                final isEnd = endDate == DateTime(day.year, day.month, day.day);
+                final isStart =
+                    startDate == DateTime(day.year, day.month, day.day);
+
+                final color = isDayInRange
+                    ? CustomColors.productNormalActive
+                    : isWithinRange
+                        ? CustomColors.productLightBackground
+                        : Colors.transparent;
+
+                final radius = isDayInRange
+                    ? isMonday
+                        ? const BorderRadius.only(
+                            topLeft: Radius.circular(100),
+                            bottomLeft: Radius.circular(100))
+                        : isSunday
+                            ? const BorderRadius.only(
+                                topRight: Radius.circular(100),
+                                bottomRight: Radius.circular(100))
+                            : BorderRadius.zero
+                    : isMondayOfDay || isStart
+                        ? const BorderRadius.only(
+                            topLeft: Radius.circular(100),
+                            bottomLeft: Radius.circular(100))
+                        : isSundayOfDay || isEnd
+                            ? const BorderRadius.only(
+                                topRight: Radius.circular(100),
+                                bottomRight: Radius.circular(100))
+                            : BorderRadius.zero;
+
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  alignment: Alignment.center,
+                  decoration: isDayInRange
+                      ? BoxDecoration(borderRadius: radius, color: color)
+                      : BoxDecoration(borderRadius: radius, color: color),
+                  child: Text(
+                    day.day.toString(),
+                    style: CustomTypography().bodyLarge(
+                        color: isDayInRange
+                            ? CustomColors.textWhite
+                            : CustomColors.textTertiaryContent),
+                  ),
+                );
+              },
+              rangeEndBuilder: (context, day, focusedDay) {
+                final isDayInRange = selectedRange.contains(day);
+
+                return Container(
+                  margin: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: isDayInRange
+                        ? CustomColors.productNormalActive
+                        : CustomColors.productLightBackground,
+                    shape: BoxShape.circle,
+                  ),
+                  child: ClipPath(
+                    clipper: StarClipper(8),
+                    child: Container(
+                      alignment: Alignment.center,
+                      color: CustomColors.yellowDark,
+                      child: Text(
+                        day.day.toString(),
+                        style: CustomTypography()
+                            .bodyLarge(color: CustomColors.textWhite),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         )
       ],
     );
+  }
+
+  _onDaySelected(DateTime selectedDay, DateTime focusedDate) {
+    if (!selectedRange.contains(selectedDay)) {
+      final monday =
+          selectedDay.subtract(Duration(days: selectedDay.weekday - 1));
+      final List<DateTime> range =
+          List.generate(7, (index) => monday.add(Duration(days: index)));
+
+      setState(() {
+        selectedRange = range;
+        focusedDay = focusedDate;
+      });
+    }
   }
 
   Widget entries() {
@@ -251,13 +419,13 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   getThisWeek() {
-    final today = DateTime.now();
-    final monday = today.subtract(Duration(days: today.weekday - 1));
-    final sunday = monday.add(const Duration(days: 6));
+    final DateFormat formatter = DateFormat("MMMM d");
+    final DateFormat yearFormatter = DateFormat.y();
 
-    final DateFormat formatter = DateFormat("EEEE, MMM d");
-
-    return "${formatter.format(monday)} - ${formatter.format(sunday)}";
+    final start = formatter.format(selectedRange.first);
+    final end = formatter.format(selectedRange.last);
+    final year = yearFormatter.format(selectedRange.first);
+    return "$start - $end, $year";
   }
 
   getMonthYear(DateTime day) {
