@@ -56,6 +56,7 @@ class _MyResponseState extends State<MyResponse> {
                   delete: () => deleteResponse(
                       widget.prompt, widget.recordings[index].path),
                   viewOnly: false,
+                  promptId: widget.prompt.id,
                 ),
               );
             }),

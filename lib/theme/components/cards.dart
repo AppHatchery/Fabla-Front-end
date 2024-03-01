@@ -667,11 +667,12 @@ class NewAudioCard extends StatefulWidget {
   final Recording recording;
   final VoidCallback? delete;
   final bool viewOnly;
+  final int promptId;
   const NewAudioCard(
       {super.key,
       required this.recording,
       this.delete,
-      required this.viewOnly});
+      required this.viewOnly, required this.promptId});
 
   @override
   State<NewAudioCard> createState() => _NewAudioCardState();
