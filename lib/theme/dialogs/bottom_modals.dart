@@ -45,6 +45,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Timer? _timer;
   Duration elapsed = const Duration();
   RecorderState recorderState = RecorderState.isStopped;
+  final ValueNotifier<bool> _erase = ValueNotifier<bool>(false);
 
   @override
   void initState() {
@@ -76,34 +77,35 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           Expanded(flex: 3, child: questionAndHints()),
           // Recording controls
           Expanded(
-              flex: 2,
-              child: Container(
-                width: width,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                ),
-                color: CustomColors.productNormal,
-                child: Column(
-                  children: [
-                    const SizedBox(
-                      height: 24,
-                    ),
-                    recordingTimer(),
-                    SizedBox(
-                      height: screenHeight > 850 ? 36 : 24,
-                    ),
-                    SizedBox(
-                      height: 42,
-                      width: width,
-                      child: waveForm(),
-                    ),
-                    SizedBox(
-                      height: screenHeight > 850 ? 36 : 24,
-                    ),
-                    recordingControls(screenHeight),
-                  ],
-                ),
-              ))
+            flex: 2,
+            child: Container(
+              width: width,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 32,
+              ),
+              color: CustomColors.productNormal,
+              child: Column(
+                children: [
+                  const SizedBox(
+                    height: 24,
+                  ),
+                  recordingTimer(),
+                  SizedBox(
+                    height: screenHeight > 850 ? 36 : 24,
+                  ),
+                  SizedBox(
+                    height: 42,
+                    width: width,
+                    child: waveForm(),
+                  ),
+                  SizedBox(
+                    height: screenHeight > 850 ? 36 : 24,
+                  ),
+                  recordingControls(screenHeight),
+                ],
+              ),
+            ),
+          )
         ],
       ),
     );
@@ -203,6 +205,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       maxVisibleValues: width ~/ 2,
       maxValue: 40,
       color: CustomColors.fillWhite,
+      onErase: _erase,
     );
   }
 
@@ -244,42 +247,44 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         SizedBox(
           height: height > 850 ? 36 : 24,
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onTap: () => redo(),
-              child: Container(
-                padding: const EdgeInsets.all(13),
-                decoration: BoxDecoration(
-                    color: CustomColors.fillWhite,
-                    borderRadius: BorderRadius.circular(42)),
-                child: const Center(
-                    child: Icon(
-                  CupertinoIcons.arrow_uturn_left,
-                  color: CustomColors.productNormal,
-                )),
-              ),
-            ),
-            const SizedBox(
-              width: 68,
-            ),
-            GestureDetector(
-              onTap: () => save(),
-              child: Container(
-                padding: const EdgeInsets.all(13),
-                decoration: BoxDecoration(
-                    color: CustomColors.fillWhite,
-                    borderRadius: BorderRadius.circular(42)),
-                child: const Center(
-                    child: Icon(
-                  CupertinoIcons.checkmark_alt,
-                  color: CustomColors.productNormal,
-                )),
-              ),
-            ),
-          ],
-        )
+        _timer != null
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: () => redo(),
+                    child: Container(
+                      padding: const EdgeInsets.all(13),
+                      decoration: BoxDecoration(
+                          color: CustomColors.fillWhite,
+                          borderRadius: BorderRadius.circular(42)),
+                      child: const Center(
+                          child: Icon(
+                        CupertinoIcons.arrow_uturn_left,
+                        color: CustomColors.productNormal,
+                      )),
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 68,
+                  ),
+                  GestureDetector(
+                    onTap: () => save(),
+                    child: Container(
+                      padding: const EdgeInsets.all(13),
+                      decoration: BoxDecoration(
+                          color: CustomColors.fillWhite,
+                          borderRadius: BorderRadius.circular(42)),
+                      child: const Center(
+                          child: Icon(
+                        CupertinoIcons.checkmark_alt,
+                        color: CustomColors.productNormal,
+                      )),
+                    ),
+                  ),
+                ],
+              )
+            : const SizedBox.shrink()
       ],
     );
   }
@@ -320,27 +325,43 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Future<void> redo() async {
-    final showDialogResult = await showDialog<bool>(
-      context: context,
-      builder: (context) => const RedoPopUp(),
-    );
+    await recorder.pauseRecorder();
+    _timer?.cancel();
 
-    if (showDialogResult == true) {
-      if (mounted) {
+    if (mounted) {
+      final showDialogResult = await showDialog<bool>(
+        context: context,
+        builder: (context) => const RedoPopUp(),
+      );
+
+      if (showDialogResult == true) {
+        if (mounted) {
+          setState(() {
+            elapsed = const Duration();
+            timer = "00:00";
+            _erase.value = !_erase.value;
+          });
+        }
+        final stoppedRecorderValue = await recorder.stopRecorder();
+
+        if (stoppedRecorderValue != null) {
+          final file = File(stoppedRecorderValue);
+          await file.delete();
+        }
+
+        await Future.delayed(const Duration(milliseconds: 150));
+        record();
+
+        if (mounted) {
+          setState(() {
+            _erase.value = !_erase.value;
+          });
+        }
+      } else {
         setState(() {
-          elapsed = const Duration();
-          timer = "00:00";
+          recorderState = RecorderState.isPaused;
         });
       }
-      final stoppedRecorderValue = await recorder.stopRecorder();
-
-      if (stoppedRecorderValue != null) {
-        final file = File(stoppedRecorderValue);
-        await file.delete();
-      }
-
-      await Future.delayed(const Duration(milliseconds: 150));
-      record();
     }
   }
 
