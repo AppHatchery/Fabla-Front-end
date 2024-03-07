@@ -74,36 +74,36 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       ),
       child: Column(
         children: [
-          Expanded(flex: 3, child: questionAndHints()),
+          Expanded( child: questionAndHints()),
           // Recording controls
-          Expanded(
-            flex: 2,
-            child: Container(
-              width: width,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 32,
-              ),
-              color: CustomColors.productNormal,
-              child: Column(
-                children: [
-                  const SizedBox(
-                    height: 24,
-                  ),
-                  recordingTimer(),
-                  SizedBox(
-                    height: screenHeight > 850 ? 36 : 24,
-                  ),
-                  SizedBox(
-                    height: 42,
-                    width: width,
-                    child: waveForm(),
-                  ),
-                  SizedBox(
-                    height: screenHeight > 850 ? 36 : 24,
-                  ),
-                  recordingControls(screenHeight),
-                ],
-              ),
+          Container(
+            width: width,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32,
+            ),
+            color: CustomColors.productNormal,
+            child: Column(
+              children: [
+                const SizedBox(
+                  height: 24,
+                ),
+                recordingTimer(),
+                SizedBox(
+                  height: screenHeight > 850 ? 36 : 24,
+                ),
+                SizedBox(
+                  height: 42,
+                  width: width,
+                  child: waveForm(),
+                ),
+                SizedBox(
+                  height: screenHeight > 850 ? 36 : 24,
+                ),
+                recordingControls(screenHeight),
+                SizedBox(
+                  height: screenHeight > 850 ? 36 : 24,
+                ),
+              ],
             ),
           )
         ],
@@ -114,73 +114,75 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Widget questionAndHints() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(
-            height: 26,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: const Icon(
-                  CupertinoIcons.clear_circled_solid,
-                  size: 26,
-                  color: CustomColors.textSecondaryContent,
-                ),
-              )
-            ],
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Text(
-            widget.question,
-            style: CustomTypography().titleLarge(),
-          ),
-          const SizedBox(
-            height: 32,
-          ),
-          Image.asset(
-            "assets/images/avatar_recording.png",
-            height: 64,
-            width: 64,
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Text(
-            widget.hint ??
-                "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
-            style: CustomTypography().body(),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          CustomOutlineButton(
-            onClick: () => {},
-            color: CustomColors.productNormal,
-            backgroundColor: CustomColors.fillWhite,
-            children: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(
+              height: 26,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text(
-                  "Try A Hint",
-                  style: CustomTypography()
-                      .button(color: CustomColors.productNormal),
-                ),
-                const SizedBox(width: 8),
-                Image.asset(
-                  "assets/images/star.png",
-                  height: 16,
-                  width: 16,
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(
+                    CupertinoIcons.clear_circled_solid,
+                    size: 26,
+                    color: CustomColors.textSecondaryContent,
+                  ),
                 )
               ],
             ),
-          ),
-        ],
+            const SizedBox(
+              height: 16,
+            ),
+            Text(
+              widget.question,
+              style: CustomTypography().titleLarge(),
+            ),
+            const SizedBox(
+              height: 32,
+            ),
+            Image.asset(
+              "assets/images/avatar_recording.png",
+              height: 64,
+              width: 64,
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            Text(
+              widget.hint ??
+                  "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
+              style: CustomTypography().body(),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            CustomOutlineButton(
+              onClick: () => {},
+              color: CustomColors.productNormal,
+              backgroundColor: CustomColors.fillWhite,
+              children: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    "Try A Hint",
+                    style: CustomTypography()
+                        .button(color: CustomColors.productNormal),
+                  ),
+                  const SizedBox(width: 8),
+                  Image.asset(
+                    "assets/images/star.png",
+                    height: 16,
+                    width: 16,
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -247,44 +249,46 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         SizedBox(
           height: height > 850 ? 36 : 24,
         ),
-        _timer != null
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GestureDetector(
-                    onTap: () => redo(),
-                    child: Container(
-                      padding: const EdgeInsets.all(13),
-                      decoration: BoxDecoration(
-                          color: CustomColors.fillWhite,
-                          borderRadius: BorderRadius.circular(42)),
-                      child: const Center(
-                          child: Icon(
-                        CupertinoIcons.arrow_uturn_left,
-                        color: CustomColors.productNormal,
-                      )),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 68,
-                  ),
-                  GestureDetector(
-                    onTap: () => save(),
-                    child: Container(
-                      padding: const EdgeInsets.all(13),
-                      decoration: BoxDecoration(
-                          color: CustomColors.fillWhite,
-                          borderRadius: BorderRadius.circular(42)),
-                      child: const Center(
-                          child: Icon(
-                        CupertinoIcons.checkmark_alt,
-                        color: CustomColors.productNormal,
-                      )),
-                    ),
-                  ),
-                ],
-              )
-            : const SizedBox.shrink()
+        AnimatedOpacity(
+          duration: const Duration(milliseconds: 150),
+          opacity: _timer != null ? 1 : 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: () => redo(),
+                child: Container(
+                  padding: const EdgeInsets.all(13),
+                  decoration: BoxDecoration(
+                      color: CustomColors.fillWhite,
+                      borderRadius: BorderRadius.circular(42)),
+                  child: const Center(
+                      child: Icon(
+                    CupertinoIcons.arrow_uturn_left,
+                    color: CustomColors.productNormal,
+                  )),
+                ),
+              ),
+              const SizedBox(
+                width: 68,
+              ),
+              GestureDetector(
+                onTap: () => save(),
+                child: Container(
+                  padding: const EdgeInsets.all(13),
+                  decoration: BoxDecoration(
+                      color: CustomColors.fillWhite,
+                      borderRadius: BorderRadius.circular(42)),
+                  child: const Center(
+                      child: Icon(
+                    CupertinoIcons.checkmark_alt,
+                    color: CustomColors.productNormal,
+                  )),
+                ),
+              ),
+            ],
+          ),
+        )
       ],
     );
   }
