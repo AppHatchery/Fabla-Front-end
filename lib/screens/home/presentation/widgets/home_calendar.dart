@@ -50,80 +50,81 @@ class _StudyCalendarState extends State<StudyCalendar> {
     return SizedBox(
       height: height,
       width: width,
-      child: Column(
-        children: [
-          Container(
-            color: CustomColors.yellowTertiary,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: IconButton(
-                            onPressed: () => Navigator.pop(context),
-                            icon: const Icon(
-                              CupertinoIcons.clear,
-                              color: CustomColors.yellowDark,
-                              size: 20,
-                            )),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        "Study Progress",
-                        style: CustomTypography()
-                            .titleLarge(color: CustomColors.yellowDark),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const Expanded(
-                      child: SizedBox(),
-                    )
-                  ],
-                ),
-                //Days active
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              color: CustomColors.yellowTertiary,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        "0",
-                        style: CustomTypography().headlineLargeCustom(
-                            color: CustomColors.yellowDark, fontSize: 64.sp),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: IconButton(
+                              onPressed: () => Navigator.pop(context),
+                              icon: const Icon(
+                                CupertinoIcons.clear,
+                                color: CustomColors.yellowDark,
+                                size: 20,
+                              )),
+                        ),
                       ),
-                      Text(
-                        "Days active in the Winship Study",
-                        style: CustomTypography()
-                            .titleSmall(color: CustomColors.yellowDark),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          "Study Progress",
+                          style: CustomTypography()
+                              .titleLarge(color: CustomColors.yellowDark),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
+                      const Expanded(
+                        child: SizedBox(),
+                      )
                     ],
                   ),
-                ),
-              ],
+                  //Days active
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "0",
+                          style: CustomTypography().headlineLargeCustom(
+                              color: CustomColors.yellowDark, fontSize: 64.sp),
+                        ),
+                        Text(
+                          "Days active in the Winship Study",
+                          style: CustomTypography()
+                              .titleSmall(color: CustomColors.yellowDark),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-              child: Container(
-            width: width,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-            color: CustomColors.fillNormal,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                calendar(),
-                const SizedBox(height: 12),
-                entries(),
-              ],
-            ),
-          ))
-        ],
+            Container(
+                          width: width,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                          color: CustomColors.fillNormal,
+                          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              calendar(),
+              const SizedBox(height: 12),
+              entries(),
+            ],
+                          ),
+                        )
+          ],
+        ),
       ),
     );
   }

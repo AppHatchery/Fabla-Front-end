@@ -4,7 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class WeeklyGoalWidget extends StatefulWidget {
-  const WeeklyGoalWidget({super.key});
+  final bool isExpanded;
+  const WeeklyGoalWidget({super.key, required this.isExpanded});
 
   @override
   State<WeeklyGoalWidget> createState() => _WeeklyGoalWidgetState();
@@ -23,8 +24,10 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
             Text("Weekly Goal", style: CustomTypography().bodyLarge()),
             const SizedBox(width: 6),
             GestureDetector(
-              child: const Icon(
-                Icons.keyboard_arrow_down_rounded,
+              child: Icon(
+                widget.isExpanded
+                    ? Icons.keyboard_arrow_up_rounded
+                    : Icons.keyboard_arrow_down_rounded,
                 color: CustomColors.textTertiaryContent,
                 size: 20,
               ),

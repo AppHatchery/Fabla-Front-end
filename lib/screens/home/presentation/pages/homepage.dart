@@ -52,6 +52,7 @@ class _HomePageState extends State<HomePage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _controller.dispose();
     super.dispose();
   }
 
@@ -62,7 +63,7 @@ class _HomePageState extends State<HomePage>
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundTertiary,
           bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(10),
+            preferredSize: const Size.fromHeight(30),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
@@ -70,9 +71,17 @@ class _HomePageState extends State<HomePage>
                 children: [
                   GestureDetector(
                     onTap: () => setState(() {
-                      isExpanded = !isExpanded;
+                      if (isExpanded) {
+                        isExpanded = !isExpanded;
+                        _controller.reverse();
+                      } else {
+                        isExpanded = !isExpanded;
+                        _controller.forward();
+                      }
                     }),
-                    child: const WeeklyGoalWidget(),
+                    child: WeeklyGoalWidget(
+                      isExpanded: isExpanded,
+                    ),
                   ),
                   IconButton(
                       onPressed: () {
@@ -96,59 +105,44 @@ class _HomePageState extends State<HomePage>
             ),
           ),
         ),
-        body: Stack(
-          children: [
-            Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: BlocConsumer<HomeCubit, HomeState>(
-                    listener: (context, state) {},
-                    builder: (context, state) {
-                      if (state is HomeInitial) {
-                        return initialHome();
-                      } else if (state is HomeLoading) {
-                        return loading();
-                      } else if (state is HomeLoaded) {
-                        return loadedHome(state.diaries, state.startDate);
-                      } else {
-                        return initialHome();
-                      }
-                    })),
-            SizedBox(
-              height: double.infinity,
-              width: double.infinity,
-              child: Stack(
-                children: [
-                  AnimatedOpacity(
-                    duration: const Duration(milliseconds: 50),
-                    opacity: isExpanded ? 1 : 0,
-                    onEnd: () {
-                      if (!isExpanded) {
-                        _controller.reverse();
-                      } else {
-                        _controller.forward();
-                      }
-                    },
-                    child: GestureDetector(
-                      onTap: () => setState(() {
-                        isExpanded = false;
-                        _controller.reverse();
-                      }),
-                      child: Container(
-                        height: double.infinity,
-                        width: double.infinity,
-                        color: Colors.black.withOpacity(0.5),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                      top: 0,
-                      child: WeeklyGoalPopup(
-                        controller: _controller,
-                      ))
-                ],
-              ),
-            )
-          ],
+        body: GestureDetector(
+          onTap: () {
+            if (isExpanded) {
+              setState(() {
+                isExpanded = false;
+                _controller.reverse();
+              });
+            }
+          },
+          child: Stack(
+            children: [
+              Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: BlocConsumer<HomeCubit, HomeState>(
+                      listener: (context, state) {},
+                      builder: (context, state) {
+                        if (state is HomeInitial) {
+                          return initialHome();
+                        } else if (state is HomeLoading) {
+                          return loading();
+                        } else if (state is HomeLoaded) {
+                          return loadedHome(state.diaries, state.startDate);
+                        } else {
+                          return initialHome();
+                        }
+                      })),
+              Positioned(
+                  top: 0,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, -2),
+                      end: const Offset(0, 0),
+                    ).animate(CurvedAnimation(
+                        parent: _controller, curve: Curves.fastOutSlowIn)),
+                    child: const WeeklyGoalPopup(),
+                  ))
+            ],
+          ),
         ));
   }
 
