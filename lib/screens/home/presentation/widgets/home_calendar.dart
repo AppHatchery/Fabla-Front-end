@@ -153,6 +153,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
             currentDay: today,
             rangeStartDay: startDate,
             rangeEndDay: endDate,
+            availableGestures: AvailableGestures.horizontalSwipe,
             headerStyle: const HeaderStyle(
                 titleCentered: false,
                 formatButtonVisible: false,
