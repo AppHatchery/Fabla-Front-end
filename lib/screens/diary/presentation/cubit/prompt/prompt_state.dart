@@ -12,7 +12,11 @@ final class PromptInitial extends PromptState {
 }
 
 final class PromptLoading extends PromptState {
-  const PromptLoading();
+  final Prompt prompt;
+  const PromptLoading(this.prompt);
+
+  @override
+  List<Object> get props => [prompt];
 }
 
 final class PromptLoaded extends PromptState {

@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/li
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../services/pendo_service.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
 import '../widgets/avatar_background.dart';
@@ -105,6 +106,12 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
       await PreferenceService()
           .setStringListPreference(key: "reminder_times", value: value);
     }
+
+    await PendoService.track("ReminderSetting", {
+      "page": "onboarding",
+      "number_of_reminders": times.length.toString(),
+      "reminders": times.toString(),
+    });
 
     await PreferenceService()
         .setBoolPreference(key: 'reminders_set', value: true);

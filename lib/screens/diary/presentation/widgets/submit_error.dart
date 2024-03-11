@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../main.dart';
 import '../../../../theme/components/buttons.dart';
@@ -46,12 +47,27 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                             height: 12,
                           ),
                           Text(
-                            "Don't worry! We're here to help. Please reach out to us at [support@apphatchery.org] for assistance.",
+                            "Don't worry! We're here to help. Please reach out for assistance at",
                             style: CustomTypography().bodyLarge(
                               color: CustomColors.textSecondaryContent,
                             ),
                             textAlign: TextAlign.center,
-                          )
+                          ),
+                          GestureDetector(
+                              onTap: () => launchEmail(),
+                              child: Text(
+                                "support@apphatchery.org",
+                                style: TextStyle(
+                                    fontSize:
+                                    CustomTypography().bodyMedium().fontSize,
+                                    fontWeight: CustomTypography()
+                                        .bodyMedium()
+                                        .fontWeight,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: CustomColors.productNormal,
+                                    color: CustomColors.productNormal),
+                              )
+                          ),
                         ],
                       ),
                     ),
@@ -59,10 +75,10 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                       alignment: Alignment.bottomCenter,
                       child: CustomFlatButton(
                         onClick: () {
-                          Navigator.push(
+                          Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const Hub()));
+                                  builder: (context) => const Hub()), (route) => false);
                         },
                         text: "Return Home",
                         color: CustomColors.productNormal,
@@ -74,5 +90,24 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                     ),
                   ],
                 ))));
+  }
+
+  Future<void> launchEmail() async {
+    final uri = Uri(
+        scheme: "mailto",
+        path: "support@apphatchery.org",
+        query: encodeQueryParameters(<String, String>{
+          'subject': 'Had an error submitting my diary',
+          'body': 'I had a problem submitting my diary on day: '
+        }));
+
+    await launchUrl(uri);
+  }
+
+  String? encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map((MapEntry<String, String> e) =>
+    '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
   }
 }

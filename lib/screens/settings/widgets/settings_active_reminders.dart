@@ -1,6 +1,7 @@
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:flutter/material.dart';
 
+import '../../../services/pendo_service.dart';
 import '../../../services/preference_service.dart';
 import '../../../theme/components/buttons.dart';
 import '../../../theme/components/time_picker.dart';
@@ -132,6 +133,12 @@ class _ActiveRemindersState extends State<ActiveReminders> {
         .toList();
     await PreferenceService()
         .setStringListPreference(key: "reminder_times", value: value);
+
+    await PendoService.track("ReminderSetting", {
+      "page": "settings",
+      "number_of_reminders": widget.times.length.toString(),
+      "reminders": widget.times.toString(),
+    });
 
     // Update Notifications
     reScheduleAllNotifications();
