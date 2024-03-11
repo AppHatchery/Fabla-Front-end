@@ -103,8 +103,8 @@ class DiaryCompletionPage extends StatelessWidget {
                   alignment: Alignment.bottomCenter,
                   child: CustomFlatButton(
                     onClick: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => const Hub()));
+                      Navigator.pushAndRemoveUntil(context,
+                          MaterialPageRoute(builder: (context) => const Hub()), (route) => false);
                     },
                     text: "Return Home",
                     color: CustomColors.productNormal,

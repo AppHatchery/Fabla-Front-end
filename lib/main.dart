@@ -91,7 +91,6 @@ class _MyAppState extends State<MyApp> {
                 BlocProvider<HomeCubit>(
                   create: (context) => HomeCubit(),
                 ),
-                BlocProvider<PromptCubit>(create: (context) => PromptCubit()),
                 BlocProvider<SummaryCubit>(create: (context) => SummaryCubit()),
                 BlocProvider<LoginCubit>(create: (context) => LoginCubit()),
                 BlocProvider<SetupCubit>(create: (context) => SetupCubit()),

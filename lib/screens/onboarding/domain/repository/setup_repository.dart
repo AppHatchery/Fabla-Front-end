@@ -15,6 +15,7 @@ import 'package:audio_diaries_flutter/models/UserMetadataDev.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -355,7 +356,7 @@ class SetupRepository {
   /// using NotificationService. The notification will remind the user to write
   /// their daily diary.
   ///
-  void createNotifications() async {
+  void createNotifications({String? page}) async {
     // Cancel all existing notifications
     await NotificationService.cancelAllNotifications();
 
@@ -412,6 +413,16 @@ class SetupRepository {
       }
     }
 
+    if (times.isNotEmpty) {
+      await PendoService.track("ScheduleReminder", {
+        "page": page ?? "onboarding",
+        "scheduled_by": "user",
+        "notification_type": "reminder",
+        "number_of_reminders": times.length,
+        "reminder_times": times.map((e) => e.toString()).toList(),
+      });
+    }
+
     // Schedule late reminders
     final last = lateReminders.lastOrNull;
     //If there is a late reminder and it is not past 12am
@@ -435,6 +446,13 @@ class SetupRepository {
         // Add the notification ID to the diary's list
         diaryNotifications[diaryId]!.add(id);
       }
+      await PendoService.track("ScheduleReminder", {
+        "page": page ?? "onboarding",
+        "scheduled_by": "auto",
+        "notification_type": "late_night",
+        "number_of_reminders": lateReminders.length,
+        "reminder_times": lateReminders.map((e) => e.toString()).toList(),
+      });
     } else if (lateReminders.isEmpty) {
       for (final diary in diaries) {
         final diaryId = diary.id;
@@ -455,6 +473,13 @@ class SetupRepository {
         // Add the notification ID to the diary's list
         diaryNotifications[diaryId]!.add(id);
       }
+      await PendoService.track("ScheduleReminder", {
+        "page": page ?? "onboarding",
+        "scheduled_by": "auto",
+        "notification_type": "late_night",
+        "number_of_reminders": 1,
+        "reminder_times": ["21:00"],
+      });
     }
 
     //Save to Shared Preferences

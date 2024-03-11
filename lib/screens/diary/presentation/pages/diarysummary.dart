@@ -1,16 +1,24 @@
+import 'dart:io';
+
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/circle_transition_clipper.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/submit_error.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/submit_loading.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+// import 'package:just_audio/just_audio.dart';
 
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/components/cards.dart';
@@ -112,8 +120,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                                   : initial(),
         );
       },
-      listener: (context, state) {
+      listener: (context, state) async {
         if (state is SummarySubmitted) {
+          pendoEvent();
           Navigator.of(context).pushReplacement(_completionRoute()).then((_) {
             summaryCubit.loadSummary(widget.diary);
           });
@@ -300,24 +309,23 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 6.0),
                                   child: AudioDiaryCard(
-                                      recording:
-                                          prompt.answer!.recordings[index],
-                                      delete: () => deleteResponse(
-                                          prompt,
-                                          prompt
-                                              .answer!.recordings[index].path),
-                                      isExpanded: expandedCardId ==
-                                          prompt.answer!.recordings[index].id,
-                                      onTap: () {
-                                        setState(() {
-                                          expandedCardId = expandedCardId ==
-                                                  prompt.answer!
-                                                      .recordings[index].id
-                                              ? null
-                                              : prompt
-                                                  .answer!.recordings[index].id;
-                                        });
-                                      }),
+                                    recording: prompt.answer!.recordings[index],
+                                    delete: () => deleteResponse(prompt,
+                                        prompt.answer!.recordings[index].path),
+                                    isExpanded: expandedCardId ==
+                                        prompt.answer!.recordings[index].id,
+                                    onTap: () {
+                                      setState(() {
+                                        expandedCardId = expandedCardId ==
+                                                prompt.answer!.recordings[index]
+                                                    .id
+                                            ? null
+                                            : prompt
+                                                .answer!.recordings[index].id;
+                                      });
+                                    },
+                                    promptId: prompt.id,
+                                  ),
                                 ))
                         : const SizedBox.shrink(),
                   )
@@ -391,5 +399,44 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
   void submitDiary() {
     summaryCubit.submitDiary(widget.diary);
+  }
+
+  void pendoEvent() async {
+    for (final prompt in widget.diary.prompts) {
+      int audioPromptCount = 0;
+      int totalRecordingCount = 0;
+      List<int> individualRecordingSizes = [];
+      int totalRecordingDurationInSeconds = 0;
+      if (prompt.responseType == ResponseType.recording) {
+        audioPromptCount = widget.diary.prompts.indexOf(prompt) + 1;
+        if (prompt.answer?.recordings != null) {
+          totalRecordingCount += prompt.answer!.recordings.length;
+
+          for (Recording recording in prompt.answer!.recordings) {
+            final dir = await getApplicationDocumentsDirectory();
+            final path = p.join(dir.path, 'recordings', recording.path);
+            File recordingFile = File(path);
+
+            if (recordingFile.existsSync()) {
+              AudioPlayer audioPlayer = AudioPlayer()
+                ..setSourceDeviceFile(path);
+
+              final duration = await audioPlayer.onDurationChanged.first;
+
+              individualRecordingSizes.add(duration.inSeconds);
+              totalRecordingDurationInSeconds += duration.inSeconds;
+            }
+          }
+
+          PendoService.track("ResponseTime", {
+            "prompt_number": "$audioPromptCount",
+            "number_of_audio_recordings": "$totalRecordingCount",
+            "individual_recording_length(s)": "$individualRecordingSizes",
+            "total_recording_length": "$totalRecordingDurationInSeconds",
+            "study_day": "day ${widget.diary.id}"
+          });
+        }
+      }
+    }
   }
 }

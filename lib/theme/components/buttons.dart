@@ -280,12 +280,13 @@ class CustomRecordButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6.0),
+        padding: const EdgeInsets.symmetric(vertical: 10.0),
         child: Ink(
           decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 255, 255, 255),
+            color: CustomColors.productNormal,
+            //const Color.fromARGB(255, 255, 255, 255),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200, width: 2),
+            border: Border.all(color: Colors.white, width: 2),
             // boxShadow: [
             //   BoxShadow(
             //     color: Colors.grey.shade400,
@@ -300,22 +301,73 @@ class CustomRecordButton extends StatelessWidget {
             onTap: () => {
               if (onClick != null) {onClick!()}
             },
-            child: Padding(
+            child: Container(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 18.0),
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+              width: MediaQuery.of(context).size.width,
               child: Center(
                   child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.mic,
-                      color: CustomColors.productNormalActive),
+                  const Icon(Icons.mic, color: CustomColors.fillWhite),
                   const SizedBox(
                     width: 8,
                   ),
                   Text(
                     text.toString(),
                     style: CustomTypography()
-                        .button(color: CustomColors.productNormalActive),
+                        .button(color: CustomColors.fillWhite),
+                  ),
+                ],
+              )),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CustomTextAnswerButton extends StatelessWidget {
+  final VoidCallback? onClick;
+  final String? text;
+  const CustomTextAnswerButton(
+      {super.key, required this.onClick, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10.0),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 255, 255, 255),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: CustomColors.productNormal, width: 1),
+            shape: BoxShape.rectangle,
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => {
+              if (onClick != null) {onClick!()}
+            },
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+              width: MediaQuery.of(context).size.width,
+              child: Center(
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.keyboard, color: CustomColors.productNormal),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  Text(
+                    text.toString(),
+                    style: CustomTypography()
+                        .button(color: CustomColors.productNormal),
                   ),
                 ],
               )),

@@ -1,5 +1,7 @@
+import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
@@ -16,7 +18,6 @@ import '../../screens/diary/data/diary.dart';
 import '../../screens/diary/data/tag.dart';
 import '../custom_icons.dart';
 import '../resources/strings.dart';
-import 'buttons.dart';
 
 /// Diary Card
 ///
@@ -24,106 +25,111 @@ import 'buttons.dart';
 class DiaryCard extends StatelessWidget {
   final Diary? diary;
   final ValueChanged<bool> refresh;
-  const DiaryCard({super.key, required this.diary, required this.refresh});
+  final String Function() getPageName;
+  const DiaryCard(
+      {super.key,
+      required this.diary,
+      required this.refresh,
+      required this.getPageName});
 
   @override
   Widget build(BuildContext context) {
-    late String preview;
-    if (diary?.status == DiaryStatus.submitted ||
-        diary?.status == DiaryStatus.missed ||
-        diary!.start.isAfter(DateTime.now())) {
-      preview = 'Day ${diary?.id} - ${Strings.studyName}';
-    } else {
-      preview = 'Day ${diary?.id} - ${diary!.prompts[0].question!}';
-    }
-
     return Container(
       decoration: BoxDecoration(
-        color: diary?.status == DiaryStatus.submitted ||
-                diary?.status == DiaryStatus.missed ||
-                diary!.start.isAfter(DateTime.now())
-            ? CustomColors.fillNormal
-            : CustomColors.fillWhite,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: CustomColors.productBorderNormal,
-          width: 2,
-        ),
+        color: CustomColors.fillWhite,
+        borderRadius: BorderRadius.circular(10),
+        border: const Border(
+            left: BorderSide(
+          color: CustomColors.productNormal,
+          width: 4,
+        )),
         boxShadow: const [
           BoxShadow(
             color: CustomColors.productBorderNormal,
-            blurRadius: 0,
-            offset: Offset(0, 2.5),
+            blurRadius: 10,
+            offset: Offset(0, 0),
           ),
         ],
         shape: BoxShape.rectangle,
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 18),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                direction: Axis.horizontal,
-                alignment: WrapAlignment.start,
-                runAlignment: WrapAlignment.start,
-                crossAxisAlignment: WrapCrossAlignment.start,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  for (var tag in diary!.tags)
-                    TagPill(status: diary!.status, tag: tag)
+                  const Icon(
+                    Icons.restart_alt_outlined,
+                    color: CustomColors.productNormal,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    "Routine Entry",
+                    style:
+                        CustomTypography().bodyMedium(weight: FontWeight.w500),
+                  )
                 ],
               ),
             ),
-            const SizedBox(
-              height: 15,
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    Strings.studyName,
+                    style: CustomTypography().titleSmall(),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    "About 5 minutes to complete",
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textSecondaryContent),
+                  )
+                ],
+              ),
             ),
-            Row(
-              children: [
-                Expanded(
-                    flex: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: Text(
-                        preview,
-                        style: CustomTypography().bodyLarge(),
-                      ),
-                    )),
-                Expanded(
-                  flex: 1,
-                  child: CustomElevatedButton(
-                    onClick: () => navigateToDiary(context),
-                    text: diary!.start.isAfter(DateTime.now())
-                        ? "Preview"
-                        : switch (diary!.status) {
-                            DiaryStatus.complete => "Continue",
-                            DiaryStatus.idle => "Start",
-                            DiaryStatus.ongoing => "Continue",
-                            DiaryStatus.submitted => "View",
-                            DiaryStatus.missed => "View",
-                          },
-                    color: diary?.status == DiaryStatus.submitted ||
-                            diary?.status == DiaryStatus.missed ||
-                            diary!.start.isAfter(DateTime.now())
-                        ? CustomColors.fillNormal
-                        : CustomColors.productNormal,
-                    border: diary?.status == DiaryStatus.submitted ||
-                            diary?.status == DiaryStatus.missed ||
-                            diary!.start.isAfter(DateTime.now())
-                        ? Border.all(
-                            color: CustomColors.productNormal, width: 2)
-                        : const Border(),
-                    textColor: diary?.status == DiaryStatus.submitted ||
-                            diary?.status == DiaryStatus.missed ||
-                            diary!.start.isAfter(DateTime.now())
-                        ? CustomColors.productNormal
-                        : CustomColors.textWhite,
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Divider(
+                color: CustomColors.productBorderNormal,
+                thickness: 1,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: GestureDetector(
+                onTap: () => navigateToDiary(context),
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: CustomColors.productNormal,
+                      borderRadius: BorderRadius.circular(100)),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    child: Text(
+                      diary!.start.isAfter(DateTime.now())
+                          ? "Not Available"
+                          : switch (diary!.status) {
+                              DiaryStatus.complete => "Continue",
+                              DiaryStatus.idle => "Start",
+                              DiaryStatus.ongoing => "Continue",
+                              DiaryStatus.submitted => "View",
+                              DiaryStatus.missed => "View",
+                            },
+                      style: CustomTypography()
+                          .button(color: CustomColors.textWhite),
+                    ),
                   ),
                 ),
-              ],
+              ),
             )
           ],
         ),
@@ -137,6 +143,10 @@ class DiaryCard extends StatelessWidget {
     } else if (diary!.status == DiaryStatus.submitted ||
         diary!.status == DiaryStatus.missed ||
         diary!.start.isAfter(DateTime.now())) {
+      PendoService.track("ViewOldDiary", {
+        "study_day": "${diary!.id}",
+        "diary_day_viewed": "${DateTime.now()}"
+      });
       showModalBottomSheet(
           context: context,
           isScrollControlled: true,
@@ -280,6 +290,7 @@ class AudioDiaryCard extends StatefulWidget {
   final bool viewOnly;
   final bool isExpanded;
   final VoidCallback? onTap;
+  final int promptId;
   const AudioDiaryCard({
     super.key,
     required this.recording,
@@ -287,6 +298,7 @@ class AudioDiaryCard extends StatefulWidget {
     this.viewOnly = false,
     this.isExpanded = false,
     this.onTap,
+    required this.promptId,
   });
 
   @override
@@ -316,6 +328,11 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    if (widget.isExpanded) {
+      PendoService.track("AudioOpen", {
+        "study_date": "${DateTime.now()}",
+      });
+    }
     return SizedBox(
       width: width,
       child: GestureDetector(
@@ -487,13 +504,27 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      onPressed: () => rewind(),
+                      onPressed: () {
+                        rewind();
+                        PendoService.track("AudioControl", {
+                          "action": "backward",
+                          "study_date": "${DateTime.now()}",
+                          "prompt_number": "${widget.promptId + 1}"
+                        });
+                      },
                       icon: const Icon(CupertinoIcons.gobackward_15),
                       color: Colors.black,
                       iconSize: 24,
                     ),
                     IconButton(
-                      onPressed: () => play(),
+                      onPressed: () {
+                        PendoService.track("AudioControl", {
+                          "action": "play",
+                          "study_date": "${DateTime.now()}",
+                          "prompt_number": "${widget.promptId + 1}"
+                        });
+                        play();
+                      },
                       icon: Icon(isPlaying
                           ? CupertinoIcons.pause_fill
                           : CupertinoIcons.play_arrow_solid),
@@ -501,7 +532,14 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                       iconSize: 24,
                     ),
                     IconButton(
-                      onPressed: () => forward(),
+                      onPressed: () {
+                        PendoService.track("AudioControl", {
+                          "action": "forward",
+                          "study_date": "${DateTime.now()}",
+                          "prompt_number": "${widget.promptId + 1}"
+                        });
+                        forward();
+                      },
                       icon: const Icon(CupertinoIcons.goforward_15),
                       color: Colors.black,
                       iconSize: 24,
@@ -513,14 +551,21 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
               child: widget.viewOnly
                   ? const SizedBox()
                   : Container(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      onPressed: () => delete(),
-                      icon: const Icon(CupertinoIcons.delete),
-                      color: CustomColors.warningActive,
-                      iconSize: 24,
-                    ),
-                  )),
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        onPressed: () {
+                          PendoService.track("AudioControl", {
+                            "action": "delete",
+                            "study_date": "${DateTime.now()}",
+                            "prompt_number": "${widget.promptId + 1}"
+                          });
+                          delete();
+                        },
+                        icon: const Icon(CupertinoIcons.delete),
+                        color: CustomColors.warningActive,
+                        iconSize: 24,
+                      ),
+                    )),
         ],
       ),
     );
@@ -600,6 +645,231 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
         });
       }
     });
+  }
+}
+
+class NewAudioCard extends StatefulWidget {
+  final Recording recording;
+  final VoidCallback? delete;
+  final bool viewOnly;
+  final int promptId;
+  const NewAudioCard(
+      {super.key,
+      required this.recording,
+      this.delete,
+      required this.viewOnly, required this.promptId});
+
+  @override
+  State<NewAudioCard> createState() => _NewAudioCardState();
+}
+
+class _NewAudioCardState extends State<NewAudioCard> {
+  late AudioPlayer audioPlayer;
+  bool isPlaying = false;
+  double currentSliderPosition = 0;
+  double maxSliderPosition = 0;
+  Duration maxDuration = Duration.zero;
+
+  @override
+  void initState() {
+    playerInit();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    audioPlayer.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+      width: width,
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+      decoration: BoxDecoration(
+        color: CustomColors.grey,
+        borderRadius: BorderRadius.circular(12),
+        shape: BoxShape.rectangle,
+      ),
+      child: Row(
+        children: [
+          Container(
+              alignment: Alignment.center,
+              width: 24,
+              height: 24,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: CustomColors.productNormalActive,
+              ),
+              child: IconButton(
+                onPressed: () => play(),
+                icon: Icon(isPlaying
+                    ? CupertinoIcons.pause_fill
+                    : CupertinoIcons.play_arrow_solid),
+                color: CustomColors.fillWhite,
+                iconSize: 10,
+              )),
+          const SizedBox(width: 3),
+          Expanded(
+            child: slider(),
+          ),
+          Row(
+            children: [
+              Text(formatDuration(currentSliderPosition.toInt())),
+              const Text(" / "),
+              Text(formatDuration(maxDuration.inMilliseconds.toInt()))
+            ],
+          ),
+          IconButton(
+            onPressed: () {
+                          PendoService.track("AudioControl", {
+                            "action": "delete",
+                            "study_date": "${DateTime.now()}",
+                            "prompt_number": "${widget.promptId + 1}"
+                          });
+                          delete();
+                        },
+            icon: const Icon(CupertinoIcons.delete),
+            color: CustomColors.warningActive,
+            iconSize: 20,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> play() async =>
+      isPlaying ? await audioPlayer.pause() : await audioPlayer.resume();
+
+  Future<void> seek(double value) async {
+    currentSliderPosition = value;
+    await audioPlayer.seek(Duration(milliseconds: value.toInt()));
+    if (!isPlaying) {
+      await audioPlayer.resume();
+    }
+  }
+
+  Future<void> delete() async {
+    final results = await showDialog<bool>(
+        context: context, builder: (context) => const DeletePopUp());
+
+    if (results == true) {
+      widget.delete!();
+    }
+  }
+
+  Widget slider() {
+    return Column(
+      children: [
+        SizedBox(
+            child: SliderTheme(
+          data: SliderThemeData(
+              trackHeight: 5,
+              activeTrackColor: CustomColors.productNormalActive,
+              thumbColor: CustomColors.productNormalActive,
+              inactiveTrackColor: CustomColors.greyTrack,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+              overlayShape: SliderComponentShape.noOverlay),
+          child: Slider(
+            value: currentSliderPosition,
+            max: maxSliderPosition,
+            onChanged: (val) => seek(val),
+          ),
+        )),
+      ],
+    );
+  }
+
+  void playerInit() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final path = p.join(dir.path, 'recordings', widget.recording.path);
+    audioPlayer = AudioPlayer()
+      ..setSourceDeviceFile(path)
+      ..setReleaseMode(ReleaseMode.stop)
+      ..setPlayerMode(PlayerMode.mediaPlayer);
+
+    audioPlayer.onPositionChanged.listen((event) {
+      if (mounted) {
+        setState(() {
+          currentSliderPosition = event.inMilliseconds.toDouble();
+        });
+      }
+    });
+    audioPlayer.onPlayerStateChanged.listen((event) {
+      if (mounted) {
+        setState(() {
+          isPlaying = event == PlayerState.playing;
+        });
+      }
+    });
+    audioPlayer.onDurationChanged.listen((event) {
+      if (mounted) {
+        setState(() {
+          maxDuration = event;
+          maxSliderPosition = event.inMilliseconds.toDouble();
+        });
+      }
+    });
+  }
+}
+
+// The Text Diary card is being used to create the Text diary Response
+// It takes in the answer and the delete and edit function
+class TextAnswerCard extends StatefulWidget {
+  final String answer;
+  final VoidCallback? delete;
+  final VoidCallback? edit;
+  const TextAnswerCard(
+      {super.key, required this.answer, this.delete, this.edit});
+
+  @override
+  State<TextAnswerCard> createState() => _TextAnswerCardState();
+}
+
+class _TextAnswerCardState extends State<TextAnswerCard> {
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+      width: width,
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+      decoration: BoxDecoration(
+        color: CustomColors.grey,
+        borderRadius: BorderRadius.circular(12),
+        shape: BoxShape.rectangle,
+      ),
+      child: Row(children: [
+        Expanded(
+          child: Text(widget.answer,
+              style: CustomTypography().bodyMedium(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
+        ),
+        IconButton(
+          onPressed: () => widget.edit,
+          icon: const Icon(Icons.edit),
+          color: CustomColors.productNormal,
+          iconSize: 20,
+        ),
+        IconButton(
+          onPressed: () => delete(),
+          icon: const Icon(CupertinoIcons.delete),
+          color: CustomColors.warningActive,
+          iconSize: 20,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> delete() async {
+    final results = await showDialog<bool>(
+        context: context, builder: (context) => const DeletePopUp());
+
+    if (results == true) {
+      widget.delete!();
+    }
   }
 }
 

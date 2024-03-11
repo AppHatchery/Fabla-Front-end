@@ -8,6 +8,8 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup
 import 'package:path/path.dart' as p;
 import 'package:aws_common/vm.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
+
 import '../../screens/diary/data/diary_audio_data.dart';
 import '../utils/formatter.dart';
 
@@ -127,6 +129,7 @@ Future<bool> uploadFilesToS3(
       ).result;
       print('Uploaded file: ${uploadResult.uploadedItem.key}');
     } on StorageException catch (e) {
+      PendoService.track("UploadError", {"errorcode":"s3 diary"});
       print('Error uploading file: ${e.message}');
       return false;
     }
@@ -145,6 +148,7 @@ Future<bool> uploadMetaDataS3(var studyCode, File file) async {
     ).result;
     print('Uploaded Meta data file: ${uploadResult.uploadedItem.key}');
   } on StorageException catch (e) {
+    PendoService.track("UploadError", {"errorcode":"S3 metadata"});
     print('Error uploading file: ${e.message}');
     return false;
   }
@@ -211,6 +215,7 @@ Future<bool> apiSubmitSurveyQuestions(
       return false;
     }
   } catch (e) {
+    PendoService.track("UploadError", {"errorcode":"GraphQL diary"});
     print('Error checking if $studycode exists: $e');
     return false;
   }
@@ -312,6 +317,7 @@ Future<dynamic> apiGetParticipant(String studycode) async {
       return null;
     }
   } catch (e) {
+    PendoService.track("UploadError", {"errorcode":"GraphQL get participant"});
     print('Error checking if $studycode exists: $e');
     return null;
   }

@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ class _DiaryListState extends State<DiaryList> {
 
   @override
   void initState() {
+    PendoService.track("ListTab", {"study_day": "${DateTime.now()}"});
     historyCubit = BlocProvider.of<DiaryHistoryCubit>(context);
     _fetchHistoryData(context);
     super.initState();
@@ -92,6 +94,7 @@ class _DiaryListState extends State<DiaryList> {
                     DiaryCard(
                       diary: diary,
                       refresh: (value) => refresh(value),
+                      getPageName: () => "history_list",
                     ),
                     const SizedBox(height: 12),
                   ],

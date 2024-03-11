@@ -1,15 +1,18 @@
+import 'dart:async';
+
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_goal.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal_popup.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
-import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 
 import '../../../../theme/dialogs/pop_ups.dart';
-import '../../../../theme/resources/strings.dart';
 import '../../../diary/data/diary.dart';
 import '../cubit/cubit/home_cubit.dart';
 import '../widgets/empty_state.dart';
@@ -21,16 +24,24 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
+class _HomePageState extends State<HomePage>
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   late HomeCubit homeCubit;
-  String _name = "";
   late List<Diary> diaries;
+
+  late AnimationController _controller;
+
+  bool isExpanded = false;
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     homeCubit = BlocProvider.of<HomeCubit>(context);
     fetchData(context);
-    getParticipant();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
     super.initState();
   }
 
@@ -45,81 +56,98 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
     return Scaffold(
-        backgroundColor: CustomColors.fillNormal,
+        backgroundColor: CustomColors.backgroundTertiary,
         appBar: AppBar(
-          toolbarHeight: 105.h,
-          backgroundColor: CustomColors.backgroundSecondary,
+          backgroundColor: CustomColors.backgroundTertiary,
           bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(0),
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              width: width,
+            preferredSize: const Size.fromHeight(30),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    flex: 4,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Hi, $_name",
-                          style: CustomTypography().headlineLargeCustom(
-                            color: CustomColors.fillWhite,
-                            //fontSize: MediaQuery.of(context).textScaleFactor * 20,
-                          ),
-                        ),
-                        Text(
-                          "Welcome back ${Strings.wavingEmoji}",
-                          style: CustomTypography()
-                              .bodyLarge(color: CustomColors.fillWhite),
-                        )
-                      ],
+                  GestureDetector(
+                    onTap: () => setState(() {
+                      if (isExpanded) {
+                        isExpanded = !isExpanded;
+                        _controller.reverse();
+                      } else {
+                        isExpanded = !isExpanded;
+                        _controller.forward();
+                      }
+                    }),
+                    child: WeeklyGoalWidget(
+                      isExpanded: isExpanded,
                     ),
                   ),
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 8.0, horizontal: 12),
-                      child: CustomElevatedIconButton(
-                        onClick: () => showResearchInformation(),
-                        icon: Icons.sticky_note_2,
-                        color: CustomColors.fillWhite,
-                        iconColor: CustomColors.productNormal,
-                        shadowColor: CustomColors.productNormalActive,
-                      ),
-                    ),
-                  )
+                  IconButton(
+                      onPressed: () {
+                        if (isExpanded) {
+                          setState(() {
+                            isExpanded = false;
+                            _controller.reverse();
+                            _controller.addStatusListener(
+                                (status) => _dismissAndShow(status));
+                          });
+                        } else {
+                          showStudyCalendar();
+                        }
+                      },
+                      icon: const Icon(
+                        Icons.calendar_month,
+                        color: CustomColors.productNormal,
+                      ))
                 ],
               ),
             ),
           ),
         ),
-        body: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0),
-            child: BlocConsumer<HomeCubit, HomeState>(
-                listener: (context, state) {},
-                builder: (context, state) {
-                  if (state is HomeInitial) {
-                    return initialHome();
-                  } else if (state is HomeLoading) {
-                    return loading();
-                  } else if (state is HomeLoaded) {
-                    return loadedHome(state.diaries, state.startDate);
-                  } else {
-                    return initialHome();
-                  }
-                })));
+        body: GestureDetector(
+          onTap: () {
+            if (isExpanded) {
+              setState(() {
+                isExpanded = false;
+                _controller.reverse();
+              });
+            }
+          },
+          child: Stack(
+            children: [
+              Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: BlocConsumer<HomeCubit, HomeState>(
+                      listener: (context, state) {},
+                      builder: (context, state) {
+                        if (state is HomeInitial) {
+                          return initialHome();
+                        } else if (state is HomeLoading) {
+                          return loading();
+                        } else if (state is HomeLoaded) {
+                          return loadedHome(state.diaries, state.startDate);
+                        } else {
+                          return initialHome();
+                        }
+                      })),
+              Positioned(
+                  top: 0,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, -2),
+                      end: const Offset(0, 0),
+                    ).animate(CurvedAnimation(
+                        parent: _controller, curve: Curves.fastOutSlowIn)),
+                    child: const WeeklyGoalPopup(),
+                  ))
+            ],
+          ),
+        ));
   }
 
   Widget loading() {
@@ -144,8 +172,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           const SizedBox(
             height: 24,
           ),
-          const StreakCalendar(),
-
           const SizedBox(
             height: 24,
           ),
@@ -179,12 +205,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           const SizedBox(
             height: 24,
           ),
-          const StreakCalendar(),
-
+          const TodayGoalWidget(),
           const SizedBox(
             height: 24,
           ),
-          TodaysDiaryList(diaries: diaries, refresh: (value) => refresh(value))
+          TodaysDiaryList(
+            diaries: diaries,
+            refresh: (value) => refresh(value),
+            getPageName: () => "home",
+          )
         ],
       ),
     );
@@ -201,27 +230,29 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
-  void getParticipant() async {
-    final name = await homeCubit.getParticipantName();
-    setState(() {
-      _name = name;
-    });
+  void _dismissAndShow(AnimationStatus status) {
+    if (status == AnimationStatus.dismissed) {
+      showStudyCalendar();
+    }
+
+    // ignore: invalid_use_of_protected_member
+    _controller.clearStatusListeners();
   }
 
-  void showResearchInformation() {
+  void showStudyCalendar() {
     showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (context) => Wrap(
-              children: [
-                BottomStudyInfoPopUp(
-                    studyName: Strings.studyName,
-                    //studyDescription: Strings.studyDescription,
-                    organisation: Strings.organisation,
-                    duration: Strings.studyDuration,
-                    researcher: Strings.researcherName)
-              ],
-            ));
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      enableDrag: false,
+      builder: (context) => DraggableScrollableSheet(
+          initialChildSize: 1,
+          maxChildSize: 1,
+          minChildSize: 1,
+          builder: (context, scrollController) {
+            return const StudyCalendar();
+          }),
+    );
   }
 
   void show4AmTip() async {

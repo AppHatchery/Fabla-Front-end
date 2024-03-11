@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welcome.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,8 +12,22 @@ import '../../../../theme/custom_colors.dart';
 import '../../../../theme/dialogs/pop_ups.dart';
 import '../../../../theme/resources/strings.dart';
 
-class ConfrimJoiningPage extends StatelessWidget {
+class ConfrimJoiningPage extends StatefulWidget {
   const ConfrimJoiningPage({super.key});
+
+  @override
+  State<ConfrimJoiningPage> createState() => _ConfrimJoiningPageState();
+}
+
+class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
+  late Timer? timer;
+  int secondsSpent = 0;
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,6 +144,7 @@ class ConfrimJoiningPage extends StatelessWidget {
   }
 
   void showResearchDetails(BuildContext context) {
+    startTimer();
     showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -139,6 +157,24 @@ class ConfrimJoiningPage extends StatelessWidget {
                     duration: Strings.studyDuration,
                     researcher: Strings.researcherName)
               ],
-            ));
+            )).then((value) async => {
+          stopTimer(),
+          await PendoService.track("ResearchDetails",
+              {"page": "onboarding", "time_on_page": "$secondsSpent"})
+        });
   }
+
+  void startTimer() {
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        secondsSpent++;
+      });
+    });
+  }
+
+  void stopTimer() {
+    timer?.cancel();
+  }
+
+  void resetTimer() => setState(() => secondsSpent = 0);
 }

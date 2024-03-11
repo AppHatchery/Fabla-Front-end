@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/finish.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/mic_tester.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -235,9 +236,11 @@ class _MicAccessPageState extends State<MicAccessPage> {
 
   void navigateToNextPage() async {
     final results = await Permission.microphone.request();
+    await PendoService.track("OnBoardingMicAccess", {"button": "continue"});
     setState(() {
       permission = results.isGranted;
     });
+    await PendoService.track("OnBoardingMicAccess", {"state": results.name});
     if (permission) {
       if (requested) {
         await PreferenceService()
@@ -257,6 +260,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
   }
 
   void _requestPermission() async {
+    await PendoService.track("OnBoardingMicAccess", {"button": "icon"});
     final results = await Permission.microphone.request();
     setState(() {
       permission = results.isGranted;

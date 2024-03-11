@@ -31,11 +31,10 @@ class MyResponse extends StatefulWidget {
 }
 
 class _MyResponseState extends State<MyResponse> {
-   int? expandedCardId;
+  int? expandedCardId;
 
   @override
   Widget build(BuildContext context) {
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -52,21 +51,15 @@ class _MyResponseState extends State<MyResponse> {
             itemBuilder: (context, index) {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
-                child: AudioDiaryCard(
+                child: NewAudioCard(
                   recording: widget.recordings[index],
                   delete: () => deleteResponse(
                       widget.prompt, widget.recordings[index].path),
                   viewOnly: false,
-                  isExpanded: expandedCardId == widget.recordings[index].id,
-                  onTap: () {
-                    setState(() {
-                      expandedCardId = expandedCardId == widget.recordings[index].id ? null : widget.recordings[index].id;
-                    });
-                  },
+                  promptId: widget.prompt.id,
                 ),
               );
-            }
-        ),
+            }),
         const SizedBox(height: 12),
       ],
     );

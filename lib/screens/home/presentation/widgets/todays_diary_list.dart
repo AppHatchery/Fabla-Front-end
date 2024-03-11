@@ -7,8 +7,12 @@ import '../../../../theme/custom_typography.dart';
 class TodaysDiaryList extends StatelessWidget {
   final List<Diary> diaries;
   final ValueChanged<bool> refresh;
+  final String Function() getPageName;
   const TodaysDiaryList(
-      {super.key, required this.diaries, required this.refresh});
+      {super.key,
+      required this.diaries,
+      required this.refresh,
+      required this.getPageName});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +20,7 @@ class TodaysDiaryList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Today's Tasks",
+          "Today's Entries",
           style: CustomTypography().headlineMedium(),
           textAlign: TextAlign.left,
         ),
@@ -31,6 +35,7 @@ class TodaysDiaryList extends StatelessWidget {
             return DiaryCard(
               diary: diaries[index],
               refresh: (value) => refresh(value),
+              getPageName: getPageName,
             );
           },
         ),
