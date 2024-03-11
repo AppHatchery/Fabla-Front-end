@@ -68,11 +68,11 @@ String formatDurationtoHHMMSS(Duration duration) {
     return "0$n";
   }
 
-  String hours = twoDigits(duration.inHours.remainder(24));
+  // String hours = twoDigits(duration.inHours.remainder(24));
   String minutes = twoDigits(duration.inMinutes.remainder(60));
   String seconds = twoDigits(duration.inSeconds.remainder(60));
 
-  return "$hours:$minutes:$seconds";
+  return "$minutes:$seconds";
 }
 
 /// Retrieves a pair of colors based on a given text, ensuring consistency.

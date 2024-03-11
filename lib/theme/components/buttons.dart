@@ -378,3 +378,42 @@ class CustomTextAnswerButton extends StatelessWidget {
     );
   }
 }
+
+class CustomOutlineButton extends StatelessWidget {
+  final VoidCallback onClick;
+  final Wrap children;
+  final Color color;
+  final Color backgroundColor;
+  final bool? isDisabled;
+
+  const CustomOutlineButton(
+      {super.key,
+      required this.onClick,
+      required this.children,
+      required this.color,
+      required this.backgroundColor,
+      this.isDisabled});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: Ink(
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color, width: 1),
+          shape: BoxShape.rectangle,
+        ),
+        child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: isDisabled ?? false ? null : () => onClick(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0, vertical: 8.0),
+              child: Container(child: children),
+            )),
+      ),
+    );
+  }
+}
