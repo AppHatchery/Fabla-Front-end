@@ -637,12 +637,21 @@ class _QuestionPageState extends State<QuestionPage>
         context: context,
         isScrollControlled: true,
         isDismissible: false,
-        enableDrag: true,
+        enableDrag: false,
         elevation: 0,
-        builder: (ctx) => BottomRecordingModal(
-              promptId: prompt.id,
-              onSave: (value) {
-                save(context, prompt, value.toString());
+        useSafeArea: true,
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              minChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) {
+                return BottomRecordingModal(
+                  promptId: prompt.id,
+                  question: prompt.question!,
+                  onSave: (value) {
+                    save(context, prompt, value.toString());
+                  },
+                );
               },
             ));
   }

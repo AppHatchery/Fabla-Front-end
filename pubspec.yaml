@@ -90,6 +90,8 @@ dependencies:
   #Splash
   flutter_native_splash: ^2.3.4
 
+  #Misc
+  dotted_border: ^2.1.0
   carousel_slider: ^4.2.1
   flutter_carousel_widget: ^2.2.0
 
@@ -134,6 +136,7 @@ flutter:
     - assets/animations/
     - assets/animations/onboarding/
     - assets/animations/recording/
+    - assets/protocol.json
 
   fonts:
     - family: Rubik

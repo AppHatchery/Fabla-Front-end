@@ -20,7 +20,7 @@ class TodaysDiaryList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Today's Tasks",
+          "Today's Entries",
           style: CustomTypography().headlineMedium(),
           textAlign: TextAlign.left,
         ),

@@ -26,7 +26,6 @@ import 'dart:io' show Platform;
 import 'core/database/object_box.dart';
 import 'firebase_options.dart';
 import 'screens/diary/data/diary.dart';
-import 'screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'screens/diary/presentation/pages/diaries.dart';
 import 'screens/diary/presentation/pages/diarysummary.dart';
 import 'screens/home/presentation/cubit/cubit/home_cubit.dart';
@@ -75,6 +74,8 @@ class _MyAppState extends State<MyApp> {
   initState() {
     NotificationService.setListeners();
     _route = widget.route;
+    final repo = SetupRepository();
+    repo.createProtocol();
     super.initState();
   }
 

@@ -18,7 +18,6 @@ import '../../screens/diary/data/diary.dart';
 import '../../screens/diary/data/tag.dart';
 import '../custom_icons.dart';
 import '../resources/strings.dart';
-import 'buttons.dart';
 
 /// Diary Card
 ///
@@ -35,116 +34,102 @@ class DiaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    late String preview;
-    if (diary?.status == DiaryStatus.submitted ||
-        diary?.status == DiaryStatus.missed ||
-        diary!.start.isAfter(DateTime.now())) {
-      preview = 'Day ${diary?.id} - ${Strings.studyName}';
-    } else {
-      preview = 'Day ${diary?.id} - ${diary!.prompts[0].question!}';
-    }
-
     return Container(
       decoration: BoxDecoration(
-        color: diary?.status == DiaryStatus.submitted ||
-                diary?.status == DiaryStatus.missed ||
-                diary!.start.isAfter(DateTime.now())
-            ? CustomColors.fillNormal
-            : CustomColors.fillWhite,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: CustomColors.productBorderNormal,
-          width: 2,
-        ),
+        color: CustomColors.fillWhite,
+        borderRadius: BorderRadius.circular(10),
+        border: const Border(
+            left: BorderSide(
+          color: CustomColors.productNormal,
+          width: 4,
+        )),
         boxShadow: const [
           BoxShadow(
             color: CustomColors.productBorderNormal,
-            blurRadius: 0,
-            offset: Offset(0, 2.5),
+            blurRadius: 10,
+            offset: Offset(0, 0),
           ),
         ],
         shape: BoxShape.rectangle,
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 18),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                direction: Axis.horizontal,
-                alignment: WrapAlignment.start,
-                runAlignment: WrapAlignment.start,
-                crossAxisAlignment: WrapCrossAlignment.start,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  for (var tag in diary!.tags)
-                    TagPill(status: diary!.status, tag: tag)
+                  const Icon(
+                    Icons.restart_alt_outlined,
+                    color: CustomColors.productNormal,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    "Routine Entry",
+                    style:
+                        CustomTypography().bodyMedium(weight: FontWeight.w500),
+                  )
                 ],
               ),
             ),
-            const SizedBox(
-              height: 15,
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    Strings.studyName,
+                    style: CustomTypography().titleSmall(),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    "About 5 minutes to complete",
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textSecondaryContent),
+                  )
+                ],
+              ),
             ),
-            Row(
-              children: [
-                Expanded(
-                    flex: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: Text(
-                        preview,
-                        style: CustomTypography().bodyLarge(),
-                      ),
-                    )),
-                Expanded(
-                  flex: 1,
-                  child: CustomElevatedButton(
-                    onClick: () {
-                      navigateToDiary(context);
-                      PendoService.track("DiaryView", {
-                        "action": switch (diary!.status) {
-                          DiaryStatus.complete => "Continue",
-                          DiaryStatus.idle => "Start",
-                          DiaryStatus.ongoing => "Continue",
-                          DiaryStatus.submitted => "View",
-                          DiaryStatus.missed => "View",
-                        },
-                        "page": getPageName().toString(),
-                        "study_day": "${diary!.id}",
-                        //"${getPageName}"
-                      });
-                    },
-                    text: diary!.start.isAfter(DateTime.now())
-                        ? "Preview"
-                        : switch (diary!.status) {
-                            DiaryStatus.complete => "Continue",
-                            DiaryStatus.idle => "Start",
-                            DiaryStatus.ongoing => "Continue",
-                            DiaryStatus.submitted => "View",
-                            DiaryStatus.missed => "View",
-                          },
-                    color: diary?.status == DiaryStatus.submitted ||
-                            diary?.status == DiaryStatus.missed ||
-                            diary!.start.isAfter(DateTime.now())
-                        ? CustomColors.fillNormal
-                        : CustomColors.productNormal,
-                    border: diary?.status == DiaryStatus.submitted ||
-                            diary?.status == DiaryStatus.missed ||
-                            diary!.start.isAfter(DateTime.now())
-                        ? Border.all(
-                            color: CustomColors.productNormal, width: 2)
-                        : const Border(),
-                    textColor: diary?.status == DiaryStatus.submitted ||
-                            diary?.status == DiaryStatus.missed ||
-                            diary!.start.isAfter(DateTime.now())
-                        ? CustomColors.productNormal
-                        : CustomColors.textWhite,
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Divider(
+                color: CustomColors.productBorderNormal,
+                thickness: 1,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: GestureDetector(
+                onTap: () => navigateToDiary(context),
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: CustomColors.productNormal,
+                      borderRadius: BorderRadius.circular(100)),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    child: Text(
+                      diary!.start.isAfter(DateTime.now())
+                          ? "Not Available"
+                          : switch (diary!.status) {
+                              DiaryStatus.complete => "Continue",
+                              DiaryStatus.idle => "Start",
+                              DiaryStatus.ongoing => "Continue",
+                              DiaryStatus.submitted => "View",
+                              DiaryStatus.missed => "View",
+                            },
+                      style: CustomTypography()
+                          .button(color: CustomColors.textWhite),
+                    ),
                   ),
                 ),
-              ],
+              ),
             )
           ],
         ),

@@ -374,15 +374,23 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         backgroundColor: Colors.transparent,
         context: context,
         isScrollControlled: true,
-        // isDismissible: false,
-        // enableDrag: false,
-        builder: (context) => BottomRecordingModal(
-              promptId: prompt.id,
-              onSave: (value) {
-                summaryCubit.saveResponse(
-                    widget.diary, prompt, value.toString());
-              },
-            ));
+        isDismissible: false,
+        enableDrag: false,
+        useSafeArea: true,
+        builder: (context) => DraggableScrollableSheet(
+            initialChildSize: 1,
+            minChildSize: 1,
+            snap: true,
+            builder: (context, scrollController) {
+              return BottomRecordingModal(
+                promptId: prompt.id,
+                question: prompt.question!,
+                onSave: (value) {
+                  summaryCubit.saveResponse(
+                      widget.diary, prompt, value.toString());
+                },
+              );
+            }));
   }
 
   void deleteResponse(PromptModel prompt, String path) {

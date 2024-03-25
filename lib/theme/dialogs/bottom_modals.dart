@@ -5,13 +5,14 @@ import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
 import 'package:audio_session/audio_session.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
-import 'package:rive/rive.dart';
 
 import '../../core/utils/formatter.dart';
 import '../components/buttons.dart';
@@ -19,57 +20,19 @@ import '../custom_icons.dart';
 import '../custom_typography.dart';
 import 'pop_ups.dart';
 
-final tabs = [
-  Tab(
-    child: SizedBox(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Row(
-          children: [
-            const Icon(CustomIcons.graphicEq, size: 24),
-            const SizedBox(
-              width: 5,
-            ),
-            Text(
-              "Audio",
-              style: CustomTypography().bodyMedium(),
-            )
-          ],
-        ),
-      ),
-    ),
-  ),
-  // Tab(
-  //   child: SizedBox(
-  //     child: Padding(
-  //       padding: const EdgeInsets.symmetric(horizontal: 10),
-  //       child: Row(
-  //         children: [
-  //           const Icon(
-  //             Icons.sort,
-  //             size: 24,
-  //           ),
-  //           const SizedBox(
-  //             width: 5,
-  //           ),
-  //           Text(
-  //             "Transcript",
-  //             style: CustomTypography().bodyMedium(),
-  //           )
-  //         ],
-  //       ),
-  //     ),
-  //   ),
-  // ),
-];
-
 /// Bottom Modal for when the user needs to record.
 class BottomRecordingModal extends StatefulWidget {
   final int promptId;
+  final String question;
+  final String? hint;
   final ValueChanged<String?>? onSave;
 
   const BottomRecordingModal(
-      {super.key, required this.promptId, required this.onSave});
+      {super.key,
+      required this.promptId,
+      required this.onSave,
+      required this.question,
+      this.hint});
 
   @override
   State<BottomRecordingModal> createState() => _BottomRecordingModalState();
@@ -77,26 +40,23 @@ class BottomRecordingModal extends StatefulWidget {
 
 class _BottomRecordingModalState extends State<BottomRecordingModal>
     with SingleTickerProviderStateMixin {
-  late TabController tabController;
-
   //Recording
   final FlutterSoundRecorder recorder = FlutterSoundRecorder();
-  String timer = "00:00:00";
+  String timer = "00:00";
   Timer? _timer;
   Duration elapsed = const Duration();
   RecorderState recorderState = RecorderState.isStopped;
+  final ValueNotifier<bool> _erase = ValueNotifier<bool>(false);
 
   @override
   void initState() {
     recorderInit();
-    tabController = TabController(length: tabs.length, vsync: this);
     super.initState();
   }
 
   @override
   void dispose() {
     recorder.closeRecorder();
-    tabController.dispose();
     super.dispose();
   }
 
@@ -104,345 +64,233 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final contentHeight =
-        screenHeight >= 850 ? screenHeight * 0.5 : screenHeight * 0.65;
+
     return Container(
-      height: contentHeight,
-      color: Colors.transparent,
-      child: Stack(
+      height: screenHeight * 0.95,
+      width: width,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF3F3F3),
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(14), topRight: Radius.circular(14)),
+      ),
+      child: Column(
         children: [
-          //Avatar
-          Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: SizedBox(
-                  height: 160,
-                  width: width,
-                  child: switch (recorderState) {
-                    RecorderState.isStopped => const RiveAnimation.asset(
-                        'assets/animations/recording/recording_before.riv',
-                        fit: BoxFit.fitWidth,
-                      ),
-                    RecorderState.isRecording => const RiveAnimation.asset(
-                        'assets/animations/recording/recording_ongoing.riv',
-                        fit: BoxFit.fitWidth,
-                      ),
-                    RecorderState.isPaused => const RiveAnimation.asset(
-                        'assets/animations/recording/recording_pause.riv',
-                        fit: BoxFit.fitWidth,
-                      ),
-                  })),
-
-          Positioned(
-            top: 100,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.only(top: 10, bottom: 24),
-              height: contentHeight - 100,
-              decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  )),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  //handle
-                  Container(
-                    height: 5,
-                    width: 45,
-                    decoration: BoxDecoration(
-                        color: const Color(0xFFBCBCC1),
-                        borderRadius: BorderRadius.circular(50)),
-                  ),
-
-                  //Tab Indicator
-                  //tabIndicatos(),
-
-                  const SizedBox(
-                    height: 15,
-                  ),
-
-                  // Title & Rename Button
-                  recordingTitle(),
-
-                  const SizedBox(
-                    height: 15,
-                  ),
-
-                  // Timer
-                  recordingTimer(),
-
-                  const SizedBox(
-                    height: 34,
-                  ),
-                  // Waveform & Transcript
-                  waveFormAndTranscript(),
-
-                  const SizedBox(
-                    height: 34,
-                  ),
-
-                  // Controls
-                  recordingControls(),
-                ],
-              ),
+          Expanded( child: questionAndHints()),
+          // Recording controls
+          Container(
+            width: width,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32,
             ),
-          ),
+            color: CustomColors.productNormal,
+            child: Column(
+              children: [
+                const SizedBox(
+                  height: 24,
+                ),
+                recordingTimer(),
+                SizedBox(
+                  height: screenHeight > 850 ? 36 : 24,
+                ),
+                SizedBox(
+                  height: 42,
+                  width: width,
+                  child: waveForm(),
+                ),
+                SizedBox(
+                  height: screenHeight > 850 ? 36 : 24,
+                ),
+                recordingControls(screenHeight),
+                SizedBox(
+                  height: screenHeight > 850 ? 36 : 24,
+                ),
+              ],
+            ),
+          )
         ],
       ),
     );
   }
 
-  Widget tabIndicatos() {
-    return SizedBox(
-      child: TabBar(
-          isScrollable: true,
-          controller: tabController,
-          indicatorSize: TabBarIndicatorSize.label,
-          indicatorColor: Colors.transparent,
-          labelColor: CustomColors.productNormalActive,
-          unselectedLabelColor: CustomColors.textTertiaryContent,
-          dividerColor: Colors.transparent,
-          indicator: BoxDecoration(
-            borderRadius: BorderRadius.circular(50),
-            color: CustomColors.productLightPrimaryActive,
-          ),
-          padding: EdgeInsets.zero,
-          indicatorPadding: EdgeInsets.zero,
-          labelPadding: EdgeInsets.zero,
-          tabs: tabs),
-    );
-  }
-
-  Widget recordingTitle() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Expanded(flex: 1, child: SizedBox()),
-        Expanded(
-          flex: 2,
-          child: Text(
-            "New Diary",
-            style: CustomTypography().headlineMedium(),
-            textAlign: TextAlign.center,
-          ),
+  Widget questionAndHints() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(
+              height: 26,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(
+                    CupertinoIcons.clear_circled_solid,
+                    size: 26,
+                    color: CustomColors.textSecondaryContent,
+                  ),
+                )
+              ],
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            Text(
+              widget.question,
+              style: CustomTypography().titleLarge(),
+            ),
+            const SizedBox(
+              height: 32,
+            ),
+            Image.asset(
+              "assets/images/avatar_recording.png",
+              height: 64,
+              width: 64,
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            Text(
+              widget.hint ??
+                  "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
+              style: CustomTypography().body(),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            CustomOutlineButton(
+              onClick: () => {},
+              color: CustomColors.productNormal,
+              backgroundColor: CustomColors.fillWhite,
+              children: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    "Try A Hint",
+                    style: CustomTypography()
+                        .button(color: CustomColors.productNormal),
+                  ),
+                  const SizedBox(width: 8),
+                  Image.asset(
+                    "assets/images/star.png",
+                    height: 16,
+                    width: 16,
+                  )
+                ],
+              ),
+            ),
+          ],
         ),
-        const SizedBox(
-          width: 5,
-        ),
-        Expanded(
-          flex: 1,
-          child: Container(
-            alignment: Alignment.centerRight,
-            child: IconButton(
-                onPressed: () {
-                  PendoService.track("RecordingModalDismissed", {
-                    "dismissal_path": "close",
-                    "study_date": "${DateTime.now()}",
-                  });
-                  Navigator.pop(context);
-                },
-                icon: const Icon(
-                  Icons.close_rounded,
-                  size: 24,
-                )),
-          ),
-        )
-      ],
+      ),
     );
   }
 
   Widget recordingTimer() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Container(
-          height: 15,
-          width: 15,
-          decoration: const BoxDecoration(
-              color: CustomColors.warningActive, shape: BoxShape.circle),
-        ),
-        const SizedBox(
-          width: 5,
-        ),
         Text(
-          timer,
-          style: CustomTypography().bodyLarge(),
+          "$timer / 5:00",
+          style: CustomTypography().titleMedium(color: CustomColors.textWhite),
         )
       ],
     );
   }
 
-  Widget waveFormAndTranscript() {
+  Widget waveForm() {
     final width = MediaQuery.of(context).size.width;
-    return Expanded(
-        child: TabBarView(
-      physics: const NeverScrollableScrollPhysics(),
-      controller: tabController,
-      children: [
-        LayoutBuilder(builder: (context, constraints) {
-          final parentHeight = constraints.maxHeight;
-          return CustomWaveform(
-              recorder: recorder,
-              maxVisibleValues: width ~/ 2,
-              maxValue: parentHeight);
-        }),
 
-        /// Transcript
-        // Padding(
-        //   padding: const EdgeInsets.symmetric(horizontal: 15),
-        //   child: SingleChildScrollView(
-        //       child: Text(
-        //     Strings.lorem,
-        //     style: CustomTypography().bodyMedium(),
-        //   )),
-        // ),
-      ],
-    ));
+    return CustomWaveform(
+      recorder: recorder,
+      maxVisibleValues: width ~/ 2,
+      maxValue: 40,
+      color: CustomColors.fillWhite,
+      onErase: _erase,
+    );
   }
 
-  Widget recordingControls() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          //Redo
-          TextButton(
-              onPressed: () async => {
-                    if (elapsed.inSeconds > 0)
-                      {
-                        await recorder.pauseRecorder(),
-                        setState(() {
-                          recorderState = RecorderState.isPaused;
-                          _timer?.cancel();
-                        }),
-                        redo()
-                      },
-                    PendoService.track("RecordingControl", {
-                      "action": "redo",
-                      "study_date": "${DateTime.now()}",
-                      "prompt_number": "${widget.promptId + 1}"
-                    }),
-                  },
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20.0, vertical: 9.5),
-                child: Text("Redo",
-                    style: CustomTypography()
-                        .button(color: CustomColors.textSecondaryContent)),
-              )),
-
-          //Play Pause Resume
-
-          switch (recorderState) {
-            RecorderState.isStopped => IconButton(
-                style: IconButton.styleFrom(
-                  splashFactory: NoSplash.splashFactory,
-                ),
-                onPressed: () {
-                  record();
-                  PendoService.track("RecordingControl", {
-                    "action": "stop",
-                    "study_date": "${DateTime.now()}",
-                    "prompt_number": "${widget.promptId + 1}"
-                  });
-                },
-                icon: Container(
-                  height: 50,
-                  width: 50,
-                  padding: const EdgeInsets.all(3),
+  Widget recordingControls(double height) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () => record(),
+              child: Container(
+                  height: 68,
+                  width: 68,
                   decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color: CustomColors.textTertiaryContent, width: 2)),
-                  child: Container(
-                    decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: CustomColors.warningActive),
-                  ),
-                )),
-            _ => Container(
-                  child: IconButton(
-                style: IconButton.styleFrom(
-                  splashFactory: NoSplash.splashFactory,
+                      color: CustomColors.fillWhite,
+                      borderRadius: BorderRadius.circular(68)),
+                  padding: const EdgeInsets.all(4),
+                  child: recorderState == RecorderState.isStopped
+                      ? Container(
+                          height: 60,
+                          width: 60,
+                          decoration: BoxDecoration(
+                              color: CustomColors.warningActive,
+                              borderRadius: BorderRadius.circular(60)),
+                        )
+                      : Center(
+                          child: Icon(
+                            recorderState == RecorderState.isRecording
+                                ? CupertinoIcons.pause_fill
+                                : CupertinoIcons.play_fill,
+                            color: CustomColors.warningActive,
+                            size: 24,
+                          ),
+                        )),
+            )
+          ],
+        ),
+        SizedBox(
+          height: height > 850 ? 36 : 24,
+        ),
+        AnimatedOpacity(
+          duration: const Duration(milliseconds: 150),
+          opacity: _timer != null ? 1 : 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: () => redo(),
+                child: Container(
+                  padding: const EdgeInsets.all(13),
+                  decoration: BoxDecoration(
+                      color: CustomColors.fillWhite,
+                      borderRadius: BorderRadius.circular(42)),
+                  child: const Center(
+                      child: Icon(
+                    CupertinoIcons.arrow_uturn_left,
+                    color: CustomColors.productNormal,
+                  )),
                 ),
-                onPressed: () {
-                  if (recorderState == RecorderState.isPaused) {
-                    PendoService.track("RecordingControl", {
-                      "action": "resume",
-                      "study_date": "${DateTime.now()}",
-                      "prompt_number": "${widget.promptId + 1}"
-                    });
-                  } else if (recorderState == RecorderState.isRecording) {
-                    PendoService.track("RecordingControl", {
-                      "action": "stop",
-                      "study_date": "${DateTime.now()}",
-                      "prompt_number": "${widget.promptId + 1}"
-                    });
-                  }
-
-                  record();
-                },
-                color: CustomColors.warningActive,
-                icon: Container(
-                    width: 110,
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.rectangle,
-                      borderRadius: BorderRadius.circular(26),
-                      border: Border.all(
-                          color: recorderState == RecorderState.isRecording
-                              ? CustomColors.textTertiaryContent
-                              : CustomColors.warningActive,
-                          width: 2),
-                    ),
-                    child: recorderState == RecorderState.isRecording
-                        ? const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 5.5),
-                            child: Icon(Icons.pause_rounded, size: 24),
-                          )
-                        : Container(
-                            width: 106,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(26),
-                              color: CustomColors.warningFill,
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 5.5),
-                            child: Text(
-                              "RESUME",
-                              style: CustomTypography()
-                                  .button(color: CustomColors.warningActive),
-                            ),
-                          )),
-              )),
-          },
-
-          //Save
-          TextButton(
-              onPressed: () => {
-                    if (elapsed.inSeconds > 0) {save(), Navigator.pop(context)},
-                    PendoService.track("RecordingModalDismissed", {
-                      "dismissal_path": "save",
-                      "study_date": "${DateTime.now()}",
-                    })
-                  },
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20.0, vertical: 9.5),
-                child: Text("Save",
-                    style: CustomTypography()
-                        .button(color: CustomColors.textSecondaryContent)),
-              )),
-        ],
-      ),
+              ),
+              const SizedBox(
+                width: 68,
+              ),
+              GestureDetector(
+                onTap: () => save(),
+                child: Container(
+                  padding: const EdgeInsets.all(13),
+                  decoration: BoxDecoration(
+                      color: CustomColors.fillWhite,
+                      borderRadius: BorderRadius.circular(42)),
+                  child: const Center(
+                      child: Icon(
+                    CupertinoIcons.checkmark_alt,
+                    color: CustomColors.productNormal,
+                  )),
+                ),
+              ),
+            ],
+          ),
+        )
+      ],
     );
   }
 
@@ -468,8 +316,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     ));
 
     await recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
-
-    Future.delayed(const Duration(milliseconds: 350), () => record());
   }
 
   void startTimer() {
@@ -484,27 +330,43 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Future<void> redo() async {
-    final showDialogResult = await showDialog<bool>(
-      context: context,
-      builder: (context) => const RedoPopUp(),
-    );
+    await recorder.pauseRecorder();
+    _timer?.cancel();
 
-    if (showDialogResult == true) {
-      if (mounted) {
+    if (mounted) {
+      final showDialogResult = await showDialog<bool>(
+        context: context,
+        builder: (context) => const RedoPopUp(),
+      );
+
+      if (showDialogResult == true) {
+        if (mounted) {
+          setState(() {
+            elapsed = const Duration();
+            timer = "00:00";
+            _erase.value = !_erase.value;
+          });
+        }
+        final stoppedRecorderValue = await recorder.stopRecorder();
+
+        if (stoppedRecorderValue != null) {
+          final file = File(stoppedRecorderValue);
+          await file.delete();
+        }
+
+        await Future.delayed(const Duration(milliseconds: 150));
+        record();
+
+        if (mounted) {
+          setState(() {
+            _erase.value = !_erase.value;
+          });
+        }
+      } else {
         setState(() {
-          elapsed = const Duration();
-          timer = "00:00:00";
+          recorderState = RecorderState.isPaused;
         });
       }
-      final stoppedRecorderValue = await recorder.stopRecorder();
-
-      if (stoppedRecorderValue != null) {
-        final file = File(stoppedRecorderValue);
-        await file.delete();
-      }
-
-      await Future.delayed(const Duration(milliseconds: 150));
-      record();
     }
   }
 
@@ -545,6 +407,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         final file = await changeFileName(url);
         final name = p.basename(file.path);
         widget.onSave?.call(name);
+        if (mounted) Navigator.pop(context);
       }
     } catch (e) {
       // TODO: Show Error
@@ -576,6 +439,272 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     String newName = '$oldName.mp3';
     String newPath = p.join(directory, newName);
     return file.rename(newPath);
+  }
+}
+
+class BottomTextModal extends StatefulWidget {
+  final int promptId;
+  final String question;
+  final String? hint;
+  final ValueChanged<String?>? onSave;
+  final ScrollController scrollController;
+  const BottomTextModal(
+      {super.key,
+      required this.promptId,
+      required this.question,
+      this.hint,
+      required this.onSave,
+      required this.scrollController});
+
+  @override
+  State<BottomTextModal> createState() => _BottomTextModalState();
+}
+
+class _BottomTextModalState extends State<BottomTextModal>
+    with WidgetsBindingObserver {
+  late TextEditingController textController;
+  late GlobalKey fieldKey;
+
+  late OverlayEntry? _overlayEntry;
+  double keyboardHeight = 0;
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    textController = TextEditingController();
+    fieldKey = GlobalKey();
+    _overlayEntry = null;
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    textController.dispose();
+    hideOverlay();
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    if (mounted) {
+      final size = View.of(context).viewInsets.bottom;
+      if (size > 0 && checkDevice()) {
+        showOverlay(context);
+      } else {
+        hideOverlay();
+      }
+
+      setState(() {
+        keyboardHeight = size;
+      });
+    }
+    super.didChangeMetrics();
+  }
+
+  bool checkDevice() {
+    if (Platform.isIOS) {
+      return true;
+    }
+    return false;
+  }
+
+  showOverlay(BuildContext context) {
+    if (_overlayEntry != null) return;
+    OverlayState overlayState = Overlay.of(context);
+    _overlayEntry = OverlayEntry(
+        builder: (context) => Positioned(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 0,
+            right: 0,
+            child: const CustomKeyboardOverlay()));
+    overlayState.insert(_overlayEntry!);
+  }
+
+  hideOverlay() {
+    if (_overlayEntry != null) {
+      _overlayEntry?.remove();
+      _overlayEntry = null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Container(
+        height: screenHeight * 0.95,
+        width: width,
+        decoration: const BoxDecoration(
+          color: Color(0xFFF3F3F3),
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(14), topRight: Radius.circular(14)),
+        ),
+        child: SingleChildScrollView(
+          controller: widget.scrollController,
+          child: Column(
+            children: [
+              questionAndHints(),
+
+              const SizedBox(
+                height: 16,
+              ),
+              // Text controls
+              responseField(),
+
+              SizedBox(
+                height: keyboardHeight * 0.65,
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget questionAndHints() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(
+            height: 26,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: const Icon(
+                  CupertinoIcons.clear_circled_solid,
+                  size: 26,
+                  color: CustomColors.textSecondaryContent,
+                ),
+              )
+            ],
+          ),
+          const SizedBox(
+            height: 16,
+          ),
+          Text(
+            widget.question,
+            style: CustomTypography().titleLarge(),
+          ),
+          const SizedBox(
+            height: 32,
+          ),
+          Image.asset(
+            "assets/images/avatar_recording.png",
+            height: 64,
+            width: 64,
+          ),
+          const SizedBox(
+            height: 16,
+          ),
+          Text(
+            widget.hint ??
+                "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
+            style: CustomTypography().body(),
+          ),
+          const SizedBox(
+            height: 16,
+          ),
+          CustomOutlineButton(
+            onClick: () => {},
+            color: CustomColors.productNormal,
+            backgroundColor: CustomColors.fillWhite,
+            children: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  "Try A Hint",
+                  style: CustomTypography()
+                      .button(color: CustomColors.productNormal),
+                ),
+                const SizedBox(width: 8),
+                Image.asset(
+                  "assets/images/star.png",
+                  height: 16,
+                  width: 16,
+                )
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget responseField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            key: fieldKey,
+            controller: textController,
+            onTap: () {
+              Scrollable.ensureVisible(fieldKey.currentContext!);
+            },
+            maxLines: 5,
+            cursorColor: CustomColors.productNormal,
+            style: CustomTypography().bodyLarge(),
+            decoration: InputDecoration(
+              hintText: "Type your response here",
+              hintStyle: CustomTypography()
+                  .bodyLarge(color: CustomColors.textSecondaryContent),
+              enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(
+                      width: 1, color: CustomColors.productBorderNormal),
+                  borderRadius: BorderRadius.circular(11)),
+              border: OutlineInputBorder(
+                  borderSide: const BorderSide(
+                      width: 1, color: CustomColors.productBorderNormal),
+                  borderRadius: BorderRadius.circular(11)),
+              contentPadding: const EdgeInsets.all(16),
+              fillColor: CustomColors.fillWhite,
+              filled: true,
+              focusColor: CustomColors.productBorderActive,
+              focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(
+                    width: 1, color: CustomColors.productBorderActive),
+                borderRadius: BorderRadius.circular(11),
+              ),
+            ),
+          ),
+          const SizedBox(
+            height: 16,
+          ),
+          CustomOutlineButton(
+              onClick: () => Navigator.pop(context),
+              color: CustomColors.textWhite,
+              backgroundColor: CustomColors.productNormal,
+              children: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    "OK",
+                    style: CustomTypography()
+                        .button(color: CustomColors.textWhite),
+                  ),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  const Icon(
+                    CupertinoIcons.checkmark_alt,
+                    color: CustomColors.textWhite,
+                    size: 20,
+                  )
+                ],
+              ))
+        ],
+      ),
+    );
   }
 }
 
