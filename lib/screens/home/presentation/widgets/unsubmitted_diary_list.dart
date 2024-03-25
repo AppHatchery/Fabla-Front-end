@@ -5,7 +5,7 @@ import '../../../../theme/custom_typography.dart';
 import '../../../diary/data/diary.dart';
 
 class UnsubmittedDiaryList extends StatelessWidget {
-  final List<Diary> diaries;
+  final List<DiaryModel> diaries;
   final ValueChanged<bool> refresh;
   const UnsubmittedDiaryList(
       {super.key, required this.diaries, required this.refresh});

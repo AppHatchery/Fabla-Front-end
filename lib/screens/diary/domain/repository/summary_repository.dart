@@ -27,7 +27,7 @@ class SummaryRepository {
   /// Throws:
   /// An exception if an error occurs during the loading process. The caught exception is rethrown after logging an error message.
   ///
-  Future<Diary> loadSummary(Diary diary) async {
+  Future<DiaryModel> loadSummary(DiaryModel diary) async {
     try {
       for (var i = 0; i < diary.prompts.length; i++) {
         final newPrompt = await answerRepository.load(diary.prompts[i]);
@@ -52,7 +52,7 @@ class SummaryRepository {
   /// Note:
   /// Any exceptions that occur during the saving process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
-  void saveResponse(Prompt prompt, String path) {
+  void saveResponse(PromptModel prompt, String path) {
     try {
       answerRepository.saveResponse(prompt, path);
     } catch (e) {
@@ -71,7 +71,7 @@ class SummaryRepository {
   /// Note:
   /// Any exceptions that occur during the removal process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
-  void removeResponse(Prompt prompt, String path) {
+  void removeResponse(PromptModel prompt, String path) {
     try {
       answerRepository.removeResponse(prompt, path);
     } catch (e) {
@@ -90,7 +90,7 @@ class SummaryRepository {
   /// A Future<bool> indicating the success or failure of the submission process.
   /// The boolean value indicates whether the submission was successful (true) or encountered an error (false).
   ///
-  Future<bool> submitDiary(Diary diary) async {
+  Future<bool> submitDiary(DiaryModel diary) async {
     try {
       final participant = setupRepository.getParticipant();
       final uploaded = await upload(participant!.studyCode, diary);

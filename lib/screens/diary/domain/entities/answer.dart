@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 import 'package:objectbox/objectbox.dart';
 
 import 'recording.dart';
@@ -6,18 +7,14 @@ import 'recording.dart';
 class Answer {
   @Id()
   int id;
-  int promptId;
   @Property(type: PropertyType.date)
   DateTime date;
   String? response;
   //List<Recording> recordings;
   @Backlink('answer')
   final recordings = ToMany<Recording>();
-  Answer(
-      {required this.id,
-      required this.promptId,
-      required this.date,
-      this.response});
+  final prompt = ToOne<Prompt>();
+  Answer({required this.id, required this.date, this.response});
 
   /// Creates a new Answer object with optional modifications.
   /// This method generates a new Answer instance based on the current answer object while allowing specific properties to be updated or changed.
@@ -37,7 +34,6 @@ class Answer {
   }) {
     return Answer(
       id: id ?? this.id,
-      promptId: promptId,
       date: date ?? this.date,
       response: response ?? this.response,
     );

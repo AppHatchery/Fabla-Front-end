@@ -4,26 +4,23 @@ import 'package:audio_diaries_flutter/screens/diary/data/options.dart';
 import '../domain/entities/answer.dart';
 import 'tip.dart';
 
-class Prompt {
+class PromptModel {
   int id;
-  String? question;
+  String question;
   ResponseType? responseType;
-  String? note;
-  Tip? tip;
   Answer? answer;
   Options? option;
-  QuestionType? questionType;
+  bool required = true;
+  String? subtitle;
 
-
-  Prompt(
+  PromptModel(
       {this.id = 0,
       required this.question,
       required this.responseType,
-      this.note,
-      this.tip,
       this.answer,
       this.option,
-      this.questionType});
+      required this.required,
+      this.subtitle});
 
   /// Creates a new Prompt object with optional modifications.
   /// This method generates a new Prompt instance based on the current prompt object while allowing specific properties to be updated or changed.
@@ -38,23 +35,32 @@ class Prompt {
   /// Returns:
   /// A new Prompt object with the specified modifications or the same values if no modifications are provided.
   ///
-  Prompt copyWith({
+  PromptModel copyWith({
     String? question,
     ResponseType? responseType,
     String? note,
     Tip? tip,
     Answer? answer,
     Options? option,
-    QuestionType? questionType,
+    String? subtitle,
   }) {
-    return Prompt(
-      question: question ?? this.question,
-      responseType: responseType ?? this.responseType,
-      note: note ?? this.note,
-      tip: tip ?? this.tip,
-      answer: answer ?? this.answer,
-      option: option ?? this.option,
-      questionType: questionType ?? this.questionType,
-    );
+    return PromptModel(
+        question: question ?? this.question,
+        responseType: responseType ?? this.responseType,
+        answer: answer ?? this.answer,
+        option: option ?? this.option,
+        subtitle: subtitle ?? this.subtitle,
+        required: required);
+  }
+
+  factory PromptModel.fromJson(Map<String, dynamic> json) {
+    return PromptModel(
+        id: json['id'],
+        question: json['question'],
+        responseType: json['responseType'],
+        answer: json['answer'],
+        option: json['option'],
+        required: json['required'],
+        subtitle: json['subtitle']);
   }
 }

@@ -2,7 +2,7 @@ import '../../../objectbox.g.dart';
 import '../../../screens/diary/domain/entities/diary_entity.dart';
 
 class DiaryDAO {
-  final Box<DiaryEntity> box;
+  final Box<Diary> box;
 
   DiaryDAO({required this.box});
 
@@ -13,7 +13,7 @@ class DiaryDAO {
   /// Returns:
   /// A list of DiaryEntity objects representing all stored diary entries.
   ///
-  List<DiaryEntity> getAllDiaries() {
+  List<Diary> getAllDiaries() {
     return box.getAll();
   }
 
@@ -28,9 +28,9 @@ class DiaryDAO {
   /// A DiaryEntity object representing the diary entry with the specified due date,
   /// or null if no matching entry is found.
   ///
-  DiaryEntity? getDiary(DateTime start,DateTime due) {
+  Diary? getDiary(DateTime start,DateTime due) {
     final query =
-        box.query(DiaryEntity_.deadline.equals(due.toString()).and(DiaryEntity_.start.equals(start.toString()))).build();
+        box.query(Diary_.deadline.equals(due.toString()).and(Diary_.start.equals(start.millisecond))).build();
     return query.findFirst();
   }
 
@@ -44,7 +44,7 @@ class DiaryDAO {
   /// This function efficiently inserts multiple diary entries into the storage box
   /// in a single bulk operation, which can be more efficient than inserting them individually.
   ///
-  void addDiaries(List<DiaryEntity> diaries) {
+  void addDiaries(List<Diary> diaries) {
     box.putMany(diaries);
   }
 
@@ -58,10 +58,10 @@ class DiaryDAO {
   /// This function efficiently applies changes to a single diary entry within the storage box.
   /// It ensures that the modified data replaces the existing entry while preserving its unique identifier.
   ///
-  void updateDiary(DiaryEntity diary) {
+  void updateDiary(Diary diary) {
     box.put(diary);
   }
-  
+
   /// Updates multiple existing DiaryEntity objects in the database.
   /// This function modifies the properties of a specific diary entry within the storage box.
   ///
@@ -72,7 +72,7 @@ class DiaryDAO {
   /// This function efficiently applies changes to a multiple diary entries within the storage box.
   /// It ensures that the modified data replaces the existing entries while preserving its unique identifier.
   ///
-  void updateDiaries(List<DiaryEntity> diaries) {
+  void updateDiaries(List<Diary> diaries) {
     box.putMany(diaries);
   }
 }

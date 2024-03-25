@@ -12,7 +12,7 @@ final class PromptInitial extends PromptState {
 }
 
 final class PromptLoading extends PromptState {
-  final Prompt prompt;
+  final PromptModel prompt;
   const PromptLoading(this.prompt);
 
   @override
@@ -20,7 +20,7 @@ final class PromptLoading extends PromptState {
 }
 
 final class PromptLoaded extends PromptState {
-  final Prompt prompt;
+  final PromptModel prompt;
   const PromptLoaded(this.prompt);
 
   @override

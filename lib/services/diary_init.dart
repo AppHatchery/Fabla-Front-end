@@ -1,7 +1,6 @@
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 
 import '../core/utils/dummy_data.dart';
-import '../core/utils/statuses.dart';
 import '../screens/diary/domain/entities/diary_entity.dart';
 import '../screens/diary/domain/repository/diary_repository.dart';
 
@@ -27,7 +26,7 @@ Future<void> diaryInit(String code) async {
 
     final repository = DiaryRepository();
     final startDate = _startDate(code);
-    final diaries = <DiaryEntity>[];
+    final diaries = <Diary>[];
 
     if (startDate != null) {
       for (var i = 0; i + 1 <= fakePrompts.length; i++) {
@@ -35,13 +34,13 @@ Future<void> diaryInit(String code) async {
         final start = DateTime(date.year, date.month, date.day, 4, 0, 0);
         final deadline = DateTime(date.year, date.month, date.day, 3, 59, 59)
             .add(const Duration(days: 1));
-        final diary = DiaryEntity(
-            prompts: [i],
-            due: deadline,
-            start: start.toString(),
-            deadline: deadline.toString(),
-            status: DiaryStatus.idle);
-        diaries.add(diary);
+        // final diary = DiaryEntity(
+        //     prompts: [i],
+        //     due: deadline,
+        //     start: start.toString(),
+        //     deadline: deadline.toString(),
+        //     status: DiaryStatus.idle);
+        // diaries.add(diary);
       }
       repository.addDiaries(diaries);
       PreferenceService().setIntPreference(
@@ -57,7 +56,8 @@ DateTime? _startDate(String code) {
 
   // Assuming that the code have two distinct starting digits
   if (code.startsWith('0')) {
-    return DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    return DateTime(
+        DateTime.now().year, DateTime.now().month, DateTime.now().day);
   } else if (_code.isOdd) {
     // return DateTime(nextSunday.year, nextSunday.month, nextSunday.day);
     return DateTime(2023, 11, 12);

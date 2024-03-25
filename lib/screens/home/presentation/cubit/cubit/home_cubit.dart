@@ -45,7 +45,8 @@ class HomeCubit extends Cubit<HomeState> {
       emit(const HomeLoading());
       final diary = repository.getDiary(start, due);
       if (diary != null) {
-        final updated = Diary.copyWith(diary: diary, tags: _getTags(diary));
+        final updated =
+            DiaryModel.copyWith(diary: diary, tags: _getTags(diary));
 
         emit(HomeLoaded([updated], startDate));
       } else {
@@ -59,9 +60,9 @@ class HomeCubit extends Cubit<HomeState> {
   Future<String> getParticipantName() async =>
       setupRepository.getParticipant()!.name;
 
-  Future<List<Diary>> getAllDiaries() async => repository.getAllDiaries();
+  Future<List<DiaryModel>> getAllDiaries() async => repository.getAllDiaries();
 
-  List<Diary> getAllDiariesThisWeek() {
+  List<DiaryModel> getAllDiariesThisWeek() {
     final today = DateTime.now().weekday;
 
     int daysUntilMonday = today == 1 ? 0 : 7 - today;
@@ -82,7 +83,7 @@ class HomeCubit extends Cubit<HomeState> {
   }
 }
 
-List<Tag> _getTags(Diary diary) {
+List<Tag> _getTags(DiaryModel diary) {
   List<Tag> tags = [];
 
   if (diary.status == DiaryStatus.submitted) {

@@ -32,7 +32,7 @@ import 'diarycompletion.dart';
 ///Currently only takes a string as a parameter, later to be replaced by a list of questions and answers
 ///No functionality for the Add a new response button
 class DiarySummaryPage extends StatefulWidget {
-  final Diary diary;
+  final DiaryModel diary;
 
   const DiarySummaryPage({
     super.key,
@@ -177,7 +177,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     return Container();
   }
 
-  Widget content(Diary diary, BuildContext context) {
+  Widget content(DiaryModel diary, BuildContext context) {
     return Stack(
       children: [
         Padding(
@@ -226,7 +226,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     );
   }
 
-  Widget buildPrompt(Prompt prompt, int index) {
+  Widget buildPrompt(PromptModel prompt, int index) {
     if (!sliderEnabledStates.containsKey(index)) {
       sliderEnabledStates[index] = false;
     }
@@ -369,7 +369,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     summaryCubit.loadSummary(widget.diary);
   }
 
-  void recordResponse(BuildContext context, Prompt prompt) {
+  void recordResponse(BuildContext context, PromptModel prompt) {
     showModalBottomSheet(
         backgroundColor: Colors.transparent,
         context: context,
@@ -385,7 +385,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             ));
   }
 
-  void deleteResponse(Prompt prompt, String path) {
+  void deleteResponse(PromptModel prompt, String path) {
     summaryCubit.removeResponse(widget.diary, prompt, path);
   }
 

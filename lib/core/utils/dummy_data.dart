@@ -9,36 +9,36 @@ import '../../theme/resources/strings.dart';
 import 'statuses.dart';
 import 'types.dart';
 
-final List<Diary> dummyDiaries = [
-  Diary(
+final List<DiaryModel> dummyDiaries = [
+  DiaryModel(
       id: 0,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.idle,
       start: DateTime.now(),
       due: DateTime.now()),
-  Diary(
+  DiaryModel(
       id: 1,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.ongoing,
       start: DateTime.now(),
       due: DateTime.now()),
-  Diary(
+  DiaryModel(
       id: 2,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.submitted,
       start: DateTime.now(),
       due: DateTime.now()),
-  Diary(
+  DiaryModel(
       id: 3,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.complete,
       start: DateTime.now(),
       due: DateTime.now()),
-  Diary(
+  DiaryModel(
       id: 4,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
@@ -47,36 +47,36 @@ final List<Diary> dummyDiaries = [
       due: DateTime.now()),
 ];
 
-List<Diary> exampleDiaries = [
-  Diary(
+List<DiaryModel> exampleDiaries = [
+  DiaryModel(
       id: 0,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.idle,
       start: DateTime.now(),
       due: DateTime.now()),
-  Diary(
+  DiaryModel(
       id: 1,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.ongoing,
       start: DateTime.now(),
       due: DateTime.now()),
-  Diary(
+  DiaryModel(
       id: 2,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.submitted,
       start: DateTime.now(),
       due: DateTime.now()),
-  Diary(
+  DiaryModel(
       id: 3,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
       status: DiaryStatus.complete,
       start: DateTime.now(),
       due: DateTime.now()),
-  Diary(
+  DiaryModel(
       id: 4,
       prompts: fakePrompts[0] ?? [],
       tags: fakeTags,
@@ -85,10 +85,10 @@ List<Diary> exampleDiaries = [
       due: DateTime.now()),
 ];
 
-final Map<int, List<Prompt>> fakePrompts = {
+final Map<int, List<PromptModel>> fakePrompts = {
   // Day One
   0: [
-    Prompt(
+    PromptModel(
         id: 0,
         question: "How do you FEEL PHYSICALLY right now?",
         responseType: ResponseType.slider,
@@ -101,7 +101,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.physically),
-    Prompt(
+    PromptModel(
         id: 1,
         question:
             "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
@@ -115,7 +115,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "5"),
             ]),
         questionType: QuestionType.emotionally),
-    Prompt(
+    PromptModel(
         id: 2,
         question:
             "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
@@ -129,7 +129,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.intensity),
-    Prompt(
+    PromptModel(
         id: 3,
         question: "I felt lonely today.",
         responseType: ResponseType.slider,
@@ -142,7 +142,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.lonely),
-    Prompt(
+    PromptModel(
         id: 4,
         question: "I felt left out today.",
         responseType: ResponseType.slider,
@@ -155,7 +155,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.leftout),
-    Prompt(
+    PromptModel(
         id: 5,
         question: "How much social interaction did you have today?",
         responseType: ResponseType.slider,
@@ -168,7 +168,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.socialinteraction),
-    Prompt(
+    PromptModel(
         id: 6,
         question: "I felt understood/cared for by others today.",
         responseType: ResponseType.slider,
@@ -181,7 +181,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.understood),
-    Prompt(
+    PromptModel(
         id: 7,
         question: "I felt stressed today.",
         responseType: ResponseType.slider,
@@ -194,7 +194,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.stressed),
-    Prompt(
+    PromptModel(
         id: 8,
         question:
             "Which of the following best describes where you are physically right now? Check all that apply.",
@@ -202,21 +202,20 @@ final Map<int, List<Prompt>> fakePrompts = {
         option: Options.returnOptions(
             type: OptionsType.multiple, choices: multipleOptions),
         questionType: QuestionType.whereyouare),
-    Prompt(
+    PromptModel(
         id: 9,
         question: "How many people are around you right now?",
         responseType: ResponseType.radio,
         option: Options.returnOptions(
             type: OptionsType.radio, choices: radioOptions),
         questionType: QuestionType.peoplearoundyou),
-
-    Prompt(
+    PromptModel(
       id: 10,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
       note: Strings.researcherNote,
     ),
-    Prompt(
+    PromptModel(
       id: 11,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
@@ -226,7 +225,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   ],
   // Day Two
   1: [
-    Prompt(
+    PromptModel(
         id: 12,
         question: "How do you FEEL PHYSICALLY right now?",
         responseType: ResponseType.slider,
@@ -239,7 +238,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.physically),
-    Prompt(
+    PromptModel(
         id: 13,
         question:
             "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
@@ -253,7 +252,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "5"),
             ]),
         questionType: QuestionType.emotionally),
-    Prompt(
+    PromptModel(
         id: 14,
         question:
             "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
@@ -267,7 +266,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.intensity),
-    Prompt(
+    PromptModel(
         id: 15,
         question: "I felt lonely today.",
         responseType: ResponseType.slider,
@@ -280,7 +279,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.lonely),
-    Prompt(
+    PromptModel(
         id: 16,
         question: "I felt left out today.",
         responseType: ResponseType.slider,
@@ -293,7 +292,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.leftout),
-    Prompt(
+    PromptModel(
         id: 17,
         question: "How much social interaction did you have today?",
         responseType: ResponseType.slider,
@@ -306,7 +305,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.socialinteraction),
-    Prompt(
+    PromptModel(
         id: 18,
         question: "I felt understood/cared for by others today.",
         responseType: ResponseType.slider,
@@ -319,7 +318,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.understood),
-    Prompt(
+    PromptModel(
         id: 19,
         question: "I felt stressed today.",
         responseType: ResponseType.slider,
@@ -332,7 +331,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.stressed),
-    Prompt(
+    PromptModel(
         id: 20,
         question:
             "Which of the following best describes where you are physically right now? Check all that apply.",
@@ -340,20 +339,20 @@ final Map<int, List<Prompt>> fakePrompts = {
         option: Options.returnOptions(
             type: OptionsType.multiple, choices: multipleOptions),
         questionType: QuestionType.whereyouare),
-    Prompt(
+    PromptModel(
         id: 21,
         question: "How many people are around you right now?",
         responseType: ResponseType.radio,
         option: Options.returnOptions(
             type: OptionsType.radio, choices: radioOptions),
         questionType: QuestionType.peoplearoundyou),
-    Prompt(
+    PromptModel(
       id: 22,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
       note: Strings.researcherNote,
     ),
-    Prompt(
+    PromptModel(
       id: 23,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
@@ -363,7 +362,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   ],
   // Day Three
   2: [
-    Prompt(
+    PromptModel(
         id: 24,
         question: "How do you FEEL PHYSICALLY right now?",
         responseType: ResponseType.slider,
@@ -376,7 +375,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.physically),
-    Prompt(
+    PromptModel(
         id: 25,
         question:
             "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
@@ -390,7 +389,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "5"),
             ]),
         questionType: QuestionType.emotionally),
-    Prompt(
+    PromptModel(
         id: 26,
         question:
             "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
@@ -404,7 +403,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.intensity),
-    Prompt(
+    PromptModel(
         id: 27,
         question: "I felt lonely today.",
         responseType: ResponseType.slider,
@@ -417,7 +416,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.lonely),
-    Prompt(
+    PromptModel(
         id: 28,
         question: "I felt left out today.",
         responseType: ResponseType.slider,
@@ -430,7 +429,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.leftout),
-    Prompt(
+    PromptModel(
         id: 29,
         question: "How much social interaction did you have today?",
         responseType: ResponseType.slider,
@@ -443,7 +442,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.socialinteraction),
-    Prompt(
+    PromptModel(
         id: 30,
         question: "I felt understood/cared for by others today.",
         responseType: ResponseType.slider,
@@ -456,7 +455,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.understood),
-    Prompt(
+    PromptModel(
         id: 31,
         question: "I felt stressed today.",
         responseType: ResponseType.slider,
@@ -469,7 +468,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.stressed),
-    Prompt(
+    PromptModel(
         id: 32,
         question:
             "Which of the following best describes where you are physically right now? Check all that apply.",
@@ -477,21 +476,20 @@ final Map<int, List<Prompt>> fakePrompts = {
         option: Options.returnOptions(
             type: OptionsType.multiple, choices: multipleOptions),
         questionType: QuestionType.whereyouare),
-    Prompt(
+    PromptModel(
         id: 33,
         question: "How many people are around you right now?",
         responseType: ResponseType.radio,
         option: Options.returnOptions(
             type: OptionsType.radio, choices: radioOptions),
         questionType: QuestionType.peoplearoundyou),
-
-    Prompt(
+    PromptModel(
       id: 34,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
       note: Strings.researcherNote,
     ),
-    Prompt(
+    PromptModel(
       id: 35,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
@@ -501,7 +499,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   ],
   // Day Four
   3: [
-    Prompt(
+    PromptModel(
         id: 36,
         question: "How do you FEEL PHYSICALLY right now?",
         responseType: ResponseType.slider,
@@ -514,7 +512,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.physically),
-    Prompt(
+    PromptModel(
         id: 37,
         question:
             "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
@@ -528,7 +526,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "5"),
             ]),
         questionType: QuestionType.emotionally),
-    Prompt(
+    PromptModel(
         id: 38,
         question:
             "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
@@ -542,7 +540,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.intensity),
-    Prompt(
+    PromptModel(
         id: 39,
         question: "I felt lonely today.",
         responseType: ResponseType.slider,
@@ -555,7 +553,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.lonely),
-    Prompt(
+    PromptModel(
         id: 40,
         question: "I felt left out today.",
         responseType: ResponseType.slider,
@@ -568,7 +566,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.leftout),
-    Prompt(
+    PromptModel(
         id: 41,
         question: "How much social interaction did you have today?",
         responseType: ResponseType.slider,
@@ -581,7 +579,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.socialinteraction),
-    Prompt(
+    PromptModel(
         id: 42,
         question: "I felt understood/cared for by others today.",
         responseType: ResponseType.slider,
@@ -594,7 +592,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.understood),
-    Prompt(
+    PromptModel(
         id: 43,
         question: "I felt stressed today.",
         responseType: ResponseType.slider,
@@ -607,7 +605,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.stressed),
-    Prompt(
+    PromptModel(
         id: 44,
         question:
             "Which of the following best describes where you are physically right now? Check all that apply.",
@@ -615,20 +613,20 @@ final Map<int, List<Prompt>> fakePrompts = {
         option: Options.returnOptions(
             type: OptionsType.multiple, choices: multipleOptions),
         questionType: QuestionType.whereyouare),
-    Prompt(
+    PromptModel(
         id: 45,
         question: "How many people are around you right now?",
         responseType: ResponseType.radio,
         option: Options.returnOptions(
             type: OptionsType.radio, choices: radioOptions),
         questionType: QuestionType.peoplearoundyou),
-    Prompt(
+    PromptModel(
       id: 46,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
       note: Strings.researcherNote,
     ),
-    Prompt(
+    PromptModel(
       id: 47,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
@@ -638,7 +636,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   ],
   // Day Five
   4: [
-    Prompt(
+    PromptModel(
         id: 48,
         question: "How do you FEEL PHYSICALLY right now?",
         responseType: ResponseType.slider,
@@ -651,7 +649,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.physically),
-    Prompt(
+    PromptModel(
         id: 49,
         question:
             "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
@@ -665,7 +663,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "5"),
             ]),
         questionType: QuestionType.emotionally),
-    Prompt(
+    PromptModel(
         id: 50,
         question:
             "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
@@ -679,7 +677,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.intensity),
-    Prompt(
+    PromptModel(
         id: 51,
         question: "I felt lonely today.",
         responseType: ResponseType.slider,
@@ -692,7 +690,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.lonely),
-    Prompt(
+    PromptModel(
         id: 52,
         question: "I felt left out today.",
         responseType: ResponseType.slider,
@@ -705,7 +703,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.leftout),
-    Prompt(
+    PromptModel(
         id: 53,
         question: "How much social interaction did you have today?",
         responseType: ResponseType.slider,
@@ -718,7 +716,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.socialinteraction),
-    Prompt(
+    PromptModel(
         id: 54,
         question: "I felt understood/cared for by others today.",
         responseType: ResponseType.slider,
@@ -731,7 +729,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.understood),
-    Prompt(
+    PromptModel(
         id: 55,
         question: "I felt stressed today.",
         responseType: ResponseType.slider,
@@ -744,7 +742,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.stressed),
-    Prompt(
+    PromptModel(
         id: 56,
         question:
             "Which of the following best describes where you are physically right now? Check all that apply.",
@@ -752,20 +750,20 @@ final Map<int, List<Prompt>> fakePrompts = {
         option: Options.returnOptions(
             type: OptionsType.multiple, choices: multipleOptions),
         questionType: QuestionType.whereyouare),
-    Prompt(
+    PromptModel(
         id: 57,
         question: "How many people are around you right now?",
         responseType: ResponseType.radio,
         option: Options.returnOptions(
             type: OptionsType.radio, choices: radioOptions),
         questionType: QuestionType.peoplearoundyou),
-    Prompt(
+    PromptModel(
       id: 58,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
       note: Strings.researcherNote,
     ),
-    Prompt(
+    PromptModel(
       id: 59,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",
@@ -775,7 +773,7 @@ final Map<int, List<Prompt>> fakePrompts = {
   ],
   // Day Six
   5: [
-    Prompt(
+    PromptModel(
         id: 60,
         question: "How do you FEEL PHYSICALLY right now?",
         responseType: ResponseType.slider,
@@ -788,7 +786,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.physically),
-    Prompt(
+    PromptModel(
         id: 61,
         question:
             "How do you FEEL EMOTIONALLY right now? Please use the slider to rate how PLEASANT or UNPLEASANT you feel emotionally:",
@@ -802,7 +800,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "5"),
             ]),
         questionType: QuestionType.emotionally),
-    Prompt(
+    PromptModel(
         id: 62,
         question:
             "Please use the slider to rate the INTENSITY of the overall emotion you are experiencing right now",
@@ -816,7 +814,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.intensity),
-    Prompt(
+    PromptModel(
         id: 63,
         question: "I felt lonely today.",
         responseType: ResponseType.slider,
@@ -829,7 +827,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.lonely),
-    Prompt(
+    PromptModel(
         id: 64,
         question: "I felt left out today.",
         responseType: ResponseType.slider,
@@ -842,7 +840,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.leftout),
-    Prompt(
+    PromptModel(
         id: 65,
         question: "How much social interaction did you have today?",
         responseType: ResponseType.slider,
@@ -855,7 +853,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.socialinteraction),
-    Prompt(
+    PromptModel(
         id: 66,
         question: "I felt understood/cared for by others today.",
         responseType: ResponseType.slider,
@@ -868,7 +866,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.understood),
-    Prompt(
+    PromptModel(
         id: 67,
         question: "I felt stressed today.",
         responseType: ResponseType.slider,
@@ -881,7 +879,7 @@ final Map<int, List<Prompt>> fakePrompts = {
               Option(id: 1, option: "10"),
             ]),
         questionType: QuestionType.stressed),
-    Prompt(
+    PromptModel(
         id: 68,
         question:
             "Which of the following best describes where you are physically right now? Check all that apply.",
@@ -889,20 +887,20 @@ final Map<int, List<Prompt>> fakePrompts = {
         option: Options.returnOptions(
             type: OptionsType.multiple, choices: multipleOptions),
         questionType: QuestionType.whereyouare),
-    Prompt(
+    PromptModel(
         id: 69,
         question: "How many people are around you right now?",
         responseType: ResponseType.radio,
         option: Options.returnOptions(
             type: OptionsType.radio, choices: radioOptions),
         questionType: QuestionType.peoplearoundyou),
-    Prompt(
+    PromptModel(
       id: 70,
       question: "Talk about your day today.",
       responseType: ResponseType.recording,
       note: Strings.researcherNote,
     ),
-    Prompt(
+    PromptModel(
       id: 71,
       question:
           "Talk about a time today when you felt understood or cared for by others, no matter how small.",

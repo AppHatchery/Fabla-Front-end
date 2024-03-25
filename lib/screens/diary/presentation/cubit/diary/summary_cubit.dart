@@ -23,7 +23,7 @@ class SummaryCubit extends Cubit<SummaryState> {
   /// Note:
   /// Any exceptions that occur during the loading process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
-  void loadSummary(Diary diary) {
+  void loadSummary(DiaryModel diary) {
     emit(const SummaryLoading());
     try {
       _summaryRepository.loadSummary(diary).then((value) {
@@ -47,7 +47,7 @@ class SummaryCubit extends Cubit<SummaryState> {
   /// Note:
   /// Any exceptions that occur during the saving process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
-  void saveResponse(Diary diary, Prompt prompt, String path) {
+  void saveResponse(DiaryModel diary, PromptModel prompt, String path) {
     try {
       _summaryRepository.saveResponse(prompt, path);
     } catch (e) {
@@ -70,7 +70,7 @@ class SummaryCubit extends Cubit<SummaryState> {
   /// Note:
   /// Any exceptions that occur during the removal process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
-  void removeResponse(Diary diary, Prompt prompt, String path) {
+  void removeResponse(DiaryModel diary, PromptModel prompt, String path) {
     try {
       _summaryRepository.removeResponse(prompt, path);
     } catch (e) {
@@ -103,7 +103,7 @@ class SummaryCubit extends Cubit<SummaryState> {
   //   }
   // }
 
-  void submitDiary(Diary diary) async {
+  void submitDiary(DiaryModel diary) async {
     try {
       emit(const SubmitLoading());
       final result = await _summaryRepository.submitDiary(diary);

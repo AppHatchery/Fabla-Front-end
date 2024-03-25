@@ -27,7 +27,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late HomeCubit homeCubit;
   String _name = "";
-  late List<Diary> diaries;
+  late List<DiaryModel> diaries;
 
   late Timer? timer;
   int secondsSpent = 0;
@@ -141,7 +141,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return Container();
   }
 
-  Widget loadedHome(List<Diary> diaries, DateTime startDate) {
+  Widget loadedHome(List<DiaryModel> diaries, DateTime startDate) {
     final today = DateTime.now();
     show4AmTip();
     if (today.isBefore(startDate)) {

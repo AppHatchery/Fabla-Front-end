@@ -11,7 +11,7 @@ import '../../data/diary.dart';
 class CustomCalender extends StatefulWidget {
   final DateTime? rangeStart;
   final DateTime? rangeEnd;
-  final List<Diary>? diaries;
+  final List<DiaryModel>? diaries;
   final Function? selectDate;
 
   const CustomCalender(
