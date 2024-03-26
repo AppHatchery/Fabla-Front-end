@@ -19,7 +19,7 @@ class ParticipantDetailsPage extends StatefulWidget {
 class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
   late SetupCubit setupCubit;
   final TextEditingController controller = TextEditingController();
-
+  double keyboardSpace = 0.0;
   @override
   void initState() {
     setupCubit = BlocProvider.of<SetupCubit>(context);
@@ -31,6 +31,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
+    keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
     return Scaffold(
         backgroundColor: CustomColors.backgroundSecondary,
         appBar: AppBar(
@@ -46,15 +47,14 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
         body: SafeArea(
           bottom: false,
           child: LayoutBuilder(builder: (context, constraints) {
-            final constraintHeight = constraints.maxHeight;
             return SingleChildScrollView(
               child: GestureDetector(
                 onTap: () => FocusScope.of(context).unfocus(),
                 child: SizedBox(
-                  height: constraintHeight,
-                  width: width,
+                  height: MediaQuery.of(context).size.height * .9,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -64,10 +64,14 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
                               .headlineLarge(color: CustomColors.textWhite),
                         ),
                       ),
-                      const SizedBox(
-                        height: 60,
-                      ),
-                      Expanded(
+                      height > 800
+                          ? const SizedBox(
+                              height: 60,
+                            )
+                          : SizedBox(
+                              height: keyboardSpace > 0 ? 0 : 60,
+                            ),
+                      Flexible(
                         child: SizedBox(
                           width: width,
                           child: BlocConsumer<SetupCubit, SetupState>(
@@ -112,6 +116,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
         height: height,
         width: width,
         image: "",
+        keyboardSpace: keyboardSpace,
         avatarType: "animation",
         animation: "assets/animations/onboarding/onboarding_nameinput.riv",
         onContinue: () => saveName(),
@@ -125,6 +130,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
         height: height,
         width: width,
         image: "",
+        keyboardSpace: keyboardSpace,
         avatarType: "animation",
         animation: "assets/animations/onboarding/onboarding_nameinput.riv",
         onContinue: () => saveName(),
@@ -138,6 +144,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
         height: height,
         width: width,
         image: "",
+        keyboardSpace: keyboardSpace,
         avatarType: "animation",
         animation: "assets/animations/onboarding/onboarding_nameinput.riv",
         onContinue: () => saveName(),
