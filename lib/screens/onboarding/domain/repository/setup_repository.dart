@@ -133,6 +133,11 @@ class SetupRepository {
       print("Protocol already exists and no updates");
     }
   }
+/// This method is responsible for creating a protocol by retrieving data from a remote source.
+  Protocol? getProtocol(){
+    final ProtocolEntity? protocolEntity = _protocolDAO.getProtocol();
+    return protocolEntity == null ? null :  Protocol.fromEntity(protocolEntity);
+  }
 
   /// Creates and stores metadata related to the participant's study.
   ///

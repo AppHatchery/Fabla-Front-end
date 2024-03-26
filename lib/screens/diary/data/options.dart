@@ -77,6 +77,11 @@ class Options {
   }
 }
 
+/// It checks whether the option is an integer.
+bool isInt(String option) {
+  return int.tryParse(option) != null;
+}
+
 enum OptionsType {
   multiple,
   radio,
