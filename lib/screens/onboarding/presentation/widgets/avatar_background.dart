@@ -4,13 +4,14 @@ import 'package:rive/rive.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 
-class AvatarBackground extends StatelessWidget {
+class AvatarBackground extends StatefulWidget {
   final List<Widget> children;
   final double height;
   final double width;
   final String image;
   final String avatarType;
   final String? animation;
+  final double? keyboardSpace;
   final VoidCallback onContinue;
   const AvatarBackground(
       {super.key,
@@ -18,12 +19,26 @@ class AvatarBackground extends StatelessWidget {
       required this.height,
       required this.width,
       required this.image,
+      this.keyboardSpace,
       this.avatarType = "image",
       this.animation,
       required this.onContinue});
 
   @override
+  State<AvatarBackground> createState() => _AvatarBackgroundState();
+}
+
+class _AvatarBackgroundState extends State<AvatarBackground> {
+  @override
   Widget build(BuildContext context) {
+    bool isKeyboardOpen = false;
+    if (widget.keyboardSpace != null) {
+      if (widget.keyboardSpace! > 0) {
+        isKeyboardOpen = true;
+      } else if (widget.keyboardSpace! < 100) {
+        isKeyboardOpen = false;
+      }
+    }
     return Stack(
       children: [
         Positioned(
@@ -32,30 +47,30 @@ class AvatarBackground extends StatelessWidget {
             right: 0,
             child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: avatarType == "image"
+                child: widget.avatarType == "image"
                     ? Image.asset(
-                        image,
-                        width: width,
+                        widget.image,
+                        width: widget.width,
                       )
                     : SizedBox(
-                        height: height > 750
-                            ? height > 850
-                                ? height * 0.5
-                                : height * 0.55
-                            : height * 0.65,
-                        width: width,
+                        height: widget.height > 750
+                            ? widget.height > 850
+                                ? widget.height * 0.5
+                                : widget.height * 0.55
+                            : widget.height * 0.65,
+                        width: widget.width,
                         child: RiveAnimation.asset(
-                          animation!,
+                          widget.animation!,
                           fit: BoxFit.fitWidth,
                         ),
                       ))),
         Positioned(
-            top: height > 860 ? 130 : 100,
+            top: widget.height > 860 ? 130 : 100,
             left: 0,
             right: 0,
             bottom: 0,
             child: Container(
-              width: width,
+              width: widget.width,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               decoration: const BoxDecoration(
                   color: CustomColors.fillWhite,
@@ -64,22 +79,22 @@ class AvatarBackground extends StatelessWidget {
                       topRight: Radius.circular(24))),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: isKeyboardOpen
+                    ? MainAxisAlignment.start
+                    : MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: SizedBox(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: children,
-                        ),
+                  SingleChildScrollView(
+                    child: SizedBox(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: widget.children,
                       ),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: CustomFlatButton(
-                        onClick: () => onContinue(), text: "Continue"),
+                        onClick: () => widget.onContinue(), text: "Continue"),
                   )
                 ],
               ),
