@@ -75,7 +75,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       ),
       child: Column(
         children: [
-          Expanded( child: questionAndHints()),
+          Expanded(child: questionAndHints()),
           // Recording controls
           Container(
             width: width,
@@ -181,6 +181,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   )
                 ],
               ),
+            ),
+            const SizedBox(
+              height: 32,
             ),
           ],
         ),
@@ -448,6 +451,7 @@ class BottomTextModal extends StatefulWidget {
   final String? hint;
   final ValueChanged<String?>? onSave;
   final ScrollController scrollController;
+
   const BottomTextModal(
       {super.key,
       required this.promptId,
