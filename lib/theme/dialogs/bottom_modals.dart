@@ -141,27 +141,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   const SizedBox(
                     height: 16,
                   ),
-                  CustomOutlineButton(
-                    onClick: () => {},
-                    color: CustomColors.productNormal,
-                    backgroundColor: CustomColors.fillWhite,
-                    children: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text(
-                          "Try A Hint",
-                          style: CustomTypography()
-                              .button(color: CustomColors.productNormal),
-                        ),
-                        const SizedBox(width: 8),
-                        Image.asset(
-                          "assets/images/star.png",
-                          height: 16,
-                          width: 16,
-                        )
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),
