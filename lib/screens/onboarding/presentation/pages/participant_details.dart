@@ -33,7 +33,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
     final width = MediaQuery.of(context).size.width;
     keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
     return Scaffold(
-        backgroundColor: CustomColors.backgroundSecondary,
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           leading: IconButton(
@@ -46,68 +46,72 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
         ),
         body: SafeArea(
           bottom: false,
-          child: LayoutBuilder(builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: GestureDetector(
-                onTap: () => FocusScope.of(context).unfocus(),
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height * .9,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          "Enter a nickname for the study.",
-                          style: CustomTypography()
-                              .headlineLarge(color: CustomColors.textWhite),
+          child: Container(
+            color: CustomColors.backgroundSecondary,
+            child: LayoutBuilder(builder: (context, constraints) {
+              final constraintHeight = constraints.maxHeight;
+              return SingleChildScrollView(
+                child: GestureDetector(
+                  onTap: () => FocusScope.of(context).unfocus(),
+                  child: SizedBox(
+                    height: height > 550 ? height * .9 : height * 1.2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            "Enter a nickname for the study.",
+                            style: CustomTypography()
+                                .headlineLarge(color: CustomColors.textWhite),
+                          ),
                         ),
-                      ),
-                      height > 800
-                          ? const SizedBox(
-                              height: 60,
-                            )
-                          : SizedBox(
-                              height: keyboardSpace > 0 ? 0 : 60,
-                            ),
-                      Flexible(
-                        child: SizedBox(
-                          width: width,
-                          child: BlocConsumer<SetupCubit, SetupState>(
-                              builder: (context, state) {
-                            if (state is SetupInitial) {
-                              return intialDetails(height, width);
-                            } else if (state is SetupLoading) {
-                              return loadingDetails(height, width);
-                            } else if (state is SetupLoaded) {
-                              Participant? participant = state.participant;
-                              if (participant != null) {
-                                return loadedDetails(
-                                    height, width, participant);
+                        height > 850
+                            ? const SizedBox(
+                                height: 60,
+                              )
+                            : SizedBox(
+                                height: keyboardSpace > 0 ? 0 : 60,
+                              ),
+                        Expanded(
+                          child: SizedBox(
+                            width: width,
+                            child: BlocConsumer<SetupCubit, SetupState>(
+                                builder: (context, state) {
+                              if (state is SetupInitial) {
+                                return intialDetails(height, width);
+                              } else if (state is SetupLoading) {
+                                return loadingDetails(height, width);
+                              } else if (state is SetupLoaded) {
+                                Participant? participant = state.participant;
+                                if (participant != null) {
+                                  return loadedDetails(
+                                      height, width, participant);
+                                } else {
+                                  return intialDetails(height, width);
+                                }
                               } else {
                                 return intialDetails(height, width);
                               }
-                            } else {
-                              return intialDetails(height, width);
-                            }
-                          }, listener: (context, state) {
-                            if (state is SetupSuccess) {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const ActiveDatesPage()));
-                            }
-                          }),
-                        ),
-                      )
-                    ],
+                            }, listener: (context, state) {
+                              if (state is SetupSuccess) {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const ActiveDatesPage()));
+                              }
+                            }),
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
+          ),
         ));
   }
 
