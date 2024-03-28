@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:audio_diaries_flutter/screens/diary/data/options.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:objectbox/objectbox.dart';
@@ -43,12 +42,12 @@ class Prompt {
   });
 
   void _ensureResponseType() {
-    assert(ResponseType.text.index == 0);
-    assert(ResponseType.multiple.index == 1);
-    assert(ResponseType.slider.index == 3);
-    assert(ResponseType.recording.index == 2);
-    assert(ResponseType.textAudio.index == 4);
-    assert(ResponseType.radio.index == 5);
+    assert(ResponseType.text.index == 1);
+    assert(ResponseType.multiple.index == 2);
+    assert(ResponseType.slider.index == 4);
+    assert(ResponseType.recording.index == 0);
+    assert(ResponseType.textAudio.index == 5);
+    assert(ResponseType.radio.index == 3);
   }
 
   factory Prompt.fromModel(PromptModel model) {
