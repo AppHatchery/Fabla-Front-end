@@ -63,10 +63,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
-      height: screenHeight * 0.95,
       width: width,
       decoration: const BoxDecoration(
         color: Color(0xFFF3F3F3),
@@ -75,54 +73,12 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       ),
       child: Column(
         children: [
-          Expanded(child: questionAndHints()),
-          // Recording controls
-          Container(
-            width: width,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32,
-            ),
-            color: CustomColors.productNormal,
-            child: Column(
-              children: [
-                const SizedBox(
-                  height: 24,
-                ),
-                recordingTimer(),
-                SizedBox(
-                  height: screenHeight > 850 ? 36 : 24,
-                ),
-                SizedBox(
-                  height: 42,
-                  width: width,
-                  child: waveForm(),
-                ),
-                SizedBox(
-                  height: screenHeight > 850 ? 36 : 24,
-                ),
-                recordingControls(screenHeight),
-                SizedBox(
-                  height: screenHeight > 850 ? 36 : 24,
-                ),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget questionAndHints() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(
-              height: 26,
-            ),
-            Row(
+          const SizedBox(
+            height: 26,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 GestureDetector(
@@ -135,55 +91,109 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 )
               ],
             ),
-            const SizedBox(
-              height: 16,
-            ),
-            Text(
-              widget.question,
-              style: CustomTypography().titleLarge(),
-            ),
-            const SizedBox(
-              height: 32,
-            ),
-            Image.asset(
-              "assets/images/avatar_recording.png",
-              height: 64,
-              width: 64,
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            Text(
-              widget.hint ??
-                  "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
-              style: CustomTypography().body(),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            CustomOutlineButton(
-              onClick: () => {},
-              color: CustomColors.productNormal,
-              backgroundColor: CustomColors.fillWhite,
-              children: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
+          ),
+          Expanded(
+            child: questionAndHints(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget questionAndHints() {
+    final width = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Scrollbar(
+      thumbVisibility: true,
+      child: SingleChildScrollView(
+        reverse: true,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Try A Hint",
-                    style: CustomTypography()
-                        .button(color: CustomColors.productNormal),
-                  ),
-                  const SizedBox(width: 8),
-                  Image.asset(
-                    "assets/images/star.png",
+                  const SizedBox(
                     height: 16,
-                    width: 16,
-                  )
+                  ),
+                  Text(
+                    widget.question,
+                    style: CustomTypography().titleLarge(),
+                  ),
+                  const SizedBox(
+                    height: 32,
+                  ),
+                  Image.asset(
+                    "assets/images/avatar_recording.png",
+                    height: 64,
+                    width: 64,
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  Text(
+                    widget.hint ??
+                        "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
+                    style: CustomTypography().body(),
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  CustomOutlineButton(
+                    onClick: () => {},
+                    color: CustomColors.productNormal,
+                    backgroundColor: CustomColors.fillWhite,
+                    children: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          "Try A Hint",
+                          style: CustomTypography()
+                              .button(color: CustomColors.productNormal),
+                        ),
+                        const SizedBox(width: 8),
+                        Image.asset(
+                          "assets/images/star.png",
+                          height: 16,
+                          width: 16,
+                        )
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(
-              height: 32,
+            const SizedBox(height: 16),
+            // Recording Controls
+            Container(
+              width: width,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 32,
+              ),
+              color: CustomColors.productNormal,
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  recordingTimer(),
+                  SizedBox(
+                    height: screenHeight > 850 ? 36 : 24,
+                  ),
+                  SizedBox(
+                    height: 42,
+                    width: width,
+                    child: waveForm(),
+                  ),
+                  SizedBox(
+                    height: screenHeight > 850 ? 36 : 24,
+                  ),
+                  recordingControls(screenHeight),
+                  SizedBox(
+                    height: screenHeight > 850 ? 36 : 24,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
