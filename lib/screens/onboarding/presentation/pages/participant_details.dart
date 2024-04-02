@@ -47,6 +47,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
         body: SafeArea(
           bottom: false,
           child: Container(
+            height: height > 550 ? height * .9 : height * 1.2,
             color: CustomColors.backgroundSecondary,
             child: LayoutBuilder(builder: (context, constraints) {
               final constraintHeight = constraints.maxHeight;

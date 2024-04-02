@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:rive/rive.dart';
 
 import '../../../../theme/components/buttons.dart';
@@ -31,14 +32,8 @@ class AvatarBackground extends StatefulWidget {
 class _AvatarBackgroundState extends State<AvatarBackground> {
   @override
   Widget build(BuildContext context) {
-    bool isKeyboardOpen = false;
-    if (widget.keyboardSpace != null) {
-      if (widget.keyboardSpace! > 0) {
-        isKeyboardOpen = true;
-      } else if (widget.keyboardSpace! < 100) {
-        isKeyboardOpen = false;
-      }
-    }
+    bool isKeyboardOpen =
+        widget.keyboardSpace != null ? widget.keyboardSpace! > 0 : false;
     return Stack(
       children: [
         Positioned(
@@ -77,11 +72,7 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(24),
                       topRight: Radius.circular(24))),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: isKeyboardOpen
-                    ? MainAxisAlignment.start
-                    : MainAxisAlignment.spaceBetween,
+              child: Stack(
                 children: [
                   widget.keyboardSpace != null
                       ? SingleChildScrollView(
@@ -102,10 +93,26 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
                             ),
                           ),
                         ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: CustomFlatButton(
-                        onClick: () => widget.onContinue(), text: "Continue"),
+                  AnimatedPositioned(
+                    left: 0,
+                    right: 0,
+                    bottom: isKeyboardOpen ? null : 0,
+                    top: isKeyboardOpen ? 100 : null,
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isKeyboardOpen = !isKeyboardOpen;
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: CustomFlatButton(
+                            onClick: () => widget.onContinue(),
+                            text: "Continue"),
+                      ),
+                    ),
                   )
                 ],
               ),
