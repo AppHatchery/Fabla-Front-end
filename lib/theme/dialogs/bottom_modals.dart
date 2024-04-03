@@ -73,25 +73,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       ),
       child: Column(
         children: [
-          Expanded(
-            child: questionAndHints(),
+          const SizedBox(
+            height: 32,
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget questionAndHints() {
-    final width = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    return SingleChildScrollView(
-      reverse: screenHeight > 850 ? true : false,
-      child: Column(
-        children: [
-          SizedBox(
-            height: screenHeight > 850 ? 64 : 32,
-          ),
+          // Close Modal Button
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Row(
@@ -108,6 +93,22 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               ],
             ),
           ),
+          Expanded(
+            child: questionAndHints(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget questionAndHints() {
+    final width = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return SingleChildScrollView(
+      reverse: screenHeight > 750 ? true : false,
+      child: Column(
+        children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Column(
@@ -133,34 +134,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                       "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
                   style: CustomTypography().body(),
                 ),
-                // const SizedBox(
-                //   height: 16,
-                // ),
-                // CustomOutlineButton(
-                //   onClick: () => {},
-                //   color: CustomColors.productNormal,
-                //   backgroundColor: CustomColors.fillWhite,
-                //   children: Wrap(
-                //     crossAxisAlignment: WrapCrossAlignment.center,
-                //     children: [
-                //       Text(
-                //         "Try A Hint",
-                //         style: CustomTypography()
-                //             .button(color: CustomColors.productNormal),
-                //       ),
-                //       const SizedBox(width: 8),
-                //       Image.asset(
-                //         "assets/images/star.png",
-                //         height: 16,
-                //         width: 16,
-                //       )
-                //     ],
-                //   ),
-                // ),
               ],
             ),
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: screenHeight > 750 ? 70 : 32),
           // Recording Controls
           Container(
             width: width,
