@@ -47,66 +47,71 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
         body: SafeArea(
           bottom: false,
           child: Container(
-            height: height > 550 ? height * .9 : height * 1.2,
             color: CustomColors.backgroundSecondary,
             child: LayoutBuilder(builder: (context, constraints) {
               final constraintHeight = constraints.maxHeight;
-              return SingleChildScrollView(
-                child: GestureDetector(
-                  onTap: () => FocusScope.of(context).unfocus(),
-                  child: SizedBox(
-                    height: height > 550 ? height * .9 : height * 1.2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text(
-                            "Enter a nickname for the study.",
-                            style: CustomTypography()
-                                .headlineLarge(color: CustomColors.textWhite),
+              return SizedBox(
+                height: constraintHeight,
+                child: SingleChildScrollView(
+                  child: GestureDetector(
+                    onTap: () => FocusScope.of(context).unfocus(),
+                    child: SizedBox(
+                      height: height > 550 ? height * .9 : height * 1.2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Text(
+                              "Enter a nickname for the study.",
+                              style: CustomTypography()
+                                  .headlineLarge(color: CustomColors.textWhite),
+                            ),
                           ),
-                        ),
-                        height > 850
-                            ? const SizedBox(
-                                height: 60,
-                              )
-                            : SizedBox(
-                                height: keyboardSpace > 0 ? 0 : 60,
-                              ),
-                        Expanded(
-                          child: SizedBox(
-                            width: width,
-                            child: BlocConsumer<SetupCubit, SetupState>(
-                                builder: (context, state) {
-                              if (state is SetupInitial) {
-                                return intialDetails(height, width);
-                              } else if (state is SetupLoading) {
-                                return loadingDetails(height, width);
-                              } else if (state is SetupLoaded) {
-                                Participant? participant = state.participant;
-                                if (participant != null) {
-                                  return loadedDetails(
-                                      height, width, participant);
+                          height > 850
+                              ? const SizedBox(
+                                  height: 60,
+                                )
+                              : AnimatedContainer(
+                            duration: const Duration(milliseconds: 700),
+                            curve: Curves.easeInOut,
+                            height: keyboardSpace > 0 ? 0 : 60,
+                          ),
+                          Expanded(
+                            child: SizedBox(
+                              width: width,
+                              child: BlocConsumer<SetupCubit, SetupState>(
+                                  builder: (context, state) {
+                                if (state is SetupInitial) {
+                                  return intialDetails(height, width);
+                                } else if (state is SetupLoading) {
+                                  return loadingDetails(height, width);
+                                } else if (state is SetupLoaded) {
+                                  Participant? participant = state.participant;
+                                  if (participant != null) {
+                                    return loadedDetails(
+                                        height, width, participant);
+                                  } else {
+                                    return intialDetails(height, width);
+                                  }
                                 } else {
                                   return intialDetails(height, width);
                                 }
-                              } else {
-                                return intialDetails(height, width);
-                              }
-                            }, listener: (context, state) {
-                              if (state is SetupSuccess) {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const ActiveDatesPage()));
-                              }
-                            }),
-                          ),
-                        )
-                      ],
+                              }, listener: (context, state) {
+                                if (state is SetupSuccess) {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const ActiveDatesPage()));
+                                }
+                              }),
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:rive/rive.dart';
@@ -72,7 +73,7 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(24),
                       topRight: Radius.circular(24))),
-              child: Stack(
+              child: Column(
                 children: [
                   widget.keyboardSpace != null
                       ? SingleChildScrollView(
@@ -93,27 +94,32 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
                             ),
                           ),
                         ),
-                  AnimatedPositioned(
-                    left: 0,
-                    right: 0,
-                    bottom: isKeyboardOpen ? null : 0,
-                    top: isKeyboardOpen ? 100 : null,
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          isKeyboardOpen = !isKeyboardOpen;
-                        });
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: CustomFlatButton(
-                            onClick: () => widget.onContinue(),
-                            text: "Continue"),
-                      ),
-                    ),
-                  )
+                  widget.keyboardSpace != null
+                      ? Expanded(
+                          child: Column(
+                            children: [
+                              Flexible(
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 700),
+                                  curve: Curves.easeInOut,
+                                  height: isKeyboardOpen ? 0 : 1000,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: CustomFlatButton(
+                                    onClick: () => widget.onContinue(),
+                                    text: "Continue"),
+                              ),
+                            ],
+                          ),
+                        )
+                      : Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: CustomFlatButton(
+                              onClick: () => widget.onContinue(),
+                              text: "Continue"),
+                        ),
                 ],
               ),
             ))
