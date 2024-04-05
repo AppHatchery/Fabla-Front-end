@@ -74,8 +74,9 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
                       topLeft: Radius.circular(24),
                       topRight: Radius.circular(24))),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  widget.keyboardSpace != null
+                  widget.keyboardSpace != null && widget.height < 850
                       ? SingleChildScrollView(
                           child: SizedBox(
                             child: Column(
@@ -94,7 +95,7 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
                             ),
                           ),
                         ),
-                  widget.keyboardSpace != null
+                  widget.keyboardSpace != null && widget.height < 850
                       ? Expanded(
                           child: Column(
                             children: [
