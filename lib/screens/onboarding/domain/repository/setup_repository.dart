@@ -3,13 +3,12 @@ import 'dart:io';
 import 'dart:math';
 import 'package:amplify_api/amplify_api.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
-import 'package:audio_diaries_flutter/models/Participants.dart';
 import 'package:audio_diaries_flutter/models/ParticipantsDev.dart';
-import 'package:audio_diaries_flutter/models/ParticipantsNew.dart';
 import 'package:audio_diaries_flutter/models/UserMetadata.dart';
 import 'package:audio_diaries_flutter/models/UserMetadataDev.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -18,17 +17,22 @@ import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../../../core/database/dao/participant_dao.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
 import '../../../../theme/resources/strings.dart';
+import '../../../diary/data/protocol.dart';
+import '../../../diary/domain/entities/protocol_entity.dart';
 import '../entities/participant.dart';
 
 class SetupRepository {
   final ParticipantDAO _participantDAO =
       ParticipantDAO(box: Box<Participant>(objectbox.store));
+  final ProtocolDAO _protocolDAO =
+      ProtocolDAO(box: Box<ProtocolEntity>(objectbox.store));
 
   /// Retrieves the participant's information from the database.
   ///
@@ -66,6 +70,68 @@ class SetupRepository {
   /// ```
   void updateParticipant(String name) {
     _participantDAO.update(name);
+  }
+
+  /// This method is responsible for creating a protocol by retrieving data from a remote source.
+  ///
+  /// This function retrieves the protocol data from a remote source and stores it in the database.
+  /// The function then checks if the protocol is already in the database and if the version has changed.
+  /// If the protocol is new or the version has changed, the function updates or adds the protocol to the database.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// createProtocol(); // Create and store the protocol in the database.
+  /// ```
+  void createProtocol() async {
+    // Get the protocol from the assets/ from Remote source
+    final String response = await rootBundle.loadString('assets/protocol.json');
+    final data = await json.decode(response);
+
+    // Convert to model
+    final protocol = Protocol.fromJson(data);
+    //TODO: Remove this print statements
+    print(
+        "Protocol-FromJSON Blueprints Active Days - ${protocol.diaryBlueprints[0].activeDays}");
+    print(
+        "Protocol-FromJSON Blueprints Freq - ${protocol.diaryBlueprints[0].frequency}");
+    print(
+        "Protocol-FromJSON Blueprints Entries = ${protocol.diaryBlueprints[0].entries}");
+    print(
+        "Protocol-FromJSON Blueprints Start - ${protocol.diaryBlueprints[0].startDate}");
+    print(
+        "Protocol-FromJSON Blueprints End - ${protocol.diaryBlueprints[0].endDate}");
+    print(
+        "Protocol-FromJSON Blueprints Start Time - ${protocol.diaryBlueprints[0].startTime}");
+    print(
+        "Protocol-FromJSON Blueprints End Time - ${protocol.diaryBlueprints[0].endTime}");
+    print("Protocol-FromJSON wg - ${protocol.weeklyGoal}");
+    print("Protocol-FromJSON dg - ${protocol.dailyGoal}");
+    print("Protocol-FromJSON version - ${protocol.version}");
+
+    // check if protocol is already in the database and if version changed
+    final ProtocolEntity? existingProtocol = _protocolDAO.getProtocol();
+
+    if (existingProtocol == null ||
+        existingProtocol.version != protocol.version) {
+      // Update or add the protocol to the database
+      print(
+          "Protocol is New? - ${existingProtocol == null} | is Updating? - ${existingProtocol?.version != protocol.version}");
+
+      final newProtocol = existingProtocol != null
+          ? existingProtocol.copyWith(
+              entity: ProtocolEntity.fromModel(model: protocol))
+          : ProtocolEntity.fromModel(model: protocol);
+
+      print(
+          "Protocol-FromModel Blueprints - ${newProtocol.diaryBlueprints[0]}");
+      print("Protocol-FromModel wg - ${newProtocol.weeklyGoal}");
+      print("Protocol-FromModel dg - ${newProtocol.dailyGoal}");
+      print("Protocol-FromModel version - ${newProtocol.version}");
+
+      _protocolDAO.addProtocol(newProtocol);
+    } else {
+      print("Protocol already exists and no updates");
+    }
   }
 
   /// Creates and stores metadata related to the participant's study.

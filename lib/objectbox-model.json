@@ -136,9 +136,43 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "5:2988719045456756030",
+      "lastPropertyId": "5:2576218372761869185",
+      "name": "ProtocolEntity",
+      "properties": [
+        {
+          "id": "1:5257198201348013293",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3776969223611727176",
+          "name": "version",
+          "type": 6
+        },
+        {
+          "id": "3:1467283090544309213",
+          "name": "weeklyGoal",
+          "type": 6
+        },
+        {
+          "id": "4:6272410611864998549",
+          "name": "dailyGoal",
+          "type": 6
+        },
+        {
+          "id": "5:2576218372761869185",
+          "name": "diaryBlueprints",
+          "type": 30
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "4:214140320849011354",
+  "lastEntityId": "5:2988719045456756030",
   "lastIndexId": "1:282317442931372277",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
