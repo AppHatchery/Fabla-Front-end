@@ -13,4 +13,11 @@ class Option {
       option: option ?? this.option,
     );
   }
+
+  factory Option.fromJson(Map<String, dynamic> json) {
+    return Option(
+      id: json['id'],
+      option: json['option'],
+    );
+  }
 }

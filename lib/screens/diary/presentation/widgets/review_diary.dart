@@ -14,7 +14,7 @@ import '../cubit/diary/summary_cubit.dart';
 import 'question_widgets.dart';
 
 class ReviewDiary extends StatefulWidget {
-  final Diary diary;
+  final DiaryModel diary;
   const ReviewDiary({super.key, required this.diary});
 
   @override
@@ -62,7 +62,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
     ));
   }
 
-  Widget content(Diary diary, BuildContext context) {
+  Widget content(DiaryModel diary, BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     return Container(
@@ -134,7 +134,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
     );
   }
 
-  Widget buildPrompt(Prompt prompt, int index) {
+  Widget buildPrompt(PromptModel prompt, int index) {
     if (!sliderEnabledStates.containsKey(index)) {
       sliderEnabledStates[index] = false;
     }
@@ -261,7 +261,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
     return answerList;
   }
 
-  void deleteResponse(Prompt prompt, String path) {
+  void deleteResponse(PromptModel prompt, String path) {
     summaryCubit.removeResponse(widget.diary, prompt, path);
   }
 

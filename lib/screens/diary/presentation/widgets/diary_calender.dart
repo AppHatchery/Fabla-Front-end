@@ -21,7 +21,7 @@ class DiaryCalender extends StatefulWidget {
 
 class _DiaryCalenderState extends State<DiaryCalender> {
   late DiaryCubit diaryCubit;
-  late List<Diary> diaries;
+  late List<DiaryModel> diaries;
 
   DateTime today = DateTime.now();
 
@@ -62,7 +62,7 @@ class _DiaryCalenderState extends State<DiaryCalender> {
     );
   }
 
-  List<Diary> _getAllDiaries() {
+  List<DiaryModel> _getAllDiaries() {
     final DiaryRepository repository = DiaryRepository();
     return repository.getAllDiaries();
   }
@@ -88,7 +88,7 @@ class _DiaryCalenderState extends State<DiaryCalender> {
     return Container();
   }
 
-  Widget loadedDiary(List<Diary> diaries, DateTime startDate) {
+  Widget loadedDiary(List<DiaryModel> diaries, DateTime startDate) {
     if (today.isBefore(startDate) && diaries.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,

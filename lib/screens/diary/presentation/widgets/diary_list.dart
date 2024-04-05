@@ -66,7 +66,7 @@ class _DiaryListState extends State<DiaryList> {
     return Container();
   }
 
-  Widget loadedDiaryHistory(List<Diary> diaries) {
+  Widget loadedDiaryHistory(List<DiaryModel> diaries) {
     if (diaries.isEmpty) {
       return const BeforeStartWidget();
     } else {

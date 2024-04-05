@@ -40,7 +40,7 @@ import '../utils/formatter.dart';
 ///   // Handle upload failure.
 /// }
 /// ```
-Future<bool> upload(String studyCode, Diary diary) async {
+Future<bool> upload(String studyCode, DiaryModel diary) async {
   final dir = await getApplicationDocumentsDirectory();
   try {
     List<DiaryAudioData> fileList = [];
@@ -62,9 +62,9 @@ Future<bool> upload(String studyCode, Diary diary) async {
                 prompt: i + 1, file: File(path), date: diary.start));
           }
         } else {
-          questions.add(Question(
-              questionType: prompt.questionType,
-              answer: prompt.answer!.response!));
+          // questions.add(Question(
+          //     questionType: prompt.questionType,
+          //     answer: prompt.answer!.response!));
         }
       }
     }
@@ -129,7 +129,7 @@ Future<bool> uploadFilesToS3(
       ).result;
       print('Uploaded file: ${uploadResult.uploadedItem.key}');
     } on StorageException catch (e) {
-      PendoService.track("UploadError", {"errorcode":"s3 diary"});
+      PendoService.track("UploadError", {"errorcode": "s3 diary"});
       print('Error uploading file: ${e.message}');
       return false;
     }
@@ -148,7 +148,7 @@ Future<bool> uploadMetaDataS3(var studyCode, File file) async {
     ).result;
     print('Uploaded Meta data file: ${uploadResult.uploadedItem.key}');
   } on StorageException catch (e) {
-    PendoService.track("UploadError", {"errorcode":"S3 metadata"});
+    PendoService.track("UploadError", {"errorcode": "S3 metadata"});
     print('Error uploading file: ${e.message}');
     return false;
   }
@@ -183,7 +183,7 @@ Question? filterQuestionByType(List<Question> objectList, QuestionType type) {
 ///Example initial, 10001 - PHYSICALLY_1 ="", then updated to, -> 10001 - PHYSICALLY_1="3"
 ///
 Future<bool> apiSubmitSurveyQuestions(
-    String studycode, Diary diary, Map<String, dynamic> map) async {
+    String studycode, DiaryModel diary, Map<String, dynamic> map) async {
   try {
     String graphQLDocument = '''
       query ListFiles {
@@ -215,7 +215,7 @@ Future<bool> apiSubmitSurveyQuestions(
       return false;
     }
   } catch (e) {
-    PendoService.track("UploadError", {"errorcode":"GraphQL diary"});
+    PendoService.track("UploadError", {"errorcode": "GraphQL diary"});
     print('Error checking if $studycode exists: $e');
     return false;
   }
@@ -223,7 +223,7 @@ Future<bool> apiSubmitSurveyQuestions(
 // META DATA FUNCTIONS
 
 Future<GqlApiRequestStateUpdate> participantsDiaryStartDate(
-    Diary? diary) async {
+    DiaryModel? diary) async {
   int day = diary!.id;
   DateTime diaryStartTime = DateTime.now();
   SetupRepository repo = SetupRepository();
@@ -317,7 +317,7 @@ Future<dynamic> apiGetParticipant(String studycode) async {
       return null;
     }
   } catch (e) {
-    PendoService.track("UploadError", {"errorcode":"GraphQL get participant"});
+    PendoService.track("UploadError", {"errorcode": "GraphQL get participant"});
     print('Error checking if $studycode exists: $e');
     return null;
   }
@@ -367,11 +367,11 @@ Map<String, dynamic> getResponses(int day, List<Question> r) {
 }
 
 Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
-    Diary diary, Map<String, dynamic> responseMap) async {
+    DiaryModel diary, Map<String, dynamic> responseMap) async {
   int day = diary.id;
   final endtime = DateTime.now();
-  if(responseMap.length == 10){ 
-    responseMap['endtime_$day']=formatDate(endtime);
+  if (responseMap.length == 10) {
+    responseMap['endtime_$day'] = formatDate(endtime);
   }
 
   final input = {'id': id, '_version': entryVersion};
@@ -456,7 +456,7 @@ Future<dynamic> apiGetUseMetaData(String studycode) async {
   }
 }
 
-Future<GqlApiRequestStateUpdate> updateMetataData(Diary? diary) async {
+Future<GqlApiRequestStateUpdate> updateMetataData(DiaryModel? diary) async {
   final day = diary!.id;
   DateTime diaryStartTime = DateTime.now();
   SetupRepository repo = SetupRepository();

@@ -25,7 +25,7 @@ class PromptCubit extends Cubit<PromptState> {
   /// ```dart
   /// await loadPrompt(myPrompt);
   /// ```
-  Future<void> loadPrompt(Prompt prompt) async {
+  Future<void> loadPrompt(PromptModel prompt) async {
     try {
       emit(PromptLoading(prompt));
       final newPrompt = await _repository.load(prompt);
@@ -53,11 +53,11 @@ class PromptCubit extends Cubit<PromptState> {
   /// ```dart
   /// await saveResponse(myPrompt, '/path/to/recording.wav');
   /// ```
-  Future<void> saveResponse(Prompt prompt, dynamic response) async {
+  Future<void> saveResponse(PromptModel prompt, dynamic response) async {
     try {
       final saved = await _repository.saveResponse(prompt, response);
       if (saved) {
-        if(prompt.responseType == ResponseType.recording){
+        if (prompt.responseType == ResponseType.recording) {
           showSuccessModal();
         }
       }
@@ -84,7 +84,7 @@ class PromptCubit extends Cubit<PromptState> {
   /// ```dart
   /// await removeResponse(myPrompt, '/path/to/recording.wav');
   /// ```
-  Future<void> removeResponse(Prompt prompt, String path) async {
+  Future<void> removeResponse(PromptModel prompt, String path) async {
     try {
       await _repository.removeResponse(prompt, path);
     } catch (e) {

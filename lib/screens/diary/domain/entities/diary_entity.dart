@@ -1,21 +1,27 @@
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 import 'package:objectbox/objectbox.dart';
 
-import '../../../../core/utils/dummy_data.dart';
 import '../../../../core/utils/statuses.dart';
 import '../../data/diary.dart';
 import '../../data/prompt.dart';
 
 @Entity()
-class DiaryEntity {
+class Diary {
+  @Id()
   int id;
-  @Property(type: PropertyType.byteVector)
-  List<int> prompts;
+  @Property(type: PropertyType.date)
+  DateTime start;
+  @Property(type: PropertyType.date)
+  DateTime end;
+  int entries;
   @Property(type: PropertyType.date)
   DateTime due;
-  String start;
   String deadline;
   @Transient()
   DiaryStatus? status;
+
+  @Backlink('diary')
+  final prompts = ToMany<Prompt>();
 
   int? get dbDiaryStatus {
     _ensureDiaryStatus();
@@ -27,8 +33,14 @@ class DiaryEntity {
     status = DiaryStatus.values[index ?? 0];
   }
 
-  DiaryEntity({this.id = 0, required this.prompts, required this.due, required this.start, required this.deadline,this.status});
-
+  Diary(
+      {this.id = 0,
+      required this.due,
+      required this.start,
+      required this.entries,
+      required this.end,
+      required this.deadline,
+      this.status});
 
   /// Ensures the consistency of DiaryStatus enumeration indices.
   /// This private method verifies that the indices of the DiaryStatus enum values correspond to their expected numerical values.
@@ -55,19 +67,20 @@ class DiaryEntity {
   /// Returns:
   /// A DiaryEntity object representing a diary entry, constructed using information from the provided Diary model.
   ///
-  factory DiaryEntity.fromModel(Diary model) {
-    return DiaryEntity(
+  factory Diary.fromModel(DiaryModel model) {
+    return Diary(
       id: model.id,
-      prompts: [findKeyForId(model.prompts.first.id, fakePrompts)],
       due: model.due,
-      start: model.start.toString(),
+      start: model.start,
+      end: model.end,
+      entries: model.entries,
       deadline: model.due.toString(),
       status: model.status,
     );
   }
 }
 
-int findKeyForId(int targetId, Map<int, List<Prompt>> prompts) {
+int findKeyForId(int targetId, Map<int, List<PromptModel>> prompts) {
   for (final entry in prompts.entries) {
     final idList = entry.value.map((prompt) => prompt.id).toList();
     if (idList.contains(targetId)) {

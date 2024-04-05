@@ -25,13 +25,13 @@ class AnswerRepository {
   /// - [prompt]: The prompt to be loaded.
   ///
   /// Returns:
-  /// - An updated [Prompt] instance reflecting the loaded state.
+  /// - An updated [PromptModel] instance reflecting the loaded state.
   ///
   /// Usage example:
   /// ```dart
   /// final loadedPrompt = await load(myPrompt);
   /// ```
-  Future<Prompt> load(Prompt prompt) async {
+  Future<PromptModel> load(PromptModel prompt) async {
     final answers = dao.getAnswers(prompt.id);
 
     // Determine the updated prompt based on whether answers are available
@@ -60,17 +60,14 @@ class AnswerRepository {
   /// ```dart
   /// final saved = await saveResponse(myPrompt, '/path/to/recording.wav');
   /// ```
-  Future<bool> saveResponse(Prompt prompt, dynamic response) async {
+  Future<bool> saveResponse(PromptModel prompt, dynamic response) async {
     final isUpdating = prompt.answer != null;
     late Answer answer;
 
     if (prompt.responseType == ResponseType.recording) {
       answer = isUpdating
           ? prompt.answer! // Use the existing answer for updating
-          : Answer(
-              id: 0,
-              promptId: prompt.id,
-              date: DateTime.now()); // Create a new answer
+          : Answer(id: 0, date: DateTime.now()); // Create a new answer
       // Create a new recording and associate it with the answer
       final recording =
           Recording("Audio Diary", response, null, DateTime.now());
@@ -81,7 +78,7 @@ class AnswerRepository {
           ? prompt.answer!.copyWith(response: response)
           : Answer(
               id: 0,
-              promptId: prompt.id,
+              //promptId: prompt.id,
               date: DateTime.now(),
               response: response);
     }
@@ -111,7 +108,7 @@ class AnswerRepository {
   /// ```dart
   /// await removeResponse(myPrompt, '/path/to/recording.wav');
   /// ```
-  Future<void> removeResponse(Prompt prompt, String path) async {
+  Future<void> removeResponse(PromptModel prompt, String path) async {
     try {
       // Delete the recording file from the file system
       final dir = await getApplicationDocumentsDirectory();

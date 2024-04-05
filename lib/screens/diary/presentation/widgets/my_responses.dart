@@ -15,7 +15,7 @@ import '../cubit/prompt/prompt_cubit.dart';
 /// and a button for them to add a new response(no functionality yet)
 /// the My response section, to be changed into a  list in case of multiple responses
 class MyResponse extends StatefulWidget {
-  final Prompt prompt;
+  final PromptModel prompt;
   final DiaryStatus status;
   final List<Recording> recordings;
 
@@ -65,7 +65,7 @@ class _MyResponseState extends State<MyResponse> {
     );
   }
 
-  void deleteResponse(Prompt loadedPrompt, String path) {
+  void deleteResponse(PromptModel loadedPrompt, String path) {
     final promptCubit = context.read<PromptCubit>();
     promptCubit.removeResponse(loadedPrompt, path);
   }
