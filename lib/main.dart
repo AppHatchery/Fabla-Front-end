@@ -77,7 +77,6 @@ class _MyAppState extends State<MyApp> {
     _route = widget.route;
     final repo = SetupRepository();
     repo.createProtocol();
-    diaryInit("0001");
     super.initState();
   }
 
