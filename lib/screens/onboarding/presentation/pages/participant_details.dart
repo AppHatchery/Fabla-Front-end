@@ -31,6 +31,8 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
+    final fontsize = MediaQuery.of(context).textScaler.scale(1);
+    print("ScALE factor: $fontsize");
     keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
     return Scaffold(
         resizeToAvoidBottomInset: true,
@@ -50,13 +52,16 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
             color: CustomColors.backgroundSecondary,
             child: LayoutBuilder(builder: (context, constraints) {
               final constraintHeight = constraints.maxHeight;
+              print("the constraint Height is $constraintHeight");
               return SizedBox(
-                height: constraintHeight,
+                height: height,
                 child: SingleChildScrollView(
                   child: GestureDetector(
                     onTap: () => FocusScope.of(context).unfocus(),
                     child: SizedBox(
-                      height: height > 550 ? height * .9 : height * 1.2,
+                      height: constraintHeight < 500
+                          ? height * 1.2
+                          : constraintHeight,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -70,15 +75,15 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
                                   .headlineLarge(color: CustomColors.textWhite),
                             ),
                           ),
-                          height > 850
+                          height > 700
                               ? const SizedBox(
                                   height: 60,
                                 )
                               : AnimatedContainer(
-                            duration: const Duration(milliseconds: 700),
-                            curve: Curves.easeInOut,
-                            height: keyboardSpace > 0 ? 0 : 60,
-                          ),
+                                  duration: const Duration(milliseconds: 700),
+                                  curve: Curves.easeInOut,
+                                  height: constraintHeight < 500 ? keyboardSpace > 0 ? 0 : 0 : keyboardSpace > 0 ? 0 : 60,
+                                ),
                           Expanded(
                             child: SizedBox(
                               width: width,
