@@ -4,7 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class CustomTypography {
   static const String fontName = 'Rubik';
 
-  TextStyle headlineLargeCustom({Color color = Colors.black, double fontSize = 32}){
+  TextStyle headlineLargeCustom(
+      {Color color = Colors.black, double fontSize = 32}) {
     return TextStyle(
       fontFamily: fontName,
       fontWeight: FontWeight.w600,
@@ -74,7 +75,18 @@ class CustomTypography {
     );
   }
 
-  TextStyle bodyLarge({Color color = Colors.black, weight = FontWeight.normal}) {
+  TextStyle titleSmallCustom({Color color = Colors.black}) {
+    return TextStyle(
+      fontFamily: fontName,
+      fontWeight: FontWeight.w600,
+      fontSize: 18.sp,
+      color: color,
+      letterSpacing: 0,
+    );
+  }
+
+  TextStyle bodyLarge(
+      {Color color = Colors.black, weight = FontWeight.normal}) {
     return TextStyle(
       fontFamily: fontName,
       fontWeight: weight,
@@ -84,7 +96,8 @@ class CustomTypography {
     );
   }
 
-  TextStyle bodyMedium({Color color = Colors.black, weight = FontWeight.normal}) {
+  TextStyle bodyMedium(
+      {Color color = Colors.black, weight = FontWeight.normal}) {
     return TextStyle(
       fontFamily: fontName,
       fontWeight: weight,
@@ -99,6 +112,16 @@ class CustomTypography {
       fontFamily: fontName,
       fontWeight: FontWeight.normal,
       fontSize: 17.sp,
+      color: color,
+      letterSpacing: 0,
+    );
+  }
+
+  TextStyle bodyLight({Color color = Colors.grey}) {
+    return TextStyle(
+      fontFamily: fontName,
+      fontWeight: FontWeight.normal,
+      fontSize: 15.sp,
       color: color,
       letterSpacing: 0,
     );
