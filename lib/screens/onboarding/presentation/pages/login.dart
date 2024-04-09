@@ -95,9 +95,9 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   Row(
-                    // mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(
+                      Flexible(
                         child: Text(
                           "Need help with the participant ID? ",
                           style: CustomTypography()
