@@ -38,91 +38,88 @@ class _LoginPageState extends State<LoginPage> {
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
           child: SingleChildScrollView(
-            child: SizedBox(
-              height: height - 40,
-              width: width,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 70, 16, 60),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Image.asset(
-                            "assets/images/logo_white.png",
-                            height: 52,
-                            width: 52,
-                          ),
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          Text("Welcome to Fabla! ${Strings.wavingEmoji}",
-                              style: CustomTypography().headlineLarge(
-                                  color: CustomColors.textWhite)),
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          Text(
-                              "Fabla is a tool for EMA, audio diary research and more ${Strings.telescope}",
-                              style: CustomTypography()
-                                  .titleSmall(color: CustomColors.textWhite)),
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          BlocConsumer<LoginCubit, LoginState>(
-                              builder: (context, state) {
-                            if (state is LoginInitial) {
-                              return initialLogin();
-                            } else if (state is LoginLoading) {
-                              return loading();
-                            }
-                            return initialLogin();
-                          }, listener: (context, state) {
-                            if (state is LoginSuccess) {
-                              error = false;
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const ConfrimJoiningPage()));
-                            } else if (state is LoginError) {
-                              setState(() {
-                                error = true;
-                              });
-                            }
-                          })
-                        ],
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 70, 16, 60),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Image.asset(
+                          "assets/images/logo_white.png",
+                          height: 52,
+                          width: 52,
+                        ),
+                        const SizedBox(
+                          height: 24,
+                        ),
+                        Text("Welcome to Fabla! ${Strings.wavingEmoji}",
+                            style: CustomTypography()
+                                .headlineLarge(color: CustomColors.textWhite)),
+                        const SizedBox(
+                          height: 24,
+                        ),
                         Text(
+                            "Fabla is a tool for EMA, audio diary research and more ${Strings.telescope}",
+                            style: CustomTypography()
+                                .titleSmall(color: CustomColors.textWhite)),
+                        const SizedBox(
+                          height: 24,
+                        ),
+                        BlocConsumer<LoginCubit, LoginState>(
+                            builder: (context, state) {
+                          if (state is LoginInitial) {
+                            return initialLogin();
+                          } else if (state is LoginLoading) {
+                            return loading();
+                          }
+                          return initialLogin();
+                        }, listener: (context, state) {
+                          if (state is LoginSuccess) {
+                            error = false;
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const ConfrimJoiningPage()));
+                          } else if (state is LoginError) {
+                            setState(() {
+                              error = true;
+                            });
+                          }
+                        })
+                      ],
+                    ),
+                  ),
+                  Row(
+                    // mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
                           "Need help with the participant ID? ",
                           style: CustomTypography()
                               .bodyMedium(color: CustomColors.textWhite),
                         ),
-                        GestureDetector(
-                            onTap: () => launchEmail(),
-                            child: Text(
-                              "Contact us",
-                              style: TextStyle(
-                                  fontSize:
-                                      CustomTypography().bodyMedium().fontSize,
-                                  fontWeight: CustomTypography()
-                                      .bodyMedium()
-                                      .fontWeight,
-                                  decoration: TextDecoration.underline,
-                                  decorationColor: CustomColors.textWhite,
-                                  color: CustomColors.textWhite),
-                            )),
-                      ],
-                    )
-                  ],
-                ),
+                      ),
+                      GestureDetector(
+                          onTap: () => launchEmail(),
+                          child: Text(
+                            "Contact us",
+                            style: TextStyle(
+                                fontSize:
+                                    CustomTypography().bodyMedium().fontSize,
+                                fontWeight:
+                                    CustomTypography().bodyMedium().fontWeight,
+                                decoration: TextDecoration.underline,
+                                decorationColor: CustomColors.textWhite,
+                                color: CustomColors.textWhite),
+                          )),
+                    ],
+                  )
+                ],
               ),
             ),
           ),
