@@ -458,3 +458,70 @@ class _TextQuestionCardState extends State<TextQuestionCard> {
     );
   }
 }
+
+class FreeTextQuestionCard extends StatefulWidget {
+  final ValueChanged<String?> onChanged;
+  final String? value;
+  const FreeTextQuestionCard(
+      {super.key, required this.onChanged, required this.value});
+
+  @override
+  State<FreeTextQuestionCard> createState() => _FreeTextQuestionCardState();
+}
+
+class _FreeTextQuestionCardState extends State<FreeTextQuestionCard> {
+  late TextEditingController _freeTextResponseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _freeTextResponseController = new TextEditingController(text: widget.value);
+  }
+
+  @override
+  void dispose() {
+    _freeTextResponseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: 24.0,
+          ),
+        ),
+        TextField(
+          onChanged: widget.onChanged,
+          decoration: InputDecoration(
+            hintText: 'Type your message',
+            hintStyle: CustomTypography()
+                .button(color: CustomColors.textTertiaryContent),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide:
+                  const BorderSide(color: CustomColors.productBorderNormal),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide:
+                  const BorderSide(color: CustomColors.productBorderNormal),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide:
+                  const BorderSide(color: CustomColors.productBorderActive),
+            ),
+            fillColor: Colors.white,
+            filled: true,
+          ),
+          maxLines: null,
+          controller: _freeTextResponseController,
+          keyboardType: TextInputType.text,
+        )
+      ],
+    );
+  }
+}
