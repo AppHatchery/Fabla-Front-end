@@ -517,7 +517,7 @@ class _QuestionPageState extends State<QuestionPage>
         disabled: disabled,
       );
     } else if (prompt.responseType == ResponseType.recording ||
-        prompt.responseType == ResponseType.text) {
+        prompt.responseType == ResponseType.textAudio) {
       bool hasRecordingOrResponse = prompt.answer?.recordings.isNotEmpty ??
           false || prompt.answer?.response != null;
       responseWidget = widget.diary.status == DiaryStatus.submitted ||
