@@ -32,7 +32,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
-        backgroundColor: CustomColors.backgroundSecondary,
+        backgroundColor: CustomColors.fillWhite,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           leading: canGoBack
@@ -50,9 +50,8 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
           child: LayoutBuilder(builder: (context, constraints) {
             final constraintHeight = constraints.maxHeight;
             return SingleChildScrollView(
-              child: SizedBox(
-                height: constraintHeight,
-                width: width,
+              child: Container(
+                color: CustomColors.backgroundSecondary,
                 child: Column(
                   children: [
                     Padding(
@@ -66,28 +65,28 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                     const SizedBox(
                       height: 16,
                     ),
-                    Expanded(
-                      child: SizedBox(
-                        width: width,
-                        child: AvatarBackground(
-                            height: height,
-                            width: width,
-                            image: "assets/images/active_time.png",
-                            avatarType: "animation",
-                            animation:
-                                "assets/animations/onboarding/onboarding_remindersetting.riv",
-                            onContinue: () => navigateToNextPage(),
-                            children: [
-                              Text(
-                                "Reminder",
-                                style: CustomTypography().titleLarge(),
-                              ),
-                              const SizedBox(
-                                height: 12,
-                              ),
-                              ListActiveTimes(times: times),
-                            ]),
-                      ),
+                    SizedBox(
+                      height:
+                          constraintHeight > 700 ? constraintHeight * .9 : 650,
+                      width: width,
+                      child: AvatarBackground(
+                          height: height,
+                          width: width,
+                          image: "assets/images/active_time.png",
+                          avatarType: "animation",
+                          animation:
+                              "assets/animations/onboarding/onboarding_remindersetting.riv",
+                          onContinue: () => navigateToNextPage(),
+                          children: [
+                            Text(
+                              "Reminder",
+                              style: CustomTypography().titleLarge(),
+                            ),
+                            const SizedBox(
+                              height: 12,
+                            ),
+                            ListActiveTimes(times: times),
+                          ]),
                     )
                   ],
                 ),
