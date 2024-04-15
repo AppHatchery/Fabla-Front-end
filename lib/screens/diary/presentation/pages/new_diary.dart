@@ -566,8 +566,14 @@ class _QuestionPageState extends State<QuestionPage>
     }
 
     return (prompt.responseType == ResponseType.recording ||
-            prompt.responseType == ResponseType.text)
-        ? AudioQuestionsWidget(diary: widget.diary, prompt: prompt, currentPage: widget.currentPage, audiTextWidget: audiTextWidget, responseWidget: responseWidget, textWidget: textWidget)
+            prompt.responseType == ResponseType.textAudio)
+        ? AudioQuestionsWidget(
+            diary: widget.diary,
+            prompt: prompt,
+            currentPage: widget.currentPage,
+            audiTextWidget: audiTextWidget,
+            responseWidget: responseWidget,
+            textWidget: textWidget)
         : SingleChildScrollView(
             controller: _scrollController,
             child: Container(
