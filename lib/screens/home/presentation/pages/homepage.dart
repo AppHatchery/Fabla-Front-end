@@ -271,10 +271,10 @@ class _HomePageState extends State<HomePage>
                       image: 'assets/images/idea.png',
                       messageOne: "Separate Logs for Each Encounter",
                       descriptionOne:
-                          "Please log each one separately to capture every detail.",
+                          "Please log each encounter separately to capture every detail",
                       messageTwo: "Don't be limited to your daily goals!",
                       descriptionTwo:
-                          "You are encouraged to log every encounter: More entries, more insights. Every entry values!",
+                          "You are encouraged to log as many encounters as you can: More entries, more insights!",
                       iconOne: "assets/images/arrow_split.png",
                       iconTwo: "assets/images/record_voice_over.png",
                       dontShowAgain: false,
