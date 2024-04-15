@@ -134,10 +134,7 @@ class _MyAppState extends State<MyApp> {
                 },
               ));
         },
-        child: MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaleFactor: 1),
-          child: _route,
-        ));
+        child: _route);
   }
 }
 
