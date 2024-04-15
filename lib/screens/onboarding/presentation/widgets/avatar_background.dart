@@ -77,12 +77,10 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   widget.keyboardSpace != null && widget.height < 850
-                      ? SingleChildScrollView(
-                          child: SizedBox(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: widget.children,
-                            ),
+                      ? SizedBox(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: widget.children,
                           ),
                         )
                       : Expanded(

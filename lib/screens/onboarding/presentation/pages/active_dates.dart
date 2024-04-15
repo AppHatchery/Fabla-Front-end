@@ -37,7 +37,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
-        backgroundColor: CustomColors.backgroundSecondary,
+        backgroundColor: CustomColors.fillWhite,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           leading: canGoBack
@@ -91,46 +91,52 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
   Widget loaded(double height, double width, Participant participant) {
     final start = startDate(participant.studyCode);
     final end = start?.add(Duration(days: (fakePrompts.length - 1)));
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            "Hi ${participant.name}, here are your active dates",
-            style:
-                CustomTypography().headlineLarge(color: CustomColors.textWhite),
-          ),
+    return SingleChildScrollView(
+      child: Container(
+        color: CustomColors.backgroundSecondary,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                "Hi ${participant.name}, here are your active dates",
+                style: CustomTypography()
+                    .headlineLarge(color: CustomColors.textWhite),
+                // textScaleFactor: 2.0,
+              ),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            SizedBox(
+              height: 650,
+              width: width,
+              child: AvatarBackground(
+                  height: height,
+                  width: width,
+                  image: "assets/images/active_dates.png",
+                  avatarType: "animation",
+                  animation:
+                      "assets/animations/onboarding/onboarding_activedays.riv",
+                  onContinue: navigateToNextPage,
+                  children: [
+                    Text(
+                      "Diary Calendar",
+                      style: CustomTypography().titleLarge(),
+                    ),
+                    const SizedBox(
+                      height: 6,
+                    ),
+                    CustomCalender(
+                      rangeStart: start,
+                      rangeEnd: end,
+                    ),
+                  ]),
+            )
+          ],
         ),
-        const SizedBox(
-          height: 16,
-        ),
-        Expanded(
-          child: SizedBox(
-            width: width,
-            child: AvatarBackground(
-                height: height,
-                width: width,
-                image: "assets/images/active_dates.png",
-                avatarType: "animation",
-                animation:
-                    "assets/animations/onboarding/onboarding_activedays.riv",
-                onContinue: navigateToNextPage,
-                children: [
-                  Text(
-                    "Diary Calendar",
-                    style: CustomTypography().titleLarge(),
-                  ),
-                  const SizedBox(
-                    height: 6,
-                  ),
-                  CustomCalender(
-                    rangeStart: start,
-                    rangeEnd: end,
-                  ),
-                ]),
-          ),
-        )
-      ],
+      ),
     );
   }
 
@@ -164,7 +170,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
       // return nextSunday.add(const Duration(days: 6));
       return DateTime(2023, 11, 6);
       //return DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    } 
+    }
 
     return null;
   }
