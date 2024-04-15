@@ -7,7 +7,7 @@ import '../../data/diary.dart';
 import '../entities/diary_entity.dart';
 
 class DiaryRepository {
-  final DiaryDAO _diaryDAO = DiaryDAO(box: Box<DiaryEntity>(objectbox.store));
+  final DiaryDAO _diaryDAO = DiaryDAO(box: Box<Diary>(objectbox.store));
 
   /// A method to retrieve all DiaryEntity objects from the data source.
   /// This function retrieves a list of DiaryEntity instances by calling the `_diaryDAO.getAllDiaries()` method.
@@ -15,7 +15,7 @@ class DiaryRepository {
   /// Returns:
   /// A list of DiaryEntity objects representing all stored diary entries.
   ///
-  List<DiaryEntity> _getAllDiariesEntities() {
+  List<Diary> _getAllDiariesEntities() {
     final diaries = _diaryDAO.getAllDiaries();
     final now = DateTime.now();
     final due = DateTime(now.year, now.month, now.day, 4, 0, 0);
@@ -47,7 +47,7 @@ class DiaryRepository {
   /// A DiaryEntity object representing the diary entry with the specified due date, if found,
   /// or null if no matching entry is found in the data source.
   ///
-  DiaryEntity? _getDiaryEntity(DateTime start, DateTime due) {
+  Diary? _getDiaryEntity(DateTime start, DateTime due) {
     return _diaryDAO.getDiary(start, due);
   }
 
@@ -58,9 +58,9 @@ class DiaryRepository {
   /// Returns:
   /// A list of Diary objects, each representing a diary entry retrieved from the data source.
   ///
-  List<Diary> getAllDiaries() {
+  List<DiaryModel> getAllDiaries() {
     final diaries = _getAllDiariesEntities();
-    return diaries.map((e) => Diary.fromEntity(e)).toList();
+    return diaries.map((e) => DiaryModel.fromEntity(e)).toList();
   }
 
   /// Retrieves a Diary object from the data source based on a specified due date.
@@ -74,10 +74,10 @@ class DiaryRepository {
   /// A Diary object representing the diary entry with the specified due date, if found,
   /// or null if no matching entry is found in the data source.
   ///
-  Diary? getDiary(DateTime start, DateTime due) {
+  DiaryModel? getDiary(DateTime start, DateTime due) {
     final diary = _getDiaryEntity(start, due);
     if (diary != null) {
-      return Diary.fromEntity(diary);
+      return DiaryModel.fromEntity(diary);
     }
     return null;
   }
@@ -91,7 +91,7 @@ class DiaryRepository {
   /// Returns:
   /// A Future indicating that the operation may be asynchronous and requires awaiting.
   ///
-  Future<void> addDiaries(List<DiaryEntity> diaries) async {
+  Future<void> addDiaries(List<Diary> diaries) async {
     _diaryDAO.addDiaries(diaries);
   }
 
@@ -105,8 +105,8 @@ class DiaryRepository {
   /// Returns:
   /// A Future indicating that the operation may be asynchronous and requires awaiting.
   ///
-  Future<void> updateDiary(Diary diary) async {
-    final entity = DiaryEntity.fromModel(diary);
+  Future<void> updateDiary(DiaryModel diary) async {
+    final entity = Diary.fromModel(diary);
     _diaryDAO.updateDiary(entity);
   }
 }

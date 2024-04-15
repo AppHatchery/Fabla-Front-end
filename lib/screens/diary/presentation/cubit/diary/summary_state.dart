@@ -16,7 +16,7 @@ final class SummaryLoading extends SummaryState {
 }
 
 final class SummaryLoaded extends SummaryState {
-  final Diary diary;
+  final DiaryModel diary;
   const SummaryLoaded(this.diary);
 
   @override

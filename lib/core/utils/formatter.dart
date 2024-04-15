@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tuple/tuple.dart';
 
+import 'types.dart';
+
 /// Formats a DateTime object into a string representation with a specific format.
 /// This function converts a given DateTime value into a formatted string following the pattern 'yyyy-MM-dd-HH-mm-ss'.
 ///
@@ -127,4 +129,47 @@ Tuple2<Color, Color> getColorFromString(String text) {
 String getPostDate(DateTime date) {
   final DateFormat formatter = DateFormat("EEEE, d MMMM y");
   return formatter.format(date);
+}
+
+/// Map that associates string representations of response types with their corresponding enum values.
+final Map<String, ResponseType> _responseTypeMap = {
+  'audio': ResponseType.recording,
+  'text': ResponseType.text,
+  'multiple': ResponseType.multiple,
+  'radio': ResponseType.radio,
+  'slider': ResponseType.slider,
+};
+
+/// Function that converts a string representation of a response type to its corresponding enum value.
+/// Throws an exception if the provided string does not match any valid response type.
+ResponseType responseTypeString(String value) {
+  final responseType = _responseTypeMap[value];
+  if (responseType == null) {
+    throw Exception('Invalid response type');
+  }
+  return responseType;
+}
+
+/// Map of ResponseType enum values with their corresponding string representations
+final Map<ResponseType, String> _responseStringMap = {
+  ResponseType.recording: 'audio',
+  ResponseType.text: 'text',
+  ResponseType.multiple: 'multiple',
+  ResponseType.radio: 'radio',
+  ResponseType.slider: 'slider',
+};
+
+/// Function to convert ResponseType enum value to string
+String responseTypeValue(ResponseType responseType) {
+  final stringRepresentation = _responseStringMap[responseType];
+  if (stringRepresentation == null) {
+    throw Exception('Invalid response type');
+  }
+  return stringRepresentation;
+}
+
+/// Convert String to TimeOfDay
+TimeOfDay timeOfDayFromString(String value) {
+  final parts = value.split(':');
+  return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
 }

@@ -16,7 +16,7 @@ class HomeLoading extends HomeState {
 }
 
 class HomeLoaded extends HomeState {
-  final List<Diary> diaries;
+  final List<DiaryModel> diaries;
   final DateTime startDate;
   const HomeLoaded(this.diaries, this.startDate);
 

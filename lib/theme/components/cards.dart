@@ -23,7 +23,7 @@ import '../resources/strings.dart';
 ///
 /// This is the card that is displayed on the homescreen.
 class DiaryCard extends StatelessWidget {
-  final Diary? diary;
+  final DiaryModel? diary;
   final ValueChanged<bool> refresh;
   final String Function() getPageName;
   const DiaryCard(
@@ -657,7 +657,8 @@ class NewAudioCard extends StatefulWidget {
       {super.key,
       required this.recording,
       this.delete,
-      required this.viewOnly, required this.promptId});
+      required this.viewOnly,
+      required this.promptId});
 
   @override
   State<NewAudioCard> createState() => _NewAudioCardState();
@@ -724,13 +725,13 @@ class _NewAudioCardState extends State<NewAudioCard> {
           ),
           IconButton(
             onPressed: () {
-                          PendoService.track("AudioControl", {
-                            "action": "delete",
-                            "study_date": "${DateTime.now()}",
-                            "prompt_number": "${widget.promptId + 1}"
-                          });
-                          delete();
-                        },
+              PendoService.track("AudioControl", {
+                "action": "delete",
+                "study_date": "${DateTime.now()}",
+                "prompt_number": "${widget.promptId + 1}"
+              });
+              delete();
+            },
             icon: const Icon(CupertinoIcons.delete),
             color: CustomColors.warningActive,
             iconSize: 20,

@@ -16,7 +16,10 @@ class AnswerDAO {
   /// A list of Answer objects representing responses linked to the specified prompt ID.
   ///
   List<Answer> getAnswers(int id) {
-    return box.query(Answer_.promptId.equals(id)).build().find();
+    // changed from : 
+    ///    return box.query(Answer_.promptId.equals(id)).build().find();
+    /// to this for cleaning
+    return box.query().build().find();
   }
 
   /// Adds or updates an answer in the database based on the provided answer's prompt ID.
@@ -35,13 +38,14 @@ class AnswerDAO {
   /// ```
   void addResponse(Answer answer) {
     // Query for existing answers with the same prompt ID
-    final query = box.query(Answer_.promptId.equals(answer.promptId)).build();
-    final results = query.find();
+    //commented out for cleaning purposes
+    // final query = box.query(Answer_.promptId.equals(answer.promptId)).build();
+    // final results = query.find();
 
-    if (results.isNotEmpty) {
-      final id = results.first.id; // Update the ID with the existing ID
-      answer.id = id;
-    }
+    // if (results.isNotEmpty) {
+    //   final id = results.first.id; // Update the ID with the existing ID
+    //   answer.id = id;
+    // }
 
     box.put(answer); // Store the answer in the database
   }

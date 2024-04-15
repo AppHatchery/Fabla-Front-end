@@ -11,7 +11,6 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-
 import '../../../../theme/dialogs/pop_ups.dart';
 import '../../../diary/data/diary.dart';
 import '../cubit/cubit/home_cubit.dart';
@@ -27,7 +26,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   late HomeCubit homeCubit;
-  late List<Diary> diaries;
+  String _name = "";
+  late List<DiaryModel> diaries;
 
   late AnimationController _controller;
 
@@ -162,7 +162,7 @@ class _HomePageState extends State<HomePage>
     return Container();
   }
 
-  Widget loadedHome(List<Diary> diaries, DateTime startDate) {
+  Widget loadedHome(List<DiaryModel> diaries, DateTime startDate) {
     final today = DateTime.now();
     show4AmTip();
     if (today.isBefore(startDate)) {

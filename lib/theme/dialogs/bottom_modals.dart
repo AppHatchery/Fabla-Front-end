@@ -63,10 +63,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
-      height: screenHeight * 0.95,
       width: width,
       decoration: const BoxDecoration(
         color: Color(0xFFF3F3F3),
@@ -75,19 +73,79 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       ),
       child: Column(
         children: [
-          Expanded( child: questionAndHints()),
-          // Recording controls
+          const SizedBox(
+            height: 32,
+          ),
+          // Close Modal Button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(
+                    CupertinoIcons.clear_circled_solid,
+                    size: 26,
+                    color: CustomColors.textSecondaryContent,
+                  ),
+                )
+              ],
+            ),
+          ),
+          Expanded(
+            child: questionAndHints(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget questionAndHints() {
+    final width = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return SingleChildScrollView(
+      reverse: screenHeight > 750 ? true : false,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.question,
+                  style: CustomTypography().titleLarge(),
+                ),
+                const SizedBox(
+                  height: 32,
+                ),
+                Image.asset(
+                  "assets/images/avatar_recording.png",
+                  height: 64,
+                  width: 64,
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+                Text(
+                  widget.hint ??
+                      "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
+                  style: CustomTypography().body(),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: screenHeight > 750 ? 70 : 32),
+          // Recording Controls
           Container(
             width: width,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32,
-            ),
+            padding: const EdgeInsets.all(32),
             color: CustomColors.productNormal,
             child: Column(
               children: [
-                const SizedBox(
-                  height: 24,
-                ),
+                const SizedBox(height: 16),
                 recordingTimer(),
                 SizedBox(
                   height: screenHeight > 850 ? 36 : 24,
@@ -106,84 +164,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 ),
               ],
             ),
-          )
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget questionAndHints() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(
-              height: 26,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(
-                    CupertinoIcons.clear_circled_solid,
-                    size: 26,
-                    color: CustomColors.textSecondaryContent,
-                  ),
-                )
-              ],
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            Text(
-              widget.question,
-              style: CustomTypography().titleLarge(),
-            ),
-            const SizedBox(
-              height: 32,
-            ),
-            Image.asset(
-              "assets/images/avatar_recording.png",
-              height: 64,
-              width: 64,
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            Text(
-              widget.hint ??
-                  "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
-              style: CustomTypography().body(),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            CustomOutlineButton(
-              onClick: () => {},
-              color: CustomColors.productNormal,
-              backgroundColor: CustomColors.fillWhite,
-              children: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    "Try A Hint",
-                    style: CustomTypography()
-                        .button(color: CustomColors.productNormal),
-                  ),
-                  const SizedBox(width: 8),
-                  Image.asset(
-                    "assets/images/star.png",
-                    height: 16,
-                    width: 16,
-                  )
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -448,6 +430,7 @@ class BottomTextModal extends StatefulWidget {
   final String? hint;
   final ValueChanged<String?>? onSave;
   final ScrollController scrollController;
+
   const BottomTextModal(
       {super.key,
       required this.promptId,

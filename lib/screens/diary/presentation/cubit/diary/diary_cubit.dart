@@ -31,7 +31,8 @@ class DiaryCubit extends Cubit<DiaryState> {
       emit(const DiaryLoading());
       final diary = repository.getDiary(start, due);
       if (diary != null) {
-        final updated = Diary.copyWith(diary: diary, tags: _getTags(diary));
+        final updated =
+            DiaryModel.copyWith(diary: diary, tags: _getTags(diary));
         emit(DiaryLoaded([updated], startDate));
       } else {
         emit(DiaryLoaded(const [], startDate));
@@ -41,7 +42,7 @@ class DiaryCubit extends Cubit<DiaryState> {
     }
   }
 
-  List<Tag> _getTags(Diary diary) {
+  List<Tag> _getTags(DiaryModel diary) {
     final today = DateTime.now();
     List<Tag> tags = [];
 

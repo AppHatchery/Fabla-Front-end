@@ -5,7 +5,7 @@ import '../../../../theme/components/cards.dart';
 import '../../../../theme/custom_typography.dart';
 
 class TodaysDiaryList extends StatelessWidget {
-  final List<Diary> diaries;
+  final List<DiaryModel> diaries;
   final ValueChanged<bool> refresh;
   final String Function() getPageName;
   const TodaysDiaryList(

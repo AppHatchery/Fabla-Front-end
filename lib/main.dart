@@ -11,6 +11,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dart';
+import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -26,7 +27,6 @@ import 'dart:io' show Platform;
 import 'core/database/object_box.dart';
 import 'firebase_options.dart';
 import 'screens/diary/data/diary.dart';
-import 'screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'screens/diary/presentation/pages/diaries.dart';
 import 'screens/diary/presentation/pages/diarysummary.dart';
 import 'screens/home/presentation/cubit/cubit/home_cubit.dart';
@@ -75,6 +75,8 @@ class _MyAppState extends State<MyApp> {
   initState() {
     NotificationService.setListeners();
     _route = widget.route;
+    final repo = SetupRepository();
+    repo.createProtocol();
     super.initState();
   }
 
@@ -109,7 +111,8 @@ class _MyAppState extends State<MyApp> {
                   switch (settings.name) {
                     case "/NewDiaryPage":
                       {
-                        final Diary diary = settings.arguments as Diary;
+                        final DiaryModel diary =
+                            settings.arguments as DiaryModel;
                         return MaterialPageRoute(
                             builder: (context) => NewDiaryPage(
                                   diary: diary,
@@ -117,7 +120,8 @@ class _MyAppState extends State<MyApp> {
                       }
                     case "/DiarySummaryPage":
                       {
-                        final Diary diary = settings.arguments as Diary;
+                        final DiaryModel diary =
+                            settings.arguments as DiaryModel;
                         return MaterialPageRoute(
                             builder: (context) => DiarySummaryPage(
                                   diary: diary,

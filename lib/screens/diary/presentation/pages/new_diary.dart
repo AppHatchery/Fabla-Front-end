@@ -36,8 +36,7 @@ import 'diarysummary.dart';
 /// The pages have been hardcoded into the PageView(later to be replaced by the number of questions in the diary)
 /// The page view has a controller which is used to navigate between pages
 class NewDiaryPage extends StatefulWidget {
-  final Diary diary;
-
+  final DiaryModel diary;
   const NewDiaryPage({super.key, required this.diary});
 
   @override
@@ -328,8 +327,8 @@ class CustomPageViewScrollPhysics extends ScrollPhysics {
 /// onNextPage: a function that is called when the user clicks on the continue button
 /// question: the question that is being asked in the diary
 class QuestionPage extends StatefulWidget {
-  final Diary diary;
-  final Prompt prompt;
+  final DiaryModel diary;
+  final PromptModel prompt;
   final GlobalKey<ScaffoldState> scaffoldKey;
   final ValueChanged<bool> answerAdded;
   final int currentPage;
@@ -355,7 +354,7 @@ class QuestionPage extends StatefulWidget {
 
 class _QuestionPageState extends State<QuestionPage>
     with WidgetsBindingObserver {
-  late Prompt prompt;
+  late PromptModel prompt;
 
   bool isChecked = false;
   bool disabled = false;
@@ -457,7 +456,7 @@ class _QuestionPageState extends State<QuestionPage>
 
   bool isSnackBarVisible = false;
 
-  Widget buildPrompt(BuildContext context, Prompt prompt) {
+  Widget buildPrompt(BuildContext context, PromptModel prompt) {
     Widget responseWidget;
     Widget audiTextWidget;
     Widget textWidget;
@@ -663,7 +662,7 @@ class _QuestionPageState extends State<QuestionPage>
             ));
   }
 
-  void save(BuildContext context, Prompt prompt, dynamic response) {
+  void save(BuildContext context, PromptModel prompt, dynamic response) {
     // Change diary status
     if (widget.diary.status == DiaryStatus.idle) {
       widget.diary.status = DiaryStatus.ongoing;
@@ -703,7 +702,7 @@ class _QuestionPageState extends State<QuestionPage>
   }
 }
 
-Future<void> partialDataUpload(Diary diary) async {
+Future<void> partialDataUpload(DiaryModel diary) async {
   SetupRepository srepo = SetupRepository();
   SummaryRepository surepo = SummaryRepository();
   var diary2 = await surepo.loadSummary(diary);

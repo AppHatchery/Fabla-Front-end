@@ -43,102 +43,90 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
               size: 32,
             )),
       ),
-      body: Stack(
-        children: [
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Study Information",
-                        style: CustomTypography()
-                            .headlineLarge(color: CustomColors.textWhite)),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    Text(
-                        "Below is the study information associated with your participant ID.",
-                        style: CustomTypography()
-                            .bodyLarge(color: CustomColors.textWhite)),
-                    const SizedBox(
-                      height: 24,
-                    ),
-                    ConfrimTile(
-                      title: "Study Name",
-                      info: Strings.studyName,
-                      icon: const Icon(
-                        Icons.assured_workload_rounded,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 12,
-                    ),
-                    ConfrimTile(
-                      title: "Study Duration",
-                      info: Strings.studyDuration,
-                      icon: const Icon(
-                        Icons.calendar_month_outlined,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 12,
-                    ),
-                    ConfrimTile(
-                      title: "Researcher Name",
-                      info: Strings.researcherName,
-                      icon: const Icon(
-                        Icons.person_outline_rounded,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 12,
-                    ),
-                    TextButton(
-                        onPressed: () => showResearchDetails(context),
-                        child: Text(
-                          "View Study Details",
-                          style: TextStyle(
-                              color: CustomColors.textWhite,
-                              fontFamily: CustomTypography.fontName,
-                              fontSize: 18.sp,
-                              decoration: TextDecoration.underline,
-                              decorationColor: CustomColors.textWhite),
-                        ))
-                  ],
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Study Information",
+                  style: CustomTypography()
+                      .headlineLarge(color: CustomColors.textWhite)),
+              const SizedBox(
+                height: 16,
+              ),
+              Text(
+                  "Below is the study information associated with your participant ID.",
+                  style: CustomTypography()
+                      .bodyLarge(color: CustomColors.textWhite)),
+              const SizedBox(
+                height: 24,
+              ),
+              ConfrimTile(
+                title: "Study Name",
+                info: Strings.studyName,
+                icon: const Icon(
+                  Icons.assured_workload_rounded,
                 ),
               ),
-            ),
-          ),
-          Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                color: CustomColors.backgroundSecondary,
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 34),
-                child: Column(
-                  children: [
-                    CustomFlatButton(
-                      onClick: () => Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const WelcomePage()),
-                          (route) => false),
-                      text: "Confirm Joining",
-                      color: CustomColors.fillWhite,
-                      textColor: CustomColors.productNormalActive,
-                    ),
-
-                    //CustomTextButton(onClick: ()=> null, text: "I HAVE A PROBLEM JOINING THE STUDY", textColor: CustomColors.textWhite,)
-                  ],
+              const SizedBox(
+                height: 12,
+              ),
+              ConfrimTile(
+                title: "Study Duration",
+                info: Strings.studyDuration,
+                icon: const Icon(
+                  Icons.calendar_month_outlined,
                 ),
-              )),
-        ],
+              ),
+              const SizedBox(
+                height: 12,
+              ),
+              ConfrimTile(
+                title: "Researcher Name",
+                info: Strings.researcherName,
+                icon: const Icon(
+                  Icons.person_outline_rounded,
+                ),
+              ),
+              const SizedBox(
+                height: 12,
+              ),
+              TextButton(
+                  onPressed: () => showResearchDetails(context),
+                  child: Text(
+                    "View Study Details",
+                    style: TextStyle(
+                        color: CustomColors.textWhite,
+                        fontFamily: CustomTypography.fontName,
+                        fontSize: 18.sp,
+                        decoration: TextDecoration.underline,
+                        decorationColor: CustomColors.textWhite),
+                  ))
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        height: MediaQuery.of(context).size.height * .15,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        color: CustomColors.backgroundSecondary,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomFlatButton(
+              onClick: () => Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const WelcomePage()),
+                  (route) => false),
+              text: "Confirm Joining",
+              color: CustomColors.fillWhite,
+              textColor: CustomColors.productNormalActive,
+            ),
+
+            //CustomTextButton(onClick: ()=> null, text: "I HAVE A PROBLEM JOINING THE STUDY", textColor: CustomColors.textWhite,)
+          ],
+        ),
       ),
     );
   }
