@@ -523,7 +523,7 @@ class _QuestionPageState extends State<QuestionPage>
       responseWidget = FreeTextQuestionCard(
         value: freeTextAnswer,
         onChanged: (value) {
-          if (value == null || value.trim().length < 4) {
+          if (value == null || value.trim().isEmpty) {
             widget.answerAdded(false);
           } else {
             widget.answerAdded(true);

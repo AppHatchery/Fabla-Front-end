@@ -422,6 +422,7 @@ class TextQuestionCard extends StatefulWidget {
   State<TextQuestionCard> createState() => _TextQuestionCardState();
 }
 
+//Free response text question card
 class _TextQuestionCardState extends State<TextQuestionCard> {
   @override
   Widget build(BuildContext context) {
@@ -475,7 +476,8 @@ class _FreeTextQuestionCardState extends State<FreeTextQuestionCard> {
   @override
   void initState() {
     super.initState();
-    _freeTextResponseController = new TextEditingController(text: widget.value);
+    widget.onChanged;
+    _freeTextResponseController = TextEditingController(text: widget.value);
   }
 
   @override
@@ -522,6 +524,46 @@ class _FreeTextQuestionCardState extends State<FreeTextQuestionCard> {
           keyboardType: TextInputType.text,
         )
       ],
+    );
+  }
+}
+
+//Free response text question summary
+
+class FreeTextQuestionSummary extends StatefulWidget {
+  final String answer;
+  const FreeTextQuestionSummary({super.key, required this.answer});
+
+  @override
+  State<FreeTextQuestionSummary> createState() =>
+      _FreeTextQuestionSummaryState();
+}
+
+class _FreeTextQuestionSummaryState extends State<FreeTextQuestionSummary> {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+            border: Border.all(color: CustomColors.greyDark),
+            borderRadius: BorderRadius.circular(16.0),
+            color: CustomColors.productLightPrimaryNormalWhite,
+            boxShadow: const [
+              BoxShadow(
+                  color: CustomColors.greyDark,
+                  blurRadius: .5,
+                  spreadRadius: .5,
+                  offset: Offset(0, 1))
+            ]),
+        child: ListTile(
+          title: Text(
+            widget.answer,
+            style: CustomTypography()
+                .bodyLarge(color: CustomColors.textSecondaryContent),
+          ),
+        ),
+      ),
     );
   }
 }

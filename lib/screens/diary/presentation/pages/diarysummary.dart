@@ -252,7 +252,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4.0),
-            color: CustomColors.productLightPrimaryNormalWhite,
           ),
           child: Column(
             children: [
@@ -295,6 +294,14 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     child: prompt.answer?.response != null
                         ? RadioQuestionSummary(
                             selectedOption: prompt.answer!.response!,
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  Visibility(
+                    visible: prompt.responseType == ResponseType.text,
+                    child: prompt.answer?.response != null
+                        ? FreeTextQuestionSummary(
+                            answer: prompt.answer!.response!,
                           )
                         : const SizedBox.shrink(),
                   ),
