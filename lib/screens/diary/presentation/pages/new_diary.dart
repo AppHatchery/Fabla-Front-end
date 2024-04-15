@@ -548,7 +548,7 @@ class _QuestionPageState extends State<QuestionPage>
 
 // the auditTextWidget and textWidget are the widgets that display the user's response
     if (prompt.responseType == ResponseType.recording ||
-        prompt.responseType == ResponseType.text) {
+        prompt.responseType == ResponseType.textAudio) {
       audiTextWidget = prompt.answer?.recordings.isNotEmpty ?? false
           ? MyResponse(
               prompt: prompt,
