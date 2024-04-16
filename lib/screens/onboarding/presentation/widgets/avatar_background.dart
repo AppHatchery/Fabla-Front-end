@@ -76,7 +76,7 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  widget.keyboardSpace != null && widget.height < 850
+                  widget.keyboardSpace != null
                       ? SizedBox(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,7 +93,7 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
                             ),
                           ),
                         ),
-                  widget.keyboardSpace != null && widget.height < 850
+                  widget.keyboardSpace != null
                       ? Expanded(
                           child: Column(
                             children: [
