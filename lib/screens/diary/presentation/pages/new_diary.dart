@@ -517,7 +517,7 @@ class _QuestionPageState extends State<QuestionPage>
         disabled: disabled,
       );
     } else if (prompt.responseType == ResponseType.recording ||
-        prompt.responseType == ResponseType.text) {
+        prompt.responseType == ResponseType.textAudio) {
       bool hasRecordingOrResponse = prompt.answer?.recordings.isNotEmpty ??
           false || prompt.answer?.response != null;
       responseWidget = widget.diary.status == DiaryStatus.submitted ||
@@ -548,7 +548,7 @@ class _QuestionPageState extends State<QuestionPage>
 
 // the auditTextWidget and textWidget are the widgets that display the user's response
     if (prompt.responseType == ResponseType.recording ||
-        prompt.responseType == ResponseType.text) {
+        prompt.responseType == ResponseType.textAudio) {
       audiTextWidget = prompt.answer?.recordings.isNotEmpty ?? false
           ? MyResponse(
               prompt: prompt,
@@ -566,8 +566,14 @@ class _QuestionPageState extends State<QuestionPage>
     }
 
     return (prompt.responseType == ResponseType.recording ||
-            prompt.responseType == ResponseType.text)
-        ? AudioQuestionsWidget(diary: widget.diary, prompt: prompt, currentPage: widget.currentPage, audiTextWidget: audiTextWidget, responseWidget: responseWidget, textWidget: textWidget)
+            prompt.responseType == ResponseType.textAudio)
+        ? AudioQuestionsWidget(
+            diary: widget.diary,
+            prompt: prompt,
+            currentPage: widget.currentPage,
+            audiTextWidget: audiTextWidget,
+            responseWidget: responseWidget,
+            textWidget: textWidget)
         : SingleChildScrollView(
             controller: _scrollController,
             child: Container(
