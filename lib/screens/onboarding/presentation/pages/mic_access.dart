@@ -46,6 +46,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     return Scaffold(
         backgroundColor: CustomColors.backgroundSecondary,
         appBar: AppBar(
@@ -60,147 +61,171 @@ class _MicAccessPageState extends State<MicAccessPage> {
                   ))
               : null,
         ),
-        body: Padding(
-          padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: SizedBox(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 24),
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
+        body: LayoutBuilder(builder: (context, constraints) {
+          return Padding(
+            padding:
+                const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      child: SingleChildScrollView(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                permission
-                                    ? "Great, let's test your microphone volume!"
-                                    : "Please enable the microphone access",
-                                style: CustomTypography().headlineLarge(
-                                    color: CustomColors.textWhite),
-                              ),
-                              const SizedBox(height: 40.0),
-                              MicTester(
-                                permission: permission,
-                                width: width,
-                                recorder: recorder,
-                                request: () => _requestPermission(),
-                              ),
-                              const SizedBox(height: 24),
-                              requested == true && permission == false
-                                  ? Container(
-                                      width: width,
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: CustomColors.warningFill,
-                                        border: Border.all(
-                                          color: CustomColors.warningActive,
-                                          width: 2,
-                                        ),
-                                        borderRadius: BorderRadius.circular(11),
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const Icon(CustomIcons.cancel,
-                                                  size: 20,
-                                                  color: CustomColors
-                                                      .warningActive),
-                                              const SizedBox(
-                                                width: 10,
-                                              ),
-                                              Flexible(
-                                                child: Text(
-                                                  "Oops! You need to enable microphone access to use the recording diary.",
-                                                  style: CustomTypography()
-                                                      .bodyLarge(
-                                                          color: CustomColors
-                                                              .warningActive),
-                                                ),
-                                              )
-                                            ],
+                              Column(
+                                children: [
+                                  Text(
+                                    permission
+                                        ? "Great, let's test your microphone volume!"
+                                        : "Please enable the microphone access",
+                                    style: CustomTypography().headlineLarge(
+                                        color: CustomColors.textWhite),
+                                    // textScaleFactor: 3.0,
+                                  ),
+                                  const SizedBox(height: 40.0),
+                                  MicTester(
+                                    permission: permission,
+                                    width: width,
+                                    recorder: recorder,
+                                    request: () => _requestPermission(),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  requested == true && permission == false
+                                      ? Container(
+                                          width: width,
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: CustomColors.warningFill,
+                                            border: Border.all(
+                                              color: CustomColors.warningActive,
+                                              width: 2,
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(11),
                                           ),
-                                          const SizedBox(height: 12),
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                          child: Column(
                                             children: [
-                                              const SizedBox(
-                                                  height: 20, width: 20),
-                                              const SizedBox(
-                                                width: 10,
-                                              ),
-                                              TextButton(
-                                                  style: TextButton.styleFrom(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 4),
-                                                    alignment: Alignment.center,
-                                                    backgroundColor:
-                                                        CustomColors
-                                                            .warningActive,
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              11),
-                                                    ),
+                                              Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  const Icon(CustomIcons.cancel,
+                                                      size: 20,
+                                                      color: CustomColors
+                                                          .warningActive),
+                                                  const SizedBox(
+                                                    width: 10,
                                                   ),
-                                                  onPressed:
-                                                      openPermissionSettings,
-                                                  child: Text("Open Settings",
+                                                  Flexible(
+                                                    child: Text(
+                                                      "Oops! You need to enable microphone access to use the recording diary.",
                                                       style: CustomTypography()
                                                           .bodyLarge(
                                                               color: CustomColors
-                                                                  .textWhite)))
+                                                                  .warningActive),
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                              const SizedBox(height: 12),
+                                              Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  const SizedBox(
+                                                      height: 20, width: 20),
+                                                  const SizedBox(
+                                                    width: 10,
+                                                  ),
+                                                  TextButton(
+                                                      style:
+                                                          TextButton.styleFrom(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                horizontal: 8,
+                                                                vertical: 4),
+                                                        alignment:
+                                                            Alignment.center,
+                                                        backgroundColor:
+                                                            CustomColors
+                                                                .warningActive,
+                                                        shape:
+                                                            RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(11),
+                                                        ),
+                                                      ),
+                                                      onPressed:
+                                                          openPermissionSettings,
+                                                      child: Text(
+                                                          "Open Settings",
+                                                          style: CustomTypography()
+                                                              .bodyLarge(
+                                                                  color: CustomColors
+                                                                      .textWhite)))
+                                                ],
+                                              ),
                                             ],
                                           ),
-                                        ],
-                                      ),
-                                    )
-                                  : const SizedBox.shrink(),
-                            ],
-                          ),
-                          Visibility(
-                              visible: permission,
-                              replacement: SizedBox(
-                                height: 150,
-                                width: width,
-                                child: requested == true && permission == false
-                                    ? const RiveAnimation.asset(
-                                        'assets/animations/onboarding/micaccess_denial.riv',
-                                        fit: BoxFit.fitHeight)
-                                    : const RiveAnimation.asset(
-                                        'assets/animations/onboarding/micaccess.riv',
-                                        fit: BoxFit.fitHeight),
+                                        )
+                                      : const SizedBox.shrink(),
+                                ],
                               ),
-                              child: SizedBox(
-                                height: 150,
-                                width: width,
-                                child: const RiveAnimation.asset(
-                                    'assets/animations/onboarding/micaccess_ongoing.riv',
-                                    fit: BoxFit.fitHeight),
-                              )),
-                        ]),
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 700),
+                                curve: Curves.easeInOut,
+                                height: MediaQuery.of(context)
+                                                .textScaler
+                                                .scale(1) >=
+                                            1.3 ||
+                                        constraints.maxHeight < 600
+                                    ? 0
+                                    : 280,
+                              ),
+                              Visibility(
+                                visible: permission,
+                                replacement: SizedBox(
+                                  height: 150,
+                                  width: width,
+                                  child: requested == true &&
+                                          permission == false
+                                      ? const RiveAnimation.asset(
+                                          'assets/animations/onboarding/micaccess_denial.riv',
+                                          fit: BoxFit.fitHeight)
+                                      : const RiveAnimation.asset(
+                                          'assets/animations/onboarding/micaccess.riv',
+                                          fit: BoxFit.fitHeight),
+                                ),
+                                child: SizedBox(
+                                  height: 150,
+                                  width: width,
+                                  child: const RiveAnimation.asset(
+                                      'assets/animations/onboarding/micaccess_ongoing.riv',
+                                      fit: BoxFit.fitHeight),
+                                ),
+                              ),
+                            ]),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              CustomFlatButton(
-                onClick: () => navigateToNextPage(),
-                text: permission ? "Continue" : "Allow",
-                color: CustomColors.fillWhite,
-                isDisabled: requested == true && permission == false,
-                textColor: CustomColors.productNormalActive,
-              )
-            ],
-          ),
-        ));
+                CustomFlatButton(
+                  onClick: () => navigateToNextPage(),
+                  text: permission ? "Continue" : "Allow",
+                  color: CustomColors.fillWhite,
+                  isDisabled: requested == true && permission == false,
+                  textColor: CustomColors.productNormalActive,
+                )
+              ],
+            ),
+          );
+        }));
   }
 
   void recorderInit() async {

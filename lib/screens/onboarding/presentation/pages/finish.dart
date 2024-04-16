@@ -44,49 +44,55 @@ class _FinishPageState extends State<FinishPage> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                    padding: const EdgeInsets.only(top: 64),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                      padding: const EdgeInsets.only(top: 64),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Welcome, \nLet's Get Started",
+                            style: CustomTypography()
+                                .headlineLarge(color: CustomColors.textWhite),
+                          ),
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          Text(
+                            "Congratulations! ${Strings.confetti} You are all set! Your participation is invaluable to our research. We're thrilled to have you on board!",
+                            style: CustomTypography()
+                                .bodyLarge(color: CustomColors.textWhite),
+                            textScaleFactor: 3.0,
+                          ),
+                        ],
+                      )),
+                  Container(
+                    padding: const EdgeInsets.only(bottom: 34),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Welcome, \nLet's Get Started",
-                            style: CustomTypography()
-                                .headlineLarge(color: CustomColors.textWhite)),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        Text(
-                            "Congratulations! ${Strings.confetti} You are all set! Your participation is invaluable to our research. We're thrilled to have you on board!",
-                            style: CustomTypography()
-                                .bodyLarge(color: CustomColors.textWhite)),
+                        // Image.asset(
+                        //   "assets/images/finish_image.png",
+                        //   width: width,
+                        // ),
+                        // const SizedBox(
+                        //   height: 38,
+                        // ),
+                        CustomFlatButton(
+                          onClick: _next,
+                          text: "Get Started",
+                          color: CustomColors.fillWhite,
+                          textColor: CustomColors.productNormalActive,
+                        )
                       ],
-                    )),
-                Container(
-                  padding: const EdgeInsets.only(bottom: 34),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Image.asset(
-                      //   "assets/images/finish_image.png",
-                      //   width: width,
-                      // ),
-                      // const SizedBox(
-                      //   height: 38,
-                      // ),
-                      CustomFlatButton(
-                        onClick: _next,
-                        text: "Get Started",
-                        color: CustomColors.fillWhite,
-                        textColor: CustomColors.productNormalActive,
-                      )
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
