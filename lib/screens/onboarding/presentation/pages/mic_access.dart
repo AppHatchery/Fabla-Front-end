@@ -84,7 +84,6 @@ class _MicAccessPageState extends State<MicAccessPage> {
                                         : "Please enable the microphone access",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
-                                    textScaleFactor: 3.0,
                                   ),
                                   const SizedBox(height: 40.0),
                                   MicTester(
@@ -177,37 +176,33 @@ class _MicAccessPageState extends State<MicAccessPage> {
                                       : const SizedBox.shrink(),
                                 ],
                               ),
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 700),
-                                curve: Curves.easeInOut,
-                                height: MediaQuery.of(context)
-                                                .textScaler
-                                                .scale(1) >=
-                                            1.3 ||
-                                        constraints.maxHeight < 600
-                                    ? 0
-                                    : 280,
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).textScaler.scale(1) >
+                                            1.3
+                                        ? 0
+                                        : 200,
                               ),
                               Visibility(
                                 visible: permission,
                                 replacement: SizedBox(
-                                  height: 150,
+                                  height: 300,
                                   width: width,
                                   child: requested == true &&
                                           permission == false
                                       ? const RiveAnimation.asset(
                                           'assets/animations/onboarding/micaccess_denial.riv',
-                                          fit: BoxFit.fitHeight)
+                                          fit: BoxFit.fitWidth)
                                       : const RiveAnimation.asset(
                                           'assets/animations/onboarding/micaccess.riv',
-                                          fit: BoxFit.fitHeight),
+                                          fit: BoxFit.fitWidth),
                                 ),
                                 child: SizedBox(
-                                  height: 150,
+                                  height: 300,
                                   width: width,
                                   child: const RiveAnimation.asset(
                                       'assets/animations/onboarding/micaccess_ongoing.riv',
-                                      fit: BoxFit.fitHeight),
+                                      fit: BoxFit.fitWidth),
                                 ),
                               ),
                             ]),

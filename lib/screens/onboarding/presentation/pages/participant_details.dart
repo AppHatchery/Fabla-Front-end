@@ -32,7 +32,6 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
-    final double textScale = MediaQuery.of(context).textScaler.scale(1);
     keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
 
     Widget bottomWidget = BlocConsumer<SetupCubit, SetupState>(
@@ -76,61 +75,61 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
           bottom: false,
           child: LayoutBuilder(builder: (context, constraints) {
             final constraintHeight = constraints.maxHeight;
-            return Container(
-              color: CustomColors.fillWhite,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Container(
-                      color: CustomColors.fillWhite,
-                      child: SingleChildScrollView(
-                        child: GestureDetector(
-                          onTap: () => FocusScope.of(context).unfocus(),
-                          child: Container(
-                            color: CustomColors.backgroundSecondary,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0),
-                                  child: Text(
-                                    "Enter a nickname for the study.",
-                                    style: CustomTypography().headlineLarge(
-                                        color: CustomColors.textWhite),
-                                  ),
+            return SingleChildScrollView(
+              child: SizedBox(
+                height: constraintHeight,
+                child: Container(
+                  color: CustomColors.fillWhite,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          color: CustomColors.fillWhite,
+                          child: SingleChildScrollView(
+                            child: GestureDetector(
+                              onTap: () => FocusScope.of(context).unfocus(),
+                              child: Container(
+                                color: CustomColors.backgroundSecondary,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16.0),
+                                      child: Text(
+                                        "Enter a nickname for the study.",
+                                        style: CustomTypography().headlineLarge(
+                                            color: CustomColors.textWhite),
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 60,
+                                    ),
+                                    SizedBox(
+                                        height: MediaQuery.of(context)
+                                                    .textScaler
+                                                    .scale(1) >
+                                                1.3
+                                            ? 750
+                                            : 650,
+                                        width: width,
+                                        child: bottomWidget)
+                                  ],
                                 ),
-                                const SizedBox(
-                                  height: 60,
-                                ),
-                                AnimatedContainer(
-                                    duration: const Duration(milliseconds: 700),
-                                    curve: Curves.easeInOut,
-                                    height: height < 550 && textScale < 1.1
-                                        ? height * .6
-                                        : height < 800
-                                            ? textScale >= 1.4
-                                                ? height * .6
-                                                : height * .7
-                                            : textScale >= 2
-                                                ? height * .6
-                                                : height * .75,
-                                    width: width,
-                                    child: bottomWidget)
-                              ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: CustomFlatButton(
+                            onClick: () => saveName(), text: "Continue"),
+                      ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: CustomFlatButton(
-                        onClick: () => saveName(), text: "Continue"),
-                  ),
-                ],
+                ),
               ),
             );
           }),

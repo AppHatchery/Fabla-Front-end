@@ -77,9 +77,11 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                                 height: 16,
                               ),
                               SizedBox(
-                                height: constraintHeight > 700
-                                    ? constraintHeight * .9
-                                    : 650,
+                                height:
+                                    MediaQuery.of(context).textScaler.scale(1) >
+                                            1.3
+                                        ? 750
+                                        : 650,
                                 width: width,
                                 child: AvatarBackground(
                                     height: height,
