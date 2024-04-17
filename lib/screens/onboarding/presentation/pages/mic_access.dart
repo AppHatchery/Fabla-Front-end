@@ -176,13 +176,13 @@ class _MicAccessPageState extends State<MicAccessPage> {
                                       : const SizedBox.shrink(),
                                 ],
                               ),
-                              SizedBox(
-                                height:
-                                    MediaQuery.of(context).textScaler.scale(1) >
-                                            1.3
-                                        ? 0
-                                        : 200,
-                              ),
+                              // SizedBox(
+                              //   height:
+                              //       MediaQuery.of(context).textScaler.scale(1) >
+                              //               1.3
+                              //           ? 0
+                              //           : 200,
+                              // ),
                               Visibility(
                                 visible: permission,
                                 replacement: SizedBox(

@@ -105,12 +105,13 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
                                     height: height > 900 ? 150 : 90,
                                   ),
                                   SizedBox(
-                                      height: MediaQuery.of(context)
-                                                  .textScaler
-                                                  .scale(1) >
-                                              1.3
-                                          ? 750
-                                          : 550,
+                                      height: 400,
+                                      // height: MediaQuery.of(context)
+                                      //             .textScaler
+                                      //             .scale(1) >
+                                      //         1.3
+                                      //     ? 750
+                                      //     : 550,
                                       width: width,
                                       child: bottomWidget)
                                 ],

@@ -119,9 +119,10 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                       height: height > 900 ? 150 : 90,
                     ),
                     SizedBox(
-                      height: MediaQuery.of(context).textScaler.scale(1) > 1.3
-                          ? 750
-                          : 650,
+                      height: 600,
+                      // height: MediaQuery.of(context).textScaler.scale(1) > 1.3
+                      //     ? 750
+                      //     : 650,
                       width: width,
                       child: AvatarBackground(
                           height: height,
