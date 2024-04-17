@@ -7,8 +7,8 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 
 class AudioQuestionsWidget extends StatelessWidget {
-  final Diary diary;
-  final Prompt prompt;
+  final DiaryModel diary;
+  final PromptModel prompt;
   final int currentPage;
   final Widget responseWidget;
   final Widget audiTextWidget;

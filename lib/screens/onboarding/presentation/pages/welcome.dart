@@ -33,82 +33,114 @@ class _WelcomePageState extends State<WelcomePage> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
 
-    Widget welcomeContents = Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.only(top: 48),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Welcome, \nYou've checked in!",
-                      style: CustomTypography()
-                          .headlineLarge(color: CustomColors.textWhite),
-                    ),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    Text(
-                      "You are now checked into our study. Thank you so much for joining our research! ${Strings.confetti}",
-                      style: CustomTypography()
-                          .bodyLarge(color: CustomColors.textWhite),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 300,
-          width: width,
-          child: const RiveAnimation.asset(
-            'assets/animations/onboarding/onboarding_welcome.riv',
-            fit: BoxFit.fitWidth,
-          ),
-        ),
-      ],
-    );
-
     return Scaffold(
       backgroundColor: CustomColors.backgroundSecondary,
-      body: LayoutBuilder(builder: (context, constraints) {
-        final constraintHeight = constraints.maxHeight;
-
-        final textScale = MediaQuery.of(context).textScaler.scale(1);
-        return SafeArea(
-            child: constraintHeight < 550
-                ? textScale < 1.1
-                    ? welcomeContents
-                    : SingleChildScrollView(child: welcomeContents)
-                : constraintHeight < 750
-                    ? textScale >= 1.4
-                        ? SingleChildScrollView(child: welcomeContents)
-                        : welcomeContents
-                    : textScale >= 2
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final textScale = MediaQuery.of(context).textScaler.scale(1);
+          print(" The meh height is ${constraints.maxHeight}");
+          return SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: textScale >= 1.3 || constraints.maxHeight < 650
                         ? SingleChildScrollView(
-                            child: welcomeContents,
-                          )
-                        : welcomeContents);
-      }),
-      bottomNavigationBar: Container(
-        height: 100,
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        child: Center(
-          child: CustomFlatButton(
-            onClick: () => navigateToNextPage(),
-            text: "Continue",
-            color: CustomColors.fillWhite,
-            textColor: CustomColors.productNormalActive,
-          ),
-        ),
+                            child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.only(top: 48),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Welcome, \nYou've checked in!",
+                                      style: CustomTypography().headlineLarge(
+                                          color: CustomColors.textWhite),
+                                    ),
+                                    const SizedBox(
+                                      height: 16,
+                                    ),
+                                    Text(
+                                      "You are now checked into our study. Thank you so much for joining our research! ${Strings.confetti}",
+                                      style: CustomTypography().bodyLarge(
+                                          color: CustomColors.textWhite),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                  height: constraints.maxHeight > 800
+                                      ? MediaQuery.of(context).size.height * .3
+                                      : MediaQuery.of(context).size.height *
+                                          .1),
+                              SizedBox(
+                                height: 250,
+                                width: width,
+                                child: const RiveAnimation.asset(
+                                  'assets/animations/onboarding/onboarding_welcome.riv',
+                                  fit: BoxFit.fitWidth,
+                                ),
+                              ),
+                            ],
+                          ))
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.only(top: 48),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Welcome, \nYou've checked in!",
+                                        style: CustomTypography().headlineLarge(
+                                            color: CustomColors.textWhite),
+                                      ),
+                                      const SizedBox(
+                                        height: 16,
+                                      ),
+                                      Text(
+                                        "You are now checked into our study. Thank you so much for joining our research! ${Strings.confetti}",
+                                        style: CustomTypography().bodyLarge(
+                                            color: CustomColors.textWhite),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 300,
+                                width: width,
+                                child: const RiveAnimation.asset(
+                                  'assets/animations/onboarding/onboarding_welcome.riv',
+                                  fit: BoxFit.fitWidth,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: CustomFlatButton(
+                    onClick: () => navigateToNextPage(),
+                    text: "Continue",
+                    color: CustomColors.fillWhite,
+                    textColor: CustomColors.productNormalActive,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

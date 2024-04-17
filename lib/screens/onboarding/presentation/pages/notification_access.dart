@@ -46,64 +46,56 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
                 ))
             : null,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding:
-                  const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: 24,
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              "Turn on notifications for timely reminders!",
-                              style: CustomTypography()
-                                  .headlineLarge(color: CustomColors.textWhite),
-                              // textScaleFactor: 2,
-                            ),
-                            const SizedBox(height: 40.0),
-                            Image.asset(
-                              "assets/images/notification_example.png",
-                              width: width,
-                            ),
-                          ],
-                        ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          left: 16.0, right: 16.0, bottom: 34.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            "Turn on notifications for timely reminders!",
+                            style: CustomTypography()
+                                .headlineLarge(color: CustomColors.textWhite),
+                          ),
+                          const SizedBox(height: 40.0),
+                          Image.asset(
+                            "assets/images/notification_example.png",
+                            width: width,
+                          ),
+                        ],
                       ),
                     ),
-                    SizedBox(
-                      height: height >= 700 ? 300 : height * 0.65,
-                      width: width,
-                      child: const RiveAnimation.asset(
-                          stateMachines: [],
-                          'assets/animations/onboarding/onboarding_getnotified.riv',
-                          fit: BoxFit.fitWidth),
-                    ),
-                  ],
-                ),
+                  ),
+                  SizedBox(
+                    height: height >= 700 ? 300 : height * 0.65,
+                    width: width,
+                    child: const RiveAnimation.asset(
+                        stateMachines: [],
+                        'assets/animations/onboarding/onboarding_getnotified.riv',
+                        fit: BoxFit.fitWidth),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: SizedBox(
-        height: 100,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-          child: CustomFlatButton(
-            onClick: () => navigateToNextPage(),
-            text: "Allow",
-            color: CustomColors.fillWhite,
-            textColor: CustomColors.productNormalActive,
           ),
-        ),
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+            child: CustomFlatButton(
+              onClick: () => navigateToNextPage(),
+              text: "Allow",
+              color: CustomColors.fillWhite,
+              textColor: CustomColors.productNormalActive,
+            ),
+          ),
+        ],
       ),
     );
   }

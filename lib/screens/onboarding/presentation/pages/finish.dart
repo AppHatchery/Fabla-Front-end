@@ -66,7 +66,6 @@ class _FinishPageState extends State<FinishPage> {
                             "Congratulations! ${Strings.confetti} You are all set! Your participation is invaluable to our research. We're thrilled to have you on board!",
                             style: CustomTypography()
                                 .bodyLarge(color: CustomColors.textWhite),
-                            textScaleFactor: 3.0,
                           ),
                         ],
                       )),

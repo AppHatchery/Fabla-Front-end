@@ -84,7 +84,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
                                         : "Please enable the microphone access",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
-                                    // textScaleFactor: 3.0,
+                                    textScaleFactor: 3.0,
                                   ),
                                   const SizedBox(height: 40.0),
                                   MicTester(

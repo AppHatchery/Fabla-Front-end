@@ -31,7 +31,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
-    const double textScale = 1.5;
+    final double textScale = MediaQuery.of(context).textScaler.scale(1);
     keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
 
     Widget bottomWidget = BlocConsumer<SetupCubit, SetupState>(
@@ -60,7 +60,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
     );
     return Scaffold(
         resizeToAvoidBottomInset: true,
-        backgroundColor: CustomColors.fillWhite,
+        backgroundColor: CustomColors.backgroundSecondary,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           leading: IconButton(
@@ -75,7 +75,8 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
           bottom: false,
           child: LayoutBuilder(builder: (context, constraints) {
             final constraintHeight = constraints.maxHeight;
-            return SizedBox(
+            return Container(
+              color: CustomColors.fillWhite,
               height: constraintHeight,
               child: SingleChildScrollView(
                 child: GestureDetector(
@@ -92,18 +93,17 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
                             "Enter a nickname for the study.",
                             style: CustomTypography()
                                 .headlineLarge(color: CustomColors.textWhite),
-                            textScaleFactor: textScale,
                           ),
                         ),
                         const SizedBox(
                           height: 60,
                         ),
-                        SizedBox(
-                            height: height < 550
-                                ? textScale < 1.1
-                                    ? height * .6
-                                    : height * .6
-                                : constraintHeight < 750
+                        AnimatedContainer(
+                            duration: const Duration(milliseconds: 700),
+                            curve: Curves.easeInOut,
+                            height: height < 550 && textScale < 1.1
+                                ? height * .6
+                                : height < 800
                                     ? textScale >= 1.4
                                         ? height * .6
                                         : height * .7
