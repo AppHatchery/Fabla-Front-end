@@ -623,45 +623,47 @@ class _QuestionPageState extends State<QuestionPage>
                       height: 12,
                     ),
 
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          prompt.question.toString(),
-                          style: CustomTypography().titleLarge(),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            prompt.question.toString(),
+                            style: CustomTypography().titleLarge(),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          questionTip,
-                          style: const TextStyle(
-                              color: CustomColors.textTertiaryContent),
-                        ),
-                      )
-                    ],
-                  ),
-                  SizedBox(
-                      height:
-                          prompt.responseType == ResponseType.text ? 24 : 112),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            questionTip,
+                            style: const TextStyle(
+                                color: CustomColors.textTertiaryContent),
+                          ),
+                        )
+                      ],
+                    ),
+                    SizedBox(
+                        height: prompt.responseType == ResponseType.text
+                            ? 24
+                            : 112),
 
-                  audiTextWidget,
-                  textWidget,
-                  responseWidget,
-                  if (widget.diary.status != DiaryStatus.submitted &&
-                      widget.diary.status != DiaryStatus.missed &&
-                      prompt.responseType == ResponseType.recording)
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-                  // const CustomTextButton(
-                  //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
-                ],
+                    audiTextWidget,
+                    textWidget,
+                    responseWidget,
+                    if (widget.diary.status != DiaryStatus.submitted &&
+                        widget.diary.status != DiaryStatus.missed &&
+                        prompt.responseType == ResponseType.recording)
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.3),
+                    // const CustomTextButton(
+                    //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
+                  ],
+                ),
               ),
             ),
-          ),
-        ));
+          );
   }
 
   void recordResponse(BuildContext context) {
