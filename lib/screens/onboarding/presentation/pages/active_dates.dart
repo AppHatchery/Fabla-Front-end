@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_time.dart';
+import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -37,7 +38,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
-        backgroundColor: CustomColors.fillWhite,
+        backgroundColor: CustomColors.backgroundSecondary,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           leading: canGoBack
@@ -91,51 +92,67 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
   Widget loaded(double height, double width, Participant participant) {
     final start = startDate(participant.studyCode);
     final end = start?.add(Duration(days: (fakePrompts.length - 1)));
-    return SingleChildScrollView(
-      child: Container(
-        color: CustomColors.backgroundSecondary,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                "Hi ${participant.name}, here are your active dates",
-                style: CustomTypography()
-                    .headlineLarge(color: CustomColors.textWhite),
-                // textScaleFactor: 2.0,
-              ),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            SizedBox(
-              height: 650,
-              width: width,
-              child: AvatarBackground(
-                  height: height,
-                  width: width,
-                  image: "assets/images/active_dates.png",
-                  avatarType: "animation",
-                  animation:
-                      "assets/animations/onboarding/onboarding_activedays.riv",
-                  onContinue: navigateToNextPage,
+    return Container(
+      color: CustomColors.fillWhite,
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Container(
+                color: CustomColors.backgroundSecondary,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      "Diary Calendar",
-                      style: CustomTypography().titleLarge(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text(
+                        "Hi ${participant.name}, here are your active dates",
+                        style: CustomTypography()
+                            .headlineLarge(color: CustomColors.textWhite),
+                        // textScaleFactor: 2.0,
+                      ),
                     ),
                     const SizedBox(
-                      height: 6,
+                      height: 16,
                     ),
-                    CustomCalender(
-                      rangeStart: start,
-                      rangeEnd: end,
-                    ),
-                  ]),
-            )
-          ],
-        ),
+                    SizedBox(
+                      height: MediaQuery.of(context).textScaler.scale(1) > 1.3
+                          ? 750
+                          : 650,
+                      width: width,
+                      child: AvatarBackground(
+                          height: height,
+                          width: width,
+                          image: "assets/images/active_dates.png",
+                          avatarType: "animation",
+                          animation:
+                              "assets/animations/onboarding/onboarding_activedays.riv",
+                          onContinue: navigateToNextPage,
+                          children: [
+                            Text(
+                              "Diary Calendar",
+                              style: CustomTypography().titleLarge(),
+                            ),
+                            const SizedBox(
+                              height: 6,
+                            ),
+                            CustomCalender(
+                              rangeStart: start,
+                              rangeEnd: end,
+                            ),
+                          ]),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child:
+                CustomFlatButton(onClick: navigateToNextPage, text: "Continue"),
+          ),
+        ],
       ),
     );
   }

@@ -93,32 +93,6 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
                             ),
                           ),
                         ),
-                  widget.keyboardSpace != null
-                      ? Expanded(
-                          child: Column(
-                            children: [
-                              Flexible(
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 700),
-                                  curve: Curves.easeInOut,
-                                  height: isKeyboardOpen ? 0 : 1000,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: CustomFlatButton(
-                                    onClick: () => widget.onContinue(),
-                                    text: "Continue"),
-                              ),
-                            ],
-                          ),
-                        )
-                      : Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: CustomFlatButton(
-                              onClick: () => widget.onContinue(),
-                              text: "Continue"),
-                        ),
                 ],
               ),
             ))

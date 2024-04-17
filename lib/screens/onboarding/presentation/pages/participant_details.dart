@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setu
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_dates.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/avatar_background.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/participant_name.dart';
+import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -77,45 +78,59 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
             final constraintHeight = constraints.maxHeight;
             return Container(
               color: CustomColors.fillWhite,
-              height: constraintHeight,
-              child: SingleChildScrollView(
-                child: GestureDetector(
-                  onTap: () => FocusScope.of(context).unfocus(),
-                  child: Container(
-                    color: CustomColors.backgroundSecondary,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text(
-                            "Enter a nickname for the study.",
-                            style: CustomTypography()
-                                .headlineLarge(color: CustomColors.textWhite),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      color: CustomColors.fillWhite,
+                      child: SingleChildScrollView(
+                        child: GestureDetector(
+                          onTap: () => FocusScope.of(context).unfocus(),
+                          child: Container(
+                            color: CustomColors.backgroundSecondary,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0),
+                                  child: Text(
+                                    "Enter a nickname for the study.",
+                                    style: CustomTypography().headlineLarge(
+                                        color: CustomColors.textWhite),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 60,
+                                ),
+                                AnimatedContainer(
+                                    duration: const Duration(milliseconds: 700),
+                                    curve: Curves.easeInOut,
+                                    height: height < 550 && textScale < 1.1
+                                        ? height * .6
+                                        : height < 800
+                                            ? textScale >= 1.4
+                                                ? height * .6
+                                                : height * .7
+                                            : textScale >= 2
+                                                ? height * .6
+                                                : height * .75,
+                                    width: width,
+                                    child: bottomWidget)
+                              ],
+                            ),
                           ),
                         ),
-                        const SizedBox(
-                          height: 60,
-                        ),
-                        AnimatedContainer(
-                            duration: const Duration(milliseconds: 700),
-                            curve: Curves.easeInOut,
-                            height: height < 550 && textScale < 1.1
-                                ? height * .6
-                                : height < 800
-                                    ? textScale >= 1.4
-                                        ? height * .6
-                                        : height * .7
-                                    : textScale >= 2
-                                        ? height * .6
-                                        : height * .75,
-                            width: width,
-                            child: bottomWidget)
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: CustomFlatButton(
+                        onClick: () => saveName(), text: "Continue"),
+                  ),
+                ],
               ),
             );
           }),
