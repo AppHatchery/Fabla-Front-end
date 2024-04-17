@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/audio_quiestions_widget.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
@@ -335,6 +336,7 @@ class QuestionPage extends StatefulWidget {
   final VoidCallback nextPage;
   final VoidCallback previousPage;
   final bool? isLastPage;
+
   const QuestionPage({
     super.key,
     required this.diary,
@@ -532,7 +534,7 @@ class _QuestionPageState extends State<QuestionPage>
         },
       );
     } else if (prompt.responseType == ResponseType.recording ||
-        prompt.responseType == ResponseType.text) {
+        prompt.responseType == ResponseType.textAudio) {
       bool hasRecordingOrResponse = prompt.answer?.recordings.isNotEmpty ??
           false || prompt.answer?.response != null;
       responseWidget = widget.diary.status == DiaryStatus.submitted ||
@@ -582,37 +584,44 @@ class _QuestionPageState extends State<QuestionPage>
       textWidget = const SizedBox.shrink();
     }
 
-    return SingleChildScrollView(
-        controller: _scrollController,
-        child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height * 0.79,
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-              color: CustomColors.fillWhite,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                          alignment: Alignment.topLeft,
-                          child: Text(
-                            "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
-                            style: CustomTypography().button(),
-                          )),
-                      const SizedBox(height: 15),
-                    ],
-                  ),
+    return (prompt.responseType == ResponseType.recording ||
+            prompt.responseType == ResponseType.textAudio)
+        ? AudioQuestionsWidget(
+            diary: widget.diary,
+            prompt: prompt,
+            currentPage: widget.currentPage,
+            audiTextWidget: audiTextWidget,
+            responseWidget: responseWidget,
+            textWidget: textWidget)
+        : SingleChildScrollView(
+            controller: _scrollController,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height * 0.79,
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+                color: CustomColors.fillWhite,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                            alignment: Alignment.topLeft,
+                            child: Text(
+                              "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
+                              style: CustomTypography().button(),
+                            )),
+                        const SizedBox(height: 15),
+                      ],
+                    ),
 
-                  const SizedBox(
-                    height: 12,
-                  ),
+                    const SizedBox(
+                      height: 12,
+                    ),
 
                   Row(
                     children: [
