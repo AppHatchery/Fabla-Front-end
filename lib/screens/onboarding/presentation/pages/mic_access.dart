@@ -69,10 +69,11 @@ class _MicAccessPageState extends State<MicAccessPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: SizedBox(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 24),
-                      child: SingleChildScrollView(
+                  child: LayoutBuilder(
+                    builder: (context, constraint) => SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints:
+                            BoxConstraints(minHeight: constraint.maxHeight),
                         child: Column(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -176,13 +177,6 @@ class _MicAccessPageState extends State<MicAccessPage> {
                                       : const SizedBox.shrink(),
                                 ],
                               ),
-                              // SizedBox(
-                              //   height:
-                              //       MediaQuery.of(context).textScaler.scale(1) >
-                              //               1.3
-                              //           ? 0
-                              //           : 200,
-                              // ),
                               Visibility(
                                 visible: permission,
                                 replacement: SizedBox(

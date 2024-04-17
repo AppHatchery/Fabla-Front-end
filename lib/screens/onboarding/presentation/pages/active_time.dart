@@ -76,9 +76,8 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                                     ),
                                   ),
                                   Expanded(child: Container()),
-                                  ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                        maxHeight: 650, minHeight: 500),
+                                  SizedBox(
+                                    height: 500,
                                     child: AvatarBackground(
                                         height: height,
                                         width: width,

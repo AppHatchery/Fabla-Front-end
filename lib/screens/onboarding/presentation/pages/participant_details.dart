@@ -111,16 +111,9 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
                                             // textScaleFactor: 3,
                                           ),
                                         ),
-                                        const SizedBox(
-                                          height: 150,
-                                        ),
-                                        Expanded(
-                                            child: ConstrainedBox(
-                                                constraints:
-                                                    const BoxConstraints(
-                                                  minHeight: 650,
-                                                ),
-                                                child: bottomWidget))
+                                        Expanded(child: Container()),
+                                        SizedBox(
+                                            height: 400, child: bottomWidget)
                                       ],
                                     ),
                                   ),
