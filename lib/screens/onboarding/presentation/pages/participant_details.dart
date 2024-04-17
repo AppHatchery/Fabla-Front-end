@@ -60,7 +60,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
     );
     return Scaffold(
         resizeToAvoidBottomInset: true,
-        backgroundColor: CustomColors.backgroundSecondary,
+        backgroundColor: CustomColors.fillWhite,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           leading: IconButton(
@@ -83,40 +83,37 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
                   child: Column(
                     children: [
                       Expanded(
-                        child: Container(
-                          color: CustomColors.fillWhite,
-                          child: SingleChildScrollView(
-                            child: GestureDetector(
-                              onTap: () => FocusScope.of(context).unfocus(),
-                              child: Container(
-                                color: CustomColors.backgroundSecondary,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16.0),
-                                      child: Text(
-                                        "Enter a nickname for the study.",
-                                        style: CustomTypography().headlineLarge(
-                                            color: CustomColors.textWhite),
-                                      ),
+                        child: SingleChildScrollView(
+                          child: GestureDetector(
+                            onTap: () => FocusScope.of(context).unfocus(),
+                            child: Container(
+                              color: CustomColors.backgroundSecondary,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0),
+                                    child: Text(
+                                      "Enter a nickname for the study.",
+                                      style: CustomTypography().headlineLarge(
+                                          color: CustomColors.textWhite),
                                     ),
-                                    const SizedBox(
-                                      height: 60,
-                                    ),
-                                    SizedBox(
-                                        height: MediaQuery.of(context)
-                                                    .textScaler
-                                                    .scale(1) >
-                                                1.3
-                                            ? 750
-                                            : 650,
-                                        width: width,
-                                        child: bottomWidget)
-                                  ],
-                                ),
+                                  ),
+                                  SizedBox(
+                                    height: height > 900 ? 150 : 90,
+                                  ),
+                                  SizedBox(
+                                      height: MediaQuery.of(context)
+                                                  .textScaler
+                                                  .scale(1) >
+                                              1.3
+                                          ? 750
+                                          : 550,
+                                      width: width,
+                                      child: bottomWidget)
+                                ],
                               ),
                             ),
                           ),

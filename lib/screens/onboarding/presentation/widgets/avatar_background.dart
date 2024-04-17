@@ -73,18 +73,20 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(24),
                       topRight: Radius.circular(24))),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SingleChildScrollView(
-                    child: SizedBox(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: widget.children,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SingleChildScrollView(
+                      child: SizedBox(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: widget.children,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ))
       ],

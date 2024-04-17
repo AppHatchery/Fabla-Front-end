@@ -38,7 +38,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
-        backgroundColor: CustomColors.backgroundSecondary,
+        backgroundColor: CustomColors.fillWhite,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           leading: canGoBack
@@ -55,27 +55,30 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
           bottom: false,
           child: LayoutBuilder(builder: (context, constraints) {
             final constraintHeight = constraints.maxHeight;
-            return SingleChildScrollView(
-              child: SizedBox(
-                  height: constraintHeight,
-                  width: width,
-                  child: BlocConsumer<SetupCubit, SetupState>(
-                      builder: (context, state) {
-                        if (state is SetupInitial) {
-                          return initial();
-                        } else if (state is SetupLoading) {
-                          return loading();
-                        } else if (state is SetupLoaded) {
-                          final participant = state.participant;
-                          if (participant != null) {
-                            return loaded(height, width, participant);
-                          } else {
+            return Container(
+              color: CustomColors.backgroundSecondary,
+              child: SingleChildScrollView(
+                child: SizedBox(
+                    height: constraintHeight,
+                    width: width,
+                    child: BlocConsumer<SetupCubit, SetupState>(
+                        builder: (context, state) {
+                          if (state is SetupInitial) {
                             return initial();
+                          } else if (state is SetupLoading) {
+                            return loading();
+                          } else if (state is SetupLoaded) {
+                            final participant = state.participant;
+                            if (participant != null) {
+                              return loaded(height, width, participant);
+                            } else {
+                              return initial();
+                            }
                           }
-                        }
-                        return initial();
-                      },
-                      listener: (context, state) {})),
+                          return initial();
+                        },
+                        listener: (context, state) {})),
+              ),
             );
           }),
         ));
@@ -112,8 +115,8 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                         // textScaleFactor: 2.0,
                       ),
                     ),
-                    const SizedBox(
-                      height: 16,
+                    SizedBox(
+                      height: height > 900 ? 150 : 90,
                     ),
                     SizedBox(
                       height: MediaQuery.of(context).textScaler.scale(1) > 1.3

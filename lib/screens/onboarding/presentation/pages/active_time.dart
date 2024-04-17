@@ -34,7 +34,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
-        backgroundColor: CustomColors.backgroundSecondary,
+        backgroundColor: CustomColors.fillWhite,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           leading: canGoBack
@@ -57,7 +57,6 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                 children: [
                   Expanded(
                     child: Container(
-                      color: CustomColors.fillWhite,
                       child: SingleChildScrollView(
                         dragStartBehavior: DragStartBehavior.down,
                         child: Container(
@@ -74,14 +73,14 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                                 ),
                               ),
                               const SizedBox(
-                                height: 16,
+                                height: 100,
                               ),
                               SizedBox(
                                 height:
                                     MediaQuery.of(context).textScaler.scale(1) >
                                             1.3
                                         ? 750
-                                        : 650,
+                                        : 750,
                                 width: width,
                                 child: AvatarBackground(
                                     height: height,
