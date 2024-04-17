@@ -10,6 +10,7 @@ import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
+import 'package:audio_diaries_flutter/theme/components/textfields.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -516,6 +517,22 @@ class _QuestionPageState extends State<QuestionPage>
         },
         disabled: disabled,
       );
+    } else if (prompt.responseType == ResponseType.text) {
+      String? freeTextAnswer = "";
+      if (prompt.answer?.response != null) {
+        freeTextAnswer = prompt.answer!.response!.toString();
+      }
+      responseWidget = FreeTextQuestionCard(
+        value: freeTextAnswer,
+        onChanged: (value) {
+          if (value == null || value.trim().isEmpty) {
+            widget.answerAdded(false);
+          } else {
+            widget.answerAdded(true);
+            save(context, prompt, value);
+          }
+        },
+      );
     } else if (prompt.responseType == ResponseType.recording ||
         prompt.responseType == ResponseType.textAudio) {
       bool hasRecordingOrResponse = prompt.answer?.recordings.isNotEmpty ??
@@ -542,6 +559,8 @@ class _QuestionPageState extends State<QuestionPage>
       questionTip = "Please check all that apply:";
     } else if (prompt.responseType == ResponseType.radio) {
       questionTip = "Please check 1 option:";
+    } else if (prompt.responseType == ResponseType.text) {
+      questionTip = "Please type your answer:";
     } else {
       questionTip = "You only need to take one response.";
     }
@@ -625,7 +644,10 @@ class _QuestionPageState extends State<QuestionPage>
                         )
                       ],
                     ),
-                    const SizedBox(height: 112),
+                    SizedBox(
+                        height: prompt.responseType == ResponseType.text
+                            ? 24
+                            : 112),
 
                     audiTextWidget,
                     textWidget,
@@ -640,7 +662,8 @@ class _QuestionPageState extends State<QuestionPage>
                   ],
                 ),
               ),
-            ));
+            ),
+          );
   }
 
   void recordResponse(BuildContext context) {

@@ -422,6 +422,7 @@ class TextQuestionCard extends StatefulWidget {
   State<TextQuestionCard> createState() => _TextQuestionCardState();
 }
 
+//Free response text question card
 class _TextQuestionCardState extends State<TextQuestionCard> {
   @override
   Widget build(BuildContext context) {
@@ -455,6 +456,114 @@ class _TextQuestionCardState extends State<TextQuestionCard> {
           maxLines: null,
         )
       ],
+    );
+  }
+}
+
+class FreeTextQuestionCard extends StatefulWidget {
+  final ValueChanged<String?> onChanged;
+  final String? value;
+  const FreeTextQuestionCard(
+      {super.key, required this.onChanged, required this.value});
+
+  @override
+  State<FreeTextQuestionCard> createState() => _FreeTextQuestionCardState();
+}
+
+class _FreeTextQuestionCardState extends State<FreeTextQuestionCard> {
+  late TextEditingController _freeTextResponseController;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.onChanged;
+    _freeTextResponseController = TextEditingController(text: widget.value);
+  }
+
+  @override
+  void dispose() {
+    _freeTextResponseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: 24.0,
+          ),
+        ),
+        TextField(
+          onChanged: widget.onChanged,
+          decoration: InputDecoration(
+            hintText: 'Type your message',
+            hintStyle: CustomTypography()
+                .button(color: CustomColors.textTertiaryContent),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide:
+                  const BorderSide(color: CustomColors.productBorderNormal),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide:
+                  const BorderSide(color: CustomColors.productBorderNormal),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide:
+                  const BorderSide(color: CustomColors.productBorderActive),
+            ),
+            fillColor: Colors.white,
+            filled: true,
+          ),
+          maxLines: null,
+          controller: _freeTextResponseController,
+          keyboardType: TextInputType.text,
+        )
+      ],
+    );
+  }
+}
+
+//Free response text question summary
+
+class FreeTextQuestionSummary extends StatefulWidget {
+  final String answer;
+  const FreeTextQuestionSummary({super.key, required this.answer});
+
+  @override
+  State<FreeTextQuestionSummary> createState() =>
+      _FreeTextQuestionSummaryState();
+}
+
+class _FreeTextQuestionSummaryState extends State<FreeTextQuestionSummary> {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+            border: Border.all(color: CustomColors.greyDark),
+            borderRadius: BorderRadius.circular(16.0),
+            color: CustomColors.productLightPrimaryNormalWhite,
+            boxShadow: const [
+              BoxShadow(
+                  color: CustomColors.greyDark,
+                  blurRadius: .5,
+                  spreadRadius: .5,
+                  offset: Offset(0, 1))
+            ]),
+        child: ListTile(
+          title: Text(
+            widget.answer,
+            style: CustomTypography()
+                .bodyLarge(color: CustomColors.textSecondaryContent),
+          ),
+        ),
+      ),
     );
   }
 }
