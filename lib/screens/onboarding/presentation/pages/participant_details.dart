@@ -83,37 +83,48 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
                   child: Column(
                     children: [
                       Expanded(
-                        child: SingleChildScrollView(
-                          child: GestureDetector(
-                            onTap: () => FocusScope.of(context).unfocus(),
-                            child: Container(
-                              color: CustomColors.backgroundSecondary,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0),
-                                    child: Text(
-                                      "Enter a nickname for the study.",
-                                      style: CustomTypography().headlineLarge(
-                                          color: CustomColors.textWhite),
+                        child: LayoutBuilder(
+                          builder: (context, constraint) =>
+                              SingleChildScrollView(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                  minHeight: constraint.maxHeight),
+                              child: IntrinsicHeight(
+                                child: GestureDetector(
+                                  onTap: () => FocusScope.of(context).unfocus(),
+                                  child: Container(
+                                    color: CustomColors.backgroundSecondary,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16.0),
+                                          child: Text(
+                                            "Enter a nickname for the study.",
+                                            style: CustomTypography()
+                                                .headlineLarge(
+                                                    color:
+                                                        CustomColors.textWhite),
+                                            // textScaleFactor: 3,
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: 150,
+                                        ),
+                                        Expanded(
+                                            child: ConstrainedBox(
+                                                constraints:
+                                                    const BoxConstraints(
+                                                  minHeight: 650,
+                                                ),
+                                                child: bottomWidget))
+                                      ],
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: height > 900 ? 150 : 90,
-                                  ),
-                                  SizedBox(
-                                      height: MediaQuery.of(context)
-                                                  .textScaler
-                                                  .scale(1) >
-                                              1.3
-                                          ? 750
-                                          : 550,
-                                      width: width,
-                                      child: bottomWidget)
-                                ],
+                                ),
                               ),
                             ),
                           ),

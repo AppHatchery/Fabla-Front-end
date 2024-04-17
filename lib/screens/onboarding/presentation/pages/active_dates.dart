@@ -100,52 +100,56 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
       child: Column(
         children: [
           Expanded(
-            child: SingleChildScrollView(
-              child: Container(
-                color: CustomColors.backgroundSecondary,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text(
-                        "Hi ${participant.name}, here are your active dates",
-                        style: CustomTypography()
-                            .headlineLarge(color: CustomColors.textWhite),
-                        // textScaleFactor: 2.0,
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Container(
+                      color: CustomColors.backgroundSecondary,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Text(
+                              "Hi ${participant.name}, here are your active dates",
+                              style: CustomTypography()
+                                  .headlineLarge(color: CustomColors.textWhite),
+                              // textScaleFactor: 3.0,
+                            ),
+                          ),
+                          Expanded(child: Container()),
+                          SizedBox(
+                            height: 600,
+                            width: width,
+                            child: AvatarBackground(
+                                height: height,
+                                width: width,
+                                image: "assets/images/active_dates.png",
+                                avatarType: "animation",
+                                animation:
+                                    "assets/animations/onboarding/onboarding_activedays.riv",
+                                onContinue: navigateToNextPage,
+                                children: [
+                                  Text(
+                                    "Diary Calendar",
+                                    style: CustomTypography().titleLarge(),
+                                  ),
+                                  const SizedBox(
+                                    height: 6,
+                                  ),
+                                  CustomCalender(
+                                    rangeStart: start,
+                                    rangeEnd: end,
+                                  ),
+                                ]),
+                          )
+                        ],
                       ),
                     ),
-                    SizedBox(
-                      height: height > 900 ? 150 : 90,
-                    ),
-                    SizedBox(
-                      height: MediaQuery.of(context).textScaler.scale(1) > 1.3
-                          ? 750
-                          : 650,
-                      width: width,
-                      child: AvatarBackground(
-                          height: height,
-                          width: width,
-                          image: "assets/images/active_dates.png",
-                          avatarType: "animation",
-                          animation:
-                              "assets/animations/onboarding/onboarding_activedays.riv",
-                          onContinue: navigateToNextPage,
-                          children: [
-                            Text(
-                              "Diary Calendar",
-                              style: CustomTypography().titleLarge(),
-                            ),
-                            const SizedBox(
-                              height: 6,
-                            ),
-                            CustomCalender(
-                              rangeStart: start,
-                              rangeEnd: end,
-                            ),
-                          ]),
-                    )
-                  ],
+                  ),
                 ),
               ),
             ),
