@@ -29,7 +29,7 @@ class AudioQuestionsWidget extends StatelessWidget {
     double textScale = MediaQuery.of(context).textScaler.scale(1);
 
     //Conditions for making the page scrollable or not
-    bool isSmallScreen = height < 550 && textScale > 1.0;
+    bool isSmallScreen = height < 550 || textScale > 1.3;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -54,17 +54,16 @@ class AudioQuestionsWidget extends StatelessWidget {
                       const SizedBox(height: 15),
                     ],
                   ),
-
                   const SizedBox(
                     height: 12,
                   ),
-
                   Row(
                     children: [
                       Expanded(
                         child: Text(
                           prompt.question.toString(),
                           style: CustomTypography().titleLarge(),
+                          textScaleFactor: textScale,
                         ),
                       ),
                     ],
@@ -80,8 +79,7 @@ class AudioQuestionsWidget extends StatelessWidget {
                       )
                     ],
                   ),
-                  // const SizedBox(height: 112),
-
+                  const SizedBox(height: 112),
                   audiTextWidget,
                   textWidget,
                   Center(child: responseWidget),
@@ -117,6 +115,7 @@ class AudioQuestionsWidget extends StatelessWidget {
                       child: Text(
                         prompt.question.toString(),
                         style: CustomTypography().titleLarge(),
+                        textScaleFactor: textScale,
                       ),
                     ),
                   ],
@@ -132,7 +131,6 @@ class AudioQuestionsWidget extends StatelessWidget {
                     )
                   ],
                 ),
-                // const SizedBox(height: 112),
 
                 audiTextWidget,
                 textWidget,
