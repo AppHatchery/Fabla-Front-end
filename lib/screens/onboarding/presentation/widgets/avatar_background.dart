@@ -2,8 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:rive/rive.dart';
-
-import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 
 class AvatarBackground extends StatefulWidget {
@@ -33,8 +31,6 @@ class AvatarBackground extends StatefulWidget {
 class _AvatarBackgroundState extends State<AvatarBackground> {
   @override
   Widget build(BuildContext context) {
-    bool isKeyboardOpen =
-        widget.keyboardSpace != null ? widget.keyboardSpace! > 0 : false;
     return Stack(
       children: [
         Positioned(
@@ -73,55 +69,20 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(24),
                       topRight: Radius.circular(24))),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  widget.keyboardSpace != null && widget.height < 850
-                      ? SingleChildScrollView(
-                          child: SizedBox(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: widget.children,
-                            ),
-                          ),
-                        )
-                      : Expanded(
-                          child: SingleChildScrollView(
-                            child: SizedBox(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: widget.children,
-                              ),
-                            ),
-                          ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SingleChildScrollView(
+                      child: SizedBox(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: widget.children,
                         ),
-                  widget.keyboardSpace != null && widget.height < 850
-                      ? Expanded(
-                          child: Column(
-                            children: [
-                              Flexible(
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 700),
-                                  curve: Curves.easeInOut,
-                                  height: isKeyboardOpen ? 0 : 1000,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: CustomFlatButton(
-                                    onClick: () => widget.onContinue(),
-                                    text: "Continue"),
-                              ),
-                            ],
-                          ),
-                        )
-                      : Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: CustomFlatButton(
-                              onClick: () => widget.onContinue(),
-                              text: "Continue"),
-                        ),
-                ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ))
       ],

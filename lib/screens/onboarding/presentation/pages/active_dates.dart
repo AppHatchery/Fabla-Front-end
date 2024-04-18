@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_time.dart';
+import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -37,7 +38,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
-        backgroundColor: CustomColors.backgroundSecondary,
+        backgroundColor: CustomColors.fillWhite,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           leading: canGoBack
@@ -54,27 +55,30 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
           bottom: false,
           child: LayoutBuilder(builder: (context, constraints) {
             final constraintHeight = constraints.maxHeight;
-            return SingleChildScrollView(
-              child: SizedBox(
-                  height: constraintHeight,
-                  width: width,
-                  child: BlocConsumer<SetupCubit, SetupState>(
-                      builder: (context, state) {
-                        if (state is SetupInitial) {
-                          return initial();
-                        } else if (state is SetupLoading) {
-                          return loading();
-                        } else if (state is SetupLoaded) {
-                          final participant = state.participant;
-                          if (participant != null) {
-                            return loaded(height, width, participant);
-                          } else {
+            return Container(
+              color: CustomColors.backgroundSecondary,
+              child: SingleChildScrollView(
+                child: SizedBox(
+                    height: constraintHeight,
+                    width: width,
+                    child: BlocConsumer<SetupCubit, SetupState>(
+                        builder: (context, state) {
+                          if (state is SetupInitial) {
                             return initial();
+                          } else if (state is SetupLoading) {
+                            return loading();
+                          } else if (state is SetupLoaded) {
+                            final participant = state.participant;
+                            if (participant != null) {
+                              return loaded(height, width, participant);
+                            } else {
+                              return initial();
+                            }
                           }
-                        }
-                        return initial();
-                      },
-                      listener: (context, state) {})),
+                          return initial();
+                        },
+                        listener: (context, state) {})),
+              ),
             );
           }),
         ));
@@ -91,46 +95,75 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
   Widget loaded(double height, double width, Participant participant) {
     final start = startDate(participant.studyCode);
     final end = start?.add(Duration(days: (fakePrompts.length - 1)));
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            "Hi ${participant.name}, here are your active dates",
-            style:
-                CustomTypography().headlineLarge(color: CustomColors.textWhite),
+    return Container(
+      color: CustomColors.fillWhite,
+      child: Column(
+        children: [
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Container(
+                      color: CustomColors.backgroundSecondary,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Text(
+                              "Hi ${participant.name}, here are your active dates",
+                              style: CustomTypography()
+                                  .headlineLarge(color: CustomColors.textWhite),
+                              // textScaleFactor: 3.0,
+                            ),
+                          ),
+                          Expanded(child: Container()),
+                          const SizedBox(
+                            height: 60,
+                          ),
+                          SizedBox(
+                            height: 600,
+                            width: width,
+                            child: AvatarBackground(
+                                height: height,
+                                width: width,
+                                image: "assets/images/active_dates.png",
+                                avatarType: "animation",
+                                animation:
+                                    "assets/animations/onboarding/onboarding_activedays.riv",
+                                onContinue: navigateToNextPage,
+                                children: [
+                                  Text(
+                                    "Diary Calendar",
+                                    style: CustomTypography().titleLarge(),
+                                  ),
+                                  const SizedBox(
+                                    height: 6,
+                                  ),
+                                  CustomCalender(
+                                    rangeStart: start,
+                                    rangeEnd: end,
+                                  ),
+                                ]),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        Expanded(
-          child: SizedBox(
-            width: width,
-            child: AvatarBackground(
-                height: height,
-                width: width,
-                image: "assets/images/active_dates.png",
-                avatarType: "animation",
-                animation:
-                    "assets/animations/onboarding/onboarding_activedays.riv",
-                onContinue: navigateToNextPage,
-                children: [
-                  Text(
-                    "Diary Calendar",
-                    style: CustomTypography().titleLarge(),
-                  ),
-                  const SizedBox(
-                    height: 6,
-                  ),
-                  CustomCalender(
-                    rangeStart: start,
-                    rangeEnd: end,
-                  ),
-                ]),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child:
+                CustomFlatButton(onClick: navigateToNextPage, text: "Continue"),
           ),
-        )
-      ],
+        ],
+      ),
     );
   }
 
@@ -164,7 +197,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
       // return nextSunday.add(const Duration(days: 6));
       return DateTime(2023, 11, 6);
       //return DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    } 
+    }
 
     return null;
   }
