@@ -266,11 +266,18 @@ class _HomePageState extends State<HomePage>
             isScrollControlled: true,
             builder: (context) => const Wrap(
                   children: [
-                    BottomTipPopUp(
-                      title: "Upload Diaries Until 4 AM",
-                      message:
-                          "Night owl? No need to rush! Share your diaries leisurely until 4 AM the next day! 🌙",
-                      image: 'assets/images/midnight.png',
+                    QuickTipPopUp(
+                      title: "Quick Tips to Get You Started",
+                      image: 'assets/images/idea.png',
+                      messageOne: "Separate Logs for Each Encounter",
+                      descriptionOne:
+                          "Please log each encounter separately to capture every detail",
+                      messageTwo: "Don't be limited to your daily goals!",
+                      descriptionTwo:
+                          "You are encouraged to log as many encounters as you can: More entries, more insights!",
+                      iconOne: "assets/images/arrow_split.png",
+                      iconTwo: "assets/images/record_voice_over.png",
+                      dontShowAgain: false,
                     )
                   ],
                 ));
