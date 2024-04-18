@@ -70,8 +70,7 @@ class _TestMicrophoneState extends State<TestMicrophone> {
                       isRecording ? "Stop Test" : "Test Microphone",
                       style: CustomTypography()
                           .title(color: CustomColors.textWhite),
-                      textAlign: TextAlign.center,
-                      textScaleFactor: 3.0,
+                      textAlign: TextAlign.center
                     ),
                   ),
                   const SizedBox(width: 10),
