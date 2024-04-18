@@ -121,6 +121,9 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                             ),
                           ),
                           Expanded(child: Container()),
+                          const SizedBox(
+                            height: 60,
+                          ),
                           SizedBox(
                             height: 600,
                             width: width,

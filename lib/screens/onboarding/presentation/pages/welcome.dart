@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/participant_details.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -38,7 +37,6 @@ class _WelcomePageState extends State<WelcomePage> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final textScale = MediaQuery.of(context).textScaler.scale(1);
-          print(" The meh height is ${constraints.maxHeight}");
           return SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

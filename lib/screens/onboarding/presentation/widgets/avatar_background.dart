@@ -2,8 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:rive/rive.dart';
-
-import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 
 class AvatarBackground extends StatefulWidget {
@@ -33,8 +31,6 @@ class AvatarBackground extends StatefulWidget {
 class _AvatarBackgroundState extends State<AvatarBackground> {
   @override
   Widget build(BuildContext context) {
-    bool isKeyboardOpen =
-        widget.keyboardSpace != null ? widget.keyboardSpace! > 0 : false;
     return Stack(
       children: [
         Positioned(

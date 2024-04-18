@@ -20,7 +20,6 @@ class ParticipantDetailsPage extends StatefulWidget {
 class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
   late SetupCubit setupCubit;
   final TextEditingController controller = TextEditingController();
-  double keyboardSpace = 0.0;
   @override
   void initState() {
     setupCubit = BlocProvider.of<SetupCubit>(context);
@@ -32,7 +31,6 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
-    keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
 
     Widget bottomWidget = BlocConsumer<SetupCubit, SetupState>(
       builder: (context, state) {
@@ -108,7 +106,6 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
                                                 .headlineLarge(
                                                     color:
                                                         CustomColors.textWhite),
-                                            // textScaleFactor: 3,
                                           ),
                                         ),
                                         Expanded(child: Container()),
@@ -142,7 +139,6 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
         height: height,
         width: width,
         image: "",
-        keyboardSpace: keyboardSpace,
         avatarType: "animation",
         animation: "assets/animations/onboarding/onboarding_nameinput.riv",
         onContinue: () => saveName(),
@@ -156,7 +152,6 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
         height: height,
         width: width,
         image: "",
-        keyboardSpace: keyboardSpace,
         avatarType: "animation",
         animation: "assets/animations/onboarding/onboarding_nameinput.riv",
         onContinue: () => saveName(),
@@ -170,7 +165,6 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
         height: height,
         width: width,
         image: "",
-        keyboardSpace: keyboardSpace,
         avatarType: "animation",
         animation: "assets/animations/onboarding/onboarding_nameinput.riv",
         onContinue: () => saveName(),

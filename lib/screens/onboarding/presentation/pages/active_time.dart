@@ -2,7 +2,6 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/noti
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/list_active_times.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../services/pendo_service.dart';
@@ -50,7 +49,6 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
         body: SafeArea(
           bottom: false,
           child: LayoutBuilder(builder: (context, constraints) {
-            final constraintHeight = constraints.maxHeight;
             return Container(
               color: CustomColors.fillWhite,
               child: Column(

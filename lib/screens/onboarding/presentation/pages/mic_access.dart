@@ -46,7 +46,6 @@ class _MicAccessPageState extends State<MicAccessPage> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
     return Scaffold(
         backgroundColor: CustomColors.backgroundSecondary,
         appBar: AppBar(
