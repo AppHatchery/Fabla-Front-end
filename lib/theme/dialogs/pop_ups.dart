@@ -12,6 +12,178 @@ import '../custom_icons.dart';
 ///
 /// [title] is the title of the pop up. - String?
 ///
+/// [messageOne] is the first message of the pop up. - String?
+///
+/// [iconOne] is the icon for the first message - String?
+///
+/// [messageTwo] is the second message of the pop up. - String?
+///
+/// [iconTwo] is the icon for the second message - String?
+///
+/// [image] is the image to display. - String?
+class QuickTipPopUp extends StatefulWidget {
+  final String title;
+  final String image;
+  final String messageOne;
+  final String descriptionOne;
+  final String iconOne;
+  final String messageTwo;
+  final String descriptionTwo;
+  final String iconTwo;
+  final bool? dontShowAgain;
+
+  const QuickTipPopUp({
+    super.key,
+    required this.title,
+    required this.image,
+    required this.messageOne,
+    required this.descriptionOne,
+    required this.iconOne,
+    required this.messageTwo,
+    required this.descriptionTwo,
+    required this.iconTwo,
+    this.dontShowAgain,
+  });
+
+  @override
+  State<QuickTipPopUp> createState() => _QuickTipPopUpState();
+}
+
+class _QuickTipPopUpState extends State<QuickTipPopUp> {
+  late bool? _dontShowAgain;
+
+  @override
+  void initState() {
+    _dontShowAgain = widget.dontShowAgain;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+      width: width,
+      // color: CustomColors.fillWhite,
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 34),
+      constraints: const BoxConstraints.tightFor(),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          //Image
+          SizedBox(
+              height: 100,
+              child: Image.asset(widget.image, fit: BoxFit.contain)),
+
+          const SizedBox(height: 24),
+          //Title
+          Row(
+            children: [
+              // const Expanded(
+              //     child: SizedBox(
+              //   height: 24,
+              //   width: 24,
+              // )),
+              Expanded(
+                  child: SizedBox(
+                child: Text(widget.title,
+                    style: CustomTypography().headlineMedium(),
+                    textAlign: TextAlign.center),
+              )),
+              // Expanded(
+              //     child: GestureDetector(
+              //   onTap: () => Navigator.pop(context),
+              //   child: Container(
+              //     height: 24,
+              //     width: 24,
+              //     alignment: Alignment.centerRight,
+              //     child: const Icon(CustomIcons.close, color: Colors.black),
+              //   ),
+              // )),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            //Icon One
+            SizedBox(
+                height: 30,
+                child: Image.asset(widget.iconOne, fit: BoxFit.contain)),
+            const SizedBox(width: 10),
+            //Message One
+            Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.messageOne,
+                        style: CustomTypography().titleSmallCustom(),
+                        textAlign: TextAlign.start),
+                    Text(widget.descriptionOne,
+                        style: CustomTypography().bodyLight(),
+                        textAlign: TextAlign.start),
+                  ]),
+            )
+          ]),
+          const SizedBox(height: 16),
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            //Icon Two
+            SizedBox(
+                height: 30,
+                child: Image.asset(widget.iconTwo, fit: BoxFit.contain)),
+            const SizedBox(width: 10),
+            //MessageTwo
+            Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.messageTwo,
+                        style: CustomTypography().titleSmallCustom(),
+                        textAlign: TextAlign.start),
+                    Text(widget.descriptionTwo,
+                        style: CustomTypography().bodyLight(),
+                        textAlign: TextAlign.start),
+                  ]),
+            )
+          ]),
+
+          const SizedBox(height: 32),
+
+          _dontShowAgain != null
+              ? Container(
+                  alignment: Alignment.center,
+                  child: IntrinsicWidth(
+                    child: CustomCheckbox(
+                        value: _dontShowAgain!,
+                        label: "Don't show me again",
+                        onChanged: (value) => {
+                              setState(() {
+                                _dontShowAgain = value!;
+                              }),
+                            }),
+                  ))
+              : const SizedBox.shrink(),
+
+          const SizedBox(height: 12),
+
+          CustomFlatButton(onClick: _save, text: "Got It!")
+        ],
+      ),
+    );
+  }
+
+  void _save() async {
+    if (_dontShowAgain != null) {
+      await PreferenceService()
+          .setBoolPreference(key: "show_diary_tip", value: !_dontShowAgain!);
+    }
+    if (mounted) Navigator.pop(context);
+  }
+}
+
+/// Pop up for showing a tip to the user.
+///
+/// [title] is the title of the pop up. - String?
+///
 /// [message] is the message of the pop up. - String?
 ///
 /// [image] is the image to display. - String?
@@ -20,6 +192,7 @@ class BottomTipPopUp extends StatefulWidget {
   final String message;
   final String image;
   final bool? dontShowAgain;
+
   const BottomTipPopUp({
     super.key,
     required this.title,
@@ -287,6 +460,7 @@ class BottomResearcherInfoPopUp extends StatelessWidget {
   final String duration;
   final String researcher;
   final List<Widget>? actions;
+
   const BottomResearcherInfoPopUp(
       {super.key,
       required this.studyName,
@@ -416,6 +590,7 @@ class BottomStudyInfoPopUp extends StatelessWidget {
   final String organisation;
   final String duration;
   final String researcher;
+
   const BottomStudyInfoPopUp(
       {super.key,
       required this.studyName,
@@ -788,6 +963,7 @@ class ConfirmationPopUp extends StatelessWidget {
   final String title;
   final String message;
   final String buttonText;
+
   const ConfirmationPopUp(
       {super.key,
       required this.title,
@@ -862,6 +1038,7 @@ class TipsPopUp extends StatelessWidget {
   final String message;
   final List<String?> tips;
   final String buttonText;
+
   const TipsPopUp(
       {super.key,
       required this.title,
@@ -1048,6 +1225,7 @@ class RedoPopUp extends StatefulWidget {
 
 class _RedoPopUpState extends State<RedoPopUp> {
   bool _dontShowAgain = false;
+
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(

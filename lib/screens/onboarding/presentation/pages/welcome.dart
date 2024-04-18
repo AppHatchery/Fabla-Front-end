@@ -31,69 +31,115 @@ class _WelcomePageState extends State<WelcomePage> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: CustomColors.backgroundSecondary,
-      body: SafeArea(
-          child: Stack(
-        children: [
-          SizedBox(
-            height: height,
-            width: width,
-            child: const RiveAnimation.asset(
-                'assets/animations/onboarding/onboarding_welcome.riv',
-                fit: BoxFit.fitHeight),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final textScale = MediaQuery.of(context).textScaler.scale(1);
+          return SafeArea(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  padding: const EdgeInsets.only(top: 48),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Welcome, \nYou've checked in!",
-                          style: CustomTypography()
-                              .headlineLarge(color: CustomColors.textWhite)),
-                      const SizedBox(
-                        height: 16,
-                      ),
-                      Text(
-                          "You are now checked into our study. Thank you so much for joining our research! ${Strings.confetti}",
-                          style: CustomTypography()
-                              .bodyLarge(color: CustomColors.textWhite)),
-                    ],
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: textScale >= 1.3 || constraints.maxHeight < 650
+                        ? SingleChildScrollView(
+                            child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.only(top: 48),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Welcome, \nYou've checked in!",
+                                      style: CustomTypography().headlineLarge(
+                                          color: CustomColors.textWhite),
+                                    ),
+                                    const SizedBox(
+                                      height: 16,
+                                    ),
+                                    Text(
+                                      "You are now checked into our study. Thank you so much for joining our research! ${Strings.confetti}",
+                                      style: CustomTypography().bodyLarge(
+                                          color: CustomColors.textWhite),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                  height: constraints.maxHeight > 800
+                                      ? MediaQuery.of(context).size.height * .3
+                                      : MediaQuery.of(context).size.height *
+                                          .1),
+                              SizedBox(
+                                height: 250,
+                                width: width,
+                                child: const RiveAnimation.asset(
+                                  'assets/animations/onboarding/onboarding_welcome.riv',
+                                  fit: BoxFit.fitWidth,
+                                ),
+                              ),
+                            ],
+                          ))
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.only(top: 48),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Welcome, \nYou've checked in!",
+                                        style: CustomTypography().headlineLarge(
+                                            color: CustomColors.textWhite),
+                                      ),
+                                      const SizedBox(
+                                        height: 16,
+                                      ),
+                                      Text(
+                                        "You are now checked into our study. Thank you so much for joining our research! ${Strings.confetti}",
+                                        style: CustomTypography().bodyLarge(
+                                            color: CustomColors.textWhite),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 300,
+                                width: width,
+                                child: const RiveAnimation.asset(
+                                  'assets/animations/onboarding/onboarding_welcome.riv',
+                                  fit: BoxFit.fitWidth,
+                                ),
+                              ),
+                            ],
+                          ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.only(bottom: 34),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Image.asset(
-                      //   "assets/images/check_in_image.png",
-                      //   width: width,
-                      // ),
-                      // const SizedBox(
-                      //   height: 27,
-                      // ),
-                      CustomFlatButton(
-                        onClick: () => navigateToNextPage(),
-                        text: "Continue",
-                        color: CustomColors.fillWhite,
-                        textColor: CustomColors.productNormalActive,
-                      )
-                    ],
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: CustomFlatButton(
+                    onClick: () => navigateToNextPage(),
+                    text: "Continue",
+                    color: CustomColors.fillWhite,
+                    textColor: CustomColors.productNormalActive,
                   ),
                 ),
               ],
             ),
-          ),
-        ],
-      )),
+          );
+        },
+      ),
     );
   }
 

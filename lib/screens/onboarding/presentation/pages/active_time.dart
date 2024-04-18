@@ -1,6 +1,7 @@
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/notification_access.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/list_active_times.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../services/pendo_service.dart';
@@ -32,7 +33,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
-        backgroundColor: CustomColors.backgroundSecondary,
+        backgroundColor: CustomColors.fillWhite,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           leading: canGoBack
@@ -48,49 +49,67 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
         body: SafeArea(
           bottom: false,
           child: LayoutBuilder(builder: (context, constraints) {
-            final constraintHeight = constraints.maxHeight;
-            return SingleChildScrollView(
-              child: SizedBox(
-                height: constraintHeight,
-                width: width,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text(
-                        "When would you like to receive reminders?",
-                        style: CustomTypography()
-                            .headlineLarge(color: CustomColors.textWhite),
+            return Container(
+              color: CustomColors.fillWhite,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraint) => SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints:
+                              BoxConstraints(minHeight: constraint.maxHeight),
+                          child: IntrinsicHeight(
+                            child: Container(
+                              color: CustomColors.backgroundSecondary,
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0),
+                                    child: Text(
+                                      "When would you like to receive reminders?",
+                                      style: CustomTypography().headlineLarge(
+                                          color: CustomColors.textWhite),
+                                    ),
+                                  ),
+                                  Expanded(child: Container()),
+                                  SizedBox(
+                                    height: 500,
+                                    child: AvatarBackground(
+                                        height: height,
+                                        width: width,
+                                        image: "assets/images/active_time.png",
+                                        avatarType: "animation",
+                                        animation:
+                                            "assets/animations/onboarding/onboarding_remindersetting.riv",
+                                        onContinue: () => navigateToNextPage(),
+                                        children: [
+                                          Text(
+                                            "Reminder",
+                                            style:
+                                                CustomTypography().titleLarge(),
+                                          ),
+                                          const SizedBox(
+                                            height: 12,
+                                          ),
+                                          ListActiveTimes(times: times),
+                                        ]),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    Expanded(
-                      child: SizedBox(
-                        width: width,
-                        child: AvatarBackground(
-                            height: height,
-                            width: width,
-                            image: "assets/images/active_time.png",
-                            avatarType: "animation",
-                            animation:
-                                "assets/animations/onboarding/onboarding_remindersetting.riv",
-                            onContinue: () => navigateToNextPage(),
-                            children: [
-                              Text(
-                                "Reminder",
-                                style: CustomTypography().titleLarge(),
-                              ),
-                              const SizedBox(
-                                height: 12,
-                              ),
-                              ListActiveTimes(times: times),
-                            ]),
-                      ),
-                    )
-                  ],
-                ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: CustomFlatButton(
+                        onClick: navigateToNextPage, text: "Continue"),
+                  ),
+                ],
               ),
             );
           }),

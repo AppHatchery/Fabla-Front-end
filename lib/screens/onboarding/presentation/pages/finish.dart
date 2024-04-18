@@ -25,67 +25,87 @@ class _FinishPageState extends State<FinishPage> {
     return Scaffold(
       backgroundColor: CustomColors.backgroundSecondary,
       body: SafeArea(
-          child: Stack(
+          child: Column(
         children: [
-          SizedBox(
-            height: height,
-            width: width,
-            child: FutureBuilder(
-                future: Future.delayed(const Duration(milliseconds: 150)),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return const RiveAnimation.asset(
-                        'assets/animations/onboarding/onboarding_congrats.riv',
-                        fit: BoxFit.cover);
-                  }
-
-                  return const SizedBox.shrink();
-                }),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                    padding: const EdgeInsets.only(top: 64),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Welcome, \nLet's Get Started",
-                            style: CustomTypography()
-                                .headlineLarge(color: CustomColors.textWhite)),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        Text(
-                            "Congratulations! ${Strings.confetti} You are all set! Your participation is invaluable to our research. We're thrilled to have you on board!",
-                            style: CustomTypography()
-                                .bodyLarge(color: CustomColors.textWhite)),
-                      ],
-                    )),
-                Container(
-                  padding: const EdgeInsets.only(bottom: 34),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Stack(
                     children: [
-                      // Image.asset(
-                      //   "assets/images/finish_image.png",
-                      //   width: width,
-                      // ),
-                      // const SizedBox(
-                      //   height: 38,
-                      // ),
-                      CustomFlatButton(
-                        onClick: _next,
-                        text: "Get Started",
-                        color: CustomColors.fillWhite,
-                        textColor: CustomColors.productNormalActive,
-                      )
+                      SizedBox(
+                        height: height * .7,
+                        width: width,
+                        child: FutureBuilder(
+                            future: Future.delayed(
+                                const Duration(milliseconds: 150)),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.done) {
+                                return const RiveAnimation.asset(
+                                    'assets/animations/onboarding/onboarding_congrats.riv',
+                                    fit: BoxFit.cover);
+                              }
+
+                              return const SizedBox.shrink();
+                            }),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                  padding: const EdgeInsets.only(top: 64),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Welcome, \nLet's Get Started",
+                                        style: CustomTypography().headlineLarge(
+                                            color: CustomColors.textWhite),
+                                      ),
+                                      const SizedBox(
+                                        height: 16,
+                                      ),
+                                      Text(
+                                        "Congratulations! ${Strings.confetti} You are all set! Your participation is invaluable to our research. We're thrilled to have you on board!",
+                                        style: CustomTypography().bodyLarge(
+                                            color: CustomColors.textWhite),
+                                      ),
+                                    ],
+                                  )),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                ),
+                ],
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image.asset(
+                //   "assets/images/finish_image.png",
+                //   width: width,
+                // ),
+                // const SizedBox(
+                //   height: 38,
+                // ),
+                CustomFlatButton(
+                  onClick: _next,
+                  text: "Get Started",
+                  color: CustomColors.fillWhite,
+                  textColor: CustomColors.productNormalActive,
+                )
               ],
             ),
           ),
