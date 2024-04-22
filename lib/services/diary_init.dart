@@ -51,11 +51,13 @@ Future<void> diaryInit(String code) async {
         }
 
         // Create the diaries with the start being today or the last day the diaries were created
-        final diaries = makeDiariesTwo(
-            // start: lastDay ?? today, blueprint: blueprint, prompts: prompts);
-            start: today,
-            blueprint: blueprint,
-            prompts: prompts);
+        // final diaries = makeDiariesTwo(
+        //     // start: lastDay ?? today, blueprint: blueprint, prompts: prompts);
+        //     start: today,
+        //     blueprint: blueprint,
+        //     prompts: prompts);
+        final diaries =
+            makeDiariesThree(blueprint: blueprint, prompts: prompts);
 
         // Save the diaries
         final entities = diaries.map((model) {
@@ -241,6 +243,56 @@ List<DiaryModel> makeDiariesTwo(
   //TODO: Define keys for other types of diaries
   preference.setStringPreference(
       key: "last_daily_diary_day", value: currentDate.toString());
+  return diaries;
+}
+
+List<DiaryModel> makeDiariesThree(
+    {required DiaryBlueprint blueprint, required List<PromptModel> prompts}) {
+  final List<DiaryModel> diaries = [];
+
+  DateTime currentDate =
+      today.isAfter(blueprint.startDate) ? today : blueprint.startDate;
+
+  while (currentDate.isBefore(blueprint.endDate) ||
+      currentDate.isAtSameMomentAs(blueprint.endDate)) {
+    final endDate = currentDate.add(Duration(days: blueprint.frequency));
+
+    if (!endDate.isAfter(blueprint.endDate)) {
+      if (blueprint.activeDays.contains(currentDate.weekday)) {
+        final start = DateTime(
+            currentDate.year,
+            currentDate.month,
+            currentDate.day,
+            blueprint.startTime.hour,
+            blueprint.startTime.minute);
+        final end = DateTime(
+            endDate.subtract(const Duration(days: 1)).year,
+            endDate.subtract(const Duration(days: 1)).month,
+            endDate.subtract(const Duration(days: 1)).day,
+            blueprint.endTime.hour,
+            blueprint.endTime.minute);
+        final diary = DiaryModel(
+            id: 0,
+            prompts: prompts,
+            start: start,
+            end: end,
+            due: end,
+            entries: blueprint.entries,
+            status: DiaryStatus.idle,
+            tags: []);
+
+        diaries.add(diary);
+      }
+    }
+    currentDate = endDate;
+  }
+
+  diaries.forEach((element) {
+    print("Diary Start: ${element.start}");
+    print("Diary End: ${element.end}");
+    print("---------------------------------------");
+  });
+
   return diaries;
 }
 
