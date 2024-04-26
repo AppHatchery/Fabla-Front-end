@@ -28,6 +28,7 @@ class _HomePageState extends State<HomePage>
   late HomeCubit homeCubit;
   String _name = "";
   late List<DiaryModel> diaries;
+  late List<DiaryModel> calendarDiaries;
 
   late AnimationController _controller;
 
@@ -38,6 +39,7 @@ class _HomePageState extends State<HomePage>
     WidgetsBinding.instance.addObserver(this);
     homeCubit = BlocProvider.of<HomeCubit>(context);
     fetchData(context);
+    fetchDiaries(context, DateTime.now());
     _controller = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -224,6 +226,16 @@ class _HomePageState extends State<HomePage>
     diaries = homeCubit.getAllDiariesThisWeek();
   }
 
+  //Retrieving entries for a specific date (Called From StudyCalendar)
+  List<DiaryModel> fetchDiaries(BuildContext context, DateTime date) {
+    print("Retrieving from $date");
+    homeCubit.loadDiaries();
+    setState(() {
+      calendarDiaries = homeCubit.getAllDiariesThisDay(date);
+    });
+    return calendarDiaries;
+  }
+
   void refresh(bool shouldRefresh) {
     if (shouldRefresh) {
       homeCubit.loadDiaries();
@@ -250,7 +262,12 @@ class _HomePageState extends State<HomePage>
           maxChildSize: 1,
           minChildSize: 1,
           builder: (context, scrollController) {
-            return const StudyCalendar();
+            return StudyCalendar(
+              diaries: calendarDiaries,
+              refresh: (value) => refresh(value),
+              getPageName: () => "calendar",
+              fetchDiaries: fetchDiaries,
+            );
           }),
     );
   }

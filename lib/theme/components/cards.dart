@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
@@ -156,6 +157,176 @@ class DiaryCard extends StatelessWidget {
     } else {
       final results = await Navigator.of(context)
           .pushNamed("/NewDiaryPage", arguments: diary);
+
+      if (results == true) {
+        refresh(true);
+      }
+    }
+  }
+}
+
+//Duplicate of DiaryCard with Minor Changes to be used on the calendar
+class DiaryCardCalendar extends StatelessWidget {
+  final DiaryModel? diary;
+  final ValueChanged<bool> refresh;
+  final String Function() getPageName;
+  const DiaryCardCalendar(
+      {super.key,
+      required this.diary,
+      required this.refresh,
+      required this.getPageName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: CustomColors.fillWhite,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: const [
+          BoxShadow(
+            color: CustomColors.productBorderNormal,
+            blurRadius: 10,
+            offset: Offset(0, 0),
+          ),
+        ],
+        shape: BoxShape.rectangle,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.mic_none_outlined,
+                    color: CustomColors.productNormal,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    "Voice Diary",
+                    style:
+                        CustomTypography().bodyMedium(weight: FontWeight.w500),
+                  )
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    Strings.studyName,
+                    style: CustomTypography().titleSmall(),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    "About 5 minutes to complete",
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textSecondaryContent),
+                  )
+                ],
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Divider(
+                color: CustomColors.productBorderNormal,
+                thickness: 1,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  GestureDetector(
+                    onTap: () => navigateToDiary(context),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: diary!.start.isAfter(DateTime.now())
+                              ? CustomColors.greyLight
+                              : CustomColors.productNormal,
+                          borderRadius: BorderRadius.circular(100)),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
+                        child: Text(
+                          diary!.start.isAfter(DateTime.now())
+                              ? "Not Available"
+                              : switch (diary!.status) {
+                                  DiaryStatus.complete => "Continue",
+                                  DiaryStatus.idle => "Start",
+                                  DiaryStatus.ongoing => "Continue",
+                                  DiaryStatus.submitted => "View",
+                                  DiaryStatus.missed => "View",
+                                },
+                          style: CustomTypography().button(
+                            color: diary!.start.isAfter(DateTime.now())
+                                ? CustomColors.textSecondaryContent
+                                : CustomColors.textWhite,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                      child: Text(diary!.start.isAfter(DateTime.now())
+                          ? ""
+                          : "${diary!.due.difference(DateTime.now()).inHours} hours remaining"))
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void navigateToDiary(BuildContext context) async {
+    if (diary!.status == DiaryStatus.complete) {
+      Navigator.pushNamed(context, '/DiarySummaryPage', arguments: diary);
+    } else if (diary!.status == DiaryStatus.submitted ||
+        diary!.status == DiaryStatus.missed ||
+        diary!.start.isAfter(DateTime.now())) {
+      PendoService.track("ViewOldDiary", {
+        "study_day": "${diary!.id}",
+        "diary_day_viewed": "${DateTime.now()}"
+      });
+      showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => Wrap(
+                children: [ReviewDiary(diary: diary!)],
+              ));
+    } else {
+      print("routing");
+      final results = await Navigator.of(context).pushNamed(
+        "/NewDiaryPage",
+        arguments: DiaryModel(
+          due: DateTime.now(),
+          end: DateTime.now().add(Duration(days: 5)),
+          start: DateTime.now(),
+          entries: 6,
+          id: 22,
+          prompts: [
+            PromptModel(
+                question:
+                    'Just before you got this survey what were you doing? (e.g., “watching TV”, “eating lunch”, etc.)',
+                responseType: ResponseType.recording,
+                required: true)
+          ],
+          tags: [],
+          status: DiaryStatus.idle,
+        ),
+      );
 
       if (results == true) {
         refresh(true);

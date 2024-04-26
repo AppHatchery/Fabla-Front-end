@@ -1,3 +1,5 @@
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/resources/custom_clippers.dart';
@@ -8,7 +10,17 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class StudyCalendar extends StatefulWidget {
-  const StudyCalendar({super.key});
+  final List<DiaryModel> diaries;
+  final ValueChanged<bool> refresh;
+  final String Function() getPageName;
+  final List<DiaryModel> Function(BuildContext context, DateTime date)
+      fetchDiaries;
+  const StudyCalendar(
+      {super.key,
+      required this.diaries,
+      required this.refresh,
+      required this.getPageName,
+      required this.fetchDiaries});
 
   @override
   State<StudyCalendar> createState() => _StudyCalendarState();
@@ -21,6 +33,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
   late DateTime startDate;
   late DateTime endDate;
   late DateTime today;
+  late DateTime selectedDate;
+  late List<DiaryModel> diaries;
 
   @override
   void initState() {
@@ -40,6 +54,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
     selectedRange =
         List.generate(7, (index) => monday.add(Duration(days: index)));
     focusedDay = today;
+    selectedDate = today;
+    diaries = widget.diaries;
     super.initState();
   }
 
@@ -403,6 +419,12 @@ class _StudyCalendarState extends State<StudyCalendar> {
       setState(() {
         selectedRange = range;
         focusedDay = focusedDate;
+        selectedDate = selectedDay;
+
+        //reloading diaries bases on new selected date
+        diaries = widget.fetchDiaries(context, selectedDate);
+        print("Retrieved diaries for $selectedDate : $diaries");
+        print("Weekly Diaries ${widget.diaries}");
       });
     }
   }
@@ -411,11 +433,29 @@ class _StudyCalendarState extends State<StudyCalendar> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Weekly Entries", style: CustomTypography().titleSmall()),
+        Text(
+            DateUtils.isSameDay(DateTime.now(), selectedDate)
+                ? "Entries Due Today ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)}  "
+                : "Entries Due ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)} ",
+            style: CustomTypography().titleSmall()),
         const SizedBox(height: 4),
-        Text(getThisWeek(),
-            style: CustomTypography()
-                .bodyLarge(color: CustomColors.textTertiaryContent)),
+
+        //Scrollable widget to display all entries due on selected date
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: diaries.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: DiaryCardCalendar(
+                diary: diaries[index],
+                refresh: (value) => widget.refresh(value),
+                getPageName: widget.getPageName,
+              ),
+            );
+          },
+        ),
       ],
     );
   }
