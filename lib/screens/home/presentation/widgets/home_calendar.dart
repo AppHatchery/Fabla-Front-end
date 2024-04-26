@@ -89,8 +89,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   ),
                   //Days active
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -111,18 +111,18 @@ class _StudyCalendarState extends State<StudyCalendar> {
               ),
             ),
             Container(
-                          width: width,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                          color: CustomColors.fillNormal,
-                          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              calendar(),
-              const SizedBox(height: 12),
-              entries(),
-            ],
-                          ),
-                        )
+              width: width,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              color: CustomColors.fillNormal,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  calendar(),
+                  const SizedBox(height: 12),
+                  entries(),
+                ],
+              ),
+            )
           ],
         ),
       ),
@@ -151,8 +151,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
             lastDay: DateTime.utc(2060, 3, 14),
             focusedDay: focusedDay,
             currentDay: today,
-            rangeStartDay: startDate,
-            rangeEndDay: endDate,
+            // rangeStartDay: startDate,
+            // rangeEndDay: endDate,
             availableGestures: AvailableGestures.horizontalSwipe,
             headerStyle: const HeaderStyle(
                 titleCentered: false,
