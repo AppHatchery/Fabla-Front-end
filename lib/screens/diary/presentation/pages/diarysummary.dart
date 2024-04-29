@@ -25,7 +25,6 @@ import '../../../../theme/components/cards.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
 import '../../../../theme/dialogs/bottom_modals.dart';
-import '../../data/option.dart';
 import 'diarycompletion.dart';
 
 ///This page holds all the questions that have been answered by the user
@@ -230,20 +229,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     if (!sliderEnabledStates.containsKey(index)) {
       sliderEnabledStates[index] = false;
     }
-    List<Option>? choices = prompt.option?.choices;
-    int scaleMinValue = 0;
-    int scaleMaxValue = 100;
 
-    if (prompt.responseType == ResponseType.slider &&
-        choices != null &&
-        choices.length >= 2) {
-      try {
-        scaleMinValue = int.parse(choices[0].option!);
-        scaleMaxValue = int.parse(choices[1].option!);
-      } catch (e) {
-        print("Parsing error: $e");
-      }
-    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,80 +251,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   ),
                 ],
               ),
-              Column(
-                children: [
-                  Visibility(
-                    visible: prompt.responseType == ResponseType.slider,
-                    child: prompt.answer?.response != null
-                        ? SliderQuestionCard(
-                            scaleMin: scaleMinValue,
-                            scaleMax: scaleMaxValue,
-                            scaleMinText: prompt.option?.startText,
-                            scaleMaxText: prompt.option?.endText,
-                            isSliderEnabled: false,
-                            value: double.tryParse(prompt.answer!.response!) ??
-                                0.0,
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                  Visibility(
-                    visible: prompt.responseType == ResponseType.multiple,
-                    child: prompt.answer?.response != null
-                        ? MultipleQuestionSummary(
-                            answers: extractAnswers(prompt.answer!.response!),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                  Visibility(
-                    visible: prompt.responseType == ResponseType.radio,
-                    child: prompt.answer?.response != null
-                        ? RadioQuestionSummary(
-                            selectedOption: prompt.answer!.response!,
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                  Visibility(
-                    visible: prompt.responseType == ResponseType.text,
-                    child: prompt.answer?.response != null
-                        ? FreeTextQuestionSummary(
-                            answer: prompt.answer!.response!,
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                  Visibility(
-                    visible: prompt.responseType == ResponseType.recording,
-                    child: prompt.answer?.recordings != null
-                        ? ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: prompt.answer!.recordings.length,
-                            itemBuilder: (context, index) => Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 6.0),
-                                  child: AudioDiaryCard(
-                                    recording: prompt.answer!.recordings[index],
-                                    delete: () => deleteResponse(prompt,
-                                        prompt.answer!.recordings[index].path),
-                                    isExpanded: expandedCardId ==
-                                        prompt.answer!.recordings[index].id,
-                                    onTap: () {
-                                      setState(() {
-                                        expandedCardId = expandedCardId ==
-                                                prompt.answer!.recordings[index]
-                                                    .id
-                                            ? null
-                                            : prompt
-                                                .answer!.recordings[index].id;
-                                      });
-                                    },
-                                    promptId: prompt.id,
-                                  ),
-                                ))
-                        : const SizedBox.shrink(),
-                  )
-                ],
-              )
-            ],
+              getResponseWidget(prompt),
+             ],
           ),
         ),
 
@@ -372,6 +286,57 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     return answerList;
   }
 
+  /// Returns the appropriate widget based on the response type of the prompt.
+  Widget getResponseWidget(PromptModel prompt) {
+    switch (prompt.responseType) {
+      case ResponseType.slider:
+        return SliderQuestionCard(
+          scaleMin: prompt.option!.minValue!,
+          scaleMax: prompt.option!.maxValue!,
+          scaleMinText: prompt.option?.startText,
+          scaleMaxText: prompt.option?.endText,
+          isSliderEnabled: false,
+          value: double.tryParse(prompt.answer!.response!) ?? 0.0,
+        );
+      case ResponseType.multiple:
+        return MultipleQuestionSummary(
+          answers: extractAnswers(prompt.answer!.response!),
+        );
+      case ResponseType.radio:
+        return RadioQuestionSummary(
+          selectedOption: prompt.answer!.response!,
+        );
+      case ResponseType.recording:
+        return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: prompt.answer!.recordings.length,
+            itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6.0),
+                  child: AudioDiaryCard(
+                    recording: prompt.answer!.recordings[index],
+                    delete: () => deleteResponse(
+                        prompt, prompt.answer!.recordings[index].path),
+                    isExpanded:
+                        expandedCardId == prompt.answer!.recordings[index].id,
+                    onTap: () {
+                      setState(() {
+                        expandedCardId = expandedCardId ==
+                                prompt.answer!.recordings[index].id
+                            ? null
+                            : prompt.answer!.recordings[index].id;
+                      });
+                    },
+                    promptId: prompt.id,
+                  ),
+                ));
+      //TODO: Add support for other response types
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+
   void loadDiary(BuildContext context) {
     summaryCubit.loadSummary(widget.diary);
   }
@@ -391,7 +356,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             builder: (context, scrollController) {
               return BottomRecordingModal(
                 promptId: prompt.id,
-                question: prompt.question!,
+                question: prompt.question,
                 onSave: (value) {
                   summaryCubit.saveResponse(
                       widget.diary, prompt, value.toString());

@@ -1,4 +1,4 @@
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -15,14 +15,14 @@ import '../cubit/prompt/prompt_cubit.dart';
 /// and a button for them to add a new response(no functionality yet)
 /// the My response section, to be changed into a  list in case of multiple responses
 class MyResponse extends StatefulWidget {
+  final DiaryModel diary;
   final PromptModel prompt;
-  final DiaryStatus status;
   final List<Recording> recordings;
 
   const MyResponse({
     super.key,
+    required this.diary,
     required this.prompt,
-    required this.status,
     required this.recordings,
   });
 
@@ -35,6 +35,8 @@ class _MyResponseState extends State<MyResponse> {
 
   @override
   Widget build(BuildContext context) {
+    print(
+        "Response String: ${widget.prompt.answer!.response} | Recording empty: ${widget.prompt.answer!.recordings.isEmpty}");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -44,22 +46,30 @@ class _MyResponseState extends State<MyResponse> {
               .titleLarge(color: CustomColors.textNormalContent),
         ),
         const SizedBox(height: 12),
-        ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: widget.recordings.length,
-            itemBuilder: (context, index) {
-              return Padding(
+        widget.prompt.answer!.recordings.isEmpty
+            ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
-                child: NewAudioCard(
-                  recording: widget.recordings[index],
-                  delete: () => deleteResponse(
-                      widget.prompt, widget.recordings[index].path),
-                  viewOnly: false,
-                  promptId: widget.prompt.id,
+                child: TextAnswerCard(
+                  answer: widget.prompt.answer!.response!,
+                  delete: () => deleteResponse(widget.prompt, ''),
                 ),
-              );
-            }),
+              )
+            : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: widget.recordings.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6.0),
+                    child: NewAudioCard(
+                      recording: widget.recordings[index],
+                      delete: () => deleteResponse(
+                          widget.prompt, widget.recordings[index].path),
+                      viewOnly: false,
+                      promptId: widget.prompt.id,
+                    ),
+                  );
+                }),
         const SizedBox(height: 12),
       ],
     );
@@ -67,6 +77,6 @@ class _MyResponseState extends State<MyResponse> {
 
   void deleteResponse(PromptModel loadedPrompt, String path) {
     final promptCubit = context.read<PromptCubit>();
-    promptCubit.removeResponse(loadedPrompt, path);
+    promptCubit.removeResponse(widget.diary, loadedPrompt, path);
   }
 }

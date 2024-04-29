@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -33,6 +32,11 @@ class AnswerRepository {
   /// ```
   Future<PromptModel> load(PromptModel prompt) async {
     final answers = dao.getAnswers(prompt.id);
+    answers.forEach((element) {
+      final prompt = element.prompt.target;
+      print("Prompt id: ${prompt?.id}| Prompt question: ${prompt?.question}");
+      print("Answer: ${element.response}");
+     });
 
     // Determine the updated prompt based on whether answers are available
     final updatedPrompt = answers.isEmpty
@@ -60,11 +64,11 @@ class AnswerRepository {
   /// ```dart
   /// final saved = await saveResponse(myPrompt, '/path/to/recording.wav');
   /// ```
-  Future<bool> saveResponse(PromptModel prompt, dynamic response) async {
+  Future<bool> saveResponse({required PromptModel prompt,required dynamic response, String? type}) async {
     final isUpdating = prompt.answer != null;
     late Answer answer;
 
-    if (prompt.responseType == ResponseType.recording) {
+    if (type == 'audio') {
       answer = isUpdating
           ? prompt.answer! // Use the existing answer for updating
           : Answer(id: 0, date: DateTime.now()); // Create a new answer

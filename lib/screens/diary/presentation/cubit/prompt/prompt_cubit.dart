@@ -1,15 +1,17 @@
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../../core/utils/types.dart';
+import '../../../data/diary.dart';
 import '../../../data/prompt.dart';
-import '../../../domain/repository/answer_repository.dart';
 
 part 'prompt_state.dart';
 
 class PromptCubit extends Cubit<PromptState> {
   PromptCubit() : super(const PromptInitial());
-  final AnswerRepository _repository = AnswerRepository();
+  final PromptRepository _repository = PromptRepository();
 
   /// Loads and updates a prompt's state along with its associated answer, if available.
   ///
@@ -25,10 +27,10 @@ class PromptCubit extends Cubit<PromptState> {
   /// ```dart
   /// await loadPrompt(myPrompt);
   /// ```
-  Future<void> loadPrompt(PromptModel prompt) async {
+  Future<void> loadPrompt(DiaryModel diary, PromptModel prompt) async {
     try {
       emit(PromptLoading(prompt));
-      final newPrompt = await _repository.load(prompt);
+      final newPrompt = _repository.load(diary, prompt.id);
       emit(PromptLoaded(newPrompt));
     } catch (e) {
       print("Catch Error: $e");
@@ -53,18 +55,27 @@ class PromptCubit extends Cubit<PromptState> {
   /// ```dart
   /// await saveResponse(myPrompt, '/path/to/recording.wav');
   /// ```
-  Future<void> saveResponse(PromptModel prompt, dynamic response) async {
+  Future<void> saveResponse(
+      {required DiaryModel diary,
+      required PromptModel prompt,
+      required dynamic response,
+      String? type}) async {
     try {
-      final saved = await _repository.saveResponse(prompt, response);
+      final saved = _repository.saveResponse(
+          diary: Diary.fromModel(diary),
+          prompt: prompt,
+          response: response,
+          type: type);
       if (saved) {
         if (prompt.responseType == ResponseType.recording) {
           showSuccessModal();
         }
       }
     } catch (e) {
+      print("Catch Error: $e");
       showErrorModal();
     } finally {
-      loadPrompt(prompt);
+      loadPrompt(diary, prompt);
     }
   }
 
@@ -84,13 +95,14 @@ class PromptCubit extends Cubit<PromptState> {
   /// ```dart
   /// await removeResponse(myPrompt, '/path/to/recording.wav');
   /// ```
-  Future<void> removeResponse(PromptModel prompt, String path) async {
+  Future<void> removeResponse(
+      DiaryModel diary, PromptModel prompt, String path) async {
     try {
-      await _repository.removeResponse(prompt, path);
+      _repository.removeResponse(prompt, path);
     } catch (e) {
       print("Catch Error: $e");
     } finally {
-      loadPrompt(prompt);
+      loadPrompt(diary, prompt);
     }
   }
 

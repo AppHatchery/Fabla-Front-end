@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../screens/diary/data/options.dart';
 import 'types.dart';
 
 /// Formats a DateTime object into a string representation with a specific format.
@@ -166,6 +167,17 @@ String responseTypeValue(ResponseType responseType) {
     throw Exception('Invalid response type');
   }
   return stringRepresentation;
+}
+
+OptionsType optionTypeFromResponse(ResponseType responseType) {
+  switch (responseType) {
+    case ResponseType.multiple:
+      return OptionsType.multiple;
+    case ResponseType.radio:
+      return OptionsType.radio;
+    default:
+      return OptionsType.multiple;
+  }
 }
 
 /// Convert String to TimeOfDay

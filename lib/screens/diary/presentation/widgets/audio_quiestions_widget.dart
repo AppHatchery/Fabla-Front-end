@@ -11,16 +11,12 @@ class AudioQuestionsWidget extends StatelessWidget {
   final PromptModel prompt;
   final int currentPage;
   final Widget responseWidget;
-  final Widget audiTextWidget;
-  final Widget textWidget;
   const AudioQuestionsWidget(
       {super.key,
       required this.diary,
       required this.prompt,
       required this.currentPage,
-      required this.audiTextWidget,
-      required this.responseWidget,
-      required this.textWidget});
+      required this.responseWidget});
 
   @override
   Widget build(BuildContext context) {
@@ -82,8 +78,6 @@ class AudioQuestionsWidget extends StatelessWidget {
                   ),
                   // const SizedBox(height: 112),
 
-                  audiTextWidget,
-                  textWidget,
                   Center(child: responseWidget),
                   if (diary.status != DiaryStatus.submitted &&
                       diary.status != DiaryStatus.missed &&
@@ -133,9 +127,6 @@ class AudioQuestionsWidget extends StatelessWidget {
                   ],
                 ),
                 // const SizedBox(height: 112),
-
-                audiTextWidget,
-                textWidget,
                 Expanded(child: Center(child: responseWidget)),
                 if (diary.status != DiaryStatus.submitted &&
                     diary.status != DiaryStatus.missed &&

@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/options.dart';
 
 import '../domain/entities/answer.dart';
+import '../domain/entities/prompt_entity.dart';
 import 'tip.dart';
 
 class PromptModel {
@@ -45,12 +48,27 @@ class PromptModel {
     String? subtitle,
   }) {
     return PromptModel(
+      id: id,
         question: question ?? this.question,
         responseType: responseType ?? this.responseType,
         answer: answer ?? this.answer,
         option: option ?? this.option,
         subtitle: subtitle ?? this.subtitle,
         required: required);
+  }
+
+  factory PromptModel.fromEntity(Prompt prompt) {
+    final model =  PromptModel(
+        id: prompt.id,
+        question: prompt.question,
+        responseType: prompt.responseType,
+        answer: null,
+        option: prompt.option != null
+            ? Options.fromJson(jsonDecode(prompt.option!))
+            : null,
+        required: prompt.required,
+        subtitle: prompt.subtitle);
+    return model;
   }
 
   factory PromptModel.fromJson(Map<String, dynamic> json) {

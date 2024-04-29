@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary_blueprint.dart';
@@ -44,7 +45,12 @@ Future<void> diaryInit(String code) async {
           prompts.add(PromptModel(
             question: question.title,
             responseType: question.responseType,
-            option: Options(type: OptionsType.multiple), //Change this
+            option: Options(
+                type: optionTypeFromResponse(question.responseType),
+                choices: question.options,
+                minValue: question.min,
+                maxValue: question.max,
+                defaultValue: question.defaultValue),
             required: question.required,
             subtitle: question.subtitle,
           ));
@@ -223,6 +229,7 @@ List<DiaryModel> makeDiariesTwo(
           end: end,
           due: end,
           entries: blueprint.entries,
+          currentEntry: 0,
           status: DiaryStatus.idle,
           tags: []);
 
@@ -278,6 +285,7 @@ List<DiaryModel> makeDiariesThree(
             end: end,
             due: end,
             entries: blueprint.entries,
+            currentEntry: 0,
             status: DiaryStatus.idle,
             tags: []);
 
@@ -290,6 +298,11 @@ List<DiaryModel> makeDiariesThree(
   diaries.forEach((element) {
     print("Diary Start: ${element.start}");
     print("Diary End: ${element.end}");
+    element.prompts.forEach((prompt) {
+      print("Diary Prompts: ${prompt.question} | type: ${prompt.responseType}");
+      print(
+          "Diary Prompts: ${prompt.question} | options: ${prompt.option?.toJson().toString()}");
+    });
     print("---------------------------------------");
   });
 
