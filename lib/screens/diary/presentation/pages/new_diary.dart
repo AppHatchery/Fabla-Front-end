@@ -644,11 +644,11 @@ class _QuestionPageState extends State<QuestionPage>
     bool isLast = widget.isLastPage ?? true;
 
     widget.scaffoldKey.currentState!.showBottomSheet((context) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      // _scrollController.animateTo(
+      //   _scrollController.position.maxScrollExtent,
+      //   duration: const Duration(milliseconds: 300),
+      //   curve: Curves.easeInOut,
+      // );
 
       return BottomSuccessModal(
         previousPage: () => widget.previousPage(),

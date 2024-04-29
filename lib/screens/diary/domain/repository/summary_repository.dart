@@ -95,12 +95,12 @@ class SummaryRepository {
   Future<bool> submitDiary(DiaryModel diary) async {
     try {
       final participant = setupRepository.getParticipant();
-      final uploaded = await upload(participant!.studyCode, diary);
+      //final uploaded = await upload(participant!.studyCode, diary);
 
-      if (uploaded) {
+      //if (uploaded) {
 
       late DiaryModel newDiary;
-      
+
       if (diary.currentEntry + 1 == diary.entries) {
         newDiary = diary.copyWith(
           id: diary.id,
@@ -124,9 +124,9 @@ class SummaryRepository {
 
       setupRepository.updateMetaDataFile(nextStudyDate);
       return true;
-      } else {
-        return false;
-      }
+      // } else {
+      //   return false;
+      // }
     } catch (e) {
       print("Error submitting diary: $e");
       return false;
