@@ -278,9 +278,16 @@ class DiaryCardCalendar extends StatelessWidget {
                     ),
                   ),
                   Flexible(
+                      //Display time remaining only when there is less than 12 hours remaining before the due
                       child: Text(diary!.start.isAfter(DateTime.now())
                           ? ""
-                          : "${diary!.due.difference(DateTime.now()).inHours} hours remaining"))
+                          : diary!.due.difference(DateTime.now()).inHours < 1 ||
+                                  diary!.end
+                                          .difference(DateTime.now())
+                                          .inHours >
+                                      12
+                              ? ""
+                              : "${diary!.due.difference(DateTime.now()).inHours} hours remaining"))
                 ],
               ),
             ),
@@ -307,26 +314,8 @@ class DiaryCardCalendar extends StatelessWidget {
                 children: [ReviewDiary(diary: diary!)],
               ));
     } else {
-      print("routing");
-      final results = await Navigator.of(context).pushNamed(
-        "/NewDiaryPage",
-        arguments: DiaryModel(
-          due: DateTime.now(),
-          end: DateTime.now().add(Duration(days: 5)),
-          start: DateTime.now(),
-          entries: 6,
-          id: 22,
-          prompts: [
-            PromptModel(
-                question:
-                    'Just before you got this survey what were you doing? (e.g., “watching TV”, “eating lunch”, etc.)',
-                responseType: ResponseType.recording,
-                required: true)
-          ],
-          tags: [],
-          status: DiaryStatus.idle,
-        ),
-      );
+      final results = await Navigator.of(context)
+          .pushNamed("/NewDiaryPage", arguments: diary);
 
       if (results == true) {
         refresh(true);

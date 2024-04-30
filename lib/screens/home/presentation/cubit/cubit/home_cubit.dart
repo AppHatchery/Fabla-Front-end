@@ -85,14 +85,7 @@ class HomeCubit extends Cubit<HomeState> {
 
   //Retrieving diaries due on a specific date for the calendar widget
   List<DiaryModel> getAllDiariesThisDay(DateTime date) {
-    final diaries = repository.getAllDiaries();
-    final thisDayDiaries = <DiaryModel>[];
-    for (var diary in diaries) {
-      if (DateUtils.isSameDay(date, diary.due)) {
-        thisDayDiaries.add(diary);
-      }
-    }
-    return thisDayDiaries;
+    return repository.getDailyDiaries(date);
   }
 }
 

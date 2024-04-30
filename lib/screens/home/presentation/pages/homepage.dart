@@ -228,7 +228,6 @@ class _HomePageState extends State<HomePage>
 
   //Retrieving entries for a specific date (Called From StudyCalendar)
   List<DiaryModel> fetchDiaries(BuildContext context, DateTime date) {
-    print("Retrieving from $date");
     homeCubit.loadDiaries();
     setState(() {
       calendarDiaries = homeCubit.getAllDiariesThisDay(date);
