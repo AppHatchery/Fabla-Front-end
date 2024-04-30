@@ -309,11 +309,14 @@ class CustomRecordButton extends StatelessWidget {
                   child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.mic, color: CustomColors.fillWhite),
+                  const Flexible(
+                      flex: 1,
+                      child: Icon(Icons.mic, color: CustomColors.fillWhite)),
                   const SizedBox(
                     width: 8,
                   ),
                   Flexible(
+                    flex: 2,
                     child: Text(
                       text.toString(),
                       style: CustomTypography()
@@ -362,11 +365,15 @@ class CustomTextAnswerButton extends StatelessWidget {
                   child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.keyboard, color: CustomColors.productNormal),
+                  const Flexible(
+                      flex: 1,
+                      child: Icon(Icons.keyboard,
+                          color: CustomColors.productNormal)),
                   const SizedBox(
                     width: 8,
                   ),
                   Flexible(
+                    flex: 2,
                     child: Text(
                       text.toString(),
                       style: CustomTypography()
