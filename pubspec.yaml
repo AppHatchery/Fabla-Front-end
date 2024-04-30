@@ -102,6 +102,9 @@ dev_dependencies:
   flutter_launcher_icons: "^0.13.1"
 
   flutter_lints: ^2.0.0
+  #TODO:TO BE REMOVED
+  #Http
+  http: ^1.2.1
 
 
 #Icon Configuration

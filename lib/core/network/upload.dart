@@ -10,6 +10,7 @@ import 'package:aws_common/vm.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../screens/diary/data/diary_audio_data.dart';
 import '../utils/formatter.dart';
+import 'package:http/http.dart' as http;
 
 /// Uploads audio files associated with a diary to an S3 storage and returns the result.
 ///
@@ -67,18 +68,15 @@ Future<bool> upload(String studyCode, Diary diary) async {
       }
     }
 
-    final resMap = getResponses(diary.id, questions);
+    //final resMap = getResponses(diary.id, questions);
 
-    final questionsSubmitted =
-        await apiSubmitSurveyQuestions(studyCode, diary, resMap);
-    final audioSubmitted = await uploadFilesToS3(studyCode, fileList);
+    //final questionsSubmitted = await apiSubmitSurveyQuestions(studyCode, diary, resMap);
+    //final audioSubmitted = await uploadFilesToS3(studyCode, fileList);
 
     //write to metadata
-    if (responseSize == 12) {
-      updateMetataData(diary);
-    }
-
-    return questionsSubmitted && audioSubmitted;
+    
+    //uploadQuestionsToDynamo2();
+    return uploadQuestionsToDynamo2();
   } catch (e) {
     print("$e");
     return false;
@@ -364,8 +362,8 @@ Future<bool> uploadQuestions(dynamic id, String studyCode, int entryVersion,
     Diary diary, Map<String, dynamic> responseMap) async {
   int day = diary.id;
   final endtime = DateTime.now();
-  if(responseMap.length == 10){ 
-    responseMap['endtime_$day']=formatDate(endtime);
+  if (responseMap.length == 10) {
+    responseMap['endtime_$day'] = formatDate(endtime);
   }
 
   final input = {'id': id, '_version': entryVersion};
@@ -526,5 +524,165 @@ String parametersNextStudydate(String date, int day) {
     return date;
   } else {
     return "";
+  }
+}
+
+
+
+
+
+
+
+
+/* Testing data upload in DynamoDB and S3 File Upload*/
+
+
+
+
+//1. Upload data to Dynamo with a multiple items (responses) 
+
+Future<bool> uploadQuestionsToDynamo2() async {
+  // List of items to be sent in the request body
+  List<Map<String, dynamic>> items = [
+    {
+      "StudyCode": "SC007",
+      "QuestionTitle": "what is your sister name",
+      "DiaryID": "Frequency",
+      "PromptID": "09",
+      "Response": "Never",
+      "QuestionsType": "slider",
+      "Required": "true"
+    },
+    {
+      "StudyCode": "SC008",
+      "QuestionTitle": "how was your morning",
+      "DiaryID": "Frequency",
+      "PromptID": "09",
+      "Response": "Never",
+      "QuestionsType": "multiple choice",
+      "Required": "true"
+    },
+    {
+      "StudyCode": "SC009",
+      "QuestionTitle": "when did you last drink",
+      "DiaryID": "Frequency",
+      "PromptID": "09",
+      "Response": "Never",
+      "QuestionsType": "slider",
+      "Required": "true"
+    }
+  ];
+
+  // Encode the list of items to JSON
+  String jsonBody = json.encode(items);
+
+  // Set up the HTTP POST request
+  var url = Uri.parse(
+      'https://r79428yn1l.execute-api.us-east-1.amazonaws.com/live/dynsendresponse'); // Replace with your API endpoint
+  var headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'MySecretToken',
+    'x-api-key': 'GUdxp5Wjej8uNDz2WoXm34QOpCJigEMl8570RFNy'
+  };
+
+  try {
+    var response = await http.post(url, headers: headers, body: jsonBody);
+
+    if (response.statusCode == 200) {
+      // Request successful
+      print('Request successful: ${response.body}');
+      return true; // Submission successful
+    } else {
+      // Request failed
+      print('Request failed with status: ${response}');
+      return false; // Submission failed
+    }
+  } catch (e) {
+    // An error occurred
+    print('Error sending request: $e');
+    return false; // Submission failed due to error
+  }
+}
+
+
+
+
+Future<String?> getPresignedUrl(String apiUrl, String filename) async {
+  try {
+    var requestBody = jsonEncode({'filename': filename});
+
+    var response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: requestBody,
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response body (which is a string containing JSON)
+      var responseBody = response.body;
+      var jsonResponse = jsonDecode(responseBody);
+
+      // Parse the 'body' field from the JSON response
+      var body = jsonDecode(jsonResponse['body']);
+
+      // Extract the 'uploadURL' from the parsed 'body' JSON
+      var uploadUrl = body['uploadURL'];
+
+      print("uploadURL: $uploadUrl");
+      return uploadUrl;
+    } else {
+      print(
+          'Failed to get presigned URL: ${response.statusCode}, ${response.body}');
+      return null;
+    }
+  } catch (e) {
+    print('Error getting presigned URL: $e');
+    return null;
+  }
+}
+
+
+
+Future<void> uploadFileToS3(String presignedUrl, String filePath) async {
+  try {
+    var file = File(filePath);
+    var fileStream = file.openRead();
+
+    var request = http.Request('PUT', Uri.parse(presignedUrl))
+      ..headers['Content-Type'] = 'audio/mpeg';
+
+    // Collect bytes from the file stream into a single list
+    List<int> bytes = [];
+    await for (var chunk in fileStream) {
+      bytes.addAll(chunk);
+    }
+
+    // Set the body bytes of the request
+    request.bodyBytes = bytes;
+
+    var response = await http.Client().send(request);
+
+    if (response.statusCode == 200) {
+      print('File uploaded successfully');
+    } else {
+      print('Failed to upload file. Status code: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error uploading file: $e');
+  }
+}
+
+Future<void> uploadAudios(List<String> filepaths) async {
+  var apiUrl =
+      'https://r79428yn1l.execute-api.us-east-1.amazonaws.com/live/s3upload';
+
+  for (var path in filepaths) {
+    final filename = p.basename(path);
+    var presignedUrl = await getPresignedUrl(apiUrl, filename);
+
+    //print("PRESIGNED URL: " + presignedUrl!);
+    if (presignedUrl != null) {
+      await uploadFileToS3(presignedUrl, path);
+    }
   }
 }

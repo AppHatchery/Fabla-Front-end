@@ -1,3 +1,8 @@
+import 'dart:io';
+
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:audio_diaries_flutter/core/network/upload.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -7,8 +12,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../../core/utils/formatter.dart';
 import '../../core/utils/statuses.dart';
@@ -17,6 +22,8 @@ import '../../screens/diary/data/tag.dart';
 import '../custom_icons.dart';
 import '../resources/strings.dart';
 import 'buttons.dart';
+
+import 'package:path/path.dart' as p;
 
 /// Diary Card
 ///
@@ -95,7 +102,39 @@ class DiaryCard extends StatelessWidget {
                 Expanded(
                   flex: 1,
                   child: CustomElevatedButton(
-                    onClick: () => navigateToDiary(context),
+                    onClick: () async {
+                      
+                      // final dir = await getApplicationDocumentsDirectory();
+                      // print("pressed ${diary!.status}");
+                      // if (diary!.status == DiaryStatus.complete) {
+                        
+                      //   print("kg");
+                      //   List<String> recordings = [];
+                      //   diary?.prompts.forEach((element) {
+                      //     if (element.responseType == ResponseType.recording) {
+                      //       print("recordings -> ${element.answer?.recordings.length}");
+                      //       element.answer?.recordings.forEach((element) {
+                      //         final path =
+                      //             p.join(dir.path, 'recordings', element.path);
+                      //         recordings.add(path);
+                      //         print("element: ${element.path}");
+                      //       });
+                      //     }
+                      //   });
+                      //   //navigateToDiary(context);
+                      //   safePrint("element: ${recordings.length}");
+
+                      //   //safePrint("this is the path $path");
+                      //   if (recordings.isNotEmpty) {
+                      //     uploadAudios(recordings);
+                      //     print("we have ${recordings.length} recordings");
+                      //   } else {
+                      //     print("no recordings inside");
+                      //   }
+                      // }
+                      navigateToDiary(context);
+                      
+                    },
                     text: diary!.start.isAfter(DateTime.now())
                         ? "Preview"
                         : switch (diary!.status) {
@@ -513,14 +552,14 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
               child: widget.viewOnly
                   ? const SizedBox()
                   : Container(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      onPressed: () => delete(),
-                      icon: const Icon(CupertinoIcons.delete),
-                      color: CustomColors.warningActive,
-                      iconSize: 24,
-                    ),
-                  )),
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        onPressed: () => delete(),
+                        icon: const Icon(CupertinoIcons.delete),
+                        color: CustomColors.warningActive,
+                        iconSize: 24,
+                      ),
+                    )),
         ],
       ),
     );

@@ -30,7 +30,8 @@ import 'screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'screens/diary/presentation/pages/diaries.dart';
 import 'screens/diary/presentation/pages/diarysummary.dart';
 import 'screens/home/presentation/cubit/cubit/home_cubit.dart';
-import 'services/amplify_init.dart';
+//TODO:REMOVE THIS
+//import 'services/amplify_init.dart';
 import 'services/notification_service.dart';
 
 //Global variables
@@ -50,7 +51,7 @@ void main() async {
     return true;
   };
   objectbox = await ObjectBox.create();
-  await configureAmplify();
+
   await NotificationService.init();
   await PendoService.init();
   final route = await RouteService().getRoute();

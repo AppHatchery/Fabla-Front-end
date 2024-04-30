@@ -25,7 +25,9 @@ class _WelcomePageState extends State<WelcomePage> {
     createMetadata();
     //repository.participantExist(code);
     SetupRepository repos = SetupRepository();
-    repos.apiCreateParticipant(repos.getParticipant()!.studyCode);
+
+    //TODO:REMOVE THE CODE BUT ADD FOR DYNAMO
+    //repos.apiCreateParticipant(repos.getParticipant()!.studyCode);
     startPendo();
     super.initState();
   }
