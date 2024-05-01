@@ -52,7 +52,6 @@ class _TestMicrophoneState extends State<TestMicrophone> {
               height: 12,
             ),
             SizedBox(
-              height: 35,
               child: Row(
                 children: [
                   TextButton(
@@ -71,7 +70,7 @@ class _TestMicrophoneState extends State<TestMicrophone> {
                       isRecording ? "Stop Test" : "Test Microphone",
                       style: CustomTypography()
                           .title(color: CustomColors.textWhite),
-                      textAlign: TextAlign.center,
+                      textAlign: TextAlign.center
                     ),
                   ),
                   const SizedBox(width: 10),
