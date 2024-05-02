@@ -60,113 +60,121 @@ class _QuickTipPopUpState extends State<QuickTipPopUp> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    return Container(
-      width: width,
-      // color: CustomColors.fillWhite,
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 34),
-      constraints: const BoxConstraints.tightFor(),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          //Image
-          SizedBox(
-              height: 100,
-              child: Image.asset(widget.image, fit: BoxFit.contain)),
-
-          const SizedBox(height: 24),
-          //Title
-          Row(
+    final height = MediaQuery.of(context).size.height;
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: height * .8),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 34),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
             children: [
-              // const Expanded(
-              //     child: SizedBox(
-              //   height: 24,
-              //   width: 24,
-              // )),
-              Expanded(
-                  child: SizedBox(
-                child: Text(widget.title,
-                    style: CustomTypography().headlineMedium(),
-                    textAlign: TextAlign.center),
-              )),
-              // Expanded(
-              //     child: GestureDetector(
-              //   onTap: () => Navigator.pop(context),
-              //   child: Container(
-              //     height: 24,
-              //     width: 24,
-              //     alignment: Alignment.centerRight,
-              //     child: const Icon(CustomIcons.close, color: Colors.black),
-              //   ),
-              // )),
+              //Image
+              SizedBox(
+                  height: 100,
+                  child: Image.asset(widget.image, fit: BoxFit.contain)),
+
+              const SizedBox(height: 24),
+              //Title
+              Row(
+                children: [
+                  // const Expanded(
+                  //     child: SizedBox(
+                  //   height: 24,
+                  //   width: 24,
+                  // )),
+                  Expanded(
+                      child: SizedBox(
+                    child: Text(widget.title,
+                        style: CustomTypography().headlineMedium(),
+                        textAlign: TextAlign.center),
+                  )),
+                  // Expanded(
+                  //     child: GestureDetector(
+                  //   onTap: () => Navigator.pop(context),
+                  //   child: Container(
+                  //     height: 24,
+                  //     width: 24,
+                  //     alignment: Alignment.centerRight,
+                  //     child: const Icon(CustomIcons.close, color: Colors.black),
+                  //   ),
+                  // )),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                //Icon One
+                SizedBox(
+                    height: 30,
+                    child: Image.asset(widget.iconOne, fit: BoxFit.contain)),
+                const SizedBox(width: 10),
+                //Message One
+                Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.messageOne,
+                          style: CustomTypography().titleSmallCustom(),
+                          textAlign: TextAlign.start,
+                        ),
+                        Text(widget.descriptionOne,
+                            style: CustomTypography().bodyLight(),
+                            textAlign: TextAlign.start),
+                      ]),
+                )
+              ]),
+              const SizedBox(height: 16),
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                //Icon Two
+                SizedBox(
+                    height: 30,
+                    child: Image.asset(widget.iconTwo, fit: BoxFit.contain)),
+                const SizedBox(width: 10),
+                //MessageTwo
+                Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.messageTwo,
+                          style: CustomTypography().titleSmallCustom(),
+                          textAlign: TextAlign.start,
+                        ),
+                        Text(
+                          widget.descriptionTwo,
+                          style: CustomTypography().bodyLight(),
+                          textAlign: TextAlign.start,
+                        ),
+                      ]),
+                )
+              ]),
+
+              const SizedBox(height: 32),
+
+              _dontShowAgain != null
+                  ? Container(
+                      alignment: Alignment.center,
+                      child: IntrinsicWidth(
+                        child: CustomCheckbox(
+                            value: _dontShowAgain!,
+                            label: "Don't show me again",
+                            onChanged: (value) => {
+                                  setState(() {
+                                    _dontShowAgain = value!;
+                                  }),
+                                }),
+                      ))
+                  : const SizedBox.shrink(),
+
+              const SizedBox(height: 12),
+
+              CustomFlatButton(onClick: _save, text: "Got It!")
             ],
           ),
-
-          const SizedBox(height: 24),
-
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            //Icon One
-            SizedBox(
-                height: 30,
-                child: Image.asset(widget.iconOne, fit: BoxFit.contain)),
-            const SizedBox(width: 10),
-            //Message One
-            Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(widget.messageOne,
-                        style: CustomTypography().titleSmallCustom(),
-                        textAlign: TextAlign.start),
-                    Text(widget.descriptionOne,
-                        style: CustomTypography().bodyLight(),
-                        textAlign: TextAlign.start),
-                  ]),
-            )
-          ]),
-          const SizedBox(height: 16),
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            //Icon Two
-            SizedBox(
-                height: 30,
-                child: Image.asset(widget.iconTwo, fit: BoxFit.contain)),
-            const SizedBox(width: 10),
-            //MessageTwo
-            Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(widget.messageTwo,
-                        style: CustomTypography().titleSmallCustom(),
-                        textAlign: TextAlign.start),
-                    Text(widget.descriptionTwo,
-                        style: CustomTypography().bodyLight(),
-                        textAlign: TextAlign.start),
-                  ]),
-            )
-          ]),
-
-          const SizedBox(height: 32),
-
-          _dontShowAgain != null
-              ? Container(
-                  alignment: Alignment.center,
-                  child: IntrinsicWidth(
-                    child: CustomCheckbox(
-                        value: _dontShowAgain!,
-                        label: "Don't show me again",
-                        onChanged: (value) => {
-                              setState(() {
-                                _dontShowAgain = value!;
-                              }),
-                            }),
-                  ))
-              : const SizedBox.shrink(),
-
-          const SizedBox(height: 12),
-
-          CustomFlatButton(onClick: _save, text: "Got It!")
-        ],
+        ),
       ),
     );
   }
@@ -312,125 +320,129 @@ class _CustomBottomTipPopUpState extends State<CustomBottomTipPopUp> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return Container(
-      width: width,
-      // color: CustomColors.fillWhite,
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 34),
-      constraints: const BoxConstraints.tightFor(),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          SizedBox(
-              height: 100,
-              child:
-                  Image.asset('assets/images/idea.png', fit: BoxFit.contain)),
-
-          //Title
-          const SizedBox(height: 24),
-          Row(
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * .8,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 34),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
             children: [
-              // const Expanded(
-              //     child: SizedBox(
-              //   height: 24,
-              //   width: 24,
-              // )),
-              Expanded(
-                  child: SizedBox(
-                child: Text('Privacy and Audio Quality Assurance',
-                    style: CustomTypography().headlineMedium(),
-                    textAlign: TextAlign.center),
-              )),
-              // Expanded(
-              //     child: GestureDetector(
-              //   onTap: () => Navigator.pop(context),
-              //   child: Container(
-              //     height: 24,
-              //     width: 24,
-              //     alignment: Alignment.centerRight,
-              //     child: const Icon(CustomIcons.close, color: Colors.black),
-              //   ),
-              // )),
+              SizedBox(
+                  height: 100,
+                  child: Image.asset('assets/images/idea.png',
+                      fit: BoxFit.contain)),
+
+              //Title
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  // const Expanded(
+                  //     child: SizedBox(
+                  //   height: 24,
+                  //   width: 24,
+                  // )),
+                  Expanded(
+                      child: SizedBox(
+                    child: Text('Privacy and Audio Quality Assurance',
+                        style: CustomTypography().headlineMedium(),
+                        textAlign: TextAlign.center),
+                  )),
+                  // Expanded(
+                  //     child: GestureDetector(
+                  //   onTap: () => Navigator.pop(context),
+                  //   child: Container(
+                  //     height: 24,
+                  //     width: 24,
+                  //     alignment: Alignment.centerRight,
+                  //     child: const Icon(CustomIcons.close, color: Colors.black),
+                  //   ),
+                  // )),
+                ],
+              ),
+
+              const SizedBox(height: 32),
+
+              //Message
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.privacy_tip_outlined, color: Colors.black),
+                  const SizedBox(
+                    width: 12,
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Your privacy matters',
+                          style: CustomTypography()
+                              .bodyLarge(weight: FontWeight.w600),
+                        ),
+                        Text(
+                          'Participant anonymity is ensured using participant ID, not personal information, in all records and publications.',
+                          style: CustomTypography().bodyLarge(
+                              color: CustomColors.textTertiaryContent),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.chair_outlined, color: Colors.black),
+                  const SizedBox(
+                    width: 12,
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Quiet spot for clear recordings',
+                          style: CustomTypography()
+                              .bodyLarge(weight: FontWeight.w600),
+                        ),
+                        Text(
+                          'Find a quiet place before we start so we can ensure the quality of the audio diary.',
+                          style: CustomTypography().bodyLarge(
+                              color: CustomColors.textTertiaryContent),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 32),
+
+              Container(
+                  alignment: Alignment.center,
+                  child: IntrinsicWidth(
+                    child: CustomCheckbox(
+                        value: dontShowAgain,
+                        label: "Don't show me again",
+                        onChanged: (value) => {
+                              setState(() {
+                                dontShowAgain = value!;
+                              }),
+                            }),
+                  )),
+
+              const SizedBox(height: 12),
+
+              CustomFlatButton(onClick: _save, text: "GOT IT!")
             ],
           ),
-
-          const SizedBox(height: 32),
-
-          //Message
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.privacy_tip_outlined, color: Colors.black),
-              const SizedBox(
-                width: 12,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Your privacy matters',
-                      style:
-                          CustomTypography().bodyLarge(weight: FontWeight.w600),
-                    ),
-                    Text(
-                      'Participant anonymity is ensured using participant ID, not personal information, in all records and publications.',
-                      style: CustomTypography()
-                          .bodyLarge(color: CustomColors.textTertiaryContent),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.chair_outlined, color: Colors.black),
-              const SizedBox(
-                width: 12,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Quiet spot for clear recordings',
-                      style:
-                          CustomTypography().bodyLarge(weight: FontWeight.w600),
-                    ),
-                    Text(
-                      'Find a quiet place before we start so we can ensure the quality of the audio diary.',
-                      style: CustomTypography()
-                          .bodyLarge(color: CustomColors.textTertiaryContent),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 32),
-
-          Container(
-              alignment: Alignment.center,
-              child: IntrinsicWidth(
-                child: CustomCheckbox(
-                    value: dontShowAgain,
-                    label: "Don't show me again",
-                    onChanged: (value) => {
-                          setState(() {
-                            dontShowAgain = value!;
-                          }),
-                        }),
-              )),
-
-          const SizedBox(height: 12),
-
-          CustomFlatButton(onClick: _save, text: "GOT IT!")
-        ],
+        ),
       ),
     );
   }

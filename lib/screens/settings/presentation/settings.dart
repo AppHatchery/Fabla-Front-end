@@ -74,20 +74,19 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
     return Scaffold(
         backgroundColor: CustomColors.fillNormal,
         appBar: AppBar(
-          backgroundColor: CustomColors.fillNormal,
-          title: Text(
-            "Settings",
-            style: CustomTypography()
-                .titleLarge(color: CustomColors.textNormalContent),
-          ),
-          automaticallyImplyLeading: false,
-          centerTitle: true,
-          shape: const Border(
-            bottom: BorderSide(
+            backgroundColor: CustomColors.fillNormal,
+            title: Text(
+              "Settings",
+              style: CustomTypography()
+                  .titleLarge(color: CustomColors.textNormalContent),
+            ),
+            automaticallyImplyLeading: false,
+            centerTitle: true,
+            shape: const Border(
+                bottom: BorderSide(
               color: CustomColors.productBorderNormal,
               width: 2,
-            ))
-        ),
+            ))),
         body: Column(children: [
           Expanded(
             child: SingleChildScrollView(
@@ -326,19 +325,14 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                         height: 55,
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Copyright © 2023 Emory University",
-                              style: CustomTypography().bodyMedium(
-                                  color: CustomColors.textSecondaryContent),
-                            ),
-                          ]),
+                      Text(
+                        "Copyright © 2023 Emory University",
+                        style: CustomTypography().bodyMedium(
+                            color: CustomColors.textSecondaryContent),
+                        textAlign: TextAlign.center,
+                      ),
                     ],
                   ),
-
-
                 ),
                 const SizedBox(height: 16),
               ]),
