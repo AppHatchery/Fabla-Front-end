@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary_blueprint.dart';
@@ -44,18 +45,25 @@ Future<void> diaryInit(String code) async {
           prompts.add(PromptModel(
             question: question.title,
             responseType: question.responseType,
-            option: Options(type: OptionsType.multiple), //Change this
+            option: Options(
+                type: optionTypeFromResponse(question.responseType),
+                choices: question.options,
+                minValue: question.min,
+                maxValue: question.max,
+                defaultValue: question.defaultValue),
             required: question.required,
             subtitle: question.subtitle,
           ));
         }
 
         // Create the diaries with the start being today or the last day the diaries were created
-        final diaries = makeDiariesTwo(
-            // start: lastDay ?? today, blueprint: blueprint, prompts: prompts);
-            start: today,
-            blueprint: blueprint,
-            prompts: prompts);
+        // final diaries = makeDiariesTwo(
+        //     // start: lastDay ?? today, blueprint: blueprint, prompts: prompts);
+        //     start: today,
+        //     blueprint: blueprint,
+        //     prompts: prompts);
+        final diaries =
+            makeDiariesThree(blueprint: blueprint, prompts: prompts);
 
         // Save the diaries
         final entities = diaries.map((model) {
@@ -221,6 +229,7 @@ List<DiaryModel> makeDiariesTwo(
           end: end,
           due: end,
           entries: blueprint.entries,
+          currentEntry: 0,
           status: DiaryStatus.idle,
           tags: []);
 
@@ -241,6 +250,62 @@ List<DiaryModel> makeDiariesTwo(
   //TODO: Define keys for other types of diaries
   preference.setStringPreference(
       key: "last_daily_diary_day", value: currentDate.toString());
+  return diaries;
+}
+
+List<DiaryModel> makeDiariesThree(
+    {required DiaryBlueprint blueprint, required List<PromptModel> prompts}) {
+  final List<DiaryModel> diaries = [];
+
+  DateTime currentDate =
+      today.isAfter(blueprint.startDate) ? today : blueprint.startDate;
+
+  while (currentDate.isBefore(blueprint.endDate) ||
+      currentDate.isAtSameMomentAs(blueprint.endDate)) {
+    final endDate = currentDate.add(Duration(days: blueprint.frequency));
+
+    if (!endDate.isAfter(blueprint.endDate)) {
+      if (blueprint.activeDays.contains(currentDate.weekday)) {
+        final start = DateTime(
+            currentDate.year,
+            currentDate.month,
+            currentDate.day,
+            blueprint.startTime.hour,
+            blueprint.startTime.minute);
+        final end = DateTime(
+            endDate.subtract(const Duration(days: 1)).year,
+            endDate.subtract(const Duration(days: 1)).month,
+            endDate.subtract(const Duration(days: 1)).day,
+            blueprint.endTime.hour,
+            blueprint.endTime.minute);
+        final diary = DiaryModel(
+            id: 0,
+            prompts: prompts,
+            start: start,
+            end: end,
+            due: end,
+            entries: blueprint.entries,
+            currentEntry: 0,
+            status: DiaryStatus.idle,
+            tags: []);
+
+        diaries.add(diary);
+      }
+    }
+    currentDate = endDate;
+  }
+
+  diaries.forEach((element) {
+    print("Diary Start: ${element.start}");
+    print("Diary End: ${element.end}");
+    element.prompts.forEach((prompt) {
+      print("Diary Prompts: ${prompt.question} | type: ${prompt.responseType}");
+      print(
+          "Diary Prompts: ${prompt.question} | options: ${prompt.option?.toJson().toString()}");
+    });
+    print("---------------------------------------");
+  });
+
   return diaries;
 }
 

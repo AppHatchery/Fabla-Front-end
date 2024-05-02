@@ -664,7 +664,10 @@ class _BottomTextModalState extends State<BottomTextModal>
             height: 16,
           ),
           CustomOutlineButton(
-              onClick: () => Navigator.pop(context),
+              onClick: () => {
+                    widget.onSave?.call(textController.text),
+                    Navigator.pop(context)
+                  },
               color: CustomColors.textWhite,
               backgroundColor: CustomColors.productNormal,
               children: Wrap(

@@ -5,13 +5,13 @@ import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repo
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_history_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dart';
-import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -97,6 +97,7 @@ class _MyAppState extends State<MyApp> {
                 BlocProvider<LoginCubit>(create: (context) => LoginCubit()),
                 BlocProvider<SetupCubit>(create: (context) => SetupCubit()),
                 BlocProvider<DiaryCubit>(create: (context) => DiaryCubit()),
+                BlocProvider<PromptCubit>(create: (context) => PromptCubit()),
                 BlocProvider<DiaryHistoryCubit>(
                     create: (context) => DiaryHistoryCubit()),
               ],

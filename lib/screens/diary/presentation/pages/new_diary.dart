@@ -1,26 +1,19 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/core/utils/formatter.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/audio_quiestions_widget.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
-import 'package:audio_diaries_flutter/theme/components/cards.dart';
-import 'package:audio_diaries_flutter/theme/components/textfields.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:objectbox/objectbox.dart';
 import '../../../../core/utils/types.dart';
 import '../../../../main.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/components/indicators.dart';
-import '../../../../theme/components/notes.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
@@ -29,7 +22,6 @@ import '../../data/diary.dart';
 import '../../data/prompt.dart';
 import '../../domain/repository/diary_repository.dart';
 import '../cubit/prompt/prompt_cubit.dart';
-import '../widgets/my_responses.dart';
 import 'diarysummary.dart';
 
 /// This class holds and manages all the pages in the page view
@@ -49,8 +41,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   final GlobalKey<ScaffoldState> key = GlobalKey<ScaffoldState>();
   late PageController controller;
   late int currentPage;
-  late CarouselController carouselController;
-  late CarouselOptions carouselOptions;
 
   bool ableToContinue = false;
   bool showCloseIcon = true;
@@ -59,18 +49,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   @override
   void initState() {
-    carouselController = CarouselController();
-    carouselOptions = CarouselOptions();
-    carouselControllerInit();
     controller = PageController();
     controllerInit();
-    print(widget.diary.status);
-    if (widget.diary.status == DiaryStatus.submitted ||
-        widget.diary.status == DiaryStatus.missed) {
-      setState(() {
-        ableToContinue = true;
-      });
-    }
     showTip();
     if (widget.diary.status == DiaryStatus.idle) {
       participantsDiaryStartDate(widget.diary);
@@ -91,8 +71,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   void nextPage() {
     if (currentPage < widget.diary.prompts.length - 1) {
-      carouselController.nextPage(
-          duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
       controller.nextPage(
           duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
@@ -116,8 +94,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   void previousPage() {
     if (currentPage > 0) {
-      carouselController.previousPage(
-          duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
       controller.previousPage(
           duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
@@ -130,7 +106,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   @override
   void dispose() {
-    carouselController;
     controller.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -283,10 +258,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     });
   }
 
-  void carouselControllerInit() {
-    currentPage = carouselOptions.initialPage;
-  }
-
   void showTip() async {
     bool show =
         await PreferenceService().getBoolPreference(key: "show_diary_tip") ??
@@ -304,23 +275,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                   )));
     }
   }
-}
-
-class CustomPageViewScrollPhysics extends ScrollPhysics {
-  const CustomPageViewScrollPhysics({ScrollPhysics? parent})
-      : super(parent: parent);
-
-  @override
-  CustomPageViewScrollPhysics applyTo(ScrollPhysics? ancestor) {
-    return CustomPageViewScrollPhysics(parent: buildParent(ancestor)!);
-  }
-
-  @override
-  SpringDescription get spring => const SpringDescription(
-        mass: 50,
-        stiffness: 100,
-        damping: 0.8,
-      );
 }
 
 /// This class is the page that is being duplicated in the PageView
@@ -355,13 +309,14 @@ class QuestionPage extends StatefulWidget {
 
 class _QuestionPageState extends State<QuestionPage>
     with WidgetsBindingObserver {
+  late PromptCubit promptCubit;
   late PromptModel prompt;
 
   bool isChecked = false;
   bool disabled = false;
 
-  void updateSliderValue(BuildContext context, double value) {
-    save(context, prompt, value.toString());
+  void updateSliderValue(double value) {
+    save(prompt, value.toString(), null);
     widget.answerAdded(true);
   }
 
@@ -372,8 +327,8 @@ class _QuestionPageState extends State<QuestionPage>
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     prompt = widget.prompt;
-    disabled = widget.diary.status == DiaryStatus.submitted ||
-        widget.diary.status == DiaryStatus.missed;
+    promptCubit = BlocProvider.of<PromptCubit>(context);
+    loadPrompt();
     super.initState();
   }
 
@@ -399,45 +354,33 @@ class _QuestionPageState extends State<QuestionPage>
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => PromptCubit()..loadPrompt(prompt),
-      child: Builder(builder: (context) {
-        return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: BlocConsumer<PromptCubit, PromptState>(
-                builder: (context, state) {
-              if (state is PromptInitial) {
-                return buildInitial();
-              } else if (state is PromptLoading) {
-                return buildLoading();
-              } else if (state is PromptLoaded) {
-                return buildPrompt(context, state.prompt);
-              } else {
-                return buildInitial();
-              }
-            }, listener: (context, state) {
-              if (state is PromptRespondState) {
-                recordResponse(context);
-              } else if (state is PromptResponseSuccess) {
-                showSuccessModal();
-              } else if (state is PromptResponseError) {
-                showErrorModal();
-              } else if (state is PromptLoaded) {
-                if (state.prompt.answer?.recordings != null ||
-                    state.prompt.answer?.response != null) {
-                  widget.answerAdded(true);
-                } else {
-                  if (widget.diary.status != DiaryStatus.submitted &&
-                      widget.diary.status != DiaryStatus.missed) {
-                    widget.answerAdded(false);
-                  } else {
-                    widget.answerAdded(true);
-                  }
-                }
-              }
-            }));
-      }),
-    );
+    return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child:
+            BlocConsumer<PromptCubit, PromptState>(builder: (context, state) {
+          if (state is PromptInitial) {
+            return buildInitial();
+          } else if (state is PromptLoading) {
+            return buildLoading();
+          } else if (state is PromptLoaded) {
+            return buildPrompt(state.prompt);
+          } else {
+            return buildInitial();
+          }
+        }, listener: (context, state) {
+          if (state is PromptRespondState) {
+            recordResponse("");
+          } else if (state is PromptResponseSuccess) {
+            showSuccessModal();
+          } else if (state is PromptResponseError) {
+            showErrorModal();
+          } else if (state is PromptLoaded) {
+            if (state.prompt.answer?.recordings != null ||
+                state.prompt.answer?.response != null) {
+              widget.answerAdded(true);
+            }
+          }
+        }));
   }
 
   Widget buildLoading() {
@@ -457,27 +400,19 @@ class _QuestionPageState extends State<QuestionPage>
 
   bool isSnackBarVisible = false;
 
-  Widget buildPrompt(BuildContext context, PromptModel prompt) {
+  Widget buildPrompt(PromptModel prompt) {
     Widget responseWidget;
-    Widget audiTextWidget;
-    Widget textWidget;
 
-    Widget randomText;
-    if (prompt.responseType == ResponseType.recording) {}
     if (prompt.responseType == ResponseType.slider) {
-      List<Option> choices = prompt.option!.choices!;
-      int scaleMinValue = int.parse(choices[0].option!);
-      int scaleMaxValue = int.parse(choices[1].option!);
-
       responseWidget = SliderQuestionCard(
         value: prompt.answer?.response != null
             ? double.parse(prompt.answer!.response!)
             : null,
-        scaleMin: scaleMinValue,
-        scaleMax: scaleMaxValue,
+        scaleMin: prompt.option!.minValue!,
+        scaleMax: prompt.option!.maxValue!,
         scaleMinText: prompt.option!.startText,
         scaleMaxText: prompt.option!.endText,
-        onSliderValueChanged: (value) => updateSliderValue(context, value),
+        onSliderValueChanged: (value) => updateSliderValue(value),
         isSliderEnabled: !disabled,
       );
     } else if (prompt.responseType == ResponseType.multiple) {
@@ -486,13 +421,11 @@ class _QuestionPageState extends State<QuestionPage>
           : <String>[];
 
       responseWidget = MultipleQuestion(
-        options:
-            prompt.option!.choices!.map((choice) => choice.option!).toList(),
+        options: prompt.option!.choices!,
         selected: selected,
         onChanged: (value) {
           final response = value.join("/ ");
-          save(context, prompt, response);
-
+          save(prompt, response, null);
           if (value.isNotEmpty) {
             widget.answerAdded(true);
           } else {
@@ -505,10 +438,9 @@ class _QuestionPageState extends State<QuestionPage>
       final selected = prompt.answer?.response;
       responseWidget = RadioQuestion(
         value: selected,
-        options:
-            prompt.option!.choices!.map((choice) => choice.option!).toList(),
+        options: prompt.option!.choices!,
         onChanged: (value) {
-          save(context, prompt, value);
+          save(prompt, value, null);
           if (value != null) {
             widget.answerAdded(true);
           } else {
@@ -529,24 +461,17 @@ class _QuestionPageState extends State<QuestionPage>
             widget.answerAdded(false);
           } else {
             widget.answerAdded(true);
-            save(context, prompt, value);
+            save(prompt, value, null);
           }
         },
       );
     } else if (prompt.responseType == ResponseType.recording ||
         prompt.responseType == ResponseType.textAudio) {
-      bool hasRecordingOrResponse = prompt.answer?.recordings.isNotEmpty ??
-          false || prompt.answer?.response != null;
-      responseWidget = widget.diary.status == DiaryStatus.submitted ||
-              widget.diary.status == DiaryStatus.missed ||
-              hasRecordingOrResponse
-          ? const SizedBox.shrink()
-          : AudioTextCard(
-              onClick: () => recordResponse(context),
-              text: "Record My Response",
-              onTextClick: () {},
-              textButtonText: "Text My Response",
-            );
+      responseWidget = AudioTextCard(
+        diary: widget.diary,
+        respond: (String type) => recordResponse(type),
+        prompt: prompt,
+      );
     } else {
       responseWidget = const SizedBox.shrink();
     }
@@ -565,34 +490,14 @@ class _QuestionPageState extends State<QuestionPage>
       questionTip = "You only need to take one response.";
     }
 
-// the auditTextWidget and textWidget are the widgets that display the user's response
-    if (prompt.responseType == ResponseType.recording ||
-        prompt.responseType == ResponseType.textAudio) {
-      audiTextWidget = prompt.answer?.recordings.isNotEmpty ?? false
-          ? MyResponse(
-              prompt: prompt,
-              status: widget.diary.status,
-              recordings: prompt.answer!.recordings)
-          : const SizedBox.shrink();
-      textWidget = prompt.answer?.response != null
-          ? TextAnswerCard(
-              answer: prompt.answer!.response!,
-            )
-          : const SizedBox.shrink();
-    } else {
-      audiTextWidget = const SizedBox.shrink();
-      textWidget = const SizedBox.shrink();
-    }
-
     return (prompt.responseType == ResponseType.recording ||
             prompt.responseType == ResponseType.textAudio)
         ? AudioQuestionsWidget(
             diary: widget.diary,
             prompt: prompt,
             currentPage: widget.currentPage,
-            audiTextWidget: audiTextWidget,
             responseWidget: responseWidget,
-            textWidget: textWidget)
+          )
         : SingleChildScrollView(
             controller: _scrollController,
             child: Container(
@@ -648,9 +553,6 @@ class _QuestionPageState extends State<QuestionPage>
                         height: prompt.responseType == ResponseType.text
                             ? 24
                             : 112),
-
-                    audiTextWidget,
-                    textWidget,
                     responseWidget,
                     if (widget.diary.status != DiaryStatus.submitted &&
                         widget.diary.status != DiaryStatus.missed &&
@@ -666,39 +568,70 @@ class _QuestionPageState extends State<QuestionPage>
           );
   }
 
-  void recordResponse(BuildContext context) {
-    showModalBottomSheet(
-        backgroundColor: Colors.transparent,
-        context: context,
-        isScrollControlled: true,
-        isDismissible: false,
-        enableDrag: false,
-        elevation: 0,
-        useSafeArea: true,
-        builder: (context) => DraggableScrollableSheet(
-              initialChildSize: 1,
-              minChildSize: 1,
-              snap: true,
-              builder: (context, scrollController) {
-                return BottomRecordingModal(
-                  promptId: prompt.id,
-                  question: prompt.question!,
-                  onSave: (value) {
-                    save(context, prompt, value.toString());
-                  },
-                );
-              },
-            ));
+  void loadPrompt() {
+    promptCubit.loadPrompt(widget.diary, prompt);
   }
 
-  void save(BuildContext context, PromptModel prompt, dynamic response) {
+  void recordResponse(String type) {
+    if (type == "audio") {
+      showModalBottomSheet(
+          backgroundColor: Colors.transparent,
+          context: context,
+          isScrollControlled: true,
+          isDismissible: false,
+          enableDrag: false,
+          elevation: 0,
+          useSafeArea: true,
+          builder: (context) => DraggableScrollableSheet(
+                initialChildSize: 1,
+                minChildSize: 1,
+                snap: true,
+                builder: (context, scrollController) {
+                  return BottomRecordingModal(
+                    promptId: prompt.id,
+                    question: prompt.question,
+                    onSave: (value) {
+                      save(prompt, value.toString(), "audio");
+                    },
+                  );
+                },
+              ));
+    } else {
+      showModalBottomSheet(
+          backgroundColor: Colors.transparent,
+          context: context,
+          isScrollControlled: true,
+          isDismissible: false,
+          enableDrag: false,
+          elevation: 0,
+          useSafeArea: true,
+          builder: (context) => DraggableScrollableSheet(
+                initialChildSize: 1,
+                minChildSize: 1,
+                snap: true,
+                builder: (context, scrollController) {
+                  return BottomTextModal(
+                    promptId: prompt.id,
+                    question: prompt.question,
+                    onSave: (value) {
+                      save(prompt, value.toString(), null);
+                    },
+                    scrollController: scrollController,
+                  );
+                },
+              ));
+    }
+  }
+
+  void save(PromptModel prompt, dynamic response, String? type) {
     // Change diary status
     if (widget.diary.status == DiaryStatus.idle) {
       widget.diary.status = DiaryStatus.ongoing;
       DiaryRepository repository = DiaryRepository();
       repository.updateDiary(widget.diary);
     }
-    context.read<PromptCubit>().saveResponse(prompt, response);
+    promptCubit.saveResponse(
+        diary: widget.diary, prompt: prompt, response: response, type: type);
     cancelAllDiaryNotifications(widget.diary.id);
     if (!isClicked) {
       setState(() {
@@ -711,11 +644,11 @@ class _QuestionPageState extends State<QuestionPage>
     bool isLast = widget.isLastPage ?? true;
 
     widget.scaffoldKey.currentState!.showBottomSheet((context) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      // _scrollController.animateTo(
+      //   _scrollController.position.maxScrollExtent,
+      //   duration: const Duration(milliseconds: 300),
+      //   curve: Curves.easeInOut,
+      // );
 
       return BottomSuccessModal(
         previousPage: () => widget.previousPage(),
