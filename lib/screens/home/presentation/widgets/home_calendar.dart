@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -39,6 +40,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
   late DateTime today;
   late DateTime selectedDate;
   late List<DiaryModel> diaries;
+  Map<DateTime, List<String>>? events = {};
 
   @override
   void initState() {
@@ -60,6 +62,20 @@ class _StudyCalendarState extends State<StudyCalendar> {
     focusedDay = today;
     selectedDate = today;
     diaries = widget.diaries;
+
+    List<DiaryModel> _getAllDiaries() {
+      final DiaryRepository repository = DiaryRepository();
+      final list = repository.getAllDiaries();
+      return list;
+    }
+
+    List<DiaryModel> diaryList = _getAllDiaries();
+
+    for (DiaryModel diary in diaryList) {
+      events!.putIfAbsent(diary.start, () => []);
+      events![diary.start]!.add(diary.start.toString());
+    }
+
     super.initState();
   }
 
@@ -67,6 +83,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
+
     return SizedBox(
       height: height,
       width: width,
@@ -197,6 +214,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
             onCalendarCreated: (controller) {
               pageController = controller;
             },
+            eventLoader: getDiariesForDay,
             calendarBuilders: CalendarBuilders(
               headerTitleBuilder: (context, day) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -395,5 +413,14 @@ class _StudyCalendarState extends State<StudyCalendar> {
   getMonthYear(DateTime day) {
     final DateFormat formatter = DateFormat("MMMM yyyy");
     return formatter.format(day);
+  }
+
+  List<String> getDiariesForDay(DateTime day) {
+    if (events != null) {
+      final date = DateTime(day.year, day.month, day.day);
+      return events![date] ?? [];
+    }
+
+    return [];
   }
 }
