@@ -27,9 +27,9 @@ class Prompt {
     return responseType?.index;
   }
 
-  set responseTypeValue(int? value) {
+  set responseTypeValue(int? index) {
     _ensureResponseType();
-    responseType = ResponseType.values[0];
+    responseType = ResponseType.values[index ?? 0];
   }
 
   Prompt({
@@ -42,16 +42,16 @@ class Prompt {
   });
 
   void _ensureResponseType() {
+    assert(ResponseType.recording.index == 0);
     assert(ResponseType.text.index == 1);
     assert(ResponseType.multiple.index == 2);
-    assert(ResponseType.slider.index == 4);
-    assert(ResponseType.recording.index == 0);
-    assert(ResponseType.textAudio.index == 5);
     assert(ResponseType.radio.index == 3);
+    assert(ResponseType.slider.index == 4);
+    assert(ResponseType.textAudio.index == 5);
   }
 
   factory Prompt.fromModel(PromptModel model) {
-    return Prompt(
+    final entity = Prompt(
       id: model.id,
       question: model.question,
       responseType: model.responseType,
@@ -59,5 +59,9 @@ class Prompt {
       subtitle: model.subtitle,
       required: model.required,
     );
+
+    if(model.answer != null){entity.answers.insert(0, model.answer!);}
+
+    return entity;
   }
 }

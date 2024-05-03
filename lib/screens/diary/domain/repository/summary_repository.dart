@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 
 import '../../../../core/usecases/notifications.dart';
@@ -10,6 +11,7 @@ import 'diary_repository.dart';
 
 class SummaryRepository {
   final AnswerRepository answerRepository = AnswerRepository();
+  final PromptRepository promptRepository = PromptRepository();
   final DiaryRepository diaryRepository = DiaryRepository();
   final SetupRepository setupRepository = SetupRepository();
 
@@ -30,7 +32,7 @@ class SummaryRepository {
   Future<DiaryModel> loadSummary(DiaryModel diary) async {
     try {
       for (var i = 0; i < diary.prompts.length; i++) {
-        final newPrompt = await answerRepository.load(diary.prompts[i]);
+        final newPrompt = await promptRepository.load(diary,diary.prompts[i].id);
         newPrompt.id = diary.prompts[i].id;
         diary.prompts[i] = newPrompt;
       }
@@ -54,7 +56,7 @@ class SummaryRepository {
   ///
   void saveResponse(PromptModel prompt, String path) {
     try {
-      answerRepository.saveResponse(prompt, path);
+      answerRepository.saveResponse(prompt: prompt, response: path);
     } catch (e) {
       print("Error saving response: $e");
     }
@@ -93,24 +95,38 @@ class SummaryRepository {
   Future<bool> submitDiary(DiaryModel diary) async {
     try {
       final participant = setupRepository.getParticipant();
-      final uploaded = await upload(participant!.studyCode, diary);
+      //final uploaded = await upload(participant!.studyCode, diary);
 
-      if (uploaded) {
-        diary.status = DiaryStatus.submitted;
-        diaryRepository.updateDiary(diary);
+      //if (uploaded) {
 
-        cancelAllDiaryNotifications(diary.id);
+      late DiaryModel newDiary;
 
-        //Update the nextStudy date- TBD with provision of study_start_date
-        DateTime now = DateTime.now();
-        var nextStudyDate = DateTime(now.year, now.month, now.day, 4, 0, 0)
-            .add(const Duration(days: 1));
-
-        setupRepository.updateMetaDataFile(nextStudyDate);
-        return true;
+      if (diary.currentEntry + 1 == diary.entries) {
+        newDiary = diary.copyWith(
+          id: diary.id,
+          status: DiaryStatus.submitted,
+        );
       } else {
-        return false;
+        newDiary = diary.copyWith(
+            id: diary.id,
+            status: DiaryStatus.idle,
+            currentEntry: diary.currentEntry + 1);
       }
+
+      diaryRepository.updateDiary(newDiary);
+
+      cancelAllDiaryNotifications(diary.id);
+
+      //Update the nextStudy date- TBD with provision of study_start_date
+      DateTime now = DateTime.now();
+      var nextStudyDate = DateTime(now.year, now.month, now.day, 4, 0, 0)
+          .add(const Duration(days: 1));
+
+      setupRepository.updateMetaDataFile(nextStudyDate);
+      return true;
+      // } else {
+      //   return false;
+      // }
     } catch (e) {
       print("Error submitting diary: $e");
       return false;

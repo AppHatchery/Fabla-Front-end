@@ -74,7 +74,7 @@
       "end_time": "23:59",
       "frequency": 1,
       "active_days": [1, 2, 3, 4, 5],
-      "entries": 1
+      "entries": 3
     }
   ]
 }

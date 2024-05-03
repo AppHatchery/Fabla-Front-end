@@ -70,13 +70,19 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.restart_alt_outlined,
-                color: CustomColors.productNormal,size: 20,),
+            const Icon(
+              Icons.restart_alt_outlined,
+              color: CustomColors.productNormal,
+              size: 20,
+            ),
             const SizedBox(width: 6),
-            Text(
-              "Repeatable Entries: 1/2",
-              style: CustomTypography().bodyMedium(),
-            )
+            Flexible(
+              fit: FlexFit.loose,
+              child: Text(
+                "Repeatable Entries: 1/2",
+                style: CustomTypography().bodyMedium(),
+              ),
+            ),
           ],
         )
       ],

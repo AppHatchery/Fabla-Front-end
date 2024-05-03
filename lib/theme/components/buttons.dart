@@ -313,10 +313,12 @@ class CustomRecordButton extends StatelessWidget {
                   const SizedBox(
                     width: 8,
                   ),
-                  Text(
-                    text.toString(),
-                    style: CustomTypography()
-                        .button(color: CustomColors.fillWhite),
+                  Flexible(
+                    child: Text(
+                      text.toString(),
+                      style: CustomTypography()
+                          .button(color: CustomColors.fillWhite),
+                    ),
                   ),
                 ],
               )),
@@ -364,10 +366,12 @@ class CustomTextAnswerButton extends StatelessWidget {
                   const SizedBox(
                     width: 8,
                   ),
-                  Text(
-                    text.toString(),
-                    style: CustomTypography()
-                        .button(color: CustomColors.productNormal),
+                  Flexible(
+                    child: Text(
+                      text.toString(),
+                      style: CustomTypography()
+                          .button(color: CustomColors.productNormal),
+                    ),
                   ),
                 ],
               )),
@@ -409,8 +413,8 @@ class CustomOutlineButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             onTap: isDisabled ?? false ? null : () => onClick(),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Container(child: children),
             )),
       ),

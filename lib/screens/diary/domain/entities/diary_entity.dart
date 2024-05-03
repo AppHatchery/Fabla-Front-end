@@ -14,6 +14,7 @@ class Diary {
   @Property(type: PropertyType.date)
   DateTime end;
   int entries;
+  int currentEntry;
   @Property(type: PropertyType.date)
   DateTime due;
   String deadline;
@@ -38,6 +39,7 @@ class Diary {
       required this.due,
       required this.start,
       required this.entries,
+      required this.currentEntry,
       required this.end,
       required this.deadline,
       this.status});
@@ -74,6 +76,7 @@ class Diary {
       start: model.start,
       end: model.end,
       entries: model.entries,
+      currentEntry: model.currentEntry,
       deadline: model.due.toString(),
       status: model.status,
     );

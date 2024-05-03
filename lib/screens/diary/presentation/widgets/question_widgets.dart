@@ -1,8 +1,11 @@
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
+import 'my_responses.dart';
 
 ///These widgets are being used in the QuestionPage class
 ///They are used to diplay tbe answer options for each question
@@ -292,32 +295,21 @@ class _RadioQuestionState extends State<RadioQuestion> {
 }
 
 class AudioTextCard extends StatefulWidget {
-  final VoidCallback? onClick;
-  final String? text;
-  final VoidCallback? onTextClick;
-  final String? textButtonText;
-  const AudioTextCard(
-      {super.key,
-      this.onClick,
-      this.text,
-      this.onTextClick,
-      this.textButtonText});
+  final void Function(String) respond;
+  final DiaryModel diary;
+  final PromptModel prompt;
+  const AudioTextCard({
+    super.key,
+    required this.respond,
+    required this.diary,
+    required this.prompt,
+  });
 
   @override
   State<AudioTextCard> createState() => _AudioTextCardState();
 }
 
 class _AudioTextCardState extends State<AudioTextCard> {
-  bool isRecordButtonVisible = true;
-  bool isTextButtonVisible = true;
-
-  void toggleVisibility() {
-    setState(() {
-      isRecordButtonVisible = !isRecordButtonVisible;
-      isTextButtonVisible = !isTextButtonVisible;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -325,26 +317,23 @@ class _AudioTextCardState extends State<AudioTextCard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Visibility(
-              visible: isRecordButtonVisible,
-              child: CustomRecordButton(
-                onClick: () {
-                  widget.onClick!();
-                  toggleVisibility();
-                },
-                text: widget.text,
-              ),
-            ),
-            Visibility(
-              visible: isTextButtonVisible,
-              child: CustomTextAnswerButton(
-                onClick: () {
-                  widget.onTextClick!();
-                  toggleVisibility();
-                },
-                text: widget.textButtonText,
-              ),
-            ),
+            widget.prompt.answer == null
+                ? Column(
+                    children: [
+                      CustomRecordButton(
+                        onClick: () => widget.respond("audio"),
+                        text: "Record My Response",
+                      ),
+                      CustomTextAnswerButton(
+                        onClick: () => widget.respond("text"),
+                        text: "Text My Response",
+                      ),
+                    ],
+                  )
+                : MyResponse(
+                    diary: widget.diary,
+                    prompt: widget.prompt,
+                    recordings: widget.prompt.answer?.recordings ?? [])
           ],
         ));
   }

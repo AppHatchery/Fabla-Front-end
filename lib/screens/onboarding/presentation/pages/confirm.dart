@@ -20,7 +20,7 @@ class ConfrimJoiningPage extends StatefulWidget {
 }
 
 class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
-  late Timer? timer;
+  Timer? timer;
   int secondsSpent = 0;
 
   @override

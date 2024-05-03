@@ -1,6 +1,5 @@
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 
-import '../../../core/utils/dummy_data.dart';
 import '../domain/entities/diary_entity.dart';
 import 'prompt.dart';
 import 'tag.dart';
@@ -13,6 +12,7 @@ class DiaryModel {
   final DateTime start;
   final DateTime end;
   final int entries;
+  final int currentEntry;
   final List<PromptModel> prompts;
 
   DiaryModel({
@@ -23,6 +23,7 @@ class DiaryModel {
     required this.due,
     required this.start,
     required this.entries,
+    required this.currentEntry,
     required this.end,
   });
 
@@ -36,35 +37,40 @@ class DiaryModel {
   /// A Diary object representing a diary entry, constructed using information from the provided DiaryEntity.
   ///
   factory DiaryModel.fromEntity(Diary entity) {
+    final _prompts = entity.prompts.map((prompt) => PromptModel.fromEntity(prompt)).toList();
     return DiaryModel(
       id: entity.id,
-      prompts: fakePrompts[entity.prompts[0]] ?? [],
+      prompts: _prompts,
       tags: [],
       status: entity.status ?? DiaryStatus.idle,
       due: entity.due,
       start: entity.start,
       entries: entity.entries,
+      currentEntry: entity.currentEntry,
       end: entity.end,
     );
   }
 
-  factory DiaryModel.copyWith(
-      {DiaryModel? diary,
-      int? id,
+   DiaryModel copyWith(
+      {
+      required int id,
       List<PromptModel>? prompts,
       List<Tag>? tags,
       DiaryStatus? status,
       DateTime? due,
+      int? currentEntry,
       DateTime? start}) {
+        print("ID IJA IYI: $id");
     return DiaryModel(
-      id: id ?? diary!.id,
-      prompts: prompts ?? diary!.prompts,
-      tags: tags ?? diary!.tags,
-      status: status ?? diary!.status,
-      due: due ?? diary!.due,
-      start: start ?? diary!.start,
-      entries: diary!.entries,
-      end: diary.end,
+      id: id,
+      prompts: prompts ?? this.prompts,
+      tags: tags ?? this.tags,
+      status: status ?? this.status,
+      due: due ?? this.due,
+      start: start ?? this.start,
+      entries: entries,
+      currentEntry: currentEntry ?? this.currentEntry,
+      end: end,
     );
   }
 }
