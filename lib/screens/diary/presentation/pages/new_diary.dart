@@ -577,24 +577,15 @@ class _QuestionPageState extends State<QuestionPage>
   ///Returns a bool for [`able to continue`] that allows the user to either proceed or not
   ///depending on the availability of the response/recording
   void checkForResponse(PromptModel prompt1) {
+    bool isValidResponse = false;
+    final answer = prompt1.answer;
     if (prompt1.responseType != ResponseType.recording) {
-      if (prompt1.answer?.response == null ||
-          prompt1.answer!.response!.isEmpty) {
-        widget.answerAdded(false);
-      } else {
-        widget.answerAdded(true);
-      }
+      isValidResponse = answer?.response?.isNotEmpty ?? false;
     } else {
-      if (prompt1.answer?.response != null &&
-          prompt1.answer!.response!.isNotEmpty) {
-        widget.answerAdded(true);
-      } else if (prompt1.answer?.recordings != null &&
-          prompt1.answer!.recordings.isNotEmpty) {
-        widget.answerAdded(true);
-      } else {
-        widget.answerAdded(false);
-      }
+      isValidResponse = (answer?.response?.isNotEmpty ?? false) ||
+          (answer?.recordings.isNotEmpty ?? false);
     }
+    widget.answerAdded(isValidResponse);
   }
 
   void recordResponse(String type) {
