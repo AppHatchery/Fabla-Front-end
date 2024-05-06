@@ -1,4 +1,7 @@
+import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
 
 import '../../../../core/database/dao/diary_dao.dart';
 import '../../../../main.dart';
@@ -8,6 +11,8 @@ import '../entities/diary_entity.dart';
 
 class DiaryRepository {
   final DiaryDAO _diaryDAO = DiaryDAO(box: Box<Diary>(objectbox.store));
+  final ProtocolDAO _protocolDAO =
+      ProtocolDAO(box: Box<ProtocolEntity>(objectbox.store));
 
   /// A method to retrieve all DiaryEntity objects from the data source.
   /// This function retrieves a list of DiaryEntity instances by calling the `_diaryDAO.getAllDiaries()` method.
@@ -51,6 +56,10 @@ class DiaryRepository {
     return _diaryDAO.getDiary(start, due);
   }
 
+  ProtocolEntity? _getProtocolEntity() {
+    return _protocolDAO.getProtocol();
+  }
+
   /// Retrieves a list of Diary objects representing all stored diary entries.
   /// This function fetches a list of DiaryEntity instances from the data source using `_getAllDiariesEntities()`,
   /// and then converts each DiaryEntity into a Diary object using the `Diary.fromEntity()` factory constructor.
@@ -78,6 +87,14 @@ class DiaryRepository {
     final diary = _getDiaryEntity(start, due);
     if (diary != null) {
       return DiaryModel.fromEntity(diary);
+    }
+    return null;
+  }
+
+  Protocol? getProtocol() {
+    final protocol = _getProtocolEntity();
+    if (protocol != null) {
+      return Protocol.fromEntity(protocol);
     }
     return null;
   }
