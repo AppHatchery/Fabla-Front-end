@@ -78,6 +78,41 @@ String formatDurationtoHHMMSS(Duration duration) {
   return "$minutes:$seconds";
 }
 
+/// Formats a given date into a human-readable history date string.
+///
+/// This function formats the provided date into a string representing a historical date,
+/// indicating if the date is today, yesterday, or in the past using specific date formats.
+///
+/// Parameters:
+/// - [date]: The DateTime object representing the date to be formatted.
+///
+/// Returns:
+/// A formatted string representing the historical date.
+String formatHistoryDate(DateTime date) {
+  // Get the current date
+  DateTime today =
+      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+  // Define date formatters
+  final DateFormat formatterOne = DateFormat("MMMM d',' y");
+  final DateFormat formatterTwo = DateFormat("EEEE - MMMM d',' y");
+
+  // Check if the provided date is today
+  if (today == DateTime(date.year, date.month, date.day)) {
+    // Format today's date
+    return "Today - ${formatterOne.format(date)}";
+  }
+  // Check if the provided date is yesterday
+  else if (today.subtract(const Duration(days: 1)) ==
+      DateTime(date.year, date.month, date.day)) {
+    // Format yesterday's date
+    return "Yesterday - ${formatterOne.format(date)}";
+  }
+  // If the provided date is neither today nor yesterday, format it using a different format
+  else {
+    return formatterTwo.format(date);
+  }
+}
+
 /// Retrieves a pair of colors based on a given text, ensuring consistency.
 /// This function calculates color indices from the hash code of the input text and maps them to predefined background and foreground color lists.
 ///
