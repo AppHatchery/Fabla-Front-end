@@ -578,18 +578,14 @@ class _QuestionPageState extends State<QuestionPage>
   ///depending on the availability of the response/recording
   void checkForResponse(PromptModel prompt1) {
     if (prompt1.responseType != ResponseType.recording) {
-      if (prompt1.answer?.response == null) {
+      if (prompt1.answer?.response == null ||
+          prompt1.answer!.response!.isEmpty) {
         widget.answerAdded(false);
       } else {
-        prompt1.answer!.response!.isEmpty
-            ? widget.answerAdded(false)
-            : widget.answerAdded(true);
+        widget.answerAdded(true);
       }
     } else {
-      if (prompt1.answer?.response == null &&
-          prompt1.answer?.recordings == null) {
-        widget.answerAdded(false);
-      } else if (prompt1.answer?.response != null &&
+      if (prompt1.answer?.response != null &&
           prompt1.answer!.response!.isNotEmpty) {
         widget.answerAdded(true);
       } else if (prompt1.answer?.recordings != null &&
