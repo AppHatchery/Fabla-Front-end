@@ -51,6 +51,21 @@ class DiaryRepository {
     return _diaryDAO.getDiary(start, due);
   }
 
+  /// Retrieves a diary entity from the data access object (DAO) by its ID.
+  ///
+  /// This function delegates the retrieval of a diary entity from the DAO based on the provided ID.
+  /// It returns the diary entity if found, otherwise returns null.
+  ///
+  /// Parameters:
+  /// - [id]: The ID of the diary entity to retrieve.
+  ///
+  /// Returns:
+  /// The Diary entity with the specified ID if found, otherwise null.
+  Diary? _getDiaryEntityByID(int id) {
+    // Delegate the retrieval of the diary entity to the DAO
+    return _diaryDAO.getDiaryByID(id);
+  }
+
   /// Retrieves a list of Diary objects representing all stored diary entries.
   /// This function fetches a list of DiaryEntity instances from the data source using `_getAllDiariesEntities()`,
   /// and then converts each DiaryEntity into a Diary object using the `Diary.fromEntity()` factory constructor.
@@ -61,6 +76,51 @@ class DiaryRepository {
   List<DiaryModel> getAllDiaries() {
     final diaries = _getAllDiariesEntities();
     return diaries.map((e) => DiaryModel.fromEntity(e)).toList();
+  }
+
+  /// Retrieves a list of diary models within a specified date range.
+  ///
+  /// This function retrieves all diaries from the data access object (DAO) and filters them
+  /// based on their start dates falling within the specified date range. It then maps the
+  /// filtered diaries to DiaryModel objects and returns them.
+  ///
+  /// Parameters:
+  /// - [start]: The start date of the range.
+  /// - [end]: The end date of the range.
+  ///
+  /// Returns:
+  /// A list of DiaryModel objects representing diaries within the specified date range.
+  List<DiaryModel> getRangeDiaries(DateTime start, DateTime end) {
+    // Retrieve all diaries from the DAO
+    final diaries = _diaryDAO.getAllDiaries();
+
+    // Filter diaries based on their start dates falling within the specified range
+    final filtered = diaries.where((element) {
+      return element.start.isAfter(start) && element.start.isBefore(end);
+    }).toList();
+
+    // Map filtered diaries to DiaryModel objects and return them
+    return filtered.map((e) => DiaryModel.fromEntity(e)).toList();
+  }
+
+  /// Retrieves a diary model by its ID.
+  ///
+  /// This function retrieves a diary entity by its ID and converts it into a DiaryModel object.
+  ///
+  /// Parameters:
+  /// - [id]: The ID of the diary to retrieve.
+  ///
+  /// Returns:
+  /// The DiaryModel object with the specified ID if found, otherwise null.
+  DiaryModel? getDiaryByID(int id) {
+    // Retrieve the diary entity by its ID
+    final diary = _getDiaryEntityByID(id);
+    // Convert the diary entity into a DiaryModel object
+    if (diary != null) {
+      return DiaryModel.fromEntity(diary);
+    }
+    // Return null if the diary entity is not found
+    return null;
   }
 
   /// Retrieves a Diary object from the data source based on a specified due date.

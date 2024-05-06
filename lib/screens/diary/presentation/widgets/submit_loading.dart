@@ -17,9 +17,11 @@ class _SubmitLoadingPageState extends State<SubmitLoadingPage> {
   void initState() {
     super.initState();
     Future.delayed(const Duration(seconds: 5), () {
-      setState(() {
-        loadingText = "Processing...";
-      });
+      if (mounted) {
+        setState(() {
+          loadingText = "Processing...";
+        });
+      }
     });
   }
 

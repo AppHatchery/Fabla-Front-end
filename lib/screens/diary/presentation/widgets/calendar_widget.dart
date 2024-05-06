@@ -1,16 +1,28 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
+final now = DateTime.now();
+
 class CompleteCalendarWidget extends StatefulWidget {
-  const CompleteCalendarWidget({super.key});
+  final List<DiaryModel> diaries;
+  final int dailyGoal;
+  final int weeklyGoal;
+  const CompleteCalendarWidget(
+      {super.key,
+      required this.diaries,
+      required this.dailyGoal,
+      required this.weeklyGoal});
 
   @override
   State<CompleteCalendarWidget> createState() => _CompleteCalendarWidgetState();
 }
 
 class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
+  late int currentEntryCount;
   final List<Widget> days = [];
 
   @override
@@ -30,7 +42,6 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
             offset: Offset(0, 0),
           ),
         ],
-       
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -48,8 +59,12 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              "You've got 1 entry left today",
-              style: CustomTypography().body(color: CustomColors.textSecondaryContent),
+              currentEntryCount == widget.dailyGoal
+                  ? "You achieved your daily goal. Great work!"
+                  : "You've got ${widget.dailyGoal - currentEntryCount} entry left today",
+              textAlign: TextAlign.center,
+              style: CustomTypography()
+                  .body(color: CustomColors.textSecondaryContent),
             ),
           )
         ],
@@ -57,56 +72,73 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
     );
   }
 
-  Widget dayOfTheWeek(String day, String date, bool isToday, bool? isComplete) {
-    return Column(
-      children: [
-        Text(
-          day.toString(),
-          style: CustomTypography().bodyMedium(
-            color: isToday ? Colors.black : CustomColors.textTertiaryContent,
-            weight: FontWeight.w600,
+  Widget dayOfTheWeek(String dayAbbreviation, bool isToday, double percentage,
+      bool showProgress, bool isAfter) {
+    return Opacity(
+      opacity: showProgress ? 1 : 0,
+      child: Column(
+        children: [
+          Text(
+            dayAbbreviation,
+            style: CustomTypography().bodyMedium(
+              color: isToday ? Colors.black : CustomColors.textTertiaryContent,
+              weight: FontWeight.w600,
+            ),
           ),
-        ),
-        const SizedBox(
-          height: 6,
-        ),
-        isToday ? const CircularProgressIndicator(
-          strokeWidth: 2,
-          value: 0.8,
-          backgroundColor: CustomColors.productBorderNormal,
-          color: CustomColors.productNormal,
-        ) : DottedBorder(
-          borderType: BorderType.Circle,
-          strokeWidth: 2,
-          color: CustomColors.productBorderNormal,
-          dashPattern: const [6],
-          child: const SizedBox(
-            height: 30,
-            width: 30,
-           
-          ),
-        ),
-      ],
+          const SizedBox(height: 6),
+          if (isAfter)
+            DottedBorder(
+              borderType: BorderType.Circle,
+              strokeWidth: 2,
+              color: CustomColors.productBorderNormal,
+              dashPattern: const [6],
+              child: const SizedBox(height: 30, width: 30),
+            )
+          else
+            CircularProgressIndicator(
+              strokeWidth: 2,
+              value: percentage,
+              backgroundColor: CustomColors.productBorderNormal,
+              color: CustomColors.productNormal,
+            ),
+        ],
+      ),
     );
   }
 
   void prepare() async {
     days.clear();
-    final now = DateTime.now();
     final today = now.weekday;
     DateTime monday = now.subtract(Duration(days: now.weekday - 1));
 
-    List<DateTime> _days = [];
-
-    for (int i = 0; i < 7; i++) {
-      _days.add(monday.add(Duration(days: i)));
-    }
+    final List<DateTime> _days =
+        List.generate(7, (index) => monday.add(Duration(days: index)));
 
     for (final d in _days) {
       final isToday = d.weekday == today;
+      final diary = widget.diaries
+          .where(
+            (element) => element.start.day == d.day,
+          )
+          .firstOrNull;
+      final max = widget.dailyGoal;
+      final current = diary != null
+          ? diary.status == DiaryStatus.submitted
+              ? diary.entries
+              : diary.currentEntry
+          : 0;
+      final isAfter = d.isAfter(now);
 
-      days.add(dayOfTheWeek(
-          _dayAbbreviations[d.weekday]!, d.day.toString(), isToday, false));
+      final percentage = current / max;
+
+      if (diary?.start.day == now.day && mounted) {
+        setState(() {
+          currentEntryCount = current;
+        });
+      }
+
+      days.add(dayOfTheWeek(_dayAbbreviations[d.weekday]!, isToday, percentage,
+          (diary != null && diary.currentEntry > 0 || isAfter), isAfter));
     }
   }
 

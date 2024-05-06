@@ -141,7 +141,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   Route _completionRoute() {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>
-          const DiaryCompletionPage(),
+          DiaryCompletionPage(diary: widget.diary),
       transitionDuration: const Duration(milliseconds: 1200),
       reverseTransitionDuration: const Duration(milliseconds: 1200),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -230,7 +230,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
       sliderEnabledStates[index] = false;
     }
 
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -252,7 +251,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                 ],
               ),
               getResponseWidget(prompt),
-             ],
+            ],
           ),
         ),
 
@@ -335,7 +334,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         return const SizedBox.shrink();
     }
   }
-
 
   void loadDiary(BuildContext context) {
     summaryCubit.loadSummary(widget.diary);
