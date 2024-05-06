@@ -586,12 +586,17 @@ class _QuestionPageState extends State<QuestionPage>
             : widget.answerAdded(true);
       }
     } else {
-      if (prompt1.answer?.recordings != null) {
+      if (prompt1.answer?.response == null &&
+          prompt1.answer?.recordings == null) {
         widget.answerAdded(false);
+      } else if (prompt1.answer?.response != null &&
+          prompt1.answer!.response!.isNotEmpty) {
+        widget.answerAdded(true);
+      } else if (prompt1.answer?.recordings != null &&
+          prompt1.answer!.recordings.isNotEmpty) {
+        widget.answerAdded(true);
       } else {
-        prompt1.answer!.recordings.isEmpty
-            ? widget.answerAdded(false)
-            : widget.answerAdded(true);
+        widget.answerAdded(false);
       }
     }
   }
