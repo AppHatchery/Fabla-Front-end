@@ -12,6 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class StudyCalendar extends StatefulWidget {
@@ -40,6 +41,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
   late DateTime today;
   late DateTime selectedDate;
   late List<DiaryModel> diaries;
+  late bool isBeforeToday;
+  late List<DiaryModel> diaryList;
   Map<DateTime, List<String>>? events = {};
 
   @override
@@ -62,14 +65,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
     focusedDay = today;
     selectedDate = today;
     diaries = widget.diaries;
-
-    List<DiaryModel> _getAllDiaries() {
-      final DiaryRepository repository = DiaryRepository();
-      final list = repository.getAllDiaries();
-      return list;
-    }
-
-    List<DiaryModel> diaryList = _getAllDiaries();
+    diaryList = _getAllDiaries();
 
     for (DiaryModel diary in diaryList) {
       events!.putIfAbsent(diary.start, () => []);
@@ -205,7 +201,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   CustomTypography().bodyLarge(color: Colors.transparent),
               rangeHighlightColor: CustomColors.productLightBackground,
               todayDecoration: const BoxDecoration(
-                  color: CustomColors.productDark, shape: BoxShape.circle),
+                  color: CustomColors.productNormal, shape: BoxShape.circle),
             ),
             startingDayOfWeek: StartingDayOfWeek.monday,
             daysOfWeekHeight: 45,
@@ -216,6 +212,20 @@ class _StudyCalendarState extends State<StudyCalendar> {
             },
             eventLoader: getDiariesForDay,
             calendarBuilders: CalendarBuilders(
+              singleMarkerBuilder: (context, date, event) {
+                isBeforeToday = date.isBefore(today);
+                final color = isBeforeToday
+                    ? CustomColors.textTertiaryContent
+                    : CustomColors.productDark;
+                return Container(
+                  width: 7.0,
+                  height: 7.0,
+                  decoration:
+                      BoxDecoration(shape: BoxShape.circle, color: color),
+                  margin: const EdgeInsets.symmetric(
+                      vertical: 10.0, horizontal: 1.5),
+                );
+              },
               headerTitleBuilder: (context, day) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
@@ -257,6 +267,31 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   ],
                 ),
               ),
+              todayBuilder: (context, date, time) {
+                final color = (today == selectedDate || date == selectedDate)
+                    ? CustomColors.productNormal
+                    : CustomColors.productLightBackground;
+
+                final textColor =
+                    (today == selectedDate || date == selectedDate)
+                        ? CustomColors.textWhite
+                        : CustomColors.textTertiaryContent;
+
+                return Container(
+                  width: 40,
+                  height: 40,
+                  margin: EdgeInsets.all(4),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(100)),
+                    color: color,
+                  ),
+                  child: Text(
+                    date.day.toString(),
+                    style: CustomTypography().bodyLarge(color: textColor),
+                  ),
+                );
+              },
               dowBuilder: (context, day) {
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
@@ -277,33 +312,31 @@ class _StudyCalendarState extends State<StudyCalendar> {
               },
               defaultBuilder: (context, day, focusedDay) {
                 final isDayInRange = selectedRange.contains(day);
+                final isToday = selectedRange.contains(today);
                 final isMonday = selectedRange.first == day;
                 final isSunday = selectedRange.last == day;
 
                 final margin = isDayInRange
-                    ? const EdgeInsets.symmetric(vertical: 4)
+                    ? const EdgeInsets.all(4)
                     : const EdgeInsets.all(4);
 
-                final borderRadius = isDayInRange
-                    ? BorderRadius.only(
-                        topLeft:
-                            isMonday ? const Radius.circular(100) : Radius.zero,
-                        bottomLeft:
-                            isMonday ? const Radius.circular(100) : Radius.zero,
-                        topRight:
-                            isSunday ? const Radius.circular(100) : Radius.zero,
-                        bottomRight:
-                            isSunday ? const Radius.circular(100) : Radius.zero,
-                      )
-                    : null;
+                final borderRadius = BorderRadius.only(
+                  topLeft: isMonday ? const Radius.circular(100) : Radius.zero,
+                  bottomLeft:
+                      isMonday ? const Radius.circular(100) : Radius.zero,
+                  topRight: isSunday ? const Radius.circular(100) : Radius.zero,
+                  bottomRight:
+                      isSunday ? const Radius.circular(100) : Radius.zero,
+                );
 
                 final color = isDayInRange ? CustomColors.productNormal : null;
 
                 final textColor = isDayInRange
                     ? CustomColors.textWhite
                     : CustomColors.textTertiaryContent;
-
                 return Container(
+                  width: 40,
+                  height: 40,
                   margin: margin,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
@@ -316,32 +349,30 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   ),
                 );
               },
-              rangeHighlightBuilder: (context, day, isWithinRange) {
-                final isDayInRange = selectedRange.contains(day);
-
-                final color = isDayInRange
-                    ? CustomColors.productNormal
-                    : isWithinRange
-                        ? CustomColors.productLightBackground
-                        : Colors.transparent;
-
-                // final radius = BorderRadius.circular(100);
-
-                return Container(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  alignment: Alignment.center,
-                  decoration: isDayInRange
-                      ? BoxDecoration(shape: BoxShape.circle, color: color)
-                      : BoxDecoration(shape: BoxShape.circle, color: color),
-                  child: Text(
-                    day.day.toString(),
-                    style: CustomTypography().bodyLarge(
-                        color: isDayInRange
-                            ? CustomColors.textWhite
-                            : CustomColors.textTertiaryContent),
-                  ),
-                );
-              },
+              // rangeHighlightBuilder: (context, day, isWithinRange) {
+              //   final isDayInRange = selectedRange.contains(day);
+              //
+              //   final color = isDayInRange
+              //       ? CustomColors.productNormal
+              //       : Colors.transparent;
+              //
+              //   // final radius = BorderRadius.circular(100);
+              //
+              //   return Container(
+              //     margin: const EdgeInsets.symmetric(vertical: 4),
+              //     alignment: Alignment.center,
+              //     decoration: isDayInRange
+              //         ? BoxDecoration(shape: BoxShape.circle, color: color)
+              //         : BoxDecoration(shape: BoxShape.circle, color: color),
+              //     child: Text(
+              //       day.day.toString(),
+              //       style: CustomTypography().bodyLarge(
+              //           color: isDayInRange
+              //               ? CustomColors.textWhite
+              //               : CustomColors.textTertiaryContent),
+              //     ),
+              //   );
+              // },
             ),
           ),
         )
@@ -422,5 +453,11 @@ class _StudyCalendarState extends State<StudyCalendar> {
     }
 
     return [];
+  }
+
+  List<DiaryModel> _getAllDiaries() {
+    final DiaryRepository repository = DiaryRepository();
+    final list = repository.getAllDiaries();
+    return list;
   }
 }
