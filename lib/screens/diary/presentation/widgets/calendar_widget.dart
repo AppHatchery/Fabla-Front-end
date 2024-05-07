@@ -137,8 +137,10 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
         });
       }
 
+      final showProgress = (diary != null && diary.currentEntry > 0) || (diary != null && isAfter);
+
       days.add(dayOfTheWeek(_dayAbbreviations[d.weekday]!, isToday, percentage,
-          (diary != null && diary.currentEntry > 0 || isAfter), isAfter));
+          showProgress, isAfter));
     }
   }
 
