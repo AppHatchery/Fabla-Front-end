@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/tag.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 
 import '../../../../core/database/dao/diary_dao.dart';
 import '../../../../main.dart';
@@ -29,8 +30,12 @@ class DiaryRepository {
 
     if (unSubmittedDiaries.isNotEmpty) {
       for (final diary in unSubmittedDiaries) {
-        if (now.isAfter(due) && diary.status != DiaryStatus.complete) {
+        if (now.isAfter(due) &&
+            diary.status != DiaryStatus.complete &&
+            diary.currentEntry == 0) {
           diary.status = DiaryStatus.missed;
+        } else if (now.isAfter(due) && diary.currentEntry > 0) {
+          diary.status = DiaryStatus.submitted;
         }
       }
 
@@ -84,6 +89,7 @@ class DiaryRepository {
   Map<String, List<DiaryModel>> getAllHistoryDiaries() {
     // Retrieve all diaries from the database
     List<DiaryModel> unfilteredDiaries = getAllDiaries();
+    final promptRepository = PromptRepository();
 
     // Calculate the start of the next day
     final now = DateTime.now();
@@ -104,6 +110,10 @@ class DiaryRepository {
     for (var diary in filteredDiaries) {
       final entryCount = diary.currentEntry;
 
+      if (diary.status == DiaryStatus.missed) {
+        continue;
+      }
+
       if (entryCount == 0) {
         diaries.add(diary);
       } else {
@@ -113,7 +123,13 @@ class DiaryRepository {
               currentEntry: i,
               status: entryCount != i ? DiaryStatus.submitted : null);
 
-          diaries.add(newDiary);
+          //check if diary is answered
+          final prompt =
+              promptRepository.load(newDiary, newDiary.prompts.first.id);
+
+          if (prompt.answer != null || diary.status == DiaryStatus.idle) {
+            diaries.add(newDiary);
+          }
         }
       }
     }

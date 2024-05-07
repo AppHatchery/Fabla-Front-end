@@ -33,26 +33,16 @@ class _DiaryPageState extends State<DiariesPage> with TickerProviderStateMixin {
         appBar: AppBar(
           automaticallyImplyLeading: false,
           centerTitle: true,
-          title: TabBar(
-            controller: _tabController,
-            labelColor: CustomColors.productNormalActive,
-            labelStyle: CustomTypography().titleLarge(),
-            unselectedLabelStyle: CustomTypography().titleLarge(),
-            unselectedLabelColor: CustomColors.textTertiaryContent,
-            indicatorSize: TabBarIndicatorSize.tab,
-            indicatorWeight: 3,
-            indicatorColor: CustomColors.productNormalActive,
-            tabs: const [Tab(text: "List"), Tab(text: "Calendar")],
-            splashFactory: NoSplash.splashFactory,
+          title: Text(
+            "History",
+            style: CustomTypography()
+                .titleLarge(color: CustomColors.textNormalContent),
           ),
           backgroundColor: CustomColors.fillNormal,
         ),
-        body: Padding(
-          padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 12.0),
-          child: TabBarView(
-              controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: const [DiaryList(), DiaryCalender()]),
+        body: const Padding(
+          padding: EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 12.0),
+          child: DiaryList(),
         ));
   }
 }
