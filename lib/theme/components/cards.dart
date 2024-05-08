@@ -107,10 +107,14 @@ class DiaryCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: GestureDetector(
-                onTap: () => navigateToDiary(context),
+                onTap: diary!.start.isAfter(DateTime.now())
+                    ? () {}
+                    : () => navigateToDiary(context),
                 child: Container(
                   decoration: BoxDecoration(
-                      color: CustomColors.productNormal,
+                      color: diary!.start.isAfter(DateTime.now())
+                          ? CustomColors.fillDisabled
+                          : CustomColors.productNormal,
                       borderRadius: BorderRadius.circular(100)),
                   child: Padding(
                     padding:
@@ -125,8 +129,11 @@ class DiaryCard extends StatelessWidget {
                               DiaryStatus.submitted => "View",
                               DiaryStatus.missed => "View",
                             },
-                      style: CustomTypography()
-                          .button(color: CustomColors.textWhite),
+                      style: CustomTypography().button(
+                        color: diary!.start.isAfter(DateTime.now())
+                            ? CustomColors.textDisabled
+                            : CustomColors.textWhite,
+                      ),
                     ),
                   ),
                 ),
