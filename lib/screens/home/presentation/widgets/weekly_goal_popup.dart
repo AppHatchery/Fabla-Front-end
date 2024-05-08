@@ -1,3 +1,6 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
@@ -5,7 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class WeeklyGoalPopup extends StatefulWidget {
-  const WeeklyGoalPopup({super.key});
+  final int currentEntries;
+  final int weeklyGoal;
+  const WeeklyGoalPopup(
+      {super.key, required this.currentEntries, required this.weeklyGoal});
 
   @override
   State<WeeklyGoalPopup> createState() => _WeeklyGoalPopupState();
@@ -23,6 +29,15 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    //calculate the progress bar width
+    final currentValue = widget.currentEntries;
+    double totalWidth = width - 32;
+    int weeklyGoal = widget.weeklyGoal;
+    double progressBarWidth = (currentValue / weeklyGoal) * totalWidth;
+    //calculate the lower goal width/value
+    int lowerValue = (0.7 * weeklyGoal).round();
+    double lowerGoal = (lowerValue / weeklyGoal) * totalWidth;
+
     return Container(
       width: MediaQuery.of(context).size.width,
       color: Colors.white,
@@ -71,7 +86,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(
-                width: width - 32,
+                width: totalWidth,
                 height: 45,
                 child: Stack(
                   children: [
@@ -79,7 +94,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
                     Align(
                       alignment: Alignment.center,
                       child: Container(
-                        width: width - 32,
+                        width: totalWidth,
                         height: 6,
                         constraints: const BoxConstraints(maxHeight: 6),
                         decoration: BoxDecoration(
@@ -92,7 +107,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Container(
-                        width: (width - 32) * 0.1,
+                        width: progressBarWidth,
                         height: 6,
                         decoration: BoxDecoration(
                           color: CustomColors.productNormal,
@@ -102,7 +117,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
                     ),
                     //PROGRESS INDICATOR
                     Positioned(
-                      left: (width - 32) * 0.1,
+                      left: (progressBarWidth),
                       top: 0,
                       bottom: 0,
                       child: Column(
@@ -111,7 +126,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
                         children: [
                           const SizedBox(height: 20, width: 20),
                           Text(
-                            "1",
+                            "$currentValue",
                             style: CustomTypography().caption(),
                           )
                         ],
@@ -119,7 +134,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
                     ),
                     //LOWER GOAL
                     Positioned(
-                      left: (width - 32) * 0.7,
+                      left: lowerGoal,
                       top: 0,
                       bottom: 0,
                       child: Column(
@@ -128,7 +143,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
                           const Icon(CupertinoIcons.flag_fill,
                               color: CustomColors.productNormal, size: 17),
                           Text(
-                            "4",
+                            "$lowerValue",
                             style: CustomTypography().caption(),
                           )
                         ],
@@ -137,7 +152,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
                     //HIGHER GOAL
                     Positioned(
                       // left: 70 * value - 10,
-                      left: (width - 32) * 0.95,
+                      left: (width - 52) * 0.95,
                       top: 0,
                       bottom: 0,
                       child: Column(
@@ -146,7 +161,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
                           const Icon(Icons.emoji_events_rounded,
                               color: CustomColors.productNormal, size: 20),
                           Text(
-                            "5",
+                            "$weeklyGoal",
                             style: CustomTypography().caption(),
                           )
                         ],

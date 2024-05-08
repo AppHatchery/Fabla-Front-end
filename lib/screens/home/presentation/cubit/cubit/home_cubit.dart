@@ -34,20 +34,23 @@ class HomeCubit extends Cubit<HomeState> {
     final start = DateTime(today.year, today.month, today.day, 0, 0, 0);
     final due = DateTime(today.year, today.month, today.day, 23, 59, 59);
 
+    final monday = DateTime(today.year, today.month, today.day)
+        .subtract(Duration(days: today.weekday - 1));
+    final sunday = monday.add(const Duration(days: 6));
+
     // final startDate = DateTime.fromMillisecondsSinceEpoch(
     //     await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
     try {
       emit(const HomeLoading());
       final diary = repository.getDiary(start, due);
       final protocol = repository.getProtocol();
-      print(
-          "potocol>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>: ${protocol?.dailyGoal}");
+      final entries = repository.getTotalEntries(monday, sunday);
       if (diary != null) {
         final updated = diary.copyWith(id: diary.id, tags: _getTags(diary));
         final protocolUpdated = protocol?.copyWith(version: protocol.version);
-        emit(HomeLoaded([updated], start, protocolUpdated));
+        emit(HomeLoaded([updated], start, protocolUpdated, entries));
       } else {
-        emit(HomeLoaded(const [], start, protocol));
+        emit(HomeLoaded(const [], start, protocol, entries));
       }
     } catch (e) {
       emit(const HomeError("Something went wrong"));

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_goal.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
@@ -72,7 +74,8 @@ class _HomePageState extends State<HomePage>
               } else if (state is HomeLoading) {
                 return loading();
               } else if (state is HomeLoaded) {
-                return loadedHome(state.diaries, state.startDate);
+                return loadedHome(state.diaries, state.startDate,
+                    state.protocol, state.entries);
               } else {
                 return initialHome();
               }
@@ -94,9 +97,12 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget loadedHome(List<DiaryModel> diaries, DateTime startDate) {
+  Widget loadedHome(List<DiaryModel> diaries, DateTime startDate,
+      Protocol? protocol, int entries) {
     final today = DateTime.now();
     show4AmTip();
+    final weeklyEntries = entries;
+
     if (today.isBefore(startDate)) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,6 +160,8 @@ class _HomePageState extends State<HomePage>
                     }),
                     child: WeeklyGoalWidget(
                       isExpanded: isExpanded,
+                      weeklyGoal: protocol!.weeklyGoal,
+                      currentEntries: weeklyEntries,
                     ),
                   ),
                   IconButton(
@@ -195,7 +203,11 @@ class _HomePageState extends State<HomePage>
                   const SizedBox(
                     height: 24,
                   ),
-                  const TodayGoalWidget(),
+                  TodayGoalWidget(
+                    dailyGoal: protocol!.dailyGoal,
+                    protocol: protocol,
+                    diary: diaries.first,
+                  ),
                   const SizedBox(
                     height: 24,
                   ),
@@ -214,7 +226,10 @@ class _HomePageState extends State<HomePage>
                       end: const Offset(0, 0),
                     ).animate(CurvedAnimation(
                         parent: _controller, curve: Curves.fastOutSlowIn)),
-                    child: const WeeklyGoalPopup(),
+                    child: WeeklyGoalPopup(
+                      weeklyGoal: protocol.weeklyGoal,
+                      currentEntries: weeklyEntries,
+                    ),
                   ))
             ],
           ),

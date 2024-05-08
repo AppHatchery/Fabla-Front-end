@@ -19,7 +19,8 @@ class HomeLoaded extends HomeState {
   final List<DiaryModel> diaries;
   final DateTime startDate;
   final Protocol? protocol;
-  const HomeLoaded(this.diaries, this.startDate, this.protocol);
+  final int entries;
+  const HomeLoaded(this.diaries, this.startDate, this.protocol, this.entries);
 
   @override
   List<Object> get props => [diaries, startDate];
