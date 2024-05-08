@@ -1,5 +1,4 @@
 import 'package:audio_diaries_flutter/core/utils/types.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -9,7 +8,6 @@ import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -74,7 +72,13 @@ class DiaryCard extends StatelessWidget {
                     "Routine Entry",
                     style:
                         CustomTypography().bodyMedium(weight: FontWeight.w500),
-                  )
+                  ),
+                  const SizedBox(
+                    width: 12,
+                  ),
+                  diary?.tags != null && diary!.tags!.isNotEmpty
+                      ? TagPill(tag: diary!.tags!.first)
+                      : const SizedBox.shrink(),
                 ],
               ),
             ),
@@ -112,10 +116,17 @@ class DiaryCard extends StatelessWidget {
                     : () => navigateToDiary(context),
                 child: Container(
                   decoration: BoxDecoration(
-                      color: diary!.start.isAfter(DateTime.now())
-                          ? CustomColors.fillDisabled
-                          : CustomColors.productNormal,
-                      borderRadius: BorderRadius.circular(100)),
+                      color: diary!.status == DiaryStatus.submitted
+                          ? CustomColors.fillWhite
+                          : diary!.start.isAfter(DateTime.now())
+                              ? CustomColors.fillDisabled
+                              : CustomColors.productNormal,
+                      borderRadius: BorderRadius.circular(100),
+                      border: Border.all(
+                          color: diary!.start.isAfter(DateTime.now())
+                              ? CustomColors.fillDisabled
+                              : CustomColors.productNormal,
+                          width: 2)),
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -130,9 +141,11 @@ class DiaryCard extends StatelessWidget {
                               DiaryStatus.missed => "View",
                             },
                       style: CustomTypography().button(
-                        color: diary!.start.isAfter(DateTime.now())
-                            ? CustomColors.textDisabled
-                            : CustomColors.textWhite,
+                        color: diary!.status == DiaryStatus.submitted
+                            ? CustomColors.productNormal
+                            : diary!.start.isAfter(DateTime.now())
+                                ? CustomColors.textDisabled
+                                : CustomColors.textWhite,
                       ),
                     ),
                   ),
@@ -174,41 +187,39 @@ class DiaryCard extends StatelessWidget {
 
 /// Used in [DiaryCard]
 class TagPill extends StatelessWidget {
-  final DiaryStatus status;
   final Tag tag;
   const TagPill({
     super.key,
-    required this.status,
     required this.tag,
   });
 
   @override
   Widget build(BuildContext context) {
-    late Color background;
+    late Color iconColor;
     switch (tag.text) {
       case "Done":
-        background = CustomColors.darkGreen;
+        iconColor = CustomColors.darkGreen;
         break;
       case "Missed":
-        background = CustomColors.warningActive;
+        iconColor = CustomColors.warningActive;
         break;
       case "Awaiting Submission":
-        background = CustomColors.orangeDark;
+        iconColor = CustomColors.orangeDark;
         break;
       case "Ongoing":
-        background = CustomColors.productNormal;
+        iconColor = CustomColors.productNormal;
         break;
       case "Ready to Start":
-        background = CustomColors.yellowDark;
+        iconColor = CustomColors.yellowDark;
         break;
       case "13 Questions":
-        background = CustomColors.yellowLight;
+        iconColor = CustomColors.yellowLight;
         break;
       case "12 Minutes":
-        background = const Color(0xFFEEEEFC);
+        iconColor = const Color(0xFFEEEEFC);
         break;
       default:
-        background = CustomColors.productNormal;
+        iconColor = CustomColors.productNormal;
         break;
     }
 
@@ -221,7 +232,7 @@ class TagPill extends StatelessWidget {
         foreground = const Color(0xFF0147A0);
         break;
       default:
-        foreground = CustomColors.textWhite;
+        foreground = Colors.black;
         break;
     }
 
@@ -255,22 +266,20 @@ class TagPill extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-      decoration: BoxDecoration(
-          shape: BoxShape.rectangle,
-          borderRadius: BorderRadius.circular(5),
-          color: background),
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Icon(
             icon,
-            color: foreground,
-            size: 15.sp,
+            color: iconColor,
+            size: 20,
           ),
           const SizedBox(
             width: 5,
           ),
-          Text(tag.text, style: CustomTypography().caption(color: foreground)),
+          Text(tag.text,
+              style: CustomTypography()
+                  .bodyMedium(color: foreground, weight: FontWeight.w500)),
         ],
       ),
     );
