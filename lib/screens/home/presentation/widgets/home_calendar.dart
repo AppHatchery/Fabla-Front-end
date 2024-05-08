@@ -24,7 +24,6 @@ class StudyCalendar extends StatefulWidget {
 }
 
 class _StudyCalendarState extends State<StudyCalendar> {
-  late List<DateTime> selectedRange;
   late PageController? pageController;
   late DateTime focusedDay;
   late DateTime startDate;
@@ -51,9 +50,6 @@ class _StudyCalendarState extends State<StudyCalendar> {
         today.add(const Duration(days: 15)).day,
         0);
     pageController = null;
-    final monday = today.subtract(Duration(days: today.weekday - 1));
-    selectedRange =
-        List.generate(7, (index) => monday.add(Duration(days: index)));
     focusedDay = today;
     selectedDate = today;
     diaries = fetchDiaries(today);
@@ -176,8 +172,6 @@ class _StudyCalendarState extends State<StudyCalendar> {
             lastDay: DateTime.utc(2060, 3, 14),
             focusedDay: focusedDay,
             currentDay: today,
-            // rangeStartDay: startDate,
-            // rangeEndDay: endDate,
             availableGestures: AvailableGestures.horizontalSwipe,
             headerStyle: const HeaderStyle(
                 titleCentered: false,
@@ -187,18 +181,11 @@ class _StudyCalendarState extends State<StudyCalendar> {
             calendarStyle: CalendarStyle(
               outsideTextStyle: CustomTypography()
                   .bodyLarge(color: CustomColors.textTertiaryContent),
-              rangeStartTextStyle:
-                  CustomTypography().bodyLarge(color: Colors.transparent),
-              withinRangeTextStyle:
-                  CustomTypography().bodyLarge(color: Colors.transparent),
-              rangeHighlightColor: CustomColors.productLightBackground,
               todayDecoration: const BoxDecoration(
                   color: CustomColors.productNormal, shape: BoxShape.circle),
             ),
             startingDayOfWeek: StartingDayOfWeek.monday,
-
             daysOfWeekHeight: 45,
-            // rowHeight: 55, - affecting star when lower than 52
             onDaySelected: _onDaySelected,
             onCalendarCreated: (controller) {
               pageController = controller;
@@ -209,7 +196,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                 isBeforeToday = date.isBefore(today);
                 final color = isBeforeToday
                     ? CustomColors.textTertiaryContent
-                    : CustomColors.productDark;
+                    : CustomColors.productNormalActive;
                 return Container(
                   width: 7.0,
                   height: 7.0,
@@ -273,10 +260,10 @@ class _StudyCalendarState extends State<StudyCalendar> {
                 return Container(
                   width: 40,
                   height: 40,
-                  margin: EdgeInsets.all(4),
+                  margin: const EdgeInsets.all(4),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(100)),
+                    borderRadius: const BorderRadius.all(Radius.circular(100)),
                     color: color,
                   ),
                   child: Text(
@@ -304,27 +291,12 @@ class _StudyCalendarState extends State<StudyCalendar> {
                 );
               },
               defaultBuilder: (context, day, focusedDay) {
-                final isDayInRange = selectedRange.contains(day);
-                final isToday = selectedRange.contains(today);
-                final isMonday = selectedRange.first == day;
-                final isSunday = selectedRange.last == day;
+                const margin = EdgeInsets.all(4);
+                const borderRadius = BorderRadius.all(Radius.circular(100));
+                final color =
+                    selectedDate == day ? CustomColors.productNormal : null;
 
-                final margin = isDayInRange
-                    ? const EdgeInsets.all(4)
-                    : const EdgeInsets.all(4);
-
-                final borderRadius = BorderRadius.only(
-                  topLeft: isMonday ? const Radius.circular(100) : Radius.zero,
-                  bottomLeft:
-                      isMonday ? const Radius.circular(100) : Radius.zero,
-                  topRight: isSunday ? const Radius.circular(100) : Radius.zero,
-                  bottomRight:
-                      isSunday ? const Radius.circular(100) : Radius.zero,
-                );
-
-                final color = isDayInRange ? CustomColors.productNormal : null;
-
-                final textColor = isDayInRange
+                final textColor = selectedDate == day
                     ? CustomColors.textWhite
                     : CustomColors.textTertiaryContent;
                 return Container(
@@ -342,30 +314,6 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   ),
                 );
               },
-              // rangeHighlightBuilder: (context, day, isWithinRange) {
-              //   final isDayInRange = selectedRange.contains(day);
-              //
-              //   final color = isDayInRange
-              //       ? CustomColors.productNormal
-              //       : Colors.transparent;
-              //
-              //   // final radius = BorderRadius.circular(100);
-              //
-              //   return Container(
-              //     margin: const EdgeInsets.symmetric(vertical: 4),
-              //     alignment: Alignment.center,
-              //     decoration: isDayInRange
-              //         ? BoxDecoration(shape: BoxShape.circle, color: color)
-              //         : BoxDecoration(shape: BoxShape.circle, color: color),
-              //     child: Text(
-              //       day.day.toString(),
-              //       style: CustomTypography().bodyLarge(
-              //           color: isDayInRange
-              //               ? CustomColors.textWhite
-              //               : CustomColors.textTertiaryContent),
-              //     ),
-              //   );
-              // },
             ),
           ),
         )
@@ -374,18 +322,13 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   _onDaySelected(DateTime selectedDay, DateTime focusedDate) {
-    // if (!selectedRange.contains(selectedDay)) {
-    final List<DateTime> range = [selectedDay];
-
     setState(() {
-      selectedRange = range;
       focusedDay = focusedDate;
       selectedDate = selectedDay;
 
       //reloading diaries bases on new selected date
       diaries = fetchDiaries(selectedDate);
     });
-    // }
   }
 
   Widget entries() {
@@ -422,16 +365,6 @@ class _StudyCalendarState extends State<StudyCalendar> {
               )
       ],
     );
-  }
-
-  getThisWeek() {
-    final DateFormat formatter = DateFormat("MMMM d");
-    final DateFormat yearFormatter = DateFormat.y();
-
-    final start = formatter.format(selectedRange.first);
-    final end = formatter.format(selectedRange.last);
-    final year = yearFormatter.format(selectedRange.first);
-    return "$start - $end, $year";
   }
 
   getMonthYear(DateTime day) {
