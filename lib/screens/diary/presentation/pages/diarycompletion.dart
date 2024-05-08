@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
@@ -155,11 +154,8 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
   }
 
   Widget avatarCircularProgress(Protocol protocol, DiaryModel diary) {
-    final entry = diary.status == DiaryStatus.submitted
-        ? diary.entries
-        : diary.currentEntry;
-    final begin = (entry - 1) / protocol.dailyGoal;
-    final end = entry / protocol.dailyGoal;
+    final begin = (diary.currentEntry - 1) / protocol.dailyGoal;
+    final end = diary.currentEntry / protocol.dailyGoal;
 
     return SizedBox(
         height: 120,

@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -59,9 +58,7 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              currentEntryCount == widget.dailyGoal
-                  ? "You achieved your daily goal. Great work!"
-                  : "You've got ${widget.dailyGoal - currentEntryCount} entry left today",
+              message(),
               textAlign: TextAlign.center,
               style: CustomTypography()
                   .body(color: CustomColors.textSecondaryContent),
@@ -70,6 +67,22 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
         ],
       ),
     );
+  }
+
+  String message() {
+    final allEntries = widget.diaries
+        .map((e) => e.currentEntry)
+        .reduce((value, element) => value + element);
+
+    if (widget.dailyGoal - currentEntryCount > 1) {
+      return "You've got ${widget.dailyGoal - currentEntryCount} entries left today!";
+    } else if (widget.dailyGoal - currentEntryCount == 1) {
+      return "You've got 1 entry left today, you are almost there!";
+    } else if (allEntries < widget.weeklyGoal) {
+      return "Way to go on that extra entry! You are getting closer to your weekly goal.";
+    } else {
+      return "You've reached your weekly goal! Great job!";
+    }
   }
 
   Widget dayOfTheWeek(String dayAbbreviation, bool isToday, double percentage,
@@ -122,11 +135,7 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
           )
           .firstOrNull;
       final max = widget.dailyGoal;
-      final current = diary != null
-          ? diary.status == DiaryStatus.submitted
-              ? diary.entries
-              : diary.currentEntry
-          : 0;
+      final current = diary != null ? diary.currentEntry : 0;
       final isAfter = d.isAfter(now);
 
       final percentage = current / max;
@@ -137,7 +146,8 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
         });
       }
 
-      final showProgress = (diary != null && diary.currentEntry > 0) || (diary != null && isAfter);
+      final showProgress =
+          (diary != null && current > 0) || (diary != null && isAfter);
 
       days.add(dayOfTheWeek(_dayAbbreviations[d.weekday]!, isToday, percentage,
           showProgress, isAfter));
