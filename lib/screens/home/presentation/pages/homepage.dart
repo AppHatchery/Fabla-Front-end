@@ -39,7 +39,6 @@ class _HomePageState extends State<HomePage>
     WidgetsBinding.instance.addObserver(this);
     homeCubit = BlocProvider.of<HomeCubit>(context);
     fetchData(context);
-    fetchDiaries(context, DateTime.now());
     _controller = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -226,15 +225,6 @@ class _HomePageState extends State<HomePage>
     diaries = homeCubit.getAllDiariesThisWeek();
   }
 
-  //Retrieving entries for a specific date (Called From StudyCalendar)
-  List<DiaryModel> fetchDiaries(BuildContext context, DateTime date) {
-    homeCubit.loadDiaries();
-    setState(() {
-      calendarDiaries = homeCubit.getAllDiariesThisDay(date);
-    });
-    return calendarDiaries;
-  }
-
   void refresh(bool shouldRefresh) {
     if (shouldRefresh) {
       homeCubit.loadDiaries();
@@ -262,10 +252,8 @@ class _HomePageState extends State<HomePage>
           minChildSize: 1,
           builder: (context, scrollController) {
             return StudyCalendar(
-              diaries: calendarDiaries,
               refresh: (value) => refresh(value),
               getPageName: () => "calendar",
-              fetchDiaries: fetchDiaries,
             );
           }),
     );

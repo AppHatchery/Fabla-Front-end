@@ -1,32 +1,23 @@
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
-import 'package:audio_diaries_flutter/theme/resources/custom_clippers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class StudyCalendar extends StatefulWidget {
-  final List<DiaryModel> diaries;
   final ValueChanged<bool> refresh;
   final String Function() getPageName;
-  final List<DiaryModel> Function(BuildContext context, DateTime date)
-      fetchDiaries;
-  const StudyCalendar(
-      {super.key,
-      required this.diaries,
-      required this.refresh,
-      required this.getPageName,
-      required this.fetchDiaries});
+  const StudyCalendar({
+    super.key,
+    required this.refresh,
+    required this.getPageName,
+  });
 
   @override
   State<StudyCalendar> createState() => _StudyCalendarState();
@@ -43,6 +34,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
   late List<DiaryModel> diaries;
   late bool isBeforeToday;
   late List<DiaryModel> diaryList;
+  final DiaryRepository repository = DiaryRepository();
   Map<DateTime, List<String>>? events = {};
 
   @override
@@ -64,7 +56,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
         List.generate(7, (index) => monday.add(Duration(days: index)));
     focusedDay = today;
     selectedDate = today;
-    diaries = widget.diaries;
+    diaries = fetchDiaries(today);
     diaryList = _getAllDiaries();
 
     for (DiaryModel diary in diaryList) {
@@ -204,6 +196,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   color: CustomColors.productNormal, shape: BoxShape.circle),
             ),
             startingDayOfWeek: StartingDayOfWeek.monday,
+
             daysOfWeekHeight: 45,
             // rowHeight: 55, - affecting star when lower than 52
             onDaySelected: _onDaySelected,
@@ -390,7 +383,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
       selectedDate = selectedDay;
 
       //reloading diaries bases on new selected date
-      diaries = widget.fetchDiaries(context, selectedDate);
+      diaries = fetchDiaries(selectedDate);
     });
     // }
   }
@@ -415,7 +408,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 10.0),
-                    child: DiaryCardCalendar(
+                    child: DiaryCard(
                       diary: diaries[index],
                       refresh: (value) => widget.refresh(value),
                       getPageName: widget.getPageName,
@@ -456,8 +449,15 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   List<DiaryModel> _getAllDiaries() {
-    final DiaryRepository repository = DiaryRepository();
     final list = repository.getAllDiaries();
     return list;
+  }
+
+  //Retrieving entries for a specific date (Called From StudyCalendar)
+  List<DiaryModel> fetchDiaries(DateTime date) {
+    setState(() {
+      diaryList = repository.getDailyDiaries(date);
+    });
+    return diaryList;
   }
 }
