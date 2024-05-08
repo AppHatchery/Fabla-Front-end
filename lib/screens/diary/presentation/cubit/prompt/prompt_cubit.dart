@@ -31,6 +31,7 @@ class PromptCubit extends Cubit<PromptState> {
     try {
       emit(PromptLoading(prompt));
       final newPrompt = _repository.load(diary, prompt.id);
+      await Future.delayed(const Duration(microseconds: 1));
       emit(PromptLoaded(newPrompt));
     } catch (e) {
       print("Catch Error: $e");
