@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -16,15 +15,29 @@ class DiaryList extends StatefulWidget {
   State<DiaryList> createState() => _DiaryListState();
 }
 
-class _DiaryListState extends State<DiaryList> {
+class _DiaryListState extends State<DiaryList> with WidgetsBindingObserver {
   late DiaryHistoryCubit historyCubit;
 
   @override
   void initState() {
-    PendoService.track("ListTab", {"study_day": "${DateTime.now()}"});
+    WidgetsBinding.instance.addObserver(this);
     historyCubit = BlocProvider.of<DiaryHistoryCubit>(context);
     _fetchHistoryData(context);
     super.initState();
+  }
+
+  @override
+  dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _fetchHistoryData(context);
+    }
+    super.didChangeAppLifecycleState(state);
   }
 
   @override

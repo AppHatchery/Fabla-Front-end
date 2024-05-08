@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/diary_calender.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/diary_list.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:flutter/material.dart';
@@ -13,16 +12,12 @@ class DiariesPage extends StatefulWidget {
   State<DiariesPage> createState() => _DiaryPageState();
 }
 
-enum Calendar { list, calendar }
-
-class _DiaryPageState extends State<DiariesPage> with TickerProviderStateMixin {
-  late TabController _tabController;
+class _DiaryPageState extends State<DiariesPage> {
   DateTime startDate = DateTime.now();
 
   @override
   void initState() {
     PendoService.track("HistoryTab", {"study_day": "${DateTime.now()}"});
-    _tabController = TabController(length: 2, vsync: this);
     super.initState();
   }
 
