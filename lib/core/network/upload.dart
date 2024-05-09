@@ -9,7 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:aws_common/vm.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
-
+import 'package:http/http.dart' as http;
 import '../../screens/diary/data/diary_audio_data.dart';
 import '../utils/formatter.dart';
 
@@ -43,44 +43,60 @@ import '../utils/formatter.dart';
 Future<bool> upload(String studyCode, DiaryModel diary) async {
   final dir = await getApplicationDocumentsDirectory();
   try {
-    List<DiaryAudioData> fileList = [];
-    List<Question> questions = [];
-    int responseSize = 0;
+    List<PromptEntry> promptEntryList = [];
+    List<AudioData> audioData = [];
+
+    int promptNumber = 0;
 
     for (int i = 0; i < diary.prompts.length; i++) {
       var prompt = diary.prompts[i];
 
       if (prompt.answer != null) {
-        responseSize++;
+        promptNumber++;
 
         if (prompt.responseType == ResponseType.recording) {
-          var rec = prompt.answer?.recordings;
-
-          for (int r = 0; r < rec!.length; r++) {
-            final path = p.join(dir.path, 'recordings', rec[r].path);
-            fileList.add(DiaryAudioData(
-                prompt: i + 1, file: File(path), date: diary.start));
+          if (prompt.answer!.recordings.isNotEmpty) {
+            final path = p.join(
+                dir.path, 'recordings', prompt.answer?.recordings.first.path);
+            var filename = p.basename(path);
+            var date = getPostDate(diary.start);
+            var awsPath = "$studyCode/$date/prompt_$promptNumber/$filename";
+            audioData
+                .add(AudioData(localDirectory: path, awsS3Directory: awsPath));
+          } else {
+            promptEntryList.add(PromptEntry(
+                studyCode: studyCode,
+                questionTitle: prompt.question,
+                diaryID: diary.id.toString(),
+                promptID: prompt.id.toString(),
+                response: prompt.answer!.response!,
+                questionsType: AwsUtils.getResponseType(
+                    ResponseType.text.toString()), // Corrected parameter name
+                required: prompt.required));
           }
         } else {
-          // questions.add(Question(
-          //     questionType: prompt.questionType,
-          //     answer: prompt.answer!.response!));
+          promptEntryList.add(PromptEntry(
+              studyCode: studyCode,
+              questionTitle: prompt.question,
+              diaryID: diary.id.toString(),
+              promptID: prompt.id.toString(),
+              response: prompt.answer!.response!,
+              questionsType:
+                  AwsUtils.getResponseType(prompt.responseType.toString()),
+              // Corrected parameter name
+              required: prompt.required));
         }
       }
     }
 
-    final resMap = getResponses(diary.id, questions);
-
-    final questionsSubmitted =
-        await apiSubmitSurveyQuestions(studyCode, diary, resMap);
-    final audioSubmitted = await uploadFilesToS3(studyCode, fileList);
-
-    //write to metadata
-    if (responseSize == 12) {
-      updateMetataData(diary);
+    var uploaded = await awsUploadResponses(promptEntryList, audioData);
+    if (uploaded) {
+      print("All data sent to AWS");
+    } else {
+      print("Data not sent to AWS");
     }
 
-    return questionsSubmitted && audioSubmitted;
+    return uploaded;
   } catch (e) {
     print("$e");
     return false;
@@ -532,5 +548,222 @@ String parametersNextStudydate(String date, int day) {
     return date;
   } else {
     return "";
+  }
+}
+
+//Upload functions
+Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
+  // List of items to be sent in the request body
+  List<Map<String, dynamic>> promptListItems =
+      PromptEntry.promptListToMap(promptEntryList);
+  // Encode the list of items to JSON
+  String jsonBody = json.encode(promptListItems);
+
+  // Set up the HTTP POST request
+  var url = Uri.parse(
+      'https://r79428yn1l.execute-api.us-east-1.amazonaws.com/live/dynsendresponse'); // Replace with your API endpoint
+  var headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'MySecretToken',
+    'x-api-key': 'GUdxp5Wjej8uNDz2WoXm34QOpCJigEMl8570RFNy'
+  };
+
+  try {
+    var response = await http.post(url, headers: headers, body: jsonBody);
+
+    if (response.statusCode == 200) {
+      // Request successful
+      print('Dynamo DB: All items processed successfully');
+      return true; // Submission successful
+    } else {
+      // Request failed
+      print('Dynamo DB: Request failed with status: ${response}');
+      return false; // Submission failed
+    }
+  } catch (e) {
+    // An error occurred
+    print('Error sending request: $e');
+    return false; // Submission failed due to error
+  }
+}
+
+/// Retrieves a presigned URL for uploading a file to an S3 storage location.
+///
+/// The function takes an [apiUrl] and a [filename] as input parameters. It sends
+/// a POST request to the specified API endpoint ([apiUrl]) with a JSON body
+/// containing the filename. Upon successful response with status code 200,
+/// it parses the response body to extract the presigned URL and returns it.
+/// If there's an error during the process, or the response status code is not
+/// 200, it returns null.
+///
+/// Example:
+/// ```dart
+/// String apiUrl = 'https://example.com/api/upload';
+/// String filename = 'example_file.jpg';
+/// String? presignedUrl = await getPresignedUrl(apiUrl, filename);
+/// if (presignedUrl != null) {
+///   // Use the presigned URL to upload the file to S3
+/// } else {
+///   // Handle error
+/// }
+/// ```
+///
+/// Throws an error if there's any issue during the process.
+///
+Future<String?> getPresignedUrl(String apiUrl, String filename) async {
+  try {
+    var requestBody = jsonEncode({'filename': filename});
+
+    var response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: requestBody,
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the response body (which is a string containing JSON)
+      var responseBody = response.body;
+      var jsonResponse = jsonDecode(responseBody);
+
+      // Parse the 'body' field from the JSON response
+      var body = jsonDecode(jsonResponse['body']);
+
+      // Extract the 'uploadURL' from the parsed 'body' JSON
+      var uploadUrl = body['uploadURL'];
+
+      print("presigned URL is generated");
+      return uploadUrl;
+    } else {
+      print(
+          'Failed to get presigned URL: ${response.statusCode}, ${response.body}');
+      return null;
+    }
+  } catch (e) {
+    print('Error getting presigned URL: $e');
+    return null;
+  }
+}
+
+Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
+  try {
+    var file = File(filePath);
+    var fileStream = file.openRead();
+
+    var request = http.Request('PUT', Uri.parse(presignedUrl))
+      ..headers['Content-Type'] = 'audio/mpeg';
+
+    // Collect bytes from the file stream into a single list
+    List<int> bytes = [];
+    await for (var chunk in fileStream) {
+      bytes.addAll(chunk);
+    }
+
+    // Set the body bytes of the request
+    request.bodyBytes = bytes;
+
+    var response = await http.Client().send(request);
+
+    if (response.statusCode == 200) {
+      print('S3 Storage: File uploaded successfully');
+      return true; // Return true if upload successful
+    } else {
+      print(
+          'S3 Storage: Failed to upload file. Status code: ${response.statusCode}');
+      return false; // Return false if upload failed
+    }
+  } catch (e) {
+    print('S3 Storage: Error uploading file: $e');
+    return false; // Return false if an error occurred
+  }
+}
+
+Future<bool> uploadAudios(List<AudioData> audioFileData) async {
+  var apiUrl =
+      'https://r79428yn1l.execute-api.us-east-1.amazonaws.com/live/s3upload';
+  var sent = false;
+  for (var data in audioFileData) {
+    var presignedUrl = await getPresignedUrl(apiUrl, data.awsS3Directory);
+    //print("PRESIGNED URL: " + presignedUrl!);
+    if (presignedUrl != null) {
+      sent = await uploadFileToS3(presignedUrl, data.localDirectory);
+    }
+  }
+  print("uploaded in array $sent");
+  return sent;
+}
+
+//Upload Models
+
+class AudioData {
+  String localDirectory;
+  String awsS3Directory;
+  // Constructor
+  AudioData({required this.localDirectory, required this.awsS3Directory});
+}
+
+class AwsUtils {
+  static getResponseType(String inputString) {
+    List<String> parts = inputString.split('.');
+    return parts.length > 1 ? parts[1] : inputString;
+  }
+}
+
+///Class representing audio entry in the dynamo db once an object is created
+///
+class PromptEntry {
+  String studyCode;
+  String questionTitle;
+  String diaryID;
+  String promptID;
+  String response;
+  String questionsType; // Corrected parameter name
+  bool required;
+
+  // Constructor
+  PromptEntry(
+      {required this.studyCode,
+      required this.questionTitle,
+      required this.diaryID,
+      required this.promptID,
+      required this.response,
+      required this.questionsType, // Corrected parameter name
+      required this.required});
+
+  static List<Map<String, dynamic>> promptListToMap(
+      List<PromptEntry> promptEntryList) {
+    List<Map<String, dynamic>> items = [];
+
+    for (var entry in promptEntryList) {
+      Map<String, dynamic> map = {
+        "StudyCode": entry.studyCode,
+        "QuestionTitle": entry.questionTitle,
+        "DiaryID": entry.diaryID,
+        "PromptID": entry.promptID,
+        "Response": entry.response,
+        "QuestionsType": entry.questionsType,
+        "Required": entry.required.toString() // Convert bool to string
+      };
+      items.add(map);
+    }
+
+    return items;
+  }
+}
+
+Future<bool> awsUploadResponses(
+    List<PromptEntry> promptEntryList, List<AudioData> audioData) async {
+  try {
+    if (audioData.isNotEmpty) {
+      var audioDataSent = await uploadAudios(audioData);
+      if (!audioDataSent) {
+        return false; // Return false if audio data failed to upload
+      }
+    }
+    // Send non-audio data regardless of whether audio data was sent or not
+    var nonAudioDataSent = await uploadNonAudioData(promptEntryList);
+    return nonAudioDataSent;
+  } catch (e) {
+    print("EXCEPTION: $e");
+    return false;
   }
 }

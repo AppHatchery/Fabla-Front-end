@@ -50,6 +50,9 @@ dependencies:
   #internal storage
   path_provider: ^2.1.0
 
+  #Http
+  http: ^1.2.1
+
   #path manipulation
   path: ^1.8.3
 
