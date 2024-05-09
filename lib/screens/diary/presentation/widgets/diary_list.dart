@@ -1,9 +1,7 @@
-import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../theme/custom_colors.dart';
 import '../../data/diary.dart';
@@ -17,15 +15,29 @@ class DiaryList extends StatefulWidget {
   State<DiaryList> createState() => _DiaryListState();
 }
 
-class _DiaryListState extends State<DiaryList> {
+class _DiaryListState extends State<DiaryList> with WidgetsBindingObserver {
   late DiaryHistoryCubit historyCubit;
 
   @override
   void initState() {
-    PendoService.track("ListTab", {"study_day": "${DateTime.now()}"});
+    WidgetsBinding.instance.addObserver(this);
     historyCubit = BlocProvider.of<DiaryHistoryCubit>(context);
     _fetchHistoryData(context);
     super.initState();
+  }
+
+  @override
+  dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _fetchHistoryData(context);
+    }
+    super.didChangeAppLifecycleState(state);
   }
 
   @override
@@ -37,7 +49,7 @@ class _DiaryListState extends State<DiaryList> {
         } else if (state is DiaryHistoryLoading) {
           return loading();
         } else if (state is DiaryHistoryLoaded) {
-          return loadedDiaryHistory(state.diaries);
+          return loadedDiaryHistory(state.groupedDiaries);
         } else {
           return Container();
         }
@@ -66,8 +78,8 @@ class _DiaryListState extends State<DiaryList> {
     return Container();
   }
 
-  Widget loadedDiaryHistory(List<DiaryModel> diaries) {
-    if (diaries.isEmpty) {
+  Widget loadedDiaryHistory(Map<String, List<DiaryModel>> groupedDiaries) {
+    if (groupedDiaries.isEmpty) {
       return const BeforeStartWidget();
     } else {
       return SingleChildScrollView(
@@ -78,25 +90,36 @@ class _DiaryListState extends State<DiaryList> {
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: diaries.length,
+              itemCount: groupedDiaries.length,
               itemBuilder: (context, index) {
-                final diary = diaries[index];
+                final text = groupedDiaries.keys.elementAt(index);
+                final diaries = groupedDiaries[text];
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _formatDate(diary.start),
+                      text,
                       style: CustomTypography()
                           .titleLarge(color: CustomColors.textNormalContent),
                       textAlign: TextAlign.left,
                     ),
                     const SizedBox(height: 6),
-                    DiaryCard(
-                      diary: diary,
-                      refresh: (value) => refresh(value),
-                      getPageName: () => "history_list",
+                    ListView.builder(
+                      itemBuilder: (context, indexTwo) => Column(
+                        children: [
+                          DiaryCard(
+                            diary: diaries![indexTwo],
+                            refresh: (value) => refresh(value),
+                            getPageName: () => "history_list",
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                      ),
+                      itemCount: diaries?.length ?? 0,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
                     ),
-                    const SizedBox(height: 12),
                   ],
                 );
               },
@@ -105,21 +128,5 @@ class _DiaryListState extends State<DiaryList> {
         ),
       );
     }
-  }
-}
-
-String _formatDate(DateTime date) {
-  DateTime today =
-      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-  final DateFormat formatterOne = DateFormat("MMMM d',' y");
-  final DateFormat formatterTwo = DateFormat("EEEE - MMMM d',' y");
-
-  if (today == DateTime(date.year, date.month, date.day)) {
-    return "Today - ${formatterOne.format(date)}";
-  } else if (today.subtract(const Duration(days: 1)) ==
-      DateTime(date.year, date.month, date.day)) {
-    return "Yesterday - ${formatterOne.format(date)}";
-  } else {
-    return formatterTwo.format(date);
   }
 }

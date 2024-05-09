@@ -306,29 +306,30 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           selectedOption: prompt.answer!.response!,
         );
       case ResponseType.recording:
-        return ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: prompt.answer!.recordings.length,
-            itemBuilder: (context, index) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6.0),
-                  child: AudioDiaryCard(
-                    recording: prompt.answer!.recordings[index],
-                    delete: () => deleteResponse(
-                        prompt, prompt.answer!.recordings[index].path),
-                    isExpanded:
-                        expandedCardId == prompt.answer!.recordings[index].id,
-                    onTap: () {
-                      setState(() {
-                        expandedCardId = expandedCardId ==
-                                prompt.answer!.recordings[index].id
-                            ? null
-                            : prompt.answer!.recordings[index].id;
-                      });
-                    },
-                    promptId: prompt.id,
-                  ),
-                ));
+        return prompt.answer!.recordings.isEmpty
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6.0),
+                child: TextAnswerCard(
+                  answer: prompt.answer!.response!,
+                  delete: () => deleteResponse(prompt, ''),
+                ),
+              )
+            : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: prompt.answer!.recordings.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6.0),
+                    child: NewAudioCard(
+                      recording: prompt.answer!.recordings[index],
+                      delete: () => deleteResponse(
+                          prompt, prompt.answer!.recordings[index].path),
+                      viewOnly: true,
+                      promptId: prompt.id,
+                    ),
+                  );
+                });
       //TODO: Add support for other response types
       default:
         return const SizedBox.shrink();

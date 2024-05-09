@@ -1,4 +1,8 @@
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/tag.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 
 import '../../../../core/database/dao/diary_dao.dart';
 import '../../../../main.dart';
@@ -26,8 +30,12 @@ class DiaryRepository {
 
     if (unSubmittedDiaries.isNotEmpty) {
       for (final diary in unSubmittedDiaries) {
-        if (now.isAfter(due) && diary.status != DiaryStatus.complete) {
+        if (now.isAfter(due) &&
+            diary.status != DiaryStatus.complete &&
+            diary.currentEntry == 0) {
           diary.status = DiaryStatus.missed;
+        } else if (now.isAfter(due) && diary.currentEntry > 0) {
+          diary.status = DiaryStatus.submitted;
         }
       }
 
@@ -76,6 +84,95 @@ class DiaryRepository {
   List<DiaryModel> getAllDiaries() {
     final diaries = _getAllDiariesEntities();
     return diaries.map((e) => DiaryModel.fromEntity(e)).toList();
+  }
+
+  /// Retrieves all history diaries grouped by date.
+  ///
+  /// This function retrieves all diaries from the database and filters them based on their due dates,
+  /// considering only those due before the start of the next day. It then sorts the filtered diaries
+  /// by due date in descending order.
+  ///
+  /// For each filtered diary, if it has multiple entries, it duplicates the diary for each entry,
+  /// updating the current entry and status accordingly. It then sorts all diaries.
+  ///
+  /// After sorting, it retrieves tags for each diary and creates a map where diaries are grouped
+  /// by formatted historical dates.
+  ///
+  /// Returns:
+  /// A map where keys are formatted historical dates and values are lists of DiaryModel objects
+  /// representing diaries due before the start of the next day, grouped by date.
+  Map<String, List<DiaryModel>> getAllHistoryDiaries() {
+    // Retrieve all diaries from the database
+    List<DiaryModel> unfilteredDiaries = getAllDiaries();
+    final promptRepository = PromptRepository();
+
+    // Calculate the start of the next day
+    final now = DateTime.now();
+    final due = DateTime(now.year, now.month, now.day, 0, 0, 0)
+        .add(const Duration(days: 1));
+
+    // Filter diaries based on due date
+    final filteredDiaries =
+        unfilteredDiaries.where((diary) => diary.due.isBefore(due)).toList();
+
+    // Sort filtered diaries by due date in descending order
+    filteredDiaries.sort((a, b) => b.due.compareTo(a.due));
+
+    // Prepare a list to store processed diaries
+    final List<DiaryModel> diaries = [];
+
+    // Process filtered diaries
+    for (var diary in filteredDiaries) {
+      final entryCount = diary.currentEntry;
+
+      if (diary.status == DiaryStatus.missed) {
+        continue;
+      }
+
+      if (entryCount == 0) {
+        diaries.add(diary);
+      } else {
+        for (var i = 0; i <= entryCount; i++) {
+          final newDiary = diary.copyWith(
+              id: diary.id,
+              currentEntry: i,
+              status: entryCount != i ? DiaryStatus.submitted : null);
+
+          //check if diary is answered
+          final prompt =
+              promptRepository.load(newDiary, newDiary.prompts.first.id);
+
+          if (prompt.answer != null || diary.status == DiaryStatus.idle) {
+            diaries.add(newDiary);
+          }
+        }
+      }
+    }
+
+    // Sort all processed diaries
+    diaries.sort();
+
+    // Retrieve tags for each diary
+    for (var diary in diaries) {
+      diary.tags = _getTags(diary);
+    }
+
+    // Create a map to store diaries grouped by formatted historical dates
+    final Map<String, List<DiaryModel>> history = {};
+
+    // Group diaries by formatted historical dates
+    for (var i = 0; i < diaries.length; i++) {
+      final diary = diaries[i];
+      final date = formatHistoryDate(diary.start);
+
+      history.update(
+        date,
+        (value) => value..add(diary),
+        ifAbsent: () => [diary],
+      );
+    }
+
+    return history;
   }
 
   /// Retrieves a list of diary models within a specified date range.
@@ -168,5 +265,23 @@ class DiaryRepository {
   Future<void> updateDiary(DiaryModel diary) async {
     final entity = Diary.fromModel(diary);
     _diaryDAO.updateDiary(entity);
+  }
+
+  List<Tag> _getTags(DiaryModel diary) {
+    List<Tag> tags = [];
+
+    if (diary.status == DiaryStatus.submitted) {
+      tags.add(const Tag(text: "Done", type: TagType.time));
+    } else if (diary.status == DiaryStatus.missed) {
+      tags.add(const Tag(text: "Missed", type: TagType.time));
+    } else if (diary.status == DiaryStatus.complete) {
+      tags.add(const Tag(text: "Awaiting Submission", type: TagType.time));
+    } else if (diary.status == DiaryStatus.ongoing) {
+      tags.add(const Tag(text: "Ongoing", type: TagType.time));
+    } else if (diary.status == DiaryStatus.idle) {
+      tags.add(const Tag(text: "Ready to Start", type: TagType.time));
+    }
+
+    return tags;
   }
 }
