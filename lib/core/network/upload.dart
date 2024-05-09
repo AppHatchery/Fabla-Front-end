@@ -5,6 +5,7 @@ import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:aws_common/vm.dart';
 import 'package:path_provider/path_provider.dart';
@@ -58,8 +59,13 @@ Future<bool> upload(String studyCode, DiaryModel diary) async {
           if (prompt.answer!.recordings.isNotEmpty) {
             final path = p.join(
                 dir.path, 'recordings', prompt.answer?.recordings.first.path);
-            var filename = p.basename(path);
+      
             var date = getPostDate(diary.start);
+            
+
+            DateTime now = DateTime.now();
+            String formattedTime = DateFormat('HH:mm:ss').format(now);
+            var filename = "${studyCode}_${formatSubmissionDate(diary.start)}_$formattedTime.mp3";
             var awsPath = "$studyCode/$date/prompt_$promptNumber/$filename";
             audioData
                 .add(AudioData(localDirectory: path, awsS3Directory: awsPath));
@@ -102,6 +108,16 @@ Future<bool> upload(String studyCode, DiaryModel diary) async {
     return false;
   }
 }
+
+
+
+
+String formatSubmissionDate(DateTime date) {
+  return DateFormat('yyyy-MM-dd').format(date);
+}
+
+
+
 
 //Upload functions
 Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
