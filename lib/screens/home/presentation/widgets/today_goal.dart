@@ -96,7 +96,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
             Flexible(
               fit: FlexFit.loose,
               child: Text(
-                "Repeatable Entries: ${widget.protocol.dailyGoal}",
+                "Repeatable Entries: $entry/${widget.protocol.dailyGoal}",
                 style: CustomTypography().bodyMedium(),
               ),
             ),

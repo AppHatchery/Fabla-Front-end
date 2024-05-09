@@ -33,7 +33,11 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
     final currentValue = widget.currentEntries;
     double totalWidth = width - 32;
     int weeklyGoal = widget.weeklyGoal;
-    double progressBarWidth = (currentValue / weeklyGoal) * totalWidth;
+
+    double progressValue = (currentValue / weeklyGoal) * totalWidth;
+
+    double progressBarWidth =
+        (progressValue > totalWidth) ? totalWidth : progressValue;
     //calculate the lower goal width/value
     int lowerValue = (0.7 * weeklyGoal).round();
     double lowerGoal = (lowerValue / weeklyGoal) * totalWidth;

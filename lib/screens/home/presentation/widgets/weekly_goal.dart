@@ -25,7 +25,10 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
     //calculate the progress bar width
     final currentValue = widget.currentEntries;
     int weeklyGoal = widget.weeklyGoal;
-    double progressBarWidth = (currentValue / weeklyGoal) * width;
+    double progressValue = (currentValue / weeklyGoal) * width;
+
+    double progressBarWidth =
+        (progressValue > width) ? width : progressValue;
     //calculate the lower goal width/value
     int lowerValue = (0.7 * weeklyGoal).round();
     double lowerGoal = (lowerValue / weeklyGoal) * width;
