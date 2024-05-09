@@ -4,8 +4,6 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
-final now = DateTime.now();
-
 class CompleteCalendarWidget extends StatefulWidget {
   final List<DiaryModel> diaries;
   final int dailyGoal;
@@ -70,18 +68,25 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
   }
 
   String message() {
-    final allEntries = widget.diaries
-        .map((e) => e.currentEntry)
-        .reduce((value, element) => value + element);
+    final allEntries =
+        widget.diaries.fold(0, (sum, diary) => sum + diary.currentEntry);
 
-    if (widget.dailyGoal - currentEntryCount > 1) {
-      return "You've got ${widget.dailyGoal - currentEntryCount} entries left today!";
-    } else if (widget.dailyGoal - currentEntryCount == 1) {
+    final entriesLeftToday = widget.dailyGoal - currentEntryCount;
+
+    if (entriesLeftToday > 1) {
+      return "You've got $entriesLeftToday entries left today!";
+    } else if (entriesLeftToday == 1) {
       return "You've got 1 entry left today, you are almost there!";
+    } else if (entriesLeftToday == 0) {
+      return "You've reached your daily goal! Great job!";
     } else if (allEntries < widget.weeklyGoal) {
       return "Way to go on that extra entry! You are getting closer to your weekly goal.";
-    } else {
+    } else if (allEntries > widget.weeklyGoal) {
+      return "You've exceeded your weekly goal! Amazing job!";
+    } else if (allEntries == widget.weeklyGoal) {
       return "You've reached your weekly goal! Great job!";
+    } else {
+      return "";
     }
   }
 
@@ -121,6 +126,7 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
 
   void prepare() async {
     days.clear();
+    final now = DateTime.now();
     final today = now.weekday;
     DateTime monday = now.subtract(Duration(days: now.weekday - 1));
 
