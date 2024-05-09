@@ -53,7 +53,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     controllerInit();
     showTip();
     if (widget.diary.status == DiaryStatus.idle) {
-      participantsDiaryStartDate(widget.diary);
+      //participantsDiaryStartDate(widget.diary);
     }
     super.initState();
     WidgetsBinding.instance.addObserver(this);
