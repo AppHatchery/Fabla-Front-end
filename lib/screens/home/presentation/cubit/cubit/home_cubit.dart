@@ -44,7 +44,7 @@ class HomeCubit extends Cubit<HomeState> {
       emit(const HomeLoading());
       final diary = repository.getDiary(start, due);
       final protocol = repository.getProtocol();
-      final entries = repository.getTotalEntries(monday, sunday);
+      final entries = repository.getTotalEntries(monday.subtract(const Duration(days: 1)), sunday.add(const Duration(days: 1)));
       if (diary != null) {
         final updated = diary.copyWith(id: diary.id, tags: _getTags(diary));
         final protocolUpdated = protocol?.copyWith(version: protocol.version);
