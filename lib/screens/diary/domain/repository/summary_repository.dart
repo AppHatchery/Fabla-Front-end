@@ -105,6 +105,7 @@ class SummaryRepository {
         newDiary = diary.copyWith(
           id: diary.id,
           status: DiaryStatus.submitted,
+          currentEntry: diary.currentEntry + 1,
         );
       } else {
         newDiary = diary.copyWith(

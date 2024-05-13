@@ -1,5 +1,8 @@
-import 'package:audio_diaries_flutter/core/utils/formatter.dart';
+import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/tag.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
@@ -12,6 +15,8 @@ import '../entities/diary_entity.dart';
 
 class DiaryRepository {
   final DiaryDAO _diaryDAO = DiaryDAO(box: Box<Diary>(objectbox.store));
+  final ProtocolDAO _protocolDAO =
+      ProtocolDAO(box: Box<ProtocolEntity>(objectbox.store));
 
   /// A method to retrieve all DiaryEntity objects from the data source.
   /// This function retrieves a list of DiaryEntity instances by calling the `_diaryDAO.getAllDiaries()` method.
@@ -59,6 +64,10 @@ class DiaryRepository {
     return _diaryDAO.getDiary(start, due);
   }
 
+  ProtocolEntity? _getProtocolEntity() {
+    return _protocolDAO.getProtocol();
+  }
+
   /// Retrieves a list of Diary objects representing all stored diary entries.
   /// This function fetches a list of DiaryEntity instances from the data source using `_getAllDiariesEntities()`,
   /// and then converts each DiaryEntity into a Diary object using the `Diary.fromEntity()` factory constructor.
@@ -71,6 +80,32 @@ class DiaryRepository {
     return diaries.map((e) => DiaryModel.fromEntity(e)).toList();
   }
 
+
+  /// Retrieves a list of diary models within a specified date range.
+  ///
+  /// This function retrieves all diaries from the data access object (DAO) and filters them
+  /// based on their start dates falling within the specified date range. It then maps the
+  /// filtered diaries to DiaryModel objects and returns them.
+  ///
+  /// Parameters:
+  /// - [start]: The start date of the range.
+  /// - [end]: The end date of the range.
+  ///
+  /// Returns:
+  /// A list of DiaryModel objects representing diaries within the specified date range.
+  List<DiaryModel> getRangeDiaries(DateTime start, DateTime end) {
+    // Retrieve all diaries from the DAO
+    final diaries = _diaryDAO.getAllDiaries();
+
+    // Filter diaries based on their start dates falling within the specified range
+    final filtered = diaries.where((element) {
+      return element.start.isAfter(start) && element.start.isBefore(end);
+    }).toList();
+
+    // Map filtered diaries to DiaryModel objects and return them
+    return filtered.map((e) => DiaryModel.fromEntity(e)).toList();
+  }
+  
   /// Retrieves all history diaries grouped by date.
   ///
   /// This function retrieves all diaries from the database and filters them based on their due dates,
@@ -177,6 +212,33 @@ class DiaryRepository {
       return DiaryModel.fromEntity(diary);
     }
     return null;
+  }
+  // retrieves the protocol from the protocol entity
+  // This function attempts to obtain a ProtocolEntity instance using the `_getProtocolEntity()` method,
+  // and if a matching ProtocolEntity is found, it is transformed into a Protocol object using the `Protocol.fromEntity()` factory constructor.
+  // returns:
+  // A Protocol object representing the protocol entity, if found, or null if no matching entity is found in the data source.
+  Protocol? getProtocol() {
+    final protocol = _getProtocolEntity();
+    if (protocol != null) {
+      return Protocol.fromEntity(protocol);
+    }
+    return null;
+  }
+
+  /// Retrieves the total number of diary entries within a specified date range.
+  /// This function fetches all diaries filters them based on their start dates falling within the specified date range.
+  /// It then calculates the total number of entries across all filtered diaries and returns the sum.
+  /// Parameters:
+  /// - [start]: The start date of the range.
+  /// - [end]: The end date of the range.
+  /// 
+  /// Returns:  
+  /// An integer representing the total number of diary entries within the specified date range.
+  int getTotalEntries(DateTime start, DateTime end) {
+    final diaries = getRangeDiaries(start, end);
+    return diaries.fold(
+        0, (previousValue, element) => previousValue + element.currentEntry);
   }
 
   /// Asynchronous method to add a list of DiaryEntity objects to the data source.
