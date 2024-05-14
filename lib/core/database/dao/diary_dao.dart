@@ -29,11 +29,8 @@ class DiaryDAO {
   /// or null if no matching entry is found.
   ///
   Diary? getDiary(DateTime start, DateTime due) {
-    final query = box
-        .query(Diary_.deadline
-            .equals(due.toString())
-            .and(Diary_.start.equals(start.millisecond)))
-        .build();
+    final query =
+        box.query(Diary_.start.equals(start.millisecondsSinceEpoch)).build();
     return query.findFirst();
   }
 

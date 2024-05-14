@@ -1,10 +1,20 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class TodayGoalWidget extends StatefulWidget {
-  const TodayGoalWidget({super.key});
+  final int dailyGoal;
+  final Protocol protocol;
+  final DiaryModel diary;
+  const TodayGoalWidget(
+      {super.key,
+      required this.dailyGoal,
+      required this.protocol,
+      required this.diary});
 
   @override
   State<TodayGoalWidget> createState() => _TodayGoalWidgetState();
@@ -13,6 +23,13 @@ class TodayGoalWidget extends StatefulWidget {
 class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   @override
   Widget build(BuildContext context) {
+    final entry = widget.diary.status == DiaryStatus.submitted
+        ? widget.diary.entries
+        : widget.diary.currentEntry;
+
+    //calculate the daily goal progress bar width
+    final dailyValue = ((entry) / widget.protocol.dailyGoal);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -32,7 +49,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                       duration: const Duration(milliseconds: 1000),
                       builder: (context, value, _) => CircularProgressIndicator(
                         strokeWidth: 5,
-                        value: value,
+                        value: dailyValue,
                         backgroundColor: CustomColors.productLightBackground,
                         color: CustomColors.productNormal,
                       ),
@@ -79,7 +96,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
             Flexible(
               fit: FlexFit.loose,
               child: Text(
-                "Repeatable Entries: 1/2",
+                "Repeatable Entries: $entry/${widget.protocol.dailyGoal}",
                 style: CustomTypography().bodyMedium(),
               ),
             ),

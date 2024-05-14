@@ -329,6 +329,7 @@ class _QuestionPageState extends State<QuestionPage>
     promptModel = widget.prompt;
     promptCubit = BlocProvider.of<PromptCubit>(context);
     loadPrompt();
+
     super.initState();
   }
 
@@ -355,9 +356,9 @@ class _QuestionPageState extends State<QuestionPage>
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child:
-            BlocConsumer<PromptCubit, PromptState>(builder: (context, state) {
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: BlocConsumer<PromptCubit, PromptState>(
+        builder: (context, state) {
           if (state is PromptInitial) {
             return buildInitial();
           } else if (state is PromptLoading) {
@@ -367,7 +368,8 @@ class _QuestionPageState extends State<QuestionPage>
           } else {
             return buildInitial();
           }
-        }, listener: (context, state) {
+        },
+        listener: (context, state) {
           if (state is PromptRespondState) {
             recordResponse(promptModel, "");
           } else if (state is PromptResponseSuccess) {
@@ -375,12 +377,11 @@ class _QuestionPageState extends State<QuestionPage>
           } else if (state is PromptResponseError) {
             showErrorModal();
           } else if (state is PromptLoaded) {
-            if (state.prompt.answer?.recordings != null ||
-                state.prompt.answer?.response != null) {
-              widget.answerAdded(true);
-            }
+            checkForResponse(state.prompt);
           }
-        }));
+        },
+      ),
+    );
   }
 
   Widget buildLoading() {
@@ -570,6 +571,21 @@ class _QuestionPageState extends State<QuestionPage>
 
   void loadPrompt() {
     promptCubit.loadPrompt(widget.diary, promptModel);
+  }
+
+  ///Checks whether the provided prompt has a response
+  ///Returns a bool for [`able to continue`] that allows the user to either proceed or not
+  ///depending on the availability of the response/recording
+  void checkForResponse(PromptModel prompt1) {
+    bool isValidResponse = false;
+    final answer = prompt1.answer;
+    if (prompt1.responseType != ResponseType.recording) {
+      isValidResponse = answer?.response?.isNotEmpty ?? false;
+    } else {
+      isValidResponse = (answer?.response?.isNotEmpty ?? false) ||
+          (answer?.recordings.isNotEmpty ?? false);
+    }
+    widget.answerAdded(isValidResponse);
   }
 
   void recordResponse(PromptModel prompt, String type) {
