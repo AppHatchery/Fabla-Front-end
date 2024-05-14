@@ -64,9 +64,17 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: BlocConsumer<HomeCubit, HomeState>(
+    return Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, CustomColors.fillNormal],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: BlocConsumer<HomeCubit, HomeState>(
             listener: (context, state) {},
             builder: (context, state) {
               if (state is HomeInitial) {
@@ -79,7 +87,9 @@ class _HomePageState extends State<HomePage>
               } else {
                 return initialHome();
               }
-            }));
+            })
+        )
+    );
   }
 
   Widget loading() {
@@ -138,13 +148,13 @@ class _HomePageState extends State<HomePage>
       );
     }
     return Scaffold(
-        backgroundColor: CustomColors.backgroundTertiary,
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
-          backgroundColor: CustomColors.backgroundTertiary,
+          backgroundColor: Colors.transparent,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(30),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 0.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

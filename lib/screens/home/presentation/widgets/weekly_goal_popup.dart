@@ -45,7 +45,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
     return Container(
       width: MediaQuery.of(context).size.width,
       color: Colors.white,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
