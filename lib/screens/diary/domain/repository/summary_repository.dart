@@ -32,7 +32,8 @@ class SummaryRepository {
   Future<DiaryModel> loadSummary(DiaryModel diary) async {
     try {
       for (var i = 0; i < diary.prompts.length; i++) {
-        final newPrompt = await promptRepository.load(diary,diary.prompts[i].id);
+        final newPrompt =
+            await promptRepository.load(diary, diary.prompts[i].id);
         newPrompt.id = diary.prompts[i].id;
         diary.prompts[i] = newPrompt;
       }
@@ -101,12 +102,13 @@ class SummaryRepository {
 
       late DiaryModel newDiary;
 
+      print("Current entry: ${diary.currentEntry}");
+
       if (diary.currentEntry + 1 == diary.entries) {
         newDiary = diary.copyWith(
-          id: diary.id,
-          status: DiaryStatus.submitted,
-          currentEntry: diary.currentEntry + 1,
-        );
+            id: diary.id,
+            status: DiaryStatus.submitted,
+            currentEntry: diary.currentEntry + 1);
       } else {
         newDiary = diary.copyWith(
             id: diary.id,
