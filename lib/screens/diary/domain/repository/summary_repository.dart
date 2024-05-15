@@ -32,7 +32,8 @@ class SummaryRepository {
   Future<DiaryModel> loadSummary(DiaryModel diary) async {
     try {
       for (var i = 0; i < diary.prompts.length; i++) {
-        final newPrompt = await promptRepository.load(diary,diary.prompts[i].id);
+        final newPrompt =
+            await promptRepository.load(diary, diary.prompts[i].id);
         newPrompt.id = diary.prompts[i].id;
         diary.prompts[i] = newPrompt;
       }
@@ -95,17 +96,19 @@ class SummaryRepository {
   Future<bool> submitDiary(DiaryModel diary) async {
     try {
       final participant = setupRepository.getParticipant();
-      //final uploaded = await upload(participant!.studyCode, diary);
+      final uploaded = await upload(participant!.studyCode, diary);
 
-      //if (uploaded) {
+      if (uploaded) {
 
       late DiaryModel newDiary;
 
+      print("Current entry: ${diary.currentEntry}");
+
       if (diary.currentEntry + 1 == diary.entries) {
         newDiary = diary.copyWith(
-          id: diary.id,
-          status: DiaryStatus.submitted,
-        );
+            id: diary.id,
+            status: DiaryStatus.submitted,
+            currentEntry: diary.currentEntry + 1);
       } else {
         newDiary = diary.copyWith(
             id: diary.id,
@@ -116,14 +119,20 @@ class SummaryRepository {
       diaryRepository.updateDiary(newDiary);
 
       cancelAllDiaryNotifications(diary.id);
-
-      //Update the nextStudy date- TBD with provision of study_start_date
-      DateTime now = DateTime.now();
-      var nextStudyDate = DateTime(now.year, now.month, now.day, 4, 0, 0)
-          .add(const Duration(days: 1));
-
-      setupRepository.updateMetaDataFile(nextStudyDate);
       return true;
+      }else{
+      // //Update the nextStudy date- TBD with provision of study_start_date
+      // DateTime now = DateTime.now();
+      // var nextStudyDate = DateTime(now.year, now.month, now.day, 4, 0, 0)
+      //     .add(const Duration(days: 1));
+
+
+      //TODO: TO BE REMOVED
+      //setupRepository.updateMetaDataFile(nextStudyDate);
+
+      return false;
+      
+      }
       // } else {
       //   return false;
       // }
