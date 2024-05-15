@@ -52,6 +52,8 @@ dependencies:
 
   #Http
   http: ^1.2.1
+  encrypt: ^5.0.3
+  #crypto: ^3.0.3
 
   #path manipulation
   path: ^1.8.3

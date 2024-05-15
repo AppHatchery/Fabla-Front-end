@@ -14,6 +14,7 @@ import 'package:http/http.dart' as http;
 import '../../screens/diary/data/diary_audio_data.dart';
 import '../utils/formatter.dart';
 
+import 'package:encrypt/encrypt.dart' as encrypt;
 /// Uploads audio files associated with a diary to an S3 storage and returns the result.
 ///
 /// This function prepares a list of audio files from the provided [diary]
@@ -64,8 +65,8 @@ Future<bool> upload(String studyCode, DiaryModel diary) async {
             
 
             DateTime now = DateTime.now();
-            String formattedTime = DateFormat('HH:mm:ss').format(now);
-            var filename = "${studyCode}_${formatSubmissionDate(diary.start)}_$formattedTime.mp3";
+            String formattedTime = DateFormat('HH-mm-ss').format(now);
+            var filename = "${studyCode}_${formatSubmissionDate(diary.start)}_$formattedTime.bin";
             var awsPath = "$studyCode/$date/prompt_$promptNumber/$filename";
             audioData
                 .add(AudioData(localDirectory: path, awsS3Directory: awsPath));
@@ -253,7 +254,9 @@ Future<bool> uploadAudios(List<AudioData> audioFileData) async {
     var presignedUrl = await getPresignedUrl(apiUrl, data.awsS3Directory);
     //print("PRESIGNED URL: " + presignedUrl!);
     if (presignedUrl != null) {
-      sent = await uploadFileToS3(presignedUrl, data.localDirectory);
+      //sent = await uploadFileToS3(presignedUrl, data.localDirectory);
+      
+      sent = await  uploadEncryptedFileToS3(presignedUrl, data.localDirectory);
     }
   }
   print("uploaded in array $sent");
@@ -333,5 +336,57 @@ Future<bool> awsUploadResponses(
   } catch (e) {
     print("EXCEPTION: $e");
     return false;
+  }
+}
+
+
+
+
+
+//
+
+
+
+
+Future<bool> uploadEncryptedFileToS3(String presignedUrl, String filePath) async {
+  try {
+    // Read the file
+    var file = File(filePath);
+    var fileStream = file.openRead();
+
+    // Define a constant IV string
+    String aesKey = "0123456789abcdef";
+    const String constantIV = '0123456789abcdef'; // Modify this with your own IV
+    
+    // Encrypt the file content using AES
+    final key = encrypt.Key.fromUtf8(aesKey);
+    final iv = encrypt.IV.fromUtf8(constantIV);
+    final encrypter = encrypt.Encrypter(encrypt.AES(key));
+
+    List<int> encryptedBytes = [];
+    await for (var chunk in fileStream) {
+      var encryptedChunk = encrypter.encryptBytes(chunk, iv: iv);
+      encryptedBytes.addAll(encryptedChunk.bytes);
+    }
+
+    // Set the body bytes of the request to the encrypted file content
+    var request = http.Request('PUT', Uri.parse(presignedUrl))
+      ..headers['Content-Type'] = 'application/octet-stream'; // Set appropriate content type
+    request.bodyBytes = encryptedBytes;
+
+    // Send the request
+    var response = await http.Client().send(request);
+
+    // Check response status
+    if (response.statusCode == 200) {
+      print('S3 Storage: File uploaded successfully');
+      return true; // Return true if upload successful
+    } else {
+      print('S3 Storage: Failed to upload file. Status code: ${response.statusCode}');
+      return false; // Return false if upload failed
+    }
+  } catch (e) {
+    print('S3 Storage: Error uploading file: $e');
+    return false; // Return false if an error occurred
   }
 }
