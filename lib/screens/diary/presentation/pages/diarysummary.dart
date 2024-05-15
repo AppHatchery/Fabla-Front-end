@@ -199,7 +199,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: diary.prompts.length,
                     itemBuilder: (context, index) =>
-                        buildPrompt(diary.prompts[index], index)),
+                        buildPrompt(diary.prompts[index], index, diary)),
               )),
             ],
           ),
@@ -225,7 +225,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     );
   }
 
-  Widget buildPrompt(PromptModel prompt, int index) {
+  Widget buildPrompt(PromptModel prompt, int index, DiaryModel diary) {
     if (!sliderEnabledStates.containsKey(index)) {
       sliderEnabledStates[index] = false;
     }
@@ -250,7 +250,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   ),
                 ],
               ),
-              getResponseWidget(prompt),
+              getResponseWidget(prompt, diary),
             ],
           ),
         ),
@@ -286,7 +286,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   }
 
   /// Returns the appropriate widget based on the response type of the prompt.
-  Widget getResponseWidget(PromptModel prompt) {
+  Widget getResponseWidget(PromptModel prompt, DiaryModel diary) {
     switch (prompt.responseType) {
       case ResponseType.slider:
         return SliderQuestionCard(
@@ -310,9 +310,11 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
-                  answer: prompt.answer!.response!,
-                  delete: () => deleteResponse(prompt, ''),
-                ),
+                    answer: prompt.answer!.response!,
+                    delete: () => deleteResponse(prompt, ''),
+                    diary: diary,
+                    loadedPrompt: prompt,
+                    path: ''),
               )
             : ListView.builder(
                 shrinkWrap: true,
@@ -323,10 +325,11 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
                     child: NewAudioCard(
                       recording: prompt.answer!.recordings[index],
-                      delete: () => deleteResponse(
-                          prompt, prompt.answer!.recordings[index].path),
                       viewOnly: true,
                       promptId: prompt.id,
+                      diary: diary,
+                      loadedPrompt: prompt,
+                      path: prompt.answer!.recordings[index].path,
                     ),
                   );
                 });

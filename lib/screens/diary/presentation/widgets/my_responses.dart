@@ -35,8 +35,8 @@ class _MyResponseState extends State<MyResponse> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        "Response String: ${widget.prompt.answer!.response} | Recording empty: ${widget.prompt.answer!.recordings.isEmpty}");
+    // print(
+    //     "Response String: ${widget.prompt.answer!.response} | Recording empty: ${widget.prompt.answer!.recordings.isEmpty}");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -51,7 +51,9 @@ class _MyResponseState extends State<MyResponse> {
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
                   answer: widget.prompt.answer!.response!,
-                  delete: () => deleteResponse(widget.prompt, ''),
+                  diary: widget.diary,
+                  loadedPrompt: widget.prompt,
+                  path: '',
                 ),
               )
             : ListView.builder(
@@ -63,20 +65,16 @@ class _MyResponseState extends State<MyResponse> {
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
                     child: NewAudioCard(
                       recording: widget.recordings[index],
-                      delete: () => deleteResponse(
-                          widget.prompt, widget.recordings[index].path),
                       viewOnly: false,
                       promptId: widget.prompt.id,
+                      diary: widget.diary,
+                      loadedPrompt: widget.prompt,
+                      path: widget.recordings[index].path,
                     ),
                   );
                 }),
         const SizedBox(height: 12),
       ],
     );
-  }
-
-  void deleteResponse(PromptModel loadedPrompt, String path) {
-    final promptCubit = context.read<PromptCubit>();
-    promptCubit.removeResponse(widget.diary, loadedPrompt, path);
   }
 }

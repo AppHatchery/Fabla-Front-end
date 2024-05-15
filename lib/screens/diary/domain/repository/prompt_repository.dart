@@ -105,7 +105,7 @@ class PromptRepository {
     return true;
   }
 
-//TODO: clean implementation - REDO This
+  //TODO: clean implementation - REDO This
   void removeResponse(PromptModel prompt, String path) async {
     try {
       final answer = prompt.answer;
@@ -121,11 +121,14 @@ class PromptRepository {
 
         final file = File(_path);
         await file.delete();
-      }
+        answer.recordings.clear();
 
-      //update the prompt
-      final updatedPrompt = Prompt.fromModel(prompt.copyWith(answer: null));
-      _promptDAO.updatePrompt(updatedPrompt);
+        //update the prompt
+        final updatedPrompt = Prompt.fromModel(prompt.copyWith(answer: null));
+        updatedPrompt.answers.clear();
+        print("Is it null? ${updatedPrompt.answers}");
+        _promptDAO.updatePrompt(updatedPrompt);
+      }
     } catch (e) {
       print("Error deleting response: $e");
     }
