@@ -166,13 +166,13 @@ class _StudyCalendarState extends State<StudyCalendar> {
             borderRadius: BorderRadius.circular(12),
             shape: BoxShape.rectangle,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
           child: TableCalendar(
             firstDay: DateTime.utc(2010, 10, 16),
             lastDay: DateTime.utc(2060, 3, 14),
             focusedDay: focusedDay,
             currentDay: today,
-            availableGestures: AvailableGestures.horizontalSwipe,
+            availableGestures: AvailableGestures.all,
             headerStyle: const HeaderStyle(
                 titleCentered: false,
                 formatButtonVisible: false,
@@ -203,7 +203,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   decoration:
                       BoxDecoration(shape: BoxShape.circle, color: color),
                   margin: const EdgeInsets.symmetric(
-                      vertical: 10.0, horizontal: 1.5),
+                      vertical: 4.0, horizontal: 1.5),
                 );
               },
               headerTitleBuilder: (context, day) => Padding(
@@ -257,18 +257,18 @@ class _StudyCalendarState extends State<StudyCalendar> {
                         ? CustomColors.textWhite
                         : CustomColors.textTertiaryContent;
 
-                return Container(
-                  width: 40,
-                  height: 40,
-                  margin: const EdgeInsets.all(4),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(100)),
-                    color: color,
-                  ),
-                  child: Text(
-                    date.day.toString(),
-                    style: CustomTypography().bodyLarge(color: textColor),
+                return Center(
+                  child: Container(
+                    width: 35,
+                    height: 35,
+                    margin: const EdgeInsets.only(bottom: 4),
+                    alignment: Alignment.center,
+                    decoration:
+                        BoxDecoration(shape: BoxShape.circle, color: color),
+                    child: Text(
+                      date.day.toString(),
+                      style: CustomTypography().bodyLarge(color: textColor),
+                    ),
                   ),
                 );
               },
@@ -291,26 +291,24 @@ class _StudyCalendarState extends State<StudyCalendar> {
                 );
               },
               defaultBuilder: (context, day, focusedDay) {
-                const margin = EdgeInsets.all(4);
-                const borderRadius = BorderRadius.all(Radius.circular(100));
                 final color =
                     selectedDate == day ? CustomColors.productNormal : null;
 
                 final textColor = selectedDate == day
                     ? CustomColors.textWhite
                     : CustomColors.textTertiaryContent;
-                return Container(
-                  width: 40,
-                  height: 40,
-                  margin: margin,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: borderRadius,
-                    color: color,
-                  ),
-                  child: Text(
-                    day.day.toString(),
-                    style: CustomTypography().bodyLarge(color: textColor),
+                return Center(
+                  child: Container(
+                    width: 35,
+                    height: 35,
+                    margin: const EdgeInsets.only(bottom: 4),
+                    alignment: Alignment.center,
+                    decoration:
+                        BoxDecoration(shape: BoxShape.circle, color: color),
+                    child: Text(
+                      day.day.toString(),
+                      style: CustomTypography().bodyMedium(color: textColor),
+                    ),
                   ),
                 );
               },
