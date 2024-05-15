@@ -17,9 +17,9 @@ class WeeklyGoalPopup extends StatefulWidget {
   State<WeeklyGoalPopup> createState() => _WeeklyGoalPopupState();
 }
 
-class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
+class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
+    with SingleTickerProviderStateMixin {
   String thisWeek = "";
-
   @override
   void initState() {
     thisWeek = getThisWeek();
@@ -47,13 +47,19 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
       color: Colors.white,
       padding: const EdgeInsets.all(16),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           //THIS WEEK
-          Text(
-            thisWeek,
-            style: CustomTypography().caption(),
+          Wrap(
+            children: [
+              Text(
+                thisWeek,
+                style: CustomTypography().caption(),
+              ),
+            ],
           ),
+
           const SizedBox(
             height: 6,
           ),
@@ -78,9 +84,13 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
             height: 2,
           ),
           //INTRODUCTION
-          Text(
-            "Submit at least 4 repeatable entries this week to complete your goal.",
-            style: CustomTypography().caption(),
+          Wrap(
+            children: [
+              Text(
+                "Submit at least 4 repeatable entries this week to complete your goal.",
+                style: CustomTypography().caption(),
+              ),
+            ],
           ),
           const SizedBox(
             height: 6,
@@ -128,10 +138,16 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          const SizedBox(height: 20, width: 20),
-                          Text(
-                            "$currentValue",
-                            style: CustomTypography().caption(),
+                          Flexible(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  top:
+                                      20), // Adjust padding instead of using SizedBox
+                              child: Text(
+                                "$currentValue",
+                                style: CustomTypography().caption(),
+                              ),
+                            ),
                           )
                         ],
                       ),
@@ -146,9 +162,14 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
                         children: [
                           const Icon(CupertinoIcons.flag_fill,
                               color: CustomColors.productNormal, size: 17),
-                          Text(
-                            "$lowerValue",
-                            style: CustomTypography().caption(),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Flexible(
+                            child: Text(
+                              "$lowerValue",
+                              style: CustomTypography().caption(),
+                            ),
                           )
                         ],
                       ),
@@ -164,9 +185,11 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
                         children: [
                           const Icon(Icons.emoji_events_rounded,
                               color: CustomColors.productNormal, size: 20),
-                          Text(
-                            "$weeklyGoal",
-                            style: CustomTypography().caption(),
+                          Flexible(
+                            child: Text(
+                              "$weeklyGoal",
+                              style: CustomTypography().caption(),
+                            ),
                           )
                         ],
                       ),
