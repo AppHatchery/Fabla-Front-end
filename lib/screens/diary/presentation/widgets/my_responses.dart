@@ -77,6 +77,7 @@ class _MyResponseState extends State<MyResponse> {
 
   void deleteResponse(PromptModel loadedPrompt, String path) {
     final promptCubit = context.read<PromptCubit>();
-    promptCubit.removeResponse(widget.diary, loadedPrompt, path);
+    promptCubit.removeResponse(
+        diary: widget.diary, path: path, prompt: loadedPrompt);
   }
 }
