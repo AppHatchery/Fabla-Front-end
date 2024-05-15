@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/completion/completion_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/calendar_widget.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/ghost_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -94,17 +95,10 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
                             ),
                           ],
                         )),
-                    Container(
-                      height: 120,
-                      width: 120,
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.only(top: 5),
-                      child: Image.asset(
-                        "assets/images/avatar_complete.png",
-                        width: 80,
-                        height: 80,
-                      ),
-                    ),
+                    GhostCompletionWidget(
+                        currentEntry: diary.currentEntry,
+                        dailyGoal: protocol.dailyGoal,
+                        weeklyGoal: protocol.weeklyGoal),
                   ],
                 ),
                 const SizedBox(
