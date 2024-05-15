@@ -126,14 +126,14 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                 shrinkWrap: true,
                 itemCount: diary.prompts.length,
                 itemBuilder: (context, index) =>
-                    buildPrompt(diary.prompts[index], index, diary)),
+                    buildPrompt(diary.prompts[index], index)),
           )),
         ],
       ),
     );
   }
 
-  Widget buildPrompt(PromptModel prompt, int index, DiaryModel diary) {
+  Widget buildPrompt(PromptModel prompt, int index) {
     if (!sliderEnabledStates.containsKey(index)) {
       sliderEnabledStates[index] = false;
     }
@@ -159,8 +159,8 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                   ),
                 ],
               ),
-              getResponseWidget(prompt, diary)
-            ],
+              getResponseWidget(prompt)
+              ],
           ),
         ),
         const SizedBox(height: 12),
@@ -183,7 +183,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
   }
 
   /// Returns the appropriate widget based on the response type of the prompt.
-  Widget getResponseWidget(PromptModel prompt, DiaryModel diary) {
+  Widget getResponseWidget(PromptModel prompt) {
     switch (prompt.responseType) {
       case ResponseType.slider:
         return SliderQuestionCard(
@@ -203,14 +203,11 @@ class _ReviewDiaryState extends State<ReviewDiary> {
           selectedOption: prompt.answer!.response!,
         );
       case ResponseType.recording:
-        return prompt.answer!.recordings.isEmpty
-            ? Padding(
+        return prompt.answer!.recordings.isEmpty ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
                   answer: prompt.answer!.response!,
-                  diary: diary,
-                  loadedPrompt: prompt,
-                  path: '',
+                  delete: () => deleteResponse(prompt, ''),
                 ),
               )
             : ListView.builder(
@@ -222,11 +219,10 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
                     child: NewAudioCard(
                       recording: prompt.answer!.recordings[index],
+                      delete: () => deleteResponse(
+                          prompt, prompt.answer!.recordings[index].path),
                       viewOnly: true,
                       promptId: prompt.id,
-                      diary: diary,
-                      loadedPrompt: prompt,
-                      path: prompt.answer!.recordings[index].path,
                     ),
                   );
                 });

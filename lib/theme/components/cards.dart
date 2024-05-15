@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -25,7 +24,6 @@ class DiaryCard extends StatelessWidget {
   final DiaryModel? diary;
   final ValueChanged<bool> refresh;
   final String Function() getPageName;
-
   const DiaryCard(
       {super.key,
       required this.diary,
@@ -119,13 +117,12 @@ class DiaryCard extends StatelessWidget {
                           ? CustomColors.fillWhite
                           : CustomColors.productNormal,
                       borderRadius: BorderRadius.circular(100),
-                      border: Border.all(
-                          color: CustomColors.productNormal, width: 2)),
+                      border: Border.all(color: CustomColors.productNormal, width: 2)),
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     child: Text(
-                      diary!.start.isBefore(DateTime.now())
+                      diary!.start.isAfter(DateTime.now())
                           ? "Not Available"
                           : switch (diary!.status) {
                               DiaryStatus.complete => "Continue",
@@ -179,7 +176,6 @@ class DiaryCard extends StatelessWidget {
 /// Used in [DiaryCard]
 class TagPill extends StatelessWidget {
   final Tag tag;
-
   const TagPill({
     super.key,
     required this.tag,
@@ -300,7 +296,6 @@ class AudioDiaryCard extends StatefulWidget {
   final bool isExpanded;
   final VoidCallback? onTap;
   final int promptId;
-
   const AudioDiaryCard({
     super.key,
     required this.recording,
@@ -660,20 +655,15 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
 
 class NewAudioCard extends StatefulWidget {
   final Recording recording;
+  final VoidCallback? delete;
   final bool viewOnly;
   final int promptId;
-  final DiaryModel diary;
-  final PromptModel loadedPrompt;
-  final String path;
-
   const NewAudioCard(
       {super.key,
       required this.recording,
+      this.delete,
       required this.viewOnly,
-      required this.promptId,
-      required this.diary,
-      required this.loadedPrompt,
-      required this.path});
+      required this.promptId});
 
   @override
   State<NewAudioCard> createState() => _NewAudioCardState();
@@ -768,30 +758,13 @@ class _NewAudioCardState extends State<NewAudioCard> {
   }
 
   Future<void> delete() async {
-    await showDialog<bool>(
-        context: context,
-        builder: (context) => DeleteAudioTextPopUp(
-              diary: widget.diary,
-              loadedPrompt: widget.loadedPrompt,
-              path: widget.path,
-            ));
+    final results = await showDialog<bool>(
+        context: context, builder: (context) => const DeletePopUp());
 
-    // if (results == true) {
-    //   widget.delete!();
-    // }
+    if (results == true) {
+      widget.delete!();
+    }
   }
-
-  // Future<void> delete() async {
-  //   await showDialog<bool>(
-  //       context: context,
-  //       builder: (context) => BlocProvider(
-  //           create: (context) => PromptCubit(),
-  //           child: DeleteAudioTextPopUp(
-  //             diary: widget.diary,
-  //             loadedPrompt: widget.loadedPrompt,
-  //             path: widget.path,
-  //           )));
-  // }
 
   Widget slider() {
     return Column(
@@ -854,18 +827,8 @@ class TextAnswerCard extends StatefulWidget {
   final String answer;
   final VoidCallback? delete;
   final VoidCallback? edit;
-  final DiaryModel diary;
-  final PromptModel loadedPrompt;
-  final String? path;
-
   const TextAnswerCard(
-      {super.key,
-      required this.answer,
-      this.delete,
-      this.edit,
-      required this.diary,
-      required this.loadedPrompt,
-      this.path});
+      {super.key, required this.answer, this.delete, this.edit});
 
   @override
   State<TextAnswerCard> createState() => _TextAnswerCardState();
@@ -908,12 +871,7 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
 
   Future<void> delete() async {
     final results = await showDialog<bool>(
-        context: context,
-        builder: (context) => DeleteAudioTextPopUp(
-              diary: widget.diary,
-              loadedPrompt: widget.loadedPrompt,
-              path: '',
-            ));
+        context: context, builder: (context) => const DeletePopUp());
 
     if (results == true) {
       widget.delete!();

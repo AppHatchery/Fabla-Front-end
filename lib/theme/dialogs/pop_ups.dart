@@ -1,11 +1,7 @@
-import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
-import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../components/buttons.dart';
 import '../components/checkboxes.dart';
@@ -1379,91 +1375,7 @@ class DeletePopUp extends StatelessWidget {
                   ),
                   Expanded(
                     child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, false),
-                      text: "Delete",
-                      color: CustomColors.warningActive,
-                    ),
-                  ),
-                ],
-              )
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class DeleteAudioTextPopUp extends StatelessWidget {
-  final DiaryModel diary;
-  final PromptModel loadedPrompt;
-  final String path;
-
-  const DeleteAudioTextPopUp({
-    super.key,
-    required this.diary,
-    required this.loadedPrompt,
-    required this.path,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    void deleteResponse() {
-      final promptCubit = context.read<PromptCubit>();
-      promptCubit.removeResponse(diary, loadedPrompt, path);
-      promptCubit.loadPrompt(diary, loadedPrompt);
-      Navigator.pop(context, true);
-    }
-
-    return SimpleDialog(
-      contentPadding: const EdgeInsets.all(0),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: Colors.grey, width: 1)),
-      surfaceTintColor: CustomColors.fillWhite,
-      children: [
-        Container(
-          constraints: const BoxConstraints.tightFor(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Title
-              Text(
-                "Delete Your Response?",
-                style: CustomTypography().headlineMedium(),
-              ),
-
-              const SizedBox(
-                height: 24,
-              ),
-
-              // Message
-              Text(
-                "Deleting a reply only deletes the recording on the device. Continue deleting?",
-                style: CustomTypography().bodyLarge(),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(
-                height: 24,
-              ),
-
-              // Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, false),
-                      text: "Cancel",
-                      color: CustomColors.greyLight,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 18,
-                  ),
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: deleteResponse,
+                      onClick: () => Navigator.pop(context, true),
                       text: "Delete",
                       color: CustomColors.warningActive,
                     ),

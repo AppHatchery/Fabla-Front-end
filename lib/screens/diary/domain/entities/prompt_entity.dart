@@ -60,22 +60,8 @@ class Prompt {
       required: model.required,
     );
 
-    if (model.answer != null) {
-      entity.answers.insert(0, model.answer!);
-    } else {
-      entity.answers.clear();
-    }
+    if(model.answer != null){entity.answers.insert(0, model.answer!);}
 
     return entity;
-  }
-  Prompt copyWith({List<Answer>? answers}) {
-    return Prompt(
-      id: id,
-      question: question,
-      responseType: responseType,
-      option: option,
-      subtitle: subtitle,
-      required: required,
-    );
   }
 }

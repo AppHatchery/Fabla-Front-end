@@ -310,12 +310,12 @@ class QuestionPage extends StatefulWidget {
 class _QuestionPageState extends State<QuestionPage>
     with WidgetsBindingObserver {
   late PromptCubit promptCubit;
-  late PromptModel promptModel;
+  late PromptModel prompt;
 
   bool isChecked = false;
   bool disabled = false;
 
-  void updateSliderValue(PromptModel prompt, double value) {
+  void updateSliderValue(double value) {
     save(prompt, value.toString(), null);
     widget.answerAdded(true);
   }
@@ -326,7 +326,7 @@ class _QuestionPageState extends State<QuestionPage>
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
-    promptModel = widget.prompt;
+    prompt = widget.prompt;
     promptCubit = BlocProvider.of<PromptCubit>(context);
     loadPrompt();
 
@@ -371,7 +371,7 @@ class _QuestionPageState extends State<QuestionPage>
         },
         listener: (context, state) {
           if (state is PromptRespondState) {
-            recordResponse(promptModel, "");
+            recordResponse("");
           } else if (state is PromptResponseSuccess) {
             showSuccessModal();
           } else if (state is PromptResponseError) {
@@ -413,7 +413,7 @@ class _QuestionPageState extends State<QuestionPage>
         scaleMax: prompt.option!.maxValue!,
         scaleMinText: prompt.option!.startText,
         scaleMaxText: prompt.option!.endText,
-        onSliderValueChanged: (value) => updateSliderValue(prompt, value),
+        onSliderValueChanged: (value) => updateSliderValue(value),
         isSliderEnabled: !disabled,
       );
     } else if (prompt.responseType == ResponseType.multiple) {
@@ -468,11 +468,9 @@ class _QuestionPageState extends State<QuestionPage>
       );
     } else if (prompt.responseType == ResponseType.recording ||
         prompt.responseType == ResponseType.textAudio) {
-      print("FROM NEW DIARY WIDGET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-      print(prompt.answer?.recordings);
       responseWidget = AudioTextCard(
         diary: widget.diary,
-        respond: (String type) => recordResponse(prompt, type),
+        respond: (String type) => recordResponse(type),
         prompt: prompt,
       );
     } else {
@@ -572,7 +570,7 @@ class _QuestionPageState extends State<QuestionPage>
   }
 
   void loadPrompt() {
-    promptCubit.loadPrompt(widget.diary, promptModel);
+    promptCubit.loadPrompt(widget.diary, prompt);
   }
 
   ///Checks whether the provided prompt has a response
@@ -590,7 +588,7 @@ class _QuestionPageState extends State<QuestionPage>
     widget.answerAdded(isValidResponse);
   }
 
-  void recordResponse(PromptModel prompt, String type) {
+  void recordResponse(String type) {
     if (type == "audio") {
       showModalBottomSheet(
           backgroundColor: Colors.transparent,

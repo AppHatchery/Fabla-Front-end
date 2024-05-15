@@ -60,11 +60,7 @@ class PromptDAO {
   /// - [prompt]: The Prompt object to be updated in the database.
   void updatePrompt(Prompt prompt) {
     // Update the prompt in the database
-    print("PROMPT BEFORE UPDATING ${prompt.id}  ${prompt.answers == null}");
     box.put(prompt);
-
-    final newPrompt = getPrompt(prompt.id);
-    print("Is it available: ${newPrompt != null}");
   }
 
   /// Removes an item from the database by its ID.

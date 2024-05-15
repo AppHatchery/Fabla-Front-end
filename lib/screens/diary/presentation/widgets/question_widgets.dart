@@ -317,9 +317,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            widget.prompt.answer == null ||
-                        widget.prompt.answer!.recordings.isEmpty ??
-                    true
+            widget.prompt.answer == null
                 ? Column(
                     children: [
                       CustomRecordButton(
