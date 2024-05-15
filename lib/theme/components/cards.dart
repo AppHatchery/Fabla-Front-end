@@ -117,7 +117,8 @@ class DiaryCard extends StatelessWidget {
                           ? CustomColors.fillWhite
                           : CustomColors.productNormal,
                       borderRadius: BorderRadius.circular(100),
-                      border: Border.all(color: CustomColors.productNormal, width: 2)),
+                      border: Border.all(
+                          color: CustomColors.productNormal, width: 2)),
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -826,7 +827,7 @@ class _NewAudioCardState extends State<NewAudioCard> {
 class TextAnswerCard extends StatefulWidget {
   final String answer;
   final VoidCallback? delete;
-  final VoidCallback? edit;
+  final void Function(String)? edit;
   const TextAnswerCard(
       {super.key, required this.answer, this.delete, this.edit});
 
@@ -854,7 +855,11 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
               overflow: TextOverflow.ellipsis),
         ),
         IconButton(
-          onPressed: () => widget.edit,
+          onPressed: () {
+            if (widget.edit != null) {
+              widget.edit!("text");
+            }
+          },
           icon: const Icon(Icons.edit),
           color: CustomColors.productNormal,
           iconSize: 20,

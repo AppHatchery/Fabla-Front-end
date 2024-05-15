@@ -333,6 +333,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
                   )
                 : MyResponse(
                     diary: widget.diary,
+                    edit: widget.respond,
                     prompt: widget.prompt,
                     recordings: widget.prompt.answer?.recordings ?? [])
           ],

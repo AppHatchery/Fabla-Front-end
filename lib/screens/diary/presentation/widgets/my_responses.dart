@@ -18,9 +18,11 @@ class MyResponse extends StatefulWidget {
   final DiaryModel diary;
   final PromptModel prompt;
   final List<Recording> recordings;
+  final void Function(String) edit;
 
   const MyResponse({
     super.key,
+    required this.edit,
     required this.diary,
     required this.prompt,
     required this.recordings,
@@ -50,6 +52,7 @@ class _MyResponseState extends State<MyResponse> {
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
+                  edit: widget.edit,
                   answer: widget.prompt.answer!.response!,
                   delete: () => deleteResponse(widget.prompt, ''),
                 ),
