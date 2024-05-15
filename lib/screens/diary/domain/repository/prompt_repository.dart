@@ -125,7 +125,11 @@ class PromptRepository {
       }
 
       //update the prompt
+      //Removing the recordings
       answer.recordings.clear();
+
+      //Removing the response for text questions
+      answer.response = null;
       final updatedPrompt = Prompt.fromModel(prompt.copyWith(answer: answer));
       updatedPrompt.diary.target = diary;
       _promptDAO.updatePrompt(updatedPrompt);
