@@ -192,20 +192,6 @@ class _StudyCalendarState extends State<StudyCalendar> {
             },
             eventLoader: getDiariesForDay,
             calendarBuilders: CalendarBuilders(
-              singleMarkerBuilder: (context, date, event) {
-                isBeforeToday = date.isBefore(today);
-                final color = isBeforeToday
-                    ? CustomColors.textTertiaryContent
-                    : CustomColors.productNormalActive;
-                return Container(
-                  width: 7.0,
-                  height: 7.0,
-                  decoration:
-                      BoxDecoration(shape: BoxShape.circle, color: color),
-                  margin: const EdgeInsets.symmetric(
-                      vertical: 4.0, horizontal: 1.5),
-                );
-              },
               headerTitleBuilder: (context, day) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
@@ -247,31 +233,6 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   ],
                 ),
               ),
-              todayBuilder: (context, date, time) {
-                final color = (today == selectedDate || date == selectedDate)
-                    ? CustomColors.productNormal
-                    : CustomColors.productLightBackground;
-
-                final textColor =
-                    (today == selectedDate || date == selectedDate)
-                        ? CustomColors.textWhite
-                        : CustomColors.textTertiaryContent;
-
-                return Center(
-                  child: Container(
-                    width: 35,
-                    height: 35,
-                    margin: const EdgeInsets.only(bottom: 4),
-                    alignment: Alignment.center,
-                    decoration:
-                        BoxDecoration(shape: BoxShape.circle, color: color),
-                    child: Text(
-                      date.day.toString(),
-                      style: CustomTypography().bodyLarge(color: textColor),
-                    ),
-                  ),
-                );
-              },
               dowBuilder: (context, day) {
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
@@ -310,6 +271,44 @@ class _StudyCalendarState extends State<StudyCalendar> {
                       style: CustomTypography().bodyMedium(color: textColor),
                     ),
                   ),
+                );
+              },
+              todayBuilder: (context, date, time) {
+                final color = (today == selectedDate || date == selectedDate)
+                    ? CustomColors.productNormal
+                    : CustomColors.productLightBackground;
+
+                final textColor =
+                    (today == selectedDate || date == selectedDate)
+                        ? CustomColors.textWhite
+                        : CustomColors.textTertiaryContent;
+                return Center(
+                  child: Container(
+                    width: 35,
+                    height: 35,
+                    margin: const EdgeInsets.only(bottom: 4),
+                    alignment: Alignment.center,
+                    decoration:
+                        BoxDecoration(shape: BoxShape.circle, color: color),
+                    child: Text(
+                      date.day.toString(),
+                      style: CustomTypography().bodyLarge(color: textColor),
+                    ),
+                  ),
+                );
+              },
+              singleMarkerBuilder: (context, date, event) {
+                isBeforeToday = date.isBefore(today);
+                final color = isBeforeToday
+                    ? CustomColors.textTertiaryContent
+                    : CustomColors.productNormalActive;
+                return Container(
+                  width: 7.0,
+                  height: 7.0,
+                  decoration:
+                      BoxDecoration(shape: BoxShape.circle, color: color),
+                  margin: const EdgeInsets.symmetric(
+                      vertical: 6.0, horizontal: 1.5),
                 );
               },
             ),
