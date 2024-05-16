@@ -116,9 +116,12 @@ class AnswerRepository {
   /// await removeResponse(myPrompt, '/path/to/recording.wav');
   /// ```
   Future<void> removeResponse(PromptModel prompt, String path) async {
+    final answer = prompt.answer;
     if (prompt.answer?.recordings.isEmpty ?? true) {
-      prompt.answer!.response = null;
-      dao.removeResponse(prompt.answer!.id);
+      prompt.answer!.response = "";
+      if (prompt.answer != null) {
+        dao.updateResponse(answer!);
+      }
     } else {
       try {
         // Delete the recording file from the file system
@@ -128,17 +131,11 @@ class AnswerRepository {
         final file = File(_path);
         await file.delete();
 
-        final answer = prompt.answer;
         if (answer != null) {
           // Remove the recording from the answer's recordings list
           answer.recordings.removeWhere((recording) => recording.path == path);
 
-          // Update or remove the answer based on the remaining recordings
-          if (answer.recordings.isNotEmpty) {
-            dao.updateResponse(answer);
-          } else {
-            dao.removeResponse(answer.id);
-          }
+          dao.updateResponse(answer);
         }
       } catch (e) {
         print("Catch Error: $e");

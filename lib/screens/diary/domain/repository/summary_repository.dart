@@ -74,11 +74,13 @@ class SummaryRepository {
   /// Note:
   /// Any exceptions that occur during the removal process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
-  void removeResponse(PromptModel prompt, String path) {
+  Future<bool> removeResponse(PromptModel prompt, String path) async {
     try {
-      answerRepository.removeResponse(prompt, path);
+      await answerRepository.removeResponse(prompt, path);
+      return true;
     } catch (e) {
       print("Error deleting response: $e");
+      return false;
     }
   }
 
