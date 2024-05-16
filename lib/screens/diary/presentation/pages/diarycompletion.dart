@@ -70,68 +70,70 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Stack(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 5.0),
-                      child: avatarCircularProgress(protocol, diary),
-                    ),
-                    Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 5,
-                              height: 10,
-                              color: Colors.white,
-                            ),
-                          ],
-                        )),
-                    Container(
-                      height: 120,
-                      width: 120,
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.only(top: 5),
-                      child: Image.asset(
-                        "assets/images/avatar_complete.png",
-                        width: 80,
-                        height: 80,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5.0),
+                        child: avatarCircularProgress(protocol, diary),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
-                Text(
-                  "Thanks for your response!",
-                  style: CustomTypography().headlineMedium(),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
-                Text(
-                  "Your input is incredibly valuable for our study's progress. We can't wait to hear from you again soon!",
-                  style: CustomTypography().bodyLarge(),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
-                CompleteCalendarWidget(
-                  diaries: diaries,
-                  dailyGoal: protocol.dailyGoal,
-                  weeklyGoal: protocol.weeklyGoal,
-                )
-              ],
+                      Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 5,
+                                height: 10,
+                                color: Colors.white,
+                              ),
+                            ],
+                          )),
+                      Container(
+                        height: 120,
+                        width: 120,
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.only(top: 5),
+                        child: Image.asset(
+                          "assets/images/avatar_complete.png",
+                          width: 80,
+                          height: 80,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 24,
+                  ),
+                  Text(
+                    "Thanks for your response!",
+                    style: CustomTypography().headlineMedium(),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(
+                    height: 24,
+                  ),
+                  Text(
+                    "Your input is incredibly valuable for our study's progress. We can't wait to hear from you again soon!",
+                    style: CustomTypography().bodyLarge(),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(
+                    height: 24,
+                  ),
+                  CompleteCalendarWidget(
+                    diaries: diaries,
+                    dailyGoal: protocol.dailyGoal,
+                    weeklyGoal: protocol.weeklyGoal,
+                  )
+                ],
+              ),
             ),
           ),
           Align(

@@ -312,30 +312,32 @@ class AudioTextCard extends StatefulWidget {
 class _AudioTextCardState extends State<AudioTextCard> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            widget.prompt.answer == null
-                ? Column(
-                    children: [
-                      CustomRecordButton(
-                        onClick: () => widget.respond("audio"),
-                        text: "Record My Response",
-                      ),
-                      CustomTextAnswerButton(
-                        onClick: () => widget.respond("text"),
-                        text: "Text My Response",
-                      ),
-                    ],
-                  )
-                : MyResponse(
-                    diary: widget.diary,
-                    prompt: widget.prompt,
-                    recordings: widget.prompt.answer?.recordings ?? [])
-          ],
-        ));
+    return SingleChildScrollView(
+      child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              widget.prompt.answer == null
+                  ? Column(
+                      children: [
+                        CustomRecordButton(
+                          onClick: () => widget.respond("audio"),
+                          text: "Record My Response",
+                        ),
+                        CustomTextAnswerButton(
+                          onClick: () => widget.respond("text"),
+                          text: "Text My Response",
+                        ),
+                      ],
+                    )
+                  : MyResponse(
+                      diary: widget.diary,
+                      prompt: widget.prompt,
+                      recordings: widget.prompt.answer?.recordings ?? [])
+            ],
+          )),
+    );
   }
 }
 
