@@ -159,8 +159,14 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                   ),
                 ],
               ),
-              getResponseWidget(prompt)
-              ],
+              prompt.responseType == ResponseType.recording
+                  ? (prompt.answer?.recordings.isEmpty ?? true)
+                      ? prompt.answer?.response?.isEmpty ?? true
+                          ? Container()
+                          : getResponseWidget(prompt)
+                      : getResponseWidget(prompt)
+                  : getResponseWidget(prompt)
+            ],
           ),
         ),
         const SizedBox(height: 12),
@@ -203,9 +209,11 @@ class _ReviewDiaryState extends State<ReviewDiary> {
           selectedOption: prompt.answer!.response!,
         );
       case ResponseType.recording:
-        return prompt.answer!.recordings.isEmpty ? Padding(
+        return prompt.answer!.recordings.isEmpty
+            ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
+                  ableToContinue: true,
                   answer: prompt.answer!.response!,
                   delete: () => deleteResponse(prompt, ''),
                 ),
@@ -218,6 +226,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
                     child: NewAudioCard(
+                      ableToDelete: true,
                       recording: prompt.answer!.recordings[index],
                       delete: () => deleteResponse(
                           prompt, prompt.answer!.recordings[index].path),

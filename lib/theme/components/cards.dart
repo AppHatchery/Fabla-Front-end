@@ -659,11 +659,13 @@ class NewAudioCard extends StatefulWidget {
   final VoidCallback? delete;
   final bool viewOnly;
   final int promptId;
+  final bool? ableToDelete;
   const NewAudioCard(
       {super.key,
       required this.recording,
       this.delete,
       required this.viewOnly,
+      this.ableToDelete,
       required this.promptId});
 
   @override
@@ -736,7 +738,7 @@ class _NewAudioCardState extends State<NewAudioCard> {
                 "study_date": "${DateTime.now()}",
                 "prompt_number": "${widget.promptId + 1}"
               });
-              delete();
+              widget.ableToDelete ?? false ? delete() : () {};
             },
             icon: const Icon(CupertinoIcons.delete),
             color: CustomColors.warningActive,
@@ -827,9 +829,14 @@ class _NewAudioCardState extends State<NewAudioCard> {
 class TextAnswerCard extends StatefulWidget {
   final String answer;
   final VoidCallback? delete;
+  final bool? ableToContinue;
   final void Function(String)? edit;
   const TextAnswerCard(
-      {super.key, required this.answer, this.delete, this.edit});
+      {super.key,
+      required this.answer,
+      this.delete,
+      this.edit,
+      this.ableToContinue});
 
   @override
   State<TextAnswerCard> createState() => _TextAnswerCardState();
@@ -865,7 +872,9 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
           iconSize: 20,
         ),
         IconButton(
-          onPressed: () => delete(),
+          onPressed: () {
+            widget.ableToContinue ?? false ? delete() : () {};
+          },
           icon: const Icon(CupertinoIcons.delete),
           color: CustomColors.warningActive,
           iconSize: 20,

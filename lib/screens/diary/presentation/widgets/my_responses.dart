@@ -65,6 +65,7 @@ class _MyResponseState extends State<MyResponse> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
                     child: NewAudioCard(
+                      ableToDelete: true,
                       recording: widget.recordings[index],
                       delete: () => deleteResponse(
                           widget.prompt, widget.recordings[index].path),
