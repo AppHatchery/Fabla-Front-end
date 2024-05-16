@@ -29,13 +29,8 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
         _controller = ctrl;
       });
 
-      Future.delayed(const Duration(milliseconds: 10), () {
-        // final arrival = _controller.findSMI('First arrival');
-        // if (arrival != null) {
-        //   arrival.value = true;
-        // }
-        determineAnimation();
-      });
+      Future.delayed(
+          const Duration(milliseconds: 10), () => determineAnimation());
     }
   }
 
@@ -47,14 +42,19 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      top: 0,
-      bottom: 0,
-      right: 0,
-      left: 0,
-      child: RiveAnimation.asset(
-        'assets/animations/ghosts.riv',
-        onInit: _onInit,
+    return Align(
+      alignment: Alignment.center,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 5.0),
+        child: SizedBox(
+          height: 120,
+          width: 180,
+          child: RiveAnimation.asset(
+            'assets/animations/ghosts.riv',
+            onInit: _onInit,
+            fit: BoxFit.cover,
+          ),
+        ),
       ),
     );
   }

@@ -6,7 +6,6 @@ import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
 
@@ -52,6 +51,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     final entry = widget.diary.status == DiaryStatus.submitted
         ? widget.diary.entries
         : widget.diary.currentEntry;
@@ -66,49 +66,63 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         const SizedBox(height: 16),
         Align(
           alignment: Alignment.center,
-          child: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 5.0),
-                child: SizedBox(
-                    height: 120,
-                    width: 120,
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0.0, end: 0.5),
-                      duration: const Duration(milliseconds: 1000),
-                      builder: (context, value, _) => CircularProgressIndicator(
-                        strokeWidth: 5,
-                        value: dailyValue,
-                        backgroundColor: CustomColors.productLightBackground,
-                        color: CustomColors.productNormal,
-                      ),
-                    )),
-              ),
-              Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 5,
-                        height: 10,
-                        color: Colors.white,
-                      ),
-                    ],
-                  )),
-              Positioned(
-                top: 0,
-                bottom: 0,
-                right: 0,
-                left: 0,
-                child: RiveAnimation.asset(
-                  'assets/animations/ghosts.riv',
-                  onInit: _onInit,
+          child: SizedBox(
+            height: 150,
+            width: width,
+            child: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 5.0),
+                    child: SizedBox(
+                        height: 150,
+                        width: 150,
+                        child: TweenAnimationBuilder<double>(
+                          tween: Tween<double>(begin: 0.0, end: 0.5),
+                          duration: const Duration(milliseconds: 1000),
+                          builder: (context, value, _) =>
+                              CircularProgressIndicator(
+                            strokeWidth: 5,
+                            value: dailyValue,
+                            backgroundColor:
+                                CustomColors.productLightBackground,
+                            color: CustomColors.productNormal,
+                          ),
+                        )),
+                  ),
                 ),
-              ),
-            ],
+                Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 5,
+                          height: 10,
+                          color: Colors.white,
+                        ),
+                      ],
+                    )),
+                Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 5.0),
+                    child: SizedBox(
+                      height: 120,
+                      width: 180,
+                      child: RiveAnimation.asset(
+                        'assets/animations/ghosts.riv',
+                        onInit: _onInit,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 16),

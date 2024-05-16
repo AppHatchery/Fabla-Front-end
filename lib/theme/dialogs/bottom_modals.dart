@@ -49,6 +49,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   RecorderState recorderState = RecorderState.isStopped;
   final ValueNotifier<bool> _erase = ValueNotifier<bool>(false);
 
+  ScrollController scrollController = ScrollController();
+
   //Animation
   late StateMachineController _controller;
 
@@ -81,6 +83,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   void dispose() {
     recorder.closeRecorder();
     _controller.dispose();
+    scrollController.dispose();
     super.dispose();
   }
 
@@ -130,7 +133,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     final screenHeight = MediaQuery.of(context).size.height;
 
     return SingleChildScrollView(
-      reverse: screenHeight > 750 ? true : false,
+      reverse: screenHeight > 850 ? true : false,
+      controller: scrollController,
       child: Column(
         children: [
           Padding(
@@ -381,6 +385,16 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Future<void> record() async {
     final hasPermission = await checkAndRequestPermission();
+
+    //Check if scroll controller is already at the bottom
+    if (mounted) {
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeIn,
+      );
+    }
+
     if (hasPermission) {
       if (recorder.isRecording) {
         await recorder.pauseRecorder();
