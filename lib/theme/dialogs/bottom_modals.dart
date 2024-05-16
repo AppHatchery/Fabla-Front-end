@@ -13,6 +13,7 @@ import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:rive/rive.dart';
 
 import '../../core/utils/formatter.dart';
 import '../components/buttons.dart';
@@ -48,6 +49,28 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   RecorderState recorderState = RecorderState.isStopped;
   final ValueNotifier<bool> _erase = ValueNotifier<bool>(false);
 
+  //Animation
+  late StateMachineController _controller;
+
+  void _onInit(Artboard art) {
+    var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
+
+    ctrl?.isActive = false;
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+      });
+
+      Future.delayed(const Duration(milliseconds: 10), () {
+        final searchingThree = _controller.findSMI('Searching_3');
+        if (searchingThree != null && mounted) {
+          searchingThree.value = true;
+        }
+      });
+    }
+  }
+
   @override
   void initState() {
     recorderInit();
@@ -57,6 +80,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   @override
   void dispose() {
     recorder.closeRecorder();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -121,10 +145,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 const SizedBox(
                   height: 32,
                 ),
-                Image.asset(
-                  "assets/images/avatar_recording.png",
-                  height: 64,
-                  width: 64,
+                SizedBox(
+                  height: 100,
+                  width: 100,
+                  child: RiveAnimation.asset(
+                    'assets/animations/ghosts.riv',
+                    onInit: _onInit,
+                  ),
                 ),
                 const SizedBox(
                   height: 16,
@@ -451,6 +478,28 @@ class _BottomTextModalState extends State<BottomTextModal>
   late OverlayEntry? _overlayEntry;
   double keyboardHeight = 0;
 
+  //Animation
+  late StateMachineController _controller;
+
+  void _onInit(Artboard art) {
+    var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
+
+    ctrl?.isActive = false;
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+      });
+
+      Future.delayed(const Duration(milliseconds: 10), () {
+        final searchingOne = _controller.findSMI('Searching_1');
+        if (searchingOne != null && mounted) {
+          searchingOne.value = true;
+        }
+      });
+    }
+  }
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -464,6 +513,7 @@ class _BottomTextModalState extends State<BottomTextModal>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     textController.dispose();
+    _controller.dispose();
     hideOverlay();
     super.dispose();
   }
@@ -580,10 +630,13 @@ class _BottomTextModalState extends State<BottomTextModal>
           const SizedBox(
             height: 32,
           ),
-          Image.asset(
-            "assets/images/avatar_recording.png",
-            height: 64,
-            width: 64,
+          SizedBox(
+            height: 100,
+            width: 100,
+            child: RiveAnimation.asset(
+              'assets/animations/ghosts.riv',
+              onInit: _onInit,
+            ),
           ),
           const SizedBox(
             height: 16,

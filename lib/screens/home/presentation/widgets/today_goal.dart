@@ -14,14 +14,12 @@ class TodayGoalWidget extends StatefulWidget {
   final int dailyGoal;
   final Protocol protocol;
   final DiaryModel diary;
-  final bool coldStart;
   final int weeklyEntries;
   const TodayGoalWidget(
       {super.key,
       required this.dailyGoal,
       required this.protocol,
       required this.diary,
-      required this.coldStart,
       required this.weeklyEntries});
 
   @override
@@ -44,6 +42,12 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       Future.delayed(
           const Duration(milliseconds: 10), () => determineAnimation());
     }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -131,15 +135,21 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   }
 
   determineAnimation() async {
-    if (widget.coldStart) {
+    final coldStart =
+        await PreferenceService().getBoolPreference(key: 'cold_start') ?? true;
+
+    if (coldStart) {
       final arrival = _controller.findSMI('First arrival');
-      if (arrival != null) {
+      if (arrival != null && mounted) {
         arrival.value = true;
       }
 
       //set cold start in shared pref
       await PreferenceService()
           .setBoolPreference(key: 'cold_start', value: false);
+
+      // change animation after 30 seconds
+      Future.delayed(const Duration(seconds: 30), () => determineAnimation());
     }
 
     //Show Searching 1 or Searching 2 if there is no entry
@@ -151,7 +161,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       final random = Random().nextInt(2);
       final animation = random == 0 ? searchingOne : searchingTwo;
 
-      if (animation != null) {
+      if (animation != null && mounted) {
         animation.value = true;
       }
       return;
@@ -161,7 +171,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     if (widget.diary.currentEntry == widget.protocol.dailyGoal) {
       final blowing = _controller.findSMI('Blinking + Blowing the horn');
 
-      if (blowing != null) {
+      if (blowing != null && mounted) {
         blowing.value = true;
       }
       return;
@@ -172,7 +182,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         widget.weeklyEntries == widget.protocol.weeklyGoal) {
       final achieving = _controller.findSMI('Achieving the goal ');
 
-      if (achieving != null) {
+      if (achieving != null && mounted) {
         achieving.value = true;
       }
       return;
@@ -183,7 +193,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         widget.weeklyEntries > widget.protocol.weeklyGoal) {
       final beyond = _controller.findSMI('Beyond the goal ');
 
-      if (beyond != null) {
+      if (beyond != null && mounted) {
         beyond.value = true;
       }
       return;
@@ -192,7 +202,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     //Show Searching 3 if there is an entry or more
     if (widget.diary.currentEntry > 0) {
       final searchingThree = _controller.findSMI('Searching_3');
-      if (searchingThree != null) {
+      if (searchingThree != null && mounted) {
         searchingThree.value = true;
       }
       return;

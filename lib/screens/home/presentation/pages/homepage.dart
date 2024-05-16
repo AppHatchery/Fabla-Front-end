@@ -35,14 +35,12 @@ class _HomePageState extends State<HomePage>
   late AnimationController _controller;
 
   bool isExpanded = false;
-  bool _coldStart = false;
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     homeCubit = BlocProvider.of<HomeCubit>(context);
     fetchData(context);
-    setColdBootPreference();
     _controller = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -195,7 +193,6 @@ class _HomePageState extends State<HomePage>
                           dailyGoal: protocol.dailyGoal,
                           protocol: protocol,
                           diary: diaries.first,
-                          coldStart: _coldStart,
                           weeklyEntries: weeklyEntries,
                         ),
                         const SizedBox(
@@ -229,15 +226,6 @@ class _HomePageState extends State<HomePage>
   void fetchData(BuildContext context) async {
     homeCubit.loadDiaries();
     diaries = homeCubit.getAllDiariesThisWeek();
-  }
-
-  setColdBootPreference() async {
-    final cold =
-        await PreferenceService().getBoolPreference(key: 'cold_start') ?? true;
-
-    setState(() {
-      _coldStart = cold;
-    });
   }
 
   void refresh(bool shouldRefresh) {

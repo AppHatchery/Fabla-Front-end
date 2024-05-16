@@ -40,6 +40,12 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Positioned(
       top: 0,
@@ -57,7 +63,7 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
     //Show Celebration if the daily goal is reached
     if (widget.currentEntry == widget.dailyGoal) {
       final celebration = _controller.findSMI('Celebration');
-      if (celebration != null) {
+      if (celebration != null && mounted) {
         celebration.value = true;
       }
       return;
@@ -66,7 +72,7 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
     //Show Cheering if the daily goal is exceeded
     if (widget.currentEntry < widget.dailyGoal) {
       final cheering = _controller.findSMI('Cheering');
-      if (cheering != null) {
+      if (cheering != null && mounted) {
         cheering.value = true;
       }
       return;
@@ -75,7 +81,7 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
     //Show Surprise + Approve if Current Entry is greater than Daily Goal
     if (widget.currentEntry > widget.dailyGoal) {
       final surprise = _controller.findSMI('Surprise + Approve');
-      if (surprise != null) {
+      if (surprise != null && mounted) {
         surprise.value = true;
       }
       return;
