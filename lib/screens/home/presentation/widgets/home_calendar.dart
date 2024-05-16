@@ -319,49 +319,55 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   _onDaySelected(DateTime selectedDay, DateTime focusedDate) {
-    setState(() {
-      focusedDay = focusedDate;
-      selectedDate = selectedDay;
+    if (selectedDay.isAfter(DateTime.now()) ||
+        DateUtils.isSameDay(DateTime.now(), selectedDay)) {
+      setState(() {
+        //reloading diaries bases on new selected date
 
-      //reloading diaries bases on new selected date
-      diaries = fetchDiaries(selectedDate);
-    });
+        focusedDay = selectedDay;
+        selectedDate = selectedDay;
+        diaries = fetchDiaries(selectedDate);
+      });
+    }
   }
 
   Widget entries() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-            DateUtils.isSameDay(DateTime.now(), selectedDate)
-                ? "Entries Due Today ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)}  "
-                : "Entries Due ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)} ",
-            style: CustomTypography().titleSmall()),
-        const SizedBox(height: 4),
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(
+          DateUtils.isSameDay(DateTime.now(), selectedDate)
+              ? "Entries Due Today ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)}  "
+              : "Entries Due ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)} ",
+          style: CustomTypography().titleSmall()),
+      const SizedBox(height: 4),
 
-        //Scrollable widget to display all entries due on selected date
-        diaries.isNotEmpty
-            ? ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: diaries.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10.0),
-                    child: DiaryCard(
-                      diary: diaries[index],
-                      refresh: (value) => widget.refresh(value),
-                      getPageName: widget.getPageName,
-                    ),
-                  );
-                },
-              )
-            : const Padding(
-                padding: EdgeInsets.symmetric(vertical: 10.0),
-                child: FreeDayWidget(),
-              )
-      ],
-    );
+      //Scrollable widget to display all entries due on selected date
+      diaries.isNotEmpty
+          ? ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: diaries.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                  child: DiaryCard(
+                    diary: diaries[index],
+                    refresh: (value) {
+                      if (value) {
+                        setState(() {
+                          widget.refresh(value);
+                        });
+                      }
+                    },
+                    getPageName: widget.getPageName,
+                  ),
+                );
+              },
+            )
+          : const Padding(
+              padding: EdgeInsets.symmetric(vertical: 10.0),
+              child: FreeDayWidget(),
+            )
+    ]);
   }
 
   getMonthYear(DateTime day) {
