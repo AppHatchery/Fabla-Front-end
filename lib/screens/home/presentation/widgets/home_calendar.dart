@@ -172,7 +172,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
             lastDay: DateTime.utc(2060, 3, 14),
             focusedDay: focusedDay,
             currentDay: today,
-            availableGestures: AvailableGestures.all,
+            availableGestures: AvailableGestures.horizontalSwipe,
             headerStyle: const HeaderStyle(
                 titleCentered: false,
                 formatButtonVisible: false,
