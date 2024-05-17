@@ -738,7 +738,7 @@ class _NewAudioCardState extends State<NewAudioCard> {
                 "study_date": "${DateTime.now()}",
                 "prompt_number": "${widget.promptId + 1}"
               });
-              widget.ableToDelete ?? false ? delete() : () {};
+              if (widget.ableToDelete ?? false) delete();
             },
             icon: const Icon(CupertinoIcons.delete),
             color: CustomColors.warningActive,
@@ -873,7 +873,7 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
         ),
         IconButton(
           onPressed: () {
-            widget.ableToContinue ?? false ? delete() : () {};
+            if (widget.ableToContinue ?? false) delete();
           },
           icon: const Icon(CupertinoIcons.delete),
           color: CustomColors.warningActive,
