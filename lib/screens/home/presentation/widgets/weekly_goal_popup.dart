@@ -17,9 +17,9 @@ class WeeklyGoalPopup extends StatefulWidget {
   State<WeeklyGoalPopup> createState() => _WeeklyGoalPopupState();
 }
 
-class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
+class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
+    with SingleTickerProviderStateMixin {
   String thisWeek = "";
-
   @override
   void initState() {
     thisWeek = getThisWeek();
@@ -47,13 +47,19 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
       color: Colors.white,
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           //THIS WEEK
-          Text(
-            thisWeek,
-            style: CustomTypography().caption(),
+          Wrap(
+            children: [
+              Text(
+                thisWeek,
+                style: CustomTypography().caption(),
+              ),
+            ],
           ),
+
           const SizedBox(
             height: 6,
           ),
@@ -78,9 +84,13 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
             height: 6,
           ),
           //INTRODUCTION
-          Text(
-            "Submit at least 4 repeatable entries this week to complete your goal.",
-            style: CustomTypography().caption(),
+          Wrap(
+            children: [
+              Text(
+                "Submit at least 4 repeatable entries this week to complete your goal.",
+                style: CustomTypography().caption(),
+              ),
+            ],
           ),
           const SizedBox(
             height: 6,
@@ -128,10 +138,21 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          const SizedBox(height: 20, width: 20),
-                          Text(
-                            "$currentValue",
-                            style: CustomTypography().caption(),
+                          Flexible(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  top:
+                                      20), // Adjust padding instead of using SizedBox
+                              child: Opacity(
+                                opacity: lowerGoal == progressBarWidth || weeklyGoal >= progressBarWidth
+                                    ? 0
+                                    : 1, // Hide the progress indicator when it reaches the lower goal
+                                child: Text(
+                                  "$currentValue",
+                                  style: CustomTypography().caption(),
+                                ),
+                              ),
+                            ),
                           )
                         ],
                       ),
@@ -142,13 +163,18 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
                       top: 0,
                       bottom: 0,
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Icon(CupertinoIcons.flag_fill,
                               color: CustomColors.productNormal, size: 17),
-                          Text(
-                            "$lowerValue",
-                            style: CustomTypography().caption(),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Flexible(
+                            child: Text(
+                              "$lowerValue",
+                              style: CustomTypography().caption(),
+                            ),
                           )
                         ],
                       ),
@@ -160,13 +186,15 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
                       top: 0,
                       bottom: 0,
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Icon(Icons.emoji_events_rounded,
                               color: CustomColors.productNormal, size: 20),
-                          Text(
-                            "$weeklyGoal",
-                            style: CustomTypography().caption(),
+                          Flexible(
+                            child: Text(
+                              "$weeklyGoal",
+                              style: CustomTypography().caption(),
+                            ),
                           )
                         ],
                       ),

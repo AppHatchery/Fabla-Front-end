@@ -10,14 +10,15 @@ class SubmitLoadingPage extends StatefulWidget {
   State<SubmitLoadingPage> createState() => _SubmitLoadingPageState();
 }
 
-class _SubmitLoadingPageState extends State<SubmitLoadingPage> {
-  String loadingText = "Submitting...";
+  class _SubmitLoadingPageState extends State<SubmitLoadingPage> {
+    String loadingText = "Submitting...";
+  bool _disposed = false;
 
   @override
   void initState() {
     super.initState();
     Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) {
+      if (!_disposed) {
         setState(() {
           loadingText = "Processing...";
         });
@@ -26,7 +27,13 @@ class _SubmitLoadingPageState extends State<SubmitLoadingPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+    @override
+    Widget build(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

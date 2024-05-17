@@ -51,7 +51,7 @@ void main() async {
     return true;
   };
   objectbox = await ObjectBox.create();
-  await configureAmplify();
+ //await configureAmplify();
   await NotificationService.init();
   await PendoService.init();
   final route = await RouteService().getRoute();

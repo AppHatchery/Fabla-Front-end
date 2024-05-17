@@ -53,7 +53,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     controllerInit();
     showTip();
     if (widget.diary.status == DiaryStatus.idle) {
-      participantsDiaryStartDate(widget.diary);
+      //participantsDiaryStartDate(widget.diary);
     }
     super.initState();
     WidgetsBinding.instance.addObserver(this);
@@ -137,7 +137,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                     if (widget.diary.status == DiaryStatus.ongoing) {
                       scheduleContinueDiaryNotifications(widget.diary.id);
                     }
-                    partialDataUpload(widget.diary);
+                    //partialDataUpload(widget.diary);
                     Navigator.pop(context, true);
                     PendoService.track("ExitSurvey", {
                       "Question_number_at_exit": "${currentPage + 1}",
@@ -345,7 +345,7 @@ class _QuestionPageState extends State<QuestionPage>
       case AppLifecycleState.paused:
         if (widget.diary.status == DiaryStatus.ongoing) {
           scheduleContinueDiaryNotifications(widget.diary.id);
-          partialDataUpload(widget.diary);
+          //partialDataUpload(widget.diary);
         }
         break;
       default:
@@ -680,10 +680,13 @@ class _QuestionPageState extends State<QuestionPage>
   }
 }
 
-Future<void> partialDataUpload(DiaryModel diary) async {
-  SetupRepository srepo = SetupRepository();
-  SummaryRepository surepo = SummaryRepository();
-  var diary2 = await surepo.loadSummary(diary);
 
-  upload(srepo.getParticipant()!.studyCode, diary2);
-}
+//TODO: TO BE REMOVED
+
+// Future<void> partialDataUpload(DiaryModel diary) async {
+//   SetupRepository srepo = SetupRepository();
+//   SummaryRepository surepo = SummaryRepository();
+//   var diary2 = await surepo.loadSummary(diary);
+
+//   upload(srepo.getParticipant()!.studyCode, diary2);
+// }
