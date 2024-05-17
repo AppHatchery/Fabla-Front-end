@@ -25,7 +25,7 @@ class AudioQuestionsWidget extends StatelessWidget {
     double textScale = MediaQuery.of(context).textScaler.scale(1);
 
     //Conditions for making the page scrollable or not
-    bool isSmallScreen = height < 550 || textScale > 1.3;
+    bool isSmallScreen = height < 550 || textScale > 1.2;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),

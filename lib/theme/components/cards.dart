@@ -59,7 +59,7 @@ class DiaryCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Icon(
                     Icons.restart_alt_outlined,
@@ -76,7 +76,9 @@ class DiaryCard extends StatelessWidget {
                     width: 12,
                   ),
                   diary?.tags != null && diary!.tags!.isNotEmpty
-                      ? TagPill(tag: diary!.tags!.first)
+                      ? Flexible(
+                          fit: FlexFit.loose,
+                          child: TagPill(tag: diary!.tags!.first))
                       : const SizedBox.shrink(),
                 ],
               ),
@@ -117,7 +119,8 @@ class DiaryCard extends StatelessWidget {
                           ? CustomColors.fillWhite
                           : CustomColors.productNormal,
                       borderRadius: BorderRadius.circular(100),
-                      border: Border.all(color: CustomColors.productNormal, width: 2)),
+                      border: Border.all(
+                          color: CustomColors.productNormal, width: 2)),
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -254,8 +257,8 @@ class TagPill extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Icon(
             icon,
@@ -265,9 +268,11 @@ class TagPill extends StatelessWidget {
           const SizedBox(
             width: 5,
           ),
-          Text(tag.text,
-              style: CustomTypography()
-                  .bodyMedium(color: foreground, weight: FontWeight.w500)),
+          Flexible(
+            child: Text(tag.text,
+                style: CustomTypography()
+                    .bodyMedium(color: foreground, weight: FontWeight.w500)),
+          ),
         ],
       ),
     );
