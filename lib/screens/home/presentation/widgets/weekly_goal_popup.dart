@@ -86,9 +86,12 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
           //INTRODUCTION
           Wrap(
             children: [
-              Text(
-                "Submit at least 4 repeatable entries this week to complete your goal.",
-                style: CustomTypography().caption(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                child: Text(
+                  "Submit at least 4 repeatable entries this week to complete your goal.",
+                  style: CustomTypography().caption(),
+                ),
               ),
             ],
           ),
@@ -144,7 +147,8 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                                   top:
                                       20), // Adjust padding instead of using SizedBox
                               child: Opacity(
-                                opacity: lowerGoal == progressBarWidth || weeklyGoal >= progressBarWidth
+                                opacity: lowerGoal == progressBarWidth ||
+                                        weeklyGoal >= progressBarWidth
                                     ? 0
                                     : 1, // Hide the progress indicator when it reaches the lower goal
                                 child: Text(

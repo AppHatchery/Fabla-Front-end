@@ -44,8 +44,8 @@ class DiaryCard extends StatelessWidget {
         boxShadow: const [
           BoxShadow(
             color: CustomColors.productBorderNormal,
-            blurRadius: 10,
-            offset: Offset(0, 0),
+            blurRadius: 2,
+            offset: Offset(0, 3),
           ),
         ],
         shape: BoxShape.rectangle,
