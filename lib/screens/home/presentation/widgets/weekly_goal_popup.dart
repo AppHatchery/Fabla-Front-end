@@ -64,7 +64,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
             children: [
               const Icon(
                 Icons.restart_alt_outlined,
-                color: CustomColors.productNormal,
+                color: CustomColors.purpleNormal,
                 size: 20,
               ),
               const SizedBox(width: 6),
@@ -75,7 +75,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
             ],
           ),
           const SizedBox(
-            height: 2,
+            height: 6,
           ),
           //INTRODUCTION
           Text(

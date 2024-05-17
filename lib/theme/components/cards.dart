@@ -58,27 +58,29 @@ class DiaryCard extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.restart_alt_outlined,
-                    color: CustomColors.productNormal,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    "Routine Entry",
-                    style:
-                        CustomTypography().bodyMedium(weight: FontWeight.w500),
-                  ),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                  diary?.tags != null && diary!.tags!.isNotEmpty
-                      ? TagPill(tag: diary!.tags!.first)
-                      : const SizedBox.shrink(),
-                ],
+              child: Flexible(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.restart_alt_outlined,
+                      color: CustomColors.productNormal,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Routine Entry",
+                      style: CustomTypography()
+                          .bodyMedium(weight: FontWeight.w500),
+                    ),
+                    const SizedBox(
+                      width: 12,
+                    ),
+                    diary?.tags != null && diary!.tags!.isNotEmpty
+                        ? TagPill(tag: diary!.tags!.first)
+                        : const SizedBox.shrink(),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 6),
@@ -117,7 +119,8 @@ class DiaryCard extends StatelessWidget {
                           ? CustomColors.fillWhite
                           : CustomColors.productNormal,
                       borderRadius: BorderRadius.circular(100),
-                      border: Border.all(color: CustomColors.productNormal, width: 2)),
+                      border: Border.all(
+                          color: CustomColors.productNormal, width: 2)),
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),

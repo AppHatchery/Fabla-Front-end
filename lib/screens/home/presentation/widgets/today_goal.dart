@@ -64,8 +64,8 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                     children: [
                       Container(
                         width: 5,
-                        height: 10,
-                        color: Colors.white,
+                        height: 0,
+                        color: CustomColors.productLightBackground,
                       ),
                     ],
                   )),
@@ -89,7 +89,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
           children: [
             const Icon(
               Icons.restart_alt_outlined,
-              color: CustomColors.productNormal,
+              color: CustomColors.purpleNormal,
               size: 20,
             ),
             const SizedBox(width: 6),
