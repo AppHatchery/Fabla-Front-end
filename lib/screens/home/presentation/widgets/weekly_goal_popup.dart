@@ -143,9 +143,14 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                               padding: const EdgeInsets.only(
                                   top:
                                       20), // Adjust padding instead of using SizedBox
-                              child: Text(
-                                "$currentValue",
-                                style: CustomTypography().caption(),
+                              child: Opacity(
+                                opacity: lowerGoal == progressBarWidth || weeklyGoal >= progressBarWidth
+                                    ? 0
+                                    : 1, // Hide the progress indicator when it reaches the lower goal
+                                child: Text(
+                                  "$currentValue",
+                                  style: CustomTypography().caption(),
+                                ),
                               ),
                             ),
                           )
@@ -158,7 +163,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                       top: 0,
                       bottom: 0,
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Icon(CupertinoIcons.flag_fill,
                               color: CustomColors.productNormal, size: 17),
@@ -181,7 +186,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                       top: 0,
                       bottom: 0,
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Icon(Icons.emoji_events_rounded,
                               color: CustomColors.productNormal, size: 20),
