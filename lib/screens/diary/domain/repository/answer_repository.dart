@@ -117,13 +117,13 @@ class AnswerRepository {
   /// ```
   Future<void> removeResponse(PromptModel prompt, String path) async {
     final answer = prompt.answer;
-    if (prompt.answer?.recordings.isEmpty ?? true) {
-      prompt.answer!.response = "";
-      if (prompt.answer != null) {
-        dao.updateResponse(answer!);
-      }
-    } else {
-      try {
+    try {
+      if (prompt.answer?.recordings.isEmpty ?? true) {
+        prompt.answer!.response = "";
+        if (prompt.answer != null) {
+          dao.updateResponse(answer!);
+        }
+      } else {
         // Delete the recording file from the file system
         final dir = await getApplicationDocumentsDirectory();
         final _path = p.join(dir.path, 'recordings', path);
@@ -137,9 +137,9 @@ class AnswerRepository {
 
           dao.updateResponse(answer);
         }
-      } catch (e) {
-        print("Catch Error: $e");
       }
+    } catch (e) {
+      print("Catch Error: $e");
     }
   }
 }
