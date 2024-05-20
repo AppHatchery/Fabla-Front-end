@@ -24,22 +24,22 @@ class LoginCubit extends Cubit<LoginState> {
   /// Parameters:
   /// - [code]: The participant's login code to be verified.
   ///
-  void login_(int code) async {
-    emit(const LoginLoading());
-    try {
-      final result = await repository.verify(code);
-      if (result) {
-        print("Adding participant... $code");
-        repository.addParticipant(code.toString());
-        emit(const LoginSuccess());
-      } else {
-        emit(const LoginError("Invalid code"));
-      }
-    } catch (e) {
-      debugPrint(e.toString());
-      emit(const LoginError("Something went wrong"));
-    }
-  }
+  // void login_(int code) async {
+  //   emit(const LoginLoading());
+  //   try {
+  //     final result = await repository.verify(code);
+  //     if (result) {
+  //       print("Adding participant... $code");
+  //       repository.addParticipant(code.toString());
+  //       emit(const LoginSuccess());
+  //     } else {
+  //       emit(const LoginError("Invalid code"));
+  //     }
+  //   } catch (e) {
+  //     debugPrint(e.toString());
+  //     emit(const LoginError("Something went wrong"));
+  //   }
+  // }
 
   final _storage = const FlutterSecureStorage();
   void login(int code) async {

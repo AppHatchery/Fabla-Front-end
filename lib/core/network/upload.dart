@@ -117,10 +117,6 @@ String formatSubmissionDate(DateTime date) {
 //Upload functions
 Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
   final cred = await SecureSave().read();
-  print(cred?.authorization ?? "");
-  print(cred?.xapikey ?? "");
-  print(cred?.dynamo_url ?? "");
-  print(cred?.presigned_url ?? "");
   // List of items to be sent in the request body
   List<Map<String, dynamic>> promptListItems =
       PromptEntry.promptListToMap(promptEntryList);
