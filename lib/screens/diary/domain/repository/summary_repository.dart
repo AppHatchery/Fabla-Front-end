@@ -32,8 +32,7 @@ class SummaryRepository {
   Future<DiaryModel> loadSummary(DiaryModel diary) async {
     try {
       for (var i = 0; i < diary.prompts.length; i++) {
-        final newPrompt =
-            await promptRepository.load(diary, diary.prompts[i].id);
+        final newPrompt = await promptRepository.load(diary,diary.prompts[i].id);
         newPrompt.id = diary.prompts[i].id;
         diary.prompts[i] = newPrompt;
       }
@@ -74,13 +73,11 @@ class SummaryRepository {
   /// Note:
   /// Any exceptions that occur during the removal process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
-  Future<bool> removeResponse(PromptModel prompt, String path) async {
+  void removeResponse(PromptModel prompt, String path) {
     try {
-      await answerRepository.removeResponse(prompt, path);
-      return true;
+      answerRepository.removeResponse(prompt, path);
     } catch (e) {
       print("Error deleting response: $e");
-      return false;
     }
   }
 
@@ -98,40 +95,35 @@ class SummaryRepository {
   Future<bool> submitDiary(DiaryModel diary) async {
     try {
       final participant = setupRepository.getParticipant();
-      final uploaded = await upload(participant!.studyCode, diary);
+      //final uploaded = await upload(participant!.studyCode, diary);
 
-      if (uploaded) {
-        late DiaryModel newDiary;
+      //if (uploaded) {
 
-        print("Current entry: ${diary.currentEntry}");
+      late DiaryModel newDiary;
 
-        if (diary.currentEntry + 1 == diary.entries) {
-          newDiary = diary.copyWith(
-              id: diary.id,
-              status: DiaryStatus.submitted,
-              currentEntry: diary.currentEntry + 1);
-        } else {
-          newDiary = diary.copyWith(
-              id: diary.id,
-              status: DiaryStatus.idle,
-              currentEntry: diary.currentEntry + 1);
-        }
-
-        diaryRepository.updateDiary(newDiary);
-
-        cancelAllDiaryNotifications(diary.id);
-        return true;
+      if (diary.currentEntry + 1 == diary.entries) {
+        newDiary = diary.copyWith(
+          id: diary.id,
+          status: DiaryStatus.submitted,
+        );
       } else {
-        // //Update the nextStudy date- TBD with provision of study_start_date
-        // DateTime now = DateTime.now();
-        // var nextStudyDate = DateTime(now.year, now.month, now.day, 4, 0, 0)
-        //     .add(const Duration(days: 1));
-
-        //TODO: TO BE REMOVED
-        //setupRepository.updateMetaDataFile(nextStudyDate);
-
-        return false;
+        newDiary = diary.copyWith(
+            id: diary.id,
+            status: DiaryStatus.idle,
+            currentEntry: diary.currentEntry + 1);
       }
+
+      diaryRepository.updateDiary(newDiary);
+
+      cancelAllDiaryNotifications(diary.id);
+
+      //Update the nextStudy date- TBD with provision of study_start_date
+      DateTime now = DateTime.now();
+      var nextStudyDate = DateTime(now.year, now.month, now.day, 4, 0, 0)
+          .add(const Duration(days: 1));
+
+      setupRepository.updateMetaDataFile(nextStudyDate);
+      return true;
       // } else {
       //   return false;
       // }

@@ -106,13 +106,12 @@ class PromptRepository {
   }
 
 //TODO: clean implementation - REDO This
-  Future<bool> removeResponse(
-      Diary diary, PromptModel prompt, String path) async {
+  void removeResponse(PromptModel prompt, String path) async {
     try {
       final answer = prompt.answer;
 
       if (answer == null) {
-        return false;
+        return;
       }
 
       //if recording is present, remove it
@@ -125,18 +124,10 @@ class PromptRepository {
       }
 
       //update the prompt
-      //Removing the recordings
-      answer.recordings.clear();
-
-      //Removing the response for text questions
-      answer.response = null;
-      final updatedPrompt = Prompt.fromModel(prompt.copyWith(answer: answer));
-      updatedPrompt.diary.target = diary;
+      final updatedPrompt = Prompt.fromModel(prompt.copyWith(answer: null));
       _promptDAO.updatePrompt(updatedPrompt);
-      return true;
     } catch (e) {
       print("Error deleting response: $e");
-      return false;
     }
   }
 }

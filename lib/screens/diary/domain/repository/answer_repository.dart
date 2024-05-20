@@ -36,7 +36,7 @@ class AnswerRepository {
       final prompt = element.prompt.target;
       print("Prompt id: ${prompt?.id}| Prompt question: ${prompt?.question}");
       print("Answer: ${element.response}");
-    });
+     });
 
     // Determine the updated prompt based on whether answers are available
     final updatedPrompt = answers.isEmpty
@@ -64,10 +64,7 @@ class AnswerRepository {
   /// ```dart
   /// final saved = await saveResponse(myPrompt, '/path/to/recording.wav');
   /// ```
-  Future<bool> saveResponse(
-      {required PromptModel prompt,
-      required dynamic response,
-      String? type}) async {
+  Future<bool> saveResponse({required PromptModel prompt,required dynamic response, String? type}) async {
     final isUpdating = prompt.answer != null;
     late Answer answer;
 
@@ -116,26 +113,24 @@ class AnswerRepository {
   /// await removeResponse(myPrompt, '/path/to/recording.wav');
   /// ```
   Future<void> removeResponse(PromptModel prompt, String path) async {
-    final answer = prompt.answer;
     try {
-      if (prompt.answer?.recordings.isEmpty ?? true) {
-        prompt.answer!.response = "";
-        if (prompt.answer != null) {
-          dao.updateResponse(answer!);
-        }
-      } else {
-        // Delete the recording file from the file system
-        final dir = await getApplicationDocumentsDirectory();
-        final _path = p.join(dir.path, 'recordings', path);
+      // Delete the recording file from the file system
+      final dir = await getApplicationDocumentsDirectory();
+      final _path = p.join(dir.path, 'recordings', path);
 
-        final file = File(_path);
-        await file.delete();
+      final file = File(_path);
+      await file.delete();
 
-        if (answer != null) {
-          // Remove the recording from the answer's recordings list
-          answer.recordings.removeWhere((recording) => recording.path == path);
+      final answer = prompt.answer;
+      if (answer != null) {
+        // Remove the recording from the answer's recordings list
+        answer.recordings.removeWhere((recording) => recording.path == path);
 
+        // Update or remove the answer based on the remaining recordings
+        if (answer.recordings.isNotEmpty) {
           dao.updateResponse(answer);
+        } else {
+          dao.removeResponse(answer.id);
         }
       }
     } catch (e) {

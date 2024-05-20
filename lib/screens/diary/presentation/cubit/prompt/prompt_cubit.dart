@@ -31,7 +31,6 @@ class PromptCubit extends Cubit<PromptState> {
     try {
       emit(PromptLoading(prompt));
       final newPrompt = _repository.load(diary, prompt.id);
-      await Future.delayed(const Duration(microseconds: 1));
       emit(PromptLoaded(newPrompt));
     } catch (e) {
       print("Catch Error: $e");
@@ -97,19 +96,13 @@ class PromptCubit extends Cubit<PromptState> {
   /// await removeResponse(myPrompt, '/path/to/recording.wav');
   /// ```
   Future<void> removeResponse(
-      {required DiaryModel diary,
-      required PromptModel prompt,
-      required String path}) async {
+      DiaryModel diary, PromptModel prompt, String path) async {
     try {
-      _repository
-          .removeResponse(Diary.fromModel(diary), prompt, path)
-          .then((value) {
-        if (value) {
-          loadPrompt(diary, prompt);
-        }
-      });
+      _repository.removeResponse(prompt, path);
     } catch (e) {
       print("Catch Error: $e");
+    } finally {
+      loadPrompt(diary, prompt);
     }
   }
 

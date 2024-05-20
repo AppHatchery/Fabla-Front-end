@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -110,15 +111,22 @@ class DiaryCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: GestureDetector(
-                onTap: () => navigateToDiary(context),
+                onTap: diary!.start.isAfter(DateTime.now())
+                    ? () {}
+                    : () => navigateToDiary(context),
                 child: Container(
                   decoration: BoxDecoration(
                       color: diary!.status == DiaryStatus.submitted
                           ? CustomColors.fillWhite
-                          : CustomColors.productNormal,
+                          : diary!.start.isAfter(DateTime.now())
+                              ? CustomColors.fillDisabled
+                              : CustomColors.productNormal,
                       borderRadius: BorderRadius.circular(100),
                       border: Border.all(
-                          color: CustomColors.productNormal, width: 2)),
+                          color: diary!.start.isAfter(DateTime.now())
+                              ? CustomColors.fillDisabled
+                              : CustomColors.productNormal,
+                          width: 2)),
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -133,9 +141,12 @@ class DiaryCard extends StatelessWidget {
                               DiaryStatus.missed => "View",
                             },
                       style: CustomTypography().button(
-                          color: diary!.status == DiaryStatus.submitted
-                              ? CustomColors.productNormal
-                              : CustomColors.textWhite),
+                        color: diary!.status == DiaryStatus.submitted
+                            ? CustomColors.productNormal
+                            : diary!.start.isAfter(DateTime.now())
+                                ? CustomColors.textDisabled
+                                : CustomColors.textWhite,
+                      ),
                     ),
                   ),
                 ),
@@ -659,13 +670,11 @@ class NewAudioCard extends StatefulWidget {
   final VoidCallback? delete;
   final bool viewOnly;
   final int promptId;
-  final bool? ableToDelete;
   const NewAudioCard(
       {super.key,
       required this.recording,
       this.delete,
       required this.viewOnly,
-      this.ableToDelete,
       required this.promptId});
 
   @override
@@ -738,7 +747,7 @@ class _NewAudioCardState extends State<NewAudioCard> {
                 "study_date": "${DateTime.now()}",
                 "prompt_number": "${widget.promptId + 1}"
               });
-              if (widget.ableToDelete ?? false) delete();
+              delete();
             },
             icon: const Icon(CupertinoIcons.delete),
             color: CustomColors.warningActive,
@@ -829,14 +838,9 @@ class _NewAudioCardState extends State<NewAudioCard> {
 class TextAnswerCard extends StatefulWidget {
   final String answer;
   final VoidCallback? delete;
-  final bool? ableToContinue;
-  final void Function(String)? edit;
+  final VoidCallback? edit;
   const TextAnswerCard(
-      {super.key,
-      required this.answer,
-      this.delete,
-      this.edit,
-      this.ableToContinue});
+      {super.key, required this.answer, this.delete, this.edit});
 
   @override
   State<TextAnswerCard> createState() => _TextAnswerCardState();
@@ -862,19 +866,13 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
               overflow: TextOverflow.ellipsis),
         ),
         IconButton(
-          onPressed: () {
-            if (widget.edit != null) {
-              widget.edit!("text");
-            }
-          },
+          onPressed: () => widget.edit,
           icon: const Icon(Icons.edit),
           color: CustomColors.productNormal,
           iconSize: 20,
         ),
         IconButton(
-          onPressed: () {
-            if (widget.ableToContinue ?? false) delete();
-          },
+          onPressed: () => delete(),
           icon: const Icon(CupertinoIcons.delete),
           color: CustomColors.warningActive,
           iconSize: 20,
