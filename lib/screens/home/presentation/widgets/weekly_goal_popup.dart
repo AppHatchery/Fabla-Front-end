@@ -1,6 +1,3 @@
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,18 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class WeeklyGoalPopup extends StatefulWidget {
-  final int currentEntries;
-  final int weeklyGoal;
-  const WeeklyGoalPopup(
-      {super.key, required this.currentEntries, required this.weeklyGoal});
+  const WeeklyGoalPopup({super.key});
 
   @override
   State<WeeklyGoalPopup> createState() => _WeeklyGoalPopupState();
 }
 
-class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
-    with SingleTickerProviderStateMixin {
+class _WeeklyGoalPopupState extends State<WeeklyGoalPopup> {
   String thisWeek = "";
+
   @override
   void initState() {
     thisWeek = getThisWeek();
@@ -29,37 +23,18 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    //calculate the progress bar width
-    final currentValue = widget.currentEntries;
-    double totalWidth = width - 32;
-    int weeklyGoal = widget.weeklyGoal;
-
-    double progressValue = (currentValue / weeklyGoal) * totalWidth;
-
-    double progressBarWidth =
-        (progressValue > totalWidth) ? totalWidth : progressValue;
-    //calculate the lower goal width/value
-    int lowerValue = (0.7 * weeklyGoal).round();
-    double lowerGoal = (lowerValue / weeklyGoal) * totalWidth;
-
     return Container(
       width: MediaQuery.of(context).size.width,
       color: Colors.white,
       padding: const EdgeInsets.all(16),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           //THIS WEEK
-          Wrap(
-            children: [
-              Text(
-                thisWeek,
-                style: CustomTypography().caption(),
-              ),
-            ],
+          Text(
+            thisWeek,
+            style: CustomTypography().caption(),
           ),
-
           const SizedBox(
             height: 6,
           ),
@@ -84,13 +59,9 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
             height: 2,
           ),
           //INTRODUCTION
-          Wrap(
-            children: [
-              Text(
-                "Submit at least 4 repeatable entries this week to complete your goal.",
-                style: CustomTypography().caption(),
-              ),
-            ],
+          Text(
+            "Submit at least 4 repeatable entries this week to complete your goal.",
+            style: CustomTypography().caption(),
           ),
           const SizedBox(
             height: 6,
@@ -100,7 +71,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(
-                width: totalWidth,
+                width: width - 32,
                 height: 45,
                 child: Stack(
                   children: [
@@ -108,7 +79,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                     Align(
                       alignment: Alignment.center,
                       child: Container(
-                        width: totalWidth,
+                        width: width - 32,
                         height: 6,
                         constraints: const BoxConstraints(maxHeight: 6),
                         decoration: BoxDecoration(
@@ -121,7 +92,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Container(
-                        width: progressBarWidth,
+                        width: (width - 32) * 0.1,
                         height: 6,
                         decoration: BoxDecoration(
                           color: CustomColors.productNormal,
@@ -131,50 +102,34 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                     ),
                     //PROGRESS INDICATOR
                     Positioned(
-                      left: (progressBarWidth),
+                      left: (width - 32) * 0.1,
                       top: 0,
                       bottom: 0,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Flexible(
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                  top:
-                                      20), // Adjust padding instead of using SizedBox
-                              child: Opacity(
-                                opacity: lowerGoal == progressBarWidth || weeklyGoal >= progressBarWidth
-                                    ? 0
-                                    : 1, // Hide the progress indicator when it reaches the lower goal
-                                child: Text(
-                                  "$currentValue",
-                                  style: CustomTypography().caption(),
-                                ),
-                              ),
-                            ),
+                          const SizedBox(height: 20, width: 20),
+                          Text(
+                            "1",
+                            style: CustomTypography().caption(),
                           )
                         ],
                       ),
                     ),
                     //LOWER GOAL
                     Positioned(
-                      left: lowerGoal,
+                      left: (width - 32) * 0.7,
                       top: 0,
                       bottom: 0,
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           const Icon(CupertinoIcons.flag_fill,
                               color: CustomColors.productNormal, size: 17),
-                          const SizedBox(
-                            height: 5,
-                          ),
-                          Flexible(
-                            child: Text(
-                              "$lowerValue",
-                              style: CustomTypography().caption(),
-                            ),
+                          Text(
+                            "4",
+                            style: CustomTypography().caption(),
                           )
                         ],
                       ),
@@ -182,19 +137,17 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                     //HIGHER GOAL
                     Positioned(
                       // left: 70 * value - 10,
-                      left: (width - 52) * 0.95,
+                      left: (width - 32) * 0.95,
                       top: 0,
                       bottom: 0,
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           const Icon(Icons.emoji_events_rounded,
                               color: CustomColors.productNormal, size: 20),
-                          Flexible(
-                            child: Text(
-                              "$weeklyGoal",
-                              style: CustomTypography().caption(),
-                            ),
+                          Text(
+                            "5",
+                            style: CustomTypography().caption(),
                           )
                         ],
                       ),

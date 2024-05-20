@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_goal.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
@@ -65,79 +63,6 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: BlocConsumer<HomeCubit, HomeState>(
-            listener: (context, state) {},
-            builder: (context, state) {
-              if (state is HomeInitial) {
-                return initialHome();
-              } else if (state is HomeLoading) {
-                return loading();
-              } else if (state is HomeLoaded) {
-                return loadedHome(state.diaries, state.startDate,
-                    state.protocol, state.entries);
-              } else {
-                return initialHome();
-              }
-            }));
-  }
-
-  Widget loading() {
-    return const Scaffold(
-        body: Center(
-      child: CircularProgressIndicator(
-        color: CustomColors.productNormalActive,
-      ),
-    ));
-  }
-
-  Widget initialHome() {
-    return Scaffold(
-      body: Container(),
-    );
-  }
-
-  Widget loadedHome(List<DiaryModel> diaries, DateTime startDate,
-      Protocol? protocol, int entries) {
-    final today = DateTime.now();
-    show4AmTip();
-    final weeklyEntries = entries;
-
-    if (today.isBefore(startDate)) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(
-            height: 24,
-          ),
-          const SizedBox(
-            height: 24,
-          ),
-          Text(
-            "Today's Tasks",
-            style: CustomTypography().headlineMedium(),
-            textAlign: TextAlign.left,
-          ),
-          const Expanded(child: FreeDayWidget()),
-        ],
-      );
-    } else if (today.isAfter(startDate.add(const Duration(days: 6)))) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(
-            height: 24,
-          ),
-          Text(
-            "Today's Tasks",
-            style: CustomTypography().headlineMedium(),
-            textAlign: TextAlign.left,
-          ),
-          const Expanded(child: EndStateWidget()),
-        ],
-      );
-    }
     return Scaffold(
         backgroundColor: CustomColors.backgroundTertiary,
         appBar: AppBar(
@@ -161,8 +86,6 @@ class _HomePageState extends State<HomePage>
                     }),
                     child: WeeklyGoalWidget(
                       isExpanded: isExpanded,
-                      weeklyGoal: protocol!.weeklyGoal,
-                      currentEntries: weeklyEntries,
                     ),
                   ),
                   IconButton(
@@ -198,27 +121,21 @@ class _HomePageState extends State<HomePage>
           },
           child: Stack(
             children: [
-              SingleChildScrollView(
-                  child: Column(
-                children: [
-                  const SizedBox(
-                    height: 24,
-                  ),
-                  TodayGoalWidget(
-                    dailyGoal: protocol!.dailyGoal,
-                    protocol: protocol,
-                    diary: diaries.first,
-                  ),
-                  const SizedBox(
-                    height: 24,
-                  ),
-                  TodaysDiaryList(
-                    diaries: diaries,
-                    refresh: (value) => refresh(value),
-                    getPageName: () => "home",
-                  )
-                ],
-              )),
+              Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: BlocConsumer<HomeCubit, HomeState>(
+                      listener: (context, state) {},
+                      builder: (context, state) {
+                        if (state is HomeInitial) {
+                          return initialHome();
+                        } else if (state is HomeLoading) {
+                          return loading();
+                        } else if (state is HomeLoaded) {
+                          return loadedHome(state.diaries, state.startDate);
+                        } else {
+                          return initialHome();
+                        }
+                      })),
               Positioned(
                   top: 0,
                   child: SlideTransition(
@@ -227,14 +144,80 @@ class _HomePageState extends State<HomePage>
                       end: const Offset(0, 0),
                     ).animate(CurvedAnimation(
                         parent: _controller, curve: Curves.fastOutSlowIn)),
-                    child: WeeklyGoalPopup(
-                      weeklyGoal: protocol.weeklyGoal,
-                      currentEntries: weeklyEntries,
-                    ),
+                    child: const WeeklyGoalPopup(),
                   ))
             ],
           ),
         ));
+  }
+
+  Widget loading() {
+    return const Center(
+      child: CircularProgressIndicator(
+        color: CustomColors.productNormalActive,
+      ),
+    );
+  }
+
+  Widget initialHome() {
+    return Container();
+  }
+
+  Widget loadedHome(List<DiaryModel> diaries, DateTime startDate) {
+    final today = DateTime.now();
+    show4AmTip();
+    if (today.isBefore(startDate)) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(
+            height: 24,
+          ),
+          const SizedBox(
+            height: 24,
+          ),
+          Text(
+            "Today's Tasks",
+            style: CustomTypography().headlineMedium(),
+            textAlign: TextAlign.left,
+          ),
+          const Expanded(child: FreeDayWidget()),
+        ],
+      );
+    } else if (today.isAfter(startDate.add(const Duration(days: 6)))) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(
+            height: 24,
+          ),
+          Text(
+            "Today's Tasks",
+            style: CustomTypography().headlineMedium(),
+            textAlign: TextAlign.left,
+          ),
+          const Expanded(child: EndStateWidget()),
+        ],
+      );
+    }
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 24,
+          ),
+          const TodayGoalWidget(),
+          const SizedBox(
+            height: 24,
+          ),
+          TodaysDiaryList(
+            diaries: diaries,
+            refresh: (value) => refresh(value),
+            getPageName: () => "home",
+          )
+        ],
+      ),
+    );
   }
 
   void fetchData(BuildContext context) async {

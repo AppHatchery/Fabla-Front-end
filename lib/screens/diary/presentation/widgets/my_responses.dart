@@ -18,11 +18,9 @@ class MyResponse extends StatefulWidget {
   final DiaryModel diary;
   final PromptModel prompt;
   final List<Recording> recordings;
-  final void Function(String) edit;
 
   const MyResponse({
     super.key,
-    required this.edit,
     required this.diary,
     required this.prompt,
     required this.recordings,
@@ -52,8 +50,6 @@ class _MyResponseState extends State<MyResponse> {
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
-                  ableToContinue: true,
-                  edit: widget.edit,
                   answer: widget.prompt.answer!.response!,
                   delete: () => deleteResponse(widget.prompt, ''),
                 ),
@@ -66,7 +62,6 @@ class _MyResponseState extends State<MyResponse> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
                     child: NewAudioCard(
-                      ableToDelete: true,
                       recording: widget.recordings[index],
                       delete: () => deleteResponse(
                           widget.prompt, widget.recordings[index].path),
@@ -82,7 +77,6 @@ class _MyResponseState extends State<MyResponse> {
 
   void deleteResponse(PromptModel loadedPrompt, String path) {
     final promptCubit = context.read<PromptCubit>();
-    promptCubit.removeResponse(
-        diary: widget.diary, path: path, prompt: loadedPrompt);
+    promptCubit.removeResponse(widget.diary, loadedPrompt, path);
   }
 }

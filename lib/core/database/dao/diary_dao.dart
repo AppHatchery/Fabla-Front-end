@@ -29,25 +29,11 @@ class DiaryDAO {
   /// or null if no matching entry is found.
   ///
   Diary? getDiary(DateTime start, DateTime due) {
-    final query =
-        box.query(Diary_.start.equals(start.millisecondsSinceEpoch)).build();
-    return query.findFirst();
-  }
-
-  /// Retrieves a diary from the database by its ID.
-  ///
-  /// This function constructs a query to retrieve a diary from the database based on the provided ID.
-  /// It then executes the query and returns the first diary found that matches the ID.
-  ///
-  /// Parameters:
-  /// - [id]: The ID of the diary to retrieve.
-  ///
-  /// Returns:
-  /// The Diary object with the specified ID if found, otherwise null.
-  Diary? getDiaryByID(int id) {
-    // Construct a query to find a diary with the specified ID
-    final query = box.query(Diary_.id.equals(id)).build();
-    // Execute the query and return the first diary found
+    final query = box
+        .query(Diary_.deadline
+            .equals(due.toString())
+            .and(Diary_.start.equals(start.millisecond)))
+        .build();
     return query.findFirst();
   }
 
