@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 1,
   "daily_goal": 3,
   "weekly_goal": 15,
   "diaries": [
@@ -74,7 +74,7 @@
       "end_time": "23:59",
       "frequency": 1,
       "active_days": [1, 2, 3, 4, 5],
-      "entries": 100
+      "entries": 3
     }
   ]
 }
