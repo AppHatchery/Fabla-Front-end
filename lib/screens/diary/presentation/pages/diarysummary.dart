@@ -85,6 +85,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
               : AppBar(
                   automaticallyImplyLeading: false,
                   backgroundColor: CustomColors.fillNormal,
+                  scrolledUnderElevation: 0.0,
                   leading: IconButton(
                     onPressed: () {
                       scheduleSubmitDiaryNotification(widget.diary.id);

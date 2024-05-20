@@ -45,7 +45,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
     double lowerGoal = (lowerValue / weeklyGoal) * totalWidth;
 
     return Container(
-      width: MediaQuery.of(context).size.width,
+      width: width,
       color: CustomColors.fillWhite,
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
@@ -86,16 +86,20 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
             height: 6,
           ),
           //INTRODUCTION
-          Padding(
-            padding: const EdgeInsets.only(left: 6.0, right: 8.5),
-            child: Wrap(
-              children: [
-                Text(
-                  "Submit at least 4 repeatable entries this week to complete your goal.",
-                  style: CustomTypography().caption(),
+          Wrap(
+            children: [
+              SizedBox(
+                width: width - 50,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Text(
+                    "Submit at least 4 repeatable entries this week to complete your goal.",
+                    style: CustomTypography().caption(),
+                    softWrap: true,
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           const SizedBox(
             height: 6,

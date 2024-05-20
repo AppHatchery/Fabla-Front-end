@@ -17,6 +17,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: CustomColors.fillNormal,
+      scrolledUnderElevation: 0.0,
       leading: IconButton(
         onPressed: () {
           Navigator.pop(context, true);

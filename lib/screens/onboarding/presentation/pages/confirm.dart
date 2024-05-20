@@ -35,6 +35,7 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
       backgroundColor: CustomColors.backgroundSecondary,
       appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
+        scrolledUnderElevation: 0.0,
         leading: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(
