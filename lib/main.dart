@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/completion/completion_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_history_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
@@ -50,7 +51,7 @@ void main() async {
     return true;
   };
   objectbox = await ObjectBox.create();
-  await configureAmplify();
+ //await configureAmplify();
   await NotificationService.init();
   await PendoService.init();
   final route = await RouteService().getRoute();
@@ -100,6 +101,8 @@ class _MyAppState extends State<MyApp> {
                 BlocProvider<PromptCubit>(create: (context) => PromptCubit()),
                 BlocProvider<DiaryHistoryCubit>(
                     create: (context) => DiaryHistoryCubit()),
+                BlocProvider<CompletionCubit>(
+                    create: (context) => CompletionCubit()),
               ],
               child: MaterialApp(
                 title: 'Audio Diaries',
