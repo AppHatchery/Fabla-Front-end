@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -670,11 +669,13 @@ class NewAudioCard extends StatefulWidget {
   final VoidCallback? delete;
   final bool viewOnly;
   final int promptId;
+  final bool? ableToDelete;
   const NewAudioCard(
       {super.key,
       required this.recording,
       this.delete,
       required this.viewOnly,
+      this.ableToDelete,
       required this.promptId});
 
   @override
@@ -747,7 +748,7 @@ class _NewAudioCardState extends State<NewAudioCard> {
                 "study_date": "${DateTime.now()}",
                 "prompt_number": "${widget.promptId + 1}"
               });
-              delete();
+              if (widget.ableToDelete ?? false) delete();
             },
             icon: const Icon(CupertinoIcons.delete),
             color: CustomColors.warningActive,
@@ -838,9 +839,14 @@ class _NewAudioCardState extends State<NewAudioCard> {
 class TextAnswerCard extends StatefulWidget {
   final String answer;
   final VoidCallback? delete;
-  final VoidCallback? edit;
+  final bool? ableToContinue;
+  final void Function(String)? edit;
   const TextAnswerCard(
-      {super.key, required this.answer, this.delete, this.edit});
+      {super.key,
+      required this.answer,
+      this.delete,
+      this.edit,
+      this.ableToContinue});
 
   @override
   State<TextAnswerCard> createState() => _TextAnswerCardState();
@@ -866,13 +872,19 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
               overflow: TextOverflow.ellipsis),
         ),
         IconButton(
-          onPressed: () => widget.edit,
+          onPressed: () {
+            if (widget.edit != null) {
+              widget.edit!("text");
+            }
+          },
           icon: const Icon(Icons.edit),
           color: CustomColors.productNormal,
           iconSize: 20,
         ),
         IconButton(
-          onPressed: () => delete(),
+          onPressed: () {
+            if (widget.ableToContinue ?? false) delete();
+          },
           icon: const Icon(CupertinoIcons.delete),
           color: CustomColors.warningActive,
           iconSize: 20,

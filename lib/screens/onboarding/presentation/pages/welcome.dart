@@ -23,7 +23,8 @@ class _WelcomePageState extends State<WelcomePage> {
   void initState() {
     final code = repository.getParticipant()!.studyCode;
     createMetadata();
-    repository.apiCreateParticipant(code);
+    //TODO:TO BE REMOVED
+    //repository.apiCreateParticipant(code);
     startPendo();
     super.initState();
   }
