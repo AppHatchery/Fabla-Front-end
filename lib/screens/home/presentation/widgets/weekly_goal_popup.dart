@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 class WeeklyGoalPopup extends StatefulWidget {
   final int currentEntries;
   final int weeklyGoal;
+
   const WeeklyGoalPopup(
       {super.key, required this.currentEntries, required this.weeklyGoal});
 
@@ -20,6 +21,7 @@ class WeeklyGoalPopup extends StatefulWidget {
 class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
     with SingleTickerProviderStateMixin {
   String thisWeek = "";
+
   @override
   void initState() {
     thisWeek = getThisWeek();
@@ -44,7 +46,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
 
     return Container(
       width: MediaQuery.of(context).size.width,
-      color: Colors.white,
+      color: CustomColors.fillWhite,
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -84,16 +86,16 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
             height: 6,
           ),
           //INTRODUCTION
-          Wrap(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                child: Text(
+          Padding(
+            padding: const EdgeInsets.only(left: 6.0, right: 8.5),
+            child: Wrap(
+              children: [
+                Text(
                   "Submit at least 4 repeatable entries this week to complete your goal.",
                   style: CustomTypography().caption(),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(
             height: 6,
@@ -143,14 +145,14 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                         children: [
                           Flexible(
                             child: Padding(
-                              padding: const EdgeInsets.only(
-                                  top:
-                                      20), // Adjust padding instead of using SizedBox
+                              padding: const EdgeInsets.only(top: 20),
+                              // Adjust padding instead of using SizedBox
                               child: Opacity(
                                 opacity: lowerGoal == progressBarWidth ||
                                         weeklyGoal >= progressBarWidth
                                     ? 0
-                                    : 1, // Hide the progress indicator when it reaches the lower goal
+                                    : 1,
+                                // Hide the progress indicator when it reaches the lower goal
                                 child: Text(
                                   "$currentValue",
                                   style: CustomTypography().caption(),

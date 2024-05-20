@@ -67,7 +67,7 @@ class _HomePageState extends State<HomePage>
     return Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
+            begin: Alignment.center,
             end: Alignment.bottomCenter,
             colors: [Colors.white, CustomColors.fillNormal],
           ),
@@ -151,6 +151,7 @@ class _HomePageState extends State<HomePage>
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
+          scrolledUnderElevation: 0.0,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(30),
             child: Padding(
