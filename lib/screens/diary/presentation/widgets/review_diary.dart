@@ -147,21 +147,19 @@ class _ReviewDiaryState extends State<ReviewDiary> {
             borderRadius: BorderRadius.circular(4.0),
             color: CustomColors.productLightPrimaryNormalWhite,
           ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      "Q ${index + 1}. ${prompt.question}",
-                    ),
+          child: Column(children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    "Q ${index + 1}. ${prompt.question}",
                   ),
-                ],
-              ),
-              getResponseWidget(prompt)
+                ),
               ],
-          ),
+            ),
+            getPromptWidget(prompt)
+          ]),
         ),
         const SizedBox(height: 12),
       ],
@@ -180,6 +178,17 @@ class _ReviewDiaryState extends State<ReviewDiary> {
     }
 
     return answerList;
+  }
+
+  /// Returns an empty container or calls `getResponseWidget` based on availability of a response
+  Widget getPromptWidget(PromptModel prompt) {
+    if (prompt.responseType == ResponseType.recording) {
+      if ((prompt.answer?.recordings.isEmpty ?? true) &&
+          (prompt.answer?.response?.isEmpty ?? true)) {
+        return Container();
+      }
+    }
+    return getResponseWidget(prompt);
   }
 
   /// Returns the appropriate widget based on the response type of the prompt.
@@ -203,9 +212,11 @@ class _ReviewDiaryState extends State<ReviewDiary> {
           selectedOption: prompt.answer!.response!,
         );
       case ResponseType.recording:
-        return prompt.answer!.recordings.isEmpty ? Padding(
+        return prompt.answer!.recordings.isEmpty
+            ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
+                  ableToContinue: true,
                   answer: prompt.answer!.response!,
                   delete: () => deleteResponse(prompt, ''),
                 ),
@@ -218,6 +229,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
                     child: NewAudioCard(
+                      ableToDelete: true,
                       recording: prompt.answer!.recordings[index],
                       delete: () => deleteResponse(
                           prompt, prompt.answer!.recordings[index].path),

@@ -627,7 +627,7 @@ class _QuestionPageState extends State<QuestionPage>
                 snap: true,
                 builder: (context, scrollController) {
                   return BottomTextModal(
-                    promptId: prompt.id,
+                    prompt: prompt,
                     question: prompt.question,
                     onSave: (value) {
                       save(prompt, value.toString(), null);
