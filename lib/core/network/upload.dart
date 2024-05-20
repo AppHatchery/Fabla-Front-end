@@ -13,8 +13,8 @@ import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:http/http.dart' as http;
 import '../../screens/diary/data/diary_audio_data.dart';
 import '../utils/formatter.dart';
+import 'secrets_handler.dart';
 
-import 'package:encrypt/encrypt.dart' as encrypt;
 /// Uploads audio files associated with a diary to an S3 storage and returns the result.
 ///
 /// This function prepares a list of audio files from the provided [diary]
@@ -60,13 +60,13 @@ Future<bool> upload(String studyCode, DiaryModel diary) async {
           if (prompt.answer!.recordings.isNotEmpty) {
             final path = p.join(
                 dir.path, 'recordings', prompt.answer?.recordings.first.path);
-      
+
             var date = getPostDate(diary.start);
-            
 
             DateTime now = DateTime.now();
             String formattedTime = DateFormat('HH-mm-ss').format(now);
-            var filename = "${studyCode}_${formatSubmissionDate(diary.start)}_$formattedTime.bin";
+            var filename =
+                "${studyCode}_${formatSubmissionDate(diary.start)}_$formattedTime.mp3";
             var awsPath = "$studyCode/$date/prompt_$promptNumber/$filename";
             audioData
                 .add(AudioData(localDirectory: path, awsS3Directory: awsPath));
@@ -110,18 +110,13 @@ Future<bool> upload(String studyCode, DiaryModel diary) async {
   }
 }
 
-
-
-
 String formatSubmissionDate(DateTime date) {
   return DateFormat('yyyy-MM-dd').format(date);
 }
 
-
-
-
 //Upload functions
 Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
+  final cred = await SecureSave().read();
   // List of items to be sent in the request body
   List<Map<String, dynamic>> promptListItems =
       PromptEntry.promptListToMap(promptEntryList);
@@ -129,12 +124,14 @@ Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
   String jsonBody = json.encode(promptListItems);
 
   // Set up the HTTP POST request
-  var url = Uri.parse(
-      'https://r79428yn1l.execute-api.us-east-1.amazonaws.com/live/dynsendresponse'); // Replace with your API endpoint
+  // var url = Uri.parse(
+  //     'https://r79428yn1l.execute-api.us-east-1.amazonaws.com/live/dynsendresponse'); // Replace with your API endpoint
+  var url = Uri.parse(cred?.dynamo_url ?? ""); 
+
   var headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'MySecretToken',
-    'x-api-key': 'GUdxp5Wjej8uNDz2WoXm34QOpCJigEMl8570RFNy'
+    'Authorization': "${cred?.authorization ?? ""}[0]",
+    'x-api-key': cred?.xapikey ?? ""
   };
 
   try {
@@ -146,7 +143,7 @@ Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
       return true; // Submission successful
     } else {
       // Request failed
-      print('Dynamo DB: Request failed with status: ${response}');
+      print('Dynamo DB: Request failed with status: ${response.body}');
       return false; // Submission failed
     }
   } catch (e) {
@@ -180,12 +177,17 @@ Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
 /// Throws an error if there's any issue during the process.
 ///
 Future<String?> getPresignedUrl(String apiUrl, String filename) async {
+  final cred = await SecureSave().read();
   try {
     var requestBody = jsonEncode({'filename': filename});
 
     var response = await http.post(
       Uri.parse(apiUrl),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': "${cred?.authorization ?? ""}[1]",  // password [ AWS ARN FOR THE CALL ]
+        'x-api-key': cred?.xapikey ?? ""
+      },
       body: requestBody,
     );
 
@@ -193,13 +195,11 @@ Future<String?> getPresignedUrl(String apiUrl, String filename) async {
       // Parse the response body (which is a string containing JSON)
       var responseBody = response.body;
       var jsonResponse = jsonDecode(responseBody);
-
       // Parse the 'body' field from the JSON response
       var body = jsonDecode(jsonResponse['body']);
 
       // Extract the 'uploadURL' from the parsed 'body' JSON
       var uploadUrl = body['uploadURL'];
-
       print("presigned URL is generated");
       return uploadUrl;
     } else {
@@ -247,16 +247,16 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
 }
 
 Future<bool> uploadAudios(List<AudioData> audioFileData) async {
-  var apiUrl =
-      'https://r79428yn1l.execute-api.us-east-1.amazonaws.com/live/s3upload';
+  final cred = await SecureSave().read();
+  // var apiUrl =
+  //     'https://r79428yn1l.execute-api.us-east-1.amazonaws.com/live/s3upload';
+  var apiUrl = cred?.presigned_url ?? "";
   var sent = false;
   for (var data in audioFileData) {
     var presignedUrl = await getPresignedUrl(apiUrl, data.awsS3Directory);
     //print("PRESIGNED URL: " + presignedUrl!);
     if (presignedUrl != null) {
-      //sent = await uploadFileToS3(presignedUrl, data.localDirectory);
-      
-      sent = await  uploadEncryptedFileToS3(presignedUrl, data.localDirectory);
+      sent = await uploadFileToS3(presignedUrl, data.localDirectory);
     }
   }
   print("uploaded in array $sent");
@@ -328,7 +328,7 @@ Future<bool> awsUploadResponses(
     if (audioData.isNotEmpty) {
       var audioDataSent = await uploadAudios(audioData);
       if (!audioDataSent) {
-        return false; 
+        return false;
       }
     }
     var nonAudioDataSent = await uploadNonAudioData(promptEntryList);
@@ -336,57 +336,5 @@ Future<bool> awsUploadResponses(
   } catch (e) {
     print("EXCEPTION: $e");
     return false;
-  }
-}
-
-
-
-
-
-//
-
-
-
-
-Future<bool> uploadEncryptedFileToS3(String presignedUrl, String filePath) async {
-  try {
-    // Read the file
-    var file = File(filePath);
-    var fileStream = file.openRead();
-
-    // Define a constant IV string
-    String aesKey = "0123456789abcdef";
-    const String constantIV = '0123456789abcdef'; // Modify this with your own IV
-    
-    // Encrypt the file content using AES
-    final key = encrypt.Key.fromUtf8(aesKey);
-    final iv = encrypt.IV.fromUtf8(constantIV);
-    final encrypter = encrypt.Encrypter(encrypt.AES(key));
-
-    List<int> encryptedBytes = [];
-    await for (var chunk in fileStream) {
-      var encryptedChunk = encrypter.encryptBytes(chunk, iv: iv);
-      encryptedBytes.addAll(encryptedChunk.bytes);
-    }
-
-    // Set the body bytes of the request to the encrypted file content
-    var request = http.Request('PUT', Uri.parse(presignedUrl))
-      ..headers['Content-Type'] = 'application/octet-stream'; // Set appropriate content type
-    request.bodyBytes = encryptedBytes;
-
-    // Send the request
-    var response = await http.Client().send(request);
-
-    // Check response status
-    if (response.statusCode == 200) {
-      print('S3 Storage: File uploaded successfully');
-      return true; // Return true if upload successful
-    } else {
-      print('S3 Storage: Failed to upload file. Status code: ${response.statusCode}');
-      return false; // Return false if upload failed
-    }
-  } catch (e) {
-    print('S3 Storage: Error uploading file: $e');
-    return false; // Return false if an error occurred
   }
 }
