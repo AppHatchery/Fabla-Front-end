@@ -99,6 +99,10 @@ class SummaryRepository {
     try {
       final participant = setupRepository.getParticipant();
       final uploaded = await upload(participant!.studyCode, diary);
+      final protocol = diaryRepository.getProtocol();
+      final entry = diary.status == DiaryStatus.submitted
+          ? diary.entries
+          : diary.currentEntry;
 
       if (uploaded) {
         late DiaryModel newDiary;
@@ -119,7 +123,11 @@ class SummaryRepository {
 
         diaryRepository.updateDiary(newDiary);
 
-        cancelAllDiaryNotifications(diary.id);
+         if (entry < protocol!.dailyGoal) {
+          dailyGoalNotification(diary.id);
+        } else if (entry == diary.entries) {
+          cancelAllDiaryNotifications(diary.id);
+        }
         return true;
       } else {
         // //Update the nextStudy date- TBD with provision of study_start_date

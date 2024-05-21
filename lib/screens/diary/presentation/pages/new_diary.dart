@@ -648,7 +648,7 @@ class _QuestionPageState extends State<QuestionPage>
     }
     promptCubit.saveResponse(
         diary: widget.diary, prompt: prompt, response: response, type: type);
-    cancelAllDiaryNotifications(widget.diary.id);
+   cancelContinueNotifications(widget.diary.id);
     if (!isClicked) {
       setState(() {
         isClicked = true;
