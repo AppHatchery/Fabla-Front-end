@@ -689,10 +689,10 @@ class _BottomTextModalState extends State<BottomTextModal>
                       }
                   },
               color:
-                  !disabled ? CustomColors.textWhite : CustomColors.greyLight,
+                  !disabled ? CustomColors.textWhite : CustomColors.fillDisabled,
               backgroundColor: !disabled
                   ? CustomColors.productNormal
-                  : CustomColors.greyLight,
+                  : CustomColors.fillDisabled,
               children: Wrap(
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
