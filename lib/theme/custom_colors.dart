@@ -37,7 +37,6 @@ class CustomColors {
   static const Color textTertiaryContent = Color(0xFFA3A3A3);
   static const Color textSecondaryContent = Color(0xFF5C5C5C);
   static const Color textNormalContent = Color(0xFF242424);
-  static const Color textDisabled = Color(0xFF5A5A5A);
 
   //Functional Colors
   //Warning

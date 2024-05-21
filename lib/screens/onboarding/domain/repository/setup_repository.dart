@@ -8,9 +8,12 @@ import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
-import 'package:audio_diaries_flutter/models/ParticipantsDev.dart';
-import 'package:audio_diaries_flutter/models/UserMetadata.dart';
-import 'package:audio_diaries_flutter/models/UserMetadataDev.dart';
+
+//TODO: TO BE REMOVED
+// import 'package:audio_diaries_flutter/models/ParticipantsDev.dart';
+// import 'package:audio_diaries_flutter/models/UserMetadata.dart';
+// import 'package:audio_diaries_flutter/models/UserMetadataDev.dart';
+
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
@@ -173,7 +176,8 @@ class SetupRepository {
     if (!file.existsSync()) {
       file.writeAsStringSync(metadata);
       print('File content is ${file.readAsStringSync()}');
-      uploadMetaDataS3(code, file);
+      //TODO: TO BE REMOVED
+      //uploadMetaDataS3(code, file);
     }
   }
 
@@ -217,77 +221,82 @@ class SetupRepository {
         data['next_study_date'] = formatDate(nextStudyDate);
         data['recent_submit_date'] = formatDate(DateTime.now());
         file.writeAsStringSync(jsonEncode(data));
-        uploadMetaDataS3(code, file);
+        //TODO: TO BE REMOVED
+        //uploadMetaDataS3(code, file);
       } else {
         file.writeAsStringSync(jsonEncode(data));
       }
     }
   }
 
-  Future<void> apiCreateMetadata(String studycode) async {
-    if (!await recordExists(GqlModelType.userMetatdata, studycode)) {
-      try {
-        final startDate = DateTime.fromMillisecondsSinceEpoch(
-            await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
-        final participant = UserMetadata(
-          participant: studycode,
-          start_study_date: formatDate(startDate),
-          next_study_date: formatDate(startDate),
-          day1: "null",
-          day2: "null",
-          day3: "null",
-          day4: "null",
-          day5: "null",
-          day6: "null",
-        );
-        final request = ModelMutations.create(participant);
-        final response = await Amplify.API.mutate(request: request).response;
+//TOD :TO BE REMOVED
 
-        final participantData = response.data;
-        if (participantData != null) {
-          safePrint(
-              'Metadata Created mutation result: ${participantData.participant}');
-        } else {
-          safePrint('errors: ${response.errors}');
-        }
-      } on ApiException catch (e) {
-        safePrint('Mutation failed: $e');
-      }
-    } else {
-      safePrint("Metadata record already exists or Submission error");
-    }
-  }
+  // Future<void> apiCreateMetadata(String studycode) async {
+  //   if (!await recordExists(GqlModelType.userMetatdata, studycode)) {
+  //     try {
+  //       final startDate = DateTime.fromMillisecondsSinceEpoch(
+  //           await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+  //       final participant = UserMetadata(
+  //         participant: studycode,
+  //         start_study_date: formatDate(startDate),
+  //         next_study_date: formatDate(startDate),
+  //         day1: "null",
+  //         day2: "null",
+  //         day3: "null",
+  //         day4: "null",
+  //         day5: "null",
+  //         day6: "null",
+  //       );
+  //       final request = ModelMutations.create(participant);
+  //       final response = await Amplify.API.mutate(request: request).response;
 
-  Future<void> apiCreateMetadataDev(String studycode) async {
-    final startDate = DateTime.fromMillisecondsSinceEpoch(
-        await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+  //       final participantData = response.data;
+  //       if (participantData != null) {
+  //         safePrint(
+  //             'Metadata Created mutation result: ${participantData.participant}');
+  //       } else {
+  //         safePrint('errors: ${response.errors}');
+  //       }
+  //     } on ApiException catch (e) {
+  //       safePrint('Mutation failed: $e');
+  //     }
+  //   } else {
+  //     safePrint("Metadata record already exists or Submission error");
+  //   }
+  // }
 
-    try {
-      final metadata = UserMetadataDev(
-        id: studycode,
-        start_study_date: formatDate(startDate),
-        next_study_date: formatDate(startDate),
-        day1: "null",
-        day2: "null",
-        day3: "null",
-        day4: "null",
-        day5: "null",
-        day6: "null",
-      );
-      final request = ModelMutations.create(metadata);
-      final response = await Amplify.API.mutate(request: request).response;
+//TODO: TO BE REMOVED
 
-      final metadataData = response.data;
-      if (metadataData == null) {
-        print('Metadata already exist');
-        print('errors: ${response.errors}');
-        return;
-      }
-      print('Metadata Added Mutation result: ${metadataData.id}');
-    } on ApiException catch (e) {
-      print('Mutation failed: $e');
-    }
-  }
+  // Future<void> apiCreateMetadataDev(String studycode) async {
+  //   final startDate = DateTime.fromMillisecondsSinceEpoch(
+  //       await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+
+  //   try {
+  //     final metadata = UserMetadataDev(
+  //       id: studycode,
+  //       start_study_date: formatDate(startDate),
+  //       next_study_date: formatDate(startDate),
+  //       day1: "null",
+  //       day2: "null",
+  //       day3: "null",
+  //       day4: "null",
+  //       day5: "null",
+  //       day6: "null",
+  //     );
+  //     final request = ModelMutations.create(metadata);
+  //     final response = await Amplify.API.mutate(request: request).response;
+
+  //     final metadataData = response.data;
+  //     if (metadataData == null) {
+  //       print('Metadata already exist');
+  //       print('errors: ${response.errors}');
+  //       return;
+  //     }
+  //     print('Metadata Added Mutation result: ${metadataData.id}');
+  //   } on ApiException catch (e) {
+  //     print('Mutation failed: $e');
+  //   }
+  // }
 
 //CURRENT TASK TEST OUT THIS FUCTION
   Future<bool> recordExists(GqlModelType modelType, String studycode) async {
@@ -399,25 +408,27 @@ class SetupRepository {
     }
   }
 
-  Future<void> apiCreateParticipant(String studycode) async {
-    try {
-      final participant = ParticipantsDev(id: studycode);
-      final request = ModelMutations.create(participant);
-      final response = await Amplify.API.mutate(request: request).response;
+//TODO: TO BE REMOVED
 
-      final participantData = response.data;
-      if (participantData == null) {
-        print('Probably user already exists');
-        print('errors: ${response.errors}');
-        return;
-      } else {
-        apiCreateMetadataDev(studycode);
-        print('Participant Added Mutation result: ${participantData.id}');
-      }
-    } on ApiException catch (e) {
-      print('Mutation failed: $e');
-    }
-  }
+  // Future<void> apiCreateParticipant(String studycode) async {
+  //   try {
+  //     final participant = ParticipantsDev(id: studycode);
+  //     final request = ModelMutations.create(participant);
+  //     final response = await Amplify.API.mutate(request: request).response;
+
+  //     final participantData = response.data;
+  //     if (participantData == null) {
+  //       print('Probably user already exists');
+  //       print('errors: ${response.errors}');
+  //       return;
+  //     } else {
+  //       apiCreateMetadataDev(studycode);
+  //       print('Participant Added Mutation result: ${participantData.id}');
+  //     }
+  //   } on ApiException catch (e) {
+  //     print('Mutation failed: $e');
+  //   }
+  // }
 
   /// Creates and schedules notifications for daily diaries.
   /// This function retrieves a list of daily diaries from the DiaryRepository,

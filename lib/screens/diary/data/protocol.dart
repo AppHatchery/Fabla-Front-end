@@ -45,4 +45,18 @@ class Protocol {
           return DiaryBlueprint.fromJson(json);
         }).toList());
   }
+
+  Protocol copyWith({
+    int? version,
+    int? weeklyGoal,
+    int? dailyGoal,
+    List<DiaryBlueprint>? diaryBlueprints,
+  }) {
+    return Protocol(
+      version: version ?? this.version,
+      weeklyGoal: weeklyGoal ?? this.weeklyGoal,
+      dailyGoal: dailyGoal ?? this.dailyGoal,
+      diaryBlueprints: diaryBlueprints ?? this.diaryBlueprints,
+    );
+  }
 }
