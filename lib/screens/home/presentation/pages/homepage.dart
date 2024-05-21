@@ -68,7 +68,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-  super.build(context);
+    super.build(context);
     return Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -77,23 +77,22 @@ class _HomePageState extends State<HomePage>
             colors: [Colors.white, CustomColors.fillNormal],
           ),
         ),
- 
-    child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: BlocConsumer<HomeCubit, HomeState>(
-            listener: (context, state) {},
-            builder: (context, state) {
-              if (state is HomeInitial) {
-                return initialHome();
-              } else if (state is HomeLoading) {
-                return loading();
-              } else if (state is HomeLoaded) {
-                return loadedHome(state.diaries, state.startDate,
-                    state.protocol, state.entries);
-              } else {
-                return initialHome();
-              }
-            }));
+        child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: BlocConsumer<HomeCubit, HomeState>(
+                listener: (context, state) {},
+                builder: (context, state) {
+                  if (state is HomeInitial) {
+                    return initialHome();
+                  } else if (state is HomeLoading) {
+                    return loading();
+                  } else if (state is HomeLoaded) {
+                    return loadedHome(state.diaries, state.startDate,
+                        state.protocol, state.entries);
+                  } else {
+                    return initialHome();
+                  }
+                })));
   }
 
   Widget loading() {
