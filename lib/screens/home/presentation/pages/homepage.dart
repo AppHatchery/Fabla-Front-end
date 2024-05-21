@@ -67,14 +67,12 @@ class _HomePageState extends State<HomePage>
     return Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.center,
+            begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [Colors.white, CustomColors.fillNormal],
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: BlocConsumer<HomeCubit, HomeState>(
+        child: BlocConsumer<HomeCubit, HomeState>(
             listener: (context, state) {},
             builder: (context, state) {
               if (state is HomeInitial) {
@@ -87,9 +85,7 @@ class _HomePageState extends State<HomePage>
               } else {
                 return initialHome();
               }
-            })
-        )
-    );
+            }));
   }
 
   Widget loading() {
@@ -155,7 +151,7 @@ class _HomePageState extends State<HomePage>
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(30),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -208,27 +204,30 @@ class _HomePageState extends State<HomePage>
           },
           child: Stack(
             children: [
-              SingleChildScrollView(
-                  child: Column(
-                children: [
-                  const SizedBox(
-                    height: 24,
-                  ),
-                  TodayGoalWidget(
-                    dailyGoal: protocol!.dailyGoal,
-                    protocol: protocol,
-                    diary: diaries.first,
-                  ),
-                  const SizedBox(
-                    height: 24,
-                  ),
-                  TodaysDiaryList(
-                    diaries: diaries,
-                    refresh: (value) => refresh(value),
-                    getPageName: () => "home",
-                  )
-                ],
-              )),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: SingleChildScrollView(
+                    child: Column(
+                  children: [
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    TodayGoalWidget(
+                      dailyGoal: protocol!.dailyGoal,
+                      protocol: protocol,
+                      diary: diaries.first,
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    TodaysDiaryList(
+                      diaries: diaries,
+                      refresh: (value) => refresh(value),
+                      getPageName: () => "home",
+                    )
+                  ],
+                )),
+              ),
               Positioned(
                   top: 0,
                   child: SlideTransition(

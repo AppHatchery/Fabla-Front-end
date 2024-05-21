@@ -61,29 +61,27 @@ class DiaryCard extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Flexible(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.restart_alt_outlined,
-                      color: CustomColors.productNormal,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      "Routine Entry",
-                      style: CustomTypography()
-                          .bodyMedium(weight: FontWeight.w500),
-                    ),
-                    const SizedBox(
-                      width: 12,
-                    ),
-                    diary?.tags != null && diary!.tags!.isNotEmpty
-                        ? TagPill(tag: diary!.tags!.first)
-                        : const SizedBox.shrink(),
-                  ],
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.restart_alt_outlined,
+                    color: CustomColors.productNormal,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    "Routine Entry",
+                    style:
+                        CustomTypography().bodyMedium(weight: FontWeight.w500),
+                  ),
+                  const SizedBox(
+                    width: 12,
+                  ),
+                  diary?.tags != null && diary!.tags!.isNotEmpty
+                      ? TagPill(tag: diary!.tags!.first)
+                      : const SizedBox.shrink(),
+                ],
               ),
             ),
             const SizedBox(height: 6),
