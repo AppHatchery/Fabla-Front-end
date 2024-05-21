@@ -494,6 +494,8 @@ class _BottomTextModalState extends State<BottomTextModal>
   late OverlayEntry? _overlayEntry;
   double keyboardHeight = 0;
 
+  bool disabled = true;
+
   //Animation
   late StateMachineController _controller;
 
@@ -521,6 +523,18 @@ class _BottomTextModalState extends State<BottomTextModal>
     WidgetsBinding.instance.addObserver(this);
     textController =
         TextEditingController(text: widget.prompt.answer?.response);
+    textController.addListener(() {
+      if (mounted) {
+        setState(() {
+          disabled = textController.text.isEmpty;
+        });
+      }
+    });
+    if (mounted) {
+      setState(() {
+        disabled = textController.text.isEmpty;
+      });
+    }
     fieldKey = GlobalKey();
     _overlayEntry = null;
     super.initState();
@@ -666,27 +680,27 @@ class _BottomTextModalState extends State<BottomTextModal>
           const SizedBox(
             height: 16,
           ),
-          CustomOutlineButton(
-            onClick: () => {},
-            color: CustomColors.productNormal,
-            backgroundColor: CustomColors.fillWhite,
-            children: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  "Try A Hint",
-                  style: CustomTypography()
-                      .button(color: CustomColors.productNormal),
-                ),
-                const SizedBox(width: 8),
-                Image.asset(
-                  "assets/images/star.png",
-                  height: 16,
-                  width: 16,
-                )
-              ],
-            ),
-          ),
+          // CustomOutlineButton(
+          //   onClick: () => {},
+          //   color: CustomColors.productNormal,
+          //   backgroundColor: CustomColors.fillWhite,
+          //   children: Wrap(
+          //     crossAxisAlignment: WrapCrossAlignment.center,
+          //     children: [
+          //       Text(
+          //         "Try A Hint",
+          //         style: CustomTypography()
+          //             .button(color: CustomColors.productNormal),
+          //       ),
+          //       const SizedBox(width: 8),
+          //       Image.asset(
+          //         "assets/images/star.png",
+          //         height: 16,
+          //         width: 16,
+          //       )
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );
@@ -735,25 +749,35 @@ class _BottomTextModalState extends State<BottomTextModal>
           ),
           CustomOutlineButton(
               onClick: () => {
-                    widget.onSave?.call(textController.text),
-                    Navigator.pop(context)
+                    if (!disabled)
+                      {
+                        widget.onSave?.call(textController.text),
+                        Navigator.pop(context)
+                      }
                   },
-              color: CustomColors.textWhite,
-              backgroundColor: CustomColors.productNormal,
+              color:
+                  !disabled ? CustomColors.textWhite : CustomColors.fillDisabled,
+              backgroundColor: !disabled
+                  ? CustomColors.productNormal
+                  : CustomColors.fillDisabled,
               children: Wrap(
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text(
                     "OK",
-                    style: CustomTypography()
-                        .button(color: CustomColors.textWhite),
+                    style: CustomTypography().button(
+                        color: !disabled
+                            ? CustomColors.textWhite
+                            : CustomColors.greyDark),
                   ),
                   const SizedBox(
                     width: 8,
                   ),
-                  const Icon(
+                  Icon(
                     CupertinoIcons.checkmark_alt,
-                    color: CustomColors.textWhite,
+                    color: !disabled
+                        ? CustomColors.textWhite
+                        : CustomColors.greyDark,
                     size: 20,
                   )
                 ],
