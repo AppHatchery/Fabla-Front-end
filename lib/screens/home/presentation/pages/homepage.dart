@@ -198,21 +198,19 @@ class _HomePageState extends State<HomePage>
           child: Stack(
             children: [
               today.isBefore(startDate) || diaries.isEmpty
-                  ? SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          Text(
-                            "Today's Entries",
-                            style: CustomTypography().headlineMedium(),
-                            textAlign: TextAlign.left,
-                          ),
-                          const FreeDayWidget(),
-                        ],
-                      ),
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(
+                          height: 24,
+                        ),
+                        Text(
+                          "Today's Entries",
+                          style: CustomTypography().headlineMedium(),
+                          textAlign: TextAlign.left,
+                        ),
+                        const Expanded(child: FreeDayWidget()),
+                      ],
                     )
                   : SingleChildScrollView(
                       child: Column(
