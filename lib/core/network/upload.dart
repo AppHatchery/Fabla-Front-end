@@ -227,8 +227,10 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
       bytes.addAll(chunk);
     }
 
+  
+
     // Set the body bytes of the request
-    request.bodyBytes = bytes;
+    request.bodyBytes =  bytes;
 
     var response = await http.Client().send(request);
 
