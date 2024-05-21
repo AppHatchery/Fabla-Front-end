@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_goal.dart';
@@ -26,9 +25,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage>
-    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
+    with
+        WidgetsBindingObserver,
+        SingleTickerProviderStateMixin,
+        AutomaticKeepAliveClientMixin {
   late HomeCubit homeCubit;
-  String _name = "";
   late List<DiaryModel> diaries;
 
   late AnimationController _controller;
@@ -63,7 +64,11 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+  super.build(context);
     return Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -72,6 +77,9 @@ class _HomePageState extends State<HomePage>
             colors: [Colors.white, CustomColors.fillNormal],
           ),
         ),
+ 
+    child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: BlocConsumer<HomeCubit, HomeState>(
             listener: (context, state) {},
             builder: (context, state) {
@@ -109,40 +117,6 @@ class _HomePageState extends State<HomePage>
     show4AmTip();
     final weeklyEntries = entries;
 
-    if (today.isBefore(startDate)) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(
-            height: 24,
-          ),
-          const SizedBox(
-            height: 24,
-          ),
-          Text(
-            "Today's Tasks",
-            style: CustomTypography().headlineMedium(),
-            textAlign: TextAlign.left,
-          ),
-          const Expanded(child: FreeDayWidget()),
-        ],
-      );
-    } else if (today.isAfter(startDate.add(const Duration(days: 6)))) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(
-            height: 24,
-          ),
-          Text(
-            "Today's Tasks",
-            style: CustomTypography().headlineMedium(),
-            textAlign: TextAlign.left,
-          ),
-          const Expanded(child: EndStateWidget()),
-        ],
-      );
-    }
     return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -204,30 +178,43 @@ class _HomePageState extends State<HomePage>
           },
           child: Stack(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: SingleChildScrollView(
-                    child: Column(
-                  children: [
-                    const SizedBox(
-                      height: 24,
-                    ),
-                    TodayGoalWidget(
-                      dailyGoal: protocol!.dailyGoal,
-                      protocol: protocol,
-                      diary: diaries.first,
-                    ),
-                    const SizedBox(
-                      height: 24,
-                    ),
-                    TodaysDiaryList(
-                      diaries: diaries,
-                      refresh: (value) => refresh(value),
-                      getPageName: () => "home",
+              today.isBefore(startDate) || diaries.isEmpty
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(
+                          height: 24,
+                        ),
+                        Text(
+                          "Today's Entries",
+                          style: CustomTypography().headlineMedium(),
+                          textAlign: TextAlign.left,
+                        ),
+                        const Expanded(child: FreeDayWidget()),
+                      ],
                     )
-                  ],
-                )),
-              ),
+                  : SingleChildScrollView(
+                      child: Column(
+                      children: [
+                        const SizedBox(
+                          height: 24,
+                        ),
+                        TodayGoalWidget(
+                          dailyGoal: protocol.dailyGoal,
+                          protocol: protocol,
+                          diary: diaries.first,
+                          weeklyEntries: weeklyEntries,
+                        ),
+                        const SizedBox(
+                          height: 24,
+                        ),
+                        TodaysDiaryList(
+                          diaries: diaries,
+                          refresh: (value) => refresh(value),
+                          getPageName: () => "home",
+                        )
+                      ],
+                    )),
               Positioned(
                   top: 0,
                   child: SlideTransition(

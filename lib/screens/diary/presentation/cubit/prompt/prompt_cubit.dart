@@ -106,6 +106,7 @@ class PromptCubit extends Cubit<PromptState> {
           .then((value) {
         if (value) {
           loadPrompt(diary, prompt);
+          emit(const PromptResponseDeleted());
         }
       });
     } catch (e) {

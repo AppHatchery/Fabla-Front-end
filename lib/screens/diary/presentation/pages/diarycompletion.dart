@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/completion/completion_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/calendar_widget.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/ghost_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -63,6 +64,8 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
 
   Widget loadedCompletionPage(BuildContext context, Protocol protocol,
       DiaryModel diary, List<DiaryModel> diaries) {
+    final width = MediaQuery.of(context).size.width;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 12.0),
       child: Column(
@@ -74,38 +77,38 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Stack(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 5.0),
-                      child: avatarCircularProgress(protocol, diary),
-                    ),
-                    Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 5,
-                              height: 10,
-                              color: Colors.white,
-                            ),
-                          ],
-                        )),
-                    Container(
-                      height: 120,
-                      width: 120,
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.only(top: 5),
-                      child: Image.asset(
-                        "assets/images/avatar_complete.png",
-                        width: 80,
-                        height: 80,
+                SizedBox(
+                  height: 150,
+                  width: width,
+                  child: Stack(
+                    children: [
+                      Align(
+                        alignment: Alignment.center,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 5.0),
+                          child: avatarCircularProgress(protocol, diary),
+                        ),
                       ),
-                    ),
-                  ],
+                      Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 5,
+                                height: 10,
+                                color: Colors.white,
+                              ),
+                            ],
+                          )),
+                      GhostCompletionWidget(
+                          currentEntry: diary.currentEntry,
+                          dailyGoal: protocol.dailyGoal,
+                          weeklyGoal: protocol.weeklyGoal),
+                    ],
+                  ),
                 ),
                 const SizedBox(
                   height: 24,
@@ -154,12 +157,13 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
   }
 
   Widget avatarCircularProgress(Protocol protocol, DiaryModel diary) {
+    
     final begin = (diary.currentEntry - 1) / protocol.dailyGoal;
     final end = diary.currentEntry / protocol.dailyGoal;
 
     return SizedBox(
-        height: 120,
-        width: 120,
+        height: 150,
+        width: 150,
         child: TweenAnimationBuilder<double>(
           tween: Tween<double>(begin: begin, end: end),
           duration: const Duration(milliseconds: 1000),

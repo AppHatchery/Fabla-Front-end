@@ -316,6 +316,7 @@ class _QuestionPageState extends State<QuestionPage>
 
   bool isChecked = false;
   bool disabled = false;
+  PersistentBottomSheetController? _bottomSheetController;
 
   void updateSliderValue(PromptModel prompt, double value) {
     save(prompt, value.toString(), null);
@@ -331,7 +332,6 @@ class _QuestionPageState extends State<QuestionPage>
     promptModel = widget.prompt;
     promptCubit = BlocProvider.of<PromptCubit>(context);
     loadPrompt();
-
     super.initState();
   }
 
@@ -380,6 +380,8 @@ class _QuestionPageState extends State<QuestionPage>
             showErrorModal();
           } else if (state is PromptLoaded) {
             checkForResponse(state.prompt);
+          } else if (state is PromptResponseDeleted) {
+            dismissSuccessModal();
           }
         },
       ),
@@ -661,7 +663,8 @@ class _QuestionPageState extends State<QuestionPage>
   void showSuccessModal() {
     bool isLast = widget.isLastPage ?? true;
 
-    widget.scaffoldKey.currentState!.showBottomSheet((context) {
+    _bottomSheetController =
+        widget.scaffoldKey.currentState!.showBottomSheet((context) {
       // _scrollController.animateTo(
       //   _scrollController.position.maxScrollExtent,
       //   duration: const Duration(milliseconds: 300),
@@ -674,6 +677,14 @@ class _QuestionPageState extends State<QuestionPage>
         text: isLast ? "Review Summary" : "Next Question",
       );
     });
+  }
+
+  void dismissSuccessModal() {
+    if (_bottomSheetController != null) {
+      print("meh meh ${_bottomSheetController} ");
+      _bottomSheetController!.close();
+      _bottomSheetController = null;
+    }
   }
 
   void showErrorModal() {

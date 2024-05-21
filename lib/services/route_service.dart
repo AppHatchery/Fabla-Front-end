@@ -35,6 +35,8 @@ class RouteService {
   /// }
   /// ```
   Future<Widget> getRoute() async {
+    await PreferenceService().setBoolPreference(key: 'cold_start', value: true);
+
     final setup =
         await PreferenceService().getBoolPreference(key: 'setup') ?? false;
     final notificationAccess = await PreferenceService()
