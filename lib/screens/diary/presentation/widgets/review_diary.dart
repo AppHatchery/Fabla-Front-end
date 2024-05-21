@@ -216,7 +216,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
-                  ableToContinue: true,
+                  ableToDelete: true,
                   answer: prompt.answer!.response!,
                   delete: () => deleteResponse(prompt, ''),
                 ),

@@ -52,7 +52,7 @@ class _MyResponseState extends State<MyResponse> {
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
-                  ableToContinue: true,
+                  ableToDelete: true,
                   edit: widget.edit,
                   answer: widget.prompt.answer!.response!,
                   delete: () => deleteResponse(widget.prompt, ''),

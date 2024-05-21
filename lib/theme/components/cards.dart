@@ -737,19 +737,21 @@ class _NewAudioCardState extends State<NewAudioCard> {
               Text(formatDuration(maxDuration.inMilliseconds.toInt()))
             ],
           ),
-          IconButton(
-            onPressed: () {
-              PendoService.track("AudioControl", {
-                "action": "delete",
-                "study_date": "${DateTime.now()}",
-                "prompt_number": "${widget.promptId + 1}"
-              });
-              if (widget.ableToDelete ?? false) delete();
-            },
-            icon: const Icon(CupertinoIcons.delete),
-            color: CustomColors.warningActive,
-            iconSize: 20,
-          ),
+          widget.ableToDelete ?? false
+              ? IconButton(
+                  onPressed: () {
+                    PendoService.track("AudioControl", {
+                      "action": "delete",
+                      "study_date": "${DateTime.now()}",
+                      "prompt_number": "${widget.promptId + 1}"
+                    });
+                    delete();
+                  },
+                  icon: const Icon(CupertinoIcons.delete),
+                  color: CustomColors.warningActive,
+                  iconSize: 20,
+                )
+              : Container()
         ],
       ),
     );
@@ -835,7 +837,7 @@ class _NewAudioCardState extends State<NewAudioCard> {
 class TextAnswerCard extends StatefulWidget {
   final String answer;
   final VoidCallback? delete;
-  final bool? ableToContinue;
+  final bool? ableToDelete;
   final void Function(String)? edit;
 
   const TextAnswerCard(
@@ -843,7 +845,7 @@ class TextAnswerCard extends StatefulWidget {
       required this.answer,
       this.delete,
       this.edit,
-      this.ableToContinue});
+      this.ableToDelete});
 
   @override
   State<TextAnswerCard> createState() => _TextAnswerCardState();
@@ -868,24 +870,28 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis),
         ),
-        IconButton(
-          onPressed: () {
-            if (widget.edit != null) {
-              widget.edit!("text");
-            }
-          },
-          icon: const Icon(Icons.edit),
-          color: CustomColors.productNormal,
-          iconSize: 20,
-        ),
-        IconButton(
-          onPressed: () {
-            if (widget.ableToContinue ?? false) delete();
-          },
-          icon: const Icon(CupertinoIcons.delete),
-          color: CustomColors.warningActive,
-          iconSize: 20,
-        ),
+        widget.ableToDelete ?? false
+            ? IconButton(
+                onPressed: () {
+                  if (widget.edit != null) {
+                    widget.edit!("text");
+                  }
+                },
+                icon: const Icon(Icons.edit),
+                color: CustomColors.productNormal,
+                iconSize: 20,
+              )
+            : Container(),
+        widget.ableToDelete ?? false
+            ? IconButton(
+                onPressed: () {
+                  delete();
+                },
+                icon: const Icon(CupertinoIcons.delete),
+                color: CustomColors.warningActive,
+                iconSize: 20,
+              )
+            : Container()
       ]),
     );
   }
