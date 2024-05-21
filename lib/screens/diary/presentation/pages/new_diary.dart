@@ -30,6 +30,7 @@ import 'diarysummary.dart';
 /// The page view has a controller which is used to navigate between pages
 class NewDiaryPage extends StatefulWidget {
   final DiaryModel diary;
+
   const NewDiaryPage({super.key, required this.diary});
 
   @override
@@ -123,6 +124,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         backgroundColor: CustomColors.fillNormal,
         appBar: AppBar(
           backgroundColor: CustomColors.fillNormal,
+          scrolledUnderElevation: 0.0,
           automaticallyImplyLeading: false,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(0),
@@ -690,7 +692,6 @@ class _QuestionPageState extends State<QuestionPage>
         .showBottomSheet((context) => const BottomErrorModal());
   }
 }
-
 
 //TODO: TO BE REMOVED
 

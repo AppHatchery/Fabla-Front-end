@@ -50,6 +50,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
         backgroundColor: CustomColors.backgroundSecondary,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
+          scrolledUnderElevation: 0.0,
           leading: canGoBack
               ? IconButton(
                   onPressed: () => Navigator.pop(context),

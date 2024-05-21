@@ -36,6 +36,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
       backgroundColor: CustomColors.backgroundSecondary,
       appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
+        scrolledUnderElevation: 0.0,
         leading: canGoBack
             ? IconButton(
                 onPressed: () => Navigator.pop(context),

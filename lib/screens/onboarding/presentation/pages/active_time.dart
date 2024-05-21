@@ -36,6 +36,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
         backgroundColor: CustomColors.fillWhite,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
+          scrolledUnderElevation: 0.0,
           leading: canGoBack
               ? IconButton(
                   onPressed: () => Navigator.pop(context),

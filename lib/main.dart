@@ -221,16 +221,26 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
           children: pages),
       bottomNavigationBar: Material(
         color: CustomColors.fillWhite,
-        child: TabBar(
-          controller: tabController,
-          tabs: navigationBars,
-          labelColor: CustomColors.productNormal,
-          unselectedLabelColor: Colors.black,
-          indicatorColor: Colors.transparent,
-          indicatorWeight: 2,
-          indicator: null,
-          padding: EdgeInsets.only(bottom: isIos ? 34 : 0),
-          dividerColor: Colors.transparent,
+        child: Container(
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(
+                color: CustomColors.productBorderNormal,
+                width: 1.0,
+              ),
+            ),
+          ),
+          child: TabBar(
+            controller: tabController,
+            tabs: navigationBars,
+            labelColor: CustomColors.productNormal,
+            unselectedLabelColor: Colors.black,
+            indicatorColor: Colors.transparent,
+            indicatorWeight: 2,
+            indicator: null,
+            padding: EdgeInsets.only(bottom: isIos ? 34 : 0),
+            dividerColor: Colors.transparent,
+          ),
         ),
       ),
     );

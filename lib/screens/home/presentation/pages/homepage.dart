@@ -69,22 +69,30 @@ class _HomePageState extends State<HomePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: BlocConsumer<HomeCubit, HomeState>(
-            listener: (context, state) {},
-            builder: (context, state) {
-              if (state is HomeInitial) {
-                return initialHome();
-              } else if (state is HomeLoading) {
-                return loading();
-              } else if (state is HomeLoaded) {
-                return loadedHome(state.diaries, state.startDate,
-                    state.protocol, state.entries);
-              } else {
-                return initialHome();
-              }
-            }));
+    return Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, CustomColors.fillNormal],
+          ),
+        ),
+        child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: BlocConsumer<HomeCubit, HomeState>(
+                listener: (context, state) {},
+                builder: (context, state) {
+                  if (state is HomeInitial) {
+                    return initialHome();
+                  } else if (state is HomeLoading) {
+                    return loading();
+                  } else if (state is HomeLoaded) {
+                    return loadedHome(state.diaries, state.startDate,
+                        state.protocol, state.entries);
+                  } else {
+                    return initialHome();
+                  }
+                })));
   }
 
   Widget loading() {
@@ -109,9 +117,10 @@ class _HomePageState extends State<HomePage>
     final weeklyEntries = entries;
 
     return Scaffold(
-        backgroundColor: CustomColors.backgroundTertiary,
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
-          backgroundColor: CustomColors.backgroundTertiary,
+          backgroundColor: Colors.transparent,
+          scrolledUnderElevation: 0.0,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(30),
             child: Padding(

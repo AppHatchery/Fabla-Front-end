@@ -131,7 +131,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
           children: [
             const Icon(
               Icons.restart_alt_outlined,
-              color: CustomColors.productNormal,
+              color: CustomColors.purpleNormal,
               size: 20,
             ),
             const SizedBox(width: 6),
