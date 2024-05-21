@@ -194,7 +194,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                       //HIGHER GOAL
                       Positioned(
                         // left: 70 * value - 10,
-                        left: (width - 52) * 0.95,
+                        left: (width - 52),
                         top: 0,
                         bottom: 0,
                         child: Column(

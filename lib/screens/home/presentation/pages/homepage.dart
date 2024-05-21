@@ -77,22 +77,20 @@ class _HomePageState extends State<HomePage>
             colors: [Colors.white, CustomColors.fillNormal],
           ),
         ),
-        child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: BlocConsumer<HomeCubit, HomeState>(
-                listener: (context, state) {},
-                builder: (context, state) {
-                  if (state is HomeInitial) {
-                    return initialHome();
-                  } else if (state is HomeLoading) {
-                    return loading();
-                  } else if (state is HomeLoaded) {
-                    return loadedHome(state.diaries, state.startDate,
-                        state.protocol, state.entries);
-                  } else {
-                    return initialHome();
-                  }
-                })));
+        child: BlocConsumer<HomeCubit, HomeState>(
+            listener: (context, state) {},
+            builder: (context, state) {
+              if (state is HomeInitial) {
+                return initialHome();
+              } else if (state is HomeLoading) {
+                return loading();
+              } else if (state is HomeLoaded) {
+                return loadedHome(state.diaries, state.startDate,
+                    state.protocol, state.entries);
+              } else {
+                return initialHome();
+              }
+            }));
   }
 
   Widget loading() {
@@ -177,43 +175,45 @@ class _HomePageState extends State<HomePage>
           },
           child: Stack(
             children: [
-              today.isBefore(startDate) || diaries.isEmpty
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(
-                          height: 24,
-                        ),
-                        Text(
-                          "Today's Entries",
-                          style: CustomTypography().headlineMedium(),
-                          textAlign: TextAlign.left,
-                        ),
-                        const Expanded(child: FreeDayWidget()),
-                      ],
-                    )
-                  : SingleChildScrollView(
-                      child: Column(
-                      children: [
-                        const SizedBox(
-                          height: 24,
-                        ),
-                        TodayGoalWidget(
-                          dailyGoal: protocol.dailyGoal,
-                          protocol: protocol,
-                          diary: diaries.first,
-                          weeklyEntries: weeklyEntries,
-                        ),
-                        const SizedBox(
-                          height: 24,
-                        ),
-                        TodaysDiaryList(
-                          diaries: diaries,
-                          refresh: (value) => refresh(value),
-                          getPageName: () => "home",
+              Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: today.isBefore(startDate) || diaries.isEmpty
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(
+                              height: 24,
+                            ),
+                            Text(
+                              "Today's Entries",
+                              style: CustomTypography().headlineMedium(),
+                              textAlign: TextAlign.left,
+                            ),
+                            const Expanded(child: FreeDayWidget()),
+                          ],
                         )
-                      ],
-                    )),
+                      : SingleChildScrollView(
+                          child: Column(
+                          children: [
+                            const SizedBox(
+                              height: 24,
+                            ),
+                            TodayGoalWidget(
+                              dailyGoal: protocol.dailyGoal,
+                              protocol: protocol,
+                              diary: diaries.first,
+                              weeklyEntries: weeklyEntries,
+                            ),
+                            const SizedBox(
+                              height: 24,
+                            ),
+                            TodaysDiaryList(
+                              diaries: diaries,
+                              refresh: (value) => refresh(value),
+                              getPageName: () => "home",
+                            )
+                          ],
+                        ))),
               Positioned(
                   top: 0,
                   child: SlideTransition(
