@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -466,7 +468,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 }
 
 class BottomTextModal extends StatefulWidget {
-  final int promptId;
+  final PromptModel prompt;
   final String question;
   final String? hint;
   final ValueChanged<String?>? onSave;
@@ -474,7 +476,7 @@ class BottomTextModal extends StatefulWidget {
 
   const BottomTextModal(
       {super.key,
-      required this.promptId,
+      required this.prompt,
       required this.question,
       this.hint,
       required this.onSave,
@@ -517,7 +519,8 @@ class _BottomTextModalState extends State<BottomTextModal>
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
-    textController = TextEditingController();
+    textController =
+        TextEditingController(text: widget.prompt.answer?.response);
     fieldKey = GlobalKey();
     _overlayEntry = null;
     super.initState();

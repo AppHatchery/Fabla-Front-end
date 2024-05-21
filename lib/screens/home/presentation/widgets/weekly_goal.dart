@@ -56,11 +56,11 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
           children: [
             SizedBox(
               width: width,
-              height: 15,
+              height: 20,
               child: Stack(
                 children: [
                   Positioned(
-                    bottom: 2,
+                    bottom: 0,
                     child: Container(
                       width: 70,
                       height: 6,
@@ -72,7 +72,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                   ),
                   // current progress
                   Positioned(
-                    bottom: 2,
+                    bottom: 0,
                     child: Container(
                       width: progressBarWidth,
                       height: 6,
@@ -86,7 +86,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                   Positioned(
                     // left: 70 * value - 10,
                     left: lowerGoal,
-                    top: 0,
+                    top: 2,
                     child: const Icon(CupertinoIcons.flag_fill,
                         color: CustomColors.productNormal, size: 12),
                   ),
@@ -94,10 +94,13 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
               ),
             ),
             const SizedBox(width: 6),
-            Text(
-              "$currentValue/$weeklyGoal",
-              style:
-                  CustomTypography().caption(color: CustomColors.productNormal),
+            Padding(
+              padding: const EdgeInsets.only(top: 10.0),
+              child: Text(
+                "$currentValue/$weeklyGoal",
+                style:
+                    CustomTypography().caption(color: CustomColors.productNormal),
+              ),
             )
           ],
         ),
