@@ -327,7 +327,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
                       ),
                       CustomTextAnswerButton(
                         onClick: () => widget.respond("text"),
-                        text: "Text My Response",
+                        text: "Type My Response",
                       ),
                     ],
                   )
