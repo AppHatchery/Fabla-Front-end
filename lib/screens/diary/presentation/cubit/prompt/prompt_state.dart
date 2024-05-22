@@ -38,3 +38,7 @@ final class PromptResponseError extends PromptState {
 final class PromptResponseSuccess extends PromptState {
   const PromptResponseSuccess();
 }
+
+final class PromptResponseDeleted extends PromptState {
+  const PromptResponseDeleted();
+}

@@ -85,6 +85,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
               : AppBar(
                   automaticallyImplyLeading: false,
                   backgroundColor: CustomColors.fillNormal,
+                  scrolledUnderElevation: 0.0,
                   leading: IconButton(
                     onPressed: () {
                       scheduleSubmitDiaryNotification(widget.diary.id);
@@ -141,7 +142,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   Route _completionRoute() {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>
-          const DiaryCompletionPage(),
+          DiaryCompletionPage(diary: widget.diary),
       transitionDuration: const Duration(milliseconds: 1200),
       reverseTransitionDuration: const Duration(milliseconds: 1200),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {

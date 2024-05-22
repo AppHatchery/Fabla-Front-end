@@ -57,6 +57,7 @@ class CustomColors {
 
   //Purple
   static const Color purpleLight = Color(0xFFF7ECFF);
+  static const Color purpleNormal = Color(0xFFA449FF);
   static const Color purpleDark = Color(0xFF9F25FF);
 
   //Grey

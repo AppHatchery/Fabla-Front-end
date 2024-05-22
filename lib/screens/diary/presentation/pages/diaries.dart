@@ -34,6 +34,7 @@ class _DiaryPageState extends State<DiariesPage> {
                 .titleLarge(color: CustomColors.textNormalContent),
           ),
           backgroundColor: CustomColors.fillNormal,
+          scrolledUnderElevation: 0.0,
         ),
         body: const Padding(
           padding: EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 12.0),

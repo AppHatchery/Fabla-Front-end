@@ -25,6 +25,7 @@ class DiaryCard extends StatelessWidget {
   final DiaryModel? diary;
   final ValueChanged<bool> refresh;
   final String Function() getPageName;
+
   const DiaryCard(
       {super.key,
       required this.diary,
@@ -45,12 +46,14 @@ class DiaryCard extends StatelessWidget {
         boxShadow: const [
           BoxShadow(
             color: CustomColors.productBorderNormal,
-            blurRadius: 10,
-            offset: Offset(0, 0),
+            blurRadius: 4,
+            spreadRadius: 1,
+            offset: Offset(0, 1),
           ),
         ],
         shape: BoxShape.rectangle,
       ),
+      margin: const EdgeInsets.only(left: 3, right: 3),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 18),
         child: Column(
@@ -127,6 +130,7 @@ class DiaryCard extends StatelessWidget {
                               ? CustomColors.fillDisabled
                               : CustomColors.productNormal,
                           width: 2)),
+
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -147,6 +151,7 @@ class DiaryCard extends StatelessWidget {
                                 ? CustomColors.textDisabled
                                 : CustomColors.textWhite,
                       ),
+
                     ),
                   ),
                 ),
@@ -188,6 +193,7 @@ class DiaryCard extends StatelessWidget {
 /// Used in [DiaryCard]
 class TagPill extends StatelessWidget {
   final Tag tag;
+
   const TagPill({
     super.key,
     required this.tag,
@@ -308,6 +314,7 @@ class AudioDiaryCard extends StatefulWidget {
   final bool isExpanded;
   final VoidCallback? onTap;
   final int promptId;
+
   const AudioDiaryCard({
     super.key,
     required this.recording,
@@ -670,11 +677,14 @@ class NewAudioCard extends StatefulWidget {
   final VoidCallback? delete;
   final bool viewOnly;
   final int promptId;
+  final bool? ableToDelete;
+
   const NewAudioCard(
       {super.key,
       required this.recording,
       this.delete,
       required this.viewOnly,
+      this.ableToDelete,
       required this.promptId});
 
   @override
@@ -747,7 +757,7 @@ class _NewAudioCardState extends State<NewAudioCard> {
                 "study_date": "${DateTime.now()}",
                 "prompt_number": "${widget.promptId + 1}"
               });
-              delete();
+              if (widget.ableToDelete ?? false) delete();
             },
             icon: const Icon(CupertinoIcons.delete),
             color: CustomColors.warningActive,
@@ -838,9 +848,15 @@ class _NewAudioCardState extends State<NewAudioCard> {
 class TextAnswerCard extends StatefulWidget {
   final String answer;
   final VoidCallback? delete;
-  final VoidCallback? edit;
+  final bool? ableToContinue;
+  final void Function(String)? edit;
+
   const TextAnswerCard(
-      {super.key, required this.answer, this.delete, this.edit});
+      {super.key,
+      required this.answer,
+      this.delete,
+      this.edit,
+      this.ableToContinue});
 
   @override
   State<TextAnswerCard> createState() => _TextAnswerCardState();
@@ -866,13 +882,19 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
               overflow: TextOverflow.ellipsis),
         ),
         IconButton(
-          onPressed: () => widget.edit,
+          onPressed: () {
+            if (widget.edit != null) {
+              widget.edit!("text");
+            }
+          },
           icon: const Icon(Icons.edit),
           color: CustomColors.productNormal,
           iconSize: 20,
         ),
         IconButton(
-          onPressed: () => delete(),
+          onPressed: () {
+            if (widget.ableToContinue ?? false) delete();
+          },
           icon: const Icon(CupertinoIcons.delete),
           color: CustomColors.warningActive,
           iconSize: 20,

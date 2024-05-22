@@ -39,6 +39,9 @@ class TodaysDiaryList extends StatelessWidget {
             );
           },
         ),
+        const SizedBox(
+          height: 12,
+        ),
       ],
     );
   }

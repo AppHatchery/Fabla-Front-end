@@ -30,6 +30,7 @@ import 'diarysummary.dart';
 /// The page view has a controller which is used to navigate between pages
 class NewDiaryPage extends StatefulWidget {
   final DiaryModel diary;
+
   const NewDiaryPage({super.key, required this.diary});
 
   @override
@@ -53,7 +54,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     controllerInit();
     showTip();
     if (widget.diary.status == DiaryStatus.idle) {
-      participantsDiaryStartDate(widget.diary);
+      //participantsDiaryStartDate(widget.diary);
     }
     super.initState();
     WidgetsBinding.instance.addObserver(this);
@@ -123,6 +124,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         backgroundColor: CustomColors.fillNormal,
         appBar: AppBar(
           backgroundColor: CustomColors.fillNormal,
+          scrolledUnderElevation: 0.0,
           automaticallyImplyLeading: false,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(0),
@@ -137,7 +139,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                     if (widget.diary.status == DiaryStatus.ongoing) {
                       scheduleContinueDiaryNotifications(widget.diary.id);
                     }
-                    partialDataUpload(widget.diary);
+                    //partialDataUpload(widget.diary);
                     Navigator.pop(context, true);
                     PendoService.track("ExitSurvey", {
                       "Question_number_at_exit": "${currentPage + 1}",
@@ -310,12 +312,13 @@ class QuestionPage extends StatefulWidget {
 class _QuestionPageState extends State<QuestionPage>
     with WidgetsBindingObserver {
   late PromptCubit promptCubit;
-  late PromptModel prompt;
+  late PromptModel promptModel;
 
   bool isChecked = false;
   bool disabled = false;
+  PersistentBottomSheetController? _bottomSheetController;
 
-  void updateSliderValue(double value) {
+  void updateSliderValue(PromptModel prompt, double value) {
     save(prompt, value.toString(), null);
     widget.answerAdded(true);
   }
@@ -326,7 +329,7 @@ class _QuestionPageState extends State<QuestionPage>
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
-    prompt = widget.prompt;
+    promptModel = widget.prompt;
     promptCubit = BlocProvider.of<PromptCubit>(context);
     loadPrompt();
     super.initState();
@@ -344,7 +347,7 @@ class _QuestionPageState extends State<QuestionPage>
       case AppLifecycleState.paused:
         if (widget.diary.status == DiaryStatus.ongoing) {
           scheduleContinueDiaryNotifications(widget.diary.id);
-          partialDataUpload(widget.diary);
+          //partialDataUpload(widget.diary);
         }
         break;
       default:
@@ -355,9 +358,9 @@ class _QuestionPageState extends State<QuestionPage>
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child:
-            BlocConsumer<PromptCubit, PromptState>(builder: (context, state) {
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: BlocConsumer<PromptCubit, PromptState>(
+        builder: (context, state) {
           if (state is PromptInitial) {
             return buildInitial();
           } else if (state is PromptLoading) {
@@ -367,20 +370,22 @@ class _QuestionPageState extends State<QuestionPage>
           } else {
             return buildInitial();
           }
-        }, listener: (context, state) {
+        },
+        listener: (context, state) {
           if (state is PromptRespondState) {
-            recordResponse("");
+            recordResponse(promptModel, "");
           } else if (state is PromptResponseSuccess) {
             showSuccessModal();
           } else if (state is PromptResponseError) {
             showErrorModal();
           } else if (state is PromptLoaded) {
-            if (state.prompt.answer?.recordings != null ||
-                state.prompt.answer?.response != null) {
-              widget.answerAdded(true);
-            }
+            checkForResponse(state.prompt);
+          } else if (state is PromptResponseDeleted) {
+            dismissSuccessModal();
           }
-        }));
+        },
+      ),
+    );
   }
 
   Widget buildLoading() {
@@ -412,7 +417,7 @@ class _QuestionPageState extends State<QuestionPage>
         scaleMax: prompt.option!.maxValue!,
         scaleMinText: prompt.option!.startText,
         scaleMaxText: prompt.option!.endText,
-        onSliderValueChanged: (value) => updateSliderValue(value),
+        onSliderValueChanged: (value) => updateSliderValue(prompt, value),
         isSliderEnabled: !disabled,
       );
     } else if (prompt.responseType == ResponseType.multiple) {
@@ -469,7 +474,7 @@ class _QuestionPageState extends State<QuestionPage>
         prompt.responseType == ResponseType.textAudio) {
       responseWidget = AudioTextCard(
         diary: widget.diary,
-        respond: (String type) => recordResponse(type),
+        respond: (String type) => recordResponse(prompt, type),
         prompt: prompt,
       );
     } else {
@@ -569,10 +574,25 @@ class _QuestionPageState extends State<QuestionPage>
   }
 
   void loadPrompt() {
-    promptCubit.loadPrompt(widget.diary, prompt);
+    promptCubit.loadPrompt(widget.diary, promptModel);
   }
 
-  void recordResponse(String type) {
+  ///Checks whether the provided prompt has a response
+  ///Returns a bool for [`able to continue`] that allows the user to either proceed or not
+  ///depending on the availability of the response/recording
+  void checkForResponse(PromptModel prompt1) {
+    bool isValidResponse = false;
+    final answer = prompt1.answer;
+    if (prompt1.responseType != ResponseType.recording) {
+      isValidResponse = answer?.response?.isNotEmpty ?? false;
+    } else {
+      isValidResponse = (answer?.response?.isNotEmpty ?? false) ||
+          (answer?.recordings.isNotEmpty ?? false);
+    }
+    widget.answerAdded(isValidResponse);
+  }
+
+  void recordResponse(PromptModel prompt, String type) {
     if (type == "audio") {
       showModalBottomSheet(
           backgroundColor: Colors.transparent,
@@ -611,7 +631,7 @@ class _QuestionPageState extends State<QuestionPage>
                 snap: true,
                 builder: (context, scrollController) {
                   return BottomTextModal(
-                    promptId: prompt.id,
+                    prompt: prompt,
                     question: prompt.question,
                     onSave: (value) {
                       save(prompt, value.toString(), null);
@@ -643,7 +663,8 @@ class _QuestionPageState extends State<QuestionPage>
   void showSuccessModal() {
     bool isLast = widget.isLastPage ?? true;
 
-    widget.scaffoldKey.currentState!.showBottomSheet((context) {
+    _bottomSheetController =
+        widget.scaffoldKey.currentState!.showBottomSheet((context) {
       // _scrollController.animateTo(
       //   _scrollController.position.maxScrollExtent,
       //   duration: const Duration(milliseconds: 300),
@@ -658,16 +679,26 @@ class _QuestionPageState extends State<QuestionPage>
     });
   }
 
+  void dismissSuccessModal() {
+    if (_bottomSheetController != null) {
+      print("meh meh ${_bottomSheetController} ");
+      _bottomSheetController!.close();
+      _bottomSheetController = null;
+    }
+  }
+
   void showErrorModal() {
     widget.scaffoldKey.currentState!
         .showBottomSheet((context) => const BottomErrorModal());
   }
 }
 
-Future<void> partialDataUpload(DiaryModel diary) async {
-  SetupRepository srepo = SetupRepository();
-  SummaryRepository surepo = SummaryRepository();
-  var diary2 = await surepo.loadSummary(diary);
+//TODO: TO BE REMOVED
 
-  upload(srepo.getParticipant()!.studyCode, diary2);
-}
+// Future<void> partialDataUpload(DiaryModel diary) async {
+//   SetupRepository srepo = SetupRepository();
+//   SummaryRepository surepo = SummaryRepository();
+//   var diary2 = await surepo.loadSummary(diary);
+
+//   upload(srepo.getParticipant()!.studyCode, diary2);
+// }

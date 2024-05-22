@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/utils/statuses.dart';
 import '../../../../../core/utils/types.dart';
-import '../../../../../services/preference_service.dart';
 import '../../../../diary/data/diary.dart';
+import '../../../../diary/data/protocol.dart';
 import '../../../../diary/data/tag.dart';
 import '../../../../diary/domain/repository/diary_repository.dart';
 
@@ -31,27 +31,27 @@ class HomeCubit extends Cubit<HomeState> {
   ///
   Future<void> loadDiaries() async {
     final today = DateTime.now();
-    final start = today.hour >= 4
-        ? DateTime(today.year, today.month, today.day, 4, 0, 0)
-        : DateTime(today.year, today.month, today.day, 4, 0, 0)
-            .subtract(const Duration(days: 1));
-    final due = today.hour >= 4
-        ? DateTime(today.year, today.month, today.day, 3, 59, 59)
-            .add(const Duration(days: 1))
-        : DateTime(today.year, today.month, today.day, 3, 59, 59);
-    final startDate = DateTime.fromMillisecondsSinceEpoch(
-        await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+    final start = DateTime(today.year, today.month, today.day, 0, 0, 0);
+    final due = DateTime(today.year, today.month, today.day, 23, 59, 59);
 
+    final monday = DateTime(today.year, today.month, today.day)
+        .subtract(Duration(days: today.weekday - 1));
+    final sunday = monday.add(const Duration(days: 6));
+
+    // TODO: Uncomment this code when the start date is implemented and add end date as well
+    // final startDate = DateTime.fromMillisecondsSinceEpoch(
+    //     await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
     try {
       emit(const HomeLoading());
       final diary = repository.getDiary(start, due);
+      final protocol = repository.getProtocol();
+      final entries = repository.getTotalEntries(monday.subtract(const Duration(days: 1)), sunday.add(const Duration(days: 1)));
       if (diary != null) {
-        final updated =
-            diary.copyWith(id: diary.id,tags: _getTags(diary));
-
-        emit(HomeLoaded([updated], startDate));
+        final updated = diary.copyWith(id: diary.id, tags: null);
+        final protocolUpdated = protocol?.copyWith(version: protocol.version);
+        emit(HomeLoaded([updated], start, protocolUpdated, entries));
       } else {
-        emit(HomeLoaded(const [], startDate));
+        emit(HomeLoaded(const [], start, protocol, entries));
       }
     } catch (e) {
       emit(const HomeError("Something went wrong"));
