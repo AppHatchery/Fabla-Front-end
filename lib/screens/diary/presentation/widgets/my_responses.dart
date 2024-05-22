@@ -37,8 +37,6 @@ class _MyResponseState extends State<MyResponse> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        "Response String: ${widget.prompt.answer!.response} | Recording empty: ${widget.prompt.answer!.recordings.isEmpty}");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

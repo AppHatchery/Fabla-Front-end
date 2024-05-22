@@ -11,12 +11,15 @@ class AudioQuestionsWidget extends StatelessWidget {
   final PromptModel prompt;
   final int currentPage;
   final Widget responseWidget;
-  const AudioQuestionsWidget(
-      {super.key,
-      required this.diary,
-      required this.prompt,
-      required this.currentPage,
-      required this.responseWidget});
+  final PersistentBottomSheetController? bottomSheetController;
+  const AudioQuestionsWidget({
+    super.key,
+    required this.diary,
+    required this.prompt,
+    required this.currentPage,
+    required this.responseWidget,
+    this.bottomSheetController,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +28,7 @@ class AudioQuestionsWidget extends StatelessWidget {
     double textScale = MediaQuery.of(context).textScaler.scale(1);
 
     //Conditions for making the page scrollable or not
-    bool isSmallScreen = height < 550 || textScale > 1.3;
+    bool isSmallScreen = height < 700 || textScale > 1.2;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -59,7 +62,6 @@ class AudioQuestionsWidget extends StatelessWidget {
                         child: Text(
                           prompt.question.toString(),
                           style: CustomTypography().titleLarge(),
-                          textScaleFactor: textScale,
                         ),
                       ),
                     ],
@@ -75,11 +77,11 @@ class AudioQuestionsWidget extends StatelessWidget {
                       )
                     ],
                   ),
+                  const SizedBox(height: 50),
                   Center(child: responseWidget),
-                  if (diary.status != DiaryStatus.submitted &&
-                      diary.status != DiaryStatus.missed &&
-                      prompt.responseType == ResponseType.recording)
-                    SizedBox(height: MediaQuery.of(context).size.height * 0),
+                  bottomSheetController == null
+                      ? Container()
+                      : const SizedBox(height: 240),
                 ],
               ),
             )

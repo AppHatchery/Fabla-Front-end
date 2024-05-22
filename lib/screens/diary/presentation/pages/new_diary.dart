@@ -317,7 +317,6 @@ class _QuestionPageState extends State<QuestionPage>
   bool isChecked = false;
   bool disabled = false;
   PersistentBottomSheetController? _bottomSheetController;
-
   void updateSliderValue(PromptModel prompt, double value) {
     save(prompt, value.toString(), null);
     widget.answerAdded(true);
@@ -502,6 +501,7 @@ class _QuestionPageState extends State<QuestionPage>
             prompt: prompt,
             currentPage: widget.currentPage,
             responseWidget: responseWidget,
+            bottomSheetController: _bottomSheetController,
           )
         : SingleChildScrollView(
             controller: _scrollController,
