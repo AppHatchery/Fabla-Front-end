@@ -78,59 +78,65 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Stack(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5.0),
-                        child: avatarCircularProgress(protocol, diary),
-                      ),
-                      Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 5,
-                                height: 10,
-                                color: Colors.white,
-                              ),
-                            ],
-                          )),
-
-                      GhostCompletionWidget(
-                          currentEntry: diary.currentEntry,
-                          dailyGoal: protocol.dailyGoal,
-                          weeklyGoal: protocol.weeklyGoal),
-                    ],
+                  SizedBox(
+                    height: 150,
+                    width: width,
+                    child: Stack(
+                      children: [
+                        Align(
+                          alignment: Alignment.center,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 5.0),
+                            child: avatarCircularProgress(protocol, diary),
+                          ),
+                        ),
+                        Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 5,
+                                  height: 10,
+                                  color: Colors.white,
+                                ),
+                              ],
+                            )),
+                        GhostCompletionWidget(
+                            currentEntry: diary.currentEntry,
+                            dailyGoal: protocol.dailyGoal,
+                            weeklyGoal: protocol.weeklyGoal),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
-                Text(
-                  "Thanks for your response!",
-                  style: CustomTypography().headlineMedium(),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
-                Text(
-                  "Your input is incredibly valuable for our study's progress. We can't wait to hear from you again soon!",
-                  style: CustomTypography().bodyLarge(),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
-                CompleteCalendarWidget(
-                  diaries: diaries,
-                  dailyGoal: protocol.dailyGoal,
-                  weeklyGoal: protocol.weeklyGoal,
-                )
-              ],
+                  const SizedBox(
+                    height: 24,
+                  ),
+                  Text(
+                    "Thanks for your response!",
+                    style: CustomTypography().headlineMedium(),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(
+                    height: 24,
+                  ),
+                  Text(
+                    "Your input is incredibly valuable for our study's progress. We can't wait to hear from you again soon!",
+                    style: CustomTypography().bodyLarge(),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(
+                    height: 24,
+                  ),
+                  CompleteCalendarWidget(
+                    diaries: diaries,
+                    dailyGoal: protocol.dailyGoal,
+                    weeklyGoal: protocol.weeklyGoal,
+                  )
+                ],
+              ),
             ),
           ),
           Align(
@@ -153,7 +159,6 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
   }
 
   Widget avatarCircularProgress(Protocol protocol, DiaryModel diary) {
-    
     final begin = (diary.currentEntry - 1) / protocol.dailyGoal;
     final end = diary.currentEntry / protocol.dailyGoal;
 

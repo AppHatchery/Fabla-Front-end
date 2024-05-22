@@ -200,7 +200,7 @@ class _HomePageState extends State<HomePage>
                           dailyGoal: protocol.dailyGoal,
                           protocol: protocol,
                           diary: diaries.first,
-                          // weeklyEntries: weeklyEntries,
+                          weeklyEntries: weeklyEntries,
                         ),
                         const SizedBox(
                           height: 24,
