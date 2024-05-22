@@ -36,6 +36,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
   late List<DiaryModel> diaryList;
   final DiaryRepository repository = DiaryRepository();
   Map<DateTime, List<String>>? events = {};
+  int activeDays = 0;
 
   @override
   void initState() {
@@ -53,6 +54,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
     pageController = null;
     focusedDay = today;
     selectedDate = today;
+    activeDays = repository.countSubmittedDays();
     diaries = fetchDiaries(today);
     diaryList = _getAllDiaries();
 
@@ -117,7 +119,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "0",
+                          activeDays.toString(),
                           style: CustomTypography().headlineLargeCustom(
                               color: CustomColors.yellowDark, fontSize: 64.sp),
                         ),
