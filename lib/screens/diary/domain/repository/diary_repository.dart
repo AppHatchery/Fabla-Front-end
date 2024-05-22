@@ -210,43 +210,14 @@ class DiaryRepository {
   /// Returns:
   /// An integer representing the number of unique days with at least one submitted diary entry.
   int countSubmittedDays() {
-    List<DiaryModel> unfilteredDiaries = getAllDiaries();
-
-    // Calculate the start of the next day
-    final now = DateTime.now();
-    final due = DateTime(now.year, now.month, now.day, 0, 0, 0)
-        .add(const Duration(days: 1));
-
-    // Filter diaries based on due date
-    final filteredDiaries =
-        unfilteredDiaries.where((diary) => diary.due.isBefore(due)).toList();
-
+    List<DiaryModel> diaries = getAllDiaries();
     // Initialize a set to keep track of days with submitted entries
     final Set<DateTime> submittedDays = {};
-
-    for (var diary in filteredDiaries) {
-      final entryCount = diary.currentEntry;
-
-      // Skip diaries with a status of missed
-      if (diary.status == DiaryStatus.missed) {
-        continue;
-      }
-
-      // Check if there is any submitted entry in the diary
-      for (var i = 0; i <= entryCount; i++) {
-        final newDiary = diary.copyWith(
-            id: diary.id,
-            currentEntry: i,
-            status: entryCount != i ? DiaryStatus.submitted : null);
-
-        // Check if the entry has the status of submitted
-        if (newDiary.status == DiaryStatus.submitted) {
-          submittedDays.add(diary.due);
-          break;
-        }
+    for (var diary in diaries) {
+      if (diary.currentEntry > 0) {
+        submittedDays.add(diary.due);
       }
     }
-
     return submittedDays.length;
   }
 
