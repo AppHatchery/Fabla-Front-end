@@ -30,94 +30,44 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: CustomColors.backgroundSecondary,
       body: SafeArea(
+        top: true,
+        left: false,
+        right: false,
+        bottom: false,
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 70, 16, 60),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Image.asset(
-                          "assets/images/logo_white.png",
-                          height: 52,
-                          width: 52,
-                        ),
-                        const SizedBox(
-                          height: 24,
-                        ),
-                        Text("Welcome to Fabla! ${Strings.wavingEmoji}",
-                            style: CustomTypography()
-                                .headlineLarge(color: CustomColors.textWhite)),
-                        const SizedBox(
-                          height: 24,
-                        ),
-                        Text(
-                            "Fabla is a tool for EMA, audio diary research and more ${Strings.telescope}",
-                            style: CustomTypography()
-                                .titleSmall(color: CustomColors.textWhite)),
-                        const SizedBox(
-                          height: 24,
-                        ),
-                        BlocConsumer<LoginCubit, LoginState>(
-                            builder: (context, state) {
-                          if (state is LoginInitial) {
-                            return initialLogin();
-                          } else if (state is LoginLoading) {
-                            return loading();
-                          }
-                          return initialLogin();
-                        }, listener: (context, state) {
-                          if (state is LoginSuccess) {
-                            error = false;
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const ConfrimJoiningPage()));
-                          } else if (state is LoginError) {
-                            setState(() {
-                              error = true;
-                            });
-                          }
-                        })
-                      ],
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          "Need help with the participant ID? ",
-                          style: CustomTypography()
-                              .bodyMedium(color: CustomColors.textWhite),
-                        ),
-                      ),
-                      GestureDetector(
-                          onTap: () => launchEmail(),
-                          child: Text(
-                            "Contact us",
-                            style: TextStyle(
-                                fontSize:
-                                    CustomTypography().bodyMedium().fontSize,
-                                fontWeight:
-                                    CustomTypography().bodyMedium().fontWeight,
-                                decoration: TextDecoration.underline,
-                                decorationColor: CustomColors.textWhite,
-                                color: CustomColors.textWhite),
-                          )),
-                    ],
-                  )
-                ],
+          child: SizedBox(
+            height: height,
+            width: width,
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 70, 16, 60),
+                child: BlocConsumer<LoginCubit, LoginState>(
+                    builder: (context, state) {
+                  if (state is LoginInitial) {
+                    return initialLogin(height - 200);
+                  } else if (state is LoginLoading) {
+                    return loading(height - 200);
+                  }
+                  return initialLogin(height - 200);
+                }, listener: (context, state) {
+                  if (state is LoginSuccess) {
+                    error = false;
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ConfrimJoiningPage()));
+                  } else if (state is LoginError) {
+                    setState(() {
+                      error = true;
+                    });
+                  }
+                }),
               ),
             ),
           ),
@@ -126,44 +76,113 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget initialLogin() {
-    return Column(
-      children: [
-        VerificationCodeTextField(
-          controller: controller,
-          error: error,
-        ),
-        const SizedBox(
-          height: 24,
-        ),
-        CustomFlatButton(
-          onClick: () => login(),
-          text: "Login",
-          color: CustomColors.fillWhite,
-          textColor: CustomColors.productNormalActive,
-        )
-      ],
+  Widget initialLogin(double height) {
+    return SizedBox(
+      height: height,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Image.asset(
+                  "assets/images/logo_white.png",
+                  height: 52,
+                  width: 52,
+                ),
+                const SizedBox(
+                  height: 24,
+                ),
+                Text("Welcome to Fabla! ${Strings.wavingEmoji}",
+                    style: CustomTypography()
+                        .headlineLarge(color: CustomColors.textWhite)),
+                const SizedBox(
+                  height: 24,
+                ),
+                Text(
+                    "Fabla is a tool for EMA, audio diary research and more ${Strings.telescope}",
+                    style: CustomTypography()
+                        .titleSmall(color: CustomColors.textWhite)),
+                const SizedBox(
+                  height: 24,
+                ),
+                VerificationCodeTextField(
+                  controller: controller,
+                  error: error,
+                ),
+                const SizedBox(
+                  height: 24,
+                ),
+                CustomFlatButton(
+                  onClick: () => login(),
+                  text: "Login",
+                  color: CustomColors.fillWhite,
+                  textColor: CustomColors.productNormalActive,
+                )
+              ],
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  "Need help with the participant ID? ",
+                  style: CustomTypography()
+                      .bodyMedium(color: CustomColors.textWhite),
+                ),
+              ),
+              GestureDetector(
+                  onTap: () => launchEmail(),
+                  child: Text(
+                    "Contact us",
+                    style: TextStyle(
+                        fontSize: CustomTypography().bodyMedium().fontSize,
+                        fontWeight: CustomTypography().bodyMedium().fontWeight,
+                        decoration: TextDecoration.underline,
+                        decorationColor: CustomColors.textWhite,
+                        color: CustomColors.textWhite),
+                  )),
+            ],
+          )
+        ],
+      ),
     );
   }
 
 //  Add Loading State
-  Widget loading() {
-    return Column(
-      children: [
-        VerificationCodeTextField(
-          controller: controller,
-          error: error,
-        ),
-        const SizedBox(
-          height: 24,
-        ),
-        CustomFlatButton(
-          onClick: () => login(),
-          text: "Login",
-          color: CustomColors.fillWhite,
-          textColor: CustomColors.productNormalActive,
-        )
-      ],
+  Widget loading(double height) {
+    return SizedBox(
+      height: height,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(
+              strokeCap: StrokeCap.round,
+              strokeWidth: 8,
+              backgroundColor: CustomColors.fillWhite,
+              color: CustomColors.productBorderActive),
+          const SizedBox(
+            height: 24,
+          ),
+          Text(
+            "Signing in...",
+            style: CustomTypography()
+                .headlineMedium(color: CustomColors.textWhite),
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          Text(
+            "Hang tight while we sign you up - \nalmost there!",
+            textAlign: TextAlign.center,
+            style: CustomTypography().bodyLarge(color: CustomColors.textWhite),
+          ),
+        ],
+      ),
     );
   }
 
@@ -172,7 +191,7 @@ class _LoginPageState extends State<LoginPage> {
       final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
       final text = controller.text.substring(0, lastNonSpaceIndex + 1);
       final code = int.tryParse(text);
-      ;
+
       if (code != null) {
         loginCubit.login(code);
       } else {}

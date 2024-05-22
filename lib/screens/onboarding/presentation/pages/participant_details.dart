@@ -20,6 +20,7 @@ class ParticipantDetailsPage extends StatefulWidget {
 class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
   late SetupCubit setupCubit;
   final TextEditingController controller = TextEditingController();
+
   @override
   void initState() {
     setupCubit = BlocProvider.of<SetupCubit>(context);
@@ -61,6 +62,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
         backgroundColor: CustomColors.fillWhite,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
+          scrolledUnderElevation: 0.0,
           leading: IconButton(
               onPressed: () => Navigator.pop(context),
               icon: const Icon(
