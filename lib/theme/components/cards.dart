@@ -665,6 +665,7 @@ class NewAudioCard extends StatefulWidget {
   final bool viewOnly;
   final int promptId;
   final bool? ableToDelete;
+  final String? callerWidget;
 
   const NewAudioCard(
       {super.key,
@@ -672,6 +673,7 @@ class NewAudioCard extends StatefulWidget {
       this.delete,
       required this.viewOnly,
       this.ableToDelete,
+      this.callerWidget,
       required this.promptId});
 
   @override
@@ -768,7 +770,10 @@ class _NewAudioCardState extends State<NewAudioCard> {
 
   Future<void> delete() async {
     final results = await showDialog<bool>(
-        context: context, builder: (context) => const DeletePopUp());
+        context: context,
+        builder: (context) => DeletePopUp(
+              callerWidget: widget.callerWidget,
+            ));
 
     if (results == true) {
       widget.delete!();
@@ -836,12 +841,14 @@ class TextAnswerCard extends StatefulWidget {
   final String answer;
   final VoidCallback? delete;
   final bool? ableToContinue;
+  final String? callerWidget;
   final void Function(String)? edit;
 
   const TextAnswerCard(
       {super.key,
       required this.answer,
       this.delete,
+      this.callerWidget,
       this.edit,
       this.ableToContinue});
 
@@ -892,7 +899,10 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
 
   Future<void> delete() async {
     final results = await showDialog<bool>(
-        context: context, builder: (context) => const DeletePopUp());
+        context: context,
+        builder: (context) => DeletePopUp(
+              callerWidget: widget.callerWidget,
+            ));
 
     if (results == true) {
       widget.delete!();

@@ -1323,7 +1323,8 @@ class _RedoPopUpState extends State<RedoPopUp> {
 
 /// Pop up for when the user wants to delete their answer.
 class DeletePopUp extends StatelessWidget {
-  const DeletePopUp({super.key});
+  final String? callerWidget;
+  const DeletePopUp({super.key, this.callerWidget});
 
   @override
   Widget build(BuildContext context) {
@@ -1342,7 +1343,9 @@ class DeletePopUp extends StatelessWidget {
             children: [
               // Title
               Text(
-                "Delete Your Response?",
+                callerWidget?.toLowerCase() != "history"
+                    ? "Do you want to delete your response?"
+                    : "Delete your response?",
                 style: CustomTypography().headlineMedium(),
               ),
 
@@ -1352,7 +1355,9 @@ class DeletePopUp extends StatelessWidget {
 
               // Message
               Text(
-                "Deleting a reply only deletes the recording on the device. Continue deleting?",
+                callerWidget?.toLowerCase() != "history"
+                    ? "You won't be able to undo this action"
+                    : "Deleting a reply only deletes the recording on the device. Continue deleting?",
                 style: CustomTypography().bodyLarge(),
                 textAlign: TextAlign.center,
               ),
