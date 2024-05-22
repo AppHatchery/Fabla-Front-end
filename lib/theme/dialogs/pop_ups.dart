@@ -1347,6 +1347,7 @@ class DeletePopUp extends StatelessWidget {
                     ? "Do you want to delete your response?"
                     : "Delete your response?",
                 style: CustomTypography().headlineMedium(),
+                textAlign: TextAlign.center,
               ),
 
               const SizedBox(
