@@ -13,6 +13,7 @@ import 'package:table_calendar/table_calendar.dart';
 class StudyCalendar extends StatefulWidget {
   final ValueChanged<bool> refresh;
   final String Function() getPageName;
+
   const StudyCalendar({
     super.key,
     required this.refresh,
@@ -260,8 +261,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
                     : CustomColors.textTertiaryContent;
                 return Center(
                   child: Container(
-                    width: 35,
-                    height: 35,
+                    width: 33,
+                    height: 33,
                     margin: const EdgeInsets.only(bottom: 4),
                     alignment: Alignment.center,
                     decoration:
@@ -284,8 +285,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
                         : CustomColors.textTertiaryContent;
                 return Center(
                   child: Container(
-                    width: 35,
-                    height: 35,
+                    width: 33,
+                    height: 33,
                     margin: const EdgeInsets.only(bottom: 4),
                     alignment: Alignment.center,
                     decoration:
@@ -308,7 +309,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   decoration:
                       BoxDecoration(shape: BoxShape.circle, color: color),
                   margin: const EdgeInsets.symmetric(
-                      vertical: 6.0, horizontal: 1.5),
+                      vertical: 5.0, horizontal: 1.5),
                 );
               },
             ),
