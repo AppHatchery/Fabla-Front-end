@@ -212,6 +212,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
           selectedOption: prompt.answer!.response!,
         );
       case ResponseType.recording:
+
         return prompt.answer!.recordings.isEmpty
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),

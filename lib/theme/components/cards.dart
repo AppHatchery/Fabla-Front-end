@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -113,15 +114,23 @@ class DiaryCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: GestureDetector(
-                onTap: () => navigateToDiary(context),
+                onTap: diary!.start.isAfter(DateTime.now())
+                    ? () {}
+                    : () => navigateToDiary(context),
                 child: Container(
                   decoration: BoxDecoration(
                       color: diary!.status == DiaryStatus.submitted
                           ? CustomColors.fillWhite
-                          : CustomColors.productNormal,
+                          : diary!.start.isAfter(DateTime.now())
+                              ? CustomColors.fillDisabled
+                              : CustomColors.productNormal,
                       borderRadius: BorderRadius.circular(100),
                       border: Border.all(
-                          color: CustomColors.productNormal, width: 2)),
+                          color: diary!.start.isAfter(DateTime.now())
+                              ? CustomColors.fillDisabled
+                              : CustomColors.productNormal,
+                          width: 2)),
+
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -136,9 +145,13 @@ class DiaryCard extends StatelessWidget {
                               DiaryStatus.missed => "View",
                             },
                       style: CustomTypography().button(
-                          color: diary!.status == DiaryStatus.submitted
-                              ? CustomColors.productNormal
-                              : CustomColors.textWhite),
+                        color: diary!.status == DiaryStatus.submitted
+                            ? CustomColors.productNormal
+                            : diary!.start.isAfter(DateTime.now())
+                                ? CustomColors.textDisabled
+                                : CustomColors.textWhite,
+                      ),
+
                     ),
                   ),
                 ),

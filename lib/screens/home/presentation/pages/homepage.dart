@@ -31,6 +31,7 @@ class _HomePageState extends State<HomePage>
         AutomaticKeepAliveClientMixin {
   late HomeCubit homeCubit;
   late List<DiaryModel> diaries;
+  late List<DiaryModel> calendarDiaries;
 
   late AnimationController _controller;
 
@@ -263,7 +264,10 @@ class _HomePageState extends State<HomePage>
           maxChildSize: 1,
           minChildSize: 1,
           builder: (context, scrollController) {
-            return const StudyCalendar();
+            return StudyCalendar(
+              refresh: (value) => refresh(value),
+              getPageName: () => "calendar",
+            );
           }),
     );
   }
