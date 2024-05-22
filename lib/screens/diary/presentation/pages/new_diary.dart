@@ -30,6 +30,7 @@ import 'diarysummary.dart';
 /// The page view has a controller which is used to navigate between pages
 class NewDiaryPage extends StatefulWidget {
   final DiaryModel diary;
+
   const NewDiaryPage({super.key, required this.diary});
 
   @override
@@ -123,6 +124,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         backgroundColor: CustomColors.fillNormal,
         appBar: AppBar(
           backgroundColor: CustomColors.fillNormal,
+          scrolledUnderElevation: 0.0,
           automaticallyImplyLeading: false,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(0),
@@ -329,7 +331,6 @@ class _QuestionPageState extends State<QuestionPage>
     promptModel = widget.prompt;
     promptCubit = BlocProvider.of<PromptCubit>(context);
     loadPrompt();
-
     super.initState();
   }
 
@@ -378,6 +379,8 @@ class _QuestionPageState extends State<QuestionPage>
             showErrorModal();
           } else if (state is PromptLoaded) {
             checkForResponse(state.prompt);
+          } else if (state is PromptResponseDeleted) {
+            dismissSuccessModal();
           }
         },
       ),
@@ -628,7 +631,7 @@ class _QuestionPageState extends State<QuestionPage>
                 snap: true,
                 builder: (context, scrollController) {
                   return BottomTextModal(
-                    promptId: prompt.id,
+                    prompt: prompt,
                     question: prompt.question,
                     onSave: (value) {
                       save(prompt, value.toString(), null);
@@ -676,12 +679,19 @@ class _QuestionPageState extends State<QuestionPage>
     });
   }
 
+  void dismissSuccessModal() {
+    if (_bottomSheetController != null) {
+      print("meh meh ${_bottomSheetController} ");
+      _bottomSheetController!.close();
+      _bottomSheetController = null;
+    }
+  }
+
   void showErrorModal() {
     widget.scaffoldKey.currentState!
         .showBottomSheet((context) => const BottomErrorModal());
   }
 }
-
 
 //TODO: TO BE REMOVED
 

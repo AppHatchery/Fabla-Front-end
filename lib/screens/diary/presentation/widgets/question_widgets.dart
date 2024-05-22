@@ -317,7 +317,8 @@ class _AudioTextCardState extends State<AudioTextCard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            widget.prompt.answer == null
+            (widget.prompt.answer?.recordings.isEmpty ?? true) &&
+                    (widget.prompt.answer?.response?.isEmpty ?? true)
                 ? Column(
                     children: [
                       CustomRecordButton(
@@ -326,12 +327,13 @@ class _AudioTextCardState extends State<AudioTextCard> {
                       ),
                       CustomTextAnswerButton(
                         onClick: () => widget.respond("text"),
-                        text: "Text My Response",
+                        text: "Type My Response",
                       ),
                     ],
                   )
                 : MyResponse(
                     diary: widget.diary,
+                    edit: widget.respond,
                     prompt: widget.prompt,
                     recordings: widget.prompt.answer?.recordings ?? [])
           ],

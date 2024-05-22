@@ -74,11 +74,13 @@ class SummaryRepository {
   /// Note:
   /// Any exceptions that occur during the removal process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
-  void removeResponse(PromptModel prompt, String path) {
+  Future<bool> removeResponse(PromptModel prompt, String path) async {
     try {
-      answerRepository.removeResponse(prompt, path);
+      await answerRepository.removeResponse(prompt, path);
+      return true;
     } catch (e) {
       print("Error deleting response: $e");
+      return false;
     }
   }
 
@@ -99,39 +101,36 @@ class SummaryRepository {
       final uploaded = await upload(participant!.studyCode, diary);
 
       if (uploaded) {
+        late DiaryModel newDiary;
 
-      late DiaryModel newDiary;
+        print("Current entry: ${diary.currentEntry}");
 
-      print("Current entry: ${diary.currentEntry}");
+        if (diary.currentEntry + 1 == diary.entries) {
+          newDiary = diary.copyWith(
+              id: diary.id,
+              status: DiaryStatus.submitted,
+              currentEntry: diary.currentEntry + 1);
+        } else {
+          newDiary = diary.copyWith(
+              id: diary.id,
+              status: DiaryStatus.idle,
+              currentEntry: diary.currentEntry + 1);
+        }
 
-      if (diary.currentEntry + 1 == diary.entries) {
-        newDiary = diary.copyWith(
-            id: diary.id,
-            status: DiaryStatus.submitted,
-            currentEntry: diary.currentEntry + 1);
+        diaryRepository.updateDiary(newDiary);
+
+        cancelAllDiaryNotifications(diary.id);
+        return true;
       } else {
-        newDiary = diary.copyWith(
-            id: diary.id,
-            status: DiaryStatus.idle,
-            currentEntry: diary.currentEntry + 1);
-      }
+        // //Update the nextStudy date- TBD with provision of study_start_date
+        // DateTime now = DateTime.now();
+        // var nextStudyDate = DateTime(now.year, now.month, now.day, 4, 0, 0)
+        //     .add(const Duration(days: 1));
 
-      diaryRepository.updateDiary(newDiary);
+        //TODO: TO BE REMOVED
+        //setupRepository.updateMetaDataFile(nextStudyDate);
 
-      cancelAllDiaryNotifications(diary.id);
-      return true;
-      }else{
-      // //Update the nextStudy date- TBD with provision of study_start_date
-      // DateTime now = DateTime.now();
-      // var nextStudyDate = DateTime(now.year, now.month, now.day, 4, 0, 0)
-      //     .add(const Duration(days: 1));
-
-
-      //TODO: TO BE REMOVED
-      //setupRepository.updateMetaDataFile(nextStudyDate);
-
-      return false;
-      
+        return false;
       }
       // } else {
       //   return false;

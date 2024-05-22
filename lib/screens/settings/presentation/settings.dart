@@ -75,6 +75,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
         backgroundColor: CustomColors.fillNormal,
         appBar: AppBar(
             backgroundColor: CustomColors.fillNormal,
+            scrolledUnderElevation: 0.0,
             title: Text(
               "Settings",
               style: CustomTypography()

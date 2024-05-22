@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -13,6 +15,7 @@ import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:rive/rive.dart';
 
 import '../../core/utils/formatter.dart';
 import '../components/buttons.dart';
@@ -48,6 +51,30 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   RecorderState recorderState = RecorderState.isStopped;
   final ValueNotifier<bool> _erase = ValueNotifier<bool>(false);
 
+  ScrollController scrollController = ScrollController();
+
+  //Animation
+  late StateMachineController _controller;
+
+  void _onInit(Artboard art) {
+    var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
+
+    ctrl?.isActive = false;
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+      });
+
+      Future.delayed(const Duration(milliseconds: 10), () {
+        final searchingThree = _controller.findSMI('Searching_3');
+        if (searchingThree != null && mounted) {
+          searchingThree.value = true;
+        }
+      });
+    }
+  }
+
   @override
   void initState() {
     recorderInit();
@@ -57,6 +84,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   @override
   void dispose() {
     recorder.closeRecorder();
+    _controller.dispose();
+    scrollController.dispose();
     super.dispose();
   }
 
@@ -106,7 +135,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     final screenHeight = MediaQuery.of(context).size.height;
 
     return SingleChildScrollView(
-      reverse: screenHeight > 750 ? true : false,
+      reverse: screenHeight > 850 ? true : false,
+      controller: scrollController,
       child: Column(
         children: [
           Padding(
@@ -121,10 +151,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 const SizedBox(
                   height: 32,
                 ),
-                Image.asset(
-                  "assets/images/avatar_recording.png",
-                  height: 64,
-                  width: 64,
+                SizedBox(
+                  height: 100,
+                  width: 100,
+                  child: RiveAnimation.asset(
+                    'assets/animations/ghosts.riv',
+                    onInit: _onInit,
+                  ),
                 ),
                 const SizedBox(
                   height: 16,
@@ -354,6 +387,16 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Future<void> record() async {
     final hasPermission = await checkAndRequestPermission();
+
+    //Check if scroll controller is already at the bottom
+    if (mounted) {
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeIn,
+      );
+    }
+
     if (hasPermission) {
       if (recorder.isRecording) {
         await recorder.pauseRecorder();
@@ -425,7 +468,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 }
 
 class BottomTextModal extends StatefulWidget {
-  final int promptId;
+  final PromptModel prompt;
   final String question;
   final String? hint;
   final ValueChanged<String?>? onSave;
@@ -433,7 +476,7 @@ class BottomTextModal extends StatefulWidget {
 
   const BottomTextModal(
       {super.key,
-      required this.promptId,
+      required this.prompt,
       required this.question,
       this.hint,
       required this.onSave,
@@ -451,10 +494,47 @@ class _BottomTextModalState extends State<BottomTextModal>
   late OverlayEntry? _overlayEntry;
   double keyboardHeight = 0;
 
+  bool disabled = true;
+
+  //Animation
+  late StateMachineController _controller;
+
+  void _onInit(Artboard art) {
+    var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
+
+    ctrl?.isActive = false;
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+      });
+
+      Future.delayed(const Duration(milliseconds: 10), () {
+        final searchingOne = _controller.findSMI('Searching_1');
+        if (searchingOne != null && mounted) {
+          searchingOne.value = true;
+        }
+      });
+    }
+  }
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
-    textController = TextEditingController();
+    textController =
+        TextEditingController(text: widget.prompt.answer?.response);
+    textController.addListener(() {
+      if (mounted) {
+        setState(() {
+          disabled = textController.text.isEmpty;
+        });
+      }
+    });
+    if (mounted) {
+      setState(() {
+        disabled = textController.text.isEmpty;
+      });
+    }
     fieldKey = GlobalKey();
     _overlayEntry = null;
     super.initState();
@@ -464,6 +544,7 @@ class _BottomTextModalState extends State<BottomTextModal>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     textController.dispose();
+    _controller.dispose();
     hideOverlay();
     super.dispose();
   }
@@ -580,10 +661,13 @@ class _BottomTextModalState extends State<BottomTextModal>
           const SizedBox(
             height: 32,
           ),
-          Image.asset(
-            "assets/images/avatar_recording.png",
-            height: 64,
-            width: 64,
+          SizedBox(
+            height: 100,
+            width: 100,
+            child: RiveAnimation.asset(
+              'assets/animations/ghosts.riv',
+              onInit: _onInit,
+            ),
           ),
           const SizedBox(
             height: 16,
@@ -596,27 +680,27 @@ class _BottomTextModalState extends State<BottomTextModal>
           const SizedBox(
             height: 16,
           ),
-          CustomOutlineButton(
-            onClick: () => {},
-            color: CustomColors.productNormal,
-            backgroundColor: CustomColors.fillWhite,
-            children: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  "Try A Hint",
-                  style: CustomTypography()
-                      .button(color: CustomColors.productNormal),
-                ),
-                const SizedBox(width: 8),
-                Image.asset(
-                  "assets/images/star.png",
-                  height: 16,
-                  width: 16,
-                )
-              ],
-            ),
-          ),
+          // CustomOutlineButton(
+          //   onClick: () => {},
+          //   color: CustomColors.productNormal,
+          //   backgroundColor: CustomColors.fillWhite,
+          //   children: Wrap(
+          //     crossAxisAlignment: WrapCrossAlignment.center,
+          //     children: [
+          //       Text(
+          //         "Try A Hint",
+          //         style: CustomTypography()
+          //             .button(color: CustomColors.productNormal),
+          //       ),
+          //       const SizedBox(width: 8),
+          //       Image.asset(
+          //         "assets/images/star.png",
+          //         height: 16,
+          //         width: 16,
+          //       )
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );
@@ -665,25 +749,35 @@ class _BottomTextModalState extends State<BottomTextModal>
           ),
           CustomOutlineButton(
               onClick: () => {
-                    widget.onSave?.call(textController.text),
-                    Navigator.pop(context)
+                    if (!disabled)
+                      {
+                        widget.onSave?.call(textController.text),
+                        Navigator.pop(context)
+                      }
                   },
-              color: CustomColors.textWhite,
-              backgroundColor: CustomColors.productNormal,
+              color:
+                  !disabled ? CustomColors.textWhite : CustomColors.fillDisabled,
+              backgroundColor: !disabled
+                  ? CustomColors.productNormal
+                  : CustomColors.fillDisabled,
               children: Wrap(
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text(
                     "OK",
-                    style: CustomTypography()
-                        .button(color: CustomColors.textWhite),
+                    style: CustomTypography().button(
+                        color: !disabled
+                            ? CustomColors.textWhite
+                            : CustomColors.greyDark),
                   ),
                   const SizedBox(
                     width: 8,
                   ),
-                  const Icon(
+                  Icon(
                     CupertinoIcons.checkmark_alt,
-                    color: CustomColors.textWhite,
+                    color: !disabled
+                        ? CustomColors.textWhite
+                        : CustomColors.greyDark,
                     size: 20,
                   )
                 ],

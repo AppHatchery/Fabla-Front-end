@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/completion/completion_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/calendar_widget.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/ghost_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -63,6 +64,8 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
 
   Widget loadedCompletionPage(BuildContext context, Protocol protocol,
       DiaryModel diary, List<DiaryModel> diaries) {
+    final width = MediaQuery.of(context).size.width;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 12.0),
       child: Column(
@@ -95,45 +98,39 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
                               ),
                             ],
                           )),
-                      Container(
-                        height: 120,
-                        width: 120,
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.only(top: 5),
-                        child: Image.asset(
-                          "assets/images/avatar_complete.png",
-                          width: 80,
-                          height: 80,
-                        ),
-                      ),
+
+                      GhostCompletionWidget(
+                          currentEntry: diary.currentEntry,
+                          dailyGoal: protocol.dailyGoal,
+                          weeklyGoal: protocol.weeklyGoal),
                     ],
                   ),
-                  const SizedBox(
-                    height: 24,
-                  ),
-                  Text(
-                    "Thanks for your response!",
-                    style: CustomTypography().headlineMedium(),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(
-                    height: 24,
-                  ),
-                  Text(
-                    "Your input is incredibly valuable for our study's progress. We can't wait to hear from you again soon!",
-                    style: CustomTypography().bodyLarge(),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(
-                    height: 24,
-                  ),
-                  CompleteCalendarWidget(
-                    diaries: diaries,
-                    dailyGoal: protocol.dailyGoal,
-                    weeklyGoal: protocol.weeklyGoal,
-                  )
-                ],
-              ),
+                ),
+                const SizedBox(
+                  height: 24,
+                ),
+                Text(
+                  "Thanks for your response!",
+                  style: CustomTypography().headlineMedium(),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(
+                  height: 24,
+                ),
+                Text(
+                  "Your input is incredibly valuable for our study's progress. We can't wait to hear from you again soon!",
+                  style: CustomTypography().bodyLarge(),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(
+                  height: 24,
+                ),
+                CompleteCalendarWidget(
+                  diaries: diaries,
+                  dailyGoal: protocol.dailyGoal,
+                  weeklyGoal: protocol.weeklyGoal,
+                )
+              ],
             ),
           ),
           Align(
@@ -156,12 +153,13 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
   }
 
   Widget avatarCircularProgress(Protocol protocol, DiaryModel diary) {
+    
     final begin = (diary.currentEntry - 1) / protocol.dailyGoal;
     final end = diary.currentEntry / protocol.dailyGoal;
 
     return SizedBox(
-        height: 120,
-        width: 120,
+        height: 150,
+        width: 150,
         child: TweenAnimationBuilder<double>(
           tween: Tween<double>(begin: begin, end: end),
           duration: const Duration(milliseconds: 1000),

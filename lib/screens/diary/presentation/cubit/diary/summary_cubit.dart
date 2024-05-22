@@ -72,11 +72,13 @@ class SummaryCubit extends Cubit<SummaryState> {
   ///
   void removeResponse(DiaryModel diary, PromptModel prompt, String path) {
     try {
-      _summaryRepository.removeResponse(prompt, path);
+      _summaryRepository.removeResponse(prompt, path).then((value) {
+        if (value) {
+          loadSummary(diary);
+        }
+      });
     } catch (e) {
       print("Error deleting response: $e");
-    } finally {
-      loadSummary(diary);
     }
   }
 
