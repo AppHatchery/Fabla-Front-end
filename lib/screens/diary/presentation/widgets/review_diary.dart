@@ -216,7 +216,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
-                  ableToDelete: true,
+                  isVisible: true,
                   answer: prompt.answer!.response!,
                   delete: () => deleteResponse(prompt, ''),
                 ),
@@ -229,7 +229,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
                     child: NewAudioCard(
-                      ableToDelete: true,
+                      isVisible: true,
                       recording: prompt.answer!.recordings[index],
                       delete: () => deleteResponse(
                           prompt, prompt.answer!.recordings[index].path),
