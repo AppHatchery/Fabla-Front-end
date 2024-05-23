@@ -769,10 +769,16 @@ class _NewAudioCardState extends State<NewAudioCard> {
   }
 
   Future<void> delete() async {
+    String? title, subheader;
+    if (widget.callerWidget != null) {
+      title = "Do you want to delete your response?";
+      subheader = "You won't be able to undo this action";
+    }
     final results = await showDialog<bool>(
         context: context,
         builder: (context) => DeletePopUp(
-              callerWidget: widget.callerWidget,
+              title: title,
+              subheader: subheader,
             ));
 
     if (results == true) {
@@ -898,10 +904,16 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
   }
 
   Future<void> delete() async {
+    String? title, subheader;
+    if (widget.callerWidget != null) {
+      title = "Do you want to delete your response?";
+      subheader = "You won't be able to undo this action";
+    }
     final results = await showDialog<bool>(
         context: context,
         builder: (context) => DeletePopUp(
-              callerWidget: widget.callerWidget,
+              title: title,
+              subheader: subheader,
             ));
 
     if (results == true) {

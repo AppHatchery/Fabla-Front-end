@@ -217,7 +217,6 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
                   ableToContinue: true,
-                  callerWidget: "history",
                   answer: prompt.answer!.response!,
                   delete: () => deleteResponse(prompt, ''),
                 ),
@@ -231,7 +230,6 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
                     child: NewAudioCard(
                       ableToDelete: true,
-                      callerWidget: "history",
                       recording: prompt.answer!.recordings[index],
                       delete: () => deleteResponse(
                           prompt, prompt.answer!.recordings[index].path),
