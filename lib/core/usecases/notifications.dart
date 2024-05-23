@@ -349,11 +349,14 @@ void dailyGoalNotification(int id) async {
 
     DateTime reminderTime;
     if (actualReminderTime.isBefore(threePM)) {
-      reminderTime = threePM;
+      reminderTime =
+          threePM.isBefore(now) ? now.add(const Duration(hours: 1)) : threePM;
     } else if ((actualReminderTime.isAtSameMomentAs(threePM) ||
             actualReminderTime.isAfter(threePM)) &&
         oneHourLater.isBefore(sevenPM)) {
-      reminderTime = oneHourLater;
+      reminderTime = oneHourLater.isBefore(now)
+          ? now.add(const Duration(hours: 1))
+          : oneHourLater;
     } else {
       return;
     }
