@@ -134,73 +134,78 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     final width = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return SingleChildScrollView(
-      reverse: screenHeight > 850 ? true : false,
-      controller: scrollController,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.question,
-                  style: CustomTypography().titleLarge(),
+    return LayoutBuilder(builder: (context, constraints) {
+      return SingleChildScrollView(
+        controller: scrollController,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.question,
+                      style: CustomTypography().titleLarge(),
+                    ),
+                    const SizedBox(
+                      height: 32,
+                    ),
+                    SizedBox(
+                      height: 100,
+                      width: 100,
+                      child: RiveAnimation.asset(
+                        'assets/animations/ghosts.riv',
+                        onInit: _onInit,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 16,
+                    ),
+                    Text(
+                      widget.hint ??
+                          "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
+                      style: CustomTypography().body(),
+                    ),
+                  ],
                 ),
-                const SizedBox(
-                  height: 32,
+              ),
+              SizedBox(height: screenHeight > 750 ? 70 : 32),
+              // Recording Controls
+              Container(
+                width: width,
+                padding: const EdgeInsets.all(32),
+                color: CustomColors.productNormal,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    recordingTimer(),
+                    SizedBox(
+                      height: screenHeight > 850 ? 36 : 24,
+                    ),
+                    SizedBox(
+                      height: 42,
+                      width: width,
+                      child: waveForm(),
+                    ),
+                    SizedBox(
+                      height: screenHeight > 850 ? 36 : 24,
+                    ),
+                    recordingControls(screenHeight),
+                    SizedBox(
+                      height: screenHeight > 850 ? 36 : 24,
+                    ),
+                  ],
                 ),
-                SizedBox(
-                  height: 100,
-                  width: 100,
-                  child: RiveAnimation.asset(
-                    'assets/animations/ghosts.riv',
-                    onInit: _onInit,
-                  ),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                Text(
-                  widget.hint ??
-                      "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
-                  style: CustomTypography().body(),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          SizedBox(height: screenHeight > 750 ? 70 : 32),
-          // Recording Controls
-          Container(
-            width: width,
-            padding: const EdgeInsets.all(32),
-            color: CustomColors.productNormal,
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
-                recordingTimer(),
-                SizedBox(
-                  height: screenHeight > 850 ? 36 : 24,
-                ),
-                SizedBox(
-                  height: 42,
-                  width: width,
-                  child: waveForm(),
-                ),
-                SizedBox(
-                  height: screenHeight > 850 ? 36 : 24,
-                ),
-                recordingControls(screenHeight),
-                SizedBox(
-                  height: screenHeight > 850 ? 36 : 24,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+        ),
+      );
+    });
   }
 
   Widget recordingTimer() {
@@ -755,8 +760,9 @@ class _BottomTextModalState extends State<BottomTextModal>
                         Navigator.pop(context)
                       }
                   },
-              color:
-                  !disabled ? CustomColors.textWhite : CustomColors.fillDisabled,
+              color: !disabled
+                  ? CustomColors.textWhite
+                  : CustomColors.fillDisabled,
               backgroundColor: !disabled
                   ? CustomColors.productNormal
                   : CustomColors.fillDisabled,
