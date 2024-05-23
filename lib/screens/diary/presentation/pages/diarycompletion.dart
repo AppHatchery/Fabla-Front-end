@@ -35,26 +35,28 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: CustomColors.fillWhite,
-        body: BlocConsumer<CompletionCubit, CompletionState>(
-          builder: (context, state) {
-            if (state is CompletionInitial) {
-              return initialCompletionPage();
-            } else if (state is CompletionLoading) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (state is CompletionLoaded) {
-              return loadedCompletionPage(
-                  context, state.protocol, state.diary, state.diaries);
-            } else {
-              return initialCompletionPage();
-            }
-          },
-          listener: (context, state) {
-            if (state is CompletionError) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(state.message),
-              ));
-            }
-          },
+        body: SafeArea(
+          child: BlocConsumer<CompletionCubit, CompletionState>(
+            builder: (context, state) {
+              if (state is CompletionInitial) {
+                return initialCompletionPage();
+              } else if (state is CompletionLoading) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (state is CompletionLoaded) {
+                return loadedCompletionPage(
+                    context, state.protocol, state.diary, state.diaries);
+              } else {
+                return initialCompletionPage();
+              }
+            },
+            listener: (context, state) {
+              if (state is CompletionError) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(state.message),
+                ));
+              }
+            },
+          ),
         ));
   }
 
@@ -67,11 +69,12 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
     final width = MediaQuery.of(context).size.width;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 12.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 34.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          const SizedBox(height: 48),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
