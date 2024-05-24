@@ -466,7 +466,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     String directory = p.dirname(file.path);
     String oldName = p.basenameWithoutExtension(file.path);
 
-    String newName = '$oldName.mp3';
+    String newName = '$oldName.aac';
     String newPath = p.join(directory, newName);
     return file.rename(newPath);
   }
