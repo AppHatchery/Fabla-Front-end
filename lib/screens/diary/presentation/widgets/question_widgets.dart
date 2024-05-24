@@ -313,7 +313,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

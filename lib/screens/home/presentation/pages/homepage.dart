@@ -31,6 +31,7 @@ class _HomePageState extends State<HomePage>
         AutomaticKeepAliveClientMixin {
   late HomeCubit homeCubit;
   late List<DiaryModel> diaries;
+  late List<DiaryModel> calendarDiaries;
 
   late AnimationController _controller;
 
@@ -175,45 +176,43 @@ class _HomePageState extends State<HomePage>
           },
           child: Stack(
             children: [
-              Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: today.isBefore(startDate) || diaries.isEmpty
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(
-                              height: 24,
-                            ),
-                            Text(
-                              "Today's Entries",
-                              style: CustomTypography().headlineMedium(),
-                              textAlign: TextAlign.left,
-                            ),
-                            const Expanded(child: FreeDayWidget()),
-                          ],
+              today.isBefore(startDate) || diaries.isEmpty
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(
+                          height: 24,
+                        ),
+                        Text(
+                          "Today's Entries",
+                          style: CustomTypography().headlineMedium(),
+                          textAlign: TextAlign.left,
+                        ),
+                        const Expanded(child: FreeDayWidget()),
+                      ],
+                    )
+                  : SingleChildScrollView(
+                      child: Column(
+                      children: [
+                        const SizedBox(
+                          height: 24,
+                        ),
+                        TodayGoalWidget(
+                          dailyGoal: protocol.dailyGoal,
+                          protocol: protocol,
+                          diary: diaries.first,
+                          weeklyEntries: weeklyEntries,
+                        ),
+                        const SizedBox(
+                          height: 24,
+                        ),
+                        TodaysDiaryList(
+                          diaries: diaries,
+                          refresh: (value) => refresh(value),
+                          getPageName: () => "home",
                         )
-                      : SingleChildScrollView(
-                          child: Column(
-                          children: [
-                            const SizedBox(
-                              height: 24,
-                            ),
-                            TodayGoalWidget(
-                              dailyGoal: protocol.dailyGoal,
-                              protocol: protocol,
-                              diary: diaries.first,
-                              weeklyEntries: weeklyEntries,
-                            ),
-                            const SizedBox(
-                              height: 24,
-                            ),
-                            TodaysDiaryList(
-                              diaries: diaries,
-                              refresh: (value) => refresh(value),
-                              getPageName: () => "home",
-                            )
-                          ],
-                        ))),
+                      ],
+                    )),
               Positioned(
                   top: 0,
                   child: SlideTransition(
@@ -263,7 +262,10 @@ class _HomePageState extends State<HomePage>
           maxChildSize: 1,
           minChildSize: 1,
           builder: (context, scrollController) {
-            return const StudyCalendar();
+            return StudyCalendar(
+              refresh: (value) => refresh(value),
+              getPageName: () => "calendar",
+            );
           }),
     );
   }

@@ -37,8 +37,6 @@ class _MyResponseState extends State<MyResponse> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        "Response String: ${widget.prompt.answer!.response} | Recording empty: ${widget.prompt.answer!.recordings.isEmpty}");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -52,7 +50,7 @@ class _MyResponseState extends State<MyResponse> {
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
-                  ableToContinue: true,
+                  isVisible: true,
                   edit: widget.edit,
                   answer: widget.prompt.answer!.response!,
                   callerWidget: "diary",
@@ -67,7 +65,7 @@ class _MyResponseState extends State<MyResponse> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
                     child: NewAudioCard(
-                      ableToDelete: true,
+                      isVisible: true,
                       recording: widget.recordings[index],
                       delete: () => deleteResponse(
                           widget.prompt, widget.recordings[index].path),
