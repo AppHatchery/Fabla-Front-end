@@ -14,12 +14,15 @@ class TodayGoalWidget extends StatefulWidget {
   final Protocol protocol;
   final DiaryModel diary;
   final int weeklyEntries;
+  final bool isHomeTipClosed;
+
   const TodayGoalWidget(
       {super.key,
       required this.dailyGoal,
       required this.protocol,
       required this.diary,
-      required this.weeklyEntries});
+      required this.weeklyEntries,
+      required this.isHomeTipClosed});
 
   @override
   State<TodayGoalWidget> createState() => _TodayGoalWidgetState();
@@ -27,6 +30,7 @@ class TodayGoalWidget extends StatefulWidget {
 
 class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   late StateMachineController _controller;
+  bool showModal = true;
 
   void _onInit(Artboard art) {
     var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
@@ -44,6 +48,17 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   }
 
   @override
+  void initState() {
+    _checkModalStatus();
+    super.initState();
+  }
+
+  void _checkModalStatus() async {
+    showModal =
+        (await PreferenceService().getBoolPreference(key: "show_home_tip"))!;
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -58,6 +73,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
     //calculate the daily goal progress bar width
     final dailyValue = ((entry) / widget.protocol.dailyGoal);
+    print("CURRENT STATE OF HOME TIP: ${widget.isHomeTipClosed}");
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,26 +117,28 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                       children: [
                         Container(
                           width: 5,
-                          height: 10,
-                          color: Colors.white,
+                          height: 0,
+                          color: CustomColors.productLightBackground,
                         ),
                       ],
                     )),
-                Align(
-                  alignment: Alignment.center,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 5.0),
-                    child: SizedBox(
-                      height: 120,
-                      width: 180,
-                      child: RiveAnimation.asset(
-                        'assets/animations/ghosts.riv',
-                        onInit: _onInit,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
+                widget.isHomeTipClosed || showModal == false
+                    ? Align(
+                        alignment: Alignment.center,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 5.0),
+                          child: SizedBox(
+                            height: 120,
+                            width: 180,
+                            child: RiveAnimation.asset(
+                              'assets/animations/ghosts.riv',
+                              onInit: _onInit,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
               ],
             ),
           ),

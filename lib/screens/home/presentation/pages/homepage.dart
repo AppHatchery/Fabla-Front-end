@@ -36,6 +36,8 @@ class _HomePageState extends State<HomePage>
   late AnimationController _controller;
 
   bool isExpanded = false;
+  bool isHomeTipClosed = false;
+  bool tipClosed = false;
 
   @override
   void initState() {
@@ -112,7 +114,7 @@ class _HomePageState extends State<HomePage>
   Widget loadedHome(List<DiaryModel> diaries, DateTime startDate,
       Protocol? protocol, int entries) {
     final today = DateTime.now();
-    show4AmTip();
+    if (tipClosed == false) show4AmTip();
     final weeklyEntries = entries;
 
     return Scaffold(
@@ -177,7 +179,7 @@ class _HomePageState extends State<HomePage>
           child: Stack(
             children: [
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: today.isBefore(startDate) || diaries.isEmpty
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,6 +206,7 @@ class _HomePageState extends State<HomePage>
                             protocol: protocol,
                             diary: diaries.first,
                             weeklyEntries: weeklyEntries,
+                            isHomeTipClosed: isHomeTipClosed,
                           ),
                           const SizedBox(
                             height: 24,
@@ -297,7 +300,14 @@ class _HomePageState extends State<HomePage>
                       iconTwo: "assets/images/record_voice_over.png",
                     )
                   ],
-                ));
+                )).whenComplete(() async {
+          isHomeTipClosed = await PreferenceService()
+              .setBoolPreference(key: "home_quick_tip_closed", value: true);
+          await Future.delayed(const Duration(milliseconds: 2000));
+          setState(() {
+            tipClosed = true;
+          });
+        });
       });
     }
   }
