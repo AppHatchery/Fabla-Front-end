@@ -62,11 +62,6 @@ Future<bool> upload(String studyCode, DiaryModel diary) async {
                 dir.path, 'recordings', prompt.answer?.recordings.first.path);
 
             var date = getPostDate(diary.start);
-                // Remove the comma
-              date = date.replaceAll(',', '');
-              
-              // Replace spaces with hyphens
-              date = date.replaceAll(' ', '-');
 
             DateTime now = DateTime.now();
             String formattedTime = DateFormat('HH-mm-ss').format(now);
