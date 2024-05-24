@@ -771,8 +771,8 @@ class _NewAudioCardState extends State<NewAudioCard> {
   Future<void> delete() async {
     String? title, subheader;
     if (widget.callerWidget != null) {
-      title = "Do you want to delete your response?";
-      subheader = "You won't be able to undo this action";
+      title = Strings.deletePopUpTitle;
+      subheader = Strings.deletePopUpSubheader;
     }
     final results = await showDialog<bool>(
         context: context,
@@ -906,8 +906,10 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
   Future<void> delete() async {
     String? title, subheader;
     if (widget.callerWidget != null) {
-      title = "Do you want to delete your response?";
-      subheader = "You won't be able to undo this action";
+      title = Strings.deletePopUpTitle;
+      subheader = Strings.deletePopUpSubheader;
+    } else {
+      subheader = Strings.deleteTextResponse;
     }
     final results = await showDialog<bool>(
         context: context,
