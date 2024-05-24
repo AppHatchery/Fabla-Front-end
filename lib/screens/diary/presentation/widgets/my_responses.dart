@@ -53,6 +53,7 @@ class _MyResponseState extends State<MyResponse> {
                   isVisible: true,
                   edit: widget.edit,
                   answer: widget.prompt.answer!.response!,
+                  callerWidget: "diary",
                   delete: () => deleteResponse(widget.prompt, ''),
                 ),
               )
@@ -70,6 +71,7 @@ class _MyResponseState extends State<MyResponse> {
                           widget.prompt, widget.recordings[index].path),
                       viewOnly: false,
                       promptId: widget.prompt.id,
+                      callerWidget: "diary",
                     ),
                   );
                 }),

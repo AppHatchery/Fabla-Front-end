@@ -132,7 +132,6 @@ class DiaryCard extends StatelessWidget {
                               ? CustomColors.fillDisabled
                               : CustomColors.productNormal,
                           width: 2)),
-
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -153,7 +152,6 @@ class DiaryCard extends StatelessWidget {
                                 ? CustomColors.textDisabled
                                 : CustomColors.textWhite,
                       ),
-
                     ),
                   ),
                 ),
@@ -681,14 +679,16 @@ class NewAudioCard extends StatefulWidget {
   final VoidCallback? delete;
   final bool viewOnly;
   final int promptId;
+  final String? callerWidget;
   final bool? isVisible;
 
   const NewAudioCard(
       {super.key,
       required this.recording,
       this.delete,
-      required this.viewOnly,
       this.isVisible,
+      required this.viewOnly,
+      this.callerWidget,
       required this.promptId});
 
   @override
@@ -786,8 +786,17 @@ class _NewAudioCardState extends State<NewAudioCard> {
   }
 
   Future<void> delete() async {
+    String? title, subheader;
+    if (widget.callerWidget != null) {
+      title = Strings.deletePopUpTitle;
+      subheader = Strings.deletePopUpSubheader;
+    }
     final results = await showDialog<bool>(
-        context: context, builder: (context) => const DeletePopUp());
+        context: context,
+        builder: (context) => DeletePopUp(
+              title: title,
+              subheader: subheader,
+            ));
 
     if (results == true) {
       widget.delete!();
@@ -854,6 +863,7 @@ class _NewAudioCardState extends State<NewAudioCard> {
 class TextAnswerCard extends StatefulWidget {
   final String answer;
   final VoidCallback? delete;
+  final String? callerWidget;
   final bool? isVisible;
   final void Function(String)? edit;
 
@@ -861,6 +871,7 @@ class TextAnswerCard extends StatefulWidget {
       {super.key,
       required this.answer,
       this.delete,
+      this.callerWidget,
       this.edit,
       this.isVisible});
 
@@ -914,8 +925,19 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
   }
 
   Future<void> delete() async {
+    String? title, subheader;
+    if (widget.callerWidget != null) {
+      title = Strings.deletePopUpTitle;
+      subheader = Strings.deletePopUpSubheader;
+    } else {
+      subheader = Strings.deleteTextResponse;
+    }
     final results = await showDialog<bool>(
-        context: context, builder: (context) => const DeletePopUp());
+        context: context,
+        builder: (context) => DeletePopUp(
+              title: title,
+              subheader: subheader,
+            ));
 
     if (results == true) {
       widget.delete!();
