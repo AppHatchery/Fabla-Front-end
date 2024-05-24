@@ -303,7 +303,7 @@ class _HomePageState extends State<HomePage>
                 )).whenComplete(() async {
           isHomeTipClosed = await PreferenceService()
               .setBoolPreference(key: "home_quick_tip_closed", value: true);
-          await Future.delayed(const Duration(milliseconds: 2000));
+          await Future.delayed(const Duration(milliseconds: 200));
           setState(() {
             tipClosed = true;
           });
