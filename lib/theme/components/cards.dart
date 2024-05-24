@@ -132,7 +132,6 @@ class DiaryCard extends StatelessWidget {
                               ? CustomColors.fillDisabled
                               : CustomColors.productNormal,
                           width: 2)),
-
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -153,7 +152,6 @@ class DiaryCard extends StatelessWidget {
                                 ? CustomColors.textDisabled
                                 : CustomColors.textWhite,
                       ),
-
                     ),
                   ),
                 ),
@@ -688,6 +686,7 @@ class NewAudioCard extends StatefulWidget {
       {super.key,
       required this.recording,
       this.delete,
+      this.isVisible,
       required this.viewOnly,
       this.callerWidget,
       required this.promptId});
