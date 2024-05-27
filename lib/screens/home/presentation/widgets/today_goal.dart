@@ -51,11 +51,10 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
   @override
   void initState() {
-    if (widget.isHomeTipClosed.value) {
-      widget.isHomeTipClosed.addListener(() {
-        _controller.isActive = true;
-      });
-    }
+    widget.isHomeTipClosed.addListener(() {
+      if (widget.isHomeTipClosed.value) _controller.isActive = true;
+    });
+
     super.initState();
   }
 
