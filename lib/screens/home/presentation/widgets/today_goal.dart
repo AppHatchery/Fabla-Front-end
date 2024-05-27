@@ -14,7 +14,7 @@ class TodayGoalWidget extends StatefulWidget {
   final Protocol protocol;
   final DiaryModel diary;
   final int weeklyEntries;
-  final bool isHomeTipClosed;
+  final ValueNotifier<bool> isHomeTipClosed;
 
   const TodayGoalWidget(
       {super.key,
@@ -30,7 +30,7 @@ class TodayGoalWidget extends StatefulWidget {
 
 class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   late StateMachineController _controller;
-  bool showModal = true;
+  late bool showModal;
 
   void _onInit(Artboard art) {
     var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
@@ -42,20 +42,21 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         _controller = ctrl;
       });
 
-      Future.delayed(
-          const Duration(milliseconds: 10), () => determineAnimation());
+      if (widget.isHomeTipClosed.value) {
+        Future.delayed(
+            const Duration(milliseconds: 10), () => determineAnimation());
+      }
     }
   }
 
   @override
   void initState() {
-    _checkModalStatus();
+    if (widget.isHomeTipClosed.value) {
+      widget.isHomeTipClosed.addListener(() {
+        _controller.isActive = true;
+      });
+    }
     super.initState();
-  }
-
-  void _checkModalStatus() async {
-    showModal =
-        (await PreferenceService().getBoolPreference(key: "show_home_tip"))!;
   }
 
   @override
@@ -73,7 +74,6 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
     //calculate the daily goal progress bar width
     final dailyValue = ((entry) / widget.protocol.dailyGoal);
-    print("CURRENT STATE OF HOME TIP: ${widget.isHomeTipClosed}");
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,23 +122,21 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                         ),
                       ],
                     )),
-                widget.isHomeTipClosed || showModal == false
-                    ? Align(
-                        alignment: Alignment.center,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 5.0),
-                          child: SizedBox(
-                            height: 120,
-                            width: 180,
-                            child: RiveAnimation.asset(
-                              'assets/animations/ghosts.riv',
-                              onInit: _onInit,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
+                Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 5.0),
+                    child: SizedBox(
+                      height: 120,
+                      width: 180,
+                      child: RiveAnimation.asset(
+                        'assets/animations/ghosts.riv',
+                        onInit: _onInit,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                )
               ],
             ),
           ),

@@ -165,7 +165,7 @@ class _QuickTipPopUpState extends State<QuickTipPopUp> {
     await PreferenceService()
         .setBoolPreference(key: "show_home_tip", value: !dontShowAgain);
 
-    if (mounted) Navigator.of(context).pop();
+    if (mounted) Navigator.pop(context);
   }
 }
 

@@ -36,8 +36,7 @@ class _HomePageState extends State<HomePage>
   late AnimationController _controller;
 
   bool isExpanded = false;
-  bool isHomeTipClosed = false;
-  bool tipClosed = false;
+  ValueNotifier<bool> isHomeTipClosed = ValueNotifier(true);
 
   @override
   void initState() {
@@ -48,6 +47,7 @@ class _HomePageState extends State<HomePage>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
+    show4AmTip();
     super.initState();
   }
 
@@ -114,7 +114,7 @@ class _HomePageState extends State<HomePage>
   Widget loadedHome(List<DiaryModel> diaries, DateTime startDate,
       Protocol? protocol, int entries) {
     final today = DateTime.now();
-    if (tipClosed == false) show4AmTip();
+    // if (isHomeTipClosed.value == false) show4AmTip();
     final weeklyEntries = entries;
 
     return Scaffold(
@@ -281,6 +281,7 @@ class _HomePageState extends State<HomePage>
         await PreferenceService().getBoolPreference(key: 'show_home_tip') ??
             true;
     if (mounted && show) {
+      isHomeTipClosed.value = false;
       Future.delayed(const Duration(milliseconds: 1000), () async {
         showModalBottomSheet(
             context: context,
@@ -301,11 +302,8 @@ class _HomePageState extends State<HomePage>
                     )
                   ],
                 )).whenComplete(() async {
-          isHomeTipClosed = await PreferenceService()
-              .setBoolPreference(key: "home_quick_tip_closed", value: true);
-          await Future.delayed(const Duration(milliseconds: 200));
           setState(() {
-            tipClosed = true;
+            isHomeTipClosed.value = true;
           });
         });
       });
