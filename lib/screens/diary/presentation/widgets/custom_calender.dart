@@ -73,6 +73,7 @@ class _CustomCalenderState extends State<CustomCalender> {
             rangeEndDay: widget.rangeEnd,
             startingDayOfWeek: StartingDayOfWeek.monday,
             daysOfWeekHeight: 20,
+            availableGestures: AvailableGestures.none,
             calendarStyle: CalendarStyle(
               outsideDaysVisible: false,
               markerSize: 6,
