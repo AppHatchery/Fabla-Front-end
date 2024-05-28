@@ -19,6 +19,7 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,10 +33,7 @@ import 'screens/diary/data/diary.dart';
 import 'screens/diary/presentation/pages/diaries.dart';
 import 'screens/diary/presentation/pages/diarysummary.dart';
 import 'screens/home/presentation/cubit/cubit/home_cubit.dart';
-import 'services/amplify_init.dart';
 import 'services/notification_service.dart';
-
-import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 
 //Global variables
 late ObjectBox objectbox;
@@ -48,9 +46,11 @@ void main() async {
   );
   FlutterError.onError = (errorDetails) {
     FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+    FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
   };
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
     return true;
   };
   objectbox = await ObjectBox.create();
@@ -73,9 +73,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // bool? _jailbroken;
-  // bool? _developerMode;
-
   final RouteService routeService = RouteService();
   late Widget _route;
   @override
@@ -85,45 +82,12 @@ class _MyAppState extends State<MyApp> {
     final repo = SetupRepository();
     repo.createProtocol();
     super.initState();
-   // initPlatformState();
   }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  // Future<void> initPlatformState() async {
-  //   bool jailbroken;
-  //   bool developerMode;
-  //   // Platform messages may fail, so we use a try/catch PlatformException.
-  //   try {
-  //     jailbroken = await FlutterJailbreakDetection.jailbroken;
-  //     developerMode = await FlutterJailbreakDetection.developerMode;
-  //   } on PlatformException {
-  //     jailbroken = true;
-  //     developerMode = true;
-  //   }
-
-  //   // If the widget was removed from the tree while the asynchronous platform
-  //   // message was in flight, we want to discard the reply rather than calling
-  //   // setState to update our non-existent appearance.
-  //   if (!mounted) return;
-
-  //   setState(() {
-  //     _jailbroken = jailbroken;
-  //     _developerMode = developerMode;
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
-  // print("//////////////////////////////////////////");
-  // print('Jailbroken: ${_jailbroken == null ? "Unknown" : _jailbroken! ? "YES" : "NO"}');
-  // if (_jailbroken != null && _jailbroken!) {
-  //   print("App will close now");
-  //   //SystemChannels.platform.invokeMethod('SystemNavigator.pop');
-  // }
-  // print('Developer mode: ${_developerMode == null ? "Unknown" : _developerMode! ? "YES" : "NO"}');
-  // print("//////////////////////////////////////////");
     return ScreenUtilInit(
         minTextAdapt: true,
         designSize: Size(width, height),
