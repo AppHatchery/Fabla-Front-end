@@ -36,6 +36,7 @@ class _HomePageState extends State<HomePage>
   late AnimationController _controller;
 
   bool isExpanded = false;
+  ValueNotifier<bool> isHomeTipClosed = ValueNotifier(true);
 
   @override
   void initState() {
@@ -46,6 +47,7 @@ class _HomePageState extends State<HomePage>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
+    show4AmTip();
     super.initState();
   }
 
@@ -112,7 +114,7 @@ class _HomePageState extends State<HomePage>
   Widget loadedHome(List<DiaryModel> diaries, DateTime startDate,
       Protocol? protocol, int entries) {
     final today = DateTime.now();
-    show4AmTip();
+    // if (isHomeTipClosed.value == false) show4AmTip();
     final weeklyEntries = entries;
 
     return Scaffold(
@@ -176,43 +178,47 @@ class _HomePageState extends State<HomePage>
           },
           child: Stack(
             children: [
-              today.isBefore(startDate) || diaries.isEmpty
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(
-                          height: 24,
-                        ),
-                        Text(
-                          "Today's Entries",
-                          style: CustomTypography().headlineMedium(),
-                          textAlign: TextAlign.left,
-                        ),
-                        const Expanded(child: FreeDayWidget()),
-                      ],
-                    )
-                  : SingleChildScrollView(
-                      child: Column(
-                      children: [
-                        const SizedBox(
-                          height: 24,
-                        ),
-                        TodayGoalWidget(
-                          dailyGoal: protocol.dailyGoal,
-                          protocol: protocol,
-                          diary: diaries.first,
-                          weeklyEntries: weeklyEntries,
-                        ),
-                        const SizedBox(
-                          height: 24,
-                        ),
-                        TodaysDiaryList(
-                          diaries: diaries,
-                          refresh: (value) => refresh(value),
-                          getPageName: () => "home",
-                        )
-                      ],
-                    )),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: today.isBefore(startDate) || diaries.isEmpty
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(
+                            height: 24,
+                          ),
+                          Text(
+                            "Today's Entries",
+                            style: CustomTypography().headlineMedium(),
+                            textAlign: TextAlign.left,
+                          ),
+                          const Expanded(child: FreeDayWidget()),
+                        ],
+                      )
+                    : SingleChildScrollView(
+                        child: Column(
+                        children: [
+                          const SizedBox(
+                            height: 24,
+                          ),
+                          TodayGoalWidget(
+                            dailyGoal: protocol.dailyGoal,
+                            protocol: protocol,
+                            diary: diaries.first,
+                            weeklyEntries: weeklyEntries,
+                            isHomeTipClosed: isHomeTipClosed,
+                          ),
+                          const SizedBox(
+                            height: 24,
+                          ),
+                          TodaysDiaryList(
+                            diaries: diaries,
+                            refresh: (value) => refresh(value),
+                            getPageName: () => "home",
+                          )
+                        ],
+                      )),
+              ),
               Positioned(
                   top: 0,
                   child: SlideTransition(
@@ -275,6 +281,7 @@ class _HomePageState extends State<HomePage>
         await PreferenceService().getBoolPreference(key: 'show_home_tip') ??
             true;
     if (mounted && show) {
+      isHomeTipClosed.value = false;
       Future.delayed(const Duration(milliseconds: 500), () async {
         showModalBottomSheet(
             context: context,
@@ -292,13 +299,13 @@ class _HomePageState extends State<HomePage>
                           "You are encouraged to log as many encounters as you can: More entries, more insights!",
                       iconOne: "assets/images/arrow_split.png",
                       iconTwo: "assets/images/record_voice_over.png",
-                      dontShowAgain: false,
                     )
                   ],
-                ));
-
-        await PreferenceService()
-            .setBoolPreference(key: 'show_home_tip', value: false);
+                )).whenComplete(() async {
+          setState(() {
+            isHomeTipClosed.value = true;
+          });
+        });
       });
     }
   }

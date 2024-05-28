@@ -50,11 +50,10 @@ class QuickTipPopUp extends StatefulWidget {
 }
 
 class _QuickTipPopUpState extends State<QuickTipPopUp> {
-  late bool? _dontShowAgain;
+  bool dontShowAgain = false;
 
   @override
   void initState() {
-    _dontShowAgain = widget.dontShowAgain;
     super.initState();
   }
 
@@ -78,27 +77,12 @@ class _QuickTipPopUpState extends State<QuickTipPopUp> {
               //Title
               Row(
                 children: [
-                  // const Expanded(
-                  //     child: SizedBox(
-                  //   height: 24,
-                  //   width: 24,
-                  // )),
                   Expanded(
                       child: SizedBox(
                     child: Text(widget.title,
                         style: CustomTypography().headlineMedium(),
                         textAlign: TextAlign.center),
                   )),
-                  // Expanded(
-                  //     child: GestureDetector(
-                  //   onTap: () => Navigator.pop(context),
-                  //   child: Container(
-                  //     height: 24,
-                  //     width: 24,
-                  //     alignment: Alignment.centerRight,
-                  //     child: const Icon(CustomIcons.close, color: Colors.black),
-                  //   ),
-                  // )),
                 ],
               ),
 
@@ -154,20 +138,18 @@ class _QuickTipPopUpState extends State<QuickTipPopUp> {
 
               const SizedBox(height: 32),
 
-              _dontShowAgain != null
-                  ? Container(
-                      alignment: Alignment.center,
-                      child: IntrinsicWidth(
-                        child: CustomCheckbox(
-                            value: _dontShowAgain!,
-                            label: "Don't show me again",
-                            onChanged: (value) => {
-                                  setState(() {
-                                    _dontShowAgain = value!;
-                                  }),
-                                }),
-                      ))
-                  : const SizedBox.shrink(),
+              Container(
+                  alignment: Alignment.center,
+                  child: IntrinsicWidth(
+                    child: CustomCheckbox(
+                        value: dontShowAgain,
+                        label: "Don't show me again",
+                        onChanged: (value) => {
+                              setState(() {
+                                dontShowAgain = value!;
+                              }),
+                            }),
+                  )),
 
               const SizedBox(height: 12),
 
@@ -180,10 +162,9 @@ class _QuickTipPopUpState extends State<QuickTipPopUp> {
   }
 
   void _save() async {
-    if (_dontShowAgain != null) {
-      await PreferenceService()
-          .setBoolPreference(key: "show_diary_tip", value: !_dontShowAgain!);
-    }
+    await PreferenceService()
+        .setBoolPreference(key: "show_home_tip", value: !dontShowAgain);
+
     if (mounted) Navigator.pop(context);
   }
 }
