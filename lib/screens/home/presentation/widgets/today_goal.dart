@@ -117,7 +117,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                         Container(
                           width: 5,
                           height: 10,
-                          color: CustomColors.productLightBackground,
+                          color: Colors.white,
                         ),
                       ],
                     )),
