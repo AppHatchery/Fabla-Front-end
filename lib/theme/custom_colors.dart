@@ -29,6 +29,7 @@ class CustomColors {
   static const Color fillWhite = Color(0xFFFFFFFF);
   static const Color fillNormal = Color(0xFFF4F4F4);
   static const Color fillDisabled = Color(0xFFE5E5E5);
+  static const Color fillWhiteShade = Color(0xFFFDFDFD);
 
   //Text
   static const Color textWhite = Color(0xFFFFFFFF);
