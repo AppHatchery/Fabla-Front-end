@@ -282,7 +282,7 @@ class _HomePageState extends State<HomePage>
             true;
     if (mounted && show) {
       isHomeTipClosed.value = false;
-      Future.delayed(const Duration(milliseconds: 1000), () async {
+      Future.delayed(const Duration(milliseconds: 500), () async {
         showModalBottomSheet(
             context: context,
             isScrollControlled: true,
