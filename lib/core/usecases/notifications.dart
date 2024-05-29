@@ -24,7 +24,6 @@ import '../../services/preference_service.dart';
 /// cancelAllDiaryNotifications(123);
 /// ```
 void cancelAllDiaryNotifications(int id) async {
-  print("i have been called");
   final source =
       await PreferenceService().getStringPreference(key: 'diary_notifications');
 
@@ -352,11 +351,16 @@ void dailyGoalNotification(int id) async {
       reminderTime =
           threePM.isBefore(now) ? now.add(const Duration(hours: 1)) : threePM;
     } else if ((actualReminderTime.isAtSameMomentAs(threePM) ||
-            actualReminderTime.isAfter(threePM)) &&
-        oneHourLater.isBefore(sevenPM)) {
-      reminderTime = oneHourLater.isBefore(now)
+        actualReminderTime.isAfter(threePM))) {
+      reminderTime = now.isAfter(actualReminderTime)
           ? now.add(const Duration(hours: 1))
           : oneHourLater;
+    } else {
+      return;
+    }
+
+    if (reminderTime.isBefore(sevenPM)) {
+      reminderTime;
     } else {
       return;
     }
