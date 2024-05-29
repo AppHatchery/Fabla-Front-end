@@ -502,6 +502,7 @@ class _QuestionPageState extends State<QuestionPage>
             prompt: prompt,
             currentPage: widget.currentPage,
             responseWidget: responseWidget,
+            bottomSheetController: _bottomSheetController,
           )
         : SingleChildScrollView(
             controller: _scrollController,

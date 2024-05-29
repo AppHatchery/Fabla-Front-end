@@ -14,12 +14,15 @@ class TodayGoalWidget extends StatefulWidget {
   final Protocol protocol;
   final DiaryModel diary;
   final int weeklyEntries;
+  final ValueNotifier<bool> isHomeTipClosed;
+
   const TodayGoalWidget(
       {super.key,
       required this.dailyGoal,
       required this.protocol,
       required this.diary,
-      required this.weeklyEntries});
+      required this.weeklyEntries,
+      required this.isHomeTipClosed});
 
   @override
   State<TodayGoalWidget> createState() => _TodayGoalWidgetState();
@@ -38,9 +41,20 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         _controller = ctrl;
       });
 
-      Future.delayed(
-          const Duration(milliseconds: 10), () => determineAnimation());
+      if (widget.isHomeTipClosed.value) {
+        Future.delayed(
+            const Duration(milliseconds: 10), () => determineAnimation());
+      }
     }
+  }
+
+  @override
+  void initState() {
+    widget.isHomeTipClosed.addListener(() {
+      if (widget.isHomeTipClosed.value) _controller.isActive = true;
+    });
+
+    super.initState();
   }
 
   @override
@@ -120,7 +134,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                       ),
                     ),
                   ),
-                ),
+                )
               ],
             ),
           ),

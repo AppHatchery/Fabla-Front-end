@@ -66,7 +66,7 @@ Future<bool> upload(String studyCode, DiaryModel diary) async {
             DateTime now = DateTime.now();
             String formattedTime = DateFormat('HH-mm-ss').format(now);
             var filename =
-                "${studyCode}_${formatSubmissionDate(diary.start)}_$formattedTime.mp3";
+                "${studyCode}_${formatSubmissionDate(diary.start)}_$formattedTime.aac";
             var awsPath = "$studyCode/$date/prompt_$promptNumber/$filename";
             audioData
                 .add(AudioData(localDirectory: path, awsS3Directory: awsPath));

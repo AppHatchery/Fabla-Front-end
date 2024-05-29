@@ -51,6 +51,32 @@ class DiaryDAO {
     return query.findFirst();
   }
 
+  /// Retrieves a list of DiaryEntity objects from the database based on the specified due date.
+  /// This function searches diary entries with a due date matching the provided DateTime.
+  /// It constructs a query to find the relevant entry within the storage box and returns it.
+  ///
+  /// Parameters:
+  /// - [due]: The DateTime representing the due date of the desired diary entry.
+  ///
+  /// Returns:
+  /// A list of DiaryEntity objects representing the diary entry with the specified due date,
+  /// or an empty list if no matching entry is found.
+  ///
+  List<Diary> getDailyDiary(DateTime due) {
+    // Get the start of the provided date (midnight)
+    DateTime startOfDay = DateTime(due.year, due.month, due.day);
+    // Get the start of the next day (to use for comparison)
+    DateTime startOfNextDay = startOfDay.add(const Duration(days: 1));
+    final query = box
+        .query(Diary_.due.greaterOrEqual(startOfDay.millisecondsSinceEpoch) &
+            Diary_.due.lessThan(startOfNextDay.millisecondsSinceEpoch))
+        .build();
+
+    final diaries = query.find();
+    query.close();
+    return diaries;
+  }
+
   /// Adds a collection of DiaryEntity objects to the database.
   /// This function stores multiple diary entries within the storage box in a single operation.
   ///

@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -79,7 +80,9 @@ class DiaryCard extends StatelessWidget {
                     width: 12,
                   ),
                   diary?.tags != null && diary!.tags!.isNotEmpty
-                      ? TagPill(tag: diary!.tags!.first)
+                      ? Flexible(
+                          fit: FlexFit.loose,
+                          child: TagPill(tag: diary!.tags!.first))
                       : const SizedBox.shrink(),
                 ],
               ),
@@ -113,15 +116,22 @@ class DiaryCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: GestureDetector(
-                onTap: () => navigateToDiary(context),
+                onTap: diary!.start.isAfter(DateTime.now())
+                    ? () {}
+                    : () => navigateToDiary(context),
                 child: Container(
                   decoration: BoxDecoration(
                       color: diary!.status == DiaryStatus.submitted
                           ? CustomColors.fillWhite
-                          : CustomColors.productNormal,
+                          : diary!.start.isAfter(DateTime.now())
+                              ? CustomColors.fillDisabled
+                              : CustomColors.productNormal,
                       borderRadius: BorderRadius.circular(100),
                       border: Border.all(
-                          color: CustomColors.productNormal, width: 2)),
+                          color: diary!.start.isAfter(DateTime.now())
+                              ? CustomColors.fillDisabled
+                              : CustomColors.productNormal,
+                          width: 2)),
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -136,9 +146,12 @@ class DiaryCard extends StatelessWidget {
                               DiaryStatus.missed => "View",
                             },
                       style: CustomTypography().button(
-                          color: diary!.status == DiaryStatus.submitted
-                              ? CustomColors.productNormal
-                              : CustomColors.textWhite),
+                        color: diary!.status == DiaryStatus.submitted
+                            ? CustomColors.productNormal
+                            : diary!.start.isAfter(DateTime.now())
+                                ? CustomColors.textDisabled
+                                : CustomColors.textWhite,
+                      ),
                     ),
                   ),
                 ),
@@ -259,8 +272,8 @@ class TagPill extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Icon(
             icon,
@@ -270,9 +283,11 @@ class TagPill extends StatelessWidget {
           const SizedBox(
             width: 5,
           ),
-          Text(tag.text,
-              style: CustomTypography()
-                  .bodyMedium(color: foreground, weight: FontWeight.w500)),
+          Flexible(
+            child: Text(tag.text,
+                style: CustomTypography()
+                    .bodyMedium(color: foreground, weight: FontWeight.w500)),
+          ),
         ],
       ),
     );
@@ -664,14 +679,16 @@ class NewAudioCard extends StatefulWidget {
   final VoidCallback? delete;
   final bool viewOnly;
   final int promptId;
-  final bool? ableToDelete;
+  final String? callerWidget;
+  final bool? isVisible;
 
   const NewAudioCard(
       {super.key,
       required this.recording,
       this.delete,
+      this.isVisible,
       required this.viewOnly,
-      this.ableToDelete,
+      this.callerWidget,
       required this.promptId});
 
   @override
@@ -737,19 +754,21 @@ class _NewAudioCardState extends State<NewAudioCard> {
               Text(formatDuration(maxDuration.inMilliseconds.toInt()))
             ],
           ),
-          IconButton(
-            onPressed: () {
-              PendoService.track("AudioControl", {
-                "action": "delete",
-                "study_date": "${DateTime.now()}",
-                "prompt_number": "${widget.promptId + 1}"
-              });
-              if (widget.ableToDelete ?? false) delete();
-            },
-            icon: const Icon(CupertinoIcons.delete),
-            color: CustomColors.warningActive,
-            iconSize: 20,
-          ),
+          widget.isVisible ?? false
+              ? IconButton(
+                  onPressed: () {
+                    PendoService.track("AudioControl", {
+                      "action": "delete",
+                      "study_date": "${DateTime.now()}",
+                      "prompt_number": "${widget.promptId + 1}"
+                    });
+                    delete();
+                  },
+                  icon: const Icon(CupertinoIcons.delete),
+                  color: CustomColors.warningActive,
+                  iconSize: 20,
+                )
+              : Container()
         ],
       ),
     );
@@ -767,8 +786,17 @@ class _NewAudioCardState extends State<NewAudioCard> {
   }
 
   Future<void> delete() async {
+    String? title, subheader;
+    if (widget.callerWidget != null) {
+      title = Strings.deletePopUpTitle;
+      subheader = Strings.deletePopUpSubheader;
+    }
     final results = await showDialog<bool>(
-        context: context, builder: (context) => const DeletePopUp());
+        context: context,
+        builder: (context) => DeletePopUp(
+              title: title,
+              subheader: subheader,
+            ));
 
     if (results == true) {
       widget.delete!();
@@ -835,15 +863,17 @@ class _NewAudioCardState extends State<NewAudioCard> {
 class TextAnswerCard extends StatefulWidget {
   final String answer;
   final VoidCallback? delete;
-  final bool? ableToContinue;
+  final String? callerWidget;
+  final bool? isVisible;
   final void Function(String)? edit;
 
   const TextAnswerCard(
       {super.key,
       required this.answer,
       this.delete,
+      this.callerWidget,
       this.edit,
-      this.ableToContinue});
+      this.isVisible});
 
   @override
   State<TextAnswerCard> createState() => _TextAnswerCardState();
@@ -868,31 +898,46 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis),
         ),
-        IconButton(
-          onPressed: () {
-            if (widget.edit != null) {
-              widget.edit!("text");
-            }
-          },
-          icon: const Icon(Icons.edit),
-          color: CustomColors.productNormal,
-          iconSize: 20,
-        ),
-        IconButton(
-          onPressed: () {
-            if (widget.ableToContinue ?? false) delete();
-          },
-          icon: const Icon(CupertinoIcons.delete),
-          color: CustomColors.warningActive,
-          iconSize: 20,
-        ),
+        widget.isVisible ?? false
+            ? IconButton(
+                onPressed: () {
+                  if (widget.edit != null) {
+                    widget.edit!("text");
+                  }
+                },
+                icon: const Icon(Icons.edit),
+                color: CustomColors.productNormal,
+                iconSize: 20,
+              )
+            : Container(),
+        widget.isVisible ?? false
+            ? IconButton(
+                onPressed: () {
+                  delete();
+                },
+                icon: const Icon(CupertinoIcons.delete),
+                color: CustomColors.warningActive,
+                iconSize: 20,
+              )
+            : Container()
       ]),
     );
   }
 
   Future<void> delete() async {
+    String? title, subheader;
+    if (widget.callerWidget != null) {
+      title = Strings.deletePopUpTitle;
+      subheader = Strings.deletePopUpSubheader;
+    } else {
+      subheader = Strings.deleteTextResponse;
+    }
     final results = await showDialog<bool>(
-        context: context, builder: (context) => const DeletePopUp());
+        context: context,
+        builder: (context) => DeletePopUp(
+              title: title,
+              subheader: subheader,
+            ));
 
     if (results == true) {
       widget.delete!();

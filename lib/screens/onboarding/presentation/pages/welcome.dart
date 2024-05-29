@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/participant_details.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:rive/rive.dart';
 
 import '../../../../services/pendo_service.dart';
@@ -37,7 +38,6 @@ class _WelcomePageState extends State<WelcomePage> {
       backgroundColor: CustomColors.backgroundSecondary,
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final textScale = MediaQuery.of(context).textScaler.scale(1);
           return SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -45,9 +45,12 @@ class _WelcomePageState extends State<WelcomePage> {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: textScale >= 1.3 || constraints.maxHeight < 650
-                        ? SingleChildScrollView(
-                            child: Column(
+                    child: LayoutBuilder(builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: Container(
+                          constraints:
+                              BoxConstraints(minHeight: constraints.maxHeight),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -73,11 +76,6 @@ class _WelcomePageState extends State<WelcomePage> {
                                 ),
                               ),
                               SizedBox(
-                                  height: constraints.maxHeight > 800
-                                      ? MediaQuery.of(context).size.height * .3
-                                      : MediaQuery.of(context).size.height *
-                                          .1),
-                              SizedBox(
                                 height: 250,
                                 width: width,
                                 child: const RiveAnimation.asset(
@@ -86,45 +84,10 @@ class _WelcomePageState extends State<WelcomePage> {
                                 ),
                               ),
                             ],
-                          ))
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.only(top: 48),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Welcome, \nYou've checked in!",
-                                        style: CustomTypography().headlineLarge(
-                                            color: CustomColors.textWhite),
-                                      ),
-                                      const SizedBox(
-                                        height: 16,
-                                      ),
-                                      Text(
-                                        "You are now checked into our study. Thank you so much for joining our research! ${Strings.confetti}",
-                                        style: CustomTypography().bodyLarge(
-                                            color: CustomColors.textWhite),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                height: 300,
-                                width: width,
-                                child: const RiveAnimation.asset(
-                                  'assets/animations/onboarding/onboarding_welcome.riv',
-                                  fit: BoxFit.fitWidth,
-                                ),
-                              ),
-                            ],
                           ),
+                        ),
+                      );
+                    }),
                   ),
                 ),
                 Padding(

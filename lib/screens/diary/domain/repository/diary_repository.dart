@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
+
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/tag.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
@@ -64,6 +65,19 @@ class DiaryRepository {
     return _diaryDAO.getDiary(start, due);
   }
 
+  /// Retrieves a list of DiaryENtity objects from the data source based on a specified due date.
+  /// This function attempts to obtain a list of DiaryEntity instances by calling the `_diaryDAO.getDailyDiary(due)` method, using the provided due date as a search criterion.
+  ///
+  /// Parameters:
+  /// - [due]: The DateTime representing the due date of the desired diary entry.
+  ///
+  /// Returns:
+  /// A list of Diary objects, each representing a diary entry retrieved from the data source.
+  ///
+  List<Diary> _getDailyDiary(DateTime due) {
+    return _diaryDAO.getDailyDiary(due);
+  }
+
   /// Retrieves a diary entity from the data access object (DAO) by its ID.
   ///
   /// This function delegates the retrieval of a diary entity from the DAO based on the provided ID.
@@ -78,10 +92,9 @@ class DiaryRepository {
     // Delegate the retrieval of the diary entity to the DAO
     return _diaryDAO.getDiaryByID(id);
   }
-  
+
   ProtocolEntity? _getProtocolEntity() {
     return _protocolDAO.getProtocol();
-
   }
 
   /// Retrieves a list of Diary objects representing all stored diary entries.
@@ -185,6 +198,41 @@ class DiaryRepository {
     return history;
   }
 
+  /// Counts the number of days with submitted diary entries `ActiveDays` of the user.
+  ///
+  /// This function retrieves all diaries from the database,
+  /// It processes eached retrieved diary to check if it has any entry with status of submitted
+  /// If any entry in a diary is submitted, the due date is added to a set of submitted days ensuring that each day is counted only once
+  ///
+  /// For each  diary, if it has multiple entries, it duplicates the diary for each entry,
+  /// updating the current entry and status accordingly. It checks if the entry has the status of submitted.
+  ///
+  /// Returns:
+  /// An integer representing the number of unique days with at least one submitted diary entry.
+  int countSubmittedDays() {
+    List<DiaryModel> diaries = getAllDiaries();
+    // Initialize a set to keep track of days with submitted entries
+    final Set<DateTime> submittedDays = {};
+    for (var diary in diaries) {
+      if (diary.currentEntry > 0) {
+        submittedDays.add(diary.due);
+      }
+    }
+    return submittedDays.length;
+  }
+
+  /// Retrieves a list of Diary objects for a specified due date.
+  /// This function fetches a list of DiaryEntity instances from the data source using `_getDailyDiary(due)`,
+  /// and then converts each DiaryEntity into a Diary object using the `Diary.fromEntity()` factory constructor.
+  ///
+  /// Returns:
+  /// A list of Diary objects, each representing a diary entry retrieved from the data source matching the criteria.
+  ///
+  List<DiaryModel> getDailyDiaries(DateTime due) {
+    final diaries = _getDailyDiary(due);
+    return diaries.map((e) => DiaryModel.fromEntity(e)).toList();
+  }
+
   /// Retrieves a list of diary models within a specified date range.
   ///
   /// This function retrieves all diaries from the data access object (DAO) and filters them
@@ -248,6 +296,7 @@ class DiaryRepository {
     }
     return null;
   }
+
   // retrieves the protocol from the protocol entity
   // This function attempts to obtain a ProtocolEntity instance using the `_getProtocolEntity()` method,
   // and if a matching ProtocolEntity is found, it is transformed into a Protocol object using the `Protocol.fromEntity()` factory constructor.
@@ -267,8 +316,8 @@ class DiaryRepository {
   /// Parameters:
   /// - [start]: The start date of the range.
   /// - [end]: The end date of the range.
-  /// 
-  /// Returns:  
+  ///
+  /// Returns:
   /// An integer representing the total number of diary entries within the specified date range.
   int getTotalEntries(DateTime start, DateTime end) {
     final diaries = getRangeDiaries(start, end);

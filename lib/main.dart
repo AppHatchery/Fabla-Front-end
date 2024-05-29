@@ -19,6 +19,7 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,7 +33,6 @@ import 'screens/diary/data/diary.dart';
 import 'screens/diary/presentation/pages/diaries.dart';
 import 'screens/diary/presentation/pages/diarysummary.dart';
 import 'screens/home/presentation/cubit/cubit/home_cubit.dart';
-import 'services/amplify_init.dart';
 import 'services/notification_service.dart';
 
 import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
@@ -48,9 +48,11 @@ void main() async {
   );
   FlutterError.onError = (errorDetails) {
     FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+    FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
   };
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
     return true;
   };
   objectbox = await ObjectBox.create();

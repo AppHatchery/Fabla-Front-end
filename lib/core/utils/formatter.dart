@@ -163,7 +163,7 @@ Tuple2<Color, Color> getColorFromString(String text) {
 /// // Output: "Thursday, 25 August 2023"
 /// ```
 String getPostDate(DateTime date) {
-  final DateFormat formatter = DateFormat("EEEE, d MMMM y");
+  final DateFormat formatter = DateFormat("EEEE-d-MMMM-y");
   return formatter.format(date);
 }
 
