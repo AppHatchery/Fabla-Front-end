@@ -120,7 +120,7 @@ class _HomePageState extends State<HomePage>
     return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
+          backgroundColor: CustomColors.fillWhiteShade,
           scrolledUnderElevation: 0.0,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(30),
