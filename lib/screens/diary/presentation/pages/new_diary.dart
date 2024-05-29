@@ -317,6 +317,7 @@ class _QuestionPageState extends State<QuestionPage>
   bool isChecked = false;
   bool disabled = false;
   PersistentBottomSheetController? _bottomSheetController;
+
   void updateSliderValue(PromptModel prompt, double value) {
     save(prompt, value.toString(), null);
     widget.answerAdded(true);
@@ -652,7 +653,7 @@ class _QuestionPageState extends State<QuestionPage>
     }
     promptCubit.saveResponse(
         diary: widget.diary, prompt: prompt, response: response, type: type);
-    cancelAllDiaryNotifications(widget.diary.id);
+    cancelContinueNotifications(widget.diary.id);
     if (!isClicked) {
       setState(() {
         isClicked = true;

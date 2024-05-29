@@ -133,7 +133,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Widget questionAndHints() {
     final width = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-
     return LayoutBuilder(builder: (context, constraints) {
       return SingleChildScrollView(
         controller: scrollController,

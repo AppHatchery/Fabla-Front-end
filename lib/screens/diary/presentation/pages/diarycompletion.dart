@@ -162,6 +162,7 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
   }
 
   Widget avatarCircularProgress(Protocol protocol, DiaryModel diary) {
+    
     final begin = (diary.currentEntry - 1) / protocol.dailyGoal;
     final end = diary.currentEntry / protocol.dailyGoal;
 
