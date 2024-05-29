@@ -123,13 +123,9 @@ class SummaryRepository {
 
         diaryRepository.updateDiary(newDiary);
 
-        print("entry:>>>>>>>>>>>>>>>>>>>>>>>>>>> $entry");
-        print("diary.entries: >>>>>>>>>>>>>>>>>>>>>>>>>${diary.entries}");
-
         if (diary.currentEntry + 1 < protocol!.dailyGoal) {
           dailyGoalNotification(diary.id);
         } else if (diary.currentEntry + 1 >= diary.entries) {
-          print("Cancelling all notifications");
           cancelAllDiaryNotifications(diary.id);
         }
         return true;

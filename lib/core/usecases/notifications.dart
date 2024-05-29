@@ -298,84 +298,104 @@ void scheduleSubmitDiaryNotification(int id) async {
 /// Parameters:
 /// - [id]: The identifier of the item for which a daily goal notification should be scheduled.
 ///
-
 void dailyGoalNotification(int id) async {
   final source =
       await PreferenceService().getStringListPreference(key: 'reminder_times');
-  Map<int, List<int>> notifications;
-  notifications = {};
-  if (source == null) {
-    final threePM = DateTime(DateTime.now().year, DateTime.now().month,
-        DateTime.now().day, 15); // 3 PM today
+  final dailySource =
+      await PreferenceService().getStringPreference(key: 'daily_notifications');
+  Map<int, List<int>> notifications = {};
+
+  // If there are no reminder times, schedule a notification for 3 PM
+  final value = source?.lastOrNull;
+  final last = DateTime.tryParse(value ?? "");
+  final potential = retrieveNotificationDate(last);
+
+  if (potential != null) {
+    //cancel the notification
+    if (dailySource != null) {
+      final Map<String, dynamic> jsonMap = json.decode(dailySource);
+      notifications = Map<int, List<int>>.fromEntries(jsonMap.entries.map(
+          (entry) =>
+              MapEntry(int.parse(entry.key), List<int>.from(entry.value))));
+      final notificationsForId = notifications[id];
+
+      if (notificationsForId != null) {
+        for (int notification in notificationsForId) {
+          await NotificationService.cancelNotification(notification);
+        }
+      }
+    }
     final notificationID = Random().nextInt(100000);
     await NotificationService.createNotification(
         id: notificationID,
         title: 'You still have time to accomplish your goal!',
         body: 'You have not yet reached your daily goal. Keep going!',
-        date: threePM);
+        date: potential);
 
     notifications[id] = [notificationID];
-
     final updatedJsonMap = Map<String, dynamic>.fromEntries(notifications
         .entries
         .map((entry) => MapEntry(entry.key.toString(), entry.value)));
     final encoded = json.encode(updatedJsonMap);
     await PreferenceService()
-        .setStringPreference(key: 'diary_notifications', value: encoded);
+        .setStringPreference(key: 'daily_notifications', value: encoded);
+  }
+}
+
+/// Retrieves the next notification date based on the provided last notification date.
+/// This function calculates the next notification time, defaulting to 3 PM today if no previous time is given,
+/// and ensuring the time is within the bounds of 3 PM and 7 PM on the current day.
+///
+/// Parameters:
+/// - [last]: The DateTime object representing the last notification time, or null if there was no previous notification.
+///
+/// Returns:
+/// A DateTime object representing the next notification time, or null if the conditions are not met.
+DateTime? retrieveNotificationDate(DateTime? last) {
+  // Check if the last notification time is null
+  if (last == null) {
+    // If last is null, return 3 PM of the current day
+    return DateTime(
+        DateTime.now().year, DateTime.now().month, DateTime.now().day, 15);
   } else {
-    DateTime? latestReminderTime;
-    for (var timeStr in source) {
-      final parsedTime = DateTime.tryParse(timeStr);
-      if (parsedTime != null &&
-          (latestReminderTime == null ||
-              parsedTime.isAfter(latestReminderTime))) {
-        latestReminderTime = parsedTime;
-      }
-    }
-
-    if (latestReminderTime == null) {
-      return;
-    }
-
+    // Get the current date and time
     final now = DateTime.now();
+    // Define 3 PM and 7 PM of the current day
     final threePM = DateTime(now.year, now.month, now.day, 15); // 3 PM today
     final sevenPM = DateTime(now.year, now.month, now.day, 19); // 7 PM today
-    final oneHourLater = DateTime(now.year, now.month, now.day,
-            latestReminderTime.hour, latestReminderTime.minute)
-        .add(const Duration(hours: 1));
-    final actualReminderTime = DateTime(now.year, now.month, now.day,
-        latestReminderTime.hour, latestReminderTime.minute);
 
-    DateTime reminderTime;
+    // Calculate one hour after the last notification time on the current day
+    final oneHourLater =
+        DateTime(now.year, now.month, now.day, last.hour, last.minute)
+            .add(const Duration(hours: 1));
+
+    // Get the actual reminder time based on the last notification time on the current day
+    final actualReminderTime =
+        DateTime(now.year, now.month, now.day, last.hour, last.minute);
+
+    // Declare a variable to hold the calculated reminder time
+    late DateTime reminderTime;
+
+    // Determine the reminder time based on whether it is before or after 3 PM
     if (actualReminderTime.isBefore(threePM)) {
+      // If the actual reminder time is before 3 PM
       reminderTime =
           threePM.isBefore(now) ? now.add(const Duration(hours: 1)) : threePM;
     } else if ((actualReminderTime.isAtSameMomentAs(threePM) ||
         actualReminderTime.isAfter(threePM))) {
+      // If the actual reminder time is at the same moment or after 3 PM
       reminderTime = now.isAfter(actualReminderTime)
           ? now.add(const Duration(hours: 1))
           : oneHourLater;
-    } else {
-      return;
     }
 
-    if (reminderTime.isAfter(sevenPM)) return;
-
-    final notificationID = Random().nextInt(100000);
-    await NotificationService.createNotification(
-        id: notificationID,
-        title: 'You still have time to accomplish your goal!',
-        body: 'You have not yet reached your daily goal. Keep going!',
-        date: reminderTime);
-
-    notifications[id] = [notificationID];
-    final updatedJsonMap = Map<String, dynamic>.fromEntries(notifications
-        .entries
-        .map((entry) => MapEntry(entry.key.toString(), entry.value)));
-    final encoded = json.encode(updatedJsonMap);
-    await PreferenceService()
-        .setStringPreference(key: 'diary_notifications', value: encoded);
+    // Check if the reminder time is before 7 PM and return it if true
+    if (reminderTime.isBefore(sevenPM)) {
+      return reminderTime;
+    }
   }
+  // Return null if none of the conditions are met
+  return null;
 }
 
 ///  latestReminderTime: -0001-11-30 16:00:00.000
