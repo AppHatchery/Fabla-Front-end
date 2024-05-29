@@ -746,14 +746,14 @@ class BottomStudyInfoPopUp extends StatelessWidget {
                           style: CustomTypography().bodyMedium(
                               color: CustomColors.textSecondaryContent)),
                       TextSpan(
-                        text: "4 AM ",
+                        text: "12 AM. ",
                         style: CustomTypography()
                             .bodyMedium(weight: FontWeight.bold),
                       ),
-                      TextSpan(
-                          text: "the following day.",
-                          style: CustomTypography().bodyMedium(
-                              color: CustomColors.textSecondaryContent)),
+                      // TextSpan(
+                      //     text: "the following day.",
+                      //     style: CustomTypography().bodyMedium(
+                      //         color: CustomColors.textSecondaryContent)),
                     ]),
                   ),
                 ),
