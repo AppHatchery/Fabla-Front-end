@@ -12,6 +12,7 @@ class AudioQuestionsWidget extends StatelessWidget {
   final int currentPage;
   final Widget responseWidget;
   final PersistentBottomSheetController? bottomSheetController;
+
   const AudioQuestionsWidget({
     super.key,
     required this.diary,
@@ -110,7 +111,6 @@ class AudioQuestionsWidget extends StatelessWidget {
                       child: Text(
                         prompt.question.toString(),
                         style: CustomTypography().titleLarge(),
-                        textScaleFactor: textScale,
                       ),
                     ),
                   ],

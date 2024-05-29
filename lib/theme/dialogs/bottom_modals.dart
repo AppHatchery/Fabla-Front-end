@@ -16,6 +16,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../core/utils/formatter.dart';
 import '../components/buttons.dart';
@@ -42,7 +43,7 @@ class BottomRecordingModal extends StatefulWidget {
 }
 
 class _BottomRecordingModalState extends State<BottomRecordingModal>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   //Recording
   final FlutterSoundRecorder recorder = FlutterSoundRecorder();
   String timer = "00:00";
@@ -76,8 +77,24 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      setState(() {
+        recorderState = RecorderState.isPaused;
+        if (recorder.isRecording) {
+          WakelockPlus.disable();
+          recorder.pauseRecorder();
+          _timer?.cancel();
+        }
+      });
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
   void initState() {
     recorderInit();
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
 
@@ -86,6 +103,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     recorder.closeRecorder();
     _controller.dispose();
     scrollController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -391,7 +409,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Future<void> record() async {
     final hasPermission = await checkAndRequestPermission();
-
     //Check if scroll controller is already at the bottom
     if (mounted) {
       scrollController.animateTo(
@@ -402,10 +419,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     }
 
     if (hasPermission) {
+      WakelockPlus.enable();
       if (recorder.isRecording) {
+        WakelockPlus.disable();
         await recorder.pauseRecorder();
         _timer?.cancel();
       } else if (recorder.isPaused) {
+        WakelockPlus.enable();
         await recorder.resumeRecorder();
         startTimer();
       } else {
@@ -427,6 +447,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   void save() async {
+    WakelockPlus.disable();
     try {
       final url = await recorder.stopRecorder();
       _timer?.cancel();
