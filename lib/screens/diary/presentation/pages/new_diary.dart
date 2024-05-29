@@ -165,10 +165,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 8,
-                  right: 8,
-                ),
+                padding: const EdgeInsets.only(left: 8, right: 8, bottom: 12),
                 child: PageView(
                   physics: const NeverScrollableScrollPhysics(),
                   controller: controller,
@@ -503,71 +500,66 @@ class _QuestionPageState extends State<QuestionPage>
             responseWidget: responseWidget,
             bottomSheetController: _bottomSheetController,
           )
-        : SingleChildScrollView(
-            controller: _scrollController,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * 0.79,
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(10)),
-                color: CustomColors.fillWhite,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                            alignment: Alignment.topLeft,
-                            child: Text(
-                              "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
-                              style: CustomTypography().button(),
-                            )),
-                        const SizedBox(height: 15),
-                      ],
-                    ),
-
-                    const SizedBox(
-                      height: 12,
-                    ),
-
-                    Row(
-                      children: [
-                        Expanded(
+        : Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            width: MediaQuery.of(context).size.width,
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              color: CustomColors.fillWhite,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                          alignment: Alignment.topLeft,
                           child: Text(
-                            prompt.question.toString(),
-                            style: CustomTypography().titleLarge(),
-                          ),
+                            "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
+                            style: CustomTypography().button(),
+                          )),
+                      const SizedBox(height: 15),
+                    ],
+                  ),
+
+                  const SizedBox(
+                    height: 12,
+                  ),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          prompt.question.toString(),
+                          style: CustomTypography().titleLarge(),
                         ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            questionTip,
-                            style: const TextStyle(
-                                color: CustomColors.textTertiaryContent),
-                          ),
-                        )
-                      ],
-                    ),
-                    SizedBox(
-                        height: prompt.responseType == ResponseType.text
-                            ? 24
-                            : 112),
-                    responseWidget,
-                    if (widget.diary.status != DiaryStatus.submitted &&
-                        widget.diary.status != DiaryStatus.missed &&
-                        prompt.responseType == ResponseType.recording)
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.3),
-                    // const CustomTextButton(
-                    //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          questionTip,
+                          style: const TextStyle(
+                              color: CustomColors.textTertiaryContent),
+                        ),
+                      )
+                    ],
+                  ),
+                  SizedBox(
+                      height:
+                          prompt.responseType == ResponseType.text ? 24 : 112),
+                  responseWidget,
+                  if (widget.diary.status != DiaryStatus.submitted &&
+                      widget.diary.status != DiaryStatus.missed &&
+                      prompt.responseType == ResponseType.recording)
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+
+                  // const CustomTextButton(
+                  //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
+                ],
               ),
             ),
           );
@@ -681,7 +673,6 @@ class _QuestionPageState extends State<QuestionPage>
 
   void dismissSuccessModal() {
     if (_bottomSheetController != null) {
-      print("meh meh ${_bottomSheetController} ");
       _bottomSheetController!.close();
       _bottomSheetController = null;
     }
