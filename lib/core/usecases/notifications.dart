@@ -359,11 +359,7 @@ void dailyGoalNotification(int id) async {
       return;
     }
 
-    if (reminderTime.isBefore(sevenPM)) {
-      reminderTime;
-    } else {
-      return;
-    }
+    if (reminderTime.isAfter(sevenPM)) return;
 
     final notificationID = Random().nextInt(100000);
     await NotificationService.createNotification(
