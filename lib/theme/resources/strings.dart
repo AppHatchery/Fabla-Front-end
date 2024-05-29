@@ -10,13 +10,13 @@ class Strings {
   static String studyDescription =
       'The purpose of this study is to test a smartphone app for daily diary research called Fabla, to find out how well it works and how easy it is for people to use. Fabla is a new app developed by the Georgia CTSA AppHatchery. The study will also assess how people’s spoken reports about their day compare to their written reports about their day. Participation in this study takes about two weeks to complete. \n\nDuring the daily diary study, you will be asked to respond to some questions every day before you go to bed for two weeks. The daily diary will take about 10 minutes to complete each time, and it asks you to share about:\n\n\u2022 how your day was,\n\u2022 your interactions with other people that day,\n\u2022 and whether anything stressful happened.\n\nIf you have questions about the study procedures, appointments, research-related injuries or bad reactions, or other questions or concerns about the research or your part in it, contact the Principal Investigator at 404-727-1360.';
 
-  static String studyName = "Vocalized Daily Diary";
+  static String studyName = "CCSH Encounters";
 
-  static String studyDuration = "November 2023";
+  static String studyDuration = "July 2024";
 
-  static String researcherName = "Dr. Deanna Kaplan";
+  static String researcherName = "Rev. Caroline Peacock";
 
-  static String organisation = "Emory University School of Medicine";
+  static String organisation = "Winship Cancer Institute";
 
   static String wavingEmoji = "👋";
 
