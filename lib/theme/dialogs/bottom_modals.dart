@@ -45,7 +45,7 @@ class BottomRecordingModal extends StatefulWidget {
 class _BottomRecordingModalState extends State<BottomRecordingModal>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   //Recording
-  FlutterSoundRecorder recorder = FlutterSoundRecorder();
+  final FlutterSoundRecorder recorder = FlutterSoundRecorder();
   String timer = "00:00";
   Timer? _timer;
   Duration elapsed = const Duration();
