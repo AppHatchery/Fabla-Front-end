@@ -1,7 +1,6 @@
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 
 import '../../../../../core/utils/statuses.dart';
 import '../../../../../core/utils/types.dart';

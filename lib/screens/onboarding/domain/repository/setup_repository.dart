@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'package:amplify_api/amplify_api.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
-import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
@@ -26,7 +24,6 @@ import 'package:path/path.dart' as p;
 import '../../../../core/database/dao/participant_dao.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
-import '../../../../theme/resources/strings.dart';
 import '../../../diary/data/protocol.dart';
 import '../../../diary/domain/entities/protocol_entity.dart';
 import '../entities/participant.dart';
@@ -164,28 +161,28 @@ class SetupRepository {
     final code = participant!.studyCode;
     await diaryInit(code);
 
-    final startDate = DateTime.fromMillisecondsSinceEpoch(
-        await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
-    final metadata = Strings().participantMetadata(
-        code, formatDate(startDate), formatDate(startDate));
+    // final startDate = DateTime.fromMillisecondsSinceEpoch(
+    //     await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+    // final metadata = Strings().participantMetadata(
+    //     code, formatDate(startDate), formatDate(startDate));
 
-    final directory = await getApplicationDocumentsDirectory();
-    final path = p.join(directory.path, 'metadata.txt');
-    final file = File(path);
+    // final directory = await getApplicationDocumentsDirectory();
+    // final path = p.join(directory.path, 'metadata.txt');
+    // final file = File(path);
 
-    if (!file.existsSync()) {
-      file.writeAsStringSync(metadata);
-      print('File content is ${file.readAsStringSync()}');
-      //TODO: TO BE REMOVED
-      //uploadMetaDataS3(code, file);
-    }
+    // if (!file.existsSync()) {
+    //   file.writeAsStringSync(metadata);
+    //   print('File content is ${file.readAsStringSync()}');
+    //   //TODO: TO BE REMOVED
+    //   //uploadMetaDataS3(code, file);
+    // }
   }
 
   /// Responsible for updating the metadata once created. This happens when diary has been submitted by participants or it has been submitted systematically.
 
   void updateMetaDataFile(DateTime? nextStudyDate) async {
-    final participant = getParticipant();
-    final code = participant!.studyCode;
+    // final participant = getParticipant();
+    // final code = participant!.studyCode;
 
     final diaryRepo = DiaryRepository();
     final allDiaries = diaryRepo.getAllDiaries();

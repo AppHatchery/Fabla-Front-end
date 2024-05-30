@@ -100,9 +100,9 @@ class SummaryRepository {
       final participant = setupRepository.getParticipant();
       final uploaded = await upload(participant!.studyCode, diary);
       final protocol = diaryRepository.getProtocol();
-      final entry = diary.status == DiaryStatus.submitted
-          ? diary.entries
-          : diary.currentEntry;
+      // final entry = diary.status == DiaryStatus.submitted
+      //     ? diary.entries
+      //     : diary.currentEntry;
 
       if (uploaded) {
         late DiaryModel newDiary;

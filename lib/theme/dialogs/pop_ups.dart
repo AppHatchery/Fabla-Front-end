@@ -300,7 +300,6 @@ class _CustomBottomTipPopUpState extends State<CustomBottomTipPopUp> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
     return ConstrainedBox(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * .8,

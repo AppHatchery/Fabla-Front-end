@@ -2,7 +2,6 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/participant_details.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:rive/rive.dart';
 
 import '../../../../services/pendo_service.dart';
@@ -22,7 +21,7 @@ class _WelcomePageState extends State<WelcomePage> {
 
   @override
   void initState() {
-    final code = repository.getParticipant()!.studyCode;
+    // final code = repository.getParticipant()!.studyCode;
     createMetadata();
     //TODO:TO BE REMOVED
     //repository.apiCreateParticipant(code);
