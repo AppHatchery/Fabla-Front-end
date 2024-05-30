@@ -62,7 +62,6 @@ dependencies:
   equatable: ^2.0.5
 
   #Data
-  tuple: ^2.0.2
   shared_preferences: ^2.2.0
 
   #Database
@@ -71,7 +70,6 @@ dependencies:
 
 
   #Animations
-  lottie: ^3.0.0
   rive: ^0.12.4
 
   #Amplify
@@ -95,11 +93,8 @@ dependencies:
 
   #Misc
   dotted_border: ^2.1.0
-  carousel_slider: ^4.2.1
-  flutter_carousel_widget: ^2.2.0
   flutter_secure_storage: ^9.2.1
-  flutter_jailbreak_detection: ^1.10.0
-  wakelock_plus: ^1.2.5
+  wakelock_plus:
 
 dev_dependencies:
   flutter_test:
