@@ -3,8 +3,6 @@ import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
-import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
-import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';

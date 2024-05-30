@@ -2,11 +2,8 @@ import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
 import 'package:flutter/material.dart';
 
 import '../../screens/diary/data/diary.dart';
-import '../../screens/diary/data/options.dart';
 import '../../screens/diary/data/prompt.dart';
 import '../../screens/diary/data/tag.dart';
-import '../../theme/resources/strings.dart';
-import 'statuses.dart';
 import 'types.dart';
 
 final List<DiaryModel> dummyDiaries = [];

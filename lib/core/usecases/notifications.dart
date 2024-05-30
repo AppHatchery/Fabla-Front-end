@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
-import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:flutter/material.dart';
 
 import '../../services/notification_service.dart';
 import '../../services/pendo_service.dart';

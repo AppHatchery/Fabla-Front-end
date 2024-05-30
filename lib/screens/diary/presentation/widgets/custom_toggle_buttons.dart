@@ -23,14 +23,6 @@ class CustomToggleButtons extends StatefulWidget {
 }
 
 class _CustomToggleButtonsState extends State<CustomToggleButtons> {
-  int _selectedIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedIndex = widget.isSelected.indexOf(true);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -43,9 +35,6 @@ class _CustomToggleButtonsState extends State<CustomToggleButtons> {
           return GestureDetector(
             onTap: () {
               widget.onPressed(index);
-              setState(() {
-                _selectedIndex = index;
-              });
             },
             child: Container(
               decoration: BoxDecoration(

@@ -1,17 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/questions.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
-import 'package:aws_common/vm.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:http/http.dart' as http;
-import '../../screens/diary/data/diary_audio_data.dart';
 import '../utils/formatter.dart';
 import 'secrets_handler.dart';
 
