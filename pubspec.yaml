@@ -138,6 +138,7 @@ flutter:
     - assets/animations/onboarding/
     - assets/animations/recording/
     - assets/protocol.json
+    - assets/onboarding.json
 
   fonts:
     - family: Rubik
