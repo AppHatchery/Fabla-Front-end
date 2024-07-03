@@ -170,9 +170,11 @@ String getPostDate(DateTime date) {
 /// Map that associates string representations of response types with their corresponding enum values.
 final Map<String, ResponseType> _responseTypeMap = {
   'audio': ResponseType.recording,
+  'recording': ResponseType.recording,
   'text': ResponseType.text,
   'multiple': ResponseType.multiple,
   'radio': ResponseType.radio,
+  'single': ResponseType.radio,
   'slider': ResponseType.slider,
 };
 

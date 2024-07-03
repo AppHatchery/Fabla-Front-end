@@ -3,9 +3,13 @@ import 'dart:io';
 import 'dart:math';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
+import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 
 //TODO: TO BE REMOVED
 // import 'package:audio_diaries_flutter/models/ParticipantsDev.dart';
@@ -133,10 +137,11 @@ class SetupRepository {
       print("Protocol already exists and no updates");
     }
   }
-/// This method is responsible for creating a protocol by retrieving data from a remote source.
-  Protocol? getProtocol(){
+
+  /// This method is responsible for creating a protocol by retrieving data from a remote source.
+  Protocol? getProtocol() {
     final ProtocolEntity? protocolEntity = _protocolDAO.getProtocol();
-    return protocolEntity == null ? null :  Protocol.fromEntity(protocolEntity);
+    return protocolEntity == null ? null : Protocol.fromEntity(protocolEntity);
   }
 
   /// Creates and stores metadata related to the participant's study.
@@ -176,6 +181,36 @@ class SetupRepository {
     //   //TODO: TO BE REMOVED
     //   //uploadMetaDataS3(code, file);
     // }
+  }
+
+  void getDiariesFromAWS() async {
+    // Get the diaries from the remote source
+    final String? response = await post(path: "/fabla/getuserprotocol", body: {
+      'studycode': "3",
+    });
+
+    try {
+      if (response != null) {
+        // Convert the response to a list of DiaryModel
+        final List<dynamic> data = json.decode(response);
+        final List<DiaryModel> diaries =
+            data.map((e) => DiaryModel.fromJson(e)).toList();
+
+        // Save the diaries
+        final entities = diaries.map((model) {
+          final prompts =
+              model.prompts.map((prompt) => Prompt.fromModel(prompt)).toList();
+
+          final entity = Diary.fromModel(model);
+          entity.prompts.addAll(prompts);
+
+          return entity;
+        }).toList();
+        diaryRepository.addDiaries(entities);
+      }
+    } catch (e) {
+      debugPrint("Error converting to DiaryModel: $e");
+    }
   }
 
   /// Responsible for updating the metadata once created. This happens when diary has been submitted by participants or it has been submitted systematically.

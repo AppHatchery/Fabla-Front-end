@@ -52,6 +52,22 @@ class DiaryModel implements Comparable<DiaryModel> {
     );
   }
 
+  factory DiaryModel.fromJson(dynamic json) {
+    return DiaryModel(
+      id: 0,
+      prompts: List<dynamic>.from(json['questions'])
+          .map((question) => PromptModel.fromJson(question))
+          .toList(),
+      tags: null,
+      status: DiaryStatus.idle,
+      due: DateTime.parse(json['end_time']),
+      start: DateTime.parse(json['start_time']),
+      entries: json['entries'] ?? 1,
+      currentEntry: 0,
+      end: DateTime.parse(json['end_time']),
+    );
+  }
+
   DiaryModel copyWith(
       {required int id,
       List<PromptModel>? prompts,

@@ -65,6 +65,10 @@ class DiaryRepository {
     return _diaryDAO.getDiary(start, due);
   }
 
+  List<Diary> _getDiaryEntities(DateTime day) {
+    return _diaryDAO.getDiaries(day);
+  }
+
   /// Retrieves a list of DiaryENtity objects from the data source based on a specified due date.
   /// This function attempts to obtain a list of DiaryEntity instances by calling the `_diaryDAO.getDailyDiary(due)` method, using the provided due date as a search criterion.
   ///
@@ -295,6 +299,11 @@ class DiaryRepository {
       return DiaryModel.fromEntity(diary);
     }
     return null;
+  }
+
+  List<DiaryModel> getDiaries(DateTime day) {
+    final diaries = _getDiaryEntities(day);
+    return diaries.map((e) => DiaryModel.fromEntity(e)).toList();
   }
 
   // retrieves the protocol from the protocol entity

@@ -122,5 +122,5 @@ class _WelcomePageState extends State<WelcomePage> {
         "StudyLogin", {"datetime": DateTime.now().toString()});
   }
 
-  void createMetadata() => repository.createMetadata();
+  void createMetadata() => repository.getDiariesFromAWS();
 }

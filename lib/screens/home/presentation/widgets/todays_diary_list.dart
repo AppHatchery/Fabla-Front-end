@@ -32,10 +32,13 @@ class TodaysDiaryList extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: diaries.length,
           itemBuilder: (context, index) {
-            return DiaryCard(
-              diary: diaries[index],
-              refresh: (value) => refresh(value),
-              getPageName: getPageName,
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: DiaryCard(
+                diary: diaries[index],
+                refresh: (value) => refresh(value),
+                getPageName: getPageName,
+              ),
             );
           },
         ),

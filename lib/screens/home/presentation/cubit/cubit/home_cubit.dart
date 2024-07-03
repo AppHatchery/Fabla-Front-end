@@ -31,7 +31,7 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> loadDiaries() async {
     final today = DateTime.now();
     final start = DateTime(today.year, today.month, today.day, 0, 0, 0);
-    final due = DateTime(today.year, today.month, today.day, 23, 59, 59);
+    // final due = DateTime(today.year, today.month, today.day, 23, 59, 59);
 
     final monday = DateTime(today.year, today.month, today.day)
         .subtract(Duration(days: today.weekday - 1));
@@ -42,16 +42,17 @@ class HomeCubit extends Cubit<HomeState> {
     //     await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
     try {
       emit(const HomeLoading());
-      final diary = repository.getDiary(start, due);
+      final diaries = repository.getDiaries(start);
       final protocol = repository.getProtocol();
-      final entries = repository.getTotalEntries(monday.subtract(const Duration(days: 1)), sunday.add(const Duration(days: 1)));
-      if (diary != null) {
-        final updated = diary.copyWith(id: diary.id, tags: null);
-        final protocolUpdated = protocol?.copyWith(version: protocol.version);
-        emit(HomeLoaded([updated], start, protocolUpdated, entries));
-      } else {
-        emit(HomeLoaded(const [], start, protocol, entries));
-      }
+      final entries = repository.getTotalEntries(
+          monday.subtract(const Duration(days: 1)),
+          sunday.add(const Duration(days: 1)));
+
+      final updated = diaries.map((diary) {
+        return diary.copyWith(id: diary.id, tags: null);
+      }).toList();
+      final protocolUpdated = protocol?.copyWith(version: protocol.version);
+      emit(HomeLoaded(updated, start, protocolUpdated, entries));
     } catch (e) {
       emit(const HomeError("Something went wrong"));
     }

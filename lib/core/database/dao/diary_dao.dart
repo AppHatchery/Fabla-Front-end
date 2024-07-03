@@ -34,6 +34,16 @@ class DiaryDAO {
     return query.findFirst();
   }
 
+  List<Diary> getDiaries(DateTime day) {
+    final startOfDay = DateTime(day.year, day.month, day.day);
+    final startOfNextDay = startOfDay.add(const Duration(days: 1));
+    final query = box
+        .query(Diary_.due.greaterOrEqual(startOfDay.millisecondsSinceEpoch) &
+            Diary_.due.lessThan(startOfNextDay.millisecondsSinceEpoch))
+        .build();
+    return query.find();
+  }
+
   /// Retrieves a diary from the database by its ID.
   ///
   /// This function constructs a query to retrieve a diary from the database based on the provided ID.
