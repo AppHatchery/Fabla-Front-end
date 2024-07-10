@@ -1,4 +1,6 @@
-import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
+import 'dart:convert';
+
+import 'package:audio_diaries_flutter/core/network/request.dart';
 
 import '../../../../core/database/dao/participant_dao.dart';
 import '../../../../main.dart';
@@ -68,5 +70,23 @@ class LoginRepository {
   ///   // Display an error message indicating invalid code...
   /// }
   /// ```
-  Future<bool> verify(int code) async => participantCodes.contains(code) || code == 0000;
+  Future<bool> verify(int code) async {
+    final response = await post(path: "/fabla/verifyuser", body: {
+      'studycode': code.toString(),
+    });
+
+    if (response != null) {
+      final data = json.decode(response);
+      final exists = data['data']['user_exists'];
+      if (exists == 1) {
+        //TODO: Add in Authorizer for RDS, Presigned URL and DynamoURL
+
+        //Add Participant to DB
+        addParticipant(code.toString());
+        return true;
+      }
+    }
+
+    return false;
+  }
 }

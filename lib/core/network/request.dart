@@ -33,7 +33,11 @@ Future<String?> post(
 
     final url = Uri.https(apiURL, path);
     final response = await http.post(url, headers: headers, body: body);
-    return response.body;
+    if (response.statusCode == 200) {
+      return response.body;
+    } else {
+      throw Exception("Failed to post");
+    }
   } catch (e) {
     debugPrint(e.toString());
     return null;

@@ -184,9 +184,12 @@ class SetupRepository {
   }
 
   void getDiariesFromAWS() async {
+    final participant = getParticipant();
+    final code = participant!.studyCode;
+
     // Get the diaries from the remote source
-    final String? response = await post(path: "/fabla/getuserprotocol", body: {
-      'studycode': "3",
+    final response = await post(path: "/fabla/getuserprotocol", body: {
+      'studycode': code.toString(),
     });
 
     try {
@@ -329,7 +332,6 @@ class SetupRepository {
   //     print('Mutation failed: $e');
   //   }
   // }
-
 
   /// Creates and schedules notifications for daily diaries.
   /// This function retrieves a list of daily diaries from the DiaryRepository,
