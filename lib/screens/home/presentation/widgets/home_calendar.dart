@@ -27,8 +27,6 @@ class StudyCalendar extends StatefulWidget {
 class _StudyCalendarState extends State<StudyCalendar> {
   late PageController? pageController;
   late DateTime focusedDay;
-  late DateTime startDate;
-  late DateTime endDate;
   late DateTime today;
   late DateTime selectedDate;
   late List<DiaryModel> diaries;
@@ -42,15 +40,6 @@ class _StudyCalendarState extends State<StudyCalendar> {
   void initState() {
     today =
         DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    startDate = DateTime(
-        today.subtract(const Duration(days: 15)).year,
-        today.subtract(const Duration(days: 15)).month,
-        today.subtract(const Duration(days: 15)).day);
-    endDate = DateTime(
-        today.add(const Duration(days: 15)).year,
-        today.add(const Duration(days: 15)).month,
-        today.add(const Duration(days: 15)).day,
-        0);
     pageController = null;
     focusedDay = today;
     selectedDate = today;
@@ -59,8 +48,12 @@ class _StudyCalendarState extends State<StudyCalendar> {
     diaryList = _getAllDiaries();
 
     for (DiaryModel diary in diaryList) {
-      events!.putIfAbsent(diary.start, () => []);
-      events![diary.start]!.add(diary.start.toString());
+      final date =
+          DateTime(diary.start.year, diary.start.month, diary.start.day);
+      events!.putIfAbsent(date, () => []);
+      if (events![date]!.isEmpty) {
+        events![date]!.add(diary.start.toString());
+      }
     }
 
     super.initState();

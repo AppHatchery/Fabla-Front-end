@@ -85,7 +85,7 @@ class PromptModel {
                 : null,
             minValue: json['min_value'],
             maxValue: json['max_value'],
-            defaultValue: int.tryParse(json['default_value']) ?? 0),
+            defaultValue: json['default_value']),
         required: json['required'] == 1 ? true : false,
         subtitle: json['subtitle']);
   }

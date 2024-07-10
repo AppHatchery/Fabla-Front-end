@@ -1,10 +1,9 @@
-import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_time.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_calendar.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/utils/dummy_data.dart';
 import '../../../../services/preference_service.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
@@ -94,8 +93,6 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
   }
 
   Widget loaded(double height, double width, Participant participant) {
-    final start = startDate(participant.studyCode);
-    final end = start?.add(Duration(days: (fakePrompts.length - 1)));
     return Container(
       color: CustomColors.fillWhite,
       child: Column(
@@ -144,10 +141,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                                   const SizedBox(
                                     height: 6,
                                   ),
-                                  CustomCalender(
-                                    rangeStart: start,
-                                    rangeEnd: end,
-                                  ),
+                                  const OnBoardingCalendar(),
                                 ]),
                           )
                         ],
@@ -180,26 +174,5 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
 
   void load() {
     setupCubit.load();
-  }
-
-  DateTime? startDate(String code) {
-    // final today = DateTime.now();
-    // final nextSunday = today.add(Duration(days: 7 - today.weekday));
-    final _code = int.parse(code);
-
-    // Assuming that the code have two distinct starting digits
-    if (code.startsWith('0')) {
-      return DateTime(
-          DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    } else if (_code.isOdd) {
-      // return nextSunday;
-      return DateTime(2023, 11, 12);
-    } else if (_code.isEven) {
-      // return nextSunday.add(const Duration(days: 6));
-      return DateTime(2023, 11, 6);
-      //return DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    }
-
-    return null;
   }
 }
