@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 import 'package:objectbox/objectbox.dart';
 
@@ -9,6 +10,8 @@ import '../../data/prompt.dart';
 class Diary {
   @Id()
   int id;
+  @Transient()
+  DairyType? type;
   @Property(type: PropertyType.date)
   DateTime start;
   @Property(type: PropertyType.date)
@@ -34,8 +37,19 @@ class Diary {
     status = DiaryStatus.values[index ?? 0];
   }
 
+  int? get dbDairyType {
+    _ensureDiaryType();
+    return type?.index;
+  }
+
+  set dbDairyType(int? index) {
+    _ensureDiaryType();
+    type = DairyType.values[index ?? 0];
+  }
+
   Diary(
       {this.id = 0,
+      this.type,
       required this.due,
       required this.start,
       required this.entries,
@@ -60,6 +74,14 @@ class Diary {
     assert(DiaryStatus.missed.index == 4);
   }
 
+  void _ensureDiaryType() {
+    assert(DairyType.daily.index == 0);
+    assert(DairyType.weekly.index == 1);
+    assert(DairyType.monthly.index == 2);
+    assert(DairyType.yearly.index == 3);
+    assert(DairyType.ema.index == 4);
+  }
+
   /// Factory constructor that creates a DiaryEntity object from a Diary model.
   /// This function generates a DiaryEntity instance using data from a provided Diary model object.
   ///
@@ -72,6 +94,7 @@ class Diary {
   factory Diary.fromModel(DiaryModel model) {
     return Diary(
       id: model.id,
+      type: model.type,
       due: model.due,
       start: model.start,
       end: model.end,

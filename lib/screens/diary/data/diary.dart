@@ -1,4 +1,6 @@
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 
 import '../domain/entities/diary_entity.dart';
 import 'prompt.dart';
@@ -6,6 +8,7 @@ import 'tag.dart';
 
 class DiaryModel implements Comparable<DiaryModel> {
   final int id;
+  final DairyType type;
   List<Tag>? tags;
   DiaryStatus status;
   DateTime due;
@@ -17,6 +20,7 @@ class DiaryModel implements Comparable<DiaryModel> {
 
   DiaryModel({
     required this.id,
+    required this.type,
     required this.prompts,
     required this.tags,
     required this.status,
@@ -41,6 +45,7 @@ class DiaryModel implements Comparable<DiaryModel> {
         entity.prompts.map((prompt) => PromptModel.fromEntity(prompt)).toList();
     return DiaryModel(
       id: entity.id,
+      type: entity.type ?? DairyType.daily,
       prompts: _prompts,
       tags: null,
       status: entity.status ?? DiaryStatus.idle,
@@ -55,6 +60,7 @@ class DiaryModel implements Comparable<DiaryModel> {
   factory DiaryModel.fromJson(dynamic json) {
     return DiaryModel(
       id: 0,
+      type: diaryTypeString(json['type_']),
       prompts: List<dynamic>.from(json['questions'])
           .map((question) => PromptModel.fromJson(question))
           .toList(),
@@ -70,6 +76,7 @@ class DiaryModel implements Comparable<DiaryModel> {
 
   DiaryModel copyWith(
       {required int id,
+      DairyType? type,
       List<PromptModel>? prompts,
       List<Tag>? tags,
       DiaryStatus? status,
@@ -78,6 +85,7 @@ class DiaryModel implements Comparable<DiaryModel> {
       DateTime? start}) {
     return DiaryModel(
       id: id,
+      type: type ?? this.type,
       prompts: prompts ?? this.prompts,
       tags: tags ?? this.tags,
       status: status ?? this.status,

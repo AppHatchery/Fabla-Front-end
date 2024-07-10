@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary_blueprint.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/options.dart';
@@ -224,6 +225,7 @@ List<DiaryModel> makeDiariesTwo(
 
       final diary = DiaryModel(
           id: 0,
+          type: DairyType.daily, // change
           prompts: prompts,
           start: start,
           end: end,
@@ -280,6 +282,7 @@ List<DiaryModel> makeDiariesThree(
             blueprint.endTime.minute);
         final diary = DiaryModel(
             id: 0,
+            type: DairyType.daily, // change
             prompts: prompts,
             start: start,
             end: end,

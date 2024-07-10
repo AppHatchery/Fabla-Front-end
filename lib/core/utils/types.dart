@@ -12,20 +12,10 @@ enum TagType {
   remainder,
 }
 
-enum QuestionType {
-  physically,
-  emotionally,
-  intensity,
-  lonely,
-  leftout,
-  socialinteraction,
-  understood,
-  stressed,
-  whereyouare,
-  peoplearoundyou,
-}
-
-enum GqlModelType {
-  participant,
-  userMetatdata,
+enum DairyType{
+  daily,
+  weekly,
+  monthly,
+  yearly,
+  ema,
 }

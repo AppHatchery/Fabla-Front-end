@@ -188,6 +188,22 @@ ResponseType responseTypeString(String value) {
   return responseType;
 }
 
+final Map<String, DairyType> _diaryTypeMap = {
+  'daily': DairyType.daily,
+  'weekly': DairyType.weekly,
+  'monthly': DairyType.monthly,
+  'yearly': DairyType.yearly,
+  'ema': DairyType.ema,
+};
+
+DairyType diaryTypeString(String value) {
+  final dairyType = _diaryTypeMap[value];
+  if (dairyType == null) {
+    throw Exception('Invalid dairy type');
+  }
+  return dairyType;
+}
+
 /// Map of ResponseType enum values with their corresponding string representations
 final Map<ResponseType, String> _responseStringMap = {
   ResponseType.recording: 'audio',

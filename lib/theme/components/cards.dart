@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -20,7 +23,7 @@ import '../resources/strings.dart';
 /// Diary Card
 ///
 /// This is the card that is displayed on the homescreen.
-class DiaryCard extends StatelessWidget {
+class DiaryCard extends StatefulWidget {
   final DiaryModel? diary;
   final ValueChanged<bool> refresh;
   final String Function() getPageName;
@@ -32,158 +35,229 @@ class DiaryCard extends StatelessWidget {
       required this.getPageName});
 
   @override
+  State<DiaryCard> createState() => _DiaryCardState();
+}
+
+class _DiaryCardState extends State<DiaryCard> {
+  final now = DateTime.now();
+  late Duration remainingTime;
+  late bool closed;
+  Timer? timer;
+
+  @override
+  void initState() {
+    //calculate time left from due vs now
+    remainingTime = widget.diary!.due.difference(now);
+    closed =
+        widget.diary!.start.isAfter(now) || widget.diary!.due.isBefore(now);
+    _startTimer();
+    super.initState();
+  }
+
+  void _startTimer() {
+    if (!closed) {
+      timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        setState(() {
+          remainingTime = widget.diary!.due.difference(DateTime.now());
+          if (remainingTime.isNegative) {
+            closed = true;
+            timer.cancel();
+          }
+        });
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: CustomColors.fillWhite,
-        borderRadius: BorderRadius.circular(10),
-        border: const Border(
-            left: BorderSide(
-          color: CustomColors.productNormal,
-          width: 4,
-        )),
-        boxShadow: const [
-          BoxShadow(
-            color: CustomColors.productBorderNormal,
-            blurRadius: 4,
-            spreadRadius: 1,
-            offset: Offset(0, 1),
+    return Stack(
+      children: [
+        Container(
+          height: 100,
+          decoration: BoxDecoration(
+            color: CustomColors.amber,
+            borderRadius: BorderRadius.circular(10),
+            shape: BoxShape.rectangle,
           ),
-        ],
-        shape: BoxShape.rectangle,
-      ),
-      margin: const EdgeInsets.only(left: 3, right: 3),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.restart_alt_outlined,
-                    color: CustomColors.productNormal,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    "Routine Entry",
-                    style:
-                        CustomTypography().bodyMedium(weight: FontWeight.w500),
-                  ),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                  diary?.tags != null && diary!.tags!.isNotEmpty
-                      ? Flexible(
-                          fit: FlexFit.loose,
-                          child: TagPill(tag: diary!.tags!.first))
-                      : const SizedBox.shrink(),
-                ],
-              ),
+          margin: const EdgeInsets.only(left: 3, right: 3),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(CupertinoIcons.clock,
+                    color: CustomColors.fillWhite, size: 20),
+                const SizedBox(width: 4),
+                Text(
+                  "Remaining Time: ${formatDuration(remainingTime.inMilliseconds)}",
+                  style: CustomTypography().body(color: Colors.white),
+                )
+              ],
             ),
-            const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    Strings.studyName,
-                    style: CustomTypography().titleSmall(),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    "About 5 minutes to complete",
-                    style: CustomTypography()
-                        .bodyMedium(color: CustomColors.textSecondaryContent),
-                  )
-                ],
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: CustomColors.fillWhite,
+            borderRadius: BorderRadius.circular(10),
+            border: Border(
+                left: BorderSide(
+              color: widget.diary?.type == DairyType.ema
+                  ? CustomColors.teal
+                  : CustomColors.productNormal,
+              width: 4,
+            )),
+            boxShadow: const [
+              BoxShadow(
                 color: CustomColors.productBorderNormal,
-                thickness: 1,
+                blurRadius: 4,
+                spreadRadius: 1,
+                offset: Offset(0, 1),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: GestureDetector(
-                onTap: diary!.start.isAfter(DateTime.now())
-                    ? () {}
-                    : () => navigateToDiary(context),
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: diary!.status == DiaryStatus.submitted
-                          ? CustomColors.fillWhite
-                          : diary!.start.isAfter(DateTime.now())
-                              ? CustomColors.fillDisabled
-                              : CustomColors.productNormal,
-                      borderRadius: BorderRadius.circular(100),
-                      border: Border.all(
-                          color: diary!.start.isAfter(DateTime.now())
-                              ? CustomColors.fillDisabled
-                              : CustomColors.productNormal,
-                          width: 2)),
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    child: Text(
-                      diary!.start.isAfter(DateTime.now())
-                          ? "Not Available"
-                          : switch (diary!.status) {
-                              DiaryStatus.complete => "Continue",
-                              DiaryStatus.idle => "Start",
-                              DiaryStatus.ongoing => "Continue",
-                              DiaryStatus.submitted => "View",
-                              DiaryStatus.missed => "View",
-                            },
-                      style: CustomTypography().button(
-                        color: diary!.status == DiaryStatus.submitted
-                            ? CustomColors.productNormal
-                            : diary!.start.isAfter(DateTime.now())
-                                ? CustomColors.textDisabled
-                                : CustomColors.textWhite,
+            ],
+            shape: BoxShape.rectangle,
+          ),
+          margin:
+              EdgeInsets.only(left: 3, right: 3, top: closed == true ? 0 : 30),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.restart_alt_outlined,
+                        color: CustomColors.productNormal,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        "Routine Entry",
+                        style: CustomTypography()
+                            .bodyMedium(weight: FontWeight.w500),
+                      ),
+                      const SizedBox(
+                        width: 12,
+                      ),
+                      widget.diary?.tags != null &&
+                              widget.diary!.tags!.isNotEmpty
+                          ? Flexible(
+                              fit: FlexFit.loose,
+                              child: TagPill(tag: widget.diary!.tags!.first))
+                          : const SizedBox.shrink(),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        Strings.studyName,
+                        style: CustomTypography().titleSmall(),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        "About 5 minutes to complete",
+                        style: CustomTypography().bodyMedium(
+                            color: CustomColors.textSecondaryContent),
+                      )
+                    ],
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Divider(
+                    color: CustomColors.productBorderNormal,
+                    thickness: 1,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: GestureDetector(
+                    onTap: closed ? () {} : () => navigateToDiary(context),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: widget.diary!.status == DiaryStatus.submitted
+                              ? CustomColors.fillWhite
+                              : closed
+                                  ? CustomColors.fillDisabled
+                                  : CustomColors.productNormal,
+                          borderRadius: BorderRadius.circular(100),
+                          border: Border.all(
+                              color: closed
+                                  ? CustomColors.fillDisabled
+                                  : CustomColors.productNormal,
+                              width: 2)),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
+                        child: Text(
+                          closed
+                              ? "Not Available"
+                              : switch (widget.diary!.status) {
+                                  DiaryStatus.complete => "Continue",
+                                  DiaryStatus.idle => "Start",
+                                  DiaryStatus.ongoing => "Continue",
+                                  DiaryStatus.submitted => "View",
+                                  DiaryStatus.missed => "View",
+                                },
+                          style: CustomTypography().button(
+                            color: widget.diary!.status == DiaryStatus.submitted
+                                ? CustomColors.productNormal
+                                : closed
+                                    ? CustomColors.textDisabled
+                                    : CustomColors.textWhite,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            )
-          ],
+                )
+              ],
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 
   void navigateToDiary(BuildContext context) async {
-    if (diary!.status == DiaryStatus.complete) {
-      Navigator.pushNamed(context, '/DiarySummaryPage', arguments: diary);
-    } else if (diary!.status == DiaryStatus.submitted ||
-        diary!.status == DiaryStatus.missed ||
-        diary!.start.isAfter(DateTime.now())) {
+    if (widget.diary!.status == DiaryStatus.complete) {
+      Navigator.pushNamed(context, '/DiarySummaryPage',
+          arguments: widget.diary);
+    } else if (widget.diary!.status == DiaryStatus.submitted ||
+        widget.diary!.status == DiaryStatus.missed ||
+        widget.diary!.start.isAfter(DateTime.now())) {
       PendoService.track("ViewOldDiary", {
-        "study_day": "${diary!.id}",
+        "study_day": "${widget.diary!.id}",
         "diary_day_viewed": "${DateTime.now()}"
       });
       showModalBottomSheet(
           context: context,
           isScrollControlled: true,
           builder: (context) => Wrap(
-                children: [ReviewDiary(diary: diary!)],
+                children: [ReviewDiary(diary: widget.diary!)],
               ));
     } else {
       final results = await Navigator.of(context)
-          .pushNamed("/NewDiaryPage", arguments: diary);
+          .pushNamed("/NewDiaryPage", arguments: widget.diary);
 
       if (results == true) {
-        refresh(true);
+        widget.refresh(true);
       }
     }
   }

@@ -48,9 +48,14 @@ class HomeCubit extends Cubit<HomeState> {
           monday.subtract(const Duration(days: 1)),
           sunday.add(const Duration(days: 1)));
 
-      final updated = diaries.map((diary) {
-        return diary.copyWith(id: diary.id, tags: null);
-      }).toList();
+      final updated = diaries
+          .map((diary) {
+            print("Start: ${diary.start}");
+            return diary.copyWith(id: diary.id, tags: null);
+          })
+          .toList()
+          .where((element) => element.due.isBefore(DateTime.now()) != true)
+          .toList();
       final protocolUpdated = protocol?.copyWith(version: protocol.version);
       emit(HomeLoaded(updated, start, protocolUpdated, entries));
     } catch (e) {
