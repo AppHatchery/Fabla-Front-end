@@ -140,8 +140,7 @@ class DiaryRepository {
 
     // Filter diaries based on due date
     final filteredDiaries =
-        unfilteredDiaries.where((diary) => diary.due.isBefore(due)).toList();
-
+        unfilteredDiaries.where((diary) => diary.start.isBefore(due)).toList();
     // Sort filtered diaries by due date in descending order
     filteredDiaries.sort((a, b) => b.due.compareTo(a.due));
 
