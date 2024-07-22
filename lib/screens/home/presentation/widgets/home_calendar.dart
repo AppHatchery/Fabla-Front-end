@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -38,6 +39,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
   Map<DateTime, List<String>>? events = {};
   int activeDays = 0;
 
+  ScrollController? controller;
+
   @override
   void initState() {
     today =
@@ -52,6 +55,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
         today.add(const Duration(days: 15)).day,
         0);
     pageController = null;
+    controller = ScrollController();
     focusedDay = today;
     selectedDate = today;
     activeDays = repository.countSubmittedDays();
@@ -67,6 +71,14 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   @override
+  void dispose() {
+    controller?.dispose();
+    pageController = null;
+    pageController?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
@@ -75,6 +87,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
       height: height,
       width: width,
       child: SingleChildScrollView(
+        controller: controller,
         child: Column(
           children: [
             Container(
@@ -115,21 +128,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          activeDays.toString(),
-                          style: CustomTypography().headlineLargeCustom(
-                              color: CustomColors.yellowDark, fontSize: 64.sp),
-                        ),
-                        Text(
-                          "Days active in the Winship Study",
-                          style: CustomTypography()
-                              .titleSmall(color: CustomColors.yellowDark),
-                        ),
-                      ],
-                    ),
+                    child: header(Incentive.fromJson({})),
                   ),
                 ],
               ),
@@ -143,7 +142,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                 children: [
                   calendar(),
                   const SizedBox(height: 12),
-                  entries(),
+                  body(Incentive.fromJson({})),
                 ],
               ),
             )
@@ -151,6 +150,27 @@ class _StudyCalendarState extends State<StudyCalendar> {
         ),
       ),
     );
+  }
+
+  Widget header(Incentive? incentive) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          incentive != null ? '${incentive.currency}32' : activeDays.toString(),
+          style: CustomTypography().headlineLargeCustom(
+              color: CustomColors.yellowDark, fontSize: 64.sp),
+        ),
+        Text(
+          incentive != null ? "Current Incentive" : 'Days active',
+          style: CustomTypography().titleSmall(color: CustomColors.yellowDark),
+        ),
+      ],
+    );
+  }
+
+  Widget body(Incentive? incentive) {
+    return incentive != null ? compensation() : entries();
   }
 
   Widget calendar() {
@@ -398,5 +418,163 @@ class _StudyCalendarState extends State<StudyCalendar> {
       diaryList = repository.getDailyDiaries(date);
     });
     return diaryList;
+  }
+
+  //Incentive Calculation
+  Widget compensation() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Compensation Details",
+          style: CustomTypography().titleLarge(),
+          textAlign: TextAlign.left,
+        ),
+        const SizedBox(height: 6),
+        totalIncentive(),
+        const SizedBox(height: 12),
+        Text(
+          "Current Progress",
+          style: CustomTypography().titleLarge(),
+          textAlign: TextAlign.left,
+        ),
+        const SizedBox(height: 6),
+        const CurrentIncentive()
+      ],
+    );
+  }
+
+  Widget incentive(Incentive inc) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Amount
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("Per Diary (Total = 20)",
+                style: CustomTypography().titleSmall()),
+            Text("${inc.currency}${inc.amount} per Daily Dairy",
+                style: CustomTypography().titleSmall()),
+          ],
+        ),
+
+        const SizedBox(
+          height: 6,
+        ),
+
+        //Bonus
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("Dairy Bonus", style: CustomTypography().titleSmall()),
+            Text("${inc.currency}${inc.bonus}",
+                style: CustomTypography().titleSmall()),
+          ],
+        ),
+        const SizedBox(
+          height: 6,
+        ),
+      ],
+    );
+  }
+
+  Widget totalIncentive() {
+    return Container(
+      decoration: BoxDecoration(
+        color: CustomColors.fillWhite,
+        borderRadius: BorderRadius.circular(12),
+        shape: BoxShape.rectangle,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("Total Incentive Available",
+              style: CustomTypography().titleSmall()),
+          Text("\$80", style: CustomTypography().titleSmall()),
+        ],
+      ),
+    );
+  }
+}
+
+class CurrentIncentive extends StatefulWidget {
+  const CurrentIncentive({super.key});
+
+  @override
+  State<CurrentIncentive> createState() => _CurrentIncentiveState();
+}
+
+class _CurrentIncentiveState extends State<CurrentIncentive> {
+  bool expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: CustomColors.fillWhite,
+        borderRadius: BorderRadius.circular(12),
+        shape: BoxShape.rectangle,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Earned Incentive: \$32",
+                  style: CustomTypography().titleSmall()),
+              IconButton(
+                  onPressed: () {
+                    setState(() {
+                      expanded = !expanded;
+                    });
+                  },
+                  icon: Icon(
+                    expanded
+                        ? CupertinoIcons.chevron_up
+                        : CupertinoIcons.chevron_down,
+                    size: 20,
+                    color: CustomColors.textNormalContent,
+                  ))
+            ],
+          ),
+          const SizedBox(height: 12),
+          LinearProgressIndicator(
+            color: CustomColors.productNormal,
+            backgroundColor: CustomColors.productLightBackground,
+            value: 0.2,
+            minHeight: 12,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          Visibility(
+            visible: expanded,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 12),
+                const Divider(
+                  height: 1,
+                  color: CustomColors.grey,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  "You've completed 19 entries.",
+                  style: CustomTypography()
+                      .bodyMedium(color: CustomColors.textNormalContent),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "There are 14 more entries to complete",
+                  style: CustomTypography()
+                      .bodyMedium(color: CustomColors.textNormalContent),
+                )
+              ],
+            ),
+          )
+        ],
+      ),
+    );
   }
 }
