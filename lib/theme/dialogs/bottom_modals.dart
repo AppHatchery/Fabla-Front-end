@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
+import 'package:audio_diaries_flutter/theme/components/indicators.dart';
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
@@ -28,12 +29,14 @@ class BottomRecordingModal extends StatefulWidget {
   final String question;
   final String? hint;
   final ValueChanged<String?>? onSave;
+  final bool showWidget;
 
   const BottomRecordingModal(
       {super.key,
       required this.promptId,
       required this.onSave,
       required this.question,
+      required this.showWidget,
       this.hint});
 
   @override
@@ -51,6 +54,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   final ValueNotifier<bool> _erase = ValueNotifier<bool>(false);
 
   ScrollController scrollController = ScrollController();
+
+  final int maxDurationInSeconds = 5 * 60; // 5 minutes * 60 seconds
+  double _progressValue = 0.0;
 
   //Animation
   late StateMachineController _controller;
@@ -116,31 +122,44 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         borderRadius: BorderRadius.only(
             topLeft: Radius.circular(14), topRight: Radius.circular(14)),
       ),
-      child: Column(
+      child: Stack(
         children: [
-          const SizedBox(
-            height: 32,
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: const Icon(
+                        CupertinoIcons.clear_circled_solid,
+                        size: 26,
+                        color: CustomColors.textSecondaryContent,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              Expanded(
+                child: questionAndHints(),
+              ),
+              // const SizedBox(
+              //   height: 32,
+              // ),
+              // // C[lose Modal Button
+            ],
           ),
-          // Close Modal Button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(
-                    CupertinoIcons.clear_circled_solid,
-                    size: 26,
-                    color: CustomColors.textSecondaryContent,
-                  ),
-                )
-              ],
-            ),
-          ),
-          Expanded(
-            child: questionAndHints(),
-          ),
+         // commented out waiting for confetti animation
+          // _progressValue == 1.0 // 5 
+          //     ? SizedBox(
+          //         height: height,
+          //         width: width,
+          //         child: const RiveAnimation.asset(
+          //             'assets/animations/onboarding/onboarding_congrats.riv',
+          //             fit: BoxFit.cover))
+          //     : const SizedBox.shrink(),
         ],
       ),
     );
@@ -172,10 +191,12 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     SizedBox(
                       height: 100,
                       width: 100,
-                      child: RiveAnimation.asset(
-                        'assets/animations/ghosts.riv',
-                        onInit: _onInit,
-                      ),
+                      child: widget.showWidget
+                          ? RiveAnimation.asset(
+                              'assets/animations/ghosts.riv',
+                              onInit: _onInit,
+                            )
+                          : const SizedBox.shrink(),
                     ),
                     const SizedBox(
                       height: 16,
@@ -206,6 +227,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                       width: width,
                       child: waveForm(),
                     ),
+                    const SizedBox(height: 9),
+                    widget.showWidget ? progressBar() : const SizedBox.shrink(),
                     SizedBox(
                       height: screenHeight > 850 ? 36 : 24,
                     ),
@@ -233,6 +256,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         )
       ],
     );
+  }
+
+  Widget progressBar() {
+    return CustomRecordingIndicator(progressValue: _progressValue);
   }
 
   Widget waveForm() {
@@ -353,12 +380,25 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     await recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
   }
 
+  void _updateTimer(Duration elapsed) {
+    setState(() {
+      timer =
+          "${elapsed.inMinutes.remainder(60).toString().padLeft(2, '0')}:${elapsed.inSeconds.remainder(60).toString().padLeft(2, '0')}";
+      double progress = elapsed.inSeconds / maxDurationInSeconds;
+      if (progress > 1.0) {
+        progress = 1.0;
+      }
+      _progressValue = progress;
+    });
+  }
+
   void startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (time) {
       if (mounted) {
         setState(() {
           elapsed = const Duration(seconds: 1) + elapsed;
           timer = formatDurationtoHHMMSS(elapsed);
+          _updateTimer(elapsed);
         });
       }
     });
@@ -380,6 +420,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             elapsed = const Duration();
             timer = "00:00";
             _erase.value = !_erase.value;
+            _progressValue = 0;
           });
         }
         final stoppedRecorderValue = await recorder.stopRecorder();
@@ -459,6 +500,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       }
     } catch (e) {
       // TODO: Show Error
+    } finally {
+      // Reset progress value
+      if (mounted) setState(() => _progressValue = 0);
     }
   }
 
@@ -496,6 +540,7 @@ class BottomTextModal extends StatefulWidget {
   final String? hint;
   final ValueChanged<String?>? onSave;
   final ScrollController scrollController;
+  final bool showWidget;
 
   const BottomTextModal(
       {super.key,
@@ -503,7 +548,8 @@ class BottomTextModal extends StatefulWidget {
       required this.question,
       this.hint,
       required this.onSave,
-      required this.scrollController});
+      required this.scrollController,
+      required this.showWidget});
 
   @override
   State<BottomTextModal> createState() => _BottomTextModalState();
@@ -620,6 +666,9 @@ class _BottomTextModalState extends State<BottomTextModal>
     final width = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
+    print(
+        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> show widget text modal: ${widget.showWidget}");
+
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Container(
@@ -687,10 +736,12 @@ class _BottomTextModalState extends State<BottomTextModal>
           SizedBox(
             height: 100,
             width: 100,
-            child: RiveAnimation.asset(
-              'assets/animations/ghosts.riv',
-              onInit: _onInit,
-            ),
+            child: widget.showWidget
+                ? RiveAnimation.asset(
+                    'assets/animations/ghosts.riv',
+                    onInit: _onInit,
+                  )
+                : const SizedBox.shrink(),
           ),
           const SizedBox(
             height: 16,

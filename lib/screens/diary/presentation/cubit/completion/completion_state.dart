@@ -19,8 +19,9 @@ final class CompletionLoaded extends CompletionState {
   final DiaryModel diary;
   final List<DiaryModel> diaries;
   final Protocol protocol;
+  final bool showWidget;
   const CompletionLoaded(
-      {required this.diary, required this.diaries, required this.protocol});
+      {required this.diary, required this.diaries, required this.protocol, required this.showWidget});
 
   @override
   List<Object> get props => [diary, protocol];

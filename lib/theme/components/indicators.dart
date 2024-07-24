@@ -43,3 +43,30 @@ class CustomBarIndicator extends StatelessWidget {
     );
   }
 }
+
+class CustomRecordingIndicator extends StatelessWidget {
+  final double progressValue;
+  const CustomRecordingIndicator({super.key, required this.progressValue});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 0),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(6.5), // Apply borderRadius here
+            child: LinearProgressIndicator(
+              backgroundColor: CustomColors.grey,
+              value: progressValue,
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(CustomColors.lightGreen),
+              minHeight: 17,
+              borderRadius: BorderRadius.circular(6.5),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

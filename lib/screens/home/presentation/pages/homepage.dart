@@ -89,13 +89,13 @@ class _HomePageState extends State<HomePage>
                 return loading();
               } else if (state is HomeLoaded) {
                 return loadedHome(state.diaries, state.startDate,
-                    state.protocol, state.entries);
+                    state.protocol, state.entries, state.showWidget);
               } else {
                 return initialHome();
               }
             }));
   }
-
+//
   Widget loading() {
     return const Scaffold(
         body: Center(
@@ -112,10 +112,12 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget loadedHome(List<DiaryModel> diaries, DateTime startDate,
-      Protocol? protocol, int entries) {
+      Protocol? protocol, int entries, bool showWidget) {
     final today = DateTime.now();
     // if (isHomeTipClosed.value == false) show4AmTip();
     final weeklyEntries = entries;
+
+    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> show widget home: $showWidget");
 
     return Scaffold(
         backgroundColor: Colors.transparent,
@@ -201,13 +203,14 @@ class _HomePageState extends State<HomePage>
                           const SizedBox(
                             height: 24,
                           ),
+                          showWidget ? 
                           TodayGoalWidget(
                             dailyGoal: protocol.dailyGoal,
                             protocol: protocol,
                             diary: diaries.first,
                             weeklyEntries: weeklyEntries,
                             isHomeTipClosed: isHomeTipClosed,
-                          ),
+                          ) : const SizedBox.shrink(),
                           const SizedBox(
                             height: 24,
                           ),

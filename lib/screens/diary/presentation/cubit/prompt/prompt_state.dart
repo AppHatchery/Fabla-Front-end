@@ -21,14 +21,16 @@ final class PromptLoading extends PromptState {
 
 final class PromptLoaded extends PromptState {
   final PromptModel prompt;
-  const PromptLoaded(this.prompt);
+  final bool showWidget;
+  const PromptLoaded(this.prompt, this.showWidget);
 
   @override
   List<Object> get props => [prompt];
 }
 
 final class PromptRespondState extends PromptState {
-  const PromptRespondState();
+  final showWidget;
+  const PromptRespondState(this.showWidget);
 }
 
 final class PromptResponseError extends PromptState {

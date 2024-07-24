@@ -73,7 +73,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     }
     super.didChangeAppLifecycleState(state);
   }
-
+ 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SummaryCubit, SummaryState>(
@@ -361,6 +361,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   summaryCubit.saveResponse(
                       widget.diary, prompt, value.toString());
                 },
+                showWidget: true,
               );
             }));
   }

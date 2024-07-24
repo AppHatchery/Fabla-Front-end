@@ -43,8 +43,8 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
               } else if (state is CompletionLoading) {
                 return const Center(child: CircularProgressIndicator());
               } else if (state is CompletionLoaded) {
-                return loadedCompletionPage(
-                    context, state.protocol, state.diary, state.diaries);
+                return loadedCompletionPage(context, state.protocol,
+                    state.diary, state.diaries, state.showWidget);
               } else {
                 return initialCompletionPage();
               }
@@ -65,7 +65,7 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
   }
 
   Widget loadedCompletionPage(BuildContext context, Protocol protocol,
-      DiaryModel diary, List<DiaryModel> diaries) {
+      DiaryModel diary, List<DiaryModel> diaries, bool showWidget) {
     final width = MediaQuery.of(context).size.width;
 
     return Padding(
@@ -84,35 +84,38 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
                   SizedBox(
                     height: 150,
                     width: width,
-                    child: Stack(
-                      children: [
-                        Align(
-                          alignment: Alignment.center,
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 5.0),
-                            child: avatarCircularProgress(protocol, diary),
-                          ),
-                        ),
-                        Positioned(
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 5,
-                                  height: 10,
-                                  color: Colors.white,
+                    child: showWidget
+                        ? Stack(
+                            children: [
+                              Align(
+                                alignment: Alignment.center,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 5.0),
+                                  child:
+                                      avatarCircularProgress(protocol, diary),
                                 ),
-                              ],
-                            )),
-                        GhostCompletionWidget(
-                            currentEntry: diary.currentEntry,
-                            dailyGoal: protocol.dailyGoal,
-                            weeklyGoal: protocol.weeklyGoal),
-                      ],
-                    ),
+                              ),
+                              Positioned(
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 5,
+                                        height: 10,
+                                        color: Colors.white,
+                                      ),
+                                    ],
+                                  )),
+                              GhostCompletionWidget(
+                                  currentEntry: diary.currentEntry,
+                                  dailyGoal: protocol.dailyGoal,
+                                  weeklyGoal: protocol.weeklyGoal),
+                            ],
+                          )
+                        : const SizedBox.shrink(),
                   ),
                   const SizedBox(
                     height: 24,
@@ -162,7 +165,6 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
   }
 
   Widget avatarCircularProgress(Protocol protocol, DiaryModel diary) {
-    
     final begin = (diary.currentEntry - 1) / protocol.dailyGoal;
     final end = diary.currentEntry / protocol.dailyGoal;
 

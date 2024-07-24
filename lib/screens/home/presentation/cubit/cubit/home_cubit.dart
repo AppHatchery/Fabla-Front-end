@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -32,6 +33,13 @@ class HomeCubit extends Cubit<HomeState> {
     final today = DateTime.now();
     final start = DateTime(today.year, today.month, today.day, 0, 0, 0);
     final due = DateTime(today.year, today.month, today.day, 23, 59, 59);
+    String? studyCode = setupRepository.getParticipant()?.studyCode;
+    bool showWidget = false;
+
+    final source =
+        await PreferenceService().getStringPreference(key: 'futureDate');
+    final date = source ?? start;
+    final futureDate = DateTime.parse(date.toString());
 
     final monday = DateTime(today.year, today.month, today.day)
         .subtract(Duration(days: today.weekday - 1));
@@ -44,13 +52,27 @@ class HomeCubit extends Cubit<HomeState> {
       emit(const HomeLoading());
       final diary = repository.getDiary(start, due);
       final protocol = repository.getProtocol();
-      final entries = repository.getTotalEntries(monday.subtract(const Duration(days: 1)), sunday.add(const Duration(days: 1)));
+      final entries = repository.getTotalEntries(
+          monday.subtract(const Duration(days: 1)),
+          sunday.add(const Duration(days: 1)));
+
+      if (int.parse(studyCode!) % 2 == 0 && today.isBefore(futureDate)) {
+        showWidget = true;
+      } else if (int.parse(studyCode) % 2 == 0 && today.isAfter(futureDate)) {
+        showWidget = false;
+      } else if (int.parse(studyCode) % 2 != 0 && today.isBefore(futureDate)) {
+        showWidget = false;
+      } else if (int.parse(studyCode) % 2 != 0 && today.isAfter(futureDate)) {
+        showWidget = true;
+      }
+
       if (diary != null) {
         final updated = diary.copyWith(id: diary.id, tags: null);
         final protocolUpdated = protocol?.copyWith(version: protocol.version);
-        emit(HomeLoaded([updated], start, protocolUpdated, entries));
+        emit(
+            HomeLoaded([updated], start, protocolUpdated, entries, showWidget));
       } else {
-        emit(HomeLoaded(const [], start, protocol, entries));
+        emit(HomeLoaded(const [], start, protocol, entries, showWidget));
       }
     } catch (e) {
       emit(const HomeError("Something went wrong"));

@@ -101,7 +101,10 @@ class _FinishPageState extends State<FinishPage> {
                 //   height: 38,
                 // ),
                 CustomFlatButton(
-                  onClick: _next,
+                  onClick: (){ 
+                    _next();
+                    _saveStartDate();
+                    },
                   text: "Get Started",
                   color: CustomColors.fillWhite,
                   textColor: CustomColors.productNormalActive,
@@ -128,5 +131,13 @@ class _FinishPageState extends State<FinishPage> {
           MaterialPageRoute(builder: (context) => const Hub()),
           (route) => false);
     }
+  }
+
+  // function to get current date and time and save in shared preference
+  void _saveStartDate() async {
+    final now = DateTime.now();
+    DateTime futureDate = now.add(const Duration(days: 7));
+    String dateString = futureDate.toIso8601String();
+    await PreferenceService().setStringPreference(key: 'futureDate', value: dateString);
   }
 }

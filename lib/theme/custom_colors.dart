@@ -70,6 +70,7 @@ class CustomColors {
 
   //Green
   static const Color darkGreen = Color(0xFF2EA642);
+  static const Color lightGreen = Color(0xFF56BB70);
 
   static const Color newBlue = Color(0XFF87BCFF);
 }

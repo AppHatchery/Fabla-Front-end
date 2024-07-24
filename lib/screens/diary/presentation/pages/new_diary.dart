@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/audio_quiestions_widget.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
+import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
@@ -360,14 +361,14 @@ class _QuestionPageState extends State<QuestionPage>
           } else if (state is PromptLoading) {
             return buildLoading();
           } else if (state is PromptLoaded) {
-            return buildPrompt(state.prompt);
+            return buildPrompt(state.prompt, state.showWidget);
           } else {
             return buildInitial();
           }
         },
         listener: (context, state) {
           if (state is PromptRespondState) {
-            recordResponse(promptModel, "");
+            recordResponse(promptModel, "",state.showWidget);
           } else if (state is PromptResponseSuccess) {
             showSuccessModal();
           } else if (state is PromptResponseError) {
@@ -399,7 +400,7 @@ class _QuestionPageState extends State<QuestionPage>
 
   bool isSnackBarVisible = false;
 
-  Widget buildPrompt(PromptModel prompt) {
+  Widget buildPrompt(PromptModel prompt, bool showWidget) {
     Widget responseWidget;
 
     if (prompt.responseType == ResponseType.slider) {
@@ -468,7 +469,7 @@ class _QuestionPageState extends State<QuestionPage>
         prompt.responseType == ResponseType.textAudio) {
       responseWidget = AudioTextCard(
         diary: widget.diary,
-        respond: (String type) => recordResponse(prompt, type),
+        respond: (String type) => recordResponse(prompt, type, showWidget),
         prompt: prompt,
       );
     } else {
@@ -582,7 +583,7 @@ class _QuestionPageState extends State<QuestionPage>
     widget.answerAdded(isValidResponse);
   }
 
-  void recordResponse(PromptModel prompt, String type) {
+  void recordResponse(PromptModel prompt, String type, bool showWidget) {
     if (type == "audio") {
       showModalBottomSheet(
           backgroundColor: Colors.transparent,
@@ -603,6 +604,7 @@ class _QuestionPageState extends State<QuestionPage>
                     onSave: (value) {
                       save(prompt, value.toString(), "audio");
                     },
+                    showWidget: showWidget,
                   );
                 },
               ));
@@ -627,6 +629,7 @@ class _QuestionPageState extends State<QuestionPage>
                       save(prompt, value.toString(), null);
                     },
                     scrollController: scrollController,
+                    showWidget: showWidget,
                   );
                 },
               ));

@@ -40,7 +40,7 @@ class SetupRepository {
   /// database using the associated participant DAO (Data Access Object).
   /// It retrieves the participant's data and returns it as a `Participant` object.
   ///
-  /// Returns:
+  /// Returns: 
   /// - A `Participant` object containing the retrieved participant's information,
   ///   or `null` if no participant information is available.
   ///
