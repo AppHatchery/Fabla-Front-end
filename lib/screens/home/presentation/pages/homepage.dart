@@ -95,6 +95,7 @@ class _HomePageState extends State<HomePage>
               }
             }));
   }
+
 //
   Widget loading() {
     return const Scaffold(
@@ -116,8 +117,6 @@ class _HomePageState extends State<HomePage>
     final today = DateTime.now();
     // if (isHomeTipClosed.value == false) show4AmTip();
     final weeklyEntries = entries;
-
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> show widget home: $showWidget");
 
     return Scaffold(
         backgroundColor: Colors.transparent,
@@ -203,14 +202,14 @@ class _HomePageState extends State<HomePage>
                           const SizedBox(
                             height: 24,
                           ),
-                          showWidget ? 
                           TodayGoalWidget(
                             dailyGoal: protocol.dailyGoal,
                             protocol: protocol,
                             diary: diaries.first,
                             weeklyEntries: weeklyEntries,
                             isHomeTipClosed: isHomeTipClosed,
-                          ) : const SizedBox.shrink(),
+                            showWidget: showWidget,
+                          ),
                           const SizedBox(
                             height: 24,
                           ),

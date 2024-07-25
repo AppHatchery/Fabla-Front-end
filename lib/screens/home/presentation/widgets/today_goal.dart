@@ -14,6 +14,7 @@ class TodayGoalWidget extends StatefulWidget {
   final Protocol protocol;
   final DiaryModel diary;
   final int weeklyEntries;
+  final bool showWidget;
   final ValueNotifier<bool> isHomeTipClosed;
 
   const TodayGoalWidget(
@@ -22,7 +23,7 @@ class TodayGoalWidget extends StatefulWidget {
       required this.protocol,
       required this.diary,
       required this.weeklyEntries,
-      required this.isHomeTipClosed});
+      required this.isHomeTipClosed, required this.showWidget});
 
   @override
   State<TodayGoalWidget> createState() => _TodayGoalWidgetState();
@@ -127,11 +128,11 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                     child: SizedBox(
                       height: 120,
                       width: 180,
-                      child: RiveAnimation.asset(
+                      child: widget.showWidget ? RiveAnimation.asset(
                         'assets/animations/ghosts.riv',
                         onInit: _onInit,
                         fit: BoxFit.cover,
-                      ),
+                      ) : const SizedBox.shrink(),
                     ),
                   ),
                 )
