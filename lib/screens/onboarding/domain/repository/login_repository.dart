@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/database/dao/participant_dao.dart';
 import '../../../../main.dart';
@@ -68,5 +71,20 @@ class LoginRepository {
   ///   // Display an error message indicating invalid code...
   /// }
   /// ```
-  Future<bool> verify(int code) async => participantCodes.contains(code) || code == 0000;
+  Future<bool> verify(int code) async =>
+      participantCodes.contains(code) || code == 0000;
+
+  Future<bool> studyVerification(String code) async {
+    //get study
+    final String response = await rootBundle.loadString('assets/protocol.json');
+    final data = await json.decode(response);
+
+    final loginCode = data['login_code'];
+    print('loginCode: $loginCode | code: $code');
+
+    return Future.delayed(
+      const Duration(seconds: 2),
+      () => code == loginCode,
+    );
+  }
 }

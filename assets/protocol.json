@@ -1,80 +1,165 @@
 {
-  "version": 1,
-  "daily_goal": 3,
-  "weekly_goal": 15,
-  "diaries": [
+  "login_code": "MXJS",
+  "researcher": "John Doe",
+  "description": "",
+  "studies": [
     {
-      "type": "Daily",
-      "questions": [
+      "id": 1,
+      "goal": {
+        "daily": 3,
+        "weekly": 10
+      },
+      "incentive": {
+        "amount": 150,
+        "bonus": 2000,
+        "currency": "$"
+      },
+      "diaries": [
         {
-          "type": "multiple",
-          "title": "How long was this encounter?",
-          "subtitle": null,
-          "required": true,
-          "max_value": null,
-          "min_value": null,
-          "default_value": null,
-          "options": [
-            "Less than 1 minute",
-            "1 - 5 minutes",
-            "10 - 20 minutes",
-            "20 - 40 minutes",
-            "More than 40 minutes"
+          "start_date": "2024-06-14T08:00:00.000Z",
+          "end_date": "2024-06-14T10:00:00.000Z",
+          "entries": 1,
+          "questions": [
+            {
+              "type": "multiple",
+              "title": "How long was this encounter?",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": [
+                "Less than 1 minute",
+                "1 - 5 minutes",
+                "10 - 20 minutes",
+                "20 - 40 minutes",
+                "More than 40 minutes"
+              ]
+            },
+            {
+              "type": "multiple",
+              "title": "What role was the staff member who was the primary recipient of care?",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": [
+                "Nurse",
+                "Medical assistant",
+                "Respiratory therapist",
+                "Front desk staff",
+                "Physician",
+                "Advanced practice provider",
+                "Scheduler",
+                "Medical interpreter",
+                "Social worker",
+                "Environmental services staff",
+                "Dietitian",
+                "Cafeteria staff",
+                "Administration",
+                "Other"
+              ]
+            },
+            {
+              "type": "multiple",
+              "title": "Who initiated the encounter?",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": [
+                "CCSH™ Fellow",
+                "Staff member",
+                "Other"
+              ]
+            },
+            {
+              "type": "audio",
+              "title": "Talk to us about the staff encounter you just had, as though you were sharing with a colleague.",
+              "subtitle": "We are interested in hearing about (1) What was the PRIMARY CONCERN of the staff member, (2) What happened during the encounter, or what CCSH interventions you delivered, and (3) How you would describe the OUTCOME of the encounter.",
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": null
+            }
           ]
         },
         {
-          "type": "multiple",
-          "title": "What role was the staff member who was the primary recipient of care?",
-          "subtitle": null,
-          "required": true,
-          "max_value": null,
-          "min_value": null,
-          "default_value": null,
-          "options": [
-            "Nurse",
-            "Medical assistant",
-            "Respiratory therapist",
-            "Front desk staff",
-            "Physician",
-            "Advanced practice provider",
-            "Scheduler",
-            "Medical interpreter",
-            "Social worker",
-            "Environmental services staff",
-            "Dietitian",
-            "Cafeteria staff",
-            "Administration",
-            "Other"
+          "start_date": "2024-06-14T08:00:00.000Z",
+          "end_date": "2024-06-14T10:00:00.000Z",
+          "entries": 1,
+          "questions": [
+            {
+              "type": "multiple",
+              "title": "How long was this encounter?",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": [
+                "Less than 1 minute",
+                "1 - 5 minutes",
+                "10 - 20 minutes",
+                "20 - 40 minutes",
+                "More than 40 minutes"
+              ]
+            },
+            {
+              "type": "multiple",
+              "title": "What role was the staff member who was the primary recipient of care?",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": [
+                "Nurse",
+                "Medical assistant",
+                "Respiratory therapist",
+                "Front desk staff",
+                "Physician",
+                "Advanced practice provider",
+                "Scheduler",
+                "Medical interpreter",
+                "Social worker",
+                "Environmental services staff",
+                "Dietitian",
+                "Cafeteria staff",
+                "Administration",
+                "Other"
+              ]
+            },
+            {
+              "type": "multiple",
+              "title": "Who initiated the encounter?",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": [
+                "CCSH™ Fellow",
+                "Staff member",
+                "Other"
+              ]
+            },
+            {
+              "type": "audio",
+              "title": "Talk to us about the staff encounter you just had, as though you were sharing with a colleague.",
+              "subtitle": "We are interested in hearing about (1) What was the PRIMARY CONCERN of the staff member, (2) What happened during the encounter, or what CCSH interventions you delivered, and (3) How you would describe the OUTCOME of the encounter.",
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": null
+            }
           ]
-        },
-        {
-          "type": "multiple",
-          "title": "Who initiated the encounter?",
-          "subtitle": null,
-          "required": true,
-          "max_value": null,
-          "min_value": null,
-          "default_value": null,
-          "options": ["CCSH™ Fellow", "Staff member", "Other"]
-        },
-        {
-          "type": "audio",
-          "title": "Talk to us about the staff encounter you just had, as though you were sharing with a colleague.",
-          "subtitle": "We are interested in hearing about (1) What was the PRIMARY CONCERN of the staff member, (2) What happened during the encounter, or what CCSH interventions you delivered, and (3) How you would describe the OUTCOME of the encounter.",
-          "required": true,
-          "max_value": null,
-          "min_value": null,
-          "default_value": null,
-          "options": null
         }
-      ],
-      "start_date": "2024-05-15T00:00:00.000Z",
-      "end_date": "2024-06-15T00:00:00.000Z",
-      "start_time": "00:00",
-      "end_time": "23:59",
-      "frequency": 1,
-      "active_days": [1, 2, 3, 4, 5],
-      "entries": 100
+      ]
     }
   ]
 }

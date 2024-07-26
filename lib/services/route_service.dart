@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_dates.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_time.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/finish.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/study_login.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welcome.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
@@ -54,8 +55,10 @@ class RouteService {
     final setupRepository = SetupRepository();
     final participant = setupRepository.getParticipant();
 
+
+    //TODO: Add the rest of the pages
     if (participant == null) {
-      return const LoginPage();
+      return const StudyLogin();
     } else if (participant.name.isEmpty) {
       return const WelcomePage();
     } else if (setup) {
