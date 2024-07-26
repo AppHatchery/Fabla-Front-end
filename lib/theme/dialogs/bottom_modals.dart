@@ -126,6 +126,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         children: [
           Column(
             children: [
+              const SizedBox(
+                height: 32,
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Row(
@@ -145,10 +148,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               Expanded(
                 child: questionAndHints(),
               ),
-              // const SizedBox(
-              //   height: 32,
-              // ),
-              // // C[lose Modal Button
             ],
           ),
           // commented out waiting for confetti animation
