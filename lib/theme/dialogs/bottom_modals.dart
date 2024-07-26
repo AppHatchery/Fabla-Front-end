@@ -566,7 +566,7 @@ class _BottomTextModalState extends State<BottomTextModal>
   bool disabled = true;
 
   //Animation
-  late StateMachineController _controller;
+ StateMachineController? _controller;
 
   void _onInit(Artboard art) {
     var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
@@ -579,7 +579,7 @@ class _BottomTextModalState extends State<BottomTextModal>
       });
 
       Future.delayed(const Duration(milliseconds: 10), () {
-        final searchingOne = _controller.findSMI('Searching_1');
+        final searchingOne = _controller?.findSMI('Searching_1');
         if (searchingOne != null && mounted) {
           searchingOne.value = true;
         }
@@ -613,7 +613,7 @@ class _BottomTextModalState extends State<BottomTextModal>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     textController.dispose();
-    _controller.dispose();
+    _controller?.dispose();
     hideOverlay();
     super.dispose();
   }
@@ -666,8 +666,6 @@ class _BottomTextModalState extends State<BottomTextModal>
     final width = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    print(
-        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> show widget text modal: ${widget.showWidget}");
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
