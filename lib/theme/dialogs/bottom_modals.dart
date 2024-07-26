@@ -59,7 +59,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   double _progressValue = 0.0;
 
   //Animation
-  late StateMachineController _controller;
+  StateMachineController? _controller;
 
   void _onInit(Artboard art) {
     var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
@@ -72,7 +72,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       });
 
       Future.delayed(const Duration(milliseconds: 10), () {
-        final searchingThree = _controller.findSMI('Searching_3');
+        final searchingThree = _controller?.findSMI('Searching_3');
         if (searchingThree != null && mounted) {
           searchingThree.value = true;
         }
@@ -105,7 +105,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   @override
   void dispose() {
     recorder.closeRecorder();
-    _controller.dispose();
+    _controller?.dispose();
     scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -151,8 +151,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               // // C[lose Modal Button
             ],
           ),
-         // commented out waiting for confetti animation
-          // _progressValue == 1.0 // 5 
+          // commented out waiting for confetti animation
+          // _progressValue == 1.0 // 5
           //     ? SizedBox(
           //         height: height,
           //         width: width,

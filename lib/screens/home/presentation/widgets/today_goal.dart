@@ -30,7 +30,7 @@ class TodayGoalWidget extends StatefulWidget {
 }
 
 class _TodayGoalWidgetState extends State<TodayGoalWidget> {
-  late StateMachineController _controller;
+  StateMachineController? _controller;
 
   void _onInit(Artboard art) {
     var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
@@ -52,7 +52,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   @override
   void initState() {
     widget.isHomeTipClosed.addListener(() {
-      if (widget.isHomeTipClosed.value) _controller.isActive = true;
+      if (widget.isHomeTipClosed.value) _controller?.isActive = true;
     });
 
     super.initState();
@@ -60,7 +60,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -168,7 +168,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         await PreferenceService().getBoolPreference(key: 'cold_start') ?? true;
 
     if (coldStart) {
-      final arrival = _controller.findSMI('First arrival');
+      final arrival = _controller?.findSMI('First arrival');
       if (arrival != null && mounted) {
         arrival.value = true;
       }
@@ -184,8 +184,8 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     //Show Searching 1 or Searching 2 if there is no entry
     // Make the animation random with a 50/50 chance of both showing up
     if (widget.diary.currentEntry == 0) {
-      final searchingOne = _controller.findSMI('Searching_1');
-      final searchingTwo = _controller.findSMI('Searching_2');
+      final searchingOne = _controller?.findSMI('Searching_1');
+      final searchingTwo = _controller?.findSMI('Searching_2');
 
       final random = Random().nextInt(2);
       final animation = random == 0 ? searchingOne : searchingTwo;
@@ -198,7 +198,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
     //Show Blinking + Blowing the horn if the daily goal is achieved
     if (widget.diary.currentEntry == widget.protocol.dailyGoal) {
-      final blowing = _controller.findSMI('Blinking + Blowing the horn');
+      final blowing = _controller?.findSMI('Blinking + Blowing the horn');
 
       if (blowing != null && mounted) {
         blowing.value = true;
@@ -209,7 +209,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     //Show Achieving the goal if the weekly goal is achieved
     if (widget.diary.currentEntry == widget.protocol.weeklyGoal ||
         widget.weeklyEntries == widget.protocol.weeklyGoal) {
-      final achieving = _controller.findSMI('Achieving the goal ');
+      final achieving = _controller?.findSMI('Achieving the goal ');
 
       if (achieving != null && mounted) {
         achieving.value = true;
@@ -220,7 +220,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     //Show Beyond the goal if the weekly goal is exceeded
     if (widget.diary.currentEntry > widget.protocol.weeklyGoal ||
         widget.weeklyEntries > widget.protocol.weeklyGoal) {
-      final beyond = _controller.findSMI('Beyond the goal ');
+      final beyond = _controller?.findSMI('Beyond the goal ');
 
       if (beyond != null && mounted) {
         beyond.value = true;
@@ -230,7 +230,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
     //Show Searching 3 if there is an entry or more
     if (widget.diary.currentEntry > 0) {
-      final searchingThree = _controller.findSMI('Searching_3');
+      final searchingThree = _controller?.findSMI('Searching_3');
       if (searchingThree != null && mounted) {
         searchingThree.value = true;
       }
