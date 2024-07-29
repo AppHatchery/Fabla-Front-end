@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_goal.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
@@ -88,8 +88,8 @@ class _HomePageState extends State<HomePage>
               } else if (state is HomeLoading) {
                 return loading();
               } else if (state is HomeLoaded) {
-                return loadedHome(state.diaries, state.startDate,
-                    state.protocol, state.entries);
+                return loadedHome(
+                    state.diaries, state.startDate, state.study, state.entries);
               } else {
                 return initialHome();
               }
@@ -112,7 +112,7 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget loadedHome(List<DiaryModel> diaries, DateTime startDate,
-      Protocol? protocol, int entries) {
+      StudyModel? studyModel, int entries) {
     final today = DateTime.now();
     // if (isHomeTipClosed.value == false) show4AmTip();
     final weeklyEntries = entries;
@@ -141,7 +141,7 @@ class _HomePageState extends State<HomePage>
                     }),
                     child: WeeklyGoalWidget(
                       isExpanded: isExpanded,
-                      weeklyGoal: protocol!.weeklyGoal,
+                      weeklyGoal: studyModel!.goals.weekly,
                       currentEntries: weeklyEntries,
                     ),
                   ),
@@ -151,11 +151,11 @@ class _HomePageState extends State<HomePage>
                           setState(() {
                             isExpanded = false;
                             _controller.reverse();
-                            _controller.addStatusListener(
-                                (status) => _dismissAndShow(status));
+                            _controller.addStatusListener((status) =>
+                                _dismissAndShow(status, studyModel));
                           });
                         } else {
-                          showStudyCalendar();
+                          showStudyCalendar(studyModel);
                         }
                       },
                       icon: const Icon(
@@ -202,8 +202,8 @@ class _HomePageState extends State<HomePage>
                             height: 24,
                           ),
                           TodayGoalWidget(
-                            dailyGoal: protocol.dailyGoal,
-                            protocol: protocol,
+                            dailyGoal: studyModel.goals.daily,
+                            study: studyModel,
                             diary: diaries.first,
                             weeklyEntries: weeklyEntries,
                             isHomeTipClosed: isHomeTipClosed,
@@ -228,7 +228,7 @@ class _HomePageState extends State<HomePage>
                     ).animate(CurvedAnimation(
                         parent: _controller, curve: Curves.fastOutSlowIn)),
                     child: WeeklyGoalPopup(
-                      weeklyGoal: protocol.weeklyGoal,
+                      weeklyGoal: studyModel.goals.weekly,
                       currentEntries: weeklyEntries,
                     ),
                   ))
@@ -248,16 +248,16 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  void _dismissAndShow(AnimationStatus status) {
+  void _dismissAndShow(AnimationStatus status, StudyModel study) {
     if (status == AnimationStatus.dismissed) {
-      showStudyCalendar();
+      showStudyCalendar(study);
     }
 
     // ignore: invalid_use_of_protected_member
     _controller.clearStatusListeners();
   }
 
-  void showStudyCalendar() {
+  void showStudyCalendar(StudyModel study) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -269,6 +269,7 @@ class _HomePageState extends State<HomePage>
           minChildSize: 1,
           builder: (context, scrollController) {
             return StudyCalendar(
+              incentives: [study.incentive],
               refresh: (value) => refresh(value),
               getPageName: () => "calendar",
             );

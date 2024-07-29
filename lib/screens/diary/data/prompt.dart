@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/options.dart';
 
@@ -73,12 +74,19 @@ class PromptModel {
 
   factory PromptModel.fromJson(Map<String, dynamic> json) {
     return PromptModel(
-        id: json['id'],
-        question: json['question'],
-        responseType: json['responseType'],
-        answer: json['answer'],
-        option: json['option'],
-        required: json['required'],
+       id: json['id'] ?? 0,
+        question: json['title'],
+        responseType: responseTypeString(json['type']),
+        answer: null,
+        option: Options(
+            type: optionTypeFromResponse(responseTypeString(json['type'])),
+            choices: json['options'] != null
+                ? List<String>.from(json['options'])
+                : null,
+            minValue: json['min_value'],
+            maxValue: json['max_value'],
+            defaultValue: json['default_value']),
+        required: json['required'] == 1 ? true : false,
         subtitle: json['subtitle']);
   }
 }

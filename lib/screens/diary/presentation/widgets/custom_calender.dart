@@ -1,4 +1,4 @@
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -9,31 +9,43 @@ import '../../../../theme/custom_colors.dart';
 import '../../data/diary.dart';
 
 class CustomCalender extends StatefulWidget {
-  final DateTime? rangeStart;
-  final DateTime? rangeEnd;
-  final List<DiaryModel>? diaries;
-  final Function? selectDate;
-
-  const CustomCalender(
-      {super.key,
-      this.rangeStart,
-      this.rangeEnd,
-      this.diaries,
-      this.selectDate});
+  const CustomCalender({
+    super.key,
+  });
 
   @override
   State<CustomCalender> createState() => _CustomCalenderState();
 }
 
 class _CustomCalenderState extends State<CustomCalender> {
-  DateTime? _focusedDay;
-  DateTime? _selectedDay;
+  late PageController? pageController;
+  late DateTime focusedDay;
+  late DateTime today;
+  late DateTime selectedDate;
+  late List<DiaryModel> diaries;
+  late bool isBeforeToday;
+  late List<DiaryModel> diaryList;
+  final DiaryRepository repository = DiaryRepository();
+  Map<DateTime, List<String>>? events = {};
 
   @override
   void initState() {
-    _focusedDay ??=
+    today =
         DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    _selectedDay = _focusedDay;
+    pageController = null;
+    focusedDay = today;
+    selectedDate = today;
+    diaries = fetchDiaries(today);
+    diaryList = _getAllDiaries();
+
+    for (DiaryModel diary in diaryList) {
+      final date =
+          DateTime(diary.start.year, diary.start.month, diary.start.day);
+      events!.putIfAbsent(date, () => []);
+      if (events![date]!.isEmpty) {
+        events![date]!.add(diary.start.toString());
+      }
+    }
     super.initState();
   }
 
@@ -51,115 +63,151 @@ class _CustomCalenderState extends State<CustomCalender> {
           decoration: BoxDecoration(
             color: CustomColors.fillWhite,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: CustomColors.productBorderNormal,
-              width: 2,
-            ),
             shape: BoxShape.rectangle,
           ),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
           child: TableCalendar(
             firstDay: DateTime.utc(2010, 10, 16),
-            lastDay: DateTime.utc(2030, 3, 14),
-            focusedDay: _focusedDay ?? today,
-            headerStyle: HeaderStyle(
-              titleCentered: true,
-              formatButtonVisible: false,
-              titleTextStyle: CustomTypography()
-                  .bodyLarge(color: CustomColors.textNormalContent),
-              leftChevronIcon: const Icon(Icons.chevron_left_rounded),
-              rightChevronIcon: const Icon(Icons.chevron_right_rounded),
-            ),
-            rangeStartDay: widget.rangeStart,
-            rangeEndDay: widget.rangeEnd,
-            startingDayOfWeek: StartingDayOfWeek.monday,
-            daysOfWeekHeight: 20,
-            availableGestures: AvailableGestures.none,
+            lastDay: DateTime.utc(2060, 3, 14),
+            focusedDay: focusedDay,
+            currentDay: today,
+            availableGestures: AvailableGestures.horizontalSwipe,
+            headerStyle: const HeaderStyle(
+                titleCentered: false,
+                formatButtonVisible: false,
+                rightChevronVisible: false,
+                leftChevronVisible: false),
             calendarStyle: CalendarStyle(
-              outsideDaysVisible: false,
-              markerSize: 6,
-              markerDecoration: const BoxDecoration(
+              outsideTextStyle: CustomTypography()
+                  .bodyLarge(color: CustomColors.textTertiaryContent),
+              todayDecoration: const BoxDecoration(
                   color: CustomColors.productNormal, shape: BoxShape.circle),
-              todayDecoration: BoxDecoration(
-                  color: CustomColors.productNormal,
-                  shape: BoxShape.circle,
-                  border:
-                      Border.all(color: CustomColors.productNormal, width: 4)),
-              selectedDecoration: BoxDecoration(
-                  color: today == _selectedDay
-                      ? CustomColors.productNormal
-                      : CustomColors.yellowDark,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                      color: today == _selectedDay
-                          ? CustomColors.productNormal
-                          : CustomColors.yellowDark,
-                      width: 4)),
-              rangeHighlightColor: Colors.transparent,
-              rangeStartTextStyle: CustomTypography().bodyLarge(
-                  color: today == widget.rangeStart
-                      ? CustomColors.fillWhite
-                      : Colors.black),
-              rangeStartDecoration: BoxDecoration(
-                  color: today == widget.rangeStart
-                      ? CustomColors.productNormal
-                      : Colors.transparent,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: CustomColors.yellowDark, width: 4)),
-              withinRangeDecoration: BoxDecoration(
-                  color: Colors.transparent,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: CustomColors.yellowDark, width: 4)),
-              withinRangeTextStyle: CustomTypography().bodyLarge(),
-              rangeEndDecoration: BoxDecoration(
-                  color: Colors.transparent,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: CustomColors.yellowDark, width: 4)),
-              rangeEndTextStyle: CustomTypography().bodyLarge(),
-              defaultTextStyle: CustomTypography().bodyLarge(),
             ),
-            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            startingDayOfWeek: StartingDayOfWeek.monday,
+            daysOfWeekHeight: 45,
             onDaySelected: _onDaySelected,
+            onCalendarCreated: (controller) {
+              pageController = controller;
+            },
+            eventLoader: getDiariesForDay,
             calendarBuilders: CalendarBuilders(
-              defaultBuilder: (context, day, focusedDay) {
-                final hasDiary = widget.diaries?.where((element) => isSameDay(
-                        element.start,
-                        DateTime(day.year, day.month, day.day, 4, 0, 0))) ??
-                    [];
-
-                final isComplete = hasDiary
-                        .where((element) => isSameDay(element.start,
-                            DateTime(day.year, day.month, day.day, 4, 0, 0)))
-                        .firstOrNull
-                        ?.status ==
-                    DiaryStatus.submitted;
-
+              headerTitleBuilder: (context, day) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 20),
+                      child: Text(
+                        getMonthYear(day),
+                        style: CustomTypography().titleSmall(
+                            color: CustomColors.textSecondaryContent),
+                      ),
+                    ),
+                    SizedBox(
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => pageController?.previousPage(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.ease),
+                            child: const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: Icon(Icons.chevron_left_rounded)),
+                          ),
+                          const SizedBox(width: 12),
+                          GestureDetector(
+                            onTap: () => pageController?.nextPage(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.ease),
+                            child: const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: Icon(Icons.chevron_right_rounded)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              dowBuilder: (context, day) {
                 return Container(
-                  margin: const EdgeInsets.all(4),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                      color: hasDiary.isNotEmpty
-                          ? isComplete
-                              ? const Color(0xFF1FBE4C)
-                              : const Color(0xFFB4D5FF).withOpacity(0.5)
-                          : Colors.transparent,
-                      shape: BoxShape.circle),
-                  child: Text(
-                    day.day.toString(),
-                    style: CustomTypography().bodyLarge(
-                        color: isComplete
-                            ? CustomColors.fillWhite
-                            : CustomColors.textTertiaryContent),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.only(bottom: 8),
+                  decoration: const BoxDecoration(
+                      border: Border(
+                          bottom: BorderSide(
+                              width: 0.6,
+                              color: CustomColors.productBorderNormal))),
+                  child: Center(
+                    child: Text(
+                      DateFormat.E().format(day)[0],
+                      style: CustomTypography()
+                          .titleSmall(color: CustomColors.textSecondaryContent),
+                    ),
                   ),
                 );
               },
-              dowBuilder: (context, day) {
-                final text = DateFormat.E().format(day);
+              defaultBuilder: (context, day, focusedDay) {
+                final color =
+                    selectedDate == day ? CustomColors.productNormal : null;
+
+                final textColor = selectedDate == day
+                    ? CustomColors.textWhite
+                    : CustomColors.textTertiaryContent;
                 return Center(
-                  child: Text(
-                    text.substring(0, 1),
-                    style: CustomTypography()
-                        .bodyLarge(color: CustomColors.textSecondaryContent),
+                  child: Container(
+                    width: 33,
+                    height: 33,
+                    margin: const EdgeInsets.only(bottom: 4),
+                    alignment: Alignment.center,
+                    decoration:
+                        BoxDecoration(shape: BoxShape.circle, color: color),
+                    child: Text(
+                      day.day.toString(),
+                      style: CustomTypography().bodyMedium(color: textColor),
+                    ),
                   ),
+                );
+              },
+              todayBuilder: (context, date, time) {
+                final color = (today == selectedDate || date == selectedDate)
+                    ? CustomColors.productNormal
+                    : CustomColors.productLightBackground;
+
+                final textColor =
+                    (today == selectedDate || date == selectedDate)
+                        ? CustomColors.textWhite
+                        : CustomColors.textTertiaryContent;
+                return Center(
+                  child: Container(
+                    width: 33,
+                    height: 33,
+                    margin: const EdgeInsets.only(bottom: 4),
+                    alignment: Alignment.center,
+                    decoration:
+                        BoxDecoration(shape: BoxShape.circle, color: color),
+                    child: Text(
+                      date.day.toString(),
+                      style: CustomTypography().bodyLarge(color: textColor),
+                    ),
+                  ),
+                );
+              },
+              singleMarkerBuilder: (context, date, event) {
+                isBeforeToday = date.isBefore(today);
+                final color = isBeforeToday
+                    ? CustomColors.textTertiaryContent
+                    : CustomColors.productNormalActive;
+                return Container(
+                  width: 7.0,
+                  height: 7.0,
+                  decoration:
+                      BoxDecoration(shape: BoxShape.circle, color: color),
+                  margin: const EdgeInsets.symmetric(
+                      vertical: 5.0, horizontal: 1.5),
                 );
               },
             ),
@@ -167,21 +215,43 @@ class _CustomCalenderState extends State<CustomCalender> {
         ));
   }
 
-  _onDaySelected(DateTime? selectedDay, DateTime? focusedDay) {
-    if (widget.selectDate != null &&
-        !isSameDay(_selectedDay, selectedDay) &&
-        selectedDay != null) {
-      setState(() {
-        _selectedDay = selectedDay;
-        _focusedDay = focusedDay!;
-      });
+  getMonthYear(DateTime day) {
+    final DateFormat formatter = DateFormat("MMMM yyyy");
+    return formatter.format(day);
+  }
 
-      final date = DateTime(
-          selectedDay.year, selectedDay.month, selectedDay.day, 4, 0, 0);
-      widget.selectDate!(date);
+  List<String> getDiariesForDay(DateTime day) {
+    if (events != null) {
+      final date = DateTime(day.year, day.month, day.day);
+      return events![date] ?? [];
     }
-    PendoService.track("CalenderTap", {
-      "study_day": "${DateTime.now()}",
+
+    return [];
+  }
+
+  _onDaySelected(DateTime selectedDay, DateTime focusedDate) {
+    if (selectedDay.isAfter(DateTime.now()) ||
+        DateUtils.isSameDay(DateTime.now(), selectedDay)) {
+      setState(() {
+        //reloading diaries bases on new selected date
+
+        focusedDay = selectedDay;
+        selectedDate = selectedDay;
+        diaries = fetchDiaries(selectedDate);
+      });
+    }
+  }
+
+  List<DiaryModel> _getAllDiaries() {
+    final list = repository.getAllDiaries();
+    return list;
+  }
+
+  //Retrieving entries for a specific date (Called From StudyCalendar)
+  List<DiaryModel> fetchDiaries(DateTime date) {
+    setState(() {
+      diaryList = repository.getDailyDiaries(date);
     });
+    return diaryList;
   }
 }

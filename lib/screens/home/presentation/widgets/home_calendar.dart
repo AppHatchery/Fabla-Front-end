@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
@@ -12,11 +13,13 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class StudyCalendar extends StatefulWidget {
+  final List<Incentive> incentives;
   final ValueChanged<bool> refresh;
   final String Function() getPageName;
 
   const StudyCalendar({
     super.key,
+    required this.incentives,
     required this.refresh,
     required this.getPageName,
   });
@@ -28,8 +31,6 @@ class StudyCalendar extends StatefulWidget {
 class _StudyCalendarState extends State<StudyCalendar> {
   late PageController? pageController;
   late DateTime focusedDay;
-  late DateTime startDate;
-  late DateTime endDate;
   late DateTime today;
   late DateTime selectedDate;
   late List<DiaryModel> diaries;
@@ -41,19 +42,14 @@ class _StudyCalendarState extends State<StudyCalendar> {
 
   ScrollController? controller;
 
+  //Incentive
+  double acquired = 0.0;
+  double total = 0.0;
+
   @override
   void initState() {
     today =
         DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    startDate = DateTime(
-        today.subtract(const Duration(days: 15)).year,
-        today.subtract(const Duration(days: 15)).month,
-        today.subtract(const Duration(days: 15)).day);
-    endDate = DateTime(
-        today.add(const Duration(days: 15)).year,
-        today.add(const Duration(days: 15)).month,
-        today.add(const Duration(days: 15)).day,
-        0);
     pageController = null;
     controller = ScrollController();
     focusedDay = today;
@@ -63,9 +59,15 @@ class _StudyCalendarState extends State<StudyCalendar> {
     diaryList = _getAllDiaries();
 
     for (DiaryModel diary in diaryList) {
-      events!.putIfAbsent(diary.start, () => []);
-      events![diary.start]!.add(diary.start.toString());
+      final date =
+          DateTime(diary.start.year, diary.start.month, diary.start.day);
+      events!.putIfAbsent(date, () => []);
+      if (events![date]!.isEmpty) {
+        events![date]!.add(diary.start.toString());
+      }
     }
+
+    calculateIncentives();
 
     super.initState();
   }
@@ -128,7 +130,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 24),
-                    child: header(Incentive.fromJson({})),
+                    child: header(widget.incentives.first),
                   ),
                 ],
               ),
@@ -157,7 +159,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          incentive != null ? '${incentive.currency}32' : activeDays.toString(),
+          incentive != null ? '${incentive.currency}$acquired' : activeDays.toString(),
           style: CustomTypography().headlineLargeCustom(
               color: CustomColors.yellowDark, fontSize: 64.sp),
         ),
@@ -439,7 +441,10 @@ class _StudyCalendarState extends State<StudyCalendar> {
           textAlign: TextAlign.left,
         ),
         const SizedBox(height: 6),
-        const CurrentIncentive()
+        CurrentIncentive(
+          acquired: acquired,
+          incentive: widget.incentives.first,
+        ) // TODO: LOOK AT THIS AGAIN
       ],
     );
   }
@@ -492,15 +497,35 @@ class _StudyCalendarState extends State<StudyCalendar> {
         children: [
           Text("Total Incentive Available",
               style: CustomTypography().titleSmall()),
-          Text("\$80", style: CustomTypography().titleSmall()),
+          Text("${widget.incentives.first.currency}$total",
+              style: CustomTypography().titleSmall()),
         ],
       ),
     );
   }
+
+  calculateIncentives() {
+    acquired = 0.0;
+    total = 0.0;
+    final amount = widget.incentives
+        .fold<double>(0, (value, element) => value + element.amount);
+
+    int completed = 0;
+    for (DiaryModel diary in diaries) {
+      completed += diary.status == DiaryStatus.submitted ? 1 : 0;
+    }
+    setState(() {
+      acquired = completed * amount;
+      total = diaries.length * amount;
+    });
+  }
 }
 
 class CurrentIncentive extends StatefulWidget {
-  const CurrentIncentive({super.key});
+  final double acquired;
+  final Incentive incentive;
+  const CurrentIncentive(
+      {super.key, required this.acquired, required this.incentive});
 
   @override
   State<CurrentIncentive> createState() => _CurrentIncentiveState();
@@ -523,7 +548,8 @@ class _CurrentIncentiveState extends State<CurrentIncentive> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Earned Incentive: \$32",
+              Text(
+                  "Earned Incentive: ${widget.incentive.currency}${widget.acquired}",
                   style: CustomTypography().titleSmall()),
               IconButton(
                   onPressed: () {

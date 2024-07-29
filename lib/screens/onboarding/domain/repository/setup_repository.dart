@@ -1,26 +1,21 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
-import 'package:audio_diaries_flutter/core/utils/formatter.dart';
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/core/utils/types.dart';
-
-//TODO: TO BE REMOVED
-// import 'package:audio_diaries_flutter/models/ParticipantsDev.dart';
-// import 'package:audio_diaries_flutter/models/UserMetadata.dart';
-// import 'package:audio_diaries_flutter/models/UserMetadataDev.dart';
+import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
+import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
 import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import '../../../../core/database/dao/participant_dao.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
@@ -33,6 +28,7 @@ class SetupRepository {
       ParticipantDAO(box: Box<Participant>(objectbox.store));
   final ProtocolDAO _protocolDAO =
       ProtocolDAO(box: Box<ProtocolEntity>(objectbox.store));
+  final StudyDAO _studyDAO = StudyDAO(box: Box<Study>(objectbox.store));
 
   /// Retrieves the participant's information from the database.
   ///
@@ -89,24 +85,6 @@ class SetupRepository {
 
     // Convert to model
     final protocol = Protocol.fromJson(data);
-    //TODO: Remove this print statements
-    print(
-        "Protocol-FromJSON Blueprints Active Days - ${protocol.diaryBlueprints[0].activeDays}");
-    print(
-        "Protocol-FromJSON Blueprints Freq - ${protocol.diaryBlueprints[0].frequency}");
-    print(
-        "Protocol-FromJSON Blueprints Entries = ${protocol.diaryBlueprints[0].entries}");
-    print(
-        "Protocol-FromJSON Blueprints Start - ${protocol.diaryBlueprints[0].startDate}");
-    print(
-        "Protocol-FromJSON Blueprints End - ${protocol.diaryBlueprints[0].endDate}");
-    print(
-        "Protocol-FromJSON Blueprints Start Time - ${protocol.diaryBlueprints[0].startTime}");
-    print(
-        "Protocol-FromJSON Blueprints End Time - ${protocol.diaryBlueprints[0].endTime}");
-    print("Protocol-FromJSON wg - ${protocol.weeklyGoal}");
-    print("Protocol-FromJSON dg - ${protocol.dailyGoal}");
-    print("Protocol-FromJSON version - ${protocol.version}");
 
     // check if protocol is already in the database and if version changed
     final ProtocolEntity? existingProtocol = _protocolDAO.getProtocol();
@@ -114,29 +92,56 @@ class SetupRepository {
     if (existingProtocol == null ||
         existingProtocol.version != protocol.version) {
       // Update or add the protocol to the database
-      print(
-          "Protocol is New? - ${existingProtocol == null} | is Updating? - ${existingProtocol?.version != protocol.version}");
-
       final newProtocol = existingProtocol != null
           ? existingProtocol.copyWith(
               entity: ProtocolEntity.fromModel(model: protocol))
           : ProtocolEntity.fromModel(model: protocol);
 
-      print(
-          "Protocol-FromModel Blueprints - ${newProtocol.diaryBlueprints[0]}");
-      print("Protocol-FromModel wg - ${newProtocol.weeklyGoal}");
-      print("Protocol-FromModel dg - ${newProtocol.dailyGoal}");
-      print("Protocol-FromModel version - ${newProtocol.version}");
-
       _protocolDAO.addProtocol(newProtocol);
     } else {
-      print("Protocol already exists and no updates");
+      safePrint("Protocol already exists and no updates");
     }
   }
-/// This method is responsible for creating a protocol by retrieving data from a remote source.
-  Protocol? getProtocol(){
+
+  /// This method is responsible for creating a protocol by retrieving data from a remote source.
+  Protocol? getProtocol() {
     final ProtocolEntity? protocolEntity = _protocolDAO.getProtocol();
-    return protocolEntity == null ? null :  Protocol.fromEntity(protocolEntity);
+    return protocolEntity == null ? null : Protocol.fromEntity(protocolEntity);
+  }
+
+  Future<void> getStudies() async {
+    final String response = await rootBundle.loadString('assets/protocol.json');
+    final data = await json.decode(response);
+
+    final studiesFromJson = data['studies'] as List;
+    final studies = <StudyModel>[];
+    final diaries = <DiaryModel>[];
+    for (final study in studiesFromJson) {
+      final studyModel = StudyModel.fromJson(study);
+      studies.add(studyModel);
+
+      final diariesJson = study['diaries'] as List;
+
+      for (final json in diariesJson) {
+        final diary = DiaryModel.fromJson(json, studyModel.studyId);
+        diaries.add(diary);
+      }
+    }
+
+    final entities = diaries.map((model) {
+      final prompts =
+          model.prompts.map((prompt) => Prompt.fromModel(prompt)).toList();
+      final entity = Diary.fromModel(model);
+      entity.prompts.addAll(prompts);
+
+      return entity;
+    }).toList();
+
+    final studyEntities =
+        studies.map((model) => Study.fromModel(model)).toList();
+
+    diaryRepository.addDiaries(entities);
+    _studyDAO.addStudies(studyEntities);
   }
 
   /// Creates and stores metadata related to the participant's study.
@@ -156,11 +161,12 @@ class SetupRepository {
   /// ```
 
   void createMetadata() async {
-    final participant = getParticipant();
+    // final participant = getParticipant();
 
-    final code = participant!.studyCode;
-    await diaryInit(code);
+    // final code = participant!.studyCode;
+    // await diaryInit(code);
 
+    await getStudies();
     // final startDate = DateTime.fromMillisecondsSinceEpoch(
     //     await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
     // final metadata = Strings().participantMetadata(
@@ -177,255 +183,6 @@ class SetupRepository {
     //   //uploadMetaDataS3(code, file);
     // }
   }
-
-  /// Responsible for updating the metadata once created. This happens when diary has been submitted by participants or it has been submitted systematically.
-
-  void updateMetaDataFile(DateTime? nextStudyDate) async {
-    // final participant = getParticipant();
-    // final code = participant!.studyCode;
-
-    final diaryRepo = DiaryRepository();
-    final allDiaries = diaryRepo.getAllDiaries();
-
-    final directory = await getApplicationDocumentsDirectory();
-    final path = p.join(directory.path, 'metadata.txt');
-    final file = File(path);
-
-    String contents = file.readAsStringSync();
-    final data = jsonDecode(contents);
-    final map = data['diaries'] as Map<String, dynamic>;
-
-    //Check from today and backwards
-    final today =
-        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    final todayAndBefore = allDiaries
-        .where((element) =>
-            element.due.isBefore(today.add(const Duration(days: 1))))
-        .toList();
-    if (todayAndBefore.isNotEmpty) {
-      todayAndBefore.sort((a, b) => a.due.compareTo(b.due));
-
-      int day = 1;
-      for (var element in todayAndBefore) {
-        map['day$day'] = element.status == DiaryStatus.submitted;
-        day++;
-      }
-
-      //Updating the metadata content
-      data['diaries'] = map;
-
-      if (nextStudyDate != null) {
-        data['next_study_date'] = formatDate(nextStudyDate);
-        data['recent_submit_date'] = formatDate(DateTime.now());
-        file.writeAsStringSync(jsonEncode(data));
-        //TODO: TO BE REMOVED
-        //uploadMetaDataS3(code, file);
-      } else {
-        file.writeAsStringSync(jsonEncode(data));
-      }
-    }
-  }
-
-//TOD :TO BE REMOVED
-
-  // Future<void> apiCreateMetadata(String studycode) async {
-  //   if (!await recordExists(GqlModelType.userMetatdata, studycode)) {
-  //     try {
-  //       final startDate = DateTime.fromMillisecondsSinceEpoch(
-  //           await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
-  //       final participant = UserMetadata(
-  //         participant: studycode,
-  //         start_study_date: formatDate(startDate),
-  //         next_study_date: formatDate(startDate),
-  //         day1: "null",
-  //         day2: "null",
-  //         day3: "null",
-  //         day4: "null",
-  //         day5: "null",
-  //         day6: "null",
-  //       );
-  //       final request = ModelMutations.create(participant);
-  //       final response = await Amplify.API.mutate(request: request).response;
-
-  //       final participantData = response.data;
-  //       if (participantData != null) {
-  //         safePrint(
-  //             'Metadata Created mutation result: ${participantData.participant}');
-  //       } else {
-  //         safePrint('errors: ${response.errors}');
-  //       }
-  //     } on ApiException catch (e) {
-  //       safePrint('Mutation failed: $e');
-  //     }
-  //   } else {
-  //     safePrint("Metadata record already exists or Submission error");
-  //   }
-  // }
-
-//TODO: TO BE REMOVED
-
-  // Future<void> apiCreateMetadataDev(String studycode) async {
-  //   final startDate = DateTime.fromMillisecondsSinceEpoch(
-  //       await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
-
-  //   try {
-  //     final metadata = UserMetadataDev(
-  //       id: studycode,
-  //       start_study_date: formatDate(startDate),
-  //       next_study_date: formatDate(startDate),
-  //       day1: "null",
-  //       day2: "null",
-  //       day3: "null",
-  //       day4: "null",
-  //       day5: "null",
-  //       day6: "null",
-  //     );
-  //     final request = ModelMutations.create(metadata);
-  //     final response = await Amplify.API.mutate(request: request).response;
-
-  //     final metadataData = response.data;
-  //     if (metadataData == null) {
-  //       print('Metadata already exist');
-  //       print('errors: ${response.errors}');
-  //       return;
-  //     }
-  //     print('Metadata Added Mutation result: ${metadataData.id}');
-  //   } on ApiException catch (e) {
-  //     print('Mutation failed: $e');
-  //   }
-  // }
-
-//CURRENT TASK TEST OUT THIS FUCTION
-  Future<bool> recordExists(GqlModelType modelType, String studycode) async {
-    try {
-      switch (modelType) {
-        case GqlModelType.participant:
-          String graphQLDocumentDev = '''
-        query ListFiles {
-          getParticipantsDev(id: $studycode){
-            id
-            _deleted
-          } 
-      }
-    ''';
-
-          var operation = Amplify.API.query(
-            request: GraphQLRequest<String>(document: graphQLDocumentDev),
-          );
-          var response = await operation.response;
-          var data = response.data;
-          if (data != null) {
-            Map<String, dynamic> jsonMap = jsonDecode(data);
-            final participantList = jsonMap["getParticipantsDev"];
-            if (participantList.length > 0) {
-              return true;
-            }
-            safePrint("dataa: $data");
-            return false;
-          } else {
-            response.errors.forEach((element) {
-              safePrint('${element.message}.');
-            });
-            return false;
-          }
-
-        case GqlModelType.userMetatdata:
-          String graphQLDocumentDev = '''
-        query ListFiles {
-          getUserMetadataDev(id: "$studycode"){
-            id
-          }
-        }
-    ''';
-
-          var operation = Amplify.API.query(
-            request: GraphQLRequest<String>(document: graphQLDocumentDev),
-          );
-          var response = await operation.response;
-          var data = response.data;
-          if (data != null) {
-            Map<String, dynamic> jsonMap = jsonDecode(data);
-            final participantList = jsonMap["getUserMetadataDev"];
-            if (participantList.length > 0) {
-              return true;
-            }
-            safePrint("dataa: $data");
-            return false;
-          } else {
-            response.errors.forEach((element) {
-              safePrint('${element.message}.');
-            });
-            return false;
-          }
-      }
-    } catch (e) {
-      print('$e');
-      return false;
-    }
-  }
-
-//Data interaction to graphql database online; you have [participantExist]
-
-  ///Code checks if participant is available in the database
-  Future<bool> participantExist(String studycode) async {
-    try {
-      String graphQLDocumentDev = '''
-        query ListFiles {
-          getParticipantsDev(id: "$studycode"){
-            id
-          }
-        }
-    ''';
-
-      var operation = Amplify.API.query(
-        request: GraphQLRequest<String>(document: graphQLDocumentDev),
-      );
-      var response = await operation.response;
-      var data = response.data;
-      print("check data $data ");
-      if (data != null) {
-        Map<String, dynamic> jsonMap = jsonDecode(data);
-        print("jm: $jsonMap");
-        final participantList = jsonMap["getParticipantsDev"];
-
-        if (participantList.length > 0) {
-          return true;
-        }
-        print("dataa: $data");
-        return false;
-      } else {
-        response.errors.forEach((element) {
-          safePrint('${element.message}.');
-        });
-        return false;
-      }
-    } catch (e) {
-      print('$e');
-      return false;
-    }
-  }
-
-//TODO: TO BE REMOVED
-
-  // Future<void> apiCreateParticipant(String studycode) async {
-  //   try {
-  //     final participant = ParticipantsDev(id: studycode);
-  //     final request = ModelMutations.create(participant);
-  //     final response = await Amplify.API.mutate(request: request).response;
-
-  //     final participantData = response.data;
-  //     if (participantData == null) {
-  //       print('Probably user already exists');
-  //       print('errors: ${response.errors}');
-  //       return;
-  //     } else {
-  //       apiCreateMetadataDev(studycode);
-  //       print('Participant Added Mutation result: ${participantData.id}');
-  //     }
-  //   } on ApiException catch (e) {
-  //     print('Mutation failed: $e');
-  //   }
-  // }
 
   /// Creates and schedules notifications for daily diaries.
   /// This function retrieves a list of daily diaries from the DiaryRepository,

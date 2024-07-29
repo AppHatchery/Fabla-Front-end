@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -11,7 +11,7 @@ import 'package:rive/rive.dart';
 
 class TodayGoalWidget extends StatefulWidget {
   final int dailyGoal;
-  final Protocol protocol;
+  final StudyModel study;
   final DiaryModel diary;
   final int weeklyEntries;
   final ValueNotifier<bool> isHomeTipClosed;
@@ -19,7 +19,7 @@ class TodayGoalWidget extends StatefulWidget {
   const TodayGoalWidget(
       {super.key,
       required this.dailyGoal,
-      required this.protocol,
+      required this.study,
       required this.diary,
       required this.weeklyEntries,
       required this.isHomeTipClosed});
@@ -71,7 +71,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         : widget.diary.currentEntry;
 
     //calculate the daily goal progress bar width
-    final dailyValue = ((entry) / widget.protocol.dailyGoal);
+    final dailyValue = ((entry) / widget.study.goals.daily);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,7 +152,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
             Flexible(
               fit: FlexFit.loose,
               child: Text(
-                "Repeatable Entries: $entry/${widget.protocol.dailyGoal}",
+                "Repeatable Entries: $entry/${widget.study.goals.daily}",
                 style: CustomTypography().bodyMedium(),
               ),
             ),
@@ -196,7 +196,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     }
 
     //Show Blinking + Blowing the horn if the daily goal is achieved
-    if (widget.diary.currentEntry == widget.protocol.dailyGoal) {
+    if (widget.diary.currentEntry == widget.study.goals.daily) {
       final blowing = _controller.findSMI('Blinking + Blowing the horn');
 
       if (blowing != null && mounted) {
@@ -206,8 +206,8 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     }
 
     //Show Achieving the goal if the weekly goal is achieved
-    if (widget.diary.currentEntry == widget.protocol.weeklyGoal ||
-        widget.weeklyEntries == widget.protocol.weeklyGoal) {
+    if (widget.diary.currentEntry == widget.study.goals.weekly ||
+        widget.weeklyEntries == widget.study.goals.weekly) {
       final achieving = _controller.findSMI('Achieving the goal ');
 
       if (achieving != null && mounted) {
@@ -217,8 +217,8 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     }
 
     //Show Beyond the goal if the weekly goal is exceeded
-    if (widget.diary.currentEntry > widget.protocol.weeklyGoal ||
-        widget.weeklyEntries > widget.protocol.weeklyGoal) {
+    if (widget.diary.currentEntry > widget.study.goals.weekly ||
+        widget.weeklyEntries > widget.study.goals.weekly) {
       final beyond = _controller.findSMI('Beyond the goal ');
 
       if (beyond != null && mounted) {

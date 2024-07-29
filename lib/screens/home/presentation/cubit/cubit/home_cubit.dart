@@ -1,11 +1,12 @@
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../../core/utils/statuses.dart';
 import '../../../../../core/utils/types.dart';
 import '../../../../diary/data/diary.dart';
-import '../../../../diary/data/protocol.dart';
 import '../../../../diary/data/tag.dart';
 import '../../../../diary/domain/repository/diary_repository.dart';
 
@@ -31,28 +32,30 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> loadDiaries() async {
     final today = DateTime.now();
     final start = DateTime(today.year, today.month, today.day, 0, 0, 0);
-    final due = DateTime(today.year, today.month, today.day, 23, 59, 59);
+    // final due = DateTime(today.year, today.month, today.day, 23, 59, 59);
 
     final monday = DateTime(today.year, today.month, today.day)
         .subtract(Duration(days: today.weekday - 1));
     final sunday = monday.add(const Duration(days: 6));
 
-    // TODO: Uncomment this code when the start date is implemented and add end date as well
-    // final startDate = DateTime.fromMillisecondsSinceEpoch(
-    //     await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
     try {
       emit(const HomeLoading());
-      final diary = repository.getDiary(start, due);
-      final protocol = repository.getProtocol();
-      final entries = repository.getTotalEntries(monday.subtract(const Duration(days: 1)), sunday.add(const Duration(days: 1)));
-      if (diary != null) {
-        final updated = diary.copyWith(id: diary.id, tags: null);
-        final protocolUpdated = protocol?.copyWith(version: protocol.version);
-        emit(HomeLoaded([updated], start, protocolUpdated, entries));
-      } else {
-        emit(HomeLoaded(const [], start, protocol, entries));
-      }
+      final diaries = repository.getDiaries(start);
+      final entries = repository.getTotalEntries(
+          monday.subtract(const Duration(days: 1)),
+          sunday.add(const Duration(days: 1)));
+
+      final ids = diaries.map((e) => e.studyID).toSet().toList();
+      final studies = repository.getStudies(ids);
+
+      final updated = diaries
+          .map((diary) =>
+              diary.copyWith(id: diary.id, studyID: diary.studyID, tags: null))
+          .toList();
+
+      emit(HomeLoaded(updated, start, studies.first, entries)); //TODO: Multiple studies
     } catch (e) {
+      debugPrint("Error loading home page: $e");
       emit(const HomeError("Something went wrong"));
     }
   }

@@ -5,19 +5,20 @@
   "studies": [
     {
       "id": 1,
-      "goal": {
+      "goals": {
         "daily": 3,
         "weekly": 10
       },
       "incentive": {
-        "amount": 150,
-        "bonus": 2000,
-        "currency": "$"
+        "amount": 150.00,
+        "bonus": 2000.00,
+        "currency": "$",
+        "threshold": 70
       },
       "diaries": [
         {
-          "start_date": "2024-06-14T08:00:00.000Z",
-          "end_date": "2024-06-14T10:00:00.000Z",
+          "start_date": "2024-07-29T08:00:00.000Z",
+          "end_date": "2024-07-29T10:00:00.000Z",
           "entries": 1,
           "questions": [
             {
@@ -88,8 +89,8 @@
           ]
         },
         {
-          "start_date": "2024-06-14T08:00:00.000Z",
-          "end_date": "2024-06-14T10:00:00.000Z",
+          "start_date": "2024-07-29T12:00:00.000Z",
+          "end_date": "2024-07-29T14:00:00.000Z",
           "entries": 1,
           "questions": [
             {

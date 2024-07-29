@@ -224,6 +224,7 @@ List<DiaryModel> makeDiariesTwo(
 
       final diary = DiaryModel(
           id: 0,
+          studyID: 0,
           prompts: prompts,
           start: start,
           end: end,
@@ -280,6 +281,7 @@ List<DiaryModel> makeDiariesThree(
             blueprint.endTime.minute);
         final diary = DiaryModel(
             id: 0,
+            studyID: 0,
             prompts: prompts,
             start: start,
             end: end,

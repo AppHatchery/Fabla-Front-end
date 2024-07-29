@@ -37,7 +37,7 @@
     },
     {
       "id": "2:6182924495583895015",
-      "lastPropertyId": "8:261740441922527425",
+      "lastPropertyId": "9:1752912553261166742",
       "name": "Diary",
       "properties": [
         {
@@ -79,6 +79,11 @@
         {
           "id": "8:261740441922527425",
           "name": "dbDiaryStatus",
+          "type": 6
+        },
+        {
+          "id": "9:1752912553261166742",
+          "name": "studyID",
           "type": 6
         }
       ],
@@ -230,9 +235,38 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "7:8857582219115487678",
+      "lastPropertyId": "4:361332945587806741",
+      "name": "Study",
+      "properties": [
+        {
+          "id": "1:3106561823400825560",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2113089938093854708",
+          "name": "goals",
+          "type": 9
+        },
+        {
+          "id": "3:2703373307830504727",
+          "name": "incentive",
+          "type": 9
+        },
+        {
+          "id": "4:361332945587806741",
+          "name": "studyId",
+          "type": 6
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "6:2418303935620108794",
+  "lastEntityId": "7:8857582219115487678",
   "lastIndexId": "3:2409932760164155120",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

@@ -112,17 +112,20 @@ class SummaryRepository {
         if (diary.currentEntry + 1 == diary.entries) {
           newDiary = diary.copyWith(
               id: diary.id,
+              studyID: diary.studyID,
               status: DiaryStatus.submitted,
               currentEntry: diary.currentEntry + 1);
         } else {
           newDiary = diary.copyWith(
               id: diary.id,
+              studyID: diary.studyID,
               status: DiaryStatus.idle,
               currentEntry: diary.currentEntry + 1);
         }
 
         diaryRepository.updateDiary(newDiary);
 
+        // TODO: REPLACE PROTOCOL
         if (diary.currentEntry + 1 < protocol!.dailyGoal) {
           dailyGoalNotification(diary.id);
         } else if (diary.currentEntry + 1 >= diary.entries) {
