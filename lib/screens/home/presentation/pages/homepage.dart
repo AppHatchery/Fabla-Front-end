@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_goal.dart';
@@ -25,10 +26,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage>
-    with
-        WidgetsBindingObserver,
-        SingleTickerProviderStateMixin
-        {
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   late HomeCubit homeCubit;
   late List<DiaryModel> diaries;
   late List<DiaryModel> calendarDiaries;
@@ -112,6 +110,10 @@ class _HomePageState extends State<HomePage>
     final today = DateTime.now();
     // if (isHomeTipClosed.value == false) show4AmTip();
     final weeklyEntries = entries;
+
+    final dairyList = diaries
+        .where((element) => element.status != DiaryStatus.submitted)
+        .toList();
 
     return Scaffold(
         backgroundColor: Colors.transparent,
@@ -208,7 +210,7 @@ class _HomePageState extends State<HomePage>
                             height: 24,
                           ),
                           TodaysDiaryList(
-                            diaries: diaries,
+                            diaries: dairyList,
                             refresh: (value) => refresh(value),
                             getPageName: () => "home",
                           )

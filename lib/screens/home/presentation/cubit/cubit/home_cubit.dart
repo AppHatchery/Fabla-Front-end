@@ -40,10 +40,7 @@ class HomeCubit extends Cubit<HomeState> {
 
     try {
       emit(const HomeLoading());
-      final diaries = repository
-          .getDiaries(start)
-          .where((element) => element.status != DiaryStatus.submitted)
-          .toList();
+      final diaries = repository.getDiaries(start);
       final entries = repository.getTotalEntries(
           monday.subtract(const Duration(days: 1)),
           sunday.add(const Duration(days: 1)));
