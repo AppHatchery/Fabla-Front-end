@@ -28,7 +28,8 @@ class TodayGoalWidget extends StatefulWidget {
   State<TodayGoalWidget> createState() => _TodayGoalWidgetState();
 }
 
-class _TodayGoalWidgetState extends State<TodayGoalWidget> {
+class _TodayGoalWidgetState extends State<TodayGoalWidget>
+    with AutomaticKeepAliveClientMixin {
   late StateMachineController _controller;
 
   void _onInit(Artboard art) {
@@ -72,7 +73,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
     //calculate the daily goal progress bar width
     final dailyValue = ((entry) / widget.study.goals.daily);
-
+    super.build(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -236,4 +237,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       return;
     }
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

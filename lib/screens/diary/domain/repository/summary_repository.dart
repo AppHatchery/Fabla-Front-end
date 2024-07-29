@@ -99,7 +99,7 @@ class SummaryRepository {
     try {
       final participant = setupRepository.getParticipant();
       final uploaded = await upload(participant!.studyCode, diary);
-      final protocol = diaryRepository.getProtocol();
+      final study = diaryRepository.getStudy(diary.studyID);
       // final entry = diary.status == DiaryStatus.submitted
       //     ? diary.entries
       //     : diary.currentEntry;
@@ -125,8 +125,9 @@ class SummaryRepository {
 
         diaryRepository.updateDiary(newDiary);
 
-        // TODO: REPLACE PROTOCOL
-        if (diary.currentEntry + 1 < protocol!.dailyGoal) {
+        
+        print("Study goals: ${study?.goals.daily}");
+        if (diary.currentEntry + 1 < study!.goals.daily) {
           dailyGoalNotification(diary.id);
         } else if (diary.currentEntry + 1 >= diary.entries) {
           cancelAllDiaryNotifications(diary.id);

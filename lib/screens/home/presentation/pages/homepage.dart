@@ -27,8 +27,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with
         WidgetsBindingObserver,
-        SingleTickerProviderStateMixin,
-        AutomaticKeepAliveClientMixin {
+        SingleTickerProviderStateMixin
+        {
   late HomeCubit homeCubit;
   late List<DiaryModel> diaries;
   late List<DiaryModel> calendarDiaries;
@@ -67,11 +67,7 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   Widget build(BuildContext context) {
-    super.build(context);
     return Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

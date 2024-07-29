@@ -8,7 +8,7 @@ class StudyDAO {
   StudyDAO({required this.box});
 
   Study? getStudy(int id) {
-    return box.get(id);
+    return box.getAll().where((element) => element.studyId == id).first;
   }
 
   List<Study> getStudies() {

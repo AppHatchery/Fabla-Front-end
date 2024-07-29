@@ -51,6 +51,7 @@ class CustomColors {
   static const Color yellowLight = Color(0xFFFFF1DD);
   static const Color yellowDark = Color(0xFFFE9600);
   static const Color yellowTertiary = Color(0xFFFFEACC);
+  static const Color amber = Color(0xFFFEB954);
 
   //Orange
   static const Color orangeLight = Color(0xFFFFF1EA);
@@ -70,6 +71,7 @@ class CustomColors {
 
   //Green
   static const Color darkGreen = Color(0xFF2EA642);
+  static const Color teal = Color(0xFF06BE9A);
 
   static const Color newBlue = Color(0XFF87BCFF);
 }

@@ -1,9 +1,9 @@
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/completion/completion_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/calendar_widget.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/ghost_widget.dart';
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -44,7 +44,7 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
                 return const Center(child: CircularProgressIndicator());
               } else if (state is CompletionLoaded) {
                 return loadedCompletionPage(
-                    context, state.protocol, state.diary, state.diaries);
+                    context, state.study, state.diary, state.diaries);
               } else {
                 return initialCompletionPage();
               }
@@ -64,7 +64,7 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
     return Container();
   }
 
-  Widget loadedCompletionPage(BuildContext context, Protocol protocol,
+  Widget loadedCompletionPage(BuildContext context, StudyModel study,
       DiaryModel diary, List<DiaryModel> diaries) {
     final width = MediaQuery.of(context).size.width;
 
@@ -90,7 +90,7 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
                           alignment: Alignment.center,
                           child: Padding(
                             padding: const EdgeInsets.only(top: 5.0),
-                            child: avatarCircularProgress(protocol, diary),
+                            child: avatarCircularProgress(study, diary),
                           ),
                         ),
                         Positioned(
@@ -109,8 +109,8 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
                             )),
                         GhostCompletionWidget(
                             currentEntry: diary.currentEntry,
-                            dailyGoal: protocol.dailyGoal,
-                            weeklyGoal: protocol.weeklyGoal),
+                            dailyGoal: study.goals.daily,
+                            weeklyGoal: study.goals.weekly),
                       ],
                     ),
                   ),
@@ -135,8 +135,8 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
                   ),
                   CompleteCalendarWidget(
                     diaries: diaries,
-                    dailyGoal: protocol.dailyGoal,
-                    weeklyGoal: protocol.weeklyGoal,
+                    dailyGoal: study.goals.daily,
+                    weeklyGoal: study.goals.weekly,
                   )
                 ],
               ),
@@ -161,10 +161,9 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
     );
   }
 
-  Widget avatarCircularProgress(Protocol protocol, DiaryModel diary) {
-    
-    final begin = (diary.currentEntry - 1) / protocol.dailyGoal;
-    final end = diary.currentEntry / protocol.dailyGoal;
+  Widget avatarCircularProgress(StudyModel study, DiaryModel diary) {
+    final begin = (diary.currentEntry - 1) / study.goals.daily;
+    final end = diary.currentEntry / study.goals.daily;
 
     return SizedBox(
         height: 150,
