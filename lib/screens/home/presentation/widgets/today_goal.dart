@@ -1,8 +1,8 @@
 import 'dart:math';
 
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/ring_progress_indicator.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -11,16 +11,16 @@ import 'package:rive/rive.dart';
 
 class TodayGoalWidget extends StatefulWidget {
   final int dailyGoal;
-  final StudyModel study;
-  final DiaryModel diary;
+  final List<StudyModel> studies;
+  final List<DiaryModel> diaries;
   final int weeklyEntries;
   final ValueNotifier<bool> isHomeTipClosed;
 
   const TodayGoalWidget(
       {super.key,
       required this.dailyGoal,
-      required this.study,
-      required this.diary,
+      required this.studies,
+      required this.diaries,
       required this.weeklyEntries,
       required this.isHomeTipClosed});
 
@@ -30,6 +30,8 @@ class TodayGoalWidget extends StatefulWidget {
 
 class _TodayGoalWidgetState extends State<TodayGoalWidget>
     with AutomaticKeepAliveClientMixin {
+  Map<Goal, List<DiaryModel>> data = {};
+
   late StateMachineController _controller;
 
   void _onInit(Artboard art) {
@@ -55,6 +57,14 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget>
       if (widget.isHomeTipClosed.value) _controller.isActive = true;
     });
 
+    // create map of study to diaries
+    for (var study in widget.studies) {
+      final goal = study.goals;
+      final diaries =
+          widget.diaries.where((diary) => diary.studyID == study.studyId);
+      data[goal] = diaries.toList();
+    }
+
     super.initState();
   }
 
@@ -67,12 +77,6 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final entry = widget.diary.status == DiaryStatus.submitted
-        ? widget.diary.entries
-        : widget.diary.currentEntry;
-
-    //calculate the daily goal progress bar width
-    final dailyValue = ((entry) / widget.study.goals.daily);
     super.build(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,7 +86,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget>
         Align(
           alignment: Alignment.center,
           child: SizedBox(
-            height: 150,
+            // height: 150,
             width: width,
             child: Stack(
               children: [
@@ -90,21 +94,9 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget>
                   alignment: Alignment.center,
                   child: Padding(
                     padding: const EdgeInsets.only(top: 5.0),
-                    child: SizedBox(
-                        height: 150,
-                        width: 150,
-                        child: TweenAnimationBuilder<double>(
-                          tween: Tween<double>(begin: 0.0, end: 0.5),
-                          duration: const Duration(milliseconds: 1000),
-                          builder: (context, value, _) =>
-                              CircularProgressIndicator(
-                            strokeWidth: 5,
-                            value: dailyValue,
-                            backgroundColor:
-                                CustomColors.productLightBackground,
-                            color: CustomColors.productNormal,
-                          ),
-                        )),
+                    child: GoalProgressIndicators(
+                      goals: data,
+                    ),
                   ),
                 ),
                 Positioned(
@@ -121,17 +113,23 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget>
                         ),
                       ],
                     )),
-                Align(
-                  alignment: Alignment.center,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 5.0),
-                    child: SizedBox(
-                      height: 120,
-                      width: 180,
-                      child: RiveAnimation.asset(
-                        'assets/animations/ghosts.riv',
-                        onInit: _onInit,
-                        fit: BoxFit.cover,
+                Positioned(
+                  bottom: 0,
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 5.0),
+                      child: SizedBox(
+                        height: 120,
+                        width: 180,
+                        child: RiveAnimation.asset(
+                          'assets/animations/ghosts.riv',
+                          onInit: _onInit,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   ),
@@ -150,10 +148,11 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget>
               size: 20,
             ),
             const SizedBox(width: 6),
+            //TODO: Add Diary Names
             Flexible(
               fit: FlexFit.loose,
               child: Text(
-                "Repeatable Entries: $entry/${widget.study.goals.daily}",
+                "Repeatable Entries: ",
                 style: CustomTypography().bodyMedium(),
               ),
             ),
@@ -183,7 +182,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget>
 
     //Show Searching 1 or Searching 2 if there is no entry
     // Make the animation random with a 50/50 chance of both showing up
-    if (widget.diary.currentEntry == 0) {
+    if (widget.diaries.every((element) => element.currentEntry == 0)) {
       final searchingOne = _controller.findSMI('Searching_1');
       final searchingTwo = _controller.findSMI('Searching_2');
 
@@ -196,8 +195,9 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget>
       return;
     }
 
-    //Show Blinking + Blowing the horn if the daily goal is achieved
-    if (widget.diary.currentEntry == widget.study.goals.daily) {
+    // //Show Blinking + Blowing the horn if the daily goal is achieved
+    if (data.entries.any((map) =>
+        map.value.any((element) => element.currentEntry == map.key.daily))) {
       final blowing = _controller.findSMI('Blinking + Blowing the horn');
 
       if (blowing != null && mounted) {
@@ -206,9 +206,10 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget>
       return;
     }
 
-    //Show Achieving the goal if the weekly goal is achieved
-    if (widget.diary.currentEntry == widget.study.goals.weekly ||
-        widget.weeklyEntries == widget.study.goals.weekly) {
+    // //Show Achieving the goal if the weekly goal is achieved
+    if (data.entries.any((map) =>
+        map.value.any((element) => element.currentEntry == map.key.weekly) ||
+        widget.weeklyEntries == map.key.weekly)) {
       final achieving = _controller.findSMI('Achieving the goal ');
 
       if (achieving != null && mounted) {
@@ -217,9 +218,10 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget>
       return;
     }
 
-    //Show Beyond the goal if the weekly goal is exceeded
-    if (widget.diary.currentEntry > widget.study.goals.weekly ||
-        widget.weeklyEntries > widget.study.goals.weekly) {
+    // //Show Beyond the goal if the weekly goal is exceeded
+    if (data.entries.any((map) =>
+        map.value.any((element) => element.currentEntry > map.key.weekly) ||
+        widget.weeklyEntries > map.key.weekly)) {
       final beyond = _controller.findSMI('Beyond the goal ');
 
       if (beyond != null && mounted) {
@@ -228,8 +230,9 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget>
       return;
     }
 
-    //Show Searching 3 if there is an entry or more
-    if (widget.diary.currentEntry > 0) {
+    // //Show Searching 3 if there is an entry or more
+    if (data.entries
+        .any((map) => map.value.any((element) => element.currentEntry > 0))) {
       final searchingThree = _controller.findSMI('Searching_3');
       if (searchingThree != null && mounted) {
         searchingThree.value = true;

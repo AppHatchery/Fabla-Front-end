@@ -51,13 +51,10 @@ class HomeCubit extends Cubit<HomeState> {
       final updated = diaries
           .map((diary) =>
               diary.copyWith(id: diary.id, studyID: diary.studyID, tags: null))
-          .toList()
-          .where((element) =>
-              element.end.isAfter(today) || element.end.isAtSameMomentAs(today))
           .toList();
 
       emit(HomeLoaded(
-          updated, start, studies.first, entries)); //TODO: Multiple studies
+          updated, start, studies, entries));
     } catch (e) {
       debugPrint("Error loading home page: $e");
       emit(const HomeError("Something went wrong"));

@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -13,13 +14,13 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class StudyCalendar extends StatefulWidget {
-  final List<Incentive> incentives;
+  final List<StudyModel> studies;
   final ValueChanged<bool> refresh;
   final String Function() getPageName;
 
   const StudyCalendar({
     super.key,
-    required this.incentives,
+    required this.studies,
     required this.refresh,
     required this.getPageName,
   });
@@ -130,7 +131,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 24),
-                    child: header(widget.incentives.first),
+                    child: header(widget.studies.first.incentive),
                   ),
                 ],
               ),
@@ -144,7 +145,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                 children: [
                   calendar(),
                   const SizedBox(height: 12),
-                  body(Incentive.fromJson({})),
+                  body(widget.studies.first.incentive),
                 ],
               ),
             )
@@ -159,7 +160,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          incentive != null ? '${incentive.currency}$acquired' : activeDays.toString(),
+          incentive != null
+              ? '${incentive.currency}$acquired'
+              : activeDays.toString(),
           style: CustomTypography().headlineLargeCustom(
               color: CustomColors.yellowDark, fontSize: 64.sp),
         ),
@@ -443,7 +446,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
         const SizedBox(height: 6),
         CurrentIncentive(
           acquired: acquired,
-          incentive: widget.incentives.first,
+          total: total,
+          currency: widget.studies.first.incentive.currency,
+          diaries: diaryList,
         ) // TODO: LOOK AT THIS AGAIN
       ],
     );
@@ -497,35 +502,81 @@ class _StudyCalendarState extends State<StudyCalendar> {
         children: [
           Text("Total Incentive Available",
               style: CustomTypography().titleSmall()),
-          Text("${widget.incentives.first.currency}$total",
+          Text("${widget.studies.first.incentive.currency}$total",
               style: CustomTypography().titleSmall()),
         ],
       ),
     );
   }
 
-  calculateIncentives() {
-    acquired = 0.0;
-    total = 0.0;
-    final amount = widget.incentives
-        .fold<double>(0, (value, element) => value + element.amount);
+  void calculateIncentives() {
+    double _acquired = 0.0;
+    double _total = 0.0;
 
-    int completed = 0;
-    for (DiaryModel diary in diaries) {
-      completed += diary.status == DiaryStatus.submitted ? 1 : 0;
+    // Create a map for quick lookup of studies by studyId
+    Map<int, StudyModel> studyMap = {
+      for (var study in widget.studies) study.studyId: study
+    };
+
+    // Calculate completed diaries and total incentives
+    for (final diary in diaries) {
+      final study = studyMap[diary.studyID]!;
+      final incentiveAmount = study.incentive.amount;
+      _total += incentiveAmount;
+      if (diary.status == DiaryStatus.submitted) {
+        _acquired += incentiveAmount;
+      }
     }
+
+    // Add bonuses and map studies to diaries in one loop
+    Map<StudyModel, List<DiaryModel>> data = {
+      for (var study in widget.studies) study: []
+    };
+
+    for (final diary in diaries) {
+      final study = studyMap[diary.studyID]!;
+      data[study]?.add(diary);
+    }
+
+    // Add bonuses if completed diaries surpass the threshold
+    for (var entry in data.entries) {
+      final study = entry.key;
+      final diaries = entry.value;
+
+      // Add bonus to total
+      _total += study.incentive.bonus;
+
+      // Check if completed diaries have surpassed the threshold percentage
+      final threshold = study.incentive.threshold;
+      final totalDiaries = diaries.length;
+      final completedDiaries = diaries
+          .where((diary) => diary.status == DiaryStatus.submitted)
+          .length;
+      final percentage = (completedDiaries / totalDiaries) * 100;
+
+      if (percentage >= threshold) {
+        _acquired += study.incentive.bonus;
+      }
+    }
+
     setState(() {
-      acquired = completed * amount;
-      total = diaries.length * amount;
+      total = _total;
+      acquired = _acquired;
     });
   }
 }
 
 class CurrentIncentive extends StatefulWidget {
   final double acquired;
-  final Incentive incentive;
+  final double total;
+  final String currency;
+  final List<DiaryModel> diaries;
   const CurrentIncentive(
-      {super.key, required this.acquired, required this.incentive});
+      {super.key,
+      required this.acquired,
+      required this.currency,
+      required this.total,
+      required this.diaries});
 
   @override
   State<CurrentIncentive> createState() => _CurrentIncentiveState();
@@ -533,6 +584,17 @@ class CurrentIncentive extends StatefulWidget {
 
 class _CurrentIncentiveState extends State<CurrentIncentive> {
   bool expanded = false;
+  int completed = 0;
+  int remaining = 0;
+
+  @override
+  void initState() {
+    completed = widget.diaries
+        .where((element) => element.status == DiaryStatus.submitted)
+        .length;
+    remaining = widget.diaries.length - completed;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -548,8 +610,7 @@ class _CurrentIncentiveState extends State<CurrentIncentive> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                  "Earned Incentive: ${widget.incentive.currency}${widget.acquired}",
+              Text("Earned Incentive: ${widget.currency}${widget.acquired}",
                   style: CustomTypography().titleSmall()),
               IconButton(
                   onPressed: () {
@@ -570,7 +631,7 @@ class _CurrentIncentiveState extends State<CurrentIncentive> {
           LinearProgressIndicator(
             color: CustomColors.productNormal,
             backgroundColor: CustomColors.productLightBackground,
-            value: 0.2,
+            value: widget.acquired / widget.total,
             minHeight: 12,
             borderRadius: BorderRadius.circular(8),
           ),
@@ -586,13 +647,13 @@ class _CurrentIncentiveState extends State<CurrentIncentive> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  "You've completed 19 entries.",
+                  "You've completed $completed entries.",
                   style: CustomTypography()
                       .bodyMedium(color: CustomColors.textNormalContent),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  "There are 14 more entries to complete",
+                  "There are $remaining more entries to complete",
                   style: CustomTypography()
                       .bodyMedium(color: CustomColors.textNormalContent),
                 )

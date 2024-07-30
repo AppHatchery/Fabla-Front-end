@@ -82,8 +82,8 @@ class _HomePageState extends State<HomePage>
               } else if (state is HomeLoading) {
                 return loading();
               } else if (state is HomeLoaded) {
-                return loadedHome(
-                    state.diaries, state.startDate, state.study, state.entries);
+                return loadedHome(state.diaries, state.startDate, state.studies,
+                    state.entries);
               } else {
                 return initialHome();
               }
@@ -106,7 +106,7 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget loadedHome(List<DiaryModel> diaries, DateTime startDate,
-      StudyModel? studyModel, int entries) {
+      List<StudyModel> studies, int entries) {
     final today = DateTime.now();
     // if (isHomeTipClosed.value == false) show4AmTip();
     final weeklyEntries = entries;
@@ -139,7 +139,7 @@ class _HomePageState extends State<HomePage>
                     }),
                     child: WeeklyGoalWidget(
                       isExpanded: isExpanded,
-                      weeklyGoal: studyModel!.goals.weekly,
+                      weeklyGoal: studies.first.goals.weekly,
                       currentEntries: weeklyEntries,
                     ),
                   ),
@@ -150,10 +150,10 @@ class _HomePageState extends State<HomePage>
                             isExpanded = false;
                             _controller.reverse();
                             _controller.addStatusListener((status) =>
-                                _dismissAndShow(status, studyModel));
+                                _dismissAndShow(status, studies));
                           });
                         } else {
-                          showStudyCalendar(studyModel);
+                          showStudyCalendar(studies);
                         }
                       },
                       icon: const Icon(
@@ -200,9 +200,9 @@ class _HomePageState extends State<HomePage>
                             height: 24,
                           ),
                           TodayGoalWidget(
-                            dailyGoal: studyModel.goals.daily,
-                            study: studyModel,
-                            diary: diaries.first,
+                            dailyGoal: studies.first.goals.daily,
+                            studies: studies,
+                            diaries: diaries,
                             weeklyEntries: weeklyEntries,
                             isHomeTipClosed: isHomeTipClosed,
                           ),
@@ -226,8 +226,10 @@ class _HomePageState extends State<HomePage>
                     ).animate(CurvedAnimation(
                         parent: _controller, curve: Curves.fastOutSlowIn)),
                     child: WeeklyGoalPopup(
-                      weeklyGoal: studyModel.goals.weekly,
+                      weeklyGoal: studies.first.goals.weekly,
                       currentEntries: weeklyEntries,
+                      studies: studies,
+                      diaries: diaries,
                     ),
                   ))
             ],
@@ -246,16 +248,16 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  void _dismissAndShow(AnimationStatus status, StudyModel study) {
+  void _dismissAndShow(AnimationStatus status, List<StudyModel> studies) {
     if (status == AnimationStatus.dismissed) {
-      showStudyCalendar(study);
+      showStudyCalendar(studies);
     }
 
     // ignore: invalid_use_of_protected_member
     _controller.clearStatusListeners();
   }
 
-  void showStudyCalendar(StudyModel study) {
+  void showStudyCalendar(List<StudyModel> studies) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -267,7 +269,7 @@ class _HomePageState extends State<HomePage>
           minChildSize: 1,
           builder: (context, scrollController) {
             return StudyCalendar(
-              incentives: [study.incentive],
+              studies: studies,
               refresh: (value) => refresh(value),
               getPageName: () => "calendar",
             );
