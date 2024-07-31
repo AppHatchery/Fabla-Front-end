@@ -307,7 +307,11 @@ class DiaryRepository {
   }
 
   List<DiaryModel> getDiaries(DateTime day) {
-    final diaries = _getDiaryEntities(day);
+    final diaries = _getDiaryEntities(day)
+        .where((diary) =>
+            diary.status != DiaryStatus.submitted ||
+            diary.status != DiaryStatus.missed)
+        .toList();
     return diaries.map((e) => DiaryModel.fromEntity(e)).toList();
   }
 

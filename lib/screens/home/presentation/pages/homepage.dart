@@ -139,7 +139,8 @@ class _HomePageState extends State<HomePage>
                     }),
                     child: WeeklyGoalWidget(
                       isExpanded: isExpanded,
-                      weeklyGoal: studies.first.goals.weekly,
+                      weeklyGoal:
+                          studies.isNotEmpty ? studies.first.goals.weekly : 0,
                       currentEntries: weeklyEntries,
                     ),
                   ),
@@ -149,8 +150,8 @@ class _HomePageState extends State<HomePage>
                           setState(() {
                             isExpanded = false;
                             _controller.reverse();
-                            _controller.addStatusListener((status) =>
-                                _dismissAndShow(status, studies));
+                            _controller.addStatusListener(
+                                (status) => _dismissAndShow(status, studies));
                           });
                         } else {
                           showStudyCalendar(studies);
@@ -226,7 +227,8 @@ class _HomePageState extends State<HomePage>
                     ).animate(CurvedAnimation(
                         parent: _controller, curve: Curves.fastOutSlowIn)),
                     child: WeeklyGoalPopup(
-                      weeklyGoal: studies.first.goals.weekly,
+                      weeklyGoal:
+                          studies.isNotEmpty ? studies.first.goals.weekly : 0,
                       currentEntries: weeklyEntries,
                       studies: studies,
                       diaries: diaries,

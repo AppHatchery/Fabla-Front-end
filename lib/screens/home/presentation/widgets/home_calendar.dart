@@ -131,7 +131,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 24),
-                    child: header(widget.studies.first.incentive),
+                    child: header(widget.studies.isNotEmpty
+                        ? widget.studies.first.incentive
+                        : null),
                   ),
                 ],
               ),
@@ -145,7 +147,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                 children: [
                   calendar(),
                   const SizedBox(height: 12),
-                  body(widget.studies.first.incentive),
+                  body(widget.studies.isNotEmpty ? widget.studies.first.incentive: null),
                 ],
               ),
             )

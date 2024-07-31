@@ -138,9 +138,8 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
               width: width - 50,
               child: Padding(
                 padding: const EdgeInsets.only(right: 8.0),
-                //TODO: ADD DYNAMISISM TO THIS
                 child: Text(
-                  "Submit at least ${goal.weekly - currentEntries} repeatable entries this week to complete your goal.",
+                  "Submit at least $lowerGoal repeatable entries this week to complete your goal.",
                   style: CustomTypography().caption(),
                   softWrap: true,
                 ),
