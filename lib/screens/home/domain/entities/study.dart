@@ -8,12 +8,14 @@ class Study {
   @Id()
   int id;
   int studyId;
+  String experimentCode;
   String goals;
   String incentive;
 
   Study({
     required this.id,
     required this.studyId,
+    required this.experimentCode,
     required this.goals,
     required this.incentive,
   });
@@ -22,6 +24,7 @@ class Study {
     return Study(
         id: model.id,
         studyId: model.studyId,
+        experimentCode: model.experimentCode,
         goals: json.encode(model.goals.toJson()),
         incentive: json.encode(model.incentive.toJson()));
   }

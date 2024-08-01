@@ -117,7 +117,7 @@ class SetupRepository {
     final studies = <StudyModel>[];
     final diaries = <DiaryModel>[];
     for (final study in studiesFromJson) {
-      final studyModel = StudyModel.fromJson(study);
+      final studyModel = StudyModel.fromJson(study, data['login_code']);
       studies.add(studyModel);
 
       final diariesJson = study['diaries'] as List;

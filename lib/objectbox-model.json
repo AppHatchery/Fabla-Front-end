@@ -238,7 +238,7 @@
     },
     {
       "id": "7:8857582219115487678",
-      "lastPropertyId": "4:361332945587806741",
+      "lastPropertyId": "5:6860609400783138773",
       "name": "Study",
       "properties": [
         {
@@ -261,6 +261,11 @@
           "id": "4:361332945587806741",
           "name": "studyId",
           "type": 6
+        },
+        {
+          "id": "5:6860609400783138773",
+          "name": "experimentCode",
+          "type": 9
         }
       ],
       "relations": []

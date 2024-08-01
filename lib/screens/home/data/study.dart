@@ -6,19 +6,22 @@ import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
 class StudyModel {
   final int id;
   final int studyId;
+  final String experimentCode;
   final Goal goals;
   final Incentive incentive;
 
   StudyModel({
     required this.id,
     required this.studyId,
+    required this.experimentCode,
     required this.goals,
     required this.incentive,
   });
 
-  factory StudyModel.fromJson(Map<String, dynamic> json) {
+  factory StudyModel.fromJson(Map<String, dynamic> json, String loginCode) {
     return StudyModel(
       id: 0,
+      experimentCode: loginCode,
       studyId: json['id'],
       goals: Goal.fromJson(json['goals']),
       incentive: Incentive.fromJson(json['incentive']),
@@ -29,6 +32,7 @@ class StudyModel {
     return StudyModel(
         id: entity.id,
         studyId: entity.studyId,
+        experimentCode: entity.experimentCode,
         goals: Goal.fromJson(jsonDecode(entity.goals)),
         incentive: Incentive.fromJson(jsonDecode(entity.incentive)));
   }
