@@ -771,47 +771,8 @@ class BottomStudyInfoPopUp extends StatelessWidget {
                   child: Text.rich(
                     TextSpan(style: CustomTypography().bodyMedium(), children: [
                       TextSpan(
-                          text: "If you miss a submission, you ",
-                          style: CustomTypography().bodyMedium(
-                              color: CustomColors.textSecondaryContent)),
-                      TextSpan(
-                        text: "will not be able to submit ",
-                        style: CustomTypography()
-                            .bodyMedium(weight: FontWeight.bold),
-                      ),
-                      TextSpan(
-                          text: "unless it is due to technical issues.",
-                          style: CustomTypography().bodyMedium(
-                              color: CustomColors.textSecondaryContent)),
-                    ]),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text("\u2022",
-                      style: CustomTypography().bodyMedium(
-                          color: CustomColors.textSecondaryContent)),
-                ),
-                Expanded(
-                  child: Text.rich(
-                    TextSpan(style: CustomTypography().bodyMedium(), children: [
-                      TextSpan(
                           text:
-                              "To earn extra credit from your instructor, you will need to respond to ",
-                          style: CustomTypography().bodyMedium(
-                              color: CustomColors.textSecondaryContent)),
-                      TextSpan(
-                        text: "at least 65% ",
-                        style: CustomTypography()
-                            .bodyMedium(weight: FontWeight.bold),
-                      ),
-                      TextSpan(
-                          text: "of the daily diaries.",
+                              "We encourage you to submit 3 encounters per day. You can submit more and there will be no consequence for submitting fewer than 3.",
                           style: CustomTypography().bodyMedium(
                               color: CustomColors.textSecondaryContent)),
                     ]),
@@ -839,7 +800,7 @@ class BottomStudyInfoPopUp extends StatelessWidget {
             ),
 
             Text(
-              "The purpose of this study is to test a smartphone app for daily diary research called Fabla, to find out how well it works and how easy it is for people to use. Fabla is a new app developed by the Georgia CTSA AppHatchery. The study will also assess how people's spoken reports about their day compare to their written reports about their day. Participation in this study takes about two weeks to complete.",
+              "The goal of this study is to understand the sort of CCSH™ interventions that are provided by CCSH™ Fellows, who are working as Spiritual Health Clinicians (SHCs), to healthcare staff.",
               style: CustomTypography()
                   .bodyMedium(color: CustomColors.textSecondaryContent),
             ),
@@ -848,23 +809,30 @@ class BottomStudyInfoPopUp extends StatelessWidget {
               height: 16,
             ),
 
-            Text.rich(
-              TextSpan(style: CustomTypography().bodyMedium(), children: [
-                TextSpan(
-                    text:
-                        "During the daily diary study, you will be asked to respond to some questions every day before you go to bed for two weeks. The daily diary will take about ",
-                    style: CustomTypography()
-                        .bodyMedium(color: CustomColors.textSecondaryContent)),
-                TextSpan(
-                  text: "10 minutes ",
-                  style: CustomTypography().bodyMedium(weight: FontWeight.bold),
-                ),
-                TextSpan(
-                    text:
-                        "to complete each time, and it asks you to share about:",
-                    style: CustomTypography()
-                        .bodyMedium(color: CustomColors.textSecondaryContent)),
-              ]),
+            Text(
+              "The design of this study includes CCSH™ Fellows recording their stories of encounters with staff members on this voice diary app called Fabla. We hope that this narrative format will be an easy way to quickly (between 30 seconds and 5 minutes) capture the key elements of a staff support encounter, based on prompts provided to you.",
+              style: CustomTypography()
+                  .bodyMedium(color: CustomColors.textSecondaryContent),
+            ),
+
+            const SizedBox(
+              height: 16,
+            ),
+
+            Text(
+              "In this study you will be asked to record your thoughts about staff support encounters on a daily basis over 4 weeks. You may provide a voice reflection relating to as many or as few encounters as you like, however, we hope you are able to provide 3 per day. After the 4 weeks, you will be invited to participate in a 30 minute interview about your experience using the app.",
+              style: CustomTypography()
+                  .bodyMedium(color: CustomColors.textSecondaryContent),
+            ),
+
+            const SizedBox(
+              height: 16,
+            ),
+
+            Text(
+              "You will be asked a few text based questions and then you will be invited to record a reflection with the following prompt:",
+              style: CustomTypography()
+                  .bodyMedium(color: CustomColors.textSecondaryContent),
             ),
 
             const SizedBox(
@@ -881,39 +849,8 @@ class BottomStudyInfoPopUp extends StatelessWidget {
                           color: CustomColors.textSecondaryContent)),
                 ),
                 Expanded(
-                  child: Text("how your day was,",
-                      style: CustomTypography().bodyMedium(
-                          color: CustomColors.textSecondaryContent)),
-                ),
-              ],
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text("\u2022",
-                      style: CustomTypography().bodyMedium(
-                          color: CustomColors.textSecondaryContent)),
-                ),
-                Expanded(
-                  child: Text("your interactions with other people that day,",
-                      style: CustomTypography().bodyMedium(
-                          color: CustomColors.textSecondaryContent)),
-                ),
-              ],
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text("\u2022",
-                      style: CustomTypography().bodyMedium(
-                          color: CustomColors.textSecondaryContent)),
-                ),
-                Expanded(
-                  child: Text("and whether anything stressful happened.",
+                  child: Text(
+                      "Talk to us about the staff encounter you had just now, as though you were sharing with a colleague. We are interested in hearing what was 1) the PRIMARY concern of the staff member, 2) What happened during the encounter, including aspects of CCSH that you engaged, and 3) How you would describe the outcome of the encounter.",
                       style: CustomTypography().bodyMedium(
                           color: CustomColors.textSecondaryContent)),
                 ),
@@ -927,15 +864,63 @@ class BottomStudyInfoPopUp extends StatelessWidget {
             Text.rich(
               TextSpan(style: CustomTypography().bodyMedium(), children: [
                 TextSpan(
-                    text:
-                        "If you have questions about the study procedures, appointments, research-related injuries or bad reactions, or other questions or concerns about the research or your part in it, contact the Principal Investigator at ",
+                    text: "Please be sure to ",
                     style: CustomTypography()
                         .bodyMedium(color: CustomColors.textSecondaryContent)),
                 TextSpan(
-                  text: "404-727-1360",
+                  text: "NOT ",
+                  style: CustomTypography().bodyMedium(weight: FontWeight.bold),
+                ),
+                TextSpan(
+                    text:
+                        "include any names or identifying information information about the staff members you provide care to. Please complete complete the voice diary in a private location so that your recording cannot be overheard.",
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textSecondaryContent)),
+              ]),
+            ),
+
+            const SizedBox(
+              height: 16,
+            ),
+
+            Text.rich(
+              TextSpan(style: CustomTypography().bodyMedium(), children: [
+                TextSpan(
+                    text:
+                        "If you have questions about the study procedures, appointments, research-related injuries or bad reactions, or other questions or concerns about the research or your part in it please contact study co-investigator Dr. Deanna Kaplan (co-investigator) at ",
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textSecondaryContent)),
+                TextSpan(
+                  text: "404-778-3771",
                   style: CustomTypography().bodyMedium(weight: FontWeight.bold),
                 ),
               ]),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+
+            SizedBox(
+              width: width,
+              child: Text(
+                "Thank you,",
+                style: CustomTypography()
+                    .bodyMedium(color: CustomColors.textSecondaryContent),
+                    textAlign: TextAlign.left,
+              ),
+            ),
+
+            const SizedBox(
+              height: 6,
+            ),
+
+            SizedBox(
+              width: width,
+              child: Text(
+                "CCSH Staff Interventions Study Team",
+                style: CustomTypography()
+                    .bodyMedium(color: CustomColors.textSecondaryContent),
+              ),
             ),
           ],
         ),
