@@ -128,7 +128,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 24),
-                    child: header(Incentive.fromJson({})),
+                    child: header(null),
                   ),
                 ],
               ),
@@ -142,7 +142,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                 children: [
                   calendar(),
                   const SizedBox(height: 12),
-                  body(Incentive.fromJson({})),
+                  body(null),
                 ],
               ),
             )
