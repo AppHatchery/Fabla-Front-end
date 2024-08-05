@@ -1,11 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:developer' as developer;
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 
 //TODO: TO BE REMOVED
 // import 'package:audio_diaries_flutter/models/ParticipantsDev.dart';
@@ -40,7 +45,7 @@ class SetupRepository {
   /// database using the associated participant DAO (Data Access Object).
   /// It retrieves the participant's data and returns it as a `Participant` object.
   ///
-  /// Returns: 
+  /// Returns:
   /// - A `Participant` object containing the retrieved participant's information,
   ///   or `null` if no participant information is available.
   ///
@@ -133,10 +138,11 @@ class SetupRepository {
       print("Protocol already exists and no updates");
     }
   }
-/// This method is responsible for creating a protocol by retrieving data from a remote source.
-  Protocol? getProtocol(){
+
+  /// This method is responsible for creating a protocol by retrieving data from a remote source.
+  Protocol? getProtocol() {
     final ProtocolEntity? protocolEntity = _protocolDAO.getProtocol();
-    return protocolEntity == null ? null :  Protocol.fromEntity(protocolEntity);
+    return protocolEntity == null ? null : Protocol.fromEntity(protocolEntity);
   }
 
   /// Creates and stores metadata related to the participant's study.
@@ -156,10 +162,82 @@ class SetupRepository {
   /// ```
 
   void createMetadata() async {
-    final participant = getParticipant();
+    final String response = await rootBundle.loadString('assets/protocol.json');
+    final data = await json.decode(response);
+    final phases = data['phase'] as List<dynamic>;
+    final dayOfDownload = DateTime.now(); //Starting date
+    DateTime endDay =
+        DateTime(dayOfDownload.year, dayOfDownload.month, dayOfDownload.day);
+    final List<DiaryModel> diaries = [];
+    DateTime date = endDay;
+    developer.log("start date: ${date.toString()}", name: "Start Date");
 
-    final code = participant!.studyCode;
-    await diaryInit(code);
+    for (final phase in phases) {
+      final duration = phase['duration'] as int;
+      final diariesJson = phase['diaries'] as List<dynamic>;
+
+
+      List<DateTime> phaseDates = [];
+      for (var i = 0; i < duration; i++) {
+        phaseDates.add(date);
+        date = DateTime(date.year, date.month, date.day + 1);
+      }
+
+      for (DateTime date in phaseDates) {
+        developer.log("Day: $date", name: "For Loop");
+        for (final json in diariesJson) {
+          final questions = json["question"] as List<dynamic>;
+          final prompts = questions
+              .map((question) => PromptModel.fromJson(question))
+              .toList();
+          final startTime = timeOfDayFromString(json["start_time"]);
+          final endTime = timeOfDayFromString(json["end_time"]);
+          final diary = DiaryModel(
+            id: 0,
+            prompts: prompts,
+            tags: null,
+            status: DiaryStatus.idle,
+            due: DateTime(
+                date.year, date.month, date.day, endTime.hour, endTime.minute),
+            start: DateTime(date.year, date.month, date.day, startTime.hour,
+                startTime.minute),
+            entries: json["entries"],
+            currentEntry: 0,
+            end: DateTime(
+                date.year, date.month, date.day, endTime.hour, endTime.minute),
+          );
+          diaries.add(diary);
+        }
+      }
+
+      date = phaseDates.last.add(Duration(days: 1));
+
+
+    }
+
+    final entities = diaries.map((model) {
+      final prompts =
+          model.prompts.map((model) => Prompt.fromModel(model)).toList();
+      final entity = Diary.fromModel(model);
+      entity.prompts.addAll(prompts);
+      return entity;
+    }).toList();
+
+    final repository = DiaryRepository();
+    repository.addDiaries(entities);
+
+    final protocol = Protocol(
+        version: 1,
+        weeklyGoal: data['weekly_goal'],
+        dailyGoal: data['daily_goal'],
+        diaryBlueprints: []);
+
+    final protocolEntity = ProtocolEntity.fromModel(model: protocol);
+    _protocolDAO.addProtocol(protocolEntity);
+    // final participant = getParticipant();
+
+    // final code = participant!.studyCode;
+    // await diaryInit(code);
 
     // final startDate = DateTime.fromMillisecondsSinceEpoch(
     //     await PreferenceService().getIntPreference(key: 'startDate') ?? 0);

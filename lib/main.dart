@@ -73,19 +73,17 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-
   final RouteService routeService = RouteService();
   late Widget _route;
   @override
   initState() {
     NotificationService.setListeners();
     _route = widget.route;
-    final repo = SetupRepository();
-    repo.createProtocol();
+    // final repo = SetupRepository();
+    // repo.createProtocol();
     super.initState();
-   // initPlatformState();
+    // initPlatformState();
   }
-
 
   @override
   Widget build(BuildContext context) {

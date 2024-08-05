@@ -559,17 +559,6 @@ class BottomResearcherInfoPopUp extends StatelessWidget {
                     children: actions!,
                   )
                 : Container()
-
-            //Confirmation
-            // CustomElevatedButton(
-            //     onClick: () => Navigator.pop(context), text: "CONFIRM JOINING"),
-            // const SizedBox(
-            //   height: 16,
-            // ),
-            // //Deny
-            // CustomTextButton(
-            //     onClick: () => Navigator.pop(context),
-            //     text: "I have a problem with joining the study")
           ],
         ),
       ),
@@ -653,24 +642,6 @@ class BottomStudyInfoPopUp extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(
-              height: 12,
-            ),
-
-            // Organisation
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(CustomIcons.assuredWorkload, size: 16),
-                const SizedBox(
-                  width: 12,
-                ),
-                Text(
-                  organisation,
-                  style: CustomTypography().bodyMedium(),
-                ),
-              ],
-            ),
 
             const SizedBox(
               height: 12,
@@ -714,18 +685,41 @@ class BottomStudyInfoPopUp extends StatelessWidget {
               height: 24,
             ),
 
-            // Time and Completion Rates
+            //Expectations
             Row(
               children: [
                 Text(
-                  "Time and Completion Rates",
+                  "Expectations and Requirements",
                   style: CustomTypography().titleLarge(),
                 ),
               ],
             ),
 
-            const SizedBox(
-              height: 6,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("\u2022 ",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: CustomTypography().bodyMedium(), children: [
+                      TextSpan(
+                          text: "Please submit evening assignments before ",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                      TextSpan(
+                        text: "12AM",
+                        style: CustomTypography()
+                            .bodyMedium(weight: FontWeight.bold),
+                      ),
+                    ]),
+                  ),
+                ),
+              ],
             ),
 
             Row(
@@ -733,7 +727,7 @@ class BottomStudyInfoPopUp extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text("\u2022",
+                  child: Text("\u2022 ",
                       style: CustomTypography().bodyMedium(
                           color: CustomColors.textSecondaryContent)),
                 ),
@@ -741,46 +735,16 @@ class BottomStudyInfoPopUp extends StatelessWidget {
                   child: Text.rich(
                     TextSpan(style: CustomTypography().bodyMedium(), children: [
                       TextSpan(
-                          text: "The deadline for submitting a diary is ",
+                          text: "You’ll have  ",
                           style: CustomTypography().bodyMedium(
                               color: CustomColors.textSecondaryContent)),
                       TextSpan(
-                        text: "12 AM. ",
-                        style: CustomTypography()
-                            .bodyMedium(weight: FontWeight.bold),
-                      ),
-                      // TextSpan(
-                      //     text: "the following day.",
-                      //     style: CustomTypography().bodyMedium(
-                      //         color: CustomColors.textSecondaryContent)),
-                    ]),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text("\u2022",
-                      style: CustomTypography().bodyMedium(
-                          color: CustomColors.textSecondaryContent)),
-                ),
-                Expanded(
-                  child: Text.rich(
-                    TextSpan(style: CustomTypography().bodyMedium(), children: [
-                      TextSpan(
-                          text: "If you miss a submission, you ",
-                          style: CustomTypography().bodyMedium(
-                              color: CustomColors.textSecondaryContent)),
-                      TextSpan(
-                        text: "will not be able to submit ",
+                        text: "three EMA surveys and one voice diary ",
                         style: CustomTypography()
                             .bodyMedium(weight: FontWeight.bold),
                       ),
                       TextSpan(
-                          text: "unless it is due to technical issues.",
+                          text: "most days of the study to complete",
                           style: CustomTypography().bodyMedium(
                               color: CustomColors.textSecondaryContent)),
                     ]),
@@ -788,12 +752,13 @@ class BottomStudyInfoPopUp extends StatelessWidget {
                 ),
               ],
             ),
+
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text("\u2022",
+                  child: Text("\u2022 ",
                       style: CustomTypography().bodyMedium(
                           color: CustomColors.textSecondaryContent)),
                 ),
@@ -801,17 +766,16 @@ class BottomStudyInfoPopUp extends StatelessWidget {
                   child: Text.rich(
                     TextSpan(style: CustomTypography().bodyMedium(), children: [
                       TextSpan(
-                          text:
-                              "To earn extra credit from your instructor, you will need to respond to ",
+                          text: "Most of the incentive comes from a ",
                           style: CustomTypography().bodyMedium(
                               color: CustomColors.textSecondaryContent)),
                       TextSpan(
-                        text: "at least 65% ",
+                        text: "high completion rate ",
                         style: CustomTypography()
                             .bodyMedium(weight: FontWeight.bold),
                       ),
                       TextSpan(
-                          text: "of the daily diaries.",
+                          text: "of EMA surveys and voice diaries",
                           style: CustomTypography().bodyMedium(
                               color: CustomColors.textSecondaryContent)),
                     ]),
@@ -824,7 +788,8 @@ class BottomStudyInfoPopUp extends StatelessWidget {
               height: 24,
             ),
 
-            //OverView
+
+            // Time and Completion Rates
             Row(
               children: [
                 Text(
@@ -839,103 +804,613 @@ class BottomStudyInfoPopUp extends StatelessWidget {
             ),
 
             Text(
-              "The purpose of this study is to test a smartphone app for daily diary research called Fabla, to find out how well it works and how easy it is for people to use. Fabla is a new app developed by the Georgia CTSA AppHatchery. The study will also assess how people's spoken reports about their day compare to their written reports about their day. Participation in this study takes about two weeks to complete.",
+              "Welcome to the study! We’re grateful that you’ve signed up to participate in our study about daily experiences. Throughout the study, we’ll need you to submit EMA surveys and record voice diaries.",
               style: CustomTypography()
                   .bodyMedium(color: CustomColors.textSecondaryContent),
             ),
 
             const SizedBox(
-              height: 16,
+              height: 10,
             ),
 
-            Text.rich(
-              TextSpan(style: CustomTypography().bodyMedium(), children: [
-                TextSpan(
-                    text:
-                        "During the daily diary study, you will be asked to respond to some questions every day before you go to bed for two weeks. The daily diary will take about ",
-                    style: CustomTypography()
-                        .bodyMedium(color: CustomColors.textSecondaryContent)),
-                TextSpan(
-                  text: "10 minutes ",
-                  style: CustomTypography().bodyMedium(weight: FontWeight.bold),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("1.",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
                 ),
-                TextSpan(
-                    text:
-                        "to complete each time, and it asks you to share about:",
-                    style: CustomTypography()
-                        .bodyMedium(color: CustomColors.textSecondaryContent)),
-              ]),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: CustomTypography().bodyMedium(), children: [
+                      TextSpan(
+                          text:
+                              "For the first 6 days of the study, you’ll submit three EMA surveys and a voice diary. The EMA surveys will be open from 10AM - 12PM, 2PM - 4PM, and after 6PM. You will record the voice diary when you complete your final EMA survey in the evening.",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("2.",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: CustomTypography().bodyMedium(), children: [
+                      TextSpan(
+                          text:
+                              "On the seventh day, the midpoint of the study, you’ll only have one assessment to complete. You can complete this at any time on this day.",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                      // TextSpan(
+                      //   text: "will not be able to submit ",
+                      //   style: CustomTypography()
+                      //       .bodyMedium(weight: FontWeight.bold),
+                      // ),
+                      // TextSpan(
+                      //     text: "unless it is due to technical issues.",
+                      //     style: CustomTypography().bodyMedium(
+                      //         color: CustomColors.textSecondaryContent)),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("3.",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: CustomTypography().bodyMedium(), children: [
+                      TextSpan(
+                          text:
+                              "On the eighth through thirteenth day of the study, you’ll submit three EMA surveys and a voice diary. The EMA surveys will be open from 10AM - 12PM, 2PM - 4PM, and after 6PM. You will record the voice diary when you complete your final EMA survey in the evening. These will work just like the first six days of the study.",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("3.",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: CustomTypography().bodyMedium(), children: [
+                      TextSpan(
+                          text:
+                              "On the fourteenth and final day of the study, you’ll only have one assessment to complete. You can complete this at any time on this day.",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(
+              height: 12,
+            ),
+
+            Text(
+              "Here’s a list to summarize what you’ll be doing each day:",
+              style: CustomTypography()
+                  .bodyMedium(color: CustomColors.textSecondaryContent),
+            ),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Text("\u2022",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ),
+                    Expanded(
+                      child: Text.rich(
+                        TextSpan(
+                            style: CustomTypography().bodyMedium(),
+                            children: [
+                              TextSpan(
+                                  text: "Days 1-6",
+                                  style: CustomTypography().bodyMedium(
+                                      color:
+                                          CustomColors.textSecondaryContent)),
+                            ]),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left:
+                          17), // Adjust this padding to align the dot under the "D" of "Days"
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("\u2022 ",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                              style: CustomTypography().bodyMedium(),
+                              children: [
+                                TextSpan(
+                                    text: "10AM-12PM: One EMA survey",
+                                    style: CustomTypography().bodyMedium(
+                                        color:
+                                            CustomColors.textSecondaryContent)),
+                              ]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left:
+                          17), // Adjust this padding to align the dot under the "D" of "Days"
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("\u2022 ",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                              style: CustomTypography().bodyMedium(),
+                              children: [
+                                TextSpan(
+                                    text: "2PM-4PM: One EMA survey",
+                                    style: CustomTypography().bodyMedium(
+                                        color:
+                                            CustomColors.textSecondaryContent)),
+                              ]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left:
+                          17), // Adjust this padding to align the dot under the "D" of "Days"
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("\u2022 ",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                              style: CustomTypography().bodyMedium(),
+                              children: [
+                                TextSpan(
+                                    text:
+                                        "After 6PM: One EMA survey and one voice diary",
+                                    style: CustomTypography().bodyMedium(
+                                        color:
+                                            CustomColors.textSecondaryContent)),
+                              ]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Text("\u2022",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ),
+                    Expanded(
+                      child: Text.rich(
+                        TextSpan(
+                            style: CustomTypography().bodyMedium(),
+                            children: [
+                              TextSpan(
+                                  text: "Days 7",
+                                  style: CustomTypography().bodyMedium(
+                                      color:
+                                          CustomColors.textSecondaryContent)),
+                            ]),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 17),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("\u2022 ",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                              style: CustomTypography().bodyMedium(),
+                              children: [
+                                TextSpan(
+                                    text: "All day: One assessment",
+                                    style: CustomTypography().bodyMedium(
+                                        color:
+                                            CustomColors.textSecondaryContent)),
+                              ]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Text("\u2022",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ),
+                    Expanded(
+                      child: Text.rich(
+                        TextSpan(
+                            style: CustomTypography().bodyMedium(),
+                            children: [
+                              TextSpan(
+                                  text: "Days 8-13",
+                                  style: CustomTypography().bodyMedium(
+                                      color:
+                                          CustomColors.textSecondaryContent)),
+                            ]),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left:
+                          17), // Adjust this padding to align the dot under the "D" of "Days"
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("\u2022 ",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                              style: CustomTypography().bodyMedium(),
+                              children: [
+                                TextSpan(
+                                    text: "10AM-12PM: One EMA survey",
+                                    style: CustomTypography().bodyMedium(
+                                        color:
+                                            CustomColors.textSecondaryContent)),
+                              ]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left:
+                          17), // Adjust this padding to align the dot under the "D" of "Days"
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("\u2022 ",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                              style: CustomTypography().bodyMedium(),
+                              children: [
+                                TextSpan(
+                                    text: "2PM-4PM: One EMA survey",
+                                    style: CustomTypography().bodyMedium(
+                                        color:
+                                            CustomColors.textSecondaryContent)),
+                              ]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left:
+                          17), // Adjust this padding to align the dot under the "D" of "Days"
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("\u2022 ",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                              style: CustomTypography().bodyMedium(),
+                              children: [
+                                TextSpan(
+                                    text:
+                                        "After 6PM: One EMA survey and one voice diary",
+                                    style: CustomTypography().bodyMedium(
+                                        color:
+                                            CustomColors.textSecondaryContent)),
+                              ]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Text("\u2022",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ),
+                    Expanded(
+                      child: Text.rich(
+                        TextSpan(
+                            style: CustomTypography().bodyMedium(),
+                            children: [
+                              TextSpan(
+                                  text: "Days 14",
+                                  style: CustomTypography().bodyMedium(
+                                      color:
+                                          CustomColors.textSecondaryContent)),
+                            ]),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 17),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("\u2022 ",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                              style: CustomTypography().bodyMedium(),
+                              children: [
+                                TextSpan(
+                                    text: "All day: One assessment",
+                                    style: CustomTypography().bodyMedium(
+                                        color:
+                                            CustomColors.textSecondaryContent)),
+                              ]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(
+              height: 24,
+            ),
+
+            //OverView
+            Row(
+              children: [
+                Text(
+                  "Incentive",
+                  style: CustomTypography().titleLarge(),
+                ),
+              ],
+            ),
+
+            const SizedBox(
+              height: 6,
+            ),
+
+            Text(
+              "Incentive will be distributed according to the following structure:",
+              style: CustomTypography()
+                  .bodyMedium(color: CustomColors.textSecondaryContent),
+            ),
+
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("\u2022 ",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: CustomTypography().bodyMedium(), children: [
+                      TextSpan(
+                          text:
+                              "Each EMA survey will be worth 50 cents (\$14 total).",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("\u2022 ",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: CustomTypography().bodyMedium(), children: [
+                      TextSpan(
+                          text:
+                              "Each evening assignment (EMA survey + voice diary) will be worth \$1 (\$12 total).",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("\u2022 ",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: CustomTypography().bodyMedium(), children: [
+                      TextSpan(
+                          text:
+                              "On the seventh and fourteenth day, the assessment will be worth \$2 (\$4 total for both days).",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("\u2022 ",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: CustomTypography().bodyMedium(), children: [
+                      TextSpan(
+                          text:
+                              "Completing at least 70% of the EMA surveys and voice diaries on days 1 - 6 (at least 9 completed EMA surveys and at least 4 completed voice diaries) is worth \$10.",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("\u2022 ",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: CustomTypography().bodyMedium(), children: [
+                      TextSpan(
+                          text:
+                              "Completing at least 70% of the EMA surveys and voice diaries on days 8 - 13 (at least 9 completed EMA surveys and at least 4 completed voice diaries) is worth \$10.",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text("\u2022 ",
+                      style: CustomTypography().bodyMedium(
+                          color: CustomColors.textSecondaryContent)),
+                ),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: CustomTypography().bodyMedium(), children: [
+                      TextSpan(
+                          text:
+                              "The TOTAL incentive you can earn for this study is \$50.",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent)),
+                    ]),
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(
               height: 16,
-            ),
-
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text("\u2022",
-                      style: CustomTypography().bodyMedium(
-                          color: CustomColors.textSecondaryContent)),
-                ),
-                Expanded(
-                  child: Text("how your day was,",
-                      style: CustomTypography().bodyMedium(
-                          color: CustomColors.textSecondaryContent)),
-                ),
-              ],
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text("\u2022",
-                      style: CustomTypography().bodyMedium(
-                          color: CustomColors.textSecondaryContent)),
-                ),
-                Expanded(
-                  child: Text("your interactions with other people that day,",
-                      style: CustomTypography().bodyMedium(
-                          color: CustomColors.textSecondaryContent)),
-                ),
-              ],
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text("\u2022",
-                      style: CustomTypography().bodyMedium(
-                          color: CustomColors.textSecondaryContent)),
-                ),
-                Expanded(
-                  child: Text("and whether anything stressful happened.",
-                      style: CustomTypography().bodyMedium(
-                          color: CustomColors.textSecondaryContent)),
-                ),
-              ],
-            ),
-
-            const SizedBox(
-              height: 16,
-            ),
-
-            Text.rich(
-              TextSpan(style: CustomTypography().bodyMedium(), children: [
-                TextSpan(
-                    text:
-                        "If you have questions about the study procedures, appointments, research-related injuries or bad reactions, or other questions or concerns about the research or your part in it, contact the Principal Investigator at ",
-                    style: CustomTypography()
-                        .bodyMedium(color: CustomColors.textSecondaryContent)),
-                TextSpan(
-                  text: "404-727-1360",
-                  style: CustomTypography().bodyMedium(weight: FontWeight.bold),
-                ),
-              ]),
             ),
           ],
         ),
