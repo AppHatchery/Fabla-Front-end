@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/main.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
@@ -121,6 +122,10 @@ class _FinishPageState extends State<FinishPage> {
 
     await PendoService.track("FinishOnBoarding",
         {"datetime": DateTime.now().toString(), "startDate": start.toString()});
+
+    // removing all onboarding dynamic questions (if any)
+    final setupRepository = SetupRepository();
+    setupRepository.removeAllQuestions();
 
     if (context.mounted) {
       Navigator.pushAndRemoveUntil(

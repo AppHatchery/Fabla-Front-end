@@ -10,6 +10,8 @@ import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entit
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
 import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -29,6 +31,8 @@ class SetupRepository {
   final ProtocolDAO _protocolDAO =
       ProtocolDAO(box: Box<ProtocolEntity>(objectbox.store));
   final StudyDAO _studyDAO = StudyDAO(box: Box<Study>(objectbox.store));
+  final QuestionsDAO _questionsDAO =
+      QuestionsDAO(box: Box<QuestionsEntity>(objectbox.store));
 
   /// Retrieves the participant's information from the database.
   ///
@@ -339,5 +343,51 @@ class SetupRepository {
         body:
             "Hey there! We're excited to remind you that your Daily Diary study is just around the corner. Tomorrow, we embark on this exciting journey together. Your insights will make a difference!",
         date: notificationDate);
+  }
+
+  Future<List<Questions>> getOnBoardingQuestions() async {
+    final List<Questions> onboardingQuestions = _questionsDAO
+        .getAllQuestions()
+        .map((e) => Questions.fromEntity(e))
+        .toList();
+    final String response =
+        await rootBundle.loadString('assets/onboarding.json');
+    final data = await json.decode(response);
+
+    final List<dynamic> result = data["data"];
+    final List<Questions> questionsFromJSON = result
+        .map((dynamic item) => Questions.fromJson(item as Map<String, dynamic>))
+        .toList();
+
+    if (onboardingQuestions.isNotEmpty) {
+      final List<Questions> questionWithoutAnswers = [];
+      for (var question in onboardingQuestions) {
+        questionWithoutAnswers.add(question.copyWith(answer: null));
+      }
+
+      //compare all the question if they are the same
+      if (questionsFromJSON.length == onboardingQuestions.length) {
+        List<bool> allTheSame = [];
+        for (var i = 0; i < questionsFromJSON.length; i++) {
+          allTheSame.add(questionsFromJSON[i] == questionWithoutAnswers[i]);
+        }
+
+        if (!allTheSame.contains(false)) {
+          return onboardingQuestions;
+        }
+      }
+    }
+    _questionsDAO.addManyQuestions(
+        questionsFromJSON.map((e) => QuestionsEntity.fromModel(e)).toList());
+    return questionsFromJSON;
+  }
+
+  void saveOnBoardingAnswer(QuestionsEntity question) async {
+    int result = _questionsDAO.updateQuestion(question);
+    debugPrint("Save OnBoarding Answer: $result");
+  }
+
+  void removeAllQuestions() async {
+    _questionsDAO.removeAllQuestions();
   }
 }

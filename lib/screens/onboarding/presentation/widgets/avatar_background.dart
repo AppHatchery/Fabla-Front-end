@@ -34,7 +34,7 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
     return Stack(
       children: [
         Positioned(
-            top: 0,
+            top: 10,
             left: 0,
             right: 0,
             child: Padding(

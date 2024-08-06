@@ -10,6 +10,7 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/pr
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dynamic/dynamic_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/study_login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
@@ -74,7 +75,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-
   final RouteService routeService = RouteService();
   late Widget _route;
   @override
@@ -84,9 +84,8 @@ class _MyAppState extends State<MyApp> {
     // final repo = SetupRepository();
     // repo.createProtocol();
     super.initState();
-   // initPlatformState();
+    // initPlatformState();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +110,7 @@ class _MyAppState extends State<MyApp> {
                     create: (context) => DiaryHistoryCubit()),
                 BlocProvider<CompletionCubit>(
                     create: (context) => CompletionCubit()),
+                BlocProvider<DynamicCubit>(create: (context) => DynamicCubit())
               ],
               child: MaterialApp(
                 title: 'Audio Diaries',
