@@ -1,0 +1,50 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "type": "radio",
+      "title": "How often do you wake up at night?",
+      "subtitle": "An estimate",
+      "max_value": null,
+      "min_value": null,
+      "default_value": null,
+      "options": [
+        "Once 😴",
+        "Less than 5 times 😪",
+        "More than 6 times 😓",
+        "More than 10 times 😣",
+        "I never sleep 🧛🏼"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "text",
+      "title": "How was your night?",
+      "subtitle": "Briefly explain",
+      "max_value": null,
+      "min_value": null,
+      "default_value": null,
+      "options": null
+    },
+    {
+      "id": 3,
+      "type": "multiple",
+      "title": "Question Title",
+      "subtitle": "Question Subtitle",
+      "max_value": null,
+      "min_value": null,
+      "default_value": null,
+      "options": [
+        "Option 1",
+        "Option 2",
+        "Option 3",
+        "Option 4",
+        "Option 5",
+        "Option 6",
+        "Option 7",
+        "Option 8",
+        "Option 9"
+      ]
+    }
+  ]
+}

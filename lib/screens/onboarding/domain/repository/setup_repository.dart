@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
+import 'package:audio_diaries_flutter/core/database/dao/questions_dao.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
@@ -13,6 +14,8 @@ import 'package:audio_diaries_flutter/core/utils/types.dart';
 // import 'package:audio_diaries_flutter/models/UserMetadataDev.dart';
 
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
 import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -33,6 +36,8 @@ class SetupRepository {
       ParticipantDAO(box: Box<Participant>(objectbox.store));
   final ProtocolDAO _protocolDAO =
       ProtocolDAO(box: Box<ProtocolEntity>(objectbox.store));
+  final QuestionsDAO _questionsDAO =
+      QuestionsDAO(box: Box<QuestionsEntity>(objectbox.store));
 
   /// Retrieves the participant's information from the database.
   ///
@@ -133,10 +138,11 @@ class SetupRepository {
       print("Protocol already exists and no updates");
     }
   }
-/// This method is responsible for creating a protocol by retrieving data from a remote source.
-  Protocol? getProtocol(){
+
+  /// This method is responsible for creating a protocol by retrieving data from a remote source.
+  Protocol? getProtocol() {
     final ProtocolEntity? protocolEntity = _protocolDAO.getProtocol();
-    return protocolEntity == null ? null :  Protocol.fromEntity(protocolEntity);
+    return protocolEntity == null ? null : Protocol.fromEntity(protocolEntity);
   }
 
   /// Creates and stores metadata related to the participant's study.
@@ -582,5 +588,51 @@ class SetupRepository {
         body:
             "Hey there! We're excited to remind you that your Daily Diary study is just around the corner. Tomorrow, we embark on this exciting journey together. Your insights will make a difference!",
         date: notificationDate);
+  }
+
+  Future<List<Questions>> getOnBoardingQuestions() async {
+    final List<Questions> onboardingQuestions = _questionsDAO
+        .getAllQuestions()
+        .map((e) => Questions.fromEntity(e))
+        .toList();
+    final String response =
+        await rootBundle.loadString('assets/onboarding.json');
+    final data = await json.decode(response);
+
+    final List<dynamic> result = data["data"];
+    final List<Questions> questionsFromJSON = result
+        .map((dynamic item) => Questions.fromJson(item as Map<String, dynamic>))
+        .toList();
+
+    if (onboardingQuestions.isNotEmpty) {
+      final List<Questions> questionWithoutAnswers = [];
+      for (var question in onboardingQuestions) {
+        questionWithoutAnswers.add(question.copyWith(answer: null));
+      }
+
+      //compare all the question if they are the same
+      if (questionsFromJSON.length == onboardingQuestions.length) {
+        List<bool> allTheSame = [];
+        for (var i = 0; i < questionsFromJSON.length; i++) {
+          allTheSame.add(questionsFromJSON[i] == questionWithoutAnswers[i]);
+        }
+
+        if (!allTheSame.contains(false)) {
+          return onboardingQuestions;
+        }
+      }
+    }
+    _questionsDAO.addManyQuestions(
+        questionsFromJSON.map((e) => QuestionsEntity.fromModel(e)).toList());
+    return questionsFromJSON;
+  }
+
+  void saveOnBoardingAnswer(QuestionsEntity question) async {
+    int result = _questionsDAO.updateQuestion(question);
+    debugPrint("Save OnBoarding Answer: $result");
+  }
+
+  void removeAllQuestions() async {
+    _questionsDAO.removeAllQuestions();
   }
 }
