@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
+import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
 import 'package:flutter/material.dart';
 
 import '../../screens/diary/data/diary.dart';
@@ -41,6 +42,11 @@ const Tag onGoingTag = Tag(text: "Ongoing", type: TagType.time);
 const Tag doneTag = Tag(text: "Done", type: TagType.time);
 
 const TimeOfDay fixedTime = TimeOfDay(hour: 18, minute: 0);
+
+final List<Incentive> dummyIncentives = [
+  Incentive(amount: 5, bonus: 10, currency: '\$', threshold: 50),
+  Incentive(amount: 20, bonus: 100, currency: '\$', threshold: 80),
+];
 
 final List<int> participantCodes = [
   0001,
