@@ -99,7 +99,7 @@ class SummaryRepository {
     try {
       final participant = setupRepository.getParticipant();
       final uploaded = await upload(participant!.studyCode, diary);
-      final protocol = diaryRepository.getProtocol();
+      final study = diaryRepository.getStudy(diary.studyID);
       // final entry = diary.status == DiaryStatus.submitted
       //     ? diary.entries
       //     : diary.currentEntry;
@@ -112,18 +112,22 @@ class SummaryRepository {
         if (diary.currentEntry + 1 == diary.entries) {
           newDiary = diary.copyWith(
               id: diary.id,
+              studyID: diary.studyID,
               status: DiaryStatus.submitted,
               currentEntry: diary.currentEntry + 1);
         } else {
           newDiary = diary.copyWith(
               id: diary.id,
+              studyID: diary.studyID,
               status: DiaryStatus.idle,
               currentEntry: diary.currentEntry + 1);
         }
 
         diaryRepository.updateDiary(newDiary);
 
-        if (diary.currentEntry + 1 < protocol!.dailyGoal) {
+        
+        print("Study goals: ${study?.goals.daily}");
+        if (diary.currentEntry + 1 < study!.goals.daily) {
           dailyGoalNotification(diary.id);
         } else if (diary.currentEntry + 1 >= diary.entries) {
           cancelAllDiaryNotifications(diary.id);

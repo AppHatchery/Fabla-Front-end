@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
+import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
@@ -7,6 +8,8 @@ import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/tag.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
+import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
 
 import '../../../../core/database/dao/diary_dao.dart';
 import '../../../../main.dart';
@@ -18,6 +21,7 @@ class DiaryRepository {
   final DiaryDAO _diaryDAO = DiaryDAO(box: Box<Diary>(objectbox.store));
   final ProtocolDAO _protocolDAO =
       ProtocolDAO(box: Box<ProtocolEntity>(objectbox.store));
+  final StudyDAO _studyDAO = StudyDAO(box: Box<Study>(objectbox.store));
 
   /// A method to retrieve all DiaryEntity objects from the data source.
   /// This function retrieves a list of DiaryEntity instances by calling the `_diaryDAO.getAllDiaries()` method.
@@ -63,6 +67,10 @@ class DiaryRepository {
   ///
   Diary? _getDiaryEntity(DateTime start, DateTime due) {
     return _diaryDAO.getDiary(start, due);
+  }
+
+  List<Diary> _getDiaryEntities(DateTime day) {
+    return _diaryDAO.getDiaries(day);
   }
 
   /// Retrieves a list of DiaryENtity objects from the data source based on a specified due date.
@@ -136,7 +144,7 @@ class DiaryRepository {
 
     // Filter diaries based on due date
     final filteredDiaries =
-        unfilteredDiaries.where((diary) => diary.due.isBefore(due)).toList();
+        unfilteredDiaries.where((diary) => diary.start.isBefore(due)).toList();
 
     // Sort filtered diaries by due date in descending order
     filteredDiaries.sort((a, b) => b.due.compareTo(a.due));
@@ -158,6 +166,7 @@ class DiaryRepository {
         for (var i = 0; i <= entryCount; i++) {
           final newDiary = diary.copyWith(
               id: diary.id,
+              studyID: diary.studyID,
               currentEntry: i,
               status: entryCount != i ? DiaryStatus.submitted : null);
 
@@ -297,6 +306,15 @@ class DiaryRepository {
     return null;
   }
 
+  List<DiaryModel> getDiaries(DateTime day) {
+    final diaries = _getDiaryEntities(day)
+        .where((diary) =>
+            diary.status != DiaryStatus.submitted ||
+            diary.status != DiaryStatus.missed)
+        .toList();
+    return diaries.map((e) => DiaryModel.fromEntity(e)).toList();
+  }
+
   // retrieves the protocol from the protocol entity
   // This function attempts to obtain a ProtocolEntity instance using the `_getProtocolEntity()` method,
   // and if a matching ProtocolEntity is found, it is transformed into a Protocol object using the `Protocol.fromEntity()` factory constructor.
@@ -308,6 +326,33 @@ class DiaryRepository {
       return Protocol.fromEntity(protocol);
     }
     return null;
+  }
+
+  Study? _getStudy(int id) {
+    return _studyDAO.getStudy(id);
+  }
+
+  StudyModel? getStudy(int id) {
+    final study = _getStudy(id);
+    if (study != null) {
+      return StudyModel.fromEntity(study);
+    }
+
+    return null;
+  }
+
+  List<Study> _getStudies(List<int> ids) {
+    List<Study> studies = [];
+    for (final id in ids) {
+      final study = _getStudy(id);
+      if (study != null) studies.add(study);
+    }
+
+    return studies;
+  }
+
+  List<StudyModel> getStudies(List<int> ids) {
+    return _getStudies(ids).map((e) => StudyModel.fromEntity(e)).toList();
   }
 
   /// Retrieves the total number of diary entries within a specified date range.

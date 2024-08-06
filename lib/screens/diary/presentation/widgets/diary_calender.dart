@@ -10,7 +10,7 @@ import '../../../home/presentation/widgets/empty_state.dart';
 import '../../data/diary.dart';
 import '../../domain/repository/diary_repository.dart';
 import '../cubit/diary/diary_cubit.dart';
-import 'custom_calender.dart';
+// import 'custom_calender.dart';
 
 class DiaryCalender extends StatefulWidget {
   const DiaryCalender({super.key});
@@ -39,10 +39,10 @@ class _DiaryCalenderState extends State<DiaryCalender> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          CustomCalender(
-            diaries: diaries,
-            selectDate: _changeDate,
-          ),
+          // CustomCalender(
+          //   diaries: diaries,
+          //   selectDate: _changeDate,
+          // ),
           const SizedBox(height: 24),
           BlocBuilder<DiaryCubit, DiaryState>(
             builder: (context, state) {

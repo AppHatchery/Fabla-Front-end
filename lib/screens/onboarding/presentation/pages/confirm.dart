@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welcome.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/login.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -36,13 +36,7 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
       appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
         scrolledUnderElevation: 0.0,
-        leading: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
-            )),
+        automaticallyImplyLeading: false,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -116,15 +110,23 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CustomFlatButton(
-              onClick: () => Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const WelcomePage()),
-                  (route) => false),
+              onClick: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const LoginPage())),
               text: "Confirm Joining",
               color: CustomColors.fillWhite,
               textColor: CustomColors.productNormalActive,
             ),
 
+            const SizedBox(
+              height: 12,
+            ),
+
+            CustomFlatButton(
+              onClick: () => Navigator.pop(context),
+              text: "This isn’t right - take me back",
+              color: CustomColors.fillWhite,
+              textColor: CustomColors.productNormalActive,
+            ),
             //CustomTextButton(onClick: ()=> null, text: "I HAVE A PROBLEM JOINING THE STUDY", textColor: CustomColors.textWhite,)
           ],
         ),

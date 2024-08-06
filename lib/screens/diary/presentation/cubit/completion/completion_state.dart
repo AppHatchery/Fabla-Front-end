@@ -18,12 +18,12 @@ final class CompletionLoading extends CompletionState {
 final class CompletionLoaded extends CompletionState {
   final DiaryModel diary;
   final List<DiaryModel> diaries;
-  final Protocol protocol;
+  final StudyModel study;
   const CompletionLoaded(
-      {required this.diary, required this.diaries, required this.protocol});
+      {required this.diary, required this.diaries, required this.study});
 
   @override
-  List<Object> get props => [diary, protocol];
+  List<Object> get props => [diary, study];
 }
 
 final class CompletionError extends CompletionState {

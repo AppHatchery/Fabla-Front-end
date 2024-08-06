@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_goal.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
@@ -25,10 +26,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage>
-    with
-        WidgetsBindingObserver,
-        SingleTickerProviderStateMixin,
-        AutomaticKeepAliveClientMixin {
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   late HomeCubit homeCubit;
   late List<DiaryModel> diaries;
   late List<DiaryModel> calendarDiaries;
@@ -67,11 +65,7 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   Widget build(BuildContext context) {
-    super.build(context);
     return Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -88,8 +82,8 @@ class _HomePageState extends State<HomePage>
               } else if (state is HomeLoading) {
                 return loading();
               } else if (state is HomeLoaded) {
-                return loadedHome(state.diaries, state.startDate,
-                    state.protocol, state.entries);
+                return loadedHome(state.diaries, state.startDate, state.studies,
+                    state.entries);
               } else {
                 return initialHome();
               }
@@ -112,10 +106,14 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget loadedHome(List<DiaryModel> diaries, DateTime startDate,
-      Protocol? protocol, int entries) {
+      List<StudyModel> studies, int entries) {
     final today = DateTime.now();
     // if (isHomeTipClosed.value == false) show4AmTip();
     final weeklyEntries = entries;
+
+    final dairyList = diaries
+        .where((element) => element.status != DiaryStatus.submitted)
+        .toList();
 
     return Scaffold(
         backgroundColor: Colors.transparent,
@@ -141,7 +139,8 @@ class _HomePageState extends State<HomePage>
                     }),
                     child: WeeklyGoalWidget(
                       isExpanded: isExpanded,
-                      weeklyGoal: protocol!.weeklyGoal,
+                      weeklyGoal:
+                          studies.isNotEmpty ? studies.first.goals.weekly : 0,
                       currentEntries: weeklyEntries,
                     ),
                   ),
@@ -152,10 +151,10 @@ class _HomePageState extends State<HomePage>
                             isExpanded = false;
                             _controller.reverse();
                             _controller.addStatusListener(
-                                (status) => _dismissAndShow(status));
+                                (status) => _dismissAndShow(status, studies));
                           });
                         } else {
-                          showStudyCalendar();
+                          showStudyCalendar(studies);
                         }
                       },
                       icon: const Icon(
@@ -202,9 +201,9 @@ class _HomePageState extends State<HomePage>
                             height: 24,
                           ),
                           TodayGoalWidget(
-                            dailyGoal: protocol.dailyGoal,
-                            protocol: protocol,
-                            diary: diaries.first,
+                            dailyGoal: studies.first.goals.daily,
+                            studies: studies,
+                            diaries: diaries,
                             weeklyEntries: weeklyEntries,
                             isHomeTipClosed: isHomeTipClosed,
                           ),
@@ -212,7 +211,7 @@ class _HomePageState extends State<HomePage>
                             height: 24,
                           ),
                           TodaysDiaryList(
-                            diaries: diaries,
+                            diaries: dairyList,
                             refresh: (value) => refresh(value),
                             getPageName: () => "home",
                           )
@@ -228,8 +227,11 @@ class _HomePageState extends State<HomePage>
                     ).animate(CurvedAnimation(
                         parent: _controller, curve: Curves.fastOutSlowIn)),
                     child: WeeklyGoalPopup(
-                      weeklyGoal: protocol.weeklyGoal,
+                      weeklyGoal:
+                          studies.isNotEmpty ? studies.first.goals.weekly : 0,
                       currentEntries: weeklyEntries,
+                      studies: studies,
+                      diaries: diaries,
                     ),
                   ))
             ],
@@ -248,16 +250,16 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  void _dismissAndShow(AnimationStatus status) {
+  void _dismissAndShow(AnimationStatus status, List<StudyModel> studies) {
     if (status == AnimationStatus.dismissed) {
-      showStudyCalendar();
+      showStudyCalendar(studies);
     }
 
     // ignore: invalid_use_of_protected_member
     _controller.clearStatusListeners();
   }
 
-  void showStudyCalendar() {
+  void showStudyCalendar(List<StudyModel> studies) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -269,6 +271,7 @@ class _HomePageState extends State<HomePage>
           minChildSize: 1,
           builder: (context, scrollController) {
             return StudyCalendar(
+              studies: studies,
               refresh: (value) => refresh(value),
               getPageName: () => "calendar",
             );

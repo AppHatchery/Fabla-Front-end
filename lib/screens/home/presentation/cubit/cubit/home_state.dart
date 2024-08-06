@@ -18,12 +18,12 @@ class HomeLoading extends HomeState {
 class HomeLoaded extends HomeState {
   final List<DiaryModel> diaries;
   final DateTime startDate;
-  final Protocol? protocol;
+  final List<StudyModel> studies;
   final int entries;
-  const HomeLoaded(this.diaries, this.startDate, this.protocol, this.entries);
+  const HomeLoaded(this.diaries, this.startDate, this.studies, this.entries);
 
   @override
-  List<Object> get props => [diaries, startDate];
+  List<Object> get props => [diaries, startDate, studies, entries];
 }
 
 class HomeError extends HomeState {

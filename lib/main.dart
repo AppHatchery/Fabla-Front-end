@@ -12,6 +12,7 @@ import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.d
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dynamic/dynamic_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/study_login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -80,8 +81,8 @@ class _MyAppState extends State<MyApp> {
   initState() {
     NotificationService.setListeners();
     _route = widget.route;
-    final repo = SetupRepository();
-    repo.createProtocol();
+    // final repo = SetupRepository();
+    // repo.createProtocol();
     super.initState();
     // initPlatformState();
   }
@@ -101,6 +102,7 @@ class _MyAppState extends State<MyApp> {
                 ),
                 BlocProvider<SummaryCubit>(create: (context) => SummaryCubit()),
                 BlocProvider<LoginCubit>(create: (context) => LoginCubit()),
+                BlocProvider<StudyLoginCubit>(create: (context)=> StudyLoginCubit()),
                 BlocProvider<SetupCubit>(create: (context) => SetupCubit()),
                 BlocProvider<DiaryCubit>(create: (context) => DiaryCubit()),
                 BlocProvider<PromptCubit>(create: (context) => PromptCubit()),

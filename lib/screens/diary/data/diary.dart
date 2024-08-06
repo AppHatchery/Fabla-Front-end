@@ -6,6 +6,7 @@ import 'tag.dart';
 
 class DiaryModel implements Comparable<DiaryModel> {
   final int id;
+  final int studyID;
   List<Tag>? tags;
   DiaryStatus status;
   DateTime due;
@@ -17,6 +18,7 @@ class DiaryModel implements Comparable<DiaryModel> {
 
   DiaryModel({
     required this.id,
+    required this.studyID,
     required this.prompts,
     required this.tags,
     required this.status,
@@ -41,6 +43,7 @@ class DiaryModel implements Comparable<DiaryModel> {
         entity.prompts.map((prompt) => PromptModel.fromEntity(prompt)).toList();
     return DiaryModel(
       id: entity.id,
+      studyID: entity.studyID,
       prompts: _prompts,
       tags: null,
       status: entity.status ?? DiaryStatus.idle,
@@ -52,8 +55,26 @@ class DiaryModel implements Comparable<DiaryModel> {
     );
   }
 
+  factory DiaryModel.fromJson(Map<String, dynamic> json, int studyID) {
+    return DiaryModel(
+      id: 0,
+      studyID: studyID,
+      prompts: (json['questions'] as List)
+          .map((prompt) => PromptModel.fromJson(prompt))
+          .toList(),
+      tags: null,
+      status: DiaryStatus.idle,
+      due: DateTime.parse(json['end_date']),
+      start: DateTime.parse(json['start_date']),
+      entries: json['entries'],
+      currentEntry: 0,
+      end: DateTime.parse(json['end_date']),
+    );
+  }
+
   DiaryModel copyWith(
       {required int id,
+      required int studyID,
       List<PromptModel>? prompts,
       List<Tag>? tags,
       DiaryStatus? status,
@@ -62,6 +83,7 @@ class DiaryModel implements Comparable<DiaryModel> {
       DateTime? start}) {
     return DiaryModel(
       id: id,
+      studyID: studyID,
       prompts: prompts ?? this.prompts,
       tags: tags ?? this.tags,
       status: status ?? this.status,

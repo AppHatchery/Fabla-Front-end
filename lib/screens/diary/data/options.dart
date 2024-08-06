@@ -10,8 +10,8 @@ class Options {
   Options({
     required this.type,
     this.choices,
-    this.startText,
-    this.endText,
+    this.startText = "",
+    this.endText = "",
     this.minValue,
     this.maxValue,
     this.defaultValue,
@@ -22,8 +22,8 @@ class Options {
       type: OptionsType.values[json['type']],
       choices:
           json['choices'] != null ? List<String>.from(json['choices']) : null,
-      startText: json['startText'],
-      endText: json['endText'],
+      startText: json['startText'] ?? "",
+      endText: json['endText'] ?? "",
       minValue: json['minValue'],
       maxValue: json['maxValue'],
       defaultValue: json['defaultValue'],

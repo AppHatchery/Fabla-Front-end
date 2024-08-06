@@ -6,10 +6,20 @@ import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
 
 class VerificationCodeTextField extends StatefulWidget {
+  final String title;
+  final String errorMessage;
+  final String hint;
   final TextEditingController? controller;
+  final TextInputType fieldType;
   final bool error;
   const VerificationCodeTextField(
-      {super.key, this.controller, this.error = false});
+      {super.key,
+      required this.title,
+      required this.errorMessage,
+      required this.hint,
+      this.controller,
+      this.fieldType = TextInputType.number,
+      this.error = false});
 
   @override
   State<VerificationCodeTextField> createState() =>
@@ -24,17 +34,17 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Participant ID",
+          widget.title,
           style: CustomTypography().titleSmall(color: CustomColors.textWhite),
         ),
         const SizedBox(
           height: 6,
         ),
         CustomTextField(
-          keyboardType: TextInputType.number,
+          keyboardType: widget.fieldType,
           controller: widget.controller,
           error: widget.error,
-          hint: "Enter your participant ID...",
+          hint: widget.hint,
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           filled: true,
           borderRadius: BorderRadius.circular(11),
@@ -68,7 +78,7 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
                     ),
                     Flexible(
                       child: Text(
-                        "Oops! We do not have this code in the participant list. Please check your email and try again.",
+                        widget.errorMessage,
                         style: CustomTypography()
                             .bodyLarge(color: CustomColors.warningActive),
                       ),

@@ -27,8 +27,11 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
     int weeklyGoal = widget.weeklyGoal;
     double progressValue = (currentValue / weeklyGoal) * width;
 
-    double progressBarWidth =
-        (progressValue > width) ? width : progressValue;
+    double progressBarWidth = progressValue.isNaN
+        ? 0
+        : (progressValue > width)
+            ? width
+            : progressValue;
     //calculate the lower goal width/value
     int lowerValue = (0.7 * weeklyGoal).round();
     double lowerGoal = (lowerValue / weeklyGoal) * width;
@@ -98,8 +101,8 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
               padding: const EdgeInsets.only(top: 10.0),
               child: Text(
                 "$currentValue/$weeklyGoal",
-                style:
-                    CustomTypography().caption(color: CustomColors.productNormal),
+                style: CustomTypography()
+                    .caption(color: CustomColors.productNormal),
               ),
             )
           ],
