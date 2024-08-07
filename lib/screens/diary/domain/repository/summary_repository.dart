@@ -124,7 +124,9 @@ class SummaryRepository {
         diaryRepository.updateDiary(newDiary);
 
         if (diary.currentEntry + 1 < protocol!.dailyGoal) {
-          dailyGoalNotification(diary.id);
+          cancelContinueNotifications(diary.id);
+          dailyGoalNotification(
+              diary.id, protocol.dailyGoal - (diary.currentEntry + 1));
         } else if (diary.currentEntry + 1 >= diary.entries) {
           cancelAllDiaryNotifications(diary.id);
         }
