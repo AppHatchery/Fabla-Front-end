@@ -148,7 +148,7 @@ void scheduleContinueDiaryNotifications(int id) async {
           title: 'Continue where you left off!',
           body:
               "Looks like you started a diary entry but haven’t finished. Tap here to continue.",
-          date: time);
+          date: time,  payload: {"type": "continue"});
 
       dev.log("Time Scheduled: ${time.hour}:${time.minute}",
           name: "Continue Reminders");
@@ -157,7 +157,7 @@ void scheduleContinueDiaryNotifications(int id) async {
         "status": "scheduled",
         "page": "diary",
         "notification_type": "continue",
-        "reminder_times": "${time.hour}:${time.minute}",
+        "scheduled_time": "${time.hour}:${time.minute}",
       });
     }
 
@@ -211,7 +211,7 @@ void scheduleContinueDiaryNotifications(int id) async {
               title: 'Continue where you left off!',
               body:
                   "Looks like you started a diary entry but haven’t finished. Tap here to continue.",
-              date: time);
+              date: time,  payload: {"type": "continue"});
 
           dev.log("Time Scheduled: ${time.hour}:${time.minute}",
               name: "Continue Reminders");
@@ -220,7 +220,7 @@ void scheduleContinueDiaryNotifications(int id) async {
             "status": "scheduled",
             "page": "diary",
             "notification_type": "continue",
-            "reminder_times": "${time.hour}:${time.minute}",
+            "scheduled_time": "${time.hour}:${time.minute}",
           });
         }
 
@@ -290,7 +290,7 @@ void scheduleSubmitDiaryNotification(int id) async {
           title: 'Your Entry Is Ready for Submission!',
           body:
               "You've completed your entry. Fantastic! Just one more step: hit 'Submit' to share your valuable thoughts.",
-          date: reminderTime);
+          date: reminderTime,  payload: {"type": "submit"});
 
       notifications[id] = [notificationID];
       dev.log("Time Scheduled: ${reminderTime.hour}:${reminderTime.minute}",
@@ -300,7 +300,7 @@ void scheduleSubmitDiaryNotification(int id) async {
         "status": "scheduled",
         "page": "summary",
         "notification_type": "submit",
-        "reminder_times": "${reminderTime.hour}:${reminderTime.minute}",
+        "scheduled_time": "${reminderTime.hour}:${reminderTime.minute}",
       });
 
       final updatedJsonMap = Map<String, dynamic>.fromEntries(notifications
@@ -365,7 +365,7 @@ void dailyGoalNotification(int id, int entriesLeft) async {
         title: 'You are close to your daily goal!',
         body:
             'Hey, you are just $entriesLeft conversation away from your daily goal. Keep it in mind as you wrap up your day and you talk to any staff along the way',
-        date: potential);
+        date: potential,  payload: {"type": "dailygoal"});
 
     dev.log("Time Scheduled: ${potential.hour}:${potential.minute}",
         name: "Daily Goal Reminders");
@@ -456,7 +456,7 @@ void lateAfternoonNotifications(List<DiaryModel> diaries) async {
 
       final id = Random().nextInt(100000);
       await NotificationService.createNotification(
-          id: id, title: title, body: body, date: notificationDate);
+          id: id, title: title, body: body, date: notificationDate,  payload: {"type": "reminder"});
       await PendoService.track("ScheduleReminder", {
         "status": "scheduled",
         "page": "onboarding",
@@ -499,7 +499,7 @@ void lateAfternoonNotifications(List<DiaryModel> diaries) async {
               "Time Scheduled: ${notificationDate.hour}:${notificationDate.minute}",
               name: "Late Afternoon Reminders");
           await NotificationService.createNotification(
-              id: id, title: title, body: body, date: notificationDate);
+              id: id, title: title, body: body, date: notificationDate,  payload: {"type": "reminder"});
           notifications[diaryID]!.add(id);
 
           await PendoService.track("ScheduleReminder", {
@@ -521,7 +521,7 @@ void lateAfternoonNotifications(List<DiaryModel> diaries) async {
 
         final id = Random().nextInt(100000);
         await NotificationService.createNotification(
-            id: id, title: title, body: body, date: notificationDate);
+            id: id, title: title, body: body, date: notificationDate,  payload: {"type": "reminder"});
         dev.log(
             "Time Scheduled Else: ${notificationDate.hour}:${notificationDate.minute}",
             name: "Late Afternoon Reminders");

@@ -482,7 +482,7 @@ class SetupRepository {
             : "Hey there! Just another check-in. Don’t forget to record your thoughts after talking to the staff";
 
         await NotificationService.createNotification(
-            id: id, title: title, body: body, date: notificationDate);
+            id: id, title: title, body: body, date: notificationDate, payload: {"type": "reminder"});
         
         dev.log("Time Scheduled: ${time.hour}:${time.minute}", name: "Create Reminders");
 

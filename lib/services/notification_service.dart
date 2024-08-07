@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 
@@ -45,6 +46,7 @@ class NotificationService {
   static Future<void> setListeners() async =>
       await AwesomeNotifications().setListeners(
           onActionReceivedMethod: onActionReceivedMethod,
+          onNotificationDisplayedMethod: onNotificationDisplayedMethod,
           onDismissActionReceivedMethod: onDismissActionReceivedMethod);
 
   /// Callback method invoked when an action associated with a notification is received.
@@ -63,6 +65,13 @@ class NotificationService {
   @pragma("vm:entry-point")
   static Future<void> onActionReceivedMethod(
       ReceivedAction receivedAction) async {
+    await PendoService.track('ScheduleReminder', {
+      "status": "opened",
+      "page": "N/A",
+      "notification_type": receivedAction.payload?['type'],
+      "scheduled_time":
+          "${receivedAction.displayedDate?.hour}:${receivedAction.displayedDate?.minute}${receivedAction.displayedDate?.timeZoneName}"
+    });
     debugPrint("Payload: ${receivedAction.payload}");
   }
 
@@ -81,7 +90,28 @@ class NotificationService {
   @pragma("vm:entry-point")
   static Future<void> onDismissActionReceivedMethod(
       ReceivedAction receivedAction) async {
+    await PendoService.track('ScheduleReminder', {
+      "status": "dismissed",
+      "page": "N/A",
+      "notification_type": receivedAction.payload?['type'],
+      "scheduled_time":
+          "${receivedAction.displayedDate?.hour}:${receivedAction.displayedDate?.minute}${receivedAction.displayedDate?.timeZoneName}"
+    });
     debugPrint("Notification Dismissed");
+  }
+
+  @pragma("vm:entry-point")
+  static Future<void> onNotificationDisplayedMethod(
+      ReceivedNotification receivedNotification) async {
+    await PendoService.track('ScheduleReminder', {
+      "status": "fired",
+      "page": "N/A",
+      "notification_type": receivedNotification.payload?['type'],
+      "scheduled_time":
+          "${receivedNotification.displayedDate?.hour}:${receivedNotification.displayedDate?.minute}${receivedNotification.displayedDate?.timeZoneName}"
+    });
+    debugPrint(
+        "Notification Displayed with payload: ${receivedNotification.payload}");
   }
 
   /// Creates a notification with the provided title, body, and scheduled date.
