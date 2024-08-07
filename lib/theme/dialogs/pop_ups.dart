@@ -642,7 +642,6 @@ class BottomStudyInfoPopUp extends StatelessWidget {
               ],
             ),
 
-
             const SizedBox(
               height: 12,
             ),
@@ -788,7 +787,6 @@ class BottomStudyInfoPopUp extends StatelessWidget {
               height: 24,
             ),
 
-
             // Time and Completion Rates
             Row(
               children: [
@@ -852,15 +850,6 @@ class BottomStudyInfoPopUp extends StatelessWidget {
                               "On the seventh day, the midpoint of the study, you’ll only have one assessment to complete. You can complete this at any time on this day.",
                           style: CustomTypography().bodyMedium(
                               color: CustomColors.textSecondaryContent)),
-                      // TextSpan(
-                      //   text: "will not be able to submit ",
-                      //   style: CustomTypography()
-                      //       .bodyMedium(weight: FontWeight.bold),
-                      // ),
-                      // TextSpan(
-                      //     text: "unless it is due to technical issues.",
-                      //     style: CustomTypography().bodyMedium(
-                      //         color: CustomColors.textSecondaryContent)),
                     ]),
                   ),
                 ),
@@ -914,11 +903,15 @@ class BottomStudyInfoPopUp extends StatelessWidget {
             const SizedBox(
               height: 12,
             ),
-
-            Text(
-              "Here’s a list to summarize what you’ll be doing each day:",
-              style: CustomTypography()
-                  .bodyMedium(color: CustomColors.textSecondaryContent),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Here’s a list to summarize what you’ll be doing each day:",
+                  style: CustomTypography()
+                      .bodyMedium(color: CustomColors.textSecondaryContent),
+                ),
+              ],
             ),
 
             Column(
@@ -1265,10 +1258,15 @@ class BottomStudyInfoPopUp extends StatelessWidget {
               height: 6,
             ),
 
-            Text(
-              "Incentive will be distributed according to the following structure:",
-              style: CustomTypography()
-                  .bodyMedium(color: CustomColors.textSecondaryContent),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Incentive will be distributed according to the following structure:",
+                  style: CustomTypography()
+                      .bodyMedium(color: CustomColors.textSecondaryContent),
+                ),
+              ],
             ),
 
             Row(

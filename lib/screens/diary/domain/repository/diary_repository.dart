@@ -28,7 +28,7 @@ class DiaryRepository {
   List<Diary> _getAllDiariesEntities() {
     final diaries = _diaryDAO.getAllDiaries();
     final now = DateTime.now();
-    final due = DateTime(now.year, now.month, now.day, 4, 0, 0);
+    final due = DateTime(now.year, now.month, now.day, 23, 59, 0);
     final unSubmittedDiaries = diaries
         .where((diary) => diary.due.isBefore(due))
         .where((element) => element.status != DiaryStatus.submitted)
@@ -50,6 +50,34 @@ class DiaryRepository {
     }
     return diaries;
   }
+
+
+List<Diary> _getAllHomeDiariesEntities() {
+  final diaries = _diaryDAO.getAllDiaries();
+  final now = DateTime.now();
+
+  // Iterate over all diaries to update their statuses based on due dates.
+  for (final diary in diaries) {
+    if (now.isAfter(diary.due)) {
+      // If the diary is past due
+      if (diary.status != DiaryStatus.complete && diary.currentEntry == 0) {
+        diary.status = DiaryStatus.missed;
+      } else if (diary.currentEntry > 0) {
+        diary.status = DiaryStatus.submitted;
+      }
+    }
+    // No else block needed; diaries not past due retain their current status.
+  }
+
+  // Update all diaries in the database after potentially updating their statuses.
+  _diaryDAO.updateDiaries(diaries);
+
+  // Filter out diaries marked as missed from the list to be returned.
+  final filteredDiaries = diaries.where((diary) => diary.status != DiaryStatus.missed).toList();
+
+  return filteredDiaries;
+}
+
 
   /// Retrieves a DiaryEntity object from the data source based on a specified due date.
   /// This function attempts to obtain a DiaryEntity instance by calling the `_diaryDAO.getDiary(due)` method, using the provided due date as a search criterion.
@@ -308,8 +336,8 @@ class DiaryRepository {
   List<DiaryModel> getDiaries(DateTime day) {
     final diaries = _getDiaryEntities(day)
         .where((diary) =>
-            (diary.status != DiaryStatus.submitted &&
-                diary.status != DiaryStatus.missed) 
+                diary.status != DiaryStatus.submitted ||
+                diary.status != DiaryStatus.missed
             //     &&
             // currentTime.isAfter(diary.start) &&
             // currentTime.isBefore(diary.end)

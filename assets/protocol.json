@@ -235,7 +235,7 @@
               "min_text": null,
               "default_value": null,
               "options": [
-                "Completely inappropriate/unclear/confusing[",
+                "Completely inappropriate/unclear/confusing",
                 "Mostly inappropriate/unclear/confusing",
                 "Acceptable but not specific for me. May be inappropriate/unclear/confusing",
                 "Well-targeted, with small issues",
