@@ -94,6 +94,102 @@ void cancelContinueNotifications(int id) async {
   }
 }
 
+/// cancels all scheduled ema notifications for a specific diary with the given [id].
+void cancelEmaNotifications(int id) async {
+  final source =
+      await PreferenceService().getStringPreference(key: 'ema_reminders');
+
+  if (source == null) {
+    return;
+  }
+
+  Map<String, dynamic> jsonMap = json.decode(source);
+  final Map<int, List<int>> notifications = jsonMap.map(
+    (key, value) => MapEntry(int.parse(key), List<int>.from(value)),
+  );
+
+  final notificationsForId = notifications[id];
+
+  if (notificationsForId != null) {
+    for (int notification in notificationsForId) {
+      await NotificationService.cancelNotification(notification);
+    }
+
+    notifications[id] = [];
+
+    Map<String, dynamic> jsonMap = notifications.map(
+      (key, value) => MapEntry(key.toString(), value),
+    );
+    final encoded = json.encode(jsonMap);
+    await PreferenceService()
+        .setStringPreference(key: 'ema_reminders', value: encoded);
+  }
+}
+
+/// cancels all scheduled daily notifications for a specific diary with the given [id].
+void cancelDailyNotifications(int id) async {
+  final source =
+      await PreferenceService().getStringPreference(key: 'daily_reminders');
+
+  if (source == null) {
+    return;
+  }
+  Map<String, dynamic> jsonMap = json.decode(source);
+  final Map<int, List<int>> notifications = jsonMap.map(
+    (key, value) => MapEntry(int.parse(key), List<int>.from(value)),
+  );
+
+  final notificationsForId = notifications[id];
+
+  if (notificationsForId != null) {
+    for (int notification in notificationsForId) {
+      await NotificationService.cancelNotification(notification);
+    }
+
+    notifications[id] = [];
+
+    Map<String, dynamic> jsonMap = notifications.map(
+      (key, value) => MapEntry(key.toString(), value),
+    );
+    final encoded = json.encode(jsonMap);
+    await PreferenceService()
+        .setStringPreference(key: 'daily_reminders', value: encoded);
+  }
+}
+
+/// cancels all scheduled survey notifications for a specific diary with the given [id].
+void cancelSurveyNotifications(int id) async {
+  final source =
+      await PreferenceService().getStringPreference(key: 'survey_reminders');
+
+  if (source == null) {
+    return;
+  }
+
+  Map<String, dynamic> jsonMap = json.decode(source);
+  final Map<int, List<int>> notifications = jsonMap.map(
+    (key, value) => MapEntry(int.parse(key), List<int>.from(value)),
+  );
+
+  final notificationsForId = notifications[id];
+
+  if (notificationsForId != null) {
+    for (int notification in notificationsForId) {
+      await NotificationService.cancelNotification(notification);
+    }
+
+    notifications[id] = [];
+
+    Map<String, dynamic> jsonMap = notifications.map(
+      (key, value) => MapEntry(key.toString(), value),
+    );
+    final encoded = json.encode(jsonMap);
+    await PreferenceService()
+        .setStringPreference(key: 'survey_reminders', value: encoded);
+  }
+}
+
+
 /// Schedules or reschedules a "Continue Diary" notification for a specific diary with the given [id].
 ///
 /// This function is responsible for scheduling or rescheduling a "Continue Diary" notification for a

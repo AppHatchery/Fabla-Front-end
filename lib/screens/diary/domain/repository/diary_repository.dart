@@ -175,7 +175,6 @@ class DiaryRepository {
         }
       }
     }
-
     // Sort all processed diaries
     diaries.sort();
 
@@ -307,9 +306,8 @@ class DiaryRepository {
 
   List<DiaryModel> getDiaries(DateTime day) {
     final diaries = _getDiaryEntities(day)
-        .where((diary) =>
-            (diary.status != DiaryStatus.submitted &&
-                diary.status != DiaryStatus.missed) 
+        .where((diary) => (diary.status != DiaryStatus.submitted &&
+                diary.status != DiaryStatus.missed)
             //     &&
             // currentTime.isAfter(diary.start) &&
             // currentTime.isBefore(diary.end)
@@ -329,6 +327,25 @@ class DiaryRepository {
       return Protocol.fromEntity(protocol);
     }
     return null;
+  }
+
+  
+// get ema diaries
+  List<DiaryModel> getEMADiaries() {
+    final allDiaries = getAllDiaries();
+    return allDiaries.where((diary) => diary.type == DiaryTypes.ema).toList();
+  }
+
+//get daily diaries
+  List<DiaryModel> getDiariesDaily() {
+    final allDiaries = getAllDiaries();
+    return allDiaries.where((diary) => diary.type == DiaryTypes.daily).toList();
+  }
+
+ // get survey diaries
+  List<DiaryModel> getSurveyDiaries() {
+    final allDiaries = getAllDiaries();
+    return allDiaries.where((diary) => diary.type == DiaryTypes.survey).toList();
   }
 
   /// Retrieves the total number of diary entries within a specified date range.

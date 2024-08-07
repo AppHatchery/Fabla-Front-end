@@ -1,4 +1,6 @@
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 
 import '../domain/entities/diary_entity.dart';
 import 'prompt.dart';
@@ -14,18 +16,19 @@ class DiaryModel implements Comparable<DiaryModel> {
   final int entries;
   final int currentEntry;
   final List<PromptModel> prompts;
+  final DiaryTypes type;
 
-  DiaryModel({
-    required this.id,
-    required this.prompts,
-    required this.tags,
-    required this.status,
-    required this.due,
-    required this.start,
-    required this.entries,
-    required this.currentEntry,
-    required this.end,
-  });
+  DiaryModel(
+      {required this.id,
+      required this.prompts,
+      required this.tags,
+      required this.status,
+      required this.due,
+      required this.start,
+      required this.entries,
+      required this.currentEntry,
+      required this.end,
+      required this.type});
 
   /// Factory constructor that creates a Diary object from a DiaryEntity.
   /// This function generates a Diary instance using data from a provided DiaryEntity object.
@@ -49,12 +52,31 @@ class DiaryModel implements Comparable<DiaryModel> {
       entries: entity.entries,
       currentEntry: entity.currentEntry,
       end: entity.end,
+      type: entity.type ?? DiaryTypes.ema,
+    );
+  }
+
+  factory DiaryModel.fromJson(dynamic json) {
+    return DiaryModel(
+      id: 0,
+      type: diaryTypeString(json['type']),
+      prompts: List<dynamic>.from(json['questions'])
+          .map((question) => PromptModel.fromJson(question))
+          .toList(),
+      tags: null,
+      status: DiaryStatus.idle,
+      due: DateTime.parse(json['end_time']),
+      start: DateTime.parse(json['start_time']),
+      entries: json['entries'] ?? 1,
+      currentEntry: 0,
+      end: DateTime.parse(json['end_time']),
     );
   }
 
   DiaryModel copyWith(
       {required int id,
       List<PromptModel>? prompts,
+      DiaryTypes? type,
       List<Tag>? tags,
       DiaryStatus? status,
       DateTime? due,
@@ -63,6 +85,7 @@ class DiaryModel implements Comparable<DiaryModel> {
     return DiaryModel(
       id: id,
       prompts: prompts ?? this.prompts,
+      type: type ?? this.type,
       tags: tags ?? this.tags,
       status: status ?? this.status,
       due: due ?? this.due,

@@ -37,7 +37,6 @@ class HomeCubit extends Cubit<HomeState> {
     //final due = DateTime(today.year, today.month, today.day, 23, 59, 59);
     String? studyCode = setupRepository.getParticipant()?.studyCode;
     bool showWidget = false;
-  
 
     final source =
         await PreferenceService().getStringPreference(key: 'futureDate');
