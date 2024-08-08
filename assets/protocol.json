@@ -1,80 +1,790 @@
-{
-  "version": 1,
-  "daily_goal": 3,
-  "weekly_goal": 15,
-  "diaries": [
-    {
-      "type": "Daily",
-      "questions": [
+{  
+      "weekly_goal": 10,
+      "daily_goal": 3,
+      "phase": [
         {
-          "type": "multiple",
-          "title": "How long was this encounter?",
-          "subtitle": null,
-          "required": true,
-          "max_value": null,
-          "min_value": null,
-          "default_value": null,
-          "options": [
-            "Less than 1 minute",
-            "1 - 5 minutes",
-            "10 - 20 minutes",
-            "20 - 40 minutes",
-            "More than 40 minutes"
-          ]
-        },
-        {
-          "type": "multiple",
-          "title": "What role was the staff member who was the primary recipient of care?",
-          "subtitle": null,
-          "required": true,
-          "max_value": null,
-          "min_value": null,
-          "default_value": null,
-          "options": [
-            "Nurse",
-            "Medical assistant",
-            "Respiratory therapist",
-            "Front desk staff",
-            "Physician",
-            "Advanced practice provider",
-            "Scheduler",
-            "Medical interpreter",
-            "Social worker",
-            "Environmental services staff",
-            "Dietitian",
-            "Cafeteria staff",
-            "Administration",
-            "Other"
-          ]
-        },
-        {
-          "type": "multiple",
-          "title": "Who initiated the encounter?",
-          "subtitle": null,
-          "required": true,
-          "max_value": null,
-          "min_value": null,
-          "default_value": null,
-          "options": ["CCSH™ Fellow", "Staff member", "Other"]
-        },
-        {
-          "type": "audio",
-          "title": "Talk to us about the staff encounter you just had, as though you were sharing with a colleague.",
-          "subtitle": "We are interested in hearing about (1) What was the PRIMARY CONCERN of the staff member, (2) What happened during the encounter, or what CCSH interventions you delivered, and (3) How you would describe the OUTCOME of the encounter.",
-          "required": true,
-          "max_value": null,
-          "min_value": null,
-          "default_value": null,
-          "options": null
-        }
-      ],
-      "start_date": "2024-07-15T00:00:00.000Z",
-      "end_date": "2024-09-15T00:00:00.000Z",
-      "start_time": "00:00",
-      "end_time": "23:59",
-      "frequency": 1,
-      "active_days": [1, 2, 3, 4, 5],
-      "entries": 100
+        "duration": 6,
+        "diaries": [
+            {
+              "type": "ema|survey",
+              "start_time": "10:00",
+              "end_time": "12:00",
+			        "entries": 1,
+	          "frequency": "Daily", 
+              "question": [
+                {
+                "type": "text",
+              "title": "What describes the location where you are RIGHT NOW? (e.g., work, school, home, restaurant, etc.) For your privacy please do NOT give your exact location",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": []
+            },
+            {
+              "type": "text",
+              "title": "Just before you got this survey what were you doing? (e.g., “watching TV”, “eating lunch”, etc.)",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": []
+            },
+            {
+              "type": "slider",
+              "title": "Agree or disagree: My current activity is one that I’d typically be doing at this time of day, this day of the week. ",
+              "subtitle": null,
+              "required": true,
+              "max_value": 10,
+              "max_text": "strongly agree",
+              "min_value": 0,
+              "min_text": "strongly disagree",
+              "default_value": 5,
+              "options": []
+              }
+             ]
+          },
+          {
+            "type": "ema|survey",
+            "start_time": "14:00",
+            "end_time": "16:00",
+            "entries": 1,
+	       "frequency": "Daily",
+            "question": [
+              {
+              "type": "text",
+              "title": "What describes the location where you are RIGHT NOW? (e.g., work, school, home, restaurant, etc.) For your privacy please do NOT give your exact location",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": []
+            },
+            {
+              "type": "text",
+              "title": "Just before you got this survey what were you doing? (e.g., “watching TV”, “eating lunch”, etc.)",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": []
+            },
+            {
+              "type": "slider",
+              "title": "Agree or disagree: My current activity is one that I’d typically be doing at this time of day, this day of the week. ",
+              "subtitle": null,
+              "required": true,
+              "max_value": 10,
+              "max_text": "strongly agree",
+              "min_value": 0,
+              "min_text": "strongly disagree",
+              "default_value": 5,
+              "options": []
+            }
+            ]
+          },
+          {
+            "type": "daily",
+            "start_time": "18:00",
+            "end_time": "23:59",
+            "entries": 1,
+	       "frequency": "Daily",
+            "question": [
+              {
+              "type": "text",
+              "title": "What describes the location where you are RIGHT NOW? (e.g., work, school, home, restaurant, etc.) For your privacy please do NOT give your exact location",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": []
+            },
+            {
+              "type": "text",
+              "title": "Just before you got this survey what were you doing? (e.g., “watching TV”, “eating lunch”, etc.)",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": []
+            },
+            {
+              "type": "slider",
+              "title": "Agree or disagree: My current activity is one that I’d typically be doing at this time of day, this day of the week. ",
+              "subtitle": null,
+              "required": true,
+              "max_value": 10,
+              "max_text": "strongly agree",
+              "min_value": 0,
+              "min_text": "strongly disagree",
+              "default_value": 5,
+              "options": []
+            },
+            {
+              "type": "audio",
+              "title": "Talk about your day today",
+              "subtitle": "Please try to talk without stopping for about 3-5 minutes. Talk about whatever comes to your mind, as if you were sharing with a friend. Do not worry about pauses, stutters, or having the right things to say. We are interested in anything about your experience today that you are willing to share.",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": []
+            }
+            ]
+          }
+        ]
+      },
+ {
+        "duration": 1,
+        "diaries": [
+          {
+            "type": "survey",
+            "start_time": "00:00",
+            "end_time": "23:59",
+            "entries": 1,
+	       "frequency": "Daily",
+            "question": [
+              {
+              "type": "radio",
+              "title": "Is the app fun/entertaining to use?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "Dull, not fun or entertaining at all",
+                "Mostly boring",
+                "OK, fun enough to entertain me for a brief time (< 5 minutes)",
+                "Moderately fun and entertaining, would entertain me for some time (5-10 minutes total)",
+                "Highly entertaining and fun, would stimulate repeat use"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "Is the app interesting to use?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "Not interesting at all",
+                "Mostly uninteresting",
+                "OK, neither interesting nor uninteresting; would engage me for a brief time (< 5 minutes)",
+                "Moderately interesting; would engage me for some time (5-10 minutes total)",
+                "Very interesting, would engage user in repeat use"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "Does the app provide/retain all necessary settings/preferences for apps features (e.g. sound, content, notifications, etc.)?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "Does not allow any customization or requires setting to be input every time",
+                "Allows insufficient customization limiting functions",
+                "Allows basic customization to function adequately",
+                "Allows numerous options for customization",
+                "Allows complete tailoring to my characteristics/preferences, retains all settings"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "Does the app allow user input, provide feedback, contain prompts (reminders, sharing options, notifications)? Note: these functions need to be customizable and not overwhelming in order to be perfect.",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "No interactive features and/or no response to user interaction",
+                "Insufficient interactivity, or feedback, or user input options, limiting functions",
+                "Basic interactive features to function adequately",
+                "Offers a variety of interactive features/feedback/user input options",
+                "Very high level of responsiveness through interactive features/feedback/user input options"
+              ]
+              },
+               {
+              "type": "radio",
+              "title": "Is the app content (visual information, language, design) appropriate for you?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "Completely inappropriate/unclear/confusing",
+                "Mostly inappropriate/unclear/confusing",
+                "Acceptable but not specific for me. May be inappropriate/unclear/confusing",
+                "Well-targeted, with small issues",
+                "Perfectly appropriate, no issues found"
+              ]
+              },
+               {
+              "type": "radio",
+              "title": "How accurately/fast do the app features (functions) and components (buttons/menus) work?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "App is broken; no/insufficient/inaccurate response (e.g. crashes/bugs/broken features, etc.)",
+                "Some functions work, but lagging or contains major technical problems",
+                "App works overall. Some technical problems need fixing/Slow at times",
+                "Mostly functional with minor/negligible problems",
+                "Perfect/timely response; no technical bugs found/contains a ‘loading time left’ indicator"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "How easy is it to learn how to use the app; how clear are the menu labels/icons and instructions?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "No/limited instructions; menu labels/icons are confusing; complicated",
+                "Usable after a lot of time/effort",
+                "Usable after some time/effort",
+                "Easy to learn how to use the app (or has clear instructions)",
+                "Able to use app immediately; intuitive; simple"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "Navigation: Is moving between screens logical/accurate/appropriate/ uninterrupted; are all necessary screen links present?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "Different sections within the app seem logically disconnected and random/confusing/navigation is difficult",
+                "Usable after a lot of time/effort",
+                "Usable after some time/effort",
+                "Easy to use or missing a negligible link",
+                "Perfectly logical, easy, clear and intuitive screen flow throughout, or offers shortcuts"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "Are interactions (taps/swipes/pinches/scrolls) consistent and intuitive across all components/screens?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "Completely inconsistent/confusing",
+                "Often inconsistent/confusing",
+                "OK with some inconsistencies/confusing elements",
+                "Mostly consistent/intuitive with negligible problems",
+                "Perfectly consistent and intuitive"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "How high is the quality/resolution of graphics used for buttons/icons/menus/content?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "Graphics appear amateur, very poor visual design - disproportionate, completely stylistically inconsistent",
+                "Low quality/low resolution graphics; low quality visual design – disproportionate, stylistically inconsistent",
+                "Moderate quality graphics and visual design (generally consistent in style)",
+                "High quality/resolution graphics and visual design – mostly proportionate, stylistically consistent",
+                "Very high quality/resolution graphics and visual design - proportionate, stylistically consistent throughout"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "How good does the app look?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "No visual appeal, unpleasant to look at, poorly designed, clashing/mismatched colors",
+                "Little visual appeal – poorly designed, bad use of color, visually boring",
+                "Some visual appeal – average, neither pleasant, nor unpleasant",
+                "High level of visual appeal – seamless graphics – consistent and professionally designed",
+                "As above + very attractive, memorable, stands out; use of color enhances app features/menus"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "How much incentive total can you earn from this study?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "$20",
+                "$30",
+                "$40",
+                "$50",
+                "I’m not sure"
+              ]
+              }
+            
+            ]
+          },
+          {
+            "type": "daily",
+            "start_time": "00:00",
+            "end_time": "23:59",
+            "entries": 1,
+	       "frequency": "Daily",
+            "question": [
+            {
+              "type": "audio",
+              "title": "Talk about your experiences using Fabla to take surveys and record diaries. In particular, we’d like to hear about your thoughts and feelings about the ghost virtual assistant and aesthetic design of the app.",
+              "subtitle": "Please try to talk without stopping for about 3-5 minutes. Talk about whatever comes to your mind, as if you were sharing with a friend. Do not worry about pauses, stutters, or having the right things to say. We are interested in anything about your experience today that you are willing to share.",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": []
+            }
+            ]
+          }
+        ]
+      },
+      {
+        "duration": 6,
+        "diaries": [
+          {
+              "type": "ema|survey",
+              "start_time": "10:00",
+              "end_time": "12:00",
+			"entries": 1,
+	          "frequency": "Daily", 
+              "question": [
+                {
+                "type": "text",
+              "title": "What describes the location where you are RIGHT NOW? (e.g., work, school, home, restaurant, etc.) For your privacy please do NOT give your exact location",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": []
+            },
+            {
+              "type": "text",
+              "title": "Just before you got this survey what were you doing? (e.g., “watching TV”, “eating lunch”, etc.)",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": []
+            },
+            {
+              "type": "slider",
+              "title": "Agree or disagree: My current activity is one that I’d typically be doing at this time of day, this day of the week. ",
+              "subtitle": null,
+              "required": true,
+              "max_value": 10,
+              "max_text": "strongly agree",
+              "min_value": 0,
+              "min_text": "strongly disagree",
+              "default_value": 5,
+              "options": []
+              }
+             ]
+          },
+          {
+            "type": "ema|survey",
+            "start_time": "14:00",
+            "end_time": "16:00",
+            "entries": 1,
+	       "frequency": "Daily",
+            "question": [
+              {
+              "type": "text",
+              "title": "What describes the location where you are RIGHT NOW? (e.g., work, school, home, restaurant, etc.) For your privacy please do NOT give your exact location",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": []
+            },
+            {
+              "type": "text",
+              "title": "Just before you got this survey what were you doing? (e.g., “watching TV”, “eating lunch”, etc.)",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": []
+            },
+            {
+              "type": "slider",
+              "title": "Agree or disagree: My current activity is one that I’d typically be doing at this time of day, this day of the week. ",
+              "subtitle": null,
+              "required": true,
+              "max_value": 10,
+              "max_text": "strongly agree",
+              "min_value": 0,
+              "min_text": "strongly disagree",
+              "default_value": 5,
+              "options": []
+            }
+            ]
+          },
+          {
+            "type": "daily",
+            "start_time": "18:00",
+            "end_time": "23:59",
+            "entries": 1,
+	       "frequency": "Daily",
+            "question": [
+                {
+              "type": "text",
+              "title": "What describes the location where you are RIGHT NOW? (e.g., work, school, home, restaurant, etc.) For your privacy please do NOT give your exact location",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": []
+            },
+            {
+              "type": "text",
+              "title": "Just before you got this survey what were you doing? (e.g., “watching TV”, “eating lunch”, etc.)",
+              "subtitle": null,
+              "required": true,
+              "max_value": null,
+              "min_value": null,
+              "default_value": null,
+              "options": []
+            },
+            {
+              "type": "slider",
+              "title": "Agree or disagree: My current activity is one that I’d typically be doing at this time of day, this day of the week. ",
+              "subtitle": null,
+              "required": true,
+              "max_value": 10,
+              "max_text": "strongly agree",
+              "min_value": 0,
+              "min_text": "strongly disagree",
+              "default_value": 5,
+              "options": []
+            },
+            {
+              "type": "audio",
+              "title": "Talk about your day today",
+              "subtitle": "Please try to talk without stopping for about 3-5 minutes. Talk about whatever comes to your mind, as if you were sharing with a friend. Do not worry about pauses, stutters, or having the right things to say. We are interested in anything about your experience today that you are willing to share.",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": []
+            }
+            ]
+          }
+        ]
+      },
+ {
+        "duration": 1,
+        "diaries": [
+          {
+            "type": "survey",
+            "start_time": "00:00",
+            "end_time": "23:59",
+            "entries": 1,
+	       "frequency": "Daily",
+            "question": [
+              {
+              "type": "radio",
+              "title": "Is the app fun/entertaining to use?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "Dull, not fun or entertaining at all",
+                "Mostly boring",
+                "OK, fun enough to entertain me for a brief time (< 5 minutes)",
+                "Moderately fun and entertaining, would entertain me for some time (5-10 minutes total)",
+                "Highly entertaining and fun, would stimulate repeat use"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "Is the app interesting to use?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "Not interesting at all",
+                "Mostly uninteresting",
+                "OK, neither interesting nor uninteresting; would engage me for a brief time (< 5 minutes)",
+                "Moderately interesting; would engage me for some time (5-10 minutes total)",
+                "Very interesting, would engage user in repeat use"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "Does the app provide/retain all necessary settings/preferences for apps features (e.g. sound, content, notifications, etc.)?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "Does not allow any customization or requires setting to be input every time",
+                "Allows insufficient customization limiting functions",
+                "Allows basic customization to function adequately",
+                "Allows numerous options for customization",
+                "Allows complete tailoring to my characteristics/preferences, retains all settings"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "Does the app allow user input, provide feedback, contain prompts (reminders, sharing options, notifications)? Note: these functions need to be customizable and not overwhelming in order to be perfect.",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "No interactive features and/or no response to user interaction",
+                "Insufficient interactivity, or feedback, or user input options, limiting functions",
+                "Basic interactive features to function adequately",
+                "Offers a variety of interactive features/feedback/user input options",
+                "Very high level of responsiveness through interactive features/feedback/user input options"
+              ]
+              },
+               {
+              "type": "radio",
+              "title": "Is the app content (visual information, language, design) appropriate for you?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "Completely inappropriate/unclear/confusing[",
+                "Mostly inappropriate/unclear/confusing",
+                "Acceptable but not specific for me. May be inappropriate/unclear/confusing",
+                "Well-targeted, with small issues",
+                "Perfectly appropriate, no issues found"
+              ]
+              },
+               {
+              "type": "radio",
+              "title": "How accurately/fast do the app features (functions) and components (buttons/menus) work?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "App is broken; no/insufficient/inaccurate response (e.g. crashes/bugs/broken features, etc.)",
+                "Some functions work, but lagging or contains major technical problems",
+                "App works overall. Some technical problems need fixing/Slow at times",
+                "Mostly functional with minor/negligible problems",
+                "Perfect/timely response; no technical bugs found/contains a ‘loading time left’ indicator"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "How easy is it to learn how to use the app; how clear are the menu labels/icons and instructions?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "No/limited instructions; menu labels/icons are confusing; complicated",
+                "Usable after a lot of time/effort",
+                "Usable after some time/effort",
+                "Easy to learn how to use the app (or has clear instructions)",
+                "Able to use app immediately; intuitive; simple"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "Navigation: Is moving between screens logical/accurate/appropriate/ uninterrupted; are all necessary screen links present?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "Different sections within the app seem logically disconnected and random/confusing/navigation is difficult",
+                "Usable after a lot of time/effort",
+                "Usable after some time/effort",
+                "Easy to use or missing a negligible link",
+                "Perfectly logical, easy, clear and intuitive screen flow throughout, or offers shortcuts"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "Are interactions (taps/swipes/pinches/scrolls) consistent and intuitive across all components/screens?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "Completely inconsistent/confusing",
+                "Often inconsistent/confusing",
+                "OK with some inconsistencies/confusing elements",
+                "Mostly consistent/intuitive with negligible problems",
+                "Perfectly consistent and intuitive"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "How high is the quality/resolution of graphics used for buttons/icons/menus/content?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "Graphics appear amateur, very poor visual design - disproportionate, completely stylistically inconsistent",
+                "Low quality/low resolution graphics; low quality visual design – disproportionate, stylistically inconsistent",
+                "Moderate quality graphics and visual design (generally consistent in style)",
+                "High quality/resolution graphics and visual design – mostly proportionate, stylistically consistent",
+                "Very high quality/resolution graphics and visual design - proportionate, stylistically consistent throughout"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "How good does the app look?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "No visual appeal, unpleasant to look at, poorly designed, clashing/mismatched colors",
+                "Little visual appeal – poorly designed, bad use of color, visually boring",
+                "Some visual appeal – average, neither pleasant, nor unpleasant",
+                "High level of visual appeal – seamless graphics – consistent and professionally designed",
+                "As above + very attractive, memorable, stands out; use of color enhances app features/menus"
+              ]
+              },
+              {
+              "type": "radio",
+              "title": "How much incentive total can you earn from this study?",
+              "subtitle": "Please choose 1 option:",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": [
+                "$20",
+                "$30",
+                "$40",
+                "$50",
+                "I’m not sure"
+              ]
+              }
+            
+            ]
+          },
+          {
+            "type": "daily",
+            "start_time": "00:00",
+            "end_time": "23:59",
+            "entries": 1,
+	       "frequency": "Daily",
+            "question": [
+            {
+              "type": "audio",
+              "title": "Talk about your experiences using Fabla to take surveys and record diaries. In particular, we’d like to hear about your thoughts and feelings about the ghost virtual assistant and aesthetic design of the app.",
+              "subtitle": "Please try to talk without stopping for about 3-5 minutes. Talk about whatever comes to your mind, as if you were sharing with a friend. Do not worry about pauses, stutters, or having the right things to say. We are interested in anything about your experience today that you are willing to share.",
+              "required": true,
+              "max_value": null,
+              "max_text": null,
+              "min_value": null,
+              "min_text": null,
+              "default_value": null,
+              "options": []
+            }
+            ]
+          }
+        ]
+      }
+    ]
     }
-  ]
-}

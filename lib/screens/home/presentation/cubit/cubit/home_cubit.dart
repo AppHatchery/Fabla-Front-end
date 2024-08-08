@@ -29,10 +29,12 @@ class HomeCubit extends Cubit<HomeState> {
   /// Returns:
   /// A Future indicating that the operation may be asynchronous and requires awaiting.
   ///
+  ///
+  ///
   Future<void> loadDiaries() async {
     final today = DateTime.now();
     final start = DateTime(today.year, today.month, today.day, 0, 0, 0);
-    final due = DateTime(today.year, today.month, today.day, 23, 59, 59);
+    //final due = DateTime(today.year, today.month, today.day, 23, 59, 59);
     String? studyCode = setupRepository.getParticipant()?.studyCode;
     bool showWidget = false;
 
@@ -45,12 +47,15 @@ class HomeCubit extends Cubit<HomeState> {
         .subtract(Duration(days: today.weekday - 1));
     final sunday = monday.add(const Duration(days: 6));
 
-    // TODO: Uncomment this code when the start date is implemented and add end date as well
-    // final startDate = DateTime.fromMillisecondsSinceEpoch(
-    //     await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
     try {
       emit(const HomeLoading());
-      final diary = repository.getDiary(start, due);
+      final diaries = repository.getDiaries(start);
+      //print diaries
+      diaries.forEach((diary) {
+        print("Diary ID: ${diary.id}, Start Time: ${diary.start}");
+        print("Diary ID: ${diary.id}, Start Time: ${diary.end}");
+        print("Diary ID: ${diary.id}, Start Time: ${diary.status}");
+      });
       final protocol = repository.getProtocol();
       final entries = repository.getTotalEntries(
           monday.subtract(const Duration(days: 1)),
@@ -66,14 +71,13 @@ class HomeCubit extends Cubit<HomeState> {
         showWidget = true;
       }
 
-      if (diary != null) {
-        final updated = diary.copyWith(id: diary.id, tags: null);
-        final protocolUpdated = protocol?.copyWith(version: protocol.version);
-        emit(
-            HomeLoaded([updated], start, protocolUpdated, entries, showWidget));
-      } else {
-        emit(HomeLoaded(const [], start, protocol, entries, showWidget));
-      }
+      final activeDiaries = diaries.where((diary) => diary.status != DiaryStatus.missed).toList();
+
+      final updated = diaries
+          .map((diary) => diary.copyWith(id: diary.id, tags: null))
+          .toList();
+      final protocolUpdated = protocol?.copyWith(version: protocol.version);
+      emit(HomeLoaded(updated, start, protocolUpdated, entries, showWidget));
     } catch (e) {
       emit(const HomeError("Something went wrong"));
     }

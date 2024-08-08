@@ -27,8 +27,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with
         WidgetsBindingObserver,
-        SingleTickerProviderStateMixin,
-        AutomaticKeepAliveClientMixin {
+        SingleTickerProviderStateMixin{
   late HomeCubit homeCubit;
   late List<DiaryModel> diaries;
   late List<DiaryModel> calendarDiaries;
@@ -52,7 +51,14 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
+  dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override                  
+  didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       fetchData(context);
     }
@@ -60,18 +66,11 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
+   // super.build(context);
     return Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -96,7 +95,6 @@ class _HomePageState extends State<HomePage>
             }));
   }
 
-//
   Widget loading() {
     return const Scaffold(
         body: Center(
@@ -240,8 +238,13 @@ class _HomePageState extends State<HomePage>
   }
 
   void fetchData(BuildContext context) async {
+    print("homeeeeeeeeeeeeeeeeeeefetch");
     homeCubit.loadDiaries();
     diaries = homeCubit.getAllDiariesThisWeek();
+  }
+
+  Future<void> loadDiariesAsync() async {
+    await homeCubit.loadDiaries();
   }
 
   void refresh(bool shouldRefresh) {
