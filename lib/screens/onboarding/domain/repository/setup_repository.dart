@@ -18,7 +18,6 @@ import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entit
 // import 'package:audio_diaries_flutter/models/UserMetadataDev.dart';
 
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
-import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -517,8 +516,6 @@ class SetupRepository {
   //   }
   // }
 
-
-
   void diaryNotifications() async {
     DiaryRepository diaryRepository = DiaryRepository();
     final emaDiaries = diaryRepository.getEMADiaries();
@@ -527,6 +524,7 @@ class SetupRepository {
     final theLastDay =
         await PreferenceService().getStringPreference(key: 'lastDay');
     final lastDay = DateTime.parse(theLastDay!);
+
 
     Map<int, List<int>> emaReminders = {};
     Map<int, List<int>> dailyReminders = {};
@@ -566,92 +564,94 @@ class SetupRepository {
         final notificationID = Random().nextInt(100000);
         await NotificationService.createNotification(
             id: notificationID, title: title, body: body, date: time);
-       
+        notificationIds.add(notificationID);
       }
       emaReminders[diaryId] = notificationIds;
+      final encoded = json.encode(
+          emaReminders.map((key, value) => MapEntry(key.toString(), value)));
+      await PreferenceService()
+          .setStringPreference(key: 'ema_reminders', value: encoded);
     }
-    final encoded = json.encode(
-        emaReminders.map((key, value) => MapEntry(key.toString(), value)));
-    await PreferenceService()
-        .setStringPreference(key: 'ema_reminders', value: encoded);
 
     ///DAILY NOTIFICATIONS
     for (final diary in dailyDiary) {
-      final diaryId = diary.id;
+      final dailyDiaryId = diary.id;
       final startTime = diary.start;
       final endTime = diary.end;
 
-      final startNotificationTime = startTime;
+      final dailyStartNotificationTime = startTime;
       final endNotificationTime = endTime.subtract(const Duration(hours: 1));
 
-      List<int> notificationIds = [];
-      for (final time in [startNotificationTime, endNotificationTime]) {
+      List<int> dailyNotificationIds = [];
+      for (final time in [dailyStartNotificationTime, endNotificationTime]) {
         String title;
-        String body;
-        if (time == startNotificationTime) {
+        String bodyDaily;
+        if (time == dailyStartNotificationTime) {
           title = "Keep Going on Your Diary Journey!";
-          body =
+          bodyDaily =
               "Hey there, it's time to complete your Daily Diary, grab a few minutes to record about your day";
         } else {
           title = "Let's Get Started on Your Diary!";
-          body =
+          bodyDaily =
               "Hey there, there's still time to complete your diary, this is the last submission of today and you still have time to meet your goals, take 5 minutes and hop on";
         }
-        final notificationId = Random().nextInt(100000);
+        final dailyNotificationId = Random().nextInt(100000);
         await NotificationService.createNotification(
-          id: notificationId,
+          id: dailyNotificationId,
           title: title,
-          body: body,
+          body: bodyDaily,
           date: time,
         );
-        notificationIds.add(notificationId);
+        dailyNotificationIds.add(dailyNotificationId);
       }
-      dailyReminders[diaryId] = notificationIds;
+      dailyReminders[dailyDiaryId] = dailyNotificationIds;
+      final encodedDaily = json.encode(
+          dailyReminders.map((key, value) => MapEntry(key.toString(), value)));
+      await PreferenceService()
+          .setStringPreference(key: 'daily_reminders', value: encodedDaily);
     }
-
-    final encodedDaily = json.encode(
-        dailyReminders.map((key, value) => MapEntry(key.toString(), value)));
-    await PreferenceService()
-        .setStringPreference(key: 'daily_reminders', value: encodedDaily);
 
     ///SURVEY NOTIFICATIONS
     for (final diary in surveyDiary) {
       final diaryId = diary.id;
       final startDate = diary.start;
 
-      final midDay = DateTime(startDate.year, startDate.month, startDate.day, 12);
-      final sixPM = DateTime(startDate.year, startDate.month, startDate.day, 18);
+      final midDay =
+          DateTime(startDate.year, startDate.month, startDate.day, 12);
+      final sixPM =
+          DateTime(startDate.year, startDate.month, startDate.day, 18);
 
-      List<int> notificationIds = [];
+      List<int> surveyNotificationIds = [];
       for (final time in [midDay, sixPM]) {
-        String title;
-        String body;
+        String surveyTitle;
+        String surveyBody;
         String assessmentType = startDate == lastDay ? "Final" : "Mid-point";
         if (time == midDay) {
-          title = "Your $assessmentType Assessment is Due Today!";
-          body =
+          surveyTitle = "Your $assessmentType Assessment is Due Today!";
+          surveyBody =
               "Hey there, today's only task is to complete your $assessmentType Assessment, head over to the app and get started gathering your thoughts";
         } else {
-          title = "Your $assessmentType Assessment is Due Soon!";
-          body =
-             "Only a few more hours to complete your $assessmentType Assessment, don't miss out on a bigger incentive today. Head over to the app, it only takes 5 mins to complete!";
+          surveyTitle = "Your $assessmentType Assessment is Due Soon!";
+          surveyBody =
+              "Only a few more hours to complete your $assessmentType Assessment, don't miss out on a bigger incentive today. Head over to the app, it only takes 5 mins to complete!";
         }
-        final notificationId = Random().nextInt(100000);
+        final surveyNotificationId = Random().nextInt(100000);
         await NotificationService.createNotification(
-          id: notificationId,
-          title: title,
-          body: body,
+          id: surveyNotificationId,
+          title: surveyTitle,
+          body: surveyBody,
           date: time,
         );
-        notificationIds.add(notificationId);
+        surveyNotificationIds.add(surveyNotificationId);
       }
-      surveyReminders[diaryId] = notificationIds;
+      surveyReminders[diaryId] = surveyNotificationIds;
     }
     final encodedSurvey = json.encode(
         surveyReminders.map((key, value) => MapEntry(key.toString(), value)));
     await PreferenceService()
         .setStringPreference(key: 'survey_reminders', value: encodedSurvey);
   }
+  
 
   /// Creates and schedules notifications for daily diaries.
   /// This function retrieves a list of daily diaries from the DiaryRepository,
