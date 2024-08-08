@@ -336,7 +336,7 @@ List<Diary> _getAllHomeDiariesEntities() {
   List<DiaryModel> getDiaries(DateTime day) {
     final diaries = _getDiaryEntities(day)
         .where((diary) =>
-                diary.status != DiaryStatus.submitted ||
+                diary.status != DiaryStatus.submitted &&
                 diary.status != DiaryStatus.missed
             //     &&
             // currentTime.isAfter(diary.start) &&
