@@ -103,12 +103,13 @@ class NotificationService {
   @pragma("vm:entry-point")
   static Future<void> onNotificationDisplayedMethod(
       ReceivedNotification receivedNotification) async {
+    final date = receivedNotification.displayedDate?.toLocal();
+    debugPrint("Notification Displayed at: $date");
     await PendoService.track('ScheduleReminder', {
       "status": "fired",
       "page": "N/A",
       "notification_type": receivedNotification.payload?['type'],
-      "scheduled_time":
-          "${receivedNotification.displayedDate?.hour}:${receivedNotification.displayedDate?.minute}${receivedNotification.displayedDate?.timeZoneName}"
+      "scheduled_time": "${date?.hour}:${date?.minute}"
     });
     debugPrint(
         "Notification Displayed with payload: ${receivedNotification.payload}");

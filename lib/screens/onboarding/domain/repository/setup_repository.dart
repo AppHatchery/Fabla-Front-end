@@ -482,14 +482,20 @@ class SetupRepository {
             : "Hey there! Just another check-in. Don’t forget to record your thoughts after talking to the staff";
 
         await NotificationService.createNotification(
-            id: id, title: title, body: body, date: notificationDate, payload: {"type": "reminder"});
-        
-        dev.log("Time Scheduled: ${time.hour}:${time.minute}", name: "Create Reminders");
+            id: id,
+            title: title,
+            body: body,
+            date: notificationDate,
+            payload: {"type": "reminder"});
+
+        dev.log("Time Scheduled: ${time.hour}:${time.minute}",
+            name: "Create Reminders");
 
         await PendoService.track("ScheduleReminder", {
           "status": "scheduled",
           "page": page ?? "onboarding",
           "notification_type": "reminder",
+          "notification_id": id,
           "scheduled_time": "${time.hour}:${time.minute}",
         });
 
