@@ -25,9 +25,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage>
-    with
-        WidgetsBindingObserver,
-        SingleTickerProviderStateMixin{
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   late HomeCubit homeCubit;
   late List<DiaryModel> diaries;
   late List<DiaryModel> calendarDiaries;
@@ -57,7 +55,7 @@ class _HomePageState extends State<HomePage>
     super.dispose();
   }
 
-  @override                  
+  @override
   didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       fetchData(context);
@@ -70,7 +68,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-   // super.build(context);
+    // super.build(context);
     return Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -207,6 +205,7 @@ class _HomePageState extends State<HomePage>
                             weeklyEntries: weeklyEntries,
                             isHomeTipClosed: isHomeTipClosed,
                             showWidget: showWidget,
+                            diaries: diaries,
                           ),
                           const SizedBox(
                             height: 24,
@@ -230,6 +229,7 @@ class _HomePageState extends State<HomePage>
                     child: WeeklyGoalPopup(
                       weeklyGoal: protocol.weeklyGoal,
                       currentEntries: weeklyEntries,
+                      diaries: diaries,
                     ),
                   ))
             ],
@@ -238,7 +238,6 @@ class _HomePageState extends State<HomePage>
   }
 
   void fetchData(BuildContext context) async {
-    print("homeeeeeeeeeeeeeeeeeeefetch");
     homeCubit.loadDiaries();
     diaries = homeCubit.getAllDiariesThisWeek();
   }
