@@ -278,6 +278,7 @@ class _DiaryCardState extends State<DiaryCard> {
   }
 }
 
+
 /// Used in [DiaryCard]
 class TagPill extends StatelessWidget {
   final Tag tag;

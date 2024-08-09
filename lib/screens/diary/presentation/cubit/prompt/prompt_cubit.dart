@@ -30,13 +30,33 @@ class PromptCubit extends Cubit<PromptState> {
   /// ```dart
   /// await loadPrompt(myPrompt);
   /// ```
-  
-    Future<void> loadPrompt(DiaryModel diary, PromptModel prompt) async {
-      bool showWidget = false;
+
+  Future<void> loadPrompt(DiaryModel diary, PromptModel prompt) async {
+    bool showWidget = false;
+    final today = DateTime.now();
+    final start = DateTime(today.year, today.month, today.day, 0, 0, 0);
+
     try {
       emit(PromptLoading(prompt));
       final newPrompt = _repository.load(diary, prompt.id);
       await Future.delayed(const Duration(microseconds: 1));
+      String? studyCode = setupRepository.getParticipant()?.studyCode;
+
+      final source =
+          await PreferenceService().getStringPreference(key: 'futureDate');
+      final date = source ?? start;
+      final futureDate = DateTime.parse(date.toString());
+
+      if (int.parse(studyCode!) % 2 == 0 && today.isBefore(futureDate)) {
+        showWidget = true;
+      } else if (int.parse(studyCode) % 2 == 0 && today.isAfter(futureDate)) {
+        showWidget = false;
+      } else if (int.parse(studyCode) % 2 != 0 && today.isBefore(futureDate)) {
+        showWidget = false;
+      } else if (int.parse(studyCode) % 2 != 0 && today.isAfter(futureDate)) {
+        showWidget = true;
+      }
+
       emit(PromptLoaded(newPrompt, showWidget));
     } catch (e) {
       print("Catch Error: $e");

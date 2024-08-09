@@ -235,7 +235,7 @@
               "min_text": null,
               "default_value": null,
               "options": [
-                "Completely inappropriate/unclear/confusing[",
+                "Completely inappropriate/unclear/confusing",
                 "Mostly inappropriate/unclear/confusing",
                 "Acceptable but not specific for me. May be inappropriate/unclear/confusing",
                 "Well-targeted, with small issues",
@@ -367,29 +367,20 @@
                 "$50",
                 "I’m not sure"
               ]
+              },
+              {
+                "type": "audio",
+                "title": "Talk about your experiences using Fabla to take surveys and record diaries. In particular, we’d like to hear about your thoughts and feelings about the ghost virtual assistant and aesthetic design of the app.",
+                "subtitle": "Please try to talk without stopping for about 3-5 minutes. Talk about whatever comes to your mind, as if you were sharing with a friend. Do not worry about pauses, stutters, or having the right things to say. We are interested in anything about your experience today that you are willing to share.",
+                "required": true,
+                "max_value": null,
+                "max_text": null,
+                "min_value": null,
+                "min_text": null,
+                "default_value": null,
+                "options": []
               }
             
-            ]
-          },
-          {
-            "type": "audio",
-            "start_time": "00:00",
-            "end_time": "23:59",
-            "entries": 1,
-	       "frequency": "Daily",
-            "question": [
-            {
-              "type": "audio",
-              "title": "Talk about your experiences using Fabla to take surveys and record diaries. In particular, we’d like to hear about your thoughts and feelings about the ghost virtual assistant and aesthetic design of the app.",
-              "subtitle": "Please try to talk without stopping for about 3-5 minutes. Talk about whatever comes to your mind, as if you were sharing with a friend. Do not worry about pauses, stutters, or having the right things to say. We are interested in anything about your experience today that you are willing to share.",
-              "required": true,
-              "max_value": null,
-              "max_text": null,
-              "min_value": null,
-              "min_text": null,
-              "default_value": null,
-              "options": []
-            }
             ]
           }
         ]
@@ -759,29 +750,20 @@
                 "$50",
                 "I’m not sure"
               ]
+              },
+              {
+                "type": "audio",
+                "title": "Talk about your experiences using Fabla to take surveys and record diaries. In particular, we’d like to hear about your thoughts and feelings about the ghost virtual assistant and aesthetic design of the app.",
+                "subtitle": "Please try to talk without stopping for about 3-5 minutes. Talk about whatever comes to your mind, as if you were sharing with a friend. Do not worry about pauses, stutters, or having the right things to say. We are interested in anything about your experience today that you are willing to share.",
+                "required": true,
+                "max_value": null,
+                "max_text": null,
+                "min_value": null,
+                "min_text": null,
+                "default_value": null,
+                "options": []
               }
             
-            ]
-          },
-          {
-            "type": "audio",
-            "start_time": "00:00",
-            "end_time": "23:59",
-            "entries": 1,
-	       "frequency": "Daily",
-            "question": [
-            {
-              "type": "audio",
-              "title": "Talk about your experiences using Fabla to take surveys and record diaries. In particular, we’d like to hear about your thoughts and feelings about the ghost virtual assistant and aesthetic design of the app.",
-              "subtitle": "Please try to talk without stopping for about 3-5 minutes. Talk about whatever comes to your mind, as if you were sharing with a friend. Do not worry about pauses, stutters, or having the right things to say. We are interested in anything about your experience today that you are willing to share.",
-              "required": true,
-              "max_value": null,
-              "max_text": null,
-              "min_value": null,
-              "min_text": null,
-              "default_value": null,
-              "options": []
-            }
             ]
           }
         ]
