@@ -306,6 +306,14 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         return RadioQuestionSummary(
           selectedOption: prompt.answer!.response!,
         );
+      case ResponseType.text:
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6.0),
+        child: TextAnswerCard(
+          answer: prompt.answer!.response!,
+          delete: () => deleteResponse(prompt, ''),
+        ),
+      );
       case ResponseType.recording:
         return prompt.answer!.recordings.isEmpty
             ? Padding(

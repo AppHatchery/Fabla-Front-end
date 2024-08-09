@@ -145,8 +145,6 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                                     height: 6,
                                   ),
                                   CustomCalender(
-                                    rangeStart: start,
-                                    rangeEnd: end,
                                   ),
                                 ]),
                           )

@@ -39,7 +39,7 @@ class PromptCubit extends Cubit<PromptState> {
     try {
       emit(PromptLoading(prompt));
       final newPrompt = _repository.load(diary, prompt.id);
-      await Future.delayed(const Duration(microseconds: 1));
+      //await Future.delayed(const Duration(microseconds: 1));
 
       String? studyCode = setupRepository.getParticipant()?.studyCode;
 
