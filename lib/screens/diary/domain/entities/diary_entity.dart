@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 import 'package:objectbox/objectbox.dart';
 
@@ -20,6 +21,8 @@ class Diary {
   String deadline;
   @Transient()
   DiaryStatus? status;
+  @Transient()
+  DiaryTypes? type;
 
   @Backlink('diary')
   final prompts = ToMany<Prompt>();
@@ -34,6 +37,16 @@ class Diary {
     status = DiaryStatus.values[index ?? 0];
   }
 
+  int? get dbDiaryType {
+    _ensureDiaryType();
+    return type?.index;
+  }
+
+  set dbDiaryType(int? index) {
+    _ensureDiaryType();
+    type = DiaryTypes.values[index ?? 0];
+  }
+
   Diary(
       {this.id = 0,
       required this.due,
@@ -42,7 +55,8 @@ class Diary {
       required this.currentEntry,
       required this.end,
       required this.deadline,
-      this.status});
+      this.status,
+      this.type});
 
   /// Ensures the consistency of DiaryStatus enumeration indices.
   /// This private method verifies that the indices of the DiaryStatus enum values correspond to their expected numerical values.
@@ -58,6 +72,13 @@ class Diary {
     assert(DiaryStatus.complete.index == 2);
     assert(DiaryStatus.submitted.index == 3);
     assert(DiaryStatus.missed.index == 4);
+  }
+
+  void _ensureDiaryType() {
+    assert(DiaryTypes.ema.index == 0);
+    assert(DiaryTypes.daily.index == 1);
+    assert(DiaryTypes.audio.index == 2);
+    assert(DiaryTypes.survey.index == 3);
   }
 
   /// Factory constructor that creates a DiaryEntity object from a Diary model.
@@ -79,6 +100,7 @@ class Diary {
       currentEntry: model.currentEntry,
       deadline: model.due.toString(),
       status: model.status,
+      type: model.type,
     );
   }
 }

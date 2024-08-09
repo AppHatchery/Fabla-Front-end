@@ -203,7 +203,6 @@ List<Diary> _getAllHomeDiariesEntities() {
         }
       }
     }
-
     // Sort all processed diaries
     diaries.sort();
 
@@ -357,6 +356,25 @@ List<Diary> _getAllHomeDiariesEntities() {
       return Protocol.fromEntity(protocol);
     }
     return null;
+  }
+
+  
+// get ema diaries
+  List<DiaryModel> getEMADiaries() {
+    final allDiaries = getAllDiaries();
+    return allDiaries.where((diary) => diary.type == DiaryTypes.ema).toList();
+  }
+
+//get daily diaries
+  List<DiaryModel> getDiariesDaily() {
+    final allDiaries = getAllDiaries();
+    return allDiaries.where((diary) => diary.type == DiaryTypes.daily).toList();
+  }
+
+ // get survey diaries
+  List<DiaryModel> getSurveyDiaries() {
+    final allDiaries = getAllDiaries();
+    return allDiaries.where((diary) => diary.type == DiaryTypes.survey).toList();
   }
 
   /// Retrieves the total number of diary entries within a specified date range.

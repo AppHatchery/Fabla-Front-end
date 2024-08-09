@@ -62,20 +62,20 @@ Future<void> diaryInit(String code) async {
         //     start: today,
         //     blueprint: blueprint,
         //     prompts: prompts);
-        final diaries =
-            makeDiariesThree(blueprint: blueprint, prompts: prompts);
+        // final diaries =
+        //     makeDiariesThree(blueprint: blueprint, prompts: prompts);
 
         // Save the diaries
-        final entities = diaries.map((model) {
-          final prompts =
-              model.prompts.map((prompt) => Prompt.fromModel(prompt)).toList();
+        // final entities = diaries.map((model) {
+        //   final prompts =
+        //       model.prompts.map((prompt) => Prompt.fromModel(prompt)).toList();
 
-          final entity = Diary.fromModel(model);
-          entity.prompts.addAll(prompts);
+        //   final entity = Diary.fromModel(model);
+        //   entity.prompts.addAll(prompts);
 
-          return entity;
-        }).toList();
-        diaryRepository.addDiaries(entities);
+        //   return entity;
+        // }).toList();
+        // diaryRepository.addDiaries(entities);
       }
     }
   }
@@ -159,155 +159,159 @@ Future<void> diaryInit(String code) async {
 // }
 
 /// Making diaries on a four week basis
-List<DiaryModel> makeDiariesTwo(
-    {required DateTime start,
-    required DiaryBlueprint blueprint,
-    required List<PromptModel> prompts}) {
-  final monday = start.subtract(
-      Duration(days: today.weekday - 1)); // Getting the start of the week
+// List<DiaryModel> makeDiariesTwo(
+//     {required DateTime start,
+//     required DiaryBlueprint blueprint,
+//     required List<PromptModel> prompts}) {
+//   final monday = start.subtract(
+//       Duration(days: today.weekday - 1)); // Getting the start of the week
 
-  final List<DiaryModel> diaries = [];
+//   final List<DiaryModel> diaries = [];
 
-  // Get the current weeks monday or if the start date is after the current week, get the start date
-  DateTime currentDate = monday.isAfter(blueprint.startDate)
-      ? monday
-      : blueprint
-          .startDate; // Get the monday of the week or the start of the study
+//   // Get the current weeks monday or if the start date is after the current week, get the start date
+//   DateTime currentDate = monday.isAfter(blueprint.startDate)
+//       ? monday
+//       : blueprint
+//           .startDate; // Get the monday of the week or the start of the study
 
-  // Calculate the date 4 weeks later
-  // We'll use this to save in shared preference as the last date of the diary creation
-  DateTime fourWeeksLater = currentDate
-      .add(const Duration(days: 28)); // Get the date 4 weeks later - 4 * 7days
+//   // Calculate the date 4 weeks later
+//   // We'll use this to save in shared preference as the last date of the diary creation
+//   DateTime fourWeeksLater = currentDate
+//       .add(const Duration(days: 28)); // Get the date 4 weeks later - 4 * 7days
 
-  // Check if the end date is before the 4 weeks later date and set the end date to the 4 weeks later date or the end date of the study
-  DateTime endRange = fourWeeksLater.isBefore(blueprint.endDate) ||
-          fourWeeksLater.isAtSameMomentAs(blueprint.endDate)
-      ? fourWeeksLater
-      : blueprint.endDate;
+//   // Check if the end date is before the 4 weeks later date and set the end date to the 4 weeks later date or the end date of the study
+//   DateTime endRange = fourWeeksLater.isBefore(blueprint.endDate) ||
+//           fourWeeksLater.isAtSameMomentAs(blueprint.endDate)
+//       ? fourWeeksLater
+//       : blueprint.endDate;
 
-  // Loop through the weeks
-  while (currentDate.isBefore(endRange) ||
-      currentDate.isAtSameMomentAs(endRange)) {
-    final DateTime endOfWeek = currentDate.add(const Duration(
-        days: 6)); // Used to get the end of the week and jump to next week
+//   // Loop through the weeks
+//   while (currentDate.isBefore(endRange) ||
+//       currentDate.isAtSameMomentAs(endRange)) {
+//     final DateTime endOfWeek = currentDate.add(const Duration(
+//         days: 6)); // Used to get the end of the week and jump to next week
 
-    final start = DateTime(currentDate.year, currentDate.month, currentDate.day,
-        blueprint.startTime.hour, blueprint.startTime.minute);
+//     final start = DateTime(currentDate.year, currentDate.month, currentDate.day,
+//         blueprint.startTime.hour, blueprint.startTime.minute);
 
-    if (blueprint.activeDays.contains(start.weekday)) {
-      // check how many days to add to the end of the diary from the blueprint frequency
-      final int daysToAdd = (blueprint.activeDays.length / blueprint.frequency)
-          .round(); // Get the number of days to add to the end of the diary
+//     if (blueprint.activeDays.contains(start.weekday)) {
+//       // check how many days to add to the end of the diary from the blueprint frequency
+//       final int daysToAdd = (blueprint.activeDays.length / blueprint.frequency)
+//           .round(); // Get the number of days to add to the end of the diary
 
-      // Get the possible end date of the diary
-      // Checking if the proposed end date is before the end date of the study
-      final possibleEnd = blueprint.endDate.isBefore(DateTime(
-                      currentDate.year,
-                      currentDate.month,
-                      currentDate.day,
-                      blueprint.endTime.hour,
-                      blueprint.endTime.minute)
-                  .add(Duration(days: daysToAdd - 1))) ||
-              blueprint.endDate.isAtSameMomentAs(DateTime(
-                      currentDate.year,
-                      currentDate.month,
-                      currentDate.day,
-                      blueprint.endTime.hour,
-                      blueprint.endTime.minute)
-                  .add(Duration(days: daysToAdd - 1)))
-          ? blueprint.endDate
-          : DateTime(
-                  currentDate.year, currentDate.month, currentDate.day, blueprint.endTime.hour, blueprint.endTime.minute)
-              .add(Duration(days: daysToAdd - 1));
-      final end = getLastPossibleActiveDay(
-          currentDate, possibleEnd, blueprint.activeDays);
+//       // Get the possible end date of the diary
+//       // Checking if the proposed end date is before the end date of the study
+//       final possibleEnd = blueprint.endDate.isBefore(DateTime(
+//                       currentDate.year,
+//                       currentDate.month,
+//                       currentDate.day,
+//                       blueprint.endTime.hour,
+//                       blueprint.endTime.minute)
+//                   .add(Duration(days: daysToAdd - 1))) ||
+//               blueprint.endDate.isAtSameMomentAs(DateTime(
+//                       currentDate.year,
+//                       currentDate.month,
+//                       currentDate.day,
+//                       blueprint.endTime.hour,
+//                       blueprint.endTime.minute)
+//                   .add(Duration(days: daysToAdd - 1)))
+//           ? blueprint.endDate
+//           : DateTime(
+//                   currentDate.year, currentDate.month, currentDate.day, blueprint.endTime.hour, blueprint.endTime.minute)
+//               .add(Duration(days: daysToAdd - 1));
+//       final end = getLastPossibleActiveDay(
+//           currentDate, possibleEnd, blueprint.activeDays);
 
-      final diary = DiaryModel(
-          id: 0,
-          prompts: prompts,
-          start: start,
-          end: end,
-          due: end,
-          entries: blueprint.entries,
-          currentEntry: 0,
-          status: DiaryStatus.idle,
-          tags: []);
+         
 
-      diaries.add(diary);
-    }
+//       final diary = DiaryModel(
+//           id: 0,
+//           prompts: prompts,
+//           start: start,
+//           end: end,
+//           due: end,
+//           entries: blueprint.entries,
+//           currentEntry: 0,
+//           status: DiaryStatus.idle,
+//           tags: [],
+//            type: 
+//            );
 
-    // Jump to the next week
-    currentDate = endOfWeek.add(const Duration(days: 1));
-  }
+//       diaries.add(diary);
+//     }
 
-  diaries.forEach((element) {
-    print("Diary Start: ${element.start}");
-    print("Diary End: ${element.end}");
-    print("---------------------------------------");
-  });
+//     // Jump to the next week
+//     currentDate = endOfWeek.add(const Duration(days: 1));
+//   }
 
-  //Saving the last diary day to shared preference
-  //TODO: Define keys for other types of diaries
-  preference.setStringPreference(
-      key: "last_daily_diary_day", value: currentDate.toString());
-  return diaries;
-}
+//   diaries.forEach((element) {
+//     print("Diary Start: ${element.start}");
+//     print("Diary End: ${element.end}");
+//     print("---------------------------------------");
+//   });
 
-List<DiaryModel> makeDiariesThree(
-    {required DiaryBlueprint blueprint, required List<PromptModel> prompts}) {
-  final List<DiaryModel> diaries = [];
+//   //Saving the last diary day to shared preference
+//   //TODO: Define keys for other types of diaries
+//   preference.setStringPreference(
+//       key: "last_daily_diary_day", value: currentDate.toString());
+//   return diaries;
+// }
+//[
+// List<DiaryModel> makeDiariesThree(
+//     {required DiaryBlueprint blueprint, required List<PromptModel> prompts}) {
+//   final List<DiaryModel> diaries = [];
 
-  DateTime currentDate =
-      today.isAfter(blueprint.startDate) ? today : blueprint.startDate;
+//   DateTime currentDate =
+//       today.isAfter(blueprint.startDate) ? today : blueprint.startDate;
 
-  while (currentDate.isBefore(blueprint.endDate) ||
-      currentDate.isAtSameMomentAs(blueprint.endDate)) {
-    final endDate = currentDate.add(Duration(days: blueprint.frequency));
+//   while (currentDate.isBefore(blueprint.endDate) ||
+//       currentDate.isAtSameMomentAs(blueprint.endDate)) {
+//     final endDate = currentDate.add(Duration(days: blueprint.frequency));
 
-    if (!endDate.isAfter(blueprint.endDate)) {
-      if (blueprint.activeDays.contains(currentDate.weekday)) {
-        final start = DateTime(
-            currentDate.year,
-            currentDate.month,
-            currentDate.day,
-            blueprint.startTime.hour,
-            blueprint.startTime.minute);
-        final end = DateTime(
-            endDate.subtract(const Duration(days: 1)).year,
-            endDate.subtract(const Duration(days: 1)).month,
-            endDate.subtract(const Duration(days: 1)).day,
-            blueprint.endTime.hour,
-            blueprint.endTime.minute);
-        final diary = DiaryModel(
-            id: 0,
-            prompts: prompts,
-            start: start,
-            end: end,
-            due: end,
-            entries: blueprint.entries,
-            currentEntry: 0,
-            status: DiaryStatus.idle,
-            tags: []);
+//     if (!endDate.isAfter(blueprint.endDate)) {
+//       if (blueprint.activeDays.contains(currentDate.weekday)) {
+//         final start = DateTime(
+//             currentDate.year,
+//             currentDate.month,
+//             currentDate.day,
+//             blueprint.startTime.hour,
+//             blueprint.startTime.minute);
+//         final end = DateTime(
+//             endDate.subtract(const Duration(days: 1)).year,
+//             endDate.subtract(const Duration(days: 1)).month,
+//             endDate.subtract(const Duration(days: 1)).day,
+//             blueprint.endTime.hour,
+//             blueprint.endTime.minute);
+//         final diary = DiaryModel(
+//             id: 0,
+//             prompts: prompts,
+//             start: start,
+//             end: end,
+//             due: end,
+//             entries: blueprint.entries,
+//             currentEntry: 0,
+//             status: DiaryStatus.idle,
+//             tags: [], type: null);
 
-        diaries.add(diary);
-      }
-    }
-    currentDate = endDate;
-  }
+//         diaries.add(diary);
+//       }
+//     }
+//     currentDate = endDate;
+//   }
 
-  diaries.forEach((element) {
-    print("Diary Start: ${element.start}");
-    print("Diary End: ${element.end}");
-    element.prompts.forEach((prompt) {
-      print("Diary Prompts: ${prompt.question} | type: ${prompt.responseType}");
-      print(
-          "Diary Prompts: ${prompt.question} | options: ${prompt.option?.toJson().toString()}");
-    });
-    print("---------------------------------------");
-  });
+//   diaries.forEach((element) {
+//     print("Diary Start: ${element.start}");
+//     print("Diary End: ${element.end}");
+//     element.prompts.forEach((prompt) {
+//       print("Diary Prompts: ${prompt.question} | type: ${prompt.responseType}");
+//       print(
+//           "Diary Prompts: ${prompt.question} | options: ${prompt.option?.toJson().toString()}");
+//     });
+//     print("---------------------------------------");
+//   });
 
-  return diaries;
-}
+//   return diaries;
+// }]
 
 /// Returns the last possible active day for a given date.
 /// This function returns the last possible active day for a given date.

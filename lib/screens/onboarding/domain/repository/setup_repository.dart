@@ -18,7 +18,6 @@ import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entit
 // import 'package:audio_diaries_flutter/models/UserMetadataDev.dart';
 
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
-import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -176,7 +175,6 @@ class SetupRepository {
       final duration = phase['duration'] as int;
       final diariesJson = phase['diaries'] as List<dynamic>;
 
-
       List<DateTime> phaseDates = [];
       for (var i = 0; i < duration; i++) {
         phaseDates.add(date);
@@ -192,6 +190,13 @@ class SetupRepository {
               .toList();
           final startTime = timeOfDayFromString(json["start_time"]);
           final endTime = timeOfDayFromString(json["end_time"]);
+
+          String rawType = json["type"];
+          developer.log("Raw type from JSON: $rawType", name: "Diary Type");
+          DiaryTypes diaryType = diaryTypeString(rawType);
+          developer.log("Converted DiaryTypes value: $diaryType",
+              name: "Diary Type");
+          //developer.log("prompts: $prompts");
           final diary = DiaryModel(
             id: 0,
             prompts: prompts,
@@ -205,15 +210,21 @@ class SetupRepository {
             currentEntry: 0,
             end: DateTime(
                 date.year, date.month, date.day, endTime.hour, endTime.minute),
+            type: diaryType,
           );
           diaries.add(diary);
         }
       }
 
       date = phaseDates.last.add(Duration(days: 1));
-
-
     }
+
+    DateTime lastDay = date.subtract(const Duration(days: 1));
+    await PreferenceService()
+        .setStringPreference(key: 'lastDay', value: lastDay.toString());
+    final theLastDay =
+        await PreferenceService().getStringPreference(key: 'lastDay');
+    print("Last Day>>>>>>>>>>>>>>>>>>>>>>>>>>>>: $theLastDay");
 
     final entities = diaries.map((model) {
       final prompts =
@@ -504,6 +515,143 @@ class SetupRepository {
   //     print('Mutation failed: $e');
   //   }
   // }
+
+  void diaryNotifications() async {
+    DiaryRepository diaryRepository = DiaryRepository();
+    final emaDiaries = diaryRepository.getEMADiaries();
+    final dailyDiary = diaryRepository.getDiariesDaily();
+    final surveyDiary = diaryRepository.getSurveyDiaries();
+    final theLastDay =
+        await PreferenceService().getStringPreference(key: 'lastDay');
+    final lastDay = DateTime.parse(theLastDay!);
+
+
+    Map<int, List<int>> emaReminders = {};
+    Map<int, List<int>> dailyReminders = {};
+    Map<int, List<int>> surveyReminders = {};
+
+    /// EMA NOTIFICATIONS
+    for (final diary in emaDiaries) {
+      final diaryId = diary.id;
+      final startTime = diary.start;
+      final endTime = diary.end;
+
+      final startNotificationTime = startTime;
+      final midNotificationTime = startTime.add(const Duration(hours: 1));
+      final endNotificationTime = endTime.subtract(const Duration(minutes: 15));
+
+      List<int> notificationIds = [];
+      for (final time in [
+        startNotificationTime,
+        midNotificationTime,
+        endNotificationTime
+      ]) {
+        String title;
+        String body;
+        if (time == startNotificationTime) {
+          title = "It's Time to Do Your EMA";
+          body =
+              "Hey there, your EMA period has begun, you have two hours to complete this EMA before it won't be available";
+        } else if (time == midNotificationTime) {
+          title = "Your EMA is Pending";
+          body =
+              "Only 1 hour left to complete the EMA, it will take you 5 minutes, you don't want to miss this";
+        } else {
+          title = "Your EMA is Due Soon";
+          body =
+              "Hey there, you have only 15 mins to complete this EMA, try to grab a second from what you are doing and try to complete, shouldn't take you more than 5 minutes";
+        }
+        final notificationID = Random().nextInt(100000);
+        await NotificationService.createNotification(
+            id: notificationID, title: title, body: body, date: time);
+        notificationIds.add(notificationID);
+      }
+      emaReminders[diaryId] = notificationIds;
+      final encoded = json.encode(
+          emaReminders.map((key, value) => MapEntry(key.toString(), value)));
+      await PreferenceService()
+          .setStringPreference(key: 'ema_reminders', value: encoded);
+    }
+
+    ///DAILY NOTIFICATIONS
+    for (final diary in dailyDiary) {
+      final dailyDiaryId = diary.id;
+      final startTime = diary.start;
+      final endTime = diary.end;
+
+      final dailyStartNotificationTime = startTime;
+      final endNotificationTime = endTime.subtract(const Duration(hours: 1));
+
+      List<int> dailyNotificationIds = [];
+      for (final time in [dailyStartNotificationTime, endNotificationTime]) {
+        String title;
+        String bodyDaily;
+        if (time == dailyStartNotificationTime) {
+          title = "Keep Going on Your Diary Journey!";
+          bodyDaily =
+              "Hey there, it's time to complete your Daily Diary, grab a few minutes to record about your day";
+        } else {
+          title = "Let's Get Started on Your Diary!";
+          bodyDaily =
+              "Hey there, there's still time to complete your diary, this is the last submission of today and you still have time to meet your goals, take 5 minutes and hop on";
+        }
+        final dailyNotificationId = Random().nextInt(100000);
+        await NotificationService.createNotification(
+          id: dailyNotificationId,
+          title: title,
+          body: bodyDaily,
+          date: time,
+        );
+        dailyNotificationIds.add(dailyNotificationId);
+      }
+      dailyReminders[dailyDiaryId] = dailyNotificationIds;
+      final encodedDaily = json.encode(
+          dailyReminders.map((key, value) => MapEntry(key.toString(), value)));
+      await PreferenceService()
+          .setStringPreference(key: 'daily_reminders', value: encodedDaily);
+    }
+
+    ///SURVEY NOTIFICATIONS
+    for (final diary in surveyDiary) {
+      final diaryId = diary.id;
+      final startDate = diary.start;
+
+      final midDay =
+          DateTime(startDate.year, startDate.month, startDate.day, 12);
+      final sixPM =
+          DateTime(startDate.year, startDate.month, startDate.day, 18);
+
+      List<int> surveyNotificationIds = [];
+      for (final time in [midDay, sixPM]) {
+        String surveyTitle;
+        String surveyBody;
+        String assessmentType = startDate == lastDay ? "Final" : "Mid-point";
+        if (time == midDay) {
+          surveyTitle = "Your $assessmentType Assessment is Due Today!";
+          surveyBody =
+              "Hey there, today's only task is to complete your $assessmentType Assessment, head over to the app and get started gathering your thoughts";
+        } else {
+          surveyTitle = "Your $assessmentType Assessment is Due Soon!";
+          surveyBody =
+              "Only a few more hours to complete your $assessmentType Assessment, don't miss out on a bigger incentive today. Head over to the app, it only takes 5 mins to complete!";
+        }
+        final surveyNotificationId = Random().nextInt(100000);
+        await NotificationService.createNotification(
+          id: surveyNotificationId,
+          title: surveyTitle,
+          body: surveyBody,
+          date: time,
+        );
+        surveyNotificationIds.add(surveyNotificationId);
+      }
+      surveyReminders[diaryId] = surveyNotificationIds;
+    }
+    final encodedSurvey = json.encode(
+        surveyReminders.map((key, value) => MapEntry(key.toString(), value)));
+    await PreferenceService()
+        .setStringPreference(key: 'survey_reminders', value: encodedSurvey);
+  }
+  
 
   /// Creates and schedules notifications for daily diaries.
   /// This function retrieves a list of daily diaries from the DiaryRepository,

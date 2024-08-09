@@ -50,12 +50,7 @@ class HomeCubit extends Cubit<HomeState> {
     try {
       emit(const HomeLoading());
       final diaries = repository.getDiaries(start);
-      //print diaries
-      diaries.forEach((diary) {
-        print("Diary ID: ${diary.id}, Start Time: ${diary.start}");
-        print("Diary ID: ${diary.id}, Start Time: ${diary.end}");
-        print("Diary ID: ${diary.id}, Start Time: ${diary.status}");
-      });
+
       final protocol = repository.getProtocol();
       final entries = repository.getTotalEntries(
           monday.subtract(const Duration(days: 1)),
@@ -70,6 +65,7 @@ class HomeCubit extends Cubit<HomeState> {
       } else if (int.parse(studyCode) % 2 != 0 && today.isAfter(futureDate)) {
         showWidget = true;
       }
+
 
       final activeDiaries = diaries.where((diary) => diary.status != DiaryStatus.missed).toList();
 

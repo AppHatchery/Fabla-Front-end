@@ -110,6 +110,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
     if (results.isGranted) {
       final repository = SetupRepository();
       repository.createNotifications();
+      repository.diaryNotifications();
 
       if (context.mounted) {
         Navigator.push(context,

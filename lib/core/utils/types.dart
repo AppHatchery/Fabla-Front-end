@@ -29,3 +29,10 @@ enum GqlModelType {
   participant,
   userMetatdata,
 }
+
+enum DiaryTypes {
+  ema,
+  daily,
+  audio,
+  survey
+}

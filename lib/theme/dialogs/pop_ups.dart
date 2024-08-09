@@ -850,6 +850,7 @@ class BottomStudyInfoPopUp extends StatelessWidget {
                               "On the seventh day, the midpoint of the study, you’ll only have one assessment to complete. You can complete this at any time on this day.",
                           style: CustomTypography().bodyMedium(
                               color: CustomColors.textSecondaryContent)),
+
                     ]),
                   ),
                 ),
@@ -903,6 +904,7 @@ class BottomStudyInfoPopUp extends StatelessWidget {
             const SizedBox(
               height: 12,
             ),
+
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

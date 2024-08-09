@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -189,7 +191,16 @@ class _DiaryCardState extends State<DiaryCard> {
                     onTap:
                         closed && widget.diary!.status != DiaryStatus.submitted
                             ? () {}
-                            : () => navigateToDiary(context),
+                            : () {
+                                navigateToDiary(context);
+                                if (widget.diary!.type == DiaryTypes.ema) {
+                                  cancelEmaNotifications(widget.diary!.id);
+                                } else if(widget.diary!.type == DiaryTypes.daily){
+                                  cancelDailyNotifications(widget.diary!.id);
+                                } else if(widget.diary!.type == DiaryTypes.survey){
+                                  cancelSurveyNotifications(widget.diary!.id);
+                                }
+                              },
                     child: Container(
                       decoration: BoxDecoration(
                           color: widget.diary!.status == DiaryStatus.submitted

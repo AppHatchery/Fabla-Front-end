@@ -6,7 +6,7 @@
         "duration": 6,
         "diaries": [
             {
-              "type": "ema|survey",
+              "type": "ema",
               "start_time": "10:00",
               "end_time": "12:00",
 			        "entries": 1,
@@ -47,7 +47,7 @@
              ]
           },
           {
-            "type": "ema|survey",
+            "type": "ema",
             "start_time": "14:00",
             "end_time": "16:00",
             "entries": 1,
@@ -389,7 +389,7 @@
         "duration": 6,
         "diaries": [
           {
-              "type": "ema|survey",
+              "type": "ema",
               "start_time": "10:00",
               "end_time": "12:00",
 			"entries": 1,
@@ -430,7 +430,7 @@
              ]
           },
           {
-            "type": "ema|survey",
+            "type": "ema",
             "start_time": "14:00",
             "end_time": "16:00",
             "entries": 1,

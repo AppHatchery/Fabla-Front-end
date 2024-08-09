@@ -186,6 +186,22 @@ ResponseType responseTypeString(String value) {
   return responseType;
 }
 
+DiaryTypes diaryTypeString(String value) {
+  final dairyType = _diaryTypeMap[value];
+  if (dairyType == null) {
+    throw Exception('Invalid dairy type');
+  }
+  return dairyType;
+}
+
+final Map<String, DiaryTypes> _diaryTypeMap = {
+  'ema': DiaryTypes.ema,
+  'daily': DiaryTypes.daily,
+  'audio': DiaryTypes.audio,
+  'survey': DiaryTypes.survey,
+};
+
+
 /// Map of ResponseType enum values with their corresponding string representations
 final Map<ResponseType, String> _responseStringMap = {
   ResponseType.recording: 'audio',
@@ -194,6 +210,7 @@ final Map<ResponseType, String> _responseStringMap = {
   ResponseType.radio: 'radio',
   ResponseType.slider: 'slider',
 };
+
 
 /// Function to convert ResponseType enum value to string
 String responseTypeValue(ResponseType responseType) {
