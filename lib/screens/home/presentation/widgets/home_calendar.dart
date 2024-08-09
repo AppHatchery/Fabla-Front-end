@@ -1,5 +1,8 @@
+import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -27,8 +30,6 @@ class StudyCalendar extends StatefulWidget {
 class _StudyCalendarState extends State<StudyCalendar> {
   late PageController? pageController;
   late DateTime focusedDay;
-  late DateTime startDate;
-  late DateTime endDate;
   late DateTime today;
   late DateTime selectedDate;
   late List<DiaryModel> diaries;
@@ -38,20 +39,18 @@ class _StudyCalendarState extends State<StudyCalendar> {
   Map<DateTime, List<String>>? events = {};
   int activeDays = 0;
 
+  ScrollController? controller;
+
+  //Incentive
+  double acquired = 0.0;
+  double total = 0.0;
+
   @override
   void initState() {
     today =
         DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    startDate = DateTime(
-        today.subtract(const Duration(days: 15)).year,
-        today.subtract(const Duration(days: 15)).month,
-        today.subtract(const Duration(days: 15)).day);
-    endDate = DateTime(
-        today.add(const Duration(days: 15)).year,
-        today.add(const Duration(days: 15)).month,
-        today.add(const Duration(days: 15)).day,
-        0);
     pageController = null;
+    controller = ScrollController();
     focusedDay = today;
     selectedDate = today;
     activeDays = repository.countSubmittedDays();
@@ -59,11 +58,25 @@ class _StudyCalendarState extends State<StudyCalendar> {
     diaryList = _getAllDiaries();
 
     for (DiaryModel diary in diaryList) {
-      events!.putIfAbsent(diary.start, () => []);
-      events![diary.start]!.add(diary.start.toString());
+      final date =
+          DateTime(diary.start.year, diary.start.month, diary.start.day);
+      events!.putIfAbsent(date, () => []);
+      if (events![date]!.isEmpty) {
+        events![date]!.add(diary.start.toString());
+      }
     }
 
+    calculateIncentives();
+
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    pageController = null;
+    pageController?.dispose();
+    super.dispose();
   }
 
   @override
@@ -75,6 +88,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
       height: height,
       width: width,
       child: SingleChildScrollView(
+        controller: controller,
         child: Column(
           children: [
             Container(
@@ -115,21 +129,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          activeDays.toString(),
-                          style: CustomTypography().headlineLargeCustom(
-                              color: CustomColors.yellowDark, fontSize: 64.sp),
-                        ),
-                        Text(
-                          "Days active in the Winship Study",
-                          style: CustomTypography()
-                              .titleSmall(color: CustomColors.yellowDark),
-                        ),
-                      ],
-                    ),
+                    child: header( ),
                   ),
                 ],
               ),
@@ -143,7 +143,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                 children: [
                   calendar(),
                   const SizedBox(height: 12),
-                  entries(),
+                  body(),
                 ],
               ),
             )
@@ -151,6 +151,27 @@ class _StudyCalendarState extends State<StudyCalendar> {
         ),
       ),
     );
+  }
+
+  Widget header() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '\$$acquired',
+          style: CustomTypography().headlineLargeCustom(
+              color: CustomColors.yellowDark, fontSize: 64.sp),
+        ),
+        Text(
+          "Current Incentive",
+          style: CustomTypography().titleSmall(color: CustomColors.yellowDark),
+        ),
+      ],
+    );
+  }
+
+  Widget body() {
+    return compensation();
   }
 
   Widget calendar() {
@@ -398,5 +419,237 @@ class _StudyCalendarState extends State<StudyCalendar> {
       diaryList = repository.getDailyDiaries(date);
     });
     return diaryList;
+  }
+
+  //Incentive Calculation
+  Widget compensation() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Compensation Details",
+          style: CustomTypography().titleLarge(),
+          textAlign: TextAlign.left,
+        ),
+        const SizedBox(height: 6),
+        totalIncentive(),
+        const SizedBox(height: 12),
+        Text(
+          "Current Progress",
+          style: CustomTypography().titleLarge(),
+          textAlign: TextAlign.left,
+        ),
+        const SizedBox(height: 6),
+        CurrentIncentive(
+          acquired: acquired,
+          total: total,
+          currency: '\$',
+          diaries: diaryList,
+        ) // TODO: LOOK AT THIS AGAIN
+      ],
+    );
+  }
+
+  Widget incentive(Incentive inc) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Amount
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("Per Diary (Total = 20)",
+                style: CustomTypography().titleSmall()),
+            Text("${inc.currency}${inc.amount} per Daily Dairy",
+                style: CustomTypography().titleSmall()),
+          ],
+        ),
+
+        const SizedBox(
+          height: 6,
+        ),
+
+        //Bonus
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("Dairy Bonus", style: CustomTypography().titleSmall()),
+            Text("${inc.currency}${inc.bonus}",
+                style: CustomTypography().titleSmall()),
+          ],
+        ),
+        const SizedBox(
+          height: 6,
+        ),
+      ],
+    );
+  }
+
+  Widget totalIncentive() {
+    return Container(
+      decoration: BoxDecoration(
+        color: CustomColors.fillWhite,
+        borderRadius: BorderRadius.circular(12),
+        shape: BoxShape.rectangle,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("Total Incentive Available",
+              style: CustomTypography().titleSmall()),
+          Text("\$$total",
+              style: CustomTypography().titleSmall()),
+        ],
+      ),
+    );
+  }
+
+  void calculateIncentives() {
+    double _acquired = 0.0;
+    double _total = 0.0;
+
+  
+
+    // Calculate completed diaries and total incentives
+    for (final diary in diaries) {
+      final incentiveAmount = surveyIncentive.amount;
+      _total += incentiveAmount;
+      if (diary.status == DiaryStatus.submitted) {
+        _acquired += incentiveAmount;
+      }
+    }
+
+    // Add bonuses and map studies to diaries in one loop
+
+    // for (final diary in diaries) {
+ 
+    // }
+
+    // // Add bonuses if completed diaries surpass the threshold
+    // for (var entry in data.entries) {
+    //   final study = entry.key;
+    //   final diaries = entry.value;
+
+    //   // Add bonus to total
+    //   _total += study.incentive.bonus;
+
+    //   // Check if completed diaries have surpassed the threshold percentage
+    //   final threshold = study.incentive.threshold;
+    //   final totalDiaries = diaries.length;
+    //   final completedDiaries = diaries
+    //       .where((diary) => diary.status == DiaryStatus.submitted)
+    //       .length;
+    //   final percentage = (completedDiaries / totalDiaries) * 100;
+
+    //   if (percentage >= threshold) {
+    //     _acquired += study.incentive.bonus;
+    //   }
+    // }
+
+    setState(() {
+      total = _total;
+      acquired = _acquired;
+    });
+  }
+}
+
+class CurrentIncentive extends StatefulWidget {
+  final double acquired;
+  final double total;
+  final String currency;
+  final List<DiaryModel> diaries;
+  const CurrentIncentive(
+      {super.key,
+      required this.acquired,
+      required this.currency,
+      required this.total,
+      required this.diaries});
+
+  @override
+  State<CurrentIncentive> createState() => _CurrentIncentiveState();
+}
+
+class _CurrentIncentiveState extends State<CurrentIncentive> {
+  bool expanded = false;
+  int completed = 0;
+  int remaining = 0;
+
+  @override
+  void initState() {
+    completed = widget.diaries
+        .where((element) => element.status == DiaryStatus.submitted)
+        .length;
+    remaining = widget.diaries.length - completed;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: CustomColors.fillWhite,
+        borderRadius: BorderRadius.circular(12),
+        shape: BoxShape.rectangle,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Earned Incentive: ${widget.currency}${widget.acquired}",
+                  style: CustomTypography().titleSmall()),
+              IconButton(
+                  onPressed: () {
+                    setState(() {
+                      expanded = !expanded;
+                    });
+                  },
+                  icon: Icon(
+                    expanded
+                        ? CupertinoIcons.chevron_up
+                        : CupertinoIcons.chevron_down,
+                    size: 20,
+                    color: CustomColors.textNormalContent,
+                  ))
+            ],
+          ),
+          const SizedBox(height: 12),
+          LinearProgressIndicator(
+            color: CustomColors.productNormal,
+            backgroundColor: CustomColors.productLightBackground,
+            value: widget.acquired / widget.total,
+            minHeight: 12,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          Visibility(
+            visible: expanded,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 12),
+                const Divider(
+                  height: 1,
+                  color: CustomColors.grey,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  "You've completed $completed entries.",
+                  style: CustomTypography()
+                      .bodyMedium(color: CustomColors.textNormalContent),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "There are $remaining more entries to complete",
+                  style: CustomTypography()
+                      .bodyMedium(color: CustomColors.textNormalContent),
+                )
+              ],
+            ),
+          )
+        ],
+      ),
+    );
   }
 }

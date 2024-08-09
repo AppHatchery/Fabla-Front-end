@@ -1,4 +1,6 @@
 import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
+import 'package:audio_diaries_flutter/screens/home/data/goal.dart';
+import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
 import 'package:flutter/material.dart';
 
 import '../../screens/diary/data/diary.dart';
@@ -413,3 +415,28 @@ final List<int> participantCodes = [
   1257,
   1258,
 ];
+
+final Incentive emaIncentive = Incentive(
+  amount: 0.5,
+  bonus: 0.0,
+  currency: "\$",
+  threshold: 5,
+);
+
+final Incentive surveyIncentive = Incentive(
+  amount: 1.0,
+  bonus: 0.2,
+  currency: "\$",
+  threshold: 5,
+);
+
+final Incentive dailyIncentive = Incentive(
+  amount: 0.5,
+  bonus: 0.0,
+  currency: "\$",
+  threshold: 5,
+);
+
+const Goal emaGoal = Goal(daily: 2, weekly: 12);
+
+const Goal diaryGoal = Goal(daily: 1, weekly: 6);

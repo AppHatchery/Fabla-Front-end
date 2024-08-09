@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/rings_progress_indicator.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -13,6 +14,7 @@ class TodayGoalWidget extends StatefulWidget {
   final int dailyGoal;
   final Protocol protocol;
   final DiaryModel diary;
+  final List<DiaryModel> diaries;
   final int weeklyEntries;
   final bool showWidget;
   final ValueNotifier<bool> isHomeTipClosed;
@@ -23,7 +25,7 @@ class TodayGoalWidget extends StatefulWidget {
       required this.protocol,
       required this.diary,
       required this.weeklyEntries,
-      required this.isHomeTipClosed, required this.showWidget});
+      required this.isHomeTipClosed, required this.showWidget, required this.diaries});
 
   @override
   State<TodayGoalWidget> createState() => _TodayGoalWidgetState();
@@ -71,6 +73,13 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         ? widget.diary.entries
         : widget.diary.currentEntry;
 
+    final data = {
+      'EMA': widget.diaries
+          .where((diary) => diary.status == DiaryStatus.submitted).toList(),
+      'Diary': widget.diaries
+          .where((diary) => diary.status == DiaryStatus.missed).toList()
+    };
+
     //calculate the daily goal progress bar width
     final dailyValue = ((entry) / widget.protocol.dailyGoal);
 
@@ -79,10 +88,10 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       children: [
         Text("Today's Goal", style: CustomTypography().titleLarge()),
         const SizedBox(height: 16),
-        Align(
+             Align(
           alignment: Alignment.center,
           child: SizedBox(
-            height: 150,
+            // height: 150,
             width: width,
             child: Stack(
               children: [
@@ -90,21 +99,9 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                   alignment: Alignment.center,
                   child: Padding(
                     padding: const EdgeInsets.only(top: 5.0),
-                    child: SizedBox(
-                        height: 150,
-                        width: 150,
-                        child: TweenAnimationBuilder<double>(
-                          tween: Tween<double>(begin: 0.0, end: 0.5),
-                          duration: const Duration(milliseconds: 1000),
-                          builder: (context, value, _) =>
-                              CircularProgressIndicator(
-                            strokeWidth: 5,
-                            value: dailyValue,
-                            backgroundColor:
-                                CustomColors.productLightBackground,
-                            color: CustomColors.productNormal,
-                          ),
-                        )),
+                    child: GoalProgressIndicators(
+                      goals: data,
+                    ),
                   ),
                 ),
                 Positioned(
@@ -121,18 +118,24 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                         ),
                       ],
                     )),
-                Align(
-                  alignment: Alignment.center,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 5.0),
-                    child: SizedBox(
-                      height: 120,
-                      width: 180,
-                      child: widget.showWidget ? RiveAnimation.asset(
-                        'assets/animations/ghosts.riv',
-                        onInit: _onInit,
-                        fit: BoxFit.cover,
-                      ) : const SizedBox.shrink(),
+                Positioned(
+                  bottom: 0,
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 5.0),
+                      child: SizedBox(
+                        height: 120,
+                        width: 180,
+                        child: widget.showWidget ?  RiveAnimation.asset(
+                          'assets/animations/ghosts.riv',
+                          onInit: _onInit,
+                          fit: BoxFit.cover,
+                        ) : const SizedBox.shrink(),
+                      ),
                     ),
                   ),
                 )
