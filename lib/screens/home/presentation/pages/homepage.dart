@@ -68,7 +68,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    // super.build(context);
+   // super.build(context);
     return Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -238,6 +238,7 @@ class _HomePageState extends State<HomePage>
   }
 
   void fetchData(BuildContext context) async {
+    print("homeeeeeeeeeeeeeeeeeeefetch");
     homeCubit.loadDiaries();
     diaries = homeCubit.getAllDiariesThisWeek();
   }

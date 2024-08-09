@@ -28,7 +28,7 @@ class DiaryRepository {
   List<Diary> _getAllDiariesEntities() {
     final diaries = _diaryDAO.getAllDiaries();
     final now = DateTime.now();
-    final due = DateTime(now.year, now.month, now.day, 4, 0, 0);
+    final due = DateTime(now.year, now.month, now.day, 23, 59, 0);
     final unSubmittedDiaries = diaries
         .where((diary) => diary.due.isBefore(due))
         .where((element) => element.status != DiaryStatus.submitted)
