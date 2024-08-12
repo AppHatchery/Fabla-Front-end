@@ -499,7 +499,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
         children: [
           Text("Total Incentive Available",
               style: CustomTypography().titleSmall()),
-          Text("\$$total", style: CustomTypography().titleSmall()),
+          Text("\$50", style: CustomTypography().titleSmall()),
         ],
       ),
     );
@@ -572,6 +572,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
     setState(() {
       total = _total;
       acquired = _acquired;
+      print("Total: $total, Acquired: $acquired");
     });
   }
 }
@@ -641,7 +642,7 @@ class _CurrentIncentiveState extends State<CurrentIncentive> {
           LinearProgressIndicator(
             color: CustomColors.productNormal,
             backgroundColor: CustomColors.productLightBackground,
-            value: widget.acquired / widget.total,
+            value: widget.acquired / 50,
             minHeight: 12,
             borderRadius: BorderRadius.circular(8),
           ),
