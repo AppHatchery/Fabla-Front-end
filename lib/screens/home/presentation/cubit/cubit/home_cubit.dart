@@ -66,8 +66,18 @@ class HomeCubit extends Cubit<HomeState> {
         showWidget = true;
       }
 
+      diaries.sort((a, b) {
+        bool isActiveDiary(DateTime start, DateTime end) =>
+            today.isAfter(start) && today.isBefore(end);
 
-      final activeDiaries = diaries.where((diary) => diary.status != DiaryStatus.missed).toList();
+        bool aIsActive = isActiveDiary(a.start, a.end);
+        bool bIsActive = isActiveDiary(b.start, b.end);
+
+        if (aIsActive && !bIsActive) return -1;
+        if (!aIsActive && bIsActive) return 1;
+        return a.start.compareTo(b.start);
+      });
+
 
       final updated = diaries
           .map((diary) => diary.copyWith(id: diary.id, tags: null))

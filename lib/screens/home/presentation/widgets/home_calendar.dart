@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
@@ -129,7 +130,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 24),
-                    child: header( ),
+                    child: header(),
                   ),
                 ],
               ),
@@ -498,8 +499,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
         children: [
           Text("Total Incentive Available",
               style: CustomTypography().titleSmall()),
-          Text("\$$total",
-              style: CustomTypography().titleSmall()),
+          Text("\$$total", style: CustomTypography().titleSmall()),
         ],
       ),
     );
@@ -509,21 +509,43 @@ class _StudyCalendarState extends State<StudyCalendar> {
     double _acquired = 0.0;
     double _total = 0.0;
 
-  
-
     // Calculate completed diaries and total incentives
     for (final diary in diaries) {
-      final incentiveAmount = surveyIncentive.amount;
-      _total += incentiveAmount;
-      if (diary.status == DiaryStatus.submitted) {
-        _acquired += incentiveAmount;
+      if (diary.type == DiaryTypes.ema) {
+        final incentiveAmount = emaIncentive.amount;
+        _total += incentiveAmount;
+        if (diary.status == DiaryStatus.submitted) {
+          _acquired += incentiveAmount;
+        }
       }
+
+      if (diary.type == DiaryTypes.survey) {
+        final incentiveAmount = surveyIncentive.amount;
+        _total += incentiveAmount;
+        if (diary.status == DiaryStatus.submitted) {
+          _acquired += incentiveAmount;
+        }
+      }
+
+      if (diary.type == DiaryTypes.daily) {
+        final incentiveAmount = dailyIncentive.amount;
+        _total += incentiveAmount;
+        if (diary.status == DiaryStatus.submitted) {
+          _acquired += incentiveAmount;
+        }
+      }
+
+      // final incentiveAmount = surveyIncentive.amount;
+      // _total += incentiveAmount;
+      // if (diary.status == DiaryStatus.submitted) {
+      //   _acquired += incentiveAmount;
+      // }
     }
 
     // Add bonuses and map studies to diaries in one loop
 
     // for (final diary in diaries) {
- 
+
     // }
 
     // // Add bonuses if completed diaries surpass the threshold

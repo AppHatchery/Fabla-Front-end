@@ -424,14 +424,14 @@ final Incentive emaIncentive = Incentive(
 );
 
 final Incentive surveyIncentive = Incentive(
-  amount: 1.0,
-  bonus: 0.2,
+  amount: 3.0,
+  bonus: 0.0,
   currency: "\$",
   threshold: 5,
 );
 
 final Incentive dailyIncentive = Incentive(
-  amount: 0.5,
+  amount: 1.0,
   bonus: 0.0,
   currency: "\$",
   threshold: 5,
@@ -440,3 +440,5 @@ final Incentive dailyIncentive = Incentive(
 const Goal emaGoal = Goal(daily: 2, weekly: 12);
 
 const Goal diaryGoal = Goal(daily: 1, weekly: 6);
+
+const Goal surveyGoal = Goal(daily: 1, weekly: 1);
