@@ -1,9 +1,12 @@
+import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/completion/completion_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/calendar_widget.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/ghost_widget.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,6 +26,7 @@ class DiaryCompletionPage extends StatefulWidget {
 
 class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
   late CompletionCubit completionCubit;
+  bool isSurvey = false;
 
   @override
   void initState() {
@@ -82,41 +86,39 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(
-                    height: 150,
-                    width: width,
-                    child: showWidget
-                        ? Stack(
-                            children: [
-                              Align(
-                                alignment: Alignment.center,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 5.0),
-                                  child:
-                                      avatarCircularProgress(protocol, diary),
-                                ),
-                              ),
-                              Positioned(
-                                  top: 0,
-                                  left: 0,
-                                  right: 0,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        width: 5,
-                                        height: 10,
-                                        color: Colors.white,
-                                      ),
-                                    ],
-                                  )),
-                              GhostCompletionWidget(
+                      height: 150,
+                      width: width,
+                      child: Stack(
+                        children: [
+                          Align(
+                            alignment: Alignment.center,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 5.0),
+                              child: avatarCircularProgress(protocol, diaries),
+                            ),
+                          ),
+                          Positioned(
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 5,
+                                    height: 10,
+                                    color: Colors.white,
+                                  ),
+                                ],
+                              )),
+                          showWidget
+                              ? GhostCompletionWidget(
                                   currentEntry: diary.currentEntry,
                                   dailyGoal: protocol.dailyGoal,
-                                  weeklyGoal: protocol.weeklyGoal),
-                            ],
-                          )
-                        : const SizedBox.shrink(),
-                  ),
+                                  weeklyGoal: protocol.weeklyGoal)
+                              : const SizedBox.shrink(),
+                        ],
+                      )),
                   const SizedBox(
                     height: 24,
                   ),
@@ -140,6 +142,7 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
                     diaries: diaries,
                     dailyGoal: protocol.dailyGoal,
                     weeklyGoal: protocol.weeklyGoal,
+                    isSurvey: isSurvey,
                   )
                 ],
               ),
@@ -164,15 +167,41 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
     );
   }
 
-  Widget avatarCircularProgress(Protocol protocol, DiaryModel diary) {
-    final begin = (diary.currentEntry - 1) / protocol.dailyGoal;
-    final end = diary.currentEntry / protocol.dailyGoal;
+  Widget avatarCircularProgress(Protocol protocol, List<DiaryModel> diaries) {
+    final today = DateTime.now();
+    double emaDailyTotalGoal = (emaGoal.daily + diaryGoal.daily).toDouble();
+    double surveyTotalGoal = surveyGoal.daily.toDouble();
+    int emaDailyTotalEntries = 0;
+    int surveyTotalEntries = 0;
+
+    final diariesToday = diaries.where((diary) {
+      final diaryDate = diary.start;
+      return diaryDate.year == today.year &&
+          diaryDate.month == today.month &&
+          diaryDate.day == today.day;
+    }).toList();
+
+    for (final diary in diariesToday) {
+      if (diary.type == DiaryTypes.ema || diary.type == DiaryTypes.daily) {
+        emaDailyTotalEntries += diary.currentEntry;
+      } else if (diary.type == DiaryTypes.survey) {
+        surveyTotalEntries += diary.currentEntry;
+      }
+    }
+
+    double beginEmaDaily = (emaDailyTotalEntries - 1) / emaDailyTotalGoal;
+    double endEmaDaily = (emaDailyTotalEntries) / emaDailyTotalGoal;
+
+    double beginSurvey = (surveyTotalEntries - 1) / surveyTotalGoal;
+    double endSurvey = (surveyTotalEntries) / surveyTotalGoal;
 
     return SizedBox(
         height: 150,
         width: 150,
         child: TweenAnimationBuilder<double>(
-          tween: Tween<double>(begin: begin, end: end),
+          tween: Tween<double>(
+              begin: isSurvey ? beginSurvey : beginEmaDaily,
+              end: isSurvey ? endSurvey : endEmaDaily),
           duration: const Duration(milliseconds: 1000),
           builder: (context, value, _) => CircularProgressIndicator(
             strokeWidth: 5,
@@ -185,5 +214,22 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
 
   fetchData() {
     completionCubit.completeDiary(widget.diary);
+  }
+
+  void getDay() async {
+    //Get day here
+    final now = DateTime.now();
+    final lastString =
+        await PreferenceService().getStringPreference(key: 'lastDay');
+    final last = DateTime.parse(lastString!);
+    final realDay = last.subtract(const Duration(days: 7));
+    final isToday = DateTime(now.year, now.month, now.day).isAtSameMomentAs(
+            DateTime(realDay.year, realDay.month, realDay.day)) ||
+        DateTime(now.year, now.month, now.day)
+            .isAtSameMomentAs(DateTime(last.year, last.month, last.day));
+
+    setState(() {
+      isSurvey = isToday;
+    });
   }
 }

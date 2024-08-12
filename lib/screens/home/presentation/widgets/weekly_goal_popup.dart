@@ -1,7 +1,8 @@
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/goal.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
@@ -10,10 +11,14 @@ import 'package:intl/intl.dart';
 
 class WeeklyGoalPopup extends StatefulWidget {
   final int currentEntries;
-  final int weeklyGoal;final List<DiaryModel> diaries;
+  final int weeklyGoal;
+  final List<DiaryModel> diaries;
 
   const WeeklyGoalPopup(
-      {super.key, required this.currentEntries, required this.weeklyGoal, required this.diaries});
+      {super.key,
+      required this.currentEntries,
+      required this.weeklyGoal,
+      required this.diaries});
 
   @override
   State<WeeklyGoalPopup> createState() => _WeeklyGoalPopupState();
@@ -22,12 +27,16 @@ class WeeklyGoalPopup extends StatefulWidget {
 class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
     with SingleTickerProviderStateMixin {
   String thisWeek = "";
+  bool isSurvey = false;
 
   @override
   void initState() {
+    getDay();
     thisWeek = getThisWeek();
     super.initState();
-  }static List<Color> colors = [
+  }
+
+  static List<Color> colors = [
     CustomColors.productNormal,
     CustomColors.teal,
     CustomColors.amber
@@ -38,12 +47,21 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
     final width = MediaQuery.of(context).size.width;
     double totalWidth = width - 32;
 
-final data = {
+    final data = {
       'EMA': widget.diaries
-          .where((diary) => diary.status == DiaryStatus.submitted).toList(),
+          .where((diary) => diary.type == DiaryTypes.ema)
+          .toList(),
       'Diary': widget.diaries
-          .where((diary) => diary.status == DiaryStatus.missed).toList()
+          .where((diary) => diary.type == DiaryTypes.daily)
+          .toList()
     };
+
+    final surveyData = {
+      'Survey': widget.diaries
+          .where((diary) => diary.type == DiaryTypes.survey)
+          .toList()
+    };
+
     return Container(
       width: width,
       color: CustomColors.fillWhite,
@@ -68,15 +86,22 @@ final data = {
               height: 6,
             ),
 
-           Column(
-                children: data.entries.toList().asMap().entries.map((e) {
-              final index = e.key;
-              final value = e.value;
-              final goal = value.key == "EMA" ? emaGoal : diaryGoal;
-              return goalWidget(
-                  width, totalWidth, goal, value.value, colors[index]);
-            }).toList()),
-           ],
+            Column(
+                children: isSurvey
+                    ? surveyData.entries.toList().asMap().entries.map((e) {
+                        final index = e.key;
+                        final value = e.value;
+                        return goalWidget(width, totalWidth, surveyGoal,
+                            value.value, colors[index]);
+                      }).toList()
+                    : data.entries.toList().asMap().entries.map((e) {
+                        final index = e.key;
+                        final value = e.value;
+                        final goal = value.key == "EMA" ? emaGoal : diaryGoal;
+                        return goalWidget(width, totalWidth, goal, value.value,
+                            colors[index]);
+                      }).toList())
+          ],
         ),
       ),
     );
@@ -90,8 +115,18 @@ final data = {
     final DateFormat formatter = DateFormat("EEEE, MMM d");
 
     return "${formatter.format(monday)} - ${formatter.format(sunday)}";
-  } Widget goalWidget(double width, double totalWidth, Goal goal,
+  }
+
+  Widget goalWidget(double width, double totalWidth, Goal goal,
       List<DiaryModel> diaries, Color color) {
+    String? theText;
+
+    if (goal.weekly == emaGoal.weekly) {
+      theText = "EMA Entries";
+    } else if (goal.weekly == diaryGoal.weekly) {
+      theText = "Daily Entries";
+    }
+
     final lowerGoal = (0.7 * goal.weekly).round();
     final lowerValue = (lowerGoal / goal.weekly) * totalWidth;
 
@@ -112,9 +147,8 @@ final data = {
               size: 20,
             ),
             const SizedBox(width: 6),
-            //TODO: ADD DIARY NAME
             Text(
-              "Repeatable Entry",
+              isSurvey ? "Survey Entries" : "$theText",
               style: CustomTypography().bodyMedium(),
             )
           ],
@@ -253,5 +287,21 @@ final data = {
       ],
     );
   }
-}
 
+  void getDay() async {
+    //Get day here
+    final now = DateTime.now();
+    final lastString =
+        await PreferenceService().getStringPreference(key: 'lastDay');
+    final last = DateTime.parse(lastString!);
+    final realDay = last.subtract(const Duration(days: 7));
+    final isToday = DateTime(now.year, now.month, now.day).isAtSameMomentAs(
+            DateTime(realDay.year, realDay.month, realDay.day)) ||
+        DateTime(now.year, now.month, now.day)
+            .isAtSameMomentAs(DateTime(last.year, last.month, last.day));
+
+    setState(() {
+      isSurvey = isToday;
+    });
+  }
+}

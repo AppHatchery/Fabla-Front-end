@@ -1,3 +1,5 @@
+import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -8,11 +10,13 @@ class CompleteCalendarWidget extends StatefulWidget {
   final List<DiaryModel> diaries;
   final int dailyGoal;
   final int weeklyGoal;
+  final bool isSurvey;
   const CompleteCalendarWidget(
       {super.key,
       required this.diaries,
       required this.dailyGoal,
-      required this.weeklyGoal});
+      required this.weeklyGoal,
+      required this.isSurvey});
 
   @override
   State<CompleteCalendarWidget> createState() => _CompleteCalendarWidgetState();
@@ -126,9 +130,29 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
 
   void prepare() async {
     days.clear();
+    double emaDailyTotalGoal = (emaGoal.daily + diaryGoal.daily).toDouble();
+    double surveyTotalGoal = surveyGoal.daily.toDouble();
+    int emaDailyTotalEntries = 0;
+    int surveyTotalEntries = 0;
     final now = DateTime.now();
     final today = now.weekday;
     DateTime monday = now.subtract(Duration(days: now.weekday - 1));
+
+    final diaries = widget.diaries;
+
+    final diariesToday = diaries.where((diary) {
+      final diaryDate = diary.start;
+      return diaryDate.year == now.year &&
+          diaryDate.month == now.month &&
+          diaryDate.day == now.day;
+    }).toList();
+    for (final diary in diariesToday) {
+      if (diary.type == DiaryTypes.ema || diary.type == DiaryTypes.daily) {
+        emaDailyTotalEntries += diary.currentEntry;
+      } else if (diary.type == DiaryTypes.survey) {
+        surveyTotalEntries += diary.currentEntry;
+      }
+    }
 
     final List<DateTime> _days =
         List.generate(7, (index) => monday.add(Duration(days: index)));
@@ -140,8 +164,10 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
             (element) => element.start.day == d.day,
           )
           .firstOrNull;
-      final max = widget.dailyGoal;
-      final current = diary != null ? diary.currentEntry : 0;
+
+      final max = widget.isSurvey ? surveyTotalGoal : emaDailyTotalGoal;
+      final current =
+          widget.isSurvey ? (surveyTotalEntries) : (emaDailyTotalEntries);
       final isAfter = d.isAfter(now);
 
       final percentage = current / max;
@@ -152,8 +178,7 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
         });
       }
 
-      final showProgress =
-          diary != null;
+      final showProgress = diary != null;
 
       days.add(dayOfTheWeek(_dayAbbreviations[d.weekday]!, isToday, percentage,
           showProgress, isAfter));

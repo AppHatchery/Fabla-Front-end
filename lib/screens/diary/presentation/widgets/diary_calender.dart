@@ -39,10 +39,7 @@ class _DiaryCalenderState extends State<DiaryCalender> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          CustomCalender(
-            diaries: diaries,
-            selectDate: _changeDate,
-          ),
+          const CustomCalender(),
           const SizedBox(height: 24),
           BlocBuilder<DiaryCubit, DiaryState>(
             builder: (context, state) {

@@ -63,8 +63,8 @@ class _HomePageState extends State<HomePage>
     super.didChangeAppLifecycleState(state);
   }
 
-  @override
-  bool get wantKeepAlive => true;
+  // @override
+  // bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
@@ -238,7 +238,6 @@ class _HomePageState extends State<HomePage>
   }
 
   void fetchData(BuildContext context) async {
-    print("homeeeeeeeeeeeeeeeeeeefetch");
     homeCubit.loadDiaries();
     diaries = homeCubit.getAllDiariesThisWeek();
   }

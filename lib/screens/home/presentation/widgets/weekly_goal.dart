@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
@@ -24,11 +25,10 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
     double width = 70;
     //calculate the progress bar width
     final currentValue = widget.currentEntries;
-    int weeklyGoal = widget.weeklyGoal;
+    int weeklyGoal = emaGoal.weekly;
     double progressValue = (currentValue / weeklyGoal) * width;
 
-    double progressBarWidth =
-        (progressValue > width) ? width : progressValue;
+    double progressBarWidth = (progressValue > width) ? width : progressValue;
     //calculate the lower goal width/value
     int lowerValue = (0.7 * weeklyGoal).round();
     double lowerGoal = (lowerValue / weeklyGoal) * width;
@@ -98,8 +98,8 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
               padding: const EdgeInsets.only(top: 10.0),
               child: Text(
                 "$currentValue/$weeklyGoal",
-                style:
-                    CustomTypography().caption(color: CustomColors.productNormal),
+                style: CustomTypography()
+                    .caption(color: CustomColors.productNormal),
               ),
             )
           ],

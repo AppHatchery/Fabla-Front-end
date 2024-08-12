@@ -1,6 +1,7 @@
 import 'dart:math';
 
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/rings_progress_indicator.dart';
@@ -25,7 +26,9 @@ class TodayGoalWidget extends StatefulWidget {
       required this.protocol,
       required this.diary,
       required this.weeklyEntries,
-      required this.isHomeTipClosed, required this.showWidget, required this.diaries});
+      required this.isHomeTipClosed,
+      required this.showWidget,
+      required this.diaries});
 
   @override
   State<TodayGoalWidget> createState() => _TodayGoalWidgetState();
@@ -33,6 +36,8 @@ class TodayGoalWidget extends StatefulWidget {
 
 class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   StateMachineController? _controller;
+
+  bool isSurvey = false;
 
   void _onInit(Artboard art) {
     var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
@@ -53,6 +58,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
   @override
   void initState() {
+    getDay();
     widget.isHomeTipClosed.addListener(() {
       if (widget.isHomeTipClosed.value) _controller?.isActive = true;
     });
@@ -69,26 +75,40 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final entry = widget.diary.status == DiaryStatus.submitted
-        ? widget.diary.entries
-        : widget.diary.currentEntry;
+
+    print("isSurvey: $isSurvey");
 
     final data = {
       'EMA': widget.diaries
-          .where((diary) => diary.status == DiaryStatus.submitted).toList(),
+          .where((diary) => diary.type == DiaryTypes.ema)
+          .toList(),
       'Diary': widget.diaries
-          .where((diary) => diary.status == DiaryStatus.missed).toList()
+          .where((diary) => diary.type == DiaryTypes.daily)
+          .toList()
     };
 
-    //calculate the daily goal progress bar width
-    final dailyValue = ((entry) / widget.protocol.dailyGoal);
+    final surveyData = {
+      'Survey': widget.diaries
+          .where((diary) => diary.type == DiaryTypes.survey)
+          .toList()
+    };
+
+    final emaEntries = data["EMA"]?.fold<int>(
+            0, (previous, element) => element.currentEntry + previous) ??
+        0;
+    final dailyEntry = data["Diary"]?.fold<int>(
+            0, (previous, element) => element.currentEntry + previous) ??
+        0;
+
+    final surveyEntries = widget.diaries
+        .fold<int>(0, (previous, element) => element.currentEntry + previous);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text("Today's Goal", style: CustomTypography().titleLarge()),
         const SizedBox(height: 16),
-             Align(
+        Align(
           alignment: Alignment.center,
           child: SizedBox(
             // height: 150,
@@ -100,7 +120,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                   child: Padding(
                     padding: const EdgeInsets.only(top: 5.0),
                     child: GoalProgressIndicators(
-                      goals: data,
+                      goals: isSurvey ? surveyData : data,
                     ),
                   ),
                 ),
@@ -130,11 +150,13 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                       child: SizedBox(
                         height: 120,
                         width: 180,
-                        child: widget.showWidget ?  RiveAnimation.asset(
-                          'assets/animations/ghosts.riv',
-                          onInit: _onInit,
-                          fit: BoxFit.cover,
-                        ) : const SizedBox.shrink(),
+                        child: widget.showWidget
+                            ? RiveAnimation.asset(
+                                'assets/animations/ghosts.riv',
+                                onInit: _onInit,
+                                fit: BoxFit.cover,
+                              )
+                            : const SizedBox.shrink(),
                       ),
                     ),
                   ),
@@ -156,7 +178,9 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
             Flexible(
               fit: FlexFit.loose,
               child: Text(
-                "Repeatable Entries: $entry/${widget.protocol.dailyGoal}",
+                isSurvey
+                    ? "Survey Entries: $surveyEntries"
+                    : "EMA Entries: $emaEntries/${emaGoal.daily} | Daily Entries: $dailyEntry/${diaryGoal.daily} ",
                 style: CustomTypography().bodyMedium(),
               ),
             ),
@@ -164,6 +188,23 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         )
       ],
     );
+  }
+
+  void getDay() async {
+    //Get day here
+    final now = DateTime.now();
+    final lastString =
+        await PreferenceService().getStringPreference(key: 'lastDay');
+    final last = DateTime.parse(lastString!);
+    final realDay = last.subtract(const Duration(days: 7));
+    final isToday = DateTime(now.year, now.month, now.day).isAtSameMomentAs(
+            DateTime(realDay.year, realDay.month, realDay.day)) ||
+        DateTime(now.year, now.month, now.day)
+            .isAtSameMomentAs(DateTime(last.year, last.month, last.day));
+
+    setState(() {
+      isSurvey = isToday;
+    });
   }
 
   determineAnimation() async {

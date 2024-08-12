@@ -169,7 +169,6 @@ class SetupRepository {
         DateTime(dayOfDownload.year, dayOfDownload.month, dayOfDownload.day);
     final List<DiaryModel> diaries = [];
     DateTime date = endDay;
-    developer.log("start date: ${date.toString()}", name: "Start Date");
 
     for (final phase in phases) {
       final duration = phase['duration'] as int;
@@ -182,7 +181,6 @@ class SetupRepository {
       }
 
       for (DateTime date in phaseDates) {
-        developer.log("Day: $date", name: "For Loop");
         for (final json in diariesJson) {
           final questions = json["question"] as List<dynamic>;
           final prompts = questions
@@ -192,10 +190,7 @@ class SetupRepository {
           final endTime = timeOfDayFromString(json["end_time"]);
 
           String rawType = json["type"];
-          developer.log("Raw type from JSON: $rawType", name: "Diary Type");
           DiaryTypes diaryType = diaryTypeString(rawType);
-          developer.log("Converted DiaryTypes value: $diaryType",
-              name: "Diary Type");
           //developer.log("prompts: $prompts");
           final diary = DiaryModel(
             id: 0,
@@ -216,15 +211,12 @@ class SetupRepository {
         }
       }
 
-      date = phaseDates.last.add(Duration(days: 1));
+      date = phaseDates.last.add(const Duration(days: 1));
     }
 
     DateTime lastDay = date.subtract(const Duration(days: 1));
     await PreferenceService()
         .setStringPreference(key: 'lastDay', value: lastDay.toString());
-    final theLastDay =
-        await PreferenceService().getStringPreference(key: 'lastDay');
-    print("Last Day>>>>>>>>>>>>>>>>>>>>>>>>>>>>: $theLastDay");
 
     final entities = diaries.map((model) {
       final prompts =

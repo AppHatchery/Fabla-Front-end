@@ -1,6 +1,5 @@
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
-import 'package:audio_diaries_flutter/screens/home/data/goal.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -33,7 +32,7 @@ class RingProgressIndicator extends StatelessWidget {
         ),
       ),
     );
-  }                                     
+  }
 }
 
 class GoalProgressIndicators extends StatelessWidget {
