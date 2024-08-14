@@ -61,7 +61,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   //Animation
   StateMachineController? _controller;
   bool _showConfetti = false;
-  bool _confettiShown = false;
   Timer? _confettiTimer;
 
   void _onInit(Artboard art) {
@@ -101,7 +100,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   void checkProgressAndUpdateUI() {
     setState(() {
       _showConfetti = true;
-      _confettiShown = true;
       _confettiTimer?.cancel();
       // set a timer for 10 seconds to stop the confetti
       _confettiTimer = Timer(const Duration(seconds: 4), () {
