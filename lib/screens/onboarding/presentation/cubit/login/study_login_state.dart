@@ -16,10 +16,17 @@ final class StudyLoginLoading extends StudyLoginState {
 }
 
 final class StudyLoginSuccess extends StudyLoginState {
-  const StudyLoginSuccess();
+  final ExperimentModel experiment;
+  const StudyLoginSuccess(this.experiment);
+
+  @override
+  List<Object> get props => [experiment];
 }
 
 final class StudyLoginError extends StudyLoginState {
   final String message;
   const StudyLoginError(this.message);
+
+  @override
+  List<Object> get props => [message];
 }

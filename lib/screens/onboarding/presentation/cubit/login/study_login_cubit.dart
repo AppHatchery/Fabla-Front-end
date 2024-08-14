@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/login_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -11,8 +12,8 @@ class StudyLoginCubit extends Cubit<StudyLoginState> {
     emit(const StudyLoginLoading());
     try {
       final result = await repository.studyVerification(code);
-      if (result) {
-        emit(const StudyLoginSuccess());
+      if (result != null) {
+        emit(StudyLoginSuccess(result));
       } else {
         emit(const StudyLoginError(
             "Oops! We do not have this code in the study list. Please check your email and try again."));

@@ -23,7 +23,7 @@ class StudyModel {
       id: 0,
       experimentCode: loginCode,
       studyId: json['id'],
-      goals: Goal.fromJson(json['goals']),
+      goals: Goal.fromJson(json['goal']),
       incentive: Incentive.fromJson(json['incentive']),
     );
   }
@@ -49,15 +49,15 @@ class Goal {
 
   factory Goal.fromJson(Map<String, dynamic> json) {
     return Goal(
-      daily: json['daily'],
-      weekly: json['weekly'],
+      daily: json['daily_goal'],
+      weekly: json['weekly_goal'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'daily': daily,
-      'weekly': weekly,
+      'daily_goal': daily,
+      'weekly_goal': weekly,
     };
   }
 }

@@ -173,6 +173,7 @@ final Map<String, ResponseType> _responseTypeMap = {
   'text': ResponseType.text,
   'multiple': ResponseType.multiple,
   'radio': ResponseType.radio,
+  'single': ResponseType.radio,
   'slider': ResponseType.slider,
 };
 

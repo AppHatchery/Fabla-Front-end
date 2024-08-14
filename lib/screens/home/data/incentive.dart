@@ -12,10 +12,10 @@ class Incentive {
 
   factory Incentive.fromJson(Map<String, dynamic> json) {
     return Incentive(
-      amount: json['amount'] ?? 0.0,
-      bonus: json['bonus'] ?? 0.0,
+      amount: json['amount'],
+      bonus: json['bonus'],
       currency: json['currency'] ?? '\$',
-      threshold: json['threshold'] ?? 0,
+      threshold: json['threshold'],
     );
   }
 

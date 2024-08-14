@@ -29,6 +29,7 @@ class PromptCubit extends Cubit<PromptState> {
   /// ```
   Future<void> loadPrompt(DiaryModel diary, PromptModel prompt) async {
     try {
+      print("The options: ${prompt.option?.toJson()}");
       emit(PromptLoading(prompt));
       final newPrompt = _repository.load(diary, prompt.id);
       await Future.delayed(const Duration(microseconds: 1));

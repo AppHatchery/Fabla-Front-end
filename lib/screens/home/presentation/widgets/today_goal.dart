@@ -28,8 +28,7 @@ class TodayGoalWidget extends StatefulWidget {
   State<TodayGoalWidget> createState() => _TodayGoalWidgetState();
 }
 
-class _TodayGoalWidgetState extends State<TodayGoalWidget>
-    with AutomaticKeepAliveClientMixin {
+class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   Map<Goal, List<DiaryModel>> data = {};
 
   late StateMachineController _controller;
@@ -77,7 +76,6 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    super.build(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -240,7 +238,4 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget>
       return;
     }
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }

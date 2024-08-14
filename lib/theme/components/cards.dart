@@ -45,6 +45,7 @@ class _DiaryCardState extends State<DiaryCard> {
 
   @override
   void initState() {
+    print("Diary - ${widget.diary?.name} | Start - ${widget.diary?.start} | End - ${widget.diary?.end}");
     //calculate time left from due vs now
     remainingTime = widget.diary!.due.difference(now);
     closed = widget.diary!.start.isAfter(now) ||
@@ -164,7 +165,7 @@ class _DiaryCardState extends State<DiaryCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        Strings.studyName,
+                        widget.diary!.name,
                         style: CustomTypography().titleSmall(),
                       ),
                       const SizedBox(height: 2),

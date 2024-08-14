@@ -589,12 +589,15 @@ class _CurrentIncentiveState extends State<CurrentIncentive> {
   int completed = 0;
   int remaining = 0;
 
+  double value = 0;
+
   @override
   void initState() {
     completed = widget.diaries
         .where((element) => element.status == DiaryStatus.submitted)
         .length;
     remaining = widget.diaries.length - completed;
+    value = widget.acquired / widget.total;
     super.initState();
   }
 
@@ -633,7 +636,7 @@ class _CurrentIncentiveState extends State<CurrentIncentive> {
           LinearProgressIndicator(
             color: CustomColors.productNormal,
             backgroundColor: CustomColors.productLightBackground,
-            value: widget.acquired / widget.total,
+            value: value.isNaN ? 0 : value,
             minHeight: 12,
             borderRadius: BorderRadius.circular(8),
           ),

@@ -225,6 +225,7 @@ List<DiaryModel> makeDiariesTwo(
       final diary = DiaryModel(
           id: 0,
           studyID: 0,
+          name: "Diary",
           prompts: prompts,
           start: start,
           end: end,
@@ -282,6 +283,7 @@ List<DiaryModel> makeDiariesThree(
         final diary = DiaryModel(
             id: 0,
             studyID: 0,
+            name: "Diary",
             prompts: prompts,
             start: start,
             end: end,

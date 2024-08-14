@@ -1,15 +1,20 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:developer' as dev;
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:audio_diaries_flutter/core/database/dao/experiment_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/questions_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
+import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
+import 'package:audio_diaries_flutter/screens/home/domain/entities/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
@@ -34,6 +39,8 @@ class SetupRepository {
   final StudyDAO _studyDAO = StudyDAO(box: Box<Study>(objectbox.store));
   final QuestionsDAO _questionsDAO =
       QuestionsDAO(box: Box<QuestionsEntity>(objectbox.store));
+  final ExperimentDAO _experimentDAO =
+      ExperimentDAO(box: Box<Experiment>(objectbox.store));
 
   /// Retrieves the participant's information from the database.
   ///
@@ -114,39 +121,69 @@ class SetupRepository {
     return protocolEntity == null ? null : Protocol.fromEntity(protocolEntity);
   }
 
+  /// Retrieves studies and diaries from the remote source and updates the local database.
+  ///
+  /// This function fetches the current experiment data from the local database and uses it
+  /// to request the associated studies and diaries from a remote source. The studies and diaries
+  /// are then parsed, converted into their respective models, and saved to the local database.
+  ///
+  /// If the request is successful, the studies and diaries are updated in the local database
+  /// via the associated DAOs (Data Access Objects).
+  ///
+  /// This function does not return any data but updates the local database directly.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// await getStudies(); // Fetch and update studies and diaries in the local database.
+  /// ```
   Future<void> getStudies() async {
-    final String response = await rootBundle.loadString('assets/protocol.json');
-    final data = await json.decode(response);
+    // Retrieve the current experiment from the local database
+    final entity = _experimentDAO.getExperiment();
+    final experiment = ExperimentModel.fromEntity(entity!);
 
-    final studiesFromJson = data['studies'] as List;
-    final studies = <StudyModel>[];
-    final diaries = <DiaryModel>[];
-    for (final study in studiesFromJson) {
-      final studyModel = StudyModel.fromJson(study, data['login_code']);
-      studies.add(studyModel);
+    // Request the user's studies and diaries from the remote source
+    final response = await post(path: "/fabla/getuserprotocol", body: {
+      'login_code': experiment.login,
+    });
 
-      final diariesJson = study['diaries'] as List;
+    if (response != null) {
+      final data = await json.decode(response)['data'];
 
-      for (final json in diariesJson) {
-        final diary = DiaryModel.fromJson(json, studyModel.studyId);
-        diaries.add(diary);
+      // Parse the studies from the response
+      final studiesFromJson = data['studies'] as List;
+      final studies = <StudyModel>[];
+      final diaries = <DiaryModel>[];
+
+      // Convert each study and its associated diaries to their respective models
+      for (final study in studiesFromJson) {
+        final studyModel = StudyModel.fromJson(study, experiment.login);
+        studies.add(studyModel);
+
+        final diariesJson = study['diaries'] as List;
+        for (final json in diariesJson) {
+          final diary = DiaryModel.fromJson(json, studyModel.studyId);
+          diaries.add(diary);
+        }
       }
+
+      // Convert diaries to entities and map prompts to their models
+      final entities = diaries.map((model) {
+        final prompts =
+            model.prompts.map((prompt) => Prompt.fromModel(prompt)).toList();
+        final entity = Diary.fromModel(model);
+        entity.prompts.addAll(prompts);
+        return entity;
+      }).toList();
+
+      // Convert studies to entities
+      final studyEntities =
+          studies.map((model) => Study.fromModel(model)).toList();
+
+      // Update the local database with the fetched studies and diaries
+      dev.log("Studies: $studyEntities", name: "Get Studies");
+      diaryRepository.addDiaries(entities);
+      _studyDAO.addStudies(studyEntities);
     }
-
-    final entities = diaries.map((model) {
-      final prompts =
-          model.prompts.map((prompt) => Prompt.fromModel(prompt)).toList();
-      final entity = Diary.fromModel(model);
-      entity.prompts.addAll(prompts);
-
-      return entity;
-    }).toList();
-
-    final studyEntities =
-        studies.map((model) => Study.fromModel(model)).toList();
-
-    diaryRepository.addDiaries(entities);
-    _studyDAO.addStudies(studyEntities);
   }
 
   /// Creates and stores metadata related to the participant's study.

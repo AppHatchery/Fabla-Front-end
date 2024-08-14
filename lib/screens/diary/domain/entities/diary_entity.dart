@@ -10,6 +10,7 @@ class Diary {
   @Id()
   int id;
   int studyID;
+  String name;
   @Property(type: PropertyType.date)
   DateTime start;
   @Property(type: PropertyType.date)
@@ -38,6 +39,7 @@ class Diary {
   Diary(
       {this.id = 0,
       required this.studyID,
+      required this.name,
       required this.due,
       required this.start,
       required this.entries,
@@ -75,6 +77,7 @@ class Diary {
     return Diary(
       id: model.id,
       studyID: model.studyID,
+      name: model.name,
       due: model.due,
       start: model.start,
       end: model.end,
