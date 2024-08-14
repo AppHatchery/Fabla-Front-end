@@ -60,6 +60,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   //Animation
   StateMachineController? _controller;
+  bool _showConfetti = false;
+  Timer? _confettiTimer;
 
   void _onInit(Artboard art) {
     var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
@@ -95,6 +97,19 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     super.didChangeAppLifecycleState(state);
   }
 
+  void checkProgressAndUpdateUI() {
+    setState(() {
+      _showConfetti = true;
+      _confettiTimer?.cancel();
+      // set a timer for 10 seconds to stop the confetti
+      _confettiTimer = Timer(const Duration(seconds: 4), () {
+        setState(() {
+          _showConfetti = false;
+        });
+      });
+    });
+  }
+
   @override
   void initState() {
     recorderInit();
@@ -104,6 +119,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   @override
   void dispose() {
+    _confettiTimer?.cancel();
     recorder.closeRecorder();
     _controller?.dispose();
     scrollController.dispose();
@@ -114,6 +130,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
 
     return Container(
       width: width,
@@ -150,15 +167,21 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               ),
             ],
           ),
-          // commented out waiting for confetti animation
-          // _progressValue == 1.0 // 5
-          //     ? SizedBox(
-          //         height: height,
-          //         width: width,
-          //         child: const RiveAnimation.asset(
-          //             'assets/animations/onboarding/onboarding_congrats.riv',
-          //             fit: BoxFit.cover))
-          //     : const SizedBox.shrink(),
+          //commented out waiting for confetti animation
+          _showConfetti
+              ? GestureDetector(
+                  onTap: () => setState(() {
+                    _showConfetti = false;
+                    _confettiTimer?.cancel();
+                  }),
+                  child: SizedBox(
+                      height: height,
+                      width: width,
+                      child: const RiveAnimation.asset(
+                          'assets/animations/confetti.riv',
+                          fit: BoxFit.cover)),
+                )
+              : const SizedBox.shrink(),
         ],
       ),
     );
@@ -384,9 +407,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       timer =
           "${elapsed.inMinutes.remainder(60).toString().padLeft(2, '0')}:${elapsed.inSeconds.remainder(60).toString().padLeft(2, '0')}";
       double progress = elapsed.inSeconds / maxDurationInSeconds;
-      if (progress > 1.0) {
-        progress = 1.0;
-      }
       _progressValue = progress;
     });
   }
@@ -399,6 +419,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           timer = formatDurationtoHHMMSS(elapsed);
           _updateTimer(elapsed);
         });
+        if (elapsed.inSeconds >= maxDurationInSeconds &&
+            elapsed.inSeconds < maxDurationInSeconds + 2) {
+          checkProgressAndUpdateUI();
+        }
       }
     });
   }
@@ -565,7 +589,7 @@ class _BottomTextModalState extends State<BottomTextModal>
   bool disabled = true;
 
   //Animation
- StateMachineController? _controller;
+  StateMachineController? _controller;
 
   void _onInit(Artboard art) {
     var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
@@ -664,7 +688,6 @@ class _BottomTextModalState extends State<BottomTextModal>
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
