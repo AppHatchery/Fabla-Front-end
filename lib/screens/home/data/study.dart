@@ -49,15 +49,15 @@ class Goal {
 
   factory Goal.fromJson(Map<String, dynamic> json) {
     return Goal(
-      daily: json['daily_goal'],
-      weekly: json['weekly_goal'],
+      daily: json['daily'],
+      weekly: json['weekly'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'daily_goal': daily,
-      'weekly_goal': weekly,
+      'daily': daily,
+      'weekly': weekly,
     };
   }
 }
