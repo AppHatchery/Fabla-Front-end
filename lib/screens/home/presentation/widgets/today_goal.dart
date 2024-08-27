@@ -179,8 +179,8 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
               fit: FlexFit.loose,
               child: Text(
                 isSurvey
-                    ? "Survey Entries: $surveyEntries"
-                    : "EMA Entries: $emaEntries/${emaGoal.daily} | Daily Entries: $dailyEntry/${diaryGoal.daily} ",
+                    ? "Survey Entries: $surveyEntries/${surveyGoal.daily}"
+                    : "EMAs: $emaEntries/${emaGoal.daily} | Daily Diaries: $dailyEntry/${diaryGoal.daily} ",
                 style: CustomTypography().bodyMedium(),
               ),
             ),
