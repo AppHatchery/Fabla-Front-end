@@ -76,7 +76,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
             Wrap(
               children: [
                 Text(
-                  thisWeek,
+                  isSurvey ? DateFormat("EEEE, MMM d").format(DateTime.now()) : thisWeek,
                   style: CustomTypography().caption(),
                 ),
               ],
@@ -122,9 +122,9 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
     String? theText;
 
     if (goal.weekly == emaGoal.weekly) {
-      theText = "EMA Entries";
+      theText = "EMAs";
     } else if (goal.weekly == diaryGoal.weekly) {
-      theText = "Daily Entries";
+      theText = "Daily Diaries";
     }
 
     final lowerGoal = (0.7 * goal.weekly).round();
@@ -164,7 +164,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
               child: Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: Text(
-                  "Submit at least $lowerGoal repeatable entries this week to complete your goal.",
+                  isSurvey ? "Submit just $lowerGoal entry today to complete your goal." : "Submit at least $lowerGoal entries this week to complete your goal.",
                   style: CustomTypography().caption(),
                   softWrap: true,
                 ),
