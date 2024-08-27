@@ -11,6 +11,7 @@ import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -97,7 +98,7 @@ class _DiaryCardState extends State<DiaryCard> {
                     color: CustomColors.fillWhite, size: 20),
                 const SizedBox(width: 4),
                 Text(
-                  "Remaining Time: ${formatDuration(remainingTime.inMilliseconds)}",
+                  "This task will expire in ${formatDuration(remainingTime.inMilliseconds)}",
                   style: CustomTypography().body(color: Colors.white),
                 )
               ],
@@ -108,9 +109,11 @@ class _DiaryCardState extends State<DiaryCard> {
           decoration: BoxDecoration(
             color: CustomColors.fillWhite,
             borderRadius: BorderRadius.circular(10),
-            border: const Border(
+            border: Border(
                 left: BorderSide(
-              color: CustomColors.productNormal,
+                  color: widget.diary!.type == DiaryTypes.ema
+                      ? CustomColors.productNormal
+                      : CustomColors.lightGreen, // Use different colors as needed
               width: 4,
             )),
             boxShadow: const [
@@ -136,14 +139,18 @@ class _DiaryCardState extends State<DiaryCard> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.restart_alt_outlined,
-                        color: CustomColors.productNormal,
+                        color: widget.diary!.type == DiaryTypes.ema
+                            ? CustomColors.productNormal
+                            : CustomColors.lightGreen, // Use different colors as needed
                         size: 20,
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        "Routine Entry",
+                        widget.diary!.type == DiaryTypes.ema
+                            ? "EMA"
+                            : "Daily Diary", // Use different colors as needed // "Routine Entry",
                         style: CustomTypography()
                             .bodyMedium(weight: FontWeight.w500),
                       ),
@@ -222,7 +229,7 @@ class _DiaryCardState extends State<DiaryCard> {
                         child: Text(
                           closed &&
                                   widget.diary!.status != DiaryStatus.submitted
-                              ? "Not Available"
+                              ? "Available at ${DateFormat('HH:mm').format(widget.diary!.start)}" // "Not Available"
                               : switch (widget.diary!.status) {
                                   DiaryStatus.complete => "Continue",
                                   DiaryStatus.idle => "Start",
