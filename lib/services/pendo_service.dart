@@ -2,8 +2,8 @@ import 'package:audio_diaries_flutter/core/secrets/keys.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:pendo_sdk/pendo_sdk.dart';
 
-const String _accountID = "Validation-Study-Fall23";
-const String _testID = "Test-Fall23";
+const String _accountID = "UserEngagementTest24";
+const String _testID = "TestUser";
 
 class PendoService {
   /// Initializes the Pendo Flutter plugin with the given Pendo key.
