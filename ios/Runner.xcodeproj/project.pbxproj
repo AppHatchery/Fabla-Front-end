@@ -495,11 +495,10 @@
 			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = 3H75P5FLT9;
+				DEVELOPMENT_TEAM = 3RQHVA7936;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Fabla;
@@ -552,7 +551,7 @@
 					"\"url_launcher_ios\"",
 					"\"-lc++\"",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "edu.emory.audio.diaries-naomi-nyama";
+				PRODUCT_BUNDLE_IDENTIFIER = edu.emory.audio.diaries;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -729,11 +728,10 @@
 			baseConfigurationReference = 9740EEB21CF90195004384FC /* Debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = 3H75P5FLT9;
+				DEVELOPMENT_TEAM = 3RQHVA7936;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Fabla;
@@ -786,7 +784,7 @@
 					"\"url_launcher_ios\"",
 					"\"-lc++\"",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "edu.emory.audio.diaries-naomi-nyama";
+				PRODUCT_BUNDLE_IDENTIFIER = edu.emory.audio.diaries;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -804,11 +802,10 @@
 			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = 3H75P5FLT9;
+				DEVELOPMENT_TEAM = 3RQHVA7936;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Fabla;
@@ -861,7 +858,7 @@
 					"\"url_launcher_ios\"",
 					"\"-lc++\"",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "edu.emory.audio.diaries-naomi-nyama";
+				PRODUCT_BUNDLE_IDENTIFIER = edu.emory.audio.diaries;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
