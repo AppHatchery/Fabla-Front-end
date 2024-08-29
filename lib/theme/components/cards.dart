@@ -113,7 +113,7 @@ class _DiaryCardState extends State<DiaryCard> {
                 left: BorderSide(
                   color: widget.diary!.type == DiaryTypes.ema
                       ? CustomColors.productNormal
-                      : CustomColors.lightGreen, // Use different colors as needed
+                      : CustomColors.teal, // Use different colors as needed
               width: 4,
             )),
             boxShadow: const [
@@ -143,7 +143,7 @@ class _DiaryCardState extends State<DiaryCard> {
                         Icons.restart_alt_outlined,
                         color: widget.diary!.type == DiaryTypes.ema
                             ? CustomColors.productNormal
-                            : CustomColors.lightGreen, // Use different colors as needed
+                            : CustomColors.teal, // Use different colors as needed
                         size: 20,
                       ),
                       const SizedBox(width: 6),
