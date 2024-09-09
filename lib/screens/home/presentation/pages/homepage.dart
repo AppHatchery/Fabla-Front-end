@@ -6,6 +6,7 @@ import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_go
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal_popup.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -29,6 +30,7 @@ class _HomePageState extends State<HomePage>
   late HomeCubit homeCubit;
   late List<DiaryModel> diaries;
   late List<DiaryModel> calendarDiaries;
+  final repository = SetupRepository();
 
   late AnimationController _controller;
 
@@ -68,7 +70,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-   // super.build(context);
+    // super.build(context);
     return Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -110,6 +112,7 @@ class _HomePageState extends State<HomePage>
 
   Widget loadedHome(List<DiaryModel> diaries, DateTime startDate,
       Protocol? protocol, int entries, bool showWidget) {
+       //repository.checkAndCreateNotifications();
     final today = DateTime.now();
     // if (isHomeTipClosed.value == false) show4AmTip();
     final weeklyEntries = entries;

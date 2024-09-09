@@ -442,3 +442,37 @@ const Goal emaGoal = Goal(daily: 2, weekly: 12);
 const Goal diaryGoal = Goal(daily: 1, weekly: 6);
 
 const Goal surveyGoal = Goal(daily: 1, weekly: 1);
+
+class NotificationData {
+  int diaryId;
+  int notificationId;
+  DateTime time;
+  String title;
+  String body;
+
+  NotificationData({
+    required this.diaryId,
+    required this.notificationId,
+    required this.time,
+    required this.title,
+    required this.body,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'diaryId': diaryId,
+    'notificationId': notificationId,
+    'time': time.toIso8601String(),
+    'title': title,
+    'body': body,
+  };
+
+  factory NotificationData.fromJson(Map<String, dynamic> json) {
+    return NotificationData(
+      diaryId: json['diaryId'],
+      notificationId: json['notificationId'],
+      time: DateTime.parse(json['time']),
+      title: json['title'],
+      body: json['body'],
+    );
+  }
+}

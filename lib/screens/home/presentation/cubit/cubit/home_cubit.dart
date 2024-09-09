@@ -66,6 +66,8 @@ class HomeCubit extends Cubit<HomeState> {
         showWidget = true;
       }
 
+      await setupRepository.checkAndCreateNotifications();
+
       diaries.sort((a, b) {
         bool isActiveDiary(DateTime start, DateTime end) =>
             today.isAfter(start) && today.isBefore(end);
@@ -77,7 +79,6 @@ class HomeCubit extends Cubit<HomeState> {
         if (!aIsActive && bIsActive) return 1;
         return a.start.compareTo(b.start);
       });
-
 
       final updated = diaries
           .map((diary) => diary.copyWith(id: diary.id, tags: null))
