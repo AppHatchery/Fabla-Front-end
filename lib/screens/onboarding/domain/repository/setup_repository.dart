@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:developer' as dev;
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
+import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
@@ -133,10 +135,11 @@ class SetupRepository {
       print("Protocol already exists and no updates");
     }
   }
-/// This method is responsible for creating a protocol by retrieving data from a remote source.
-  Protocol? getProtocol(){
+
+  /// This method is responsible for creating a protocol by retrieving data from a remote source.
+  Protocol? getProtocol() {
     final ProtocolEntity? protocolEntity = _protocolDAO.getProtocol();
-    return protocolEntity == null ? null :  Protocol.fromEntity(protocolEntity);
+    return protocolEntity == null ? null : Protocol.fromEntity(protocolEntity);
   }
 
   /// Creates and stores metadata related to the participant's study.
@@ -451,8 +454,8 @@ class SetupRepository {
     times.sort((a, b) =>
         (a.hour + a.minute / 60.0).compareTo(b.hour + b.minute / 60.0));
 
-    List<TimeOfDay> lateReminders =
-        times.where((element) => element.hour >= 19).toList();
+    // List<TimeOfDay> lateReminders =
+    //     times.where((element) => element.hour >= 19).toList();
 
     final diaryNotifications = <int, List<int>>{};
 
@@ -470,96 +473,95 @@ class SetupRepository {
 
         final id = Random().nextInt(100000);
         final isDiary1 = diaryId == 1;
-        final isSecondReminder = times.indexOf(time) > 0;
+        // final isSecondReminder = times.indexOf(time) > 0;
 
         // Define notification title and body based on diary and reminder
-        final title = isDiary1
-            ? 'Get Started on Your Diary Journey!'
-            : 'Keep Going on Your Diary Journey!';
+        final title = isDiary1 ? 'Record your interactions!' : 'Just a minute!';
         final body = isDiary1
-            ? isSecondReminder
-                ? "Hey there! Just another check-in. Don’t forget to do your diary today."
-                : "Hey there! It's time to start your diary. Your insights matter! Tap here to begin now."
-            : isSecondReminder
-                ? "Hey there! Just another check-in. Don’t forget to do your diary today."
-                : "Hey there! You're doing great, but it's time to continue with your next diary. Your insights matter! Tap here to begin now.";
+            ? "Hey there! Have you interacted with staff members today? Take a couple minutes to record your thoughts"
+            : "Hey there! Just another check-in. Don’t forget to record your thoughts after talking to the staff";
 
         await NotificationService.createNotification(
-            id: id, title: title, body: body, date: notificationDate);
+            id: id,
+            title: title,
+            body: body,
+            date: notificationDate,
+            payload: {"type": "reminder"});
+
+        dev.log("Time Scheduled: ${time.hour}:${time.minute}",
+            name: "Create Reminders");
+
+        await PendoService.track("ScheduleReminder", {
+          "status": "scheduled",
+          "page": page ?? "onboarding",
+          "notification_type": "reminder",
+          "notification_id": id,
+          "scheduled_time": "${time.hour}:${time.minute}",
+        });
 
         // Add the notification ID to the diary's list
         diaryNotifications[diaryId]!.add(id);
       }
-    }
-
-    if (times.isNotEmpty) {
-      await PendoService.track("ScheduleReminder", {
-        "page": page ?? "onboarding",
-        "scheduled_by": "user",
-        "notification_type": "reminder",
-        "number_of_reminders": times.length,
-        "reminder_times": times.map((e) => e.toString()).toList(),
-      });
     }
 
     // Schedule late reminders
-    final last = lateReminders.lastOrNull;
-    //If there is a late reminder and it is not past 12am
-    if (last != null && last.hour + 3 < 24) {
-      for (final diary in diaries) {
-        final diaryId = diary.id;
+    // final last = lateReminders.lastOrNull;
+    // //If there is a late reminder and it is not past 12am
+    // if (last != null && last.hour + 3 < 24) {
+    //   for (final diary in diaries) {
+    //     final diaryId = diary.id;
 
-        final date = diary.start;
-        final notificationDate = DateTime(
-            date.year, date.month, date.day, last.hour + 3, last.minute);
+    //     final date = diary.start;
+    //     final notificationDate = DateTime(
+    //         date.year, date.month, date.day, last.hour + 3, last.minute);
 
-        final id = Random().nextInt(100000);
+    //     final id = Random().nextInt(100000);
 
-        const title = "Let's Get Started on Your Diary!";
-        const body =
-            "Hey, it looks like you haven't started your diary yet. Don't worry; it's not too late to begin! Your insights are valuable, so let's start today. Click here to begin now.";
+    //     const title = "Let's Get Started on Your Diary!";
+    //     const body =
+    //         "Hey, it looks like you haven't started your diary yet. Don't worry; it's not too late to begin! Your insights are valuable, so let's start today. Click here to begin now.";
 
-        await NotificationService.createNotification(
-            id: id, title: title, body: body, date: notificationDate);
+    //     await NotificationService.createNotification(
+    //         id: id, title: title, body: body, date: notificationDate);
 
-        // Add the notification ID to the diary's list
-        diaryNotifications[diaryId]!.add(id);
-      }
-      await PendoService.track("ScheduleReminder", {
-        "page": page ?? "onboarding",
-        "scheduled_by": "auto",
-        "notification_type": "late_night",
-        "number_of_reminders": lateReminders.length,
-        "reminder_times": lateReminders.map((e) => e.toString()).toList(),
-      });
-    } else if (lateReminders.isEmpty) {
-      for (final diary in diaries) {
-        final diaryId = diary.id;
+    //     // Add the notification ID to the diary's list
+    //     diaryNotifications[diaryId]!.add(id);
+    //   }
+    //   await PendoService.track("ScheduleReminder", {
+    //     "page": page ?? "onboarding",
+    //     "scheduled_by": "auto",
+    //     "notification_type": "late_night",
+    //     "number_of_reminders": lateReminders.length,
+    //     "reminder_times": lateReminders.map((e) => e.toString()).toList(),
+    //   });
+    // } else if (lateReminders.isEmpty) {
+    //   for (final diary in diaries) {
+    //     final diaryId = diary.id;
 
-        final date = diary.start;
-        final notificationDate =
-            DateTime(date.year, date.month, date.day, 21, 0);
+    //     final date = diary.start;
+    //     final notificationDate =
+    //         DateTime(date.year, date.month, date.day, 21, 0);
 
-        final id = Random().nextInt(100000);
+    //     final id = Random().nextInt(100000);
 
-        const title = "Let's Get Started on Your Diary!";
-        const body =
-            "Hey, it looks like you haven't started your diary yet. Don't worry; it's not too late to begin! Your insights are valuable, so let's start today. Click here to begin now.";
+    //     const title = "Let's Get Started on Your Diary!";
+    //     const body =
+    //         "Hey, it looks like you haven't started your diary yet. Don't worry; it's not too late to begin! Your insights are valuable, so let's start today. Click here to begin now.";
 
-        await NotificationService.createNotification(
-            id: id, title: title, body: body, date: notificationDate);
+    //     await NotificationService.createNotification(
+    //         id: id, title: title, body: body, date: notificationDate);
 
-        // Add the notification ID to the diary's list
-        diaryNotifications[diaryId]!.add(id);
-      }
-      await PendoService.track("ScheduleReminder", {
-        "page": page ?? "onboarding",
-        "scheduled_by": "auto",
-        "notification_type": "late_night",
-        "number_of_reminders": 1,
-        "reminder_times": ["21:00"],
-      });
-    }
+    //     // Add the notification ID to the diary's list
+    //     diaryNotifications[diaryId]!.add(id);
+    //   }
+    //   await PendoService.track("ScheduleReminder", {
+    //     "page": page ?? "onboarding",
+    //     "scheduled_by": "auto",
+    //     "notification_type": "late_night",
+    //     "number_of_reminders": 1,
+    //     "reminder_times": ["21:00"],
+    //   });
+    // }
 
     //Save to Shared Preferences
     final jsonMap = diaryNotifications.map(
@@ -570,17 +572,21 @@ class SetupRepository {
     PreferenceService()
         .setStringPreference(key: 'diary_notifications', value: encoded);
 
+    lateAfternoonNotifications(diaries);
+
     // Schedule notifications for day before start
     final time =
         times.isNotEmpty ? times[0] : const TimeOfDay(hour: 17, minute: 0);
-    final date = diaries[0].start.subtract(const Duration(days: 1));
-    final notificationDate =
-        DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final date = diaries.firstOrNull?.start.subtract(const Duration(days: 1));
+    if (date != null) {
+      final notificationDate =
+          DateTime(date.year, date.month, date.day, time.hour, time.minute);
 
-    await NotificationService.createNotification(
-        title: 'Get Ready - Your Study Starts Tomorrow!',
-        body:
-            "Hey there! We're excited to remind you that your Daily Diary study is just around the corner. Tomorrow, we embark on this exciting journey together. Your insights will make a difference!",
-        date: notificationDate);
+      // await NotificationService.createNotification(
+      //     title: 'Get Ready - Your Study Starts Tomorrow!',
+      //     body:
+      //         "Hey there! We're excited to remind you that your Daily Diary study is just around the corner. Tomorrow, we embark on this exciting journey together. Your insights will make a difference!",
+      //     date: notificationDate);
+    }
   }
 }

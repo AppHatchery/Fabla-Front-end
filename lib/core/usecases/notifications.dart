@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:developer' as dev;
 
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:flutter/material.dart';
 
 import '../../services/notification_service.dart';
 import '../../services/pendo_service.dart';
@@ -80,6 +83,13 @@ void cancelContinueNotifications(int id) async {
 
   if (notificationsForId != null) {
     for (int notification in notificationsForId) {
+      await PendoService.track("ScheduleReminder", {
+            "status": "cancelled",
+            "page": "diary",
+            "notification_type": "reminder",
+            "notification_id": notification,
+            "scheduled_time": "",
+          });
       await NotificationService.cancelNotification(notification);
     }
 
@@ -112,6 +122,7 @@ void cancelContinueNotifications(int id) async {
 /// scheduleContinueDiaryNotifications(123);
 /// ```
 void scheduleContinueDiaryNotifications(int id) async {
+  dev.log("Diary ID: $id", name: "Continue");
   final source = await PreferenceService()
       .getStringPreference(key: 'continue_notifications');
 
@@ -119,33 +130,47 @@ void scheduleContinueDiaryNotifications(int id) async {
   notifications = {};
   if (source == null) {
     final now = DateTime.now();
-    final sevenPM = DateTime(now.year, now.month, now.day, 19);
+    final midnight = DateTime(now.year, now.month, now.day, 23, 59);
 
-    DateTime reminderTime;
+    List<DateTime> reminderTimes = [];
 
-    if (now.isBefore(sevenPM)) {
-      reminderTime = now.add(const Duration(minutes: 30));
+    if (now.isBefore(midnight)) {
+      if (now.add(const Duration(minutes: 30)).isBefore(midnight)) {
+        reminderTimes.add(now.add(const Duration(minutes: 30)));
+      }
+      if (now.add(const Duration(hours: 6)).isBefore(midnight)) {
+        reminderTimes.add(now.add(const Duration(hours: 6)));
+      }
     } else {
       return;
     }
 
-    final notificationID = Random().nextInt(100000);
-    await NotificationService.createNotification(
-        id: notificationID,
-        title: 'Time to Continue Your Diary!',
-        body:
-            "Don't forget to continue where you left off. We appreciate your input!",
-        date: reminderTime);
+    final List<int> notificationIDs = [];
 
-    notifications[id] = [notificationID];
+    for (final time in reminderTimes) {
+      final notificationID = Random().nextInt(100000);
+      notificationIDs.add(notificationID);
+      await NotificationService.createNotification(
+          id: notificationID,
+          title: 'Continue where you left off!',
+          body:
+              "Looks like you started a diary entry but haven’t finished. Tap here to continue.",
+          date: time,
+          payload: {"type": "continue"});
 
-    await PendoService.track("ScheduleReminder", {
-      "page": "diary",
-      "scheduled_by": "auto",
-      "notification_type": "continue",
-      "number_of_reminders": 1,
-      "reminder_times": "${reminderTime.hour}:${reminderTime.minute}",
-    });
+      dev.log("Time Scheduled: ${time.hour}:${time.minute}",
+          name: "Continue Reminders");
+
+      await PendoService.track("ScheduleReminder", {
+        "status": "scheduled",
+        "page": "diary",
+        "notification_type": "continue",
+        "notification_id": notificationID,
+        "scheduled_time": "${time.hour}:${time.minute}",
+      });
+    }
+
+    notifications[id] = notificationIDs;
 
     final updatedJsonMap = Map<String, dynamic>.fromEntries(notifications
         .entries
@@ -165,38 +190,59 @@ void scheduleContinueDiaryNotifications(int id) async {
 
       if (notificationsForId != null) {
         for (int notification in notificationsForId) {
+          await PendoService.track("ScheduleReminder", {
+            "status": "cancelled",
+            "page": "diary",
+            "notification_type": "reminder",
+            "notification_id": notification,
+            "scheduled_time": "",
+          });
           await NotificationService.cancelNotification(notification);
         }
         notificationsForId.clear();
 
         final now = DateTime.now();
-        final sevenPM = DateTime(now.year, now.month, now.day, 19);
+        final midnight = DateTime(now.year, now.month, now.day, 23, 59);
 
-        DateTime reminderTime;
+        List<DateTime> reminderTimes = [];
 
-        if (now.isBefore(sevenPM)) {
-          reminderTime = now.add(const Duration(minutes: 30));
+        if (now.isBefore(midnight)) {
+          if (now.add(const Duration(minutes: 30)).isBefore(midnight)) {
+            reminderTimes.add(now.add(const Duration(minutes: 30)));
+          }
+          if (now.add(const Duration(hours: 6)).isBefore(midnight)) {
+            reminderTimes.add(now.add(const Duration(hours: 6)));
+          }
         } else {
           return;
         }
 
-        final notificationID = Random().nextInt(100000);
-        await NotificationService.createNotification(
-            id: notificationID,
-            title: 'Time to Continue Your Diary!',
-            body:
-                "Don't forget to continue where you left off. We appreciate your input!",
-            date: reminderTime);
+        final List<int> notificationIDs = [];
 
-        notifications[id] = [notificationID];
+        for (final time in reminderTimes) {
+          final notificationID = Random().nextInt(100000);
+          notificationIDs.add(notificationID);
+          await NotificationService.createNotification(
+              id: notificationID,
+              title: 'Continue where you left off!',
+              body:
+                  "Looks like you started a diary entry but haven’t finished. Tap here to continue.",
+              date: time,
+              payload: {"type": "continue"});
 
-        await PendoService.track("ScheduleReminder", {
-          "page": "diary",
-          "scheduled_by": "auto",
-          "notification_type": "continue",
-          "number_of_reminders": 1,
-          "reminder_times": "${reminderTime.hour}:${reminderTime.minute}",
-        });
+          dev.log("Time Scheduled: ${time.hour}:${time.minute}",
+              name: "Continue Reminders");
+
+          await PendoService.track("ScheduleReminder", {
+            "status": "scheduled",
+            "page": "diary",
+            "notification_type": "continue",
+            "notification_id": notificationID,
+            "scheduled_time": "${time.hour}:${time.minute}",
+          });
+        }
+
+        notifications[id] = notificationIDs;
 
         final updatedJsonMap = Map<String, dynamic>.fromEntries(notifications
             .entries
@@ -262,16 +308,19 @@ void scheduleSubmitDiaryNotification(int id) async {
           title: 'Your Entry Is Ready for Submission!',
           body:
               "You've completed your entry. Fantastic! Just one more step: hit 'Submit' to share your valuable thoughts.",
-          date: reminderTime);
+          date: reminderTime,
+          payload: {"type": "submit"});
 
       notifications[id] = [notificationID];
+      dev.log("Time Scheduled: ${reminderTime.hour}:${reminderTime.minute}",
+          name: "Submit Reminders");
 
       await PendoService.track("ScheduleReminder", {
+        "status": "scheduled",
         "page": "summary",
-        "scheduled_by": "auto",
         "notification_type": "submit",
-        "number_of_reminders": 1,
-        "reminder_times": "${reminderTime.hour}:${reminderTime.minute}",
+        "notification_id": notificationID,
+        "scheduled_time": "${reminderTime.hour}:${reminderTime.minute}",
       });
 
       final updatedJsonMap = Map<String, dynamic>.fromEntries(notifications
@@ -296,7 +345,7 @@ void scheduleSubmitDiaryNotification(int id) async {
 /// Parameters:
 /// - [id]: The identifier of the item for which a daily goal notification should be scheduled.
 ///
-void dailyGoalNotification(int id) async {
+void dailyGoalNotification(int id, int entriesLeft) async {
   final source =
       await PreferenceService().getStringListPreference(key: 'reminder_times');
   final dailySource =
@@ -319,6 +368,14 @@ void dailyGoalNotification(int id) async {
 
       if (notificationsForId != null) {
         for (int notification in notificationsForId) {
+          await PendoService.track("ScheduleReminder", {
+            "status": "cancelled",
+            "page": "completion",
+            "notification_type": "reminder",
+            "notification_id": notification,
+            "scheduled_time": "",
+          });
+
           await NotificationService.cancelNotification(notification);
         }
       }
@@ -326,9 +383,21 @@ void dailyGoalNotification(int id) async {
     final notificationID = Random().nextInt(100000);
     await NotificationService.createNotification(
         id: notificationID,
-        title: 'You still have time to accomplish your goal!',
-        body: 'You have not yet reached your daily goal. Keep going!',
-        date: potential);
+        title: 'You are close to your daily goal!',
+        body:
+            'Hey, you are just $entriesLeft conversation away from your daily goal. Keep it in mind as you wrap up your day and you talk to any staff along the way',
+        date: potential,
+        payload: {"type": "dailygoal"});
+
+    dev.log("Time Scheduled: ${potential.hour}:${potential.minute}",
+        name: "Daily Goal Reminders");
+    await PendoService.track("ScheduleReminder", {
+      "status": "scheduled",
+      "page": "completion",
+      "notification_type": "dailygoal",
+      "notification_id": notificationID,
+      "scheduled_time": "${potential.hour}:${potential.minute}",
+    });
 
     notifications[id] = [notificationID];
     final updatedJsonMap = Map<String, dynamic>.fromEntries(notifications
@@ -341,8 +410,7 @@ void dailyGoalNotification(int id) async {
 }
 
 /// Retrieves the next notification date based on the provided last notification date.
-/// This function calculates the next notification time, defaulting to 3 PM today if no previous time is given,
-/// and ensuring the time is within the bounds of 3 PM and 7 PM on the current day.
+/// This function calculates the next notification time
 ///
 /// Parameters:
 /// - [last]: The DateTime object representing the last notification time, or null if there was no previous notification.
@@ -352,48 +420,159 @@ void dailyGoalNotification(int id) async {
 DateTime? retrieveNotificationDate(DateTime? last) {
   // Check if the last notification time is null
   if (last == null) {
-    // If last is null, return 3 PM of the current day
-    return DateTime(
-        DateTime.now().year, DateTime.now().month, DateTime.now().day, 15);
+    // If last is null, return the current time + 2hrs and should not surpass 6pm
+    final now = DateTime.now();
+    final time = now.add(const Duration(hours: 2)); // 2 hours from now
+    final sixPM = DateTime(now.year, now.month, now.day, 18); // 6 PM today
+
+    return time.isBefore(sixPM) ? time : null;
   } else {
     // Get the current date and time
     final now = DateTime.now();
     // Define 3 PM and 7 PM of the current day
     final threePM = DateTime(now.year, now.month, now.day, 15); // 3 PM today
-    final sevenPM = DateTime(now.year, now.month, now.day, 19); // 7 PM today
-
-    // Calculate one hour after the last notification time on the current day
-    final oneHourLater =
-        DateTime(now.year, now.month, now.day, last.hour, last.minute)
-            .add(const Duration(hours: 1));
+    final sixPM = DateTime(now.year, now.month, now.day, 18); // 7 PM today
 
     // Get the actual reminder time based on the last notification time on the current day
     final actualReminderTime =
         DateTime(now.year, now.month, now.day, last.hour, last.minute);
 
     // Declare a variable to hold the calculated reminder time
-    late DateTime reminderTime;
+    late DateTime? reminderTime;
 
     // Determine the reminder time based on whether it is before or after 3 PM
     if (actualReminderTime.isBefore(threePM)) {
       // If the actual reminder time is before 3 PM
       reminderTime =
-          threePM.isBefore(now) ? now.add(const Duration(hours: 1)) : threePM;
+          DateTime(now.year, now.month, now.day, 16, 30); // 4:30 PM today
     } else if ((actualReminderTime.isAtSameMomentAs(threePM) ||
         actualReminderTime.isAfter(threePM))) {
       // If the actual reminder time is at the same moment or after 3 PM
-      reminderTime = now.isAfter(actualReminderTime)
+      reminderTime = now.add(const Duration(hours: 1)).isBefore(sixPM)
           ? now.add(const Duration(hours: 1))
-          : oneHourLater;
+          : null;
     }
 
-    // Check if the reminder time is before 7 PM and return it if true
-    if (reminderTime.isBefore(sevenPM)) {
-      return reminderTime;
+    // Return the calculated reminder time
+    return reminderTime;
+  }
+}
+
+void lateAfternoonNotifications(List<DiaryModel> diaries) async {
+  const title = "Let's submit some entries!";
+  const body =
+      "Hey, it looks like you haven't made an entry yet. Don't worry; you can still submit an entry to record your interactions with staff! Click here to begin now.";
+
+  final source =
+      await PreferenceService().getStringListPreference(key: 'reminder_times');
+  final dailySource =
+      await PreferenceService().getStringPreference(key: 'diary_notifications');
+  Map<int, List<int>> notifications = {};
+
+  if (source == null) {
+    for (final diary in diaries) {
+      // Schedule late afternoon reminders
+      // the reminder gets fired randomly between 1pm and 3pm
+      final date = diary.start;
+      final notificationDate = DateTime(date.year, date.month, date.day,
+          Random().nextInt(3) + 13, Random().nextInt(60));
+
+      final id = Random().nextInt(100000);
+      await NotificationService.createNotification(
+          id: id,
+          title: title,
+          body: body,
+          date: notificationDate,
+          payload: {"type": "reminder"});
+      await PendoService.track("ScheduleReminder", {
+        "status": "scheduled",
+        "page": "onboarding",
+        "notification_type": "reminder",
+        "notification_id": id,
+        "scheduled_time": "${notificationDate.hour}:${notificationDate.minute}",
+      });
+    }
+  } else {
+    final times =
+        source.map((e) => TimeOfDay.fromDateTime(DateTime.parse(e))).toList();
+    times.sort((a, b) =>
+        (a.hour + a.minute / 60.0).compareTo(b.hour + b.minute / 60.0));
+
+    dev.log("Times: $times", name: "Late Afternoon Reminders");
+
+    List<TimeOfDay> lateReminders =
+        times.where((element) => element.hour >= 15).toList();
+
+    if (dailySource != null) {
+      final Map<String, dynamic> jsonMap = json.decode(dailySource);
+      notifications = Map<int, List<int>>.fromEntries(jsonMap.entries.map(
+          (entry) =>
+              MapEntry(int.parse(entry.key), List<int>.from(entry.value))));
+    }
+
+    if (lateReminders.isNotEmpty) {
+      final last = lateReminders.last;
+
+      if (last.hour < 15 && last.hour + 1 < 18) {
+        for (final diary in diaries) {
+          final diaryID = diary.id;
+          // Schedule late afternoon reminders
+          // the reminder gets fired randomly between 1pm and 3pm
+          final date = diary.start;
+          final notificationDate = DateTime(
+              date.year, date.month, date.day, last.hour + 1, last.minute);
+
+          final id = Random().nextInt(100000);
+          dev.log(
+              "Time Scheduled: ${notificationDate.hour}:${notificationDate.minute}",
+              name: "Late Afternoon Reminders");
+          await NotificationService.createNotification(
+              id: id,
+              title: title,
+              body: body,
+              date: notificationDate,
+              payload: {"type": "reminder"});
+          notifications[diaryID]!.add(id);
+
+          await PendoService.track("ScheduleReminder", {
+            "status": "scheduled",
+            "page": "onboarding",
+            "notification_type": "reminder",
+            "notification_id": id,
+            "scheduled_time":
+                "${notificationDate.hour}:${notificationDate.minute}",
+          });
+        }
+      }
+    } else {
+      for (final diary in diaries) {
+        // Schedule late afternoon reminders
+        // the reminder gets fired randomly between 1pm and 3pm
+        final date = diary.start;
+        final notificationDate = DateTime(date.year, date.month, date.day,
+            Random().nextInt(3) + 13, Random().nextInt(60));
+
+        final id = Random().nextInt(100000);
+        await NotificationService.createNotification(
+            id: id,
+            title: title,
+            body: body,
+            date: notificationDate,
+            payload: {"type": "reminder"});
+        dev.log(
+            "Time Scheduled Else: ${notificationDate.hour}:${notificationDate.minute}",
+            name: "Late Afternoon Reminders");
+        await PendoService.track("ScheduleReminder", {
+          "status": "scheduled",
+          "page": "onboarding",
+          "notification_type": "reminder",
+          "notification_id": id,
+          "scheduled_time":
+              "${notificationDate.hour}:${notificationDate.minute}",
+        });
+      }
     }
   }
-  // Return null if none of the conditions are met
-  return null;
 }
 
 ///  latestReminderTime: -0001-11-30 16:00:00.000

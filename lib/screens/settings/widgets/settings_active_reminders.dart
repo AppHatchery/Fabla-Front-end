@@ -110,11 +110,18 @@ class _ActiveRemindersState extends State<ActiveReminders> {
     update();
   }
 
-  void deleteTime(TimeOfDay time) {
+  void deleteTime(TimeOfDay time) async{
     if (widget.times.isNotEmpty) {
       setState(() {
         widget.times.remove(time);
       });
+      await PendoService.track("ScheduleReminder", {
+            "status": "cancelled",
+            "page": "settings",
+            "notification_type": "reminder",
+            "notification_id": "",
+            "scheduled_time": "${time.hour}:${time.minute}",
+          });
       update();
     }
   }
