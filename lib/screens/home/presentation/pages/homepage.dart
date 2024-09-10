@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_goal.dart';
@@ -85,7 +87,7 @@ class _HomePageState extends State<HomePage>
               } else if (state is HomeLoading) {
                 return loading();
               } else if (state is HomeLoaded) {
-                return loadedHome(state.diaries, state.startDate,
+                return loadedHome(state.diaries, state.weekDiaries, state.startDate,
                     state.protocol, state.entries, state.showWidget);
               } else {
                 return initialHome();
@@ -108,7 +110,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget loadedHome(List<DiaryModel> diaries, DateTime startDate,
+  Widget loadedHome(List<DiaryModel> diaries, List<DiaryModel> weeksDiaries, DateTime startDate,
       Protocol? protocol, int entries, bool showWidget) {
     final today = DateTime.now();
     // if (isHomeTipClosed.value == false) show4AmTip();
@@ -138,7 +140,7 @@ class _HomePageState extends State<HomePage>
                     }),
                     child: WeeklyGoalWidget(
                       isExpanded: isExpanded,
-                      weeklyGoal: protocol!.weeklyGoal,
+                      weeklyGoal: protocol!.weeklyGoal + 1,
                       currentEntries: weeklyEntries,
                     ),
                   ),
@@ -199,7 +201,7 @@ class _HomePageState extends State<HomePage>
                             height: 24,
                           ),
                           TodayGoalWidget(
-                            dailyGoal: protocol.dailyGoal,
+                            dailyGoal: protocol!.dailyGoal,
                             protocol: protocol,
                             diary: diaries.first,
                             weeklyEntries: weeklyEntries,
@@ -227,9 +229,9 @@ class _HomePageState extends State<HomePage>
                     ).animate(CurvedAnimation(
                         parent: _controller, curve: Curves.fastOutSlowIn)),
                     child: WeeklyGoalPopup(
-                      weeklyGoal: protocol.weeklyGoal,
+                      weeklyGoal:protocol!.weeklyGoal + 1,
                       currentEntries: weeklyEntries,
-                      diaries: diaries,
+                      diaries: weeksDiaries,
                     ),
                   ))
             ],

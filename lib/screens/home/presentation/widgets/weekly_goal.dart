@@ -25,7 +25,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
     double width = 70;
     //calculate the progress bar width
     final currentValue = widget.currentEntries;
-    int weeklyGoal = emaGoal.weekly;
+    int weeklyGoal = emaGoal.weekly + 1;
     double progressValue = (currentValue / weeklyGoal) * width;
 
     double progressBarWidth = (progressValue > width) ? width : progressValue;

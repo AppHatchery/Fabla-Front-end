@@ -212,7 +212,8 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
         ));
   }
 
-  fetchData() {
+  fetchData() async{
+    getDay();
     completionCubit.completeDiary(widget.diary);
   }
 
@@ -227,7 +228,6 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
             DateTime(realDay.year, realDay.month, realDay.day)) ||
         DateTime(now.year, now.month, now.day)
             .isAtSameMomentAs(DateTime(last.year, last.month, last.day));
-
     setState(() {
       isSurvey = isToday;
     });

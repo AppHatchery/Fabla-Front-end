@@ -17,14 +17,15 @@ class HomeLoading extends HomeState {
 
 class HomeLoaded extends HomeState {
   final List<DiaryModel> diaries;
+  final List<DiaryModel> weekDiaries;
   final DateTime startDate;
   final Protocol? protocol;
   final int entries;
   final bool showWidget;
-  const HomeLoaded(this.diaries, this.startDate, this.protocol, this.entries, this.showWidget);
+  const HomeLoaded(this.diaries, this.weekDiaries,this.startDate, this.protocol, this.entries, this.showWidget);
 
   @override
-  List<Object> get props => [diaries, startDate];
+  List<Object> get props => [diaries, startDate, weekDiaries, entries, showWidget];
 }
 
 class HomeError extends HomeState {
