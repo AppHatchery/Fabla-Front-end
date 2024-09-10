@@ -128,3 +128,53 @@ class _OnBoardingMultipleOptionState extends State<OnBoardingMultipleOption> {
     );
   }
 }
+
+class OnBoardingSlider extends StatefulWidget {
+  final String scaleMinText;
+  final String scaleMaxText;
+  final int scaleMin;
+  final int scaleMax;
+  final double? value;
+  final int defaultValue;
+  final ValueChanged<double> onChanged;
+  const OnBoardingSlider(
+      {super.key,
+      required this.scaleMinText,
+      required this.scaleMaxText,
+      required this.scaleMin,
+      required this.scaleMax,
+      required this.value,
+      required this.defaultValue, required this.onChanged});
+
+  @override
+  State<OnBoardingSlider> createState() => _OnBoardingSliderState();
+}
+
+class _OnBoardingSliderState extends State<OnBoardingSlider> {
+  late double value;
+
+  @override
+  void initState() {
+    value = widget.value ?? widget.defaultValue.toDouble();
+    print("value: $value | defaultValue: ${widget.defaultValue} | scaleMin: ${widget.scaleMin} | scaleMax: ${widget.scaleMax}");
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SliderQuestionCard(
+        value: value,
+        scaleMinText: widget.scaleMinText,
+        scaleMaxText: widget.scaleMaxText,
+        scaleMin: widget.scaleMin,
+        scaleMax: widget.scaleMax,
+        isSliderEnabled: true,
+        onSliderValueChanged: (value) {
+          setState(() {
+            this.value = value;
+            print("value: $value");
+            widget.onChanged(value);
+          });
+        });
+  }
+}

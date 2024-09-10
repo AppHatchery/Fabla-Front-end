@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:rive/rive.dart';
+import 'package:rive/rive.dart' as rive;
 import '../../../../theme/custom_colors.dart';
 
 class AvatarBackground extends StatefulWidget {
@@ -51,7 +51,7 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
                                 : widget.height * 0.55
                             : widget.height * 0.65,
                         width: widget.width,
-                        child: RiveAnimation.asset(
+                        child: rive.RiveAnimation.asset(
                           widget.animation!,
                           fit: BoxFit.fitWidth,
                         ),

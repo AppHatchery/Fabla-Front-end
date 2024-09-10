@@ -116,6 +116,7 @@ class _LoginPageState extends State<LoginPage> {
                       errorMessage: message,
                       hint: "Enter your participant ID...",
                       controller: controller,
+                      fieldType: TextInputType.text,
                       error: error,
                     ),
                     const SizedBox(
@@ -200,9 +201,9 @@ class _LoginPageState extends State<LoginPage> {
     if (controller.text.isNotEmpty) {
       final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
       final text = controller.text.substring(0, lastNonSpaceIndex + 1);
-      final code = int.tryParse(text);
+      final code = text;
 
-      if (code != null) {
+      if (code.isNotEmpty) {
         loginCubit.login(code);
       } else {}
     }

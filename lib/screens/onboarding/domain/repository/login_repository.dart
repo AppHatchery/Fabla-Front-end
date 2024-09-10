@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/core/database/dao/experiment_dao.dart';
 import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/experiment.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'dart:developer' as dev;
 
 import '../../../../core/database/dao/participant_dao.dart';
@@ -76,13 +77,13 @@ class LoginRepository {
   ///   // Display an error message indicating invalid code...
   /// }
   /// ```
-  Future<bool> verify(int code) async {
+  Future<bool> verify(String code) async {
     final entity = _experimentDAO.getExperiment();
     final experiment = ExperimentModel.fromEntity(entity!);
 
     final response = await post(path: "/fabla/verifyuser", body: {
       'login_code': experiment.login,
-      'participant_id': code.toString(),
+      'participant_id': code,
     });
 
     if (response != null) {
@@ -92,7 +93,7 @@ class LoginRepository {
         //TODO: Add in Authorizer for RDS, Presigned URL and DynamoURL
 
         //Add Participant to DB
-        addParticipant(code.toString());
+        addParticipant(code);
         return true;
       }
     }
@@ -137,6 +138,8 @@ class LoginRepository {
         // Verify the code and save the experiment data to the database
         if (code == experiment.login) {
           _experimentDAO.addExperiment(Experiment.fromModel(experiment));
+          final setup = SetupRepository();
+          setup.saveOnBoardingQuestions(data['onboarding_questions']);
           return experiment;
         }
       }

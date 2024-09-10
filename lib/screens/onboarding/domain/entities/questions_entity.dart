@@ -11,7 +11,8 @@ class QuestionsEntity {
   final String type;
   final int? min;
   final int? max;
-  final dynamic defaultValue;
+  final int? defaultValue;
+  final String variable;
   String? answer;
 
   QuestionsEntity(
@@ -23,6 +24,7 @@ class QuestionsEntity {
       this.min,
       this.max,
       this.defaultValue,
+      required this.variable,
       this.answer});
 
   factory QuestionsEntity.fromModel(Questions model) {
@@ -35,6 +37,7 @@ class QuestionsEntity {
         min: model.min,
         max: model.max,
         defaultValue: model.defaultValue,
+        variable: model.variable,
         answer: model.answer);
   }
 }

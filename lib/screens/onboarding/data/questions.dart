@@ -9,10 +9,11 @@ class Questions extends Equatable {
   final String type;
   final int? min;
   final int? max;
-  final dynamic defaultValue;
+  final int? defaultValue;
+  final String variable;
   final String? answer;
 
-  Questions(
+  const Questions(
       {required this.id,
       required this.title,
       required this.subtitle,
@@ -21,6 +22,7 @@ class Questions extends Equatable {
       required this.min,
       required this.max,
       required this.defaultValue,
+      required this.variable,
       required this.answer});
 
   factory Questions.fromJson(Map<String, dynamic> json) {
@@ -34,6 +36,7 @@ class Questions extends Equatable {
         min: json['min_value'],
         max: json['max_value'],
         defaultValue: json['default_value'],
+        variable: json['variable'],
         answer: null);
   }
 
@@ -47,6 +50,7 @@ class Questions extends Equatable {
       'min_value': min,
       'max_value': max,
       'default_value': defaultValue,
+      'variable': variable,
       'answer': answer
     };
   }
@@ -61,6 +65,7 @@ class Questions extends Equatable {
         min: entity.min,
         max: entity.max,
         defaultValue: entity.defaultValue,
+        variable: entity.variable,
         answer: entity.answer);
   }
 
@@ -72,7 +77,8 @@ class Questions extends Equatable {
     String? type,
     int? min,
     int? max,
-    dynamic defaultValue,
+    int? defaultValue,
+    String? variable,
     String? answer,
   }) {
     return Questions(
@@ -84,11 +90,22 @@ class Questions extends Equatable {
       min: min ?? this.min,
       max: max ?? this.max,
       defaultValue: defaultValue ?? this.defaultValue,
+      variable: variable ?? this.variable,
       answer: answer,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [id, title, subtitle, options, type, min, max, defaultValue, answer];
+  List<Object?> get props => [
+        id,
+        title,
+        subtitle,
+        options,
+        type,
+        min,
+        max,
+        defaultValue,
+        variable,
+        answer
+      ];
 }

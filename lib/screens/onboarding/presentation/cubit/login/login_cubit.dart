@@ -24,7 +24,7 @@ class LoginCubit extends Cubit<LoginState> {
   /// Parameters:
   /// - [code]: The participant's login code to be verified.
   ///
-  void login(int code) async {
+  void login(String code) async {
     emit(const LoginLoading());
     try {
       final result = await repository.verify(code);

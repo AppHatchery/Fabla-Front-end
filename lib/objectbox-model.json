@@ -245,7 +245,7 @@
     },
     {
       "id": "7:1748021281935827717",
-      "lastPropertyId": "8:5424774880361595912",
+      "lastPropertyId": "10:4226934096153378817",
       "name": "QuestionsEntity",
       "properties": [
         {
@@ -287,6 +287,16 @@
         {
           "id": "8:5424774880361595912",
           "name": "answer",
+          "type": 9
+        },
+        {
+          "id": "9:523294475925365727",
+          "name": "defaultValue",
+          "type": 6
+        },
+        {
+          "id": "10:4226934096153378817",
+          "name": "variable",
           "type": 9
         }
       ],

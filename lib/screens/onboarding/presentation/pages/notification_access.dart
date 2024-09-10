@@ -4,7 +4,7 @@ import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:rive/rive.dart';
+import 'package:rive/rive.dart' as rive;
 
 import '../../../../services/pendo_service.dart';
 import '../../../../services/preference_service.dart';
@@ -77,7 +77,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
                   SizedBox(
                     height: height >= 700 ? 300 : height * 0.65,
                     width: width,
-                    child: const RiveAnimation.asset(
+                    child: const rive.RiveAnimation.asset(
                         stateMachines: [],
                         'assets/animations/onboarding/onboarding_getnotified.riv',
                         fit: BoxFit.fitWidth),

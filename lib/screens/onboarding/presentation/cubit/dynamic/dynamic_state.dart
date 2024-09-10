@@ -20,3 +20,15 @@ final class DynamicLoaded extends DynamicState {
 }
 
 final class DynamicNone extends DynamicState {}
+
+final class DynamicError extends DynamicState {
+  final String message;
+  const DynamicError(this.message);
+
+  @override
+  List<Object> get props => [message];
+}
+
+final class DynamicUploading extends DynamicState {}
+
+final class DynamicUploaded extends DynamicState {}

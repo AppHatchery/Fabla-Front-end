@@ -36,4 +36,18 @@ class DynamicCubit extends Cubit<DynamicState> {
       debugPrint("Error saving Onboarding Answer: $e");
     }
   }
+
+  void upload() async {
+    emit(DynamicUploading());
+    try {
+      final result = await setupRepository.uploadOnBoardingQuestions();
+      if (result) {
+        emit(DynamicUploaded());
+      } else {
+        emit(const DynamicError("Failed to upload answers"));
+      }
+    } catch (e) {
+      debugPrint("Error uploading Onboarding Answers: $e");
+    }
+  }
 }

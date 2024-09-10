@@ -21,10 +21,6 @@ class _WelcomePageState extends State<WelcomePage> {
 
   @override
   void initState() {
-    // final code = repository.getParticipant()!.studyCode;
-    createMetadata();
-    //TODO:TO BE REMOVED
-    //repository.apiCreateParticipant(code);
     startPendo();
     super.initState();
   }
@@ -121,6 +117,4 @@ class _WelcomePageState extends State<WelcomePage> {
     await PendoService.track(
         "StudyLogin", {"datetime": DateTime.now().toString()});
   }
-
-  void createMetadata() => repository.createMetadata();
 }

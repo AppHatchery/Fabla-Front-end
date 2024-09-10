@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:developer' as dev;
-import 'package:amplify_flutter/amplify_flutter.dart';
+// import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/database/dao/experiment_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/questions_dao.dart';
@@ -111,7 +111,7 @@ class SetupRepository {
 
       _protocolDAO.addProtocol(newProtocol);
     } else {
-      safePrint("Protocol already exists and no updates");
+      debugPrint("Protocol already exists and no updates");
     }
   }
 
@@ -141,9 +141,12 @@ class SetupRepository {
     final entity = _experimentDAO.getExperiment();
     final experiment = ExperimentModel.fromEntity(entity!);
 
+    final participant = _participantDAO.get();
+
     // Request the user's studies and diaries from the remote source
     final response = await post(path: "/fabla/getuserprotocol", body: {
       'login_code': experiment.login,
+      'participant_id': participant!.studyCode,
     });
 
     if (response != null) {
@@ -383,41 +386,45 @@ class SetupRepository {
         date: notificationDate);
   }
 
+  /// Retrieves the onboarding questions from the local database.
+  /// This function fetches the onboarding questions from the local database
+  /// using the associated questions DAO (Data Access Object). It retrieves
+  /// the questions and returns them as a list of `Questions` objects.
+  ///
+  /// Returns:
+  /// - A list of `Questions` objects containing the onboarding questions.
   Future<List<Questions>> getOnBoardingQuestions() async {
     final List<Questions> onboardingQuestions = _questionsDAO
         .getAllQuestions()
         .map((e) => Questions.fromEntity(e))
         .toList();
-    final String response =
-        await rootBundle.loadString('assets/onboarding.json');
-    final data = await json.decode(response);
 
-    final List<dynamic> result = data["data"];
-    final List<Questions> questionsFromJSON = result
+    return onboardingQuestions;
+  }
+
+  /// Saves the participant's onboarding answers to the local database.
+  /// This function takes a `JSON` object as input.
+  /// It then adds the questions in the local database using the
+  /// associated questions DAO (Data Access Object).
+  ///
+  /// Parameters:
+  /// - [json]: The `JSON` object to be added in the database.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// saveOnBoardingAnswer([{...}]); // Save the answer "Yes" for the question.
+  /// ```
+  Future saveOnBoardingQuestions(List<dynamic> json) async {
+    removeAllQuestions();
+
+    final List<Questions> questionsModel = json
         .map((dynamic item) => Questions.fromJson(item as Map<String, dynamic>))
         .toList();
 
-    if (onboardingQuestions.isNotEmpty) {
-      final List<Questions> questionWithoutAnswers = [];
-      for (var question in onboardingQuestions) {
-        questionWithoutAnswers.add(question.copyWith(answer: null));
-      }
+    final result = _questionsDAO.addManyQuestions(
+        questionsModel.map((e) => QuestionsEntity.fromModel(e)).toList());
 
-      //compare all the question if they are the same
-      if (questionsFromJSON.length == onboardingQuestions.length) {
-        List<bool> allTheSame = [];
-        for (var i = 0; i < questionsFromJSON.length; i++) {
-          allTheSame.add(questionsFromJSON[i] == questionWithoutAnswers[i]);
-        }
-
-        if (!allTheSame.contains(false)) {
-          return onboardingQuestions;
-        }
-      }
-    }
-    _questionsDAO.addManyQuestions(
-        questionsFromJSON.map((e) => QuestionsEntity.fromModel(e)).toList());
-    return questionsFromJSON;
+    debugPrint("Added questions: $result");
   }
 
   void saveOnBoardingAnswer(QuestionsEntity question) async {
@@ -427,5 +434,55 @@ class SetupRepository {
 
   void removeAllQuestions() async {
     _questionsDAO.removeAllQuestions();
+  }
+
+  /// Uploads the participant's onboarding answers to the remote source.
+  /// This function retrieves the onboarding questions from the local database
+  /// using the associated questions DAO (Data Access Object). It then converts
+  /// the questions to a `JSON` object and sends the data to the remote source.
+  ///
+  /// Returns:
+  /// - A `Future` that resolves to a `bool` value indicating the success of the operation.
+  Future<bool> uploadOnBoardingQuestions() async {
+    final List<Questions> onboardingQuestions = _questionsDAO
+        .getAllQuestions()
+        .map((e) => Questions.fromEntity(e))
+        .toList();
+    final experiment = _experimentDAO.getExperiment();
+    final participant = _participantDAO.get();
+
+    final map = <String, dynamic>{};
+
+    final extras = <String, dynamic>{};
+
+    for (var question in onboardingQuestions) {
+      extras[question.variable] = question.answer;
+    }
+
+    map.addAll(
+      {
+        'participant_id': participant!.studyCode.toString(),
+        'login_code': experiment!.login,
+        'extras': jsonEncode(extras),
+      },
+    );
+
+    dev.log("map $map", name: "Uploading OnBoarding Questions");
+
+    final result =
+        await post(path: "/fabla/updateuserextras", body: map).then((value) {
+      if (value != null) {
+        final response = jsonDecode(value);
+        return response['status'] == 'success';
+      }
+      return false;
+    });
+
+    if (result) {
+      await getStudies();
+      return true;
+    }
+
+    return false;
   }
 }
