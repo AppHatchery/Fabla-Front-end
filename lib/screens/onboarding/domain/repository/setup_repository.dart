@@ -164,7 +164,7 @@ class SetupRepository {
     final String response = await rootBundle.loadString('assets/protocol.json');
     final data = await json.decode(response);
     final phases = data['phase'] as List<dynamic>;
-    final dayOfDownload = DateTime.now(); //Starting date
+    final dayOfDownload = DateTime.now().add(const Duration(days: 1)); //Starting date
     DateTime endDay =
         DateTime(dayOfDownload.year, dayOfDownload.month, dayOfDownload.day);
     final List<DiaryModel> diaries = [];

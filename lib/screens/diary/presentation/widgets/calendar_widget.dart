@@ -75,7 +75,7 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
     final allEntries =
         widget.diaries.fold(0, (sum, diary) => sum + diary.currentEntry);
 
-    final entriesLeftToday = widget.dailyGoal - currentEntryCount;
+    final entriesLeftToday = (widget.isSurvey ? surveyGoal.daily: widget.dailyGoal) - currentEntryCount;
 
     if (entriesLeftToday > 1) {
       return "You've got $entriesLeftToday entries left today!";
@@ -132,27 +132,9 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
     days.clear();
     double emaDailyTotalGoal = (emaGoal.daily + diaryGoal.daily).toDouble();
     double surveyTotalGoal = surveyGoal.daily.toDouble();
-    int emaDailyTotalEntries = 0;
-    int surveyTotalEntries = 0;
     final now = DateTime.now();
     final today = now.weekday;
     DateTime monday = now.subtract(Duration(days: now.weekday - 1));
-
-    final diaries = widget.diaries;
-
-    final diariesToday = diaries.where((diary) {
-      final diaryDate = diary.start;
-      return diaryDate.year == now.year &&
-          diaryDate.month == now.month &&
-          diaryDate.day == now.day;
-    }).toList();
-    for (final diary in diariesToday) {
-      if (diary.type == DiaryTypes.ema || diary.type == DiaryTypes.daily) {
-        emaDailyTotalEntries += diary.currentEntry;
-      } else if (diary.type == DiaryTypes.survey) {
-        surveyTotalEntries += diary.currentEntry;
-      }
-    }
 
     final List<DateTime> _days =
         List.generate(7, (index) => monday.add(Duration(days: index)));
@@ -163,22 +145,21 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
           .where(
             (element) => element.start.day == d.day,
           )
-          .firstOrNull;
-
+          .toList();
       final max = widget.isSurvey ? surveyTotalGoal : emaDailyTotalGoal;
-      final current =
-          widget.isSurvey ? (surveyTotalEntries) : (emaDailyTotalEntries);
+
+      final current = diary.fold(
+          0, (previousValue, element) => element.currentEntry + previousValue);
       final isAfter = d.isAfter(now);
 
       final percentage = current / max;
 
-      if (diary?.start.day == now.day && mounted) {
+      if (diary.firstOrNull?.start.day == now.day && mounted) {
         setState(() {
           currentEntryCount = current;
         });
       }
-
-      final showProgress = diary != null;
+      final showProgress = diary.isNotEmpty;
 
       days.add(dayOfTheWeek(_dayAbbreviations[d.weekday]!, isToday, percentage,
           showProgress, isAfter));

@@ -510,7 +510,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
     double _total = 0.0;
 
     // Calculate completed diaries and total incentives
-    for (final diary in diaries) {
+    for (final diary in diaryList) {
       if (diary.type == DiaryTypes.ema) {
         final incentiveAmount = emaIncentive.amount;
         _total += incentiveAmount;

@@ -69,40 +69,50 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            //THIS WEEK
-            Wrap(
-              children: [
-                Text(
-                  isSurvey ? DateFormat("EEEE, MMM d").format(DateTime.now()) : thisWeek,
-                  style: CustomTypography().caption(),
-                ),
-              ],
-            ),
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              //THIS WEEK
+              Wrap(
+                children: [
+                  Text(
+                    isSurvey
+                        ? DateFormat("EEEE, MMM d").format(DateTime.now())
+                        : thisWeek,
+                    style: CustomTypography().caption(),
+                  ),
+                ],
+              ),
 
-            const SizedBox(
-              height: 6,
-            ),
+              const SizedBox(
+                height: 6,
+              ),
 
-            Column(
-                children: isSurvey
-                    ? surveyData.entries.toList().asMap().entries.map((e) {
-                        final index = e.key;
-                        final value = e.value;
-                        return goalWidget(width, totalWidth, surveyGoal,
-                            value.value, colors[index]);
-                      }).toList()
-                    : data.entries.toList().asMap().entries.map((e) {
-                        final index = e.key;
-                        final value = e.value;
-                        final goal = value.key == "EMA" ? emaGoal : diaryGoal;
-                        return goalWidget(width, totalWidth, goal, value.value,
-                            colors[index]);
-                      }).toList())
-          ],
-        ),
+              Column(
+                children: [
+                  Column(
+                      children: data.entries.toList().asMap().entries.map((e) {
+                    final index = e.key;
+                    final value = e.value;
+                    final goal = value.key == "EMA" ? emaGoal : diaryGoal;
+                    return goalWidget(
+                        width, totalWidth, goal, value.value, colors[index], null);
+                  }).toList()),
+                  Column(
+                          children: surveyData.entries
+                              .toList()
+                              .asMap()
+                              .entries
+                              .map((e) {
+                          final index = e.key;
+                          final value = e.value;
+                          return goalWidget(width, totalWidth, surveyGoal,
+                              value.value, colors[index], "Survey Entries");
+                        }).toList())
+                      
+                ],
+              )
+            ]),
       ),
     );
   }
@@ -118,7 +128,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
   }
 
   Widget goalWidget(double width, double totalWidth, Goal goal,
-      List<DiaryModel> diaries, Color color) {
+      List<DiaryModel> diaries, Color color, String? title) {
     String? theText;
 
     if (goal.weekly == emaGoal.weekly) {
@@ -148,7 +158,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
             ),
             const SizedBox(width: 6),
             Text(
-              isSurvey ? "Survey Entries" : "$theText",
+              title ?? "$theText",
               style: CustomTypography().bodyMedium(),
             )
           ],
@@ -164,7 +174,9 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
               child: Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: Text(
-                  isSurvey ? "Submit just $lowerGoal entry today to complete your goal." : "Submit at least $lowerGoal entries this week to complete your goal.",
+                  isSurvey
+                      ? "Submit just $lowerGoal entry today to complete your goal."
+                      : "Submit at least $lowerGoal entries this week to complete your goal.",
                   style: CustomTypography().caption(),
                   softWrap: true,
                 ),
