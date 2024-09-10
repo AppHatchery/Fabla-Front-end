@@ -519,17 +519,14 @@ class SetupRepository {
     await _initializeDateArray();
     await _loadNotifArray();
     await _createInitialNotifications();
-    // print("After initialization, notifArray: $notifArray");
   }
 
   Future<void> checkAndCreateNotifications() async {
-    await _loadNotifArray(); // Load the latest notifArray from storage
-    // print("At start of check, notifArray: $notifArray");
+    await _loadNotifArray();
 
     final now = DateTime.now();
     notifArray
         .removeWhere((item) => DateTime.parse(item['date']).isBefore(now));
-    // print("After removal of old notifications, notifArray: $notifArray");
 
     await _initializeDateArray();
 
@@ -540,36 +537,20 @@ class SetupRepository {
       final daysToCreate = 5 - daysWithNotifications;
       print("Creating notifications for $daysToCreate days");
       await _createNotificationsForDays(daysToCreate);
-      //  print("After creating new notifications, notifArray: $notifArray");
     }
 
     await _saveNotifArray();
-    // final now = DateTime.now();
-    // notifArray
-    //     .removeWhere((item) => DateTime.parse(item['date']).isBefore(now));
-    // print("notifArray: $notifArray");
-
-    // final daysWithNotifications = notifArray.length;
-    // print("daysWithNotifications: $daysWithNotifications");
-    // if (daysWithNotifications < 5) {
-    //   final daysToCreate = 5 - daysWithNotifications;
-    //   await _createNotificationsForDays(daysToCreate);
-    // }
   }
 
   Future<void> _initializeDateArray() async {
     final String? lastInitDate =
         await PreferenceService().getStringPreference(key: 'last_init_date');
     DateTime startDate;
-    // final DateTime startDate =
-    //     lastInitDate != null ? DateTime.parse(lastInitDate) : DateTime.now();
 
     if (lastInitDate != null && !notifArray.isEmpty) {
-      // If we have existing notifications, calculate the next date
       final lastDate = DateTime.parse(notifArray.last['date']);
       startDate = lastDate.add(Duration(days: 1));
     } else {
-      // Initial setup or no existing notifications
       startDate =
           lastInitDate != null ? DateTime.parse(lastInitDate) : DateTime.now();
     }
@@ -580,7 +561,6 @@ class SetupRepository {
       key: 'last_init_date',
       value: startDate.toIso8601String(),
     );
-    //print("dateArray initialized: $dateArray");
   }
 
   Future<void> _loadNotifArray() async {
@@ -589,20 +569,15 @@ class SetupRepository {
     if (savedNotifArray != null) {
       notifArray =
           List<Map<String, dynamic>>.from(json.decode(savedNotifArray));
-      // print("loadednotif?>>>>>>: $notifArray");
     } else {
-      // print("No saved notifArray found");
       notifArray = [];
     }
   }
 
   Future<void> _createInitialNotifications() async {
     if (notifArray.isEmpty) {
-      // print("Creating initial notifications");
       await _createNotificationsForDays(5);
-    } else {
-      // print("Initial notifications already exist");
-    }
+    } else {}
   }
 
   Future<void> _createNotificationsForDays(int days) async {
@@ -611,17 +586,13 @@ class SetupRepository {
     final dailyDiary = diaryRepository.getDiariesDaily();
     final surveyDiary = diaryRepository.getSurveyDiaries();
 
-    print("Creating notifications for notification for days $days days");
     final firstString =
         await PreferenceService().getStringPreference(key: 'firstDay');
     final first = DateTime.parse(firstString!);
-    final firstDay = DateTime(first.year, first.month, first.day);
 
     final limitDate = first.add(Duration(days: 14));
 
     for (int i = 0; i < days; i++) {
-      print(
-          ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>${dateArray.length}");
       if (i >= dateArray.length) break;
 
       final date = dateArray[i];
@@ -637,25 +608,10 @@ class SetupRepository {
           'date': date.toIso8601String(),
           'notifications': dayNotifications,
         });
-        // print("Created notifications for date: $date");
       } else {
         print("No notifications created for date: $date");
       }
     }
-
-    // for (int i = 0; i < days; i++) {
-    //   if (i >= dateArray.length) break;
-
-    //   final date = dateArray[i];
-    //   final dayNotifications = await _createNotificationsForDate(
-    //       date, emaDiaries, dailyDiary, surveyDiary);
-    //   notifArray.add({
-    //     'date': date.toIso8601String(),
-    //     'notifications': dayNotifications,
-    //   });
-    //   print("Created notifications for date: $date");
-    // }
-
     await _saveNotifArray();
   }
 
@@ -667,30 +623,55 @@ class SetupRepository {
   ) async {
     List<Map<String, dynamic>> dayNotifications = [];
 
-    if (emaDiaries.isNotEmpty) {
-      final emaDiary = emaDiaries.first;
-      final emaNotifications = await _createEMANotifications(emaDiary, date);
-      dayNotifications.addAll(emaNotifications);
+    final emaDiariesForDate = emaDiaries
+        .where((diary) =>
+            diary.start.year == date.year &&
+            diary.start.month == date.month &&
+            diary.start.day == date.day)
+        .toList();
+
+    if (emaDiariesForDate.isNotEmpty) {
+      for (final emaDiary in emaDiariesForDate) {
+        final emaNotifications = await _createEMANotifications(emaDiary, date);
+        dayNotifications.addAll(emaNotifications);
+      }
     } else {
       print("No EMA diary available for date: $date");
     }
 
-    // final emaDiary = emaDiaries.isNotEmpty ? emaDiaries.first : null;
+    final dailyDiariesDate = dailyDiary
+        .where((diary) =>
+            diary.start.year == date.year &&
+            diary.start.month == date.month &&
+            diary.start.day == date.day)
+        .toList();
 
-    // if (emaDiary != null) {
-    //   return await _createEMANotifications(emaDiary, date);
-    // }
+    if (dailyDiariesDate.isNotEmpty) {
+      for (final diary in dailyDiariesDate) {
+        final notifications = await _createDailyNotifications(diary, date);
+        dayNotifications.addAll(notifications);
+      }
+    } else {
+      print("No Daily diary available for date: $date");
+    }
 
-    // Create EMA notifications
-    // for (final diary in emaDiaries) {
-    //   final notifications = await _createEMANotifications(diary, date);
-    //   dayNotifications.addAll(notifications);
-    // }
+    final surveyDiariesDate = surveyDiaries
+        .where((diary) =>
+            diary.start.year == date.year &&
+            diary.start.month == date.month &&
+            diary.start.day == date.day)
+        .toList();
 
-    // print("No EMA diary available for date: $date");
+    if (surveyDiariesDate.isNotEmpty) {
+      for (final diary in surveyDiariesDate) {
+        final notifications = await _createSurveyNotifications(diary, date);
+        dayNotifications.addAll(notifications);
+      }
+    } else {
+      print("No Survey diary available for date: $date");
+    }
 
     return dayNotifications;
-    //return [];
   }
 
   Future<List<Map<String, dynamic>>> _createEMANotifications(
@@ -705,6 +686,8 @@ class SetupRepository {
     final endNotificationTime = endTime.subtract(const Duration(minutes: 15));
 
     List<Map<String, dynamic>> notifications = [];
+    Map<int, List<int>> emaNotifications = {};
+    List<int> emaNotificationIds = [];
     int notifCount = 0;
 
     for (final time in [
@@ -737,6 +720,8 @@ class SetupRepository {
         date: time,
       );
 
+      emaNotificationIds.add(notificationID);
+
       notifications.add({
         'id': notificationID,
         'title': title,
@@ -746,9 +731,138 @@ class SetupRepository {
 
       notifCount++;
 
-      print('Notification created for $notifCount ${diary.id} at $time');
+      print('Notification created for  ${diary.type} at $time');
     }
 
+    emaNotifications[diary.id] = emaNotificationIds;
+    final encoded = json.encode(
+        emaNotifications.map((key, value) => MapEntry(key.toString(), value)));
+    await PreferenceService()
+        .setStringPreference(key: 'ema_reminders', value: encoded);
+
+    return notifications;
+  }
+
+  Future<List<Map<String, dynamic>>> _createDailyNotifications(
+      DiaryModel diary, DateTime date) async {
+    final startTime = DateTime(
+        date.year, date.month, date.day, diary.start.hour, diary.start.minute);
+    final endTime = DateTime(
+        date.year, date.month, date.day, diary.end.hour, diary.end.minute);
+
+    final dailyStartNotificationTime = startTime;
+    final endNotificationTime = endTime.subtract(const Duration(hours: 1));
+    List<Map<String, dynamic>> notifications = [];
+    Map<int, List<int>> dailyNotifications = {};
+    List<int> dailyNotificationIds = [];
+    int notifCount = 0;
+
+    for (final time in [dailyStartNotificationTime, endNotificationTime]) {
+      String title;
+      String bodyDaily;
+
+      if (time == dailyStartNotificationTime) {
+        title = "Keep Going on Your Diary Journey!";
+        bodyDaily =
+            "Hey there, it's time to complete your Daily Diary, grab a few minutes to record about your day";
+      } else {
+        title = "Let's Get Started on Your Diary!";
+        bodyDaily =
+            "Hey there, there's still time to complete your diary, this is the last submission of today and you still have time to meet your goals, take 5 minutes and hop on";
+      }
+
+      final notificationID = Random().nextInt(100000);
+      await NotificationService.createNotification(
+        id: notificationID,
+        title: title,
+        body: bodyDaily,
+        date: time,
+      );
+
+      dailyNotificationIds.add(notificationID);
+
+      notifications.add({
+        'id': notificationID,
+        'title': title,
+        'body': bodyDaily,
+        'time': time.toIso8601String(),
+      });
+
+      notifCount++;
+
+      print('Notification created for  ${diary.type} at $time');
+    }
+
+    dailyNotifications[diary.id] = dailyNotificationIds;
+    final encoded = json.encode(dailyNotifications
+        .map((key, value) => MapEntry(key.toString(), value)));
+    await PreferenceService()
+        .setStringPreference(key: 'daily_reminders', value: encoded);
+
+    return notifications;
+  }
+
+  Future<List<Map<String, dynamic>>> _createSurveyNotifications(
+      DiaryModel diary, DateTime date) async {
+    final startTime = DateTime(
+        date.year, date.month, date.day, diary.start.hour, diary.start.minute);
+
+    final midDay = DateTime(startTime.year, startTime.month, startTime.day, 12);
+    final sixPM = DateTime(startTime.year, startTime.month, startTime.day, 18);
+    final theLastDay =
+        await PreferenceService().getStringPreference(key: 'lastDay');
+
+    final lastDay = DateTime.parse(theLastDay!);
+
+    List<Map<String, dynamic>> notifications = [];
+    Map<int, List<int>> surveyNotifications = {};
+    List<int> surveyNotificationIds = [];
+    int notifCount = 0;
+
+    for (final time in [
+      midDay,
+      sixPM,
+    ]) {
+      String surveyTitle;
+      String surveyBody;
+      String assessmentType = startTime == lastDay ? "Final" : "Mid-point";
+      if (time == midDay) {
+        surveyTitle = "Your $assessmentType Assessment is Due Today!";
+        surveyBody =
+            "Hey there, today's only task is to complete your $assessmentType Assessment, head over to the app and get started gathering your thoughts";
+      } else {
+        surveyTitle = "Your $assessmentType Assessment is Due Soon!";
+        surveyBody =
+            "Only a few more hours to complete your $assessmentType Assessment, don't miss out on a bigger incentive today. Head over to the app, it only takes 5 mins to complete!";
+      }
+
+      final notificationID = Random().nextInt(100000);
+      await NotificationService.createNotification(
+        id: notificationID,
+        title: surveyTitle,
+        body: surveyBody,
+        date: time,
+      );
+
+      surveyNotificationIds.add(notificationID);
+
+      notifications.add({
+        'id': notificationID,
+        'title': surveyTitle,
+        'body': surveyBody,
+        'time': time.toIso8601String(),
+      });
+
+      notifCount++;
+
+      print('Notification created for  ${diary.type} at $time');
+    }
+
+    surveyNotifications[diary.id] = surveyNotificationIds;
+    final encoded = json.encode(surveyNotifications
+        .map((key, value) => MapEntry(key.toString(), value)));
+    await PreferenceService()
+        .setStringPreference(key: 'survey_reminders', value: encoded);
     return notifications;
   }
 
@@ -756,57 +870,7 @@ class SetupRepository {
     final encoded = json.encode(notifArray);
     await PreferenceService()
         .setStringPreference(key: 'notif_array', value: encoded);
-    // print("Saved notifArray: $notifArray");
   }
-
-  // void diaryNotifications() async {
-  //   DiaryRepository diaryRepository = DiaryRepository();
-  //   final emaDiaries = diaryRepository.getEMADiaries();
-  //   Map<int, List<int>> emaReminders = {};
-
-  //   /// EMA NOTIFICATIONS
-  //   for (final diary in emaDiaries) {
-  //     final diaryId = diary.id;
-  //     final startTime = diary.start;
-  //     final endTime = diary.end;
-
-  //     final startNotificationTime = startTime;
-  //     final midNotificationTime = startTime.add(const Duration(hours: 1));
-  //     final endNotificationTime = endTime.subtract(const Duration(minutes: 15));
-
-  //     List<int> notificationIds = [];
-  //     for (final time in [
-  //       startNotificationTime,
-  //       midNotificationTime,
-  //       endNotificationTime
-  //     ]) {
-  //       String title;
-  //       String body;
-  //       if (time == startNotificationTime) {
-  //         title = "It's Time to Do Your EMA";
-  //         body =
-  //             "Hey there, your EMA period has begun, you have two hours to complete this EMA before it won't be available";
-  //       } else if (time == midNotificationTime) {
-  //         title = "Your EMA is Pending";
-  //         body =
-  //             "Only 1 hour left to complete the EMA, it will take you 5 minutes, you don't want to miss this";
-  //       } else {
-  //         title = "Your EMA is Due Soon";
-  //         body =
-  //             "Hey there, you have only 15 mins to complete this EMA, try to grab a second from what you are doing and try to complete, shouldn't take you more than 5 minutes";
-  //       }
-  //       final notificationID = Random().nextInt(100000);
-  //       await NotificationService.createNotification(
-  //           id: notificationID, title: title, body: body, date: time);
-  //       notificationIds.add(notificationID);
-  //     }
-  //     emaReminders[diaryId] = notificationIds;
-  //     final encoded = json.encode(
-  //         emaReminders.map((key, value) => MapEntry(key.toString(), value)));
-  //     await PreferenceService()
-  //         .setStringPreference(key: 'ema_reminders', value: encoded);
-  //   }
-  // }
 
   /// Creates and schedules notifications for daily diaries.
   /// This function retrieves a list of daily diaries from the DiaryRepository,
