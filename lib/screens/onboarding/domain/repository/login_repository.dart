@@ -139,6 +139,7 @@ class LoginRepository {
         if (code == experiment.login) {
           _experimentDAO.addExperiment(Experiment.fromModel(experiment));
           final setup = SetupRepository();
+          print(data['onboarding_questions']);
           setup.saveOnBoardingQuestions(data['onboarding_questions']);
           return experiment;
         }

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dynamic/dynamic_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_dates.dart';
@@ -304,7 +307,6 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage>
   }
 
   Widget getWidget(Questions question, {int? index}) {
-
     if (question.type == 'time') {
       return OnboardingTimePicker(
         time: question.answer,
@@ -319,19 +321,27 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage>
       return OnBoardingTextField(
           subtitle: question.subtitle, controller: textEditingController);
     } else if (question.type == 'radio') {
-      return OnBoardingRadioOptions(
-        subtitle: question.subtitle,
-        options: question.options!,
-        value: answer,
-        onChanged: (String? value) {
-          setState(() {
-            answer = value;
-          });
-        },
-      );
+      // return OnBoardingRadioOptions(
+      //   subtitle: question.subtitle,
+      //   options: question.options!,
+      //   value: answer,
+      //   onChanged: (String? value) {
+      //     setState(() {
+      //       answer = value;
+      //     });
+      //   },
+      // );
+      return SizedBox();
     } else if (question.type == 'multiple') {
-      final selected =
-          question.answer != null ? question.answer!.split(",") : <String>[];
+      final selected = question.answer != null
+          ? json
+              .decode(question.answer!)
+              .cast()
+              .toList()
+              .map((element) => element.toString())
+              .toList()
+          : <String>[];
+      print("Selected: $selected");
       return OnBoardingMultipleOption(
         subtitle: question.subtitle,
         options: question.options!,

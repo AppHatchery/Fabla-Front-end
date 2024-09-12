@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
 import 'package:equatable/equatable.dart';
 
@@ -5,7 +7,7 @@ class Questions extends Equatable {
   final int id;
   final String title;
   final String subtitle;
-  final List<String>? options;
+  final List<Option>? options;
   final String type;
   final int? min;
   final int? max;
@@ -30,8 +32,9 @@ class Questions extends Equatable {
         id: json['id'],
         title: json['title'],
         subtitle: json['subtitle'],
-        options:
-            json['options'] != null ? List<String>.from(json['options']) : null,
+        options: (json['options'] as List<dynamic>)
+            .map((element) => Option.fromJson(element))
+            .toList(),
         type: json['type'],
         min: json['min_value'],
         max: json['max_value'],
@@ -45,7 +48,8 @@ class Questions extends Equatable {
       'id': id,
       'title': title,
       'subtitle': subtitle,
-      'options': options,
+      'options':
+          json.encode(options?.map((element) => element.toJson()).toList()),
       'type': type,
       'min_value': min,
       'max_value': max,
@@ -60,7 +64,9 @@ class Questions extends Equatable {
         id: entity.id,
         title: entity.title,
         subtitle: entity.subtitle,
-        options: entity.options,
+        options:entity.options != null ? (jsonDecode(entity.options!) as List<dynamic>)
+            .map((element) => Option.fromJson(element))
+            .toList() : null,
         type: entity.type,
         min: entity.min,
         max: entity.max,
@@ -73,7 +79,7 @@ class Questions extends Equatable {
     int? id,
     String? title,
     String? subtitle,
-    List<String>? options,
+    List<Option>? options,
     String? type,
     int? min,
     int? max,
@@ -108,4 +114,19 @@ class Questions extends Equatable {
         variable,
         answer
       ];
+}
+
+class Option {
+  final String title;
+  final dynamic value;
+
+  Option({required this.title, required this.value});
+
+  factory Option.fromJson(Map<String, dynamic> json) {
+    return Option(title: json['title'], value: json['value']);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'title': title, 'value': value};
+  }
 }

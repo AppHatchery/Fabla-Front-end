@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:objectbox/objectbox.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 
@@ -7,7 +9,7 @@ class QuestionsEntity {
   final int id;
   final String title;
   final String subtitle;
-  final List<String>? options;
+  final String? options;
   final String type;
   final int? min;
   final int? max;
@@ -32,7 +34,7 @@ class QuestionsEntity {
         id: model.id,
         title: model.title,
         subtitle: model.subtitle,
-        options: model.options,
+        options: json.encode(model.options?.map((element) => element.toJson()).toList()),
         type: model.type,
         min: model.min,
         max: model.max,
