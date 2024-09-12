@@ -133,14 +133,15 @@ class LoginRepository {
       if (response != null) {
         final result = json.decode(response);
         final data = result['data'];
+        dev.log(data.toString(), name: "Study Verification");
         final experiment = ExperimentModel.fromJson(data);
 
         // Verify the code and save the experiment data to the database
         if (code == experiment.login) {
           _experimentDAO.addExperiment(Experiment.fromModel(experiment));
           final setup = SetupRepository();
-          print(data['onboarding_questions']);
-          setup.saveOnBoardingQuestions(data['onboarding_questions']);
+          final questions = data['onboarding_questions'] as List;
+          setup.saveOnBoardingQuestions(questions);
           return experiment;
         }
       }

@@ -34,7 +34,7 @@ class QuestionsEntity {
         id: model.id,
         title: model.title,
         subtitle: model.subtitle,
-        options: json.encode(model.options?.map((element) => element.toJson()).toList()),
+        options: model.options != null ? json.encode(model.options?.map((element) => element.toJson()).toList()): null,
         type: model.type,
         min: model.min,
         max: model.max,

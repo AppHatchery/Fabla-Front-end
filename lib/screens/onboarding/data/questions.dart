@@ -32,9 +32,9 @@ class Questions extends Equatable {
         id: json['id'],
         title: json['title'],
         subtitle: json['subtitle'],
-        options: (json['options'] as List<dynamic>)
+        options: json['options'] != null ? (json['options'] as List<dynamic>)
             .map((element) => Option.fromJson(element))
-            .toList(),
+            .toList() : null,
         type: json['type'],
         min: json['min_value'],
         max: json['max_value'],
