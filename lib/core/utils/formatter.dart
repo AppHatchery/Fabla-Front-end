@@ -180,7 +180,7 @@ final Map<String, ResponseType> _responseTypeMap = {
 /// Function that converts a string representation of a response type to its corresponding enum value.
 /// Throws an exception if the provided string does not match any valid response type.
 ResponseType responseTypeString(String value) {
-  final responseType = _responseTypeMap[value];
+  final responseType = _responseTypeMap[value.toLowerCase()];
   if (responseType == null) {
     throw Exception('Invalid response type');
   }

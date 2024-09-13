@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dynamic/dynamic_cubit.dart';
@@ -338,10 +337,9 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage>
               .decode(question.answer!)
               .cast()
               .toList()
-              .map((element) => element.toString())
+              .map<String>((element) => element.toString())
               .toList()
           : <String>[];
-      print("Selected: $selected");
       return OnBoardingMultipleOption(
         subtitle: question.subtitle,
         options: question.options!,
