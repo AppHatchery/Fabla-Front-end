@@ -206,7 +206,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
                 ),
                 CustomFlatButton(
                   onClick: () => navigateToNextPage(),
-                  text: permission ? "Continue" : "Allow",
+                  text: permission ? "Continue" : "Continue",
                   color: CustomColors.fillWhite,
                   isDisabled: requested == true && permission == false,
                   textColor: CustomColors.productNormalActive,

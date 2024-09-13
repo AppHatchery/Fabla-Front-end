@@ -91,7 +91,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
                 const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
             child: CustomFlatButton(
               onClick: () => navigateToNextPage(),
-              text: "Allow",
+              text: "Continue",
               color: CustomColors.fillWhite,
               textColor: CustomColors.productNormalActive,
             ),
