@@ -45,7 +45,7 @@ class _DiaryCardState extends State<DiaryCard> {
 
   @override
   void initState() {
-    print("Diary - ${widget.diary?.name} | Start - ${widget.diary?.start} | End - ${widget.diary?.end}");
+    print("Diary - ${widget.diary?.name} | Start - ${widget.diary?.start} | End - ${widget.diary?.end} | ${widget.diary!.start.isAfter(now)} - $now");
     //calculate time left from due vs now
     remainingTime = widget.diary!.due.difference(now);
     closed = widget.diary!.start.isAfter(now) ||
@@ -96,7 +96,7 @@ class _DiaryCardState extends State<DiaryCard> {
                     color: CustomColors.fillWhite, size: 20),
                 const SizedBox(width: 4),
                 Text(
-                  "Remaining Time: ${formatDuration(remainingTime.inMilliseconds)}",
+                  "This task will expire in ${formatDuration(remainingTime.inMilliseconds)}",
                   style: CustomTypography().body(color: Colors.white),
                 )
               ],
@@ -212,7 +212,7 @@ class _DiaryCardState extends State<DiaryCard> {
                         child: Text(
                           closed &&
                                   widget.diary!.status != DiaryStatus.submitted
-                              ? "Not Available"
+                              ? widget.diary!.start.isAfter(now) ? "Available at ${formatDurationToHHMM(widget.diary!.start)}" : "Not Available"
                               : switch (widget.diary!.status) {
                                   DiaryStatus.complete => "Continue",
                                   DiaryStatus.idle => "Start",

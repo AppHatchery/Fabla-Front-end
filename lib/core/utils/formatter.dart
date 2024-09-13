@@ -78,6 +78,11 @@ String formatDurationtoHHMMSS(Duration duration) {
   return "$minutes:$seconds";
 }
 
+/// Format the date to a [String] of hours and minutes
+String formatDurationToHHMM(DateTime date){
+  return DateFormat('HH:mm').format(date);
+}
+
 /// Formats a given date into a human-readable history date string.
 ///
 /// This function formats the provided date into a string representing a historical date,
