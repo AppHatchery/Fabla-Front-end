@@ -1,7 +1,11 @@
 import 'dart:convert';
 
-import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
-import 'package:flutter/services.dart';
+import 'package:audio_diaries_flutter/core/database/dao/experiment_dao.dart';
+import 'package:audio_diaries_flutter/core/network/request.dart';
+import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
+import 'package:audio_diaries_flutter/screens/home/domain/entities/experiment.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'dart:developer' as dev;
 
 import '../../../../core/database/dao/participant_dao.dart';
 import '../../../../main.dart';
@@ -11,6 +15,8 @@ import '../entities/participant.dart';
 class LoginRepository {
   final ParticipantDAO _participantDAO =
       ParticipantDAO(box: Box<Participant>(objectbox.store));
+  final ExperimentDAO _experimentDAO =
+      ExperimentDAO(box: Box<Experiment>(objectbox.store));
 
   /// Adds a new participant entry to the database.
   ///
@@ -71,20 +77,80 @@ class LoginRepository {
   ///   // Display an error message indicating invalid code...
   /// }
   /// ```
-  Future<bool> verify(int code) async =>
-      participantCodes.contains(code) || code == 0000;
+  Future<bool> verify(String code) async {
+    final entity = _experimentDAO.getExperiment();
+    final experiment = ExperimentModel.fromEntity(entity!);
 
-  Future<bool> studyVerification(String code) async {
-    //get study
-    final String response = await rootBundle.loadString('assets/protocol.json');
-    final data = await json.decode(response);
+    final response = await post(path: "/fabla/verifyuser", body: {
+      'login_code': experiment.login,
+      'participant_id': code,
+    });
 
-    final loginCode = data['login_code'];
-    print('loginCode: $loginCode | code: $code');
+    if (response != null) {
+      final data = json.decode(response);
+      final exists = data['data']['exists'];
+      if (exists == true) {
+        //TODO: Add in Authorizer for RDS, Presigned URL and DynamoURL
 
-    return Future.delayed(
-      const Duration(seconds: 2),
-      () => code == loginCode,
-    );
+        //Add Participant to DB
+        addParticipant(code);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// Verifies the study code and retrieves the corresponding experiment information.
+  ///
+  /// This function sends a request to the remote source to retrieve the experiment
+  /// information associated with the provided [code]. If the response is successful
+  /// and the returned experiment data matches the provided code, the experiment is
+  /// saved to the local database via the associated experiment DAO (Data Access Object).
+  ///
+  /// If the verification fails or an error occurs, the function returns null.
+  ///
+  /// Parameters:
+  /// - [code]: The unique study code to verify.
+  ///
+  /// Returns:
+  /// - [ExperimentModel?]: The experiment model if verification is successful, or null otherwise.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// final experiment = await studyVerification("XYZ789");
+  /// if (experiment != null) {
+  ///   // Proceed with the experiment
+  /// }
+  /// ```
+  Future<ExperimentModel?> studyVerification(String code) async {
+    // Get the experiment information from the remote source
+    try {
+      final response = await post(path: "/fabla/getstudyinfo", body: {
+        'login_code': code.toString(),
+      });
+
+      if (response != null) {
+        final result = json.decode(response);
+        final data = result['data'];
+        dev.log(data.toString(), name: "Study Verification");
+        final experiment = ExperimentModel.fromJson(data);
+
+        // Verify the code and save the experiment data to the database
+        if (code == experiment.login) {
+          _experimentDAO.addExperiment(Experiment.fromModel(experiment));
+          final setup = SetupRepository();
+          final questions = data['onboarding_questions'] as List;
+          setup.saveOnBoardingQuestions(questions);
+          return experiment;
+        }
+      }
+
+      return null;
+    } catch (e) {
+      // Log the error if something goes wrong
+      dev.log(e.toString(), name: "Study Verification");
+      return null;
+    }
   }
 }

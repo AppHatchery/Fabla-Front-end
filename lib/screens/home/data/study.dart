@@ -23,7 +23,7 @@ class StudyModel {
       id: 0,
       experimentCode: loginCode,
       studyId: json['id'],
-      goals: Goal.fromJson(json['goals']),
+      goals: Goal.fromJson(json['goal']),
       incentive: Incentive.fromJson(json['incentive']),
     );
   }

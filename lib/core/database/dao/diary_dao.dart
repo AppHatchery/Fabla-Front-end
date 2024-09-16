@@ -38,8 +38,7 @@ class DiaryDAO {
     final startOfDay = DateTime(day.year, day.month, day.day);
     final startOfNextDay = startOfDay.add(const Duration(days: 1));
     final query = box
-        .query(
-            Diary_.start.lessThan(startOfNextDay.millisecondsSinceEpoch))
+        .query(Diary_.start.lessThan(startOfNextDay.millisecondsSinceEpoch))
         .build();
     return query.find();
   }

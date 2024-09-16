@@ -403,10 +403,12 @@ class _QuestionPageState extends State<QuestionPage>
     Widget responseWidget;
 
     if (prompt.responseType == ResponseType.slider) {
+      print("Min - ${prompt.option?.minValue} | Max - ${prompt.option?.maxValue} | value:  ${prompt.answer?.response}");
       responseWidget = SliderQuestionCard(
+        
         value: prompt.answer?.response != null
             ? double.parse(prompt.answer!.response!)
-            : null,
+            : prompt.option!.defaultValue!.toDouble(),
         scaleMin: prompt.option!.minValue!,
         scaleMax: prompt.option!.maxValue!,
         scaleMinText: prompt.option!.startText,

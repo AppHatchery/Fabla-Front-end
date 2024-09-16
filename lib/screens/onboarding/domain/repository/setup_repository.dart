@@ -1,15 +1,20 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:amplify_flutter/amplify_flutter.dart';
+import 'dart:developer' as dev;
+// import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:audio_diaries_flutter/core/database/dao/experiment_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/questions_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
+import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
+import 'package:audio_diaries_flutter/screens/home/domain/entities/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
@@ -34,6 +39,8 @@ class SetupRepository {
   final StudyDAO _studyDAO = StudyDAO(box: Box<Study>(objectbox.store));
   final QuestionsDAO _questionsDAO =
       QuestionsDAO(box: Box<QuestionsEntity>(objectbox.store));
+  final ExperimentDAO _experimentDAO =
+      ExperimentDAO(box: Box<Experiment>(objectbox.store));
 
   /// Retrieves the participant's information from the database.
   ///
@@ -104,7 +111,7 @@ class SetupRepository {
 
       _protocolDAO.addProtocol(newProtocol);
     } else {
-      safePrint("Protocol already exists and no updates");
+      debugPrint("Protocol already exists and no updates");
     }
   }
 
@@ -114,39 +121,72 @@ class SetupRepository {
     return protocolEntity == null ? null : Protocol.fromEntity(protocolEntity);
   }
 
+  /// Retrieves studies and diaries from the remote source and updates the local database.
+  ///
+  /// This function fetches the current experiment data from the local database and uses it
+  /// to request the associated studies and diaries from a remote source. The studies and diaries
+  /// are then parsed, converted into their respective models, and saved to the local database.
+  ///
+  /// If the request is successful, the studies and diaries are updated in the local database
+  /// via the associated DAOs (Data Access Objects).
+  ///
+  /// This function does not return any data but updates the local database directly.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// await getStudies(); // Fetch and update studies and diaries in the local database.
+  /// ```
   Future<void> getStudies() async {
-    final String response = await rootBundle.loadString('assets/protocol.json');
-    final data = await json.decode(response);
+    // Retrieve the current experiment from the local database
+    final entity = _experimentDAO.getExperiment();
+    final experiment = ExperimentModel.fromEntity(entity!);
 
-    final studiesFromJson = data['studies'] as List;
-    final studies = <StudyModel>[];
-    final diaries = <DiaryModel>[];
-    for (final study in studiesFromJson) {
-      final studyModel = StudyModel.fromJson(study, data['login_code']);
-      studies.add(studyModel);
+    final participant = _participantDAO.get();
 
-      final diariesJson = study['diaries'] as List;
+    // Request the user's studies and diaries from the remote source
+    final response = await post(path: "/fabla/getuserprotocol", body: {
+      'login_code': experiment.login,
+      'participant_id': participant!.studyCode,
+    });
 
-      for (final json in diariesJson) {
-        final diary = DiaryModel.fromJson(json, studyModel.studyId);
-        diaries.add(diary);
+    if (response != null) {
+      final data = await json.decode(response)['data'];
+
+      // Parse the studies from the response
+      final studiesFromJson = data['studies'] as List;
+      final studies = <StudyModel>[];
+      final diaries = <DiaryModel>[];
+
+      // Convert each study and its associated diaries to their respective models
+      for (final study in studiesFromJson) {
+        final studyModel = StudyModel.fromJson(study, experiment.login);
+        studies.add(studyModel);
+
+        final diariesJson = study['diaries'] as List;
+        for (final json in diariesJson) {
+          final diary = DiaryModel.fromJson(json, studyModel.studyId);
+          diaries.add(diary);
+        }
       }
+
+      // Convert diaries to entities and map prompts to their models
+      final entities = diaries.map((model) {
+        final prompts =
+            model.prompts.map((prompt) => Prompt.fromModel(prompt)).toList();
+        final entity = Diary.fromModel(model);
+        entity.prompts.addAll(prompts);
+        return entity;
+      }).toList();
+
+      // Convert studies to entities
+      final studyEntities =
+          studies.map((model) => Study.fromModel(model)).toList();
+
+      // Update the local database with the fetched studies and diaries
+      dev.log("Studies: $studyEntities", name: "Get Studies");
+      diaryRepository.addDiaries(entities);
+      _studyDAO.addStudies(studyEntities);
     }
-
-    final entities = diaries.map((model) {
-      final prompts =
-          model.prompts.map((prompt) => Prompt.fromModel(prompt)).toList();
-      final entity = Diary.fromModel(model);
-      entity.prompts.addAll(prompts);
-
-      return entity;
-    }).toList();
-
-    final studyEntities =
-        studies.map((model) => Study.fromModel(model)).toList();
-
-    diaryRepository.addDiaries(entities);
-    _studyDAO.addStudies(studyEntities);
   }
 
   /// Creates and stores metadata related to the participant's study.
@@ -346,41 +386,45 @@ class SetupRepository {
         date: notificationDate);
   }
 
+  /// Retrieves the onboarding questions from the local database.
+  /// This function fetches the onboarding questions from the local database
+  /// using the associated questions DAO (Data Access Object). It retrieves
+  /// the questions and returns them as a list of `Questions` objects.
+  ///
+  /// Returns:
+  /// - A list of `Questions` objects containing the onboarding questions.
   Future<List<Questions>> getOnBoardingQuestions() async {
     final List<Questions> onboardingQuestions = _questionsDAO
         .getAllQuestions()
         .map((e) => Questions.fromEntity(e))
         .toList();
-    final String response =
-        await rootBundle.loadString('assets/onboarding.json');
-    final data = await json.decode(response);
 
-    final List<dynamic> result = data["data"];
-    final List<Questions> questionsFromJSON = result
+    return onboardingQuestions;
+  }
+
+  /// Saves the participant's onboarding answers to the local database.
+  /// This function takes a `JSON` object as input.
+  /// It then adds the questions in the local database using the
+  /// associated questions DAO (Data Access Object).
+  ///
+  /// Parameters:
+  /// - [json]: The `JSON` object to be added in the database.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// saveOnBoardingAnswer([{...}]); // Save the answer "Yes" for the question.
+  /// ```
+  Future saveOnBoardingQuestions(List<dynamic> json) async {
+    removeAllQuestions();
+
+    final List<Questions> questionsModel = json
         .map((dynamic item) => Questions.fromJson(item as Map<String, dynamic>))
         .toList();
 
-    if (onboardingQuestions.isNotEmpty) {
-      final List<Questions> questionWithoutAnswers = [];
-      for (var question in onboardingQuestions) {
-        questionWithoutAnswers.add(question.copyWith(answer: null));
-      }
+    final result = _questionsDAO.addManyQuestions(
+        questionsModel.map((e) => QuestionsEntity.fromModel(e)).toList());
 
-      //compare all the question if they are the same
-      if (questionsFromJSON.length == onboardingQuestions.length) {
-        List<bool> allTheSame = [];
-        for (var i = 0; i < questionsFromJSON.length; i++) {
-          allTheSame.add(questionsFromJSON[i] == questionWithoutAnswers[i]);
-        }
-
-        if (!allTheSame.contains(false)) {
-          return onboardingQuestions;
-        }
-      }
-    }
-    _questionsDAO.addManyQuestions(
-        questionsFromJSON.map((e) => QuestionsEntity.fromModel(e)).toList());
-    return questionsFromJSON;
+    debugPrint("Added questions: $result");
   }
 
   void saveOnBoardingAnswer(QuestionsEntity question) async {
@@ -390,5 +434,55 @@ class SetupRepository {
 
   void removeAllQuestions() async {
     _questionsDAO.removeAllQuestions();
+  }
+
+  /// Uploads the participant's onboarding answers to the remote source.
+  /// This function retrieves the onboarding questions from the local database
+  /// using the associated questions DAO (Data Access Object). It then converts
+  /// the questions to a `JSON` object and sends the data to the remote source.
+  ///
+  /// Returns:
+  /// - A `Future` that resolves to a `bool` value indicating the success of the operation.
+  Future<bool> uploadOnBoardingQuestions() async {
+    final List<Questions> onboardingQuestions = _questionsDAO
+        .getAllQuestions()
+        .map((e) => Questions.fromEntity(e))
+        .toList();
+    final experiment = _experimentDAO.getExperiment();
+    final participant = _participantDAO.get();
+
+    final map = <String, dynamic>{};
+
+    final extras = <String, dynamic>{};
+
+    for (var question in onboardingQuestions) {
+      extras[question.variable] = question.answer;
+    }
+
+    map.addAll(
+      {
+        'participant_id': participant!.studyCode.toString(),
+        'login_code': experiment!.login,
+        'extras': jsonEncode(extras),
+      },
+    );
+
+    dev.log("map $map", name: "Uploading OnBoarding Questions");
+
+    final result =
+        await post(path: "/fabla/updateuserextras", body: map).then((value) {
+      if (value != null) {
+        final response = jsonDecode(value);
+        return response['status'] == 'success';
+      }
+      return false;
+    });
+
+    if (result) {
+      await getStudies();
+      return true;
+    }
+
+    return false;
   }
 }

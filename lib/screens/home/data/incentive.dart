@@ -12,17 +12,17 @@ class Incentive {
 
   factory Incentive.fromJson(Map<String, dynamic> json) {
     return Incentive(
-      amount: json['amount'] ?? 0.0,
-      bonus: json['bonus'] ?? 0.0,
+      amount: double.parse(json['amount']),
+      bonus: double.parse(json['bonus']),
       currency: json['currency'] ?? '\$',
-      threshold: json['threshold'] ?? 0,
+      threshold: json['threshold'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'amount': amount,
-      'bonus': bonus,
+      'amount': amount.toString(),
+      'bonus': bonus.toString(),
       'currency': currency,
       'threshold': threshold,
     };

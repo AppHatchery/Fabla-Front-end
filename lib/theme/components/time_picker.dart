@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import '../custom_colors.dart';
 
 class CustomTimePicker extends StatefulWidget {
+  final String title;
   final TimeOfDay? date;
   final VoidCallback? onDelete;
-  const CustomTimePicker({super.key, this.date, this.onDelete});
+  final int minuteInterval;
+  const CustomTimePicker(
+      {super.key, this.title = "Reminder Time" ,this.date, this.onDelete, this.minuteInterval = 5});
 
   @override
   State<CustomTimePicker> createState() => _CustomTimePickerState();
@@ -49,7 +52,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                 Expanded(
                     flex: 2,
                     child: Text(
-                      "Reminder Time",
+                      widget.title,
                       style: CustomTypography().titleLarge(),
                       textAlign: TextAlign.center,
                     )),
@@ -107,7 +110,8 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                             child: ListWheelScrollView.useDelegate(
                               controller: minutesController,
                               onSelectedItemChanged: (value) => setState(() {
-                                _date = _date.replacing(minute: value * 5);
+                                _date = _date.replacing(
+                                    minute: value * widget.minuteInterval);
                               }),
                               physics: const FixedExtentScrollPhysics(),
                               perspective: 0.01,
@@ -117,9 +121,10 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                               squeeze: 2,
                               childDelegate: ListWheelChildBuilderDelegate(
                                 builder: (context, index) {
-                                  return Minutes(mins: index * 5);
+                                  return Minutes(
+                                      mins: index * widget.minuteInterval);
                                 },
-                                childCount: 12,
+                                childCount: 60 ~/ widget.minuteInterval,
                               ),
                             ),
                           ),

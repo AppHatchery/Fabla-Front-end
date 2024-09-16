@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
 import 'package:equatable/equatable.dart';
 
@@ -5,14 +7,15 @@ class Questions extends Equatable {
   final int id;
   final String title;
   final String subtitle;
-  final List<String>? options;
+  final List<Option>? options;
   final String type;
   final int? min;
   final int? max;
-  final dynamic defaultValue;
+  final int? defaultValue;
+  final String variable;
   final String? answer;
 
-  Questions(
+  const Questions(
       {required this.id,
       required this.title,
       required this.subtitle,
@@ -21,6 +24,7 @@ class Questions extends Equatable {
       required this.min,
       required this.max,
       required this.defaultValue,
+      required this.variable,
       required this.answer});
 
   factory Questions.fromJson(Map<String, dynamic> json) {
@@ -28,12 +32,14 @@ class Questions extends Equatable {
         id: json['id'],
         title: json['title'],
         subtitle: json['subtitle'],
-        options:
-            json['options'] != null ? List<String>.from(json['options']) : null,
+        options: json['options'] != null ? (json['options'] as List<dynamic>)
+            .map((element) => Option.fromJson(element))
+            .toList() : null,
         type: json['type'],
         min: json['min_value'],
         max: json['max_value'],
         defaultValue: json['default_value'],
+        variable: json['variable'],
         answer: null);
   }
 
@@ -42,11 +48,13 @@ class Questions extends Equatable {
       'id': id,
       'title': title,
       'subtitle': subtitle,
-      'options': options,
+      'options':
+          json.encode(options?.map((element) => element.toJson()).toList()),
       'type': type,
       'min_value': min,
       'max_value': max,
       'default_value': defaultValue,
+      'variable': variable,
       'answer': answer
     };
   }
@@ -56,11 +64,14 @@ class Questions extends Equatable {
         id: entity.id,
         title: entity.title,
         subtitle: entity.subtitle,
-        options: entity.options,
+        options:entity.options != null ? (jsonDecode(entity.options!) as List<dynamic>)
+            .map((element) => Option.fromJson(element))
+            .toList() : null,
         type: entity.type,
         min: entity.min,
         max: entity.max,
         defaultValue: entity.defaultValue,
+        variable: entity.variable,
         answer: entity.answer);
   }
 
@@ -68,11 +79,12 @@ class Questions extends Equatable {
     int? id,
     String? title,
     String? subtitle,
-    List<String>? options,
+    List<Option>? options,
     String? type,
     int? min,
     int? max,
-    dynamic defaultValue,
+    int? defaultValue,
+    String? variable,
     String? answer,
   }) {
     return Questions(
@@ -84,11 +96,37 @@ class Questions extends Equatable {
       min: min ?? this.min,
       max: max ?? this.max,
       defaultValue: defaultValue ?? this.defaultValue,
+      variable: variable ?? this.variable,
       answer: answer,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [id, title, subtitle, options, type, min, max, defaultValue, answer];
+  List<Object?> get props => [
+        id,
+        title,
+        subtitle,
+        options,
+        type,
+        min,
+        max,
+        defaultValue,
+        variable,
+        answer
+      ];
+}
+
+class Option {
+  final String title;
+  final dynamic value;
+
+  Option({required this.title, required this.value});
+
+  factory Option.fromJson(Map<String, dynamic> json) {
+    return Option(title: json['title'], value: json['value']);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'title': title, 'value': value};
+  }
 }

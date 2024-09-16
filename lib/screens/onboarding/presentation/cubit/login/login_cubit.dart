@@ -24,25 +24,23 @@ class LoginCubit extends Cubit<LoginState> {
   /// Parameters:
   /// - [code]: The participant's login code to be verified.
   ///
-  // void login_(int code) async {
-  //   emit(const LoginLoading());
-  //   try {
-  //     final result = await repository.verify(code);
-  //     if (result) {
-  //       print("Adding participant... $code");
-  //       repository.addParticipant(code.toString());
-  //       emit(const LoginSuccess());
-  //     } else {
-  //       emit(const LoginError("Invalid code"));
-  //     }
-  //   } catch (e) {
-  //     debugPrint(e.toString());
-  //     emit(const LoginError("Something went wrong"));
-  //   }
-  // }
+  void login(String code) async {
+    emit(const LoginLoading());
+    try {
+      final result = await repository.verify(code);
+      if (result) {
+        emit(const LoginSuccess());
+      } else {
+        emit(const LoginError("Invalid code"));
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+      emit(const LoginError("Something went wrong"));
+    }
+  }
 
   final _storage = const FlutterSecureStorage();
-  void login(int code) async {
+  void login_(int code) async {
     emit(const LoginLoading());
     try {
       var response = await http.post(
@@ -110,8 +108,11 @@ class CredentialsModel {
 
   CredentialsModel(
       // ignore: non_constant_identifier_names
-      {this.authorization,this.xapikey,this.dynamo_url,this.presigned_url});
-      
+      {this.authorization,
+      this.xapikey,
+      this.dynamo_url,
+      this.presigned_url});
+
   CredentialsModel.fromJson(Map<String, dynamic> json) {
     authorization = json['authorization'];
     xapikey = json['x-api-key'];

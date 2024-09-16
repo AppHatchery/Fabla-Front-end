@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/login.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -13,7 +14,8 @@ import '../../../../theme/dialogs/pop_ups.dart';
 import '../../../../theme/resources/strings.dart';
 
 class ConfrimJoiningPage extends StatefulWidget {
-  const ConfrimJoiningPage({super.key});
+  final ExperimentModel experiment;
+  const ConfrimJoiningPage({super.key, required this.experiment});
 
   @override
   State<ConfrimJoiningPage> createState() => _ConfrimJoiningPageState();
@@ -59,7 +61,7 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
               ),
               ConfrimTile(
                 title: "Study Name",
-                info: Strings.studyName,
+                info: widget.experiment.name,
                 icon: const Icon(
                   Icons.assured_workload_rounded,
                 ),
@@ -69,7 +71,7 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
               ),
               ConfrimTile(
                 title: "Study Duration",
-                info: Strings.studyDuration,
+                info: widget.experiment.duration,
                 icon: const Icon(
                   Icons.calendar_month_outlined,
                 ),
@@ -79,7 +81,7 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
               ),
               ConfrimTile(
                 title: "Researcher Name",
-                info: Strings.researcherName,
+                info: widget.experiment.researcher,
                 icon: const Icon(
                   Icons.person_outline_rounded,
                 ),

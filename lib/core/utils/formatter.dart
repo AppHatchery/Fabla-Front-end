@@ -1,7 +1,7 @@
-import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+// import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:tuple/tuple.dart';
+// import 'package:tuple/tuple.dart';
 
 import '../../screens/diary/data/options.dart';
 import 'types.dart';
@@ -78,6 +78,11 @@ String formatDurationtoHHMMSS(Duration duration) {
   return "$minutes:$seconds";
 }
 
+/// Format the date to a [String] of hours and minutes
+String formatDurationToHHMM(DateTime date){
+  return DateFormat('HH:mm').format(date);
+}
+
 /// Formats a given date into a human-readable history date string.
 ///
 /// This function formats the provided date into a string representing a historical date,
@@ -122,26 +127,26 @@ String formatHistoryDate(DateTime date) {
 /// Returns:
 /// A Tuple2<Color, Color> representing a pair of background and foreground colors selected based on the input text's hash code.
 ///
-Tuple2<Color, Color> getColorFromString(String text) {
-  final List<Color> backgroundColor = [
-    CustomColors.yellowLight,
-    CustomColors.orangeLight,
-    CustomColors.purpleLight
-  ];
+// Tuple2<Color, Color> getColorFromString(String text) {
+//   final List<Color> backgroundColor = [
+//     CustomColors.yellowLight,
+//     CustomColors.orangeLight,
+//     CustomColors.purpleLight
+//   ];
 
-  final List<Color> foregroundColor = [
-    CustomColors.yellowDark,
-    CustomColors.orangeDark,
-    CustomColors.purpleDark,
-  ];
+//   final List<Color> foregroundColor = [
+//     CustomColors.yellowDark,
+//     CustomColors.orangeDark,
+//     CustomColors.purpleDark,
+//   ];
 
-  final int hashCode = text.hashCode;
-  final int backgroundIndex = hashCode % backgroundColor.length;
-  final int foregroundIndex = hashCode % foregroundColor.length;
+//   final int hashCode = text.hashCode;
+//   final int backgroundIndex = hashCode % backgroundColor.length;
+//   final int foregroundIndex = hashCode % foregroundColor.length;
 
-  return Tuple2(
-      backgroundColor[backgroundIndex], foregroundColor[foregroundIndex]);
-}
+//   return Tuple2(
+//       backgroundColor[backgroundIndex], foregroundColor[foregroundIndex]);
+// }
 
 /// Converts a DateTime into a formatted post date string.
 ///
@@ -173,13 +178,14 @@ final Map<String, ResponseType> _responseTypeMap = {
   'text': ResponseType.text,
   'multiple': ResponseType.multiple,
   'radio': ResponseType.radio,
+  'single': ResponseType.radio,
   'slider': ResponseType.slider,
 };
 
 /// Function that converts a string representation of a response type to its corresponding enum value.
 /// Throws an exception if the provided string does not match any valid response type.
 ResponseType responseTypeString(String value) {
-  final responseType = _responseTypeMap[value];
+  final responseType = _responseTypeMap[value.toLowerCase()];
   if (responseType == null) {
     throw Exception('Invalid response type');
   }
