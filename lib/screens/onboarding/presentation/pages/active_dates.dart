@@ -43,7 +43,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
           scrolledUnderElevation: 0.0,
           leading: canGoBack
               ? IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(context, true),
                   icon: const Icon(
                     Icons.arrow_back_rounded,
                     color: CustomColors.fillWhite,

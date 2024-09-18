@@ -37,7 +37,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
-      backgroundColor: CustomColors.backgroundPrimary,
+      backgroundColor: CustomColors.backgroundSecondary,
       body: BlocConsumer<DynamicCubit, DynamicState>(
         listener: (context, state) {
           if (state is DynamicNone) {
@@ -46,16 +46,13 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
                 MaterialPageRoute(
                     builder: (context) => const ActiveDatesPage()));
           } else if (state is DynamicUploaded) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const ActiveDatesPage()));
+            moveOn();
           }
         },
         builder: (context, state) {
           if (state is DynamicInitial || state is DynamicLoading) {
             return loading();
-          } else if (state is DynamicUploading || state is DynamicUploaded) {
+          } else if (state is DynamicUploading) {
             return uploading(height, width);
           } else if (state is DynamicLoaded) {
             return PageView.builder(
@@ -125,8 +122,8 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
           const CircularProgressIndicator(
               strokeCap: StrokeCap.round,
               strokeWidth: 8,
-              backgroundColor: CustomColors.fillWhite,
-              color: CustomColors.productBorderActive),
+              backgroundColor: CustomColors.backgroundSecondary,
+              color: CustomColors.fillWhite),
           const SizedBox(
             height: 24,
           ),
@@ -146,6 +143,18 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
         ],
       ),
     );
+  }
+
+  void moveOn() async {
+    final cameBack = await Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const ActiveDatesPage()));
+
+    if (cameBack) {
+      _cubit.load();
+      //  final length = await _cubit.count();
+      // jump to last page
+      // controller.jumpToPage(length - 1); // cant go to the last page
+    }
   }
 
   // List<Widget> pages(List<Questions> questions) {
@@ -181,8 +190,7 @@ class DynamicOnBoardingPage extends StatefulWidget {
   State<DynamicOnBoardingPage> createState() => _DynamicOnBoardingPageState();
 }
 
-class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage>
-    with AutomaticKeepAliveClientMixin {
+class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   late TextEditingController textEditingController;
   String? answer;
 
@@ -204,7 +212,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
+    // super.build(context);
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
@@ -372,6 +380,6 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage>
 
   void saveAnswer() {}
 
-  @override
-  bool get wantKeepAlive => false;
+  // @override
+  // bool get wantKeepAlive => false;
 }
