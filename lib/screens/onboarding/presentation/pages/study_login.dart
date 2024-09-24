@@ -53,8 +53,6 @@ class _StudyLoginState extends State<StudyLogin> {
                       return initialLogin();
                     } else if (state is StudyLoginLoading) {
                       return loading(height - 100);
-                    } else if (state is StudyLoginSuccess) {
-                      return loading(height - 100);
                     }
 
                     return initialLogin();
