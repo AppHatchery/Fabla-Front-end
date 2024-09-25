@@ -1,14 +1,14 @@
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_dates.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_time.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/dynamic_page.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/finish.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/study_login.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welcome.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
 
-import '../screens/onboarding/presentation/pages/login.dart';
+// import '../screens/onboarding/presentation/pages/login.dart';
 import '../screens/onboarding/presentation/pages/mic_access.dart';
 import '../screens/onboarding/presentation/pages/notification_access.dart';
 
@@ -38,41 +38,45 @@ class RouteService {
   Future<Widget> getRoute() async {
     await PreferenceService().setBoolPreference(key: 'cold_start', value: true);
 
-    final setup =
-        await PreferenceService().getBoolPreference(key: 'setup') ?? false;
-    final notificationAccess = await PreferenceService()
-            .getBoolPreference(key: 'notification_requested') ??
-        false;
-    final remindersSet =
-        await PreferenceService().getBoolPreference(key: 'reminders_set') ??
-            false;
-    final activeDates =
-        await PreferenceService().getBoolPreference(key: 'active_dates_seen') ??
-            false;
-    final micAccess =
-        await PreferenceService().getBoolPreference(key: 'mic_requested') ??
-            false;
+    // Fetch all preferences concurrently
+    final preferences = await Future.wait([
+      PreferenceService().getBoolPreference(key: 'setup'),
+      PreferenceService().getBoolPreference(key: 'notification_requested'),
+      PreferenceService().getBoolPreference(key: 'active_dates_seen'),
+      PreferenceService().getBoolPreference(key: 'mic_requested'),
+      PreferenceService().getBoolPreference(key: 'onboarding_complete'),
+    ]);
+
+    final setup = preferences[0] ?? false;
+    final notificationAccess = preferences[1] ?? false;
+    final activeDates = preferences[2] ?? false;
+    final micAccess = preferences[3] ?? false;
+    final onboardingComplete = preferences[4] ?? false;
+
     final setupRepository = SetupRepository();
     final participant = setupRepository.getParticipant();
 
-
-    //TODO: Add the rest of the pages
+    if (setup) {
+      return const Hub();
+    }
     if (participant == null) {
       return const StudyLogin();
-    } else if (participant.name.isEmpty) {
-      return const WelcomePage();
-    } else if (setup) {
-      return const Hub();
-    } else if (activeDates == false) {
-      return const ActiveDatesPage();
-    } else if (remindersSet == false) {
-      return const ActiveTimePage();
-    } else if (notificationAccess == false) {
-      return const NotificationAccessPage();
-    } else if (micAccess == false) {
-      return const MicAccessPage();
-    } else {
-      return const FinishPage();
     }
+    if (participant.name.isEmpty) {
+      return const WelcomePage();
+    }
+    if (!micAccess) {
+      return const MicAccessPage();
+    }
+    if (!notificationAccess) {
+      return const NotificationAccessPage();
+    }
+    if (!onboardingComplete) {
+      return const DynamicOnBoardingHub();
+    }
+    if (!activeDates) {
+      return const ActiveDatesPage();
+    }
+    return const FinishPage();
   }
 }

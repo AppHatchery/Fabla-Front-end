@@ -1,11 +1,13 @@
 import 'dart:convert';
 
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dynamic/dynamic_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_dates.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/avatar_background.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/dynamic_widget.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/time_picker.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -37,7 +39,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
-      backgroundColor: CustomColors.backgroundPrimary,
+      backgroundColor: CustomColors.backgroundSecondary,
       body: BlocConsumer<DynamicCubit, DynamicState>(
         listener: (context, state) {
           if (state is DynamicNone) {
@@ -46,30 +48,31 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
                 MaterialPageRoute(
                     builder: (context) => const ActiveDatesPage()));
           } else if (state is DynamicUploaded) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const ActiveDatesPage()));
+            moveOn();
           }
         },
         builder: (context, state) {
           if (state is DynamicInitial || state is DynamicLoading) {
             return loading();
-          } else if (state is DynamicUploading || state is DynamicUploaded) {
+          } else if (state is DynamicUploading) {
             return uploading(height, width);
           } else if (state is DynamicLoaded) {
             return PageView.builder(
               physics: const NeverScrollableScrollPhysics(),
               controller: controller,
-              itemCount: state.questions.length,
+              itemCount: state.questions.length + 1,
               itemBuilder: (context, index) {
+                print("Index: $index");
+                if (index == 0) {
+                  return welcome();
+                }
                 return DynamicOnBoardingPage(
                   index: index + 1,
-                  question: state.questions[index],
+                  question: state.questions[index - 1],
                   onPrevious: () => previousPage(),
                   onContinue: (answer) {
                     if (answer != null) {
-                      _cubit.save(state.questions[index], answer);
+                      _cubit.save(state.questions[index - 1], answer);
                       nextPage(state.questions.length);
                     }
                   },
@@ -85,7 +88,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
   }
 
   void nextPage(int length) {
-    if (controller.page == length - 1) {
+    if (controller.page == length) {
       // Navigator.push(context,
       //     MaterialPageRoute(builder: (context) => const ActiveDatesPage()));
       _cubit.upload();
@@ -125,8 +128,8 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
           const CircularProgressIndicator(
               strokeCap: StrokeCap.round,
               strokeWidth: 8,
-              backgroundColor: CustomColors.fillWhite,
-              color: CustomColors.productBorderActive),
+              backgroundColor: CustomColors.backgroundSecondary,
+              color: CustomColors.fillWhite),
           const SizedBox(
             height: 24,
           ),
@@ -146,6 +149,31 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
         ],
       ),
     );
+  }
+
+  Widget welcome() {
+    return  DynamicWelcome(
+          onContinue: () => {
+                controller.nextPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut)
+              },
+          
+    );
+  }
+
+  void moveOn() async {
+    await PreferenceService()
+        .setBoolPreference(key: 'onboarding_complete', value: true);
+    final cameBack = await Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const ActiveDatesPage()));
+
+    if (cameBack) {
+      _cubit.load();
+      //  final length = await _cubit.count();
+      // jump to last page
+      // controller.jumpToPage(length - 1); // cant go to the last page
+    }
   }
 
   // List<Widget> pages(List<Questions> questions) {
@@ -181,8 +209,7 @@ class DynamicOnBoardingPage extends StatefulWidget {
   State<DynamicOnBoardingPage> createState() => _DynamicOnBoardingPageState();
 }
 
-class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage>
-    with AutomaticKeepAliveClientMixin {
+class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   late TextEditingController textEditingController;
   String? answer;
 
@@ -204,7 +231,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
+    // super.build(context);
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
@@ -372,6 +399,86 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage>
 
   void saveAnswer() {}
 
+  // @override
+  // bool get wantKeepAlive => false;
+}
+
+class DynamicWelcome extends StatefulWidget {
+  final Function onContinue;
+  const DynamicWelcome({super.key, required this.onContinue});
+
   @override
-  bool get wantKeepAlive => false;
+  State<DynamicWelcome> createState() => _DynamicWelcomeState();
+}
+
+class _DynamicWelcomeState extends State<DynamicWelcome> {
+  final SetupRepository _repository = SetupRepository();
+  late String name;
+
+  @override
+  void initState() {
+    setState(() {
+      name = _repository.getParticipant()!.name;
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return SafeArea(
+      bottom: false,
+      child: LayoutBuilder(builder: (context, constraints) {
+            return Padding(
+              padding:
+                  const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraint) => SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints:
+                              BoxConstraints(minHeight: constraint.maxHeight),
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  children: [
+                                    Text(
+                                      "Hooray $name! Now a couple of extra questions to customize this study for you",
+                                      style: CustomTypography().headlineLarge(
+                                          color: CustomColors.textWhite),
+                                    ),
+                                    
+                                  ],
+                                ),
+                                
+                                  SizedBox(
+                                    height: 300,
+                                    width: width,
+                                    child: Image.asset(
+                                        'assets/images/avatar_onboarding_placeholder.png',
+                                        fit: BoxFit.fitWidth),
+                                  ),
+                              
+                              ]),
+                        ),
+                      ),
+                    ),
+                  ),
+                  CustomFlatButton(
+                    onClick: () => widget.onContinue(),
+                    text: "Continue",
+                    color: CustomColors.fillWhite,
+                    isDisabled: false,
+                    textColor: CustomColors.productNormalActive,
+                  )
+                ],
+              ),
+            );
+          }),
+    );
+  }
 }

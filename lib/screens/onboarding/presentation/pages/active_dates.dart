@@ -1,5 +1,5 @@
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_time.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/finish.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -43,7 +43,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
           scrolledUnderElevation: 0.0,
           leading: canGoBack
               ? IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(context, true),
                   icon: const Icon(
                     Icons.arrow_back_rounded,
                     color: CustomColors.fillWhite,
@@ -112,7 +112,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 16.0),
                             child: Text(
-                              "Hi ${participant.name}, here are your active dates",
+                              "All set ${participant.name}, here are your active dates",
                               style: CustomTypography()
                                   .headlineLarge(color: CustomColors.textWhite),
                               // textScaleFactor: 3.0,
@@ -135,13 +135,19 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                                 onContinue: navigateToNextPage,
                                 children: [
                                   Text(
-                                    "Diary Calendar",
+                                    "Study Plan",
                                     style: CustomTypography().titleLarge(),
                                   ),
                                   const SizedBox(
-                                    height: 6,
+                                    height: 12,
+                                  ),
+                                  description(),
+                                  const SizedBox(
+                                    height: 12,
                                   ),
                                   const CustomCalender(),
+
+                                  const SizedBox(height: 6)
                                 ]),
                           )
                         ],
@@ -167,12 +173,30 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
         .setBoolPreference(key: 'active_dates_seen', value: true);
 
     if (context.mounted) {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const ActiveTimePage()));
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => const FinishPage()));
     }
   }
 
   void load() {
     setupCubit.load();
+  }
+
+  Widget description() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: ShapeDecoration(
+        color: CustomColors.productLightBackground,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: Text(
+        "Blue dots on the calendar indicate that there is a submission deadline for the dates.",
+        style: CustomTypography()
+            .bodyLarge(color: CustomColors.textSecondaryContent),
+        // textScaleFactor: 3.0,
+      ),
+    );
   }
 }

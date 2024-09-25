@@ -64,6 +64,7 @@ class _CustomCalenderState extends State<CustomCalender> {
             color: CustomColors.fillWhite,
             borderRadius: BorderRadius.circular(12),
             shape: BoxShape.rectangle,
+            border: Border.all(color: CustomColors.productBorderNormal, width: 2)
           ),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
           child: TableCalendar(

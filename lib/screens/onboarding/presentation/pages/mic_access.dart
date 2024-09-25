@@ -1,4 +1,4 @@
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/finish.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/notification_access.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/mic_tester.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_session/audio_session.dart';
@@ -81,8 +81,8 @@ class _MicAccessPageState extends State<MicAccessPage> {
                                 children: [
                                   Text(
                                     permission
-                                        ? "Great, let's test your microphone volume!"
-                                        : "Please enable the microphone access",
+                                        ? "Let's test your microphone, say something"
+                                        : "Great, next enable microphone access",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
                                   ),
@@ -260,10 +260,10 @@ class _MicAccessPageState extends State<MicAccessPage> {
         await PreferenceService()
             .setBoolPreference(key: 'mic_requested', value: requested);
         if (context.mounted) {
-          Navigator.pushAndRemoveUntil(
+          Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const FinishPage()),
-              (route) => false);
+              MaterialPageRoute(
+                  builder: (context) => const NotificationAccessPage()));
         }
       } else {
         startRecorder();
