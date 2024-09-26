@@ -12,6 +12,7 @@ class AvatarBackground extends StatefulWidget {
   final String avatarType;
   final String? animation;
   final double? keyboardSpace;
+  final bool scrollable;
   final VoidCallback onContinue;
   const AvatarBackground(
       {super.key,
@@ -22,6 +23,7 @@ class AvatarBackground extends StatefulWidget {
       this.keyboardSpace,
       this.avatarType = "image",
       this.animation,
+      this.scrollable = true,
       required this.onContinue});
 
   @override
@@ -62,6 +64,7 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
             right: 0,
             bottom: 0,
             child: Container(
+              height: widget.height,
               width: widget.width,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               decoration: const BoxDecoration(
@@ -70,15 +73,16 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
                       topLeft: Radius.circular(24),
                       topRight: Radius.circular(24))),
               child: SingleChildScrollView(
+                physics: widget.scrollable
+                    ? const AlwaysScrollableScrollPhysics()
+                    : const NeverScrollableScrollPhysics(),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    SingleChildScrollView(
-                      child: SizedBox(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: widget.children,
-                        ),
+                    SizedBox(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: widget.children,
                       ),
                     ),
                   ],
