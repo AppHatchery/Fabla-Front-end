@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/completion/completion_cubit.dart';
@@ -102,7 +103,8 @@ class _MyAppState extends State<MyApp> {
                 ),
                 BlocProvider<SummaryCubit>(create: (context) => SummaryCubit()),
                 BlocProvider<LoginCubit>(create: (context) => LoginCubit()),
-                BlocProvider<StudyLoginCubit>(create: (context)=> StudyLoginCubit()),
+                BlocProvider<StudyLoginCubit>(
+                    create: (context) => StudyLoginCubit()),
                 BlocProvider<SetupCubit>(create: (context) => SetupCubit()),
                 BlocProvider<DiaryCubit>(create: (context) => DiaryCubit()),
                 BlocProvider<PromptCubit>(create: (context) => PromptCubit()),
@@ -157,7 +159,8 @@ class Hub extends StatefulWidget {
   State<Hub> createState() => _HubState();
 }
 
-class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
+class _HubState extends State<Hub>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController tabController;
   List<Tab> navigationBars = [];
   static const pages = [
@@ -168,6 +171,7 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     tabController = TabController(length: pages.length, vsync: this);
     startPendo();
     _makeNavBars();
@@ -176,8 +180,17 @@ class _HubState extends State<Hub> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     tabController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      NotificationManager().scheduleAdditional();
+    }
+    super.didChangeAppLifecycleState(state);
   }
 
   @override

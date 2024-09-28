@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 
@@ -63,6 +64,13 @@ class NotificationService {
   @pragma("vm:entry-point")
   static Future<void> onActionReceivedMethod(
       ReceivedAction receivedAction) async {
+    await PendoService.track('ScheduleReminder', {
+      "status": "opened",
+      "page": "N/A",
+      "notification_type": receivedAction.payload?['type'],
+      "scheduled_time":
+          "${receivedAction.displayedDate?.hour}:${receivedAction.displayedDate?.minute}"
+    });
     debugPrint("Payload: ${receivedAction.payload}");
   }
 
@@ -81,7 +89,37 @@ class NotificationService {
   @pragma("vm:entry-point")
   static Future<void> onDismissActionReceivedMethod(
       ReceivedAction receivedAction) async {
+    await PendoService.track('ScheduleReminder', {
+      "status": "dismissed",
+      "page": "N/A",
+      "notification_type": receivedAction.payload?['type'],
+      "scheduled_time":
+          "${receivedAction.displayedDate?.hour}:${receivedAction.displayedDate?.minute}"
+    });
     debugPrint("Notification Dismissed");
+  }
+
+  /// Callback method invoked when a notification is displayed to the user.
+  ///
+  /// This method is marked with the @pragma("vm:entry-point") directive, indicating
+  /// that it is an entry point for the Dart Virtual Machine (VM). It is invoked when
+  ///
+  /// Parameters:
+  /// - [receivedNotification]: The received notification that was displayed.
+  ///  It contains information about the notification, including its payload and displayed date.
+  ///
+  @pragma("vm:entry-point")
+  static Future<void> onNotificationDisplayedMethod(
+      ReceivedNotification receivedNotification) async {
+    final date = receivedNotification.displayedDate?.toLocal();
+    await PendoService.track('ScheduleReminder', {
+      "status": "fired",
+      "page": "N/A",
+      "notification_type": receivedNotification.payload?['type'],
+      "scheduled_time": "${date?.hour}:${date?.minute}"
+    });
+    debugPrint(
+        "Notification Displayed with payload: ${receivedNotification.payload}");
   }
 
   /// Creates a notification with the provided title, body, and scheduled date.
@@ -217,5 +255,17 @@ class NotificationService {
 
     return await createNotification(
         title: title, body: body, date: date, payload: payload);
+  }
+
+  /// Retrieves a list of all scheduled notifications.
+  /// This function returns a list of all scheduled notifications using the
+  /// `AwesomeNotifications` library.
+  /// 
+  /// Returns:
+  /// A list of scheduled notifications.
+  static Future<List<NotificationModel>> getScheduledNotifications() async {
+    final scheduledNotifications =
+        await AwesomeNotifications().listScheduledNotifications();
+    return scheduledNotifications;
   }
 }

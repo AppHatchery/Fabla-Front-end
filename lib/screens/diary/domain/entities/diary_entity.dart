@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 import 'package:objectbox/objectbox.dart';
 
@@ -22,6 +24,7 @@ class Diary {
   String deadline;
   @Transient()
   DiaryStatus? status;
+  String notifications;
 
   @Backlink('diary')
   final prompts = ToMany<Prompt>();
@@ -46,6 +49,7 @@ class Diary {
       required this.currentEntry,
       required this.end,
       required this.deadline,
+      required this.notifications,
       this.status});
 
   /// Ensures the consistency of DiaryStatus enumeration indices.
@@ -85,6 +89,8 @@ class Diary {
       currentEntry: model.currentEntry,
       deadline: model.due.toString(),
       status: model.status,
+      notifications:
+          json.encode(model.notifications.map((e) => e.toJson()).toList()),
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/questions_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/network/request.dart';
+import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
@@ -143,14 +144,18 @@ class SetupRepository {
 
     final participant = _participantDAO.get();
 
-    // Request the user's studies and diaries from the remote source
-    final response = await post(path: "/fabla/getuserprotocol", body: {
-      'login_code': experiment.login,
-      'participant_id': participant!.studyCode,
-    });
+    //TODO : Uncomment
+    // // Request the user's studies and diaries from the remote source
+    // final response = await post(path: "/fabla/getuserprotocol", body: {
+    //   'login_code': experiment.login,
+    //   'participant_id': participant!.studyCode,
+    // });
+
+    //load from assets
+    final response = await rootBundle.loadString('assets/protocol.json');
 
     if (response != null) {
-      final data = await json.decode(response)['data'];
+      final data = await json.decode(response); //TODO: Revert this
 
       // Parse the studies from the response
       final studiesFromJson = data['studies'] as List;
@@ -165,6 +170,7 @@ class SetupRepository {
         final diariesJson = study['diaries'] as List;
         for (final json in diariesJson) {
           final diary = DiaryModel.fromJson(json, studyModel.studyId);
+          dev.log("Diary start: ${diary.start} | end: ${diary.due}", name: "Get Studies");
           diaries.add(diary);
         }
       }
@@ -186,6 +192,9 @@ class SetupRepository {
       dev.log("Studies: $studyEntities", name: "Get Studies");
       diaryRepository.addDiaries(entities);
       _studyDAO.addStudies(studyEntities);
+
+      // Schedule notifications for the diaries
+      NotificationManager().scheduleLimit();
     }
   }
 

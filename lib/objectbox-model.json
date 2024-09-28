@@ -37,7 +37,7 @@
     },
     {
       "id": "2:2718562603036521648",
-      "lastPropertyId": "10:3256530960332762262",
+      "lastPropertyId": "11:2953292468504398457",
       "name": "Diary",
       "properties": [
         {
@@ -90,6 +90,11 @@
           "id": "10:3256530960332762262",
           "name": "dbDiaryStatus",
           "type": 6
+        },
+        {
+          "id": "11:2953292468504398457",
+          "name": "notifications",
+          "type": 9
         }
       ],
       "relations": []
