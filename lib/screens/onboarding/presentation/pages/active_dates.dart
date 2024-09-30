@@ -118,12 +118,11 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                               // textScaleFactor: 3.0,
                             ),
                           ),
-                          Expanded(child: Container()),
                           const SizedBox(
                             height: 60,
                           ),
                           SizedBox(
-                            height: 600,
+                            height: height * 0.9,
                             width: width,
                             child: AvatarBackground(
                                 height: height,
@@ -132,6 +131,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                                 avatarType: "animation",
                                 animation:
                                     "assets/animations/onboarding/onboarding_activedays.riv",
+                                    scrollable: false,
                                 onContinue: navigateToNextPage,
                                 children: [
                                   Text(

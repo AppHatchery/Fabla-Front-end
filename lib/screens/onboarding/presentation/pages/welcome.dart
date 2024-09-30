@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/participant_details.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -19,8 +20,10 @@ class WelcomePage extends StatefulWidget {
 class _WelcomePageState extends State<WelcomePage> {
   final SetupRepository repository = SetupRepository();
 
+  late Participant _participant;
   @override
   void initState() {
+    _participant = repository.getParticipant()!;
     startPendo();
     super.initState();
   }
@@ -30,6 +33,17 @@ class _WelcomePageState extends State<WelcomePage> {
     final width = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: CustomColors.backgroundSecondary,
+        scrolledUnderElevation: 0.0,
+        leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: CustomColors.fillWhite,
+              size: 32,
+            )),
+      ),
       backgroundColor: CustomColors.backgroundSecondary,
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -55,7 +69,7 @@ class _WelcomePageState extends State<WelcomePage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "Welcome, \nYou've checked in!",
+                                      "Welcome P${_participant.studyCode}, \nYou've checked in!",
                                       style: CustomTypography().headlineLarge(
                                           color: CustomColors.textWhite),
                                     ),
@@ -110,9 +124,7 @@ class _WelcomePageState extends State<WelcomePage> {
   }
 
   startPendo() async {
-    final repository = SetupRepository();
-    final participant = repository.getParticipant();
-    await PendoService.start(participant!.studyCode.toString());
+    await PendoService.start(_participant.studyCode.toString());
 
     await PendoService.track(
         "StudyLogin", {"datetime": DateTime.now().toString()});

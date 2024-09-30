@@ -7,6 +7,7 @@ import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'dart:io' show Platform;
 
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
@@ -24,6 +25,15 @@ class ConfrimJoiningPage extends StatefulWidget {
 class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
   Timer? timer;
   int secondsSpent = 0;
+  late bool isIos;
+
+  @override
+  void initState() {
+    setState(() {
+      isIos = Platform.isIOS;
+    });
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -53,7 +63,7 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
                 height: 16,
               ),
               Text(
-                  "Below is the study information associated with your participant ID.",
+                  "Below is the study information associated with this study code.",
                   style: CustomTypography()
                       .bodyLarge(color: CustomColors.textWhite)),
               const SizedBox(
@@ -104,33 +114,39 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        height: MediaQuery.of(context).size.height * .15,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        color: CustomColors.backgroundSecondary,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CustomFlatButton(
-              onClick: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const LoginPage())),
-              text: "Confirm Joining",
-              color: CustomColors.fillWhite,
-              textColor: CustomColors.productNormalActive,
-            ),
+      bottomNavigationBar: SizedBox(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Wrap(
+            children: [
+              CustomFlatButton(
+                onClick: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const LoginPage())),
+                text: "Confirm Joining",
+                color: CustomColors.fillWhite,
+                textColor: CustomColors.productNormalActive,
+              ),
 
-            const SizedBox(
-              height: 12,
-            ),
+              const SizedBox(
+                height: 12,
+              ),
 
-            CustomFlatButton(
-              onClick: () => Navigator.pop(context),
-              text: "This isn’t right - take me back",
-              color: CustomColors.fillWhite,
-              textColor: CustomColors.productNormalActive,
-            ),
-            //CustomTextButton(onClick: ()=> null, text: "I HAVE A PROBLEM JOINING THE STUDY", textColor: CustomColors.textWhite,)
-          ],
+              CustomFlatButton(
+                onClick: () => Navigator.pop(context),
+                text: "This isn’t right - take me back",
+                color: CustomColors.fillWhite,
+                textColor: CustomColors.productNormalActive,
+              ),
+
+              isIos
+                  ? const SizedBox(
+                      height: 24,
+                      width: double.infinity,
+                    )
+                  : const SizedBox.shrink()
+              //CustomTextButton(onClick: ()=> null, text: "I HAVE A PROBLEM JOINING THE STUDY", textColor: CustomColors.textWhite,)
+            ],
+          ),
         ),
       ),
     );

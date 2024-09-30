@@ -152,13 +152,12 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
   }
 
   Widget welcome() {
-    return  DynamicWelcome(
-          onContinue: () => {
-                controller.nextPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut)
-              },
-          
+    return DynamicWelcome(
+      onContinue: () => {
+        controller.nextPage(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut)
+      },
     );
   }
 
@@ -414,11 +413,15 @@ class DynamicWelcome extends StatefulWidget {
 class _DynamicWelcomeState extends State<DynamicWelcome> {
   final SetupRepository _repository = SetupRepository();
   late String name;
+  bool canGoBack = false;
 
   @override
   void initState() {
     setState(() {
       name = _repository.getParticipant()!.name;
+      if (Navigator.of(context).canPop()) {
+        canGoBack = true;
+      }
     });
     super.initState();
   }
@@ -426,59 +429,72 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return SafeArea(
-      bottom: false,
-      child: LayoutBuilder(builder: (context, constraints) {
-            return Padding(
-              padding:
-                  const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraint) => SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints:
-                              BoxConstraints(minHeight: constraint.maxHeight),
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  children: [
-                                    Text(
-                                      "Hooray $name! Now a couple of extra questions to customize this study for you",
-                                      style: CustomTypography().headlineLarge(
-                                          color: CustomColors.textWhite),
-                                    ),
-                                    
-                                  ],
-                                ),
-                                
-                                  SizedBox(
-                                    height: 300,
-                                    width: width,
-                                    child: Image.asset(
-                                        'assets/images/avatar_onboarding_placeholder.png',
-                                        fit: BoxFit.fitWidth),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: CustomColors.backgroundSecondary,
+        scrolledUnderElevation: 0.0,
+        leading: canGoBack
+            ? IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: CustomColors.fillWhite,
+                  size: 32,
+                ))
+            : null,
+      ),
+      backgroundColor: CustomColors.backgroundSecondary,
+      body: SafeArea(
+        bottom: false,
+        child: LayoutBuilder(builder: (context, constraints) {
+          return Padding(
+            padding:
+                const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraint) => SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints:
+                            BoxConstraints(minHeight: constraint.maxHeight),
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                children: [
+                                  Text(
+                                    "Hooray $name! Now a couple of extra questions to customize this study for you",
+                                    style: CustomTypography().headlineLarge(
+                                        color: CustomColors.textWhite),
                                   ),
-                              
-                              ]),
-                        ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 300,
+                                width: width,
+                                child: Image.asset(
+                                    'assets/images/avatar_onboarding_placeholder.png',
+                                    fit: BoxFit.fitWidth),
+                              ),
+                            ]),
                       ),
                     ),
                   ),
-                  CustomFlatButton(
-                    onClick: () => widget.onContinue(),
-                    text: "Continue",
-                    color: CustomColors.fillWhite,
-                    isDisabled: false,
-                    textColor: CustomColors.productNormalActive,
-                  )
-                ],
-              ),
-            );
-          }),
+                ),
+                CustomFlatButton(
+                  onClick: () => widget.onContinue(),
+                  text: "Continue",
+                  color: CustomColors.fillWhite,
+                  isDisabled: false,
+                  textColor: CustomColors.productNormalActive,
+                )
+              ],
+            ),
+          );
+        }),
+      ),
     );
   }
 }

@@ -65,11 +65,11 @@ class _LoginPageState extends State<LoginPage> {
               }, listener: (context, state) {
                 if (state is LoginSuccess) {
                   error = false;
-                  Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const WelcomePage()),
-                      (route) => false);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const WelcomePage()),
+                  );
                 } else if (state is LoginError) {
                   setState(() {
                     error = true;
