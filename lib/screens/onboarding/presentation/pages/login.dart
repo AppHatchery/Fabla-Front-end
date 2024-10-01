@@ -73,6 +73,7 @@ class _LoginPageState extends State<LoginPage> {
                 } else if (state is LoginError) {
                   setState(() {
                     error = true;
+                    message = state.message;
                   });
                 }
               }),
