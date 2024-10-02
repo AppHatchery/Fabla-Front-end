@@ -86,17 +86,27 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   automaticallyImplyLeading: false,
                   backgroundColor: CustomColors.fillNormal,
                   scrolledUnderElevation: 0.0,
-                  leading: IconButton(
+                  leading: isEditable() ?  IconButton(
                     onPressed: () {
-                      scheduleSubmitDiaryNotification(widget.diary.id);
-                      Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (context) => const Hub()),
-                          (route) => false);
+                      returnToDiary();
                     },
-                    icon: const Icon(CustomIcons.close),
-                    iconSize: 15.0,
-                  ),
+                    icon: const Icon(Icons.edit_rounded),
+                    iconSize: 25.0,
+                  ) : null,
+                  actions: [
+                    IconButton(
+                      onPressed: () {
+                        scheduleSubmitDiaryNotification(widget.diary.id);
+                        Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const Hub()),
+                            (route) => false);
+                      },
+                      icon: const Icon(CustomIcons.close),
+                      iconSize: 15.0,
+                    )
+                  ],
                   title: Text(
                     "My Responses",
                     style: CustomTypography().titleMedium(
@@ -331,6 +341,14 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     ),
                   );
                 });
+      case ResponseType.text:
+        return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6.0),
+                child: TextAnswerCard(
+                  answer: prompt.answer!.response!,
+                  delete: () => deleteResponse(prompt, ''),
+                ),
+              );
       //TODO: Add support for other response types
       default:
         return const SizedBox.shrink();
@@ -410,5 +428,18 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         }
       }
     }
+  }
+
+  void returnToDiary() async {
+    await Navigator.of(context)
+        .popAndPushNamed("/NewDiaryPage", arguments: {'diary':widget.diary, 'index': null});
+  }
+
+  bool isEditable() {
+    final due = widget.diary.due;
+    final now = DateTime.now();
+
+    //Is it past the due
+    return now.isBefore(due);
   }
 }

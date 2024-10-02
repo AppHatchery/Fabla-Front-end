@@ -27,8 +27,9 @@ import 'diarysummary.dart';
 /// The page view has a controller which is used to navigate between pages
 class NewDiaryPage extends StatefulWidget {
   final DiaryModel diary;
+  final int? index;
 
-  const NewDiaryPage({super.key, required this.diary});
+  const NewDiaryPage({super.key, required this.diary, this.index});
 
   @override
   State<NewDiaryPage> createState() => _NewDiaryPageState();
@@ -50,11 +51,18 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     controller = PageController();
     controllerInit();
     showTip();
-    if (widget.diary.status == DiaryStatus.idle) {
-      //participantsDiaryStartDate(widget.diary);
-    }
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.diary.status == DiaryStatus.complete || widget.index != null) {
+        currentPage = widget.index != null
+            ? widget.index!
+            : widget.diary.prompts.length - 1;
+        if (controller.hasClients) {
+          controller.jumpToPage(currentPage);
+        }
+      }
+    });
   }
 
   @override
@@ -403,9 +411,9 @@ class _QuestionPageState extends State<QuestionPage>
     Widget responseWidget;
 
     if (prompt.responseType == ResponseType.slider) {
-      print("Min - ${prompt.option?.minValue} | Max - ${prompt.option?.maxValue} | value:  ${prompt.answer?.response}");
+      print(
+          "Min - ${prompt.option?.minValue} | Max - ${prompt.option?.maxValue} | value:  ${prompt.answer?.response}");
       responseWidget = SliderQuestionCard(
-        
         value: prompt.answer?.response != null
             ? double.parse(prompt.answer!.response!)
             : prompt.option!.defaultValue!.toDouble(),

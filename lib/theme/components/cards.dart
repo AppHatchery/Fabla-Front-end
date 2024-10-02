@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -45,12 +46,11 @@ class _DiaryCardState extends State<DiaryCard> {
 
   @override
   void initState() {
-    print("Diary - ${widget.diary?.name} | Start - ${widget.diary?.start} | End - ${widget.diary?.end} | ${widget.diary!.start.isAfter(now)} - $now");
+    print(
+        "Diary - ${widget.diary?.name} | Start - ${widget.diary?.start} | End - ${widget.diary?.end} | ${widget.diary!.start.isAfter(now)} - $now");
     //calculate time left from due vs now
     remainingTime = widget.diary!.due.difference(now);
-    closed = widget.diary!.start.isAfter(now) ||
-        widget.diary!.due.isBefore(now) ||
-        widget.diary!.status == DiaryStatus.submitted;
+    closed = isClosed();
     _startTimer();
     super.initState();
   }
@@ -61,12 +61,24 @@ class _DiaryCardState extends State<DiaryCard> {
         setState(() {
           remainingTime = widget.diary!.due.difference(DateTime.now());
           if (remainingTime.isNegative) {
-            closed = true;
+            if (widget.diary!.status != DiaryStatus.complete) closed = true;
             timer.cancel();
           }
         });
       });
     }
+  }
+
+  bool isClosed() {
+    final diary = widget.diary!;
+    return (diary.due.isBefore(now) && diary.status != DiaryStatus.complete) ||
+        diary.start.isAfter(now) ||
+        diary.status == DiaryStatus.submitted;
+  }
+
+  bool isDiaryCompleteAndOverdue() {
+    return widget.diary!.status == DiaryStatus.complete &&
+        widget.diary!.due.isBefore(now);
   }
 
   @override
@@ -122,8 +134,10 @@ class _DiaryCardState extends State<DiaryCard> {
             ],
             shape: BoxShape.rectangle,
           ),
-          margin:
-              EdgeInsets.only(left: 3, right: 3, top: closed == true ? 0 : 30),
+          margin: EdgeInsets.only(
+              left: 3,
+              right: 3,
+              top: closed || isDiaryCompleteAndOverdue() ? 0 : 30),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 18),
             child: Column(
@@ -212,7 +226,9 @@ class _DiaryCardState extends State<DiaryCard> {
                         child: Text(
                           closed &&
                                   widget.diary!.status != DiaryStatus.submitted
-                              ? widget.diary!.start.isAfter(now) ? "Available at ${formatDurationToHHMM(widget.diary!.start)}" : "Not Available"
+                              ? widget.diary!.start.isAfter(now)
+                                  ? "Available at ${formatDurationToHHMM(widget.diary!.start)}"
+                                  : "Not Available"
                               : switch (widget.diary!.status) {
                                   DiaryStatus.complete => "Continue",
                                   DiaryStatus.idle => "Start",
@@ -258,8 +274,10 @@ class _DiaryCardState extends State<DiaryCard> {
                 children: [ReviewDiary(diary: widget.diary!)],
               ));
     } else {
+      final repository = DiaryRepository();
+      final index = await repository.getIndexOfLastAnsweredPrompt(widget.diary!);
       final results = await Navigator.of(context)
-          .pushNamed("/NewDiaryPage", arguments: widget.diary);
+          .pushNamed("/NewDiaryPage", arguments: {'diary': widget.diary, 'index': index});
 
       if (results == true) {
         widget.refresh(true);
