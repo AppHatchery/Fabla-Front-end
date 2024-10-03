@@ -77,14 +77,14 @@ class DiaryModel implements Comparable<DiaryModel> {
           .toList(),
       tags: null,
       status: DiaryStatus.idle,
-      due: DateTime.parse(json['end_date']), //TODO: Revert
-      start: DateTime.parse(json['start_date']), //TODO: Revert
+      due: DateTime.parse(json['end_time']).toLocal(),
+      start: DateTime.parse(json['start_time']).toLocal(),
       entries: json['entries'],
       currentEntry: 0,
-      end: DateTime.parse(json['end_date']),
+      end: DateTime.parse(json['end_time']).toLocal(),
       notifications: (json['notifications'] as List?)
               ?.map((e) => Notification.fromJson(
-                  e, DateTime.parse(json['start_date'])))
+                  e, DateTime.parse(json['start_time'])))
               .toList() ??
           [],
     );

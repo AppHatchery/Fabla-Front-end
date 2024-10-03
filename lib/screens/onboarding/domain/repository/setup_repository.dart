@@ -144,18 +144,17 @@ class SetupRepository {
 
     final participant = _participantDAO.get();
 
-    //TODO : Uncomment
-    // // Request the user's studies and diaries from the remote source
-    // final response = await post(path: "/fabla/getuserprotocol", body: {
-    //   'login_code': experiment.login,
-    //   'participant_id': participant!.studyCode,
-    // });
+    // Request the user's studies and diaries from the remote source
+    final response = await post(path: "/fabla/getuserprotocol", body: {
+      'login_code': experiment.login,
+      'participant_id': participant!.studyCode,
+    });
 
     //load from assets
-    final response = await rootBundle.loadString('assets/protocol.json');
+    // final response = await rootBundle.loadString('assets/protocol.json');
 
     if (response != null) {
-      final data = await json.decode(response); //TODO: Revert this
+      final data = await json.decode(response)['data'];
 
       // Parse the studies from the response
       final studiesFromJson = data['studies'] as List;

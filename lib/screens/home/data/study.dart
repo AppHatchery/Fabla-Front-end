@@ -22,8 +22,8 @@ class StudyModel {
     return StudyModel(
       id: 0,
       experimentCode: loginCode,
-      studyId: json['id'] as int, //TODO: Revert this
-      goals: Goal.fromJson(json['goals']), //TODO: Revert this
+      studyId: json['id'],
+      goals: Goal.fromJson(json['goal']),
       incentive: Incentive.fromJson(json['incentive']),
     );
   }
