@@ -27,6 +27,8 @@ class DynamicCubit extends Cubit<DynamicState> {
     }
   }
 
+  Future<int> count () async => await setupRepository.getOnBoardingQuestions().then((value) => value.length);
+
   void save(Questions question, String answer) {
     try {
       final newQuestion = question.copyWith(answer: answer);

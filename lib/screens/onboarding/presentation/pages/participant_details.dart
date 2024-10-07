@@ -1,6 +1,6 @@
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/dynamic_page.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/mic_access.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/avatar_background.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/participant_name.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -53,7 +53,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
       listener: (context, state) {
         if (state is SetupSuccess) {
           Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const DynamicOnBoardingHub()));
+              MaterialPageRoute(builder: (context) => const MicAccessPage()));
         }
       },
     );

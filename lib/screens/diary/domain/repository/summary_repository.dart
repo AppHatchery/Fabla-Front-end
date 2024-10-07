@@ -1,6 +1,8 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
+import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'dart:developer' as dev;
 
 import '../../../../core/usecases/notifications.dart';
 import '../../../../core/utils/statuses.dart';
@@ -39,7 +41,8 @@ class SummaryRepository {
       }
       return diary;
     } catch (e) {
-      print("Error loading summary: $e");
+      dev.log("Error loading summary: $e",
+          name: "SummaryRepository - loadSummary");
       rethrow;
     }
   }
@@ -59,7 +62,8 @@ class SummaryRepository {
     try {
       answerRepository.saveResponse(prompt: prompt, response: path);
     } catch (e) {
-      print("Error saving response: $e");
+      dev.log("Error saving response: $e",
+          name: "SummaryRepository - saveResponse");
     }
   }
 
@@ -79,7 +83,8 @@ class SummaryRepository {
       await answerRepository.removeResponse(prompt, path);
       return true;
     } catch (e) {
-      print("Error deleting response: $e");
+      dev.log("Error deleting response: $e",
+          name: "SummaryRepository - removeResponse");
       return false;
     }
   }
@@ -107,7 +112,8 @@ class SummaryRepository {
       if (uploaded) {
         late DiaryModel newDiary;
 
-        print("Current entry: ${diary.currentEntry}");
+        dev.log("Current entry: ${diary.currentEntry}",
+            name: "SummaryRepository - submitDiary");
 
         if (diary.currentEntry + 1 == diary.entries) {
           newDiary = diary.copyWith(
@@ -125,30 +131,20 @@ class SummaryRepository {
 
         diaryRepository.updateDiary(newDiary);
 
-        
-        print("Study goals: ${study?.goals.daily}");
-        if (diary.currentEntry + 1 < study!.goals.daily) {
+        // Cancel notifications if diary is complete
+        // Schedule daily goal notifications if diary is not complete
+        if (diary.currentEntry + 1 >= diary.entries) {
+          NotificationManager().cancelDiaryNotifications(diary.id);
+        } else if (diary.currentEntry + 1 < study!.goals.daily) {
           dailyGoalNotification(diary.id);
-        } else if (diary.currentEntry + 1 >= diary.entries) {
-          cancelAllDiaryNotifications(diary.id);
         }
         return true;
       } else {
-        // //Update the nextStudy date- TBD with provision of study_start_date
-        // DateTime now = DateTime.now();
-        // var nextStudyDate = DateTime(now.year, now.month, now.day, 4, 0, 0)
-        //     .add(const Duration(days: 1));
-
-        //TODO: TO BE REMOVED
-        //setupRepository.updateMetaDataFile(nextStudyDate);
-
         return false;
       }
-      // } else {
-      //   return false;
-      // }
     } catch (e) {
-      print("Error submitting diary: $e");
+      dev.log("Error submitting diary: $e",
+          name: "SummaryRepository - submitDiary");
       return false;
     }
   }

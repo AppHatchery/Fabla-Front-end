@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/notification.dart';
 
 import '../domain/entities/diary_entity.dart';
 import 'prompt.dart';
@@ -16,6 +19,7 @@ class DiaryModel implements Comparable<DiaryModel> {
   final int entries;
   final int currentEntry;
   final List<PromptModel> prompts;
+  final List<Notification> notifications;
 
   DiaryModel({
     required this.id,
@@ -29,6 +33,7 @@ class DiaryModel implements Comparable<DiaryModel> {
     required this.entries,
     required this.currentEntry,
     required this.end,
+    required this.notifications,
   });
 
   /// Factory constructor that creates a Diary object from a DiaryEntity.
@@ -55,6 +60,10 @@ class DiaryModel implements Comparable<DiaryModel> {
       entries: entity.entries,
       currentEntry: entity.currentEntry,
       end: entity.end,
+      notifications: json
+          .decode(entity.notifications)
+          .map<Notification>((e) => Notification.fromEntity(e))
+          .toList(),
     );
   }
 
@@ -73,6 +82,11 @@ class DiaryModel implements Comparable<DiaryModel> {
       entries: json['entries'],
       currentEntry: 0,
       end: DateTime.parse(json['end_time']).toLocal(),
+      notifications: (json['notifications'] as List?)
+              ?.map((e) => Notification.fromJson(
+                  e, DateTime.parse(json['start_time'])))
+              .toList() ??
+          [],
     );
   }
 
@@ -85,7 +99,8 @@ class DiaryModel implements Comparable<DiaryModel> {
       DiaryStatus? status,
       DateTime? due,
       int? currentEntry,
-      DateTime? start}) {
+      DateTime? start,
+      List<Notification>? notifications}) {
     return DiaryModel(
       id: id,
       studyID: studyID,
@@ -98,6 +113,7 @@ class DiaryModel implements Comparable<DiaryModel> {
       entries: entries,
       currentEntry: currentEntry ?? this.currentEntry,
       end: end,
+      notifications: notifications ?? this.notifications,
     );
   }
 

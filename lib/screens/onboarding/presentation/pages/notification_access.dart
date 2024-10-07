@@ -1,5 +1,4 @@
-import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/mic_access.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/dynamic_page.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -108,17 +107,15 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
 
     await PendoService.track("NotificationAccess", {"state": results.name});
     if (results.isGranted) {
-      final repository = SetupRepository();
-      repository.createNotifications();
 
       if (context.mounted) {
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const MicAccessPage()));
+            MaterialPageRoute(builder: (context) => const DynamicOnBoardingHub()));
       }
     } else {
       if (context.mounted) {
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const MicAccessPage()));
+            MaterialPageRoute(builder: (context) => const DynamicOnBoardingHub()));
       }
       //TODO: Show error
     }

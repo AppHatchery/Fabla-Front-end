@@ -233,6 +233,7 @@ List<DiaryModel> makeDiariesTwo(
           entries: blueprint.entries,
           currentEntry: 0,
           status: DiaryStatus.idle,
+          notifications: [],
           tags: []);
 
       diaries.add(diary);
@@ -291,6 +292,7 @@ List<DiaryModel> makeDiariesThree(
             entries: blueprint.entries,
             currentEntry: 0,
             status: DiaryStatus.idle,
+          notifications: [],
             tags: []);
 
         diaries.add(diary);
