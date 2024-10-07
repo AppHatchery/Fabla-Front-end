@@ -28,7 +28,7 @@ class LoginCubit extends Cubit<LoginState> {
       if (result) {
         emit(const LoginSuccess());
       } else {
-        emit(const LoginError("Invalid code"));
+        emit(const LoginError("Oops! We do not have this ID in the participant list. Please check your email and try again."));
       }
     } catch (e) {
       debugPrint(e.toString());
