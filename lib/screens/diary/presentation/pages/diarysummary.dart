@@ -7,6 +7,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/circle_transition_clipper.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/submit_error.dart';
@@ -86,13 +87,15 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   automaticallyImplyLeading: false,
                   backgroundColor: CustomColors.fillNormal,
                   scrolledUnderElevation: 0.0,
-                  leading: isEditable() ?  IconButton(
-                    onPressed: () {
-                      returnToDiary();
-                    },
-                    icon: const Icon(Icons.edit_rounded),
-                    iconSize: 25.0,
-                  ) : null,
+                  leading: isEditable()
+                      ? IconButton(
+                          onPressed: () {
+                            returnToDiary();
+                          },
+                          icon: const Icon(Icons.edit_rounded),
+                          iconSize: 25.0,
+                        )
+                      : null,
                   actions: [
                     IconButton(
                       onPressed: () {
@@ -107,12 +110,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                       iconSize: 15.0,
                     )
                   ],
-                  title: Text(
-                    "My Responses",
-                    style: CustomTypography().titleMedium(
-                      color: CustomColors.textNormalContent,
-                    ),
-                  ),
                   centerTitle: true,
                 ),
           body: state is SummaryInitial
@@ -343,12 +340,12 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                 });
       case ResponseType.text:
         return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6.0),
-                child: TextAnswerCard(
-                  answer: prompt.answer!.response!,
-                  delete: () => deleteResponse(prompt, ''),
-                ),
-              );
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          child: TextAnswerCard(
+            answer: prompt.answer!.response!,
+            delete: () => deleteResponse(prompt, ''),
+          ),
+        );
       //TODO: Add support for other response types
       default:
         return const SizedBox.shrink();
@@ -431,8 +428,28 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   }
 
   void returnToDiary() async {
-    await Navigator.of(context)
-        .popAndPushNamed("/NewDiaryPage", arguments: {'diary':widget.diary, 'index': null});
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => NewDiaryPage(
+          diary: widget.diary,
+          index: null,
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(-1.0, 0.0); // Start from left
+          const end = Offset.zero; // End at the center
+          const curve = Curves.easeInOut;
+
+          var tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
+      ),
+    );
   }
 
   bool isEditable() {
