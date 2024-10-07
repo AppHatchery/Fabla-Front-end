@@ -20,6 +20,7 @@ class DynamicCubit extends Cubit<DynamicState> {
       if (questions.isNotEmpty) {
         emit(DynamicLoaded(questions: questions));
       } else {
+        await setupRepository.getStudies();
         emit(DynamicNone());
       }
     } catch (e) {
