@@ -124,7 +124,8 @@ class _WelcomePageState extends State<WelcomePage> {
   }
 
   startPendo() async {
-    await PendoService.start(_participant.studyCode.toString());
+    final experiment = repository.getExperiment();
+    await PendoService.start(_participant.studyCode.toString(), experiment.login);
 
     await PendoService.track(
         "StudyLogin", {"datetime": DateTime.now().toString()});
