@@ -87,13 +87,30 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   automaticallyImplyLeading: false,
                   backgroundColor: CustomColors.fillNormal,
                   scrolledUnderElevation: 0.0,
+                  leadingWidth: 100,
                   leading: isEditable()
-                      ? IconButton(
-                          onPressed: () {
+                      ? GestureDetector(
+                          onTap: () {
                             returnToDiary();
                           },
-                          icon: const Icon(Icons.edit_rounded),
-                          iconSize: 25.0,
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 16.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.edit_rounded,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  "Edit",
+                                  style: CustomTypography().bodyLarge(
+                                      color: CustomColors.textNormalContent),
+                                ),
+                              ],
+                            ),
+                          ),
                         )
                       : null,
                   actions: [
