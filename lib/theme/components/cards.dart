@@ -227,8 +227,8 @@ class _DiaryCardState extends State<DiaryCard> {
                           closed &&
                                   widget.diary!.status != DiaryStatus.submitted
                               ? widget.diary!.start.isAfter(now)
-                                  ? "Available at ${formatDurationToHHMM(widget.diary!.start)}"
-                                  : "Not Available"
+                                  ? "Opens at ${formatDurationToHHMM(widget.diary!.start)}"
+                                  : "Closed at ${formatDurationToHHMM(widget.diary!.due)}"
                               : switch (widget.diary!.status) {
                                   DiaryStatus.complete => "Continue",
                                   DiaryStatus.idle => "Start",
