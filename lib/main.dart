@@ -230,7 +230,8 @@ class _HubState extends State<Hub>
   startPendo() async {
     final repository = SetupRepository();
     final participant = repository.getParticipant();
-    await PendoService.start(participant!.studyCode.toString());
+    final experiment = repository.getExperiment();
+    await PendoService.start(participant!.studyCode.toString(), experiment.login);
   }
 
   _makeNavBars() {
