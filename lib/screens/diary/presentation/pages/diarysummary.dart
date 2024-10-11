@@ -118,10 +118,32 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                       onPressed: () {
                         scheduleSubmitDiaryNotification(widget.diary.id);
                         Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const Hub()),
-                            (route) => false);
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    const Hub(),
+                            transitionsBuilder: (context, animation,
+                                secondaryAnimation, child) {
+                              const begin = Offset(-1.0,
+                                  0.0); // Left to right for backward navigation
+                              const end = Offset.zero;
+                              const curve = Curves.easeInOut;
+
+                              var tween = Tween(begin: begin, end: end)
+                                  .chain(CurveTween(curve: curve));
+                              var offsetAnimation = animation.drive(tween);
+
+                              return SlideTransition(
+                                position: offsetAnimation,
+                                child: child,
+                              );
+                            },
+                            transitionDuration:
+                                const Duration(milliseconds: 200), // Adjust as needed
+                          ),
+                          (route) => false,
+                        );
                       },
                       icon: const Icon(CustomIcons.close),
                       iconSize: 15.0,
@@ -465,6 +487,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             child: child,
           );
         },
+        transitionDuration:
+            const Duration(milliseconds: 300), // Faster transition
       ),
     );
   }

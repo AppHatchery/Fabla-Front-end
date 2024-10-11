@@ -145,7 +145,30 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                       scheduleContinueDiaryNotifications(widget.diary.id);
                     }
                     //partialDataUpload(widget.diary);
-                    Navigator.pop(context, true);
+                    // Navigator.of(context).popUntil((route) => route.isFirst);
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) => const Hub(),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(-1.0, 0.0); // Left to right for back-to-home effect
+                          const end = Offset.zero;
+                          const curve = Curves.easeInOut;
+
+                          var tween = Tween(begin: begin, end: end)
+                              .chain(CurveTween(curve: curve));
+                          var offsetAnimation = animation.drive(tween);
+
+                          return SlideTransition(
+                            position: offsetAnimation,
+                            child: child,
+                          );
+                        },
+                        transitionDuration: const Duration(milliseconds: 300), // Matches iOS animation speed
+                      ),
+                          (route) => false, // Clears the entire stack
+                    );
+
                     PendoService.track("ExitSurvey", {
                       "Question_number_at_exit": "${currentPage + 1}",
                       "studyDate": "${widget.diary.id}"
