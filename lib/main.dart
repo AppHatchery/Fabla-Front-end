@@ -124,11 +124,15 @@ class _MyAppState extends State<MyApp> {
                   switch (settings.name) {
                     case "/NewDiaryPage":
                       {
+
+                        final Map arguments = settings.arguments as Map;
                         final DiaryModel diary =
-                            settings.arguments as DiaryModel;
+                            arguments['diary'] as DiaryModel;
+                        final int? index = arguments['index'] as int?;
                         return MaterialPageRoute(
                             builder: (context) => NewDiaryPage(
                                   diary: diary,
+                                  index: index,
                                 ));
                       }
                     case "/DiarySummaryPage":
