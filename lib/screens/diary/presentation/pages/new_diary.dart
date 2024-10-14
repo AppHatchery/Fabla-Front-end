@@ -391,7 +391,7 @@ class _QuestionPageState extends State<QuestionPage>
   }
 
   Widget buildInitial() {
-    return Container(
+    return SizedBox(
       height: 900,
       width: double.infinity,
     );
@@ -403,9 +403,7 @@ class _QuestionPageState extends State<QuestionPage>
     Widget responseWidget;
 
     if (prompt.responseType == ResponseType.slider) {
-      print("Min - ${prompt.option?.minValue} | Max - ${prompt.option?.maxValue} | value:  ${prompt.answer?.response}");
       responseWidget = SliderQuestionCard(
-        
         value: prompt.answer?.response != null
             ? double.parse(prompt.answer!.response!)
             : prompt.option!.defaultValue!.toDouble(),
@@ -451,10 +449,8 @@ class _QuestionPageState extends State<QuestionPage>
         disabled: disabled,
       );
     } else if (prompt.responseType == ResponseType.text) {
-      String? freeTextAnswer = "";
-      if (prompt.answer?.response != null) {
-        freeTextAnswer = prompt.answer!.response!.toString();
-      }
+      String? freeTextAnswer = prompt.answer?.response ?? "";
+      
       responseWidget = FreeTextQuestionCard(
         value: freeTextAnswer,
         onChanged: (value) {
@@ -599,9 +595,12 @@ class _QuestionPageState extends State<QuestionPage>
                 minChildSize: 1,
                 snap: true,
                 builder: (context, scrollController) {
+                  final hint = prompt.subtitle?.replaceAll(r'\\n', '\n');
+
                   return BottomRecordingModal(
                     promptId: prompt.id,
                     question: prompt.question,
+                    hint: hint,
                     onSave: (value) {
                       save(prompt, value.toString(), "audio");
                     },
@@ -622,9 +621,12 @@ class _QuestionPageState extends State<QuestionPage>
                 minChildSize: 1,
                 snap: true,
                 builder: (context, scrollController) {
+                  final hint = prompt.subtitle?.replaceAll(r'\\n', '\n');
+
                   return BottomTextModal(
                     prompt: prompt,
                     question: prompt.question,
+                    hint: hint,
                     onSave: (value) {
                       save(prompt, value.toString(), null);
                     },
