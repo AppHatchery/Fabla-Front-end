@@ -239,6 +239,7 @@ TimeOfDay timeOfDayFromString(String value) {
 /// [<h2> text </h2>] -> heading 2
 /// [<h3> text </h3>] -> heading 3
 /// [>*] -> indentation (* space replace the * with a number)
+/// [\\n] -> line break
 class CustomFormatterText extends StatelessWidget {
   final String text;
 
