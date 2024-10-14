@@ -100,7 +100,8 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
                 height: 12,
               ),
               TextButton(
-                  onPressed: () => showResearchDetails(context),
+                  onPressed: () => showResearchDetails(context, widget.experiment.name,
+                      widget.experiment.duration, widget.experiment.organization, widget.experiment.researcher),
                   child: Text(
                     "View Study Details",
                     style: TextStyle(
@@ -152,7 +153,8 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
     );
   }
 
-  void showResearchDetails(BuildContext context) {
+  void showResearchDetails(BuildContext context, String name, String duration, String organization, 
+      String researcher) {
     startTimer();
     showModalBottomSheet(
         context: context,
@@ -160,11 +162,11 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
         builder: (context) => Wrap(
               children: [
                 BottomStudyInfoPopUp(
-                    studyName: Strings.studyName,
-                    //studyDescription: Strings.studyDescription,
-                    organisation: Strings.organisation,
-                    duration: Strings.studyDuration,
-                    researcher: Strings.researcherName)
+                    studyName: name,
+                    description: description,
+                    organisation: organization,
+                    duration: duration,
+                    researcher: researcher)
               ],
             )).then((value) async => {
           stopTimer(),
@@ -186,4 +188,6 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
   }
 
   void resetTimer() => setState(() => secondsSpent = 0);
+
+  String description = "<h1>Heading 1</h1>\n\n<h2>Heading 2</h2>\n\n<h3>Heading 3</h3>\n\nWelcome to our study exploring the benefits of marriage in today’s society. As we navigate evolving social norms and lifestyles, this research aims to understand whether traditional benefits of marriage still hold true in modern times, and if so, how they manifest in various aspects of life.\n\nWe are looking for participants to freely share their experiences and perspectives on marriage, including areas such as \n>2 1. Emotional well-being\n>2 2. Financial stability\n>2 3. Social relationships\n>2 4. Personal growth.\nWhether you are married, previously married, or have never been married, your insights are valuable to this research.\n\nBy participating in this study, you will contribute to a better understanding of marriage’s impact in the current age, helping shape future discussions and policies around relationships. You'll be required to submit a log of your counselling sessions, these logs have audio questions please record up to **__10 minutes__** for better results.\n \nIf you have any questions or need further information, feel free to reach out to the research team at **+265(0)88-888-888**. We are here to assist you and ensure you have a positive experience throughout the study.\n \nThank you for your time and contribution to this ~~important~~ research!";
 }

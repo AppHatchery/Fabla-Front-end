@@ -23,7 +23,7 @@ class ExperimentModel {
       id: 0,
       login: json['login_code'] ?? '',
       researcher: json['researcher'] ?? '',
-      organization: json['organization'] ?? '',
+      organization: json['organisation'] ?? '',
       name: json['name'] ?? '',
       duration: json['duration'] ?? '',
       description: json['description'] ?? '',
