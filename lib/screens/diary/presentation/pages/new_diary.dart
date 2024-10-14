@@ -409,8 +409,8 @@ class _QuestionPageState extends State<QuestionPage>
             : prompt.option!.defaultValue!.toDouble(),
         scaleMin: prompt.option!.minValue!,
         scaleMax: prompt.option!.maxValue!,
-        scaleMinText: prompt.option!.startText,
-        scaleMaxText: prompt.option!.endText,
+        scaleMinText: prompt.option!.minLabel,
+        scaleMaxText: prompt.option!.maxLabel,
         onSliderValueChanged: (value) => updateSliderValue(prompt, value),
         isSliderEnabled: !disabled,
       );
