@@ -335,7 +335,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
     if (question.type == 'time') {
       return OnboardingTimePicker(
         time: question.answer,
-        subtitle: question.subtitle,
+        subtitle: question.subtitle ?? '',
         onChanged: (String time) {
           setState(() {
             answer = '$time:00'; // TODO Find better way of adding seconds
@@ -344,7 +344,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       );
     } else if (question.type == 'text') {
       return OnBoardingTextField(
-          subtitle: question.subtitle, controller: textEditingController);
+          subtitle: question.subtitle ?? '', controller: textEditingController);
     } else if (question.type == 'radio') {
       // return OnBoardingRadioOptions(
       //   subtitle: question.subtitle,
@@ -367,7 +367,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
               .toList()
           : <String>[];
       return OnBoardingMultipleOption(
-        subtitle: question.subtitle,
+        subtitle: question.subtitle ?? '',
         options: question.options!,
         selected: selected,
         onChanged: (value) {
