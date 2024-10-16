@@ -36,7 +36,7 @@ class RingProgressIndicator extends StatelessWidget {
 }
 
 class GoalProgressIndicators extends StatelessWidget {
-  final Map<Goal, List<DiaryModel>> goals;
+  final Map<StudyModel, List<DiaryModel>> goals;
   const GoalProgressIndicators({super.key, required this.goals});
   static List<Color> colors = [
     CustomColors.productNormal,
@@ -54,7 +54,7 @@ class GoalProgressIndicators extends StatelessWidget {
         children: goals.entries.toList().asMap().entries.map((entry) {
           int index = entry.key;
           final map = entry.value;
-          Goal goal = map.key;
+          Goal goal = map.key.goals;
           final diaries = map.value;
           final completed = diaries.fold(0,
               (previousValue, element) => previousValue + element.currentEntry);

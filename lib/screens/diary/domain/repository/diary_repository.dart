@@ -351,8 +351,16 @@ class DiaryRepository {
     return studies;
   }
 
+  List<Study> _getAllStudies(){
+    return _studyDAO.getAllStudies();
+  }
+
   List<StudyModel> getStudies(List<int> ids) {
     return _getStudies(ids).map((e) => StudyModel.fromEntity(e)).toList();
+  }
+
+  List<StudyModel> getAllStudies(){
+    return _getAllStudies().map((e) => StudyModel.fromEntity(e)).toList();
   }
 
   /// Retrieves the total number of diary entries within a specified date range.

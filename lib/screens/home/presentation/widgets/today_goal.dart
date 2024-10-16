@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/ring_progress_indicator.dart';
@@ -29,7 +30,7 @@ class TodayGoalWidget extends StatefulWidget {
 }
 
 class _TodayGoalWidgetState extends State<TodayGoalWidget> {
-  Map<Goal, List<DiaryModel>> data = {};
+  Map<StudyModel, List<DiaryModel>> data = {};
 
   late StateMachineController _controller;
 
@@ -58,10 +59,9 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
     // create map of study to diaries
     for (var study in widget.studies) {
-      final goal = study.goals;
       final diaries =
           widget.diaries.where((diary) => diary.studyID == study.studyId);
-      data[goal] = diaries.toList();
+      data[study] = diaries.toList();
     }
 
     super.initState();
@@ -137,26 +137,50 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
           ),
         ),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.restart_alt_outlined,
-              color: CustomColors.purpleNormal,
-              size: 20,
-            ),
-            const SizedBox(width: 6),
-            //TODO: Add Diary Names
-            Flexible(
-              fit: FlexFit.loose,
-              child: Text(
-                "Repeatable Entries: ",
-                style: CustomTypography().bodyMedium(),
-              ),
-            ),
-          ],
-        )
+        SizedBox(width: width, child: entries(data))
       ],
+    );
+  }
+
+  Widget entries(Map<StudyModel, List<DiaryModel>> data) {
+    List<Widget> entryWidgets = [];
+
+    final entriesList = data.entries.toList();
+
+    for (int i = 0; i < entriesList.length; i++) {
+      final entry = entriesList[i];
+      final study = entry.key;
+      final diaries = entry.value;
+
+      final completedCount = diaries
+          .where((diary) => diary.status == DiaryStatus.submitted)
+          .length;
+
+      final displayText = "${study.name}: $completedCount/${study.goals.daily}"
+          "${data.length > 1 && i != data.length - 1 ? ' | ' : ''}";
+
+      entryWidgets.add(Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.restart_alt_outlined,
+            color: colors[i],
+            size: 20,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            displayText,
+            style: CustomTypography().bodyMedium(),
+          ),
+        ],
+      ));
+    }
+
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 0.0,
+      runSpacing: 4.0,
+      children: entryWidgets,
     );
   }
 
@@ -194,8 +218,8 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     }
 
     // //Show Blinking + Blowing the horn if the daily goal is achieved
-    if (data.entries.any((map) =>
-        map.value.any((element) => element.currentEntry == map.key.daily))) {
+    if (data.entries.any((map) => map.value
+        .any((element) => element.currentEntry == map.key.goals.daily))) {
       final blowing = _controller.findSMI('Blinking + Blowing the horn');
 
       if (blowing != null && mounted) {
@@ -206,8 +230,9 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
     // //Show Achieving the goal if the weekly goal is achieved
     if (data.entries.any((map) =>
-        map.value.any((element) => element.currentEntry == map.key.weekly) ||
-        widget.weeklyEntries == map.key.weekly)) {
+        map.value
+            .any((element) => element.currentEntry == map.key.goals.weekly) ||
+        widget.weeklyEntries == map.key.goals.weekly)) {
       final achieving = _controller.findSMI('Achieving the goal ');
 
       if (achieving != null && mounted) {
@@ -218,8 +243,9 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
     // //Show Beyond the goal if the weekly goal is exceeded
     if (data.entries.any((map) =>
-        map.value.any((element) => element.currentEntry > map.key.weekly) ||
-        widget.weeklyEntries > map.key.weekly)) {
+        map.value
+            .any((element) => element.currentEntry > map.key.goals.weekly) ||
+        widget.weeklyEntries > map.key.goals.weekly)) {
       final beyond = _controller.findSMI('Beyond the goal ');
 
       if (beyond != null && mounted) {
@@ -239,3 +265,9 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     }
   }
 }
+
+const List<Color> colors = [
+  CustomColors.productNormal,
+  CustomColors.teal,
+  CustomColors.amber
+];

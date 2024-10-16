@@ -44,8 +44,9 @@ class HomeCubit extends Cubit<HomeState> {
       final entries = repository.getTotalEntries(
           monday.subtract(const Duration(days: 1)),
           sunday.add(const Duration(days: 1)));
-
-      final ids = diaries.map((e) => e.studyID).toSet().toList();
+      final weekDiaries = repository.getRangeDiaries(monday, sunday);
+      
+      final ids = weekDiaries.map((e) => e.studyID).toSet().toList();
       final studies = repository.getStudies(ids);
 
       final updated = diaries
