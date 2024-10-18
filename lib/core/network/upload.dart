@@ -57,8 +57,8 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
 
       if (prompt.responseType == ResponseType.recording &&
           prompt.answer!.recordings.isNotEmpty) {
-        _addAudioData(
-            prompt, participantID, diary, dir, promptNumber, audioDataList);
+        _addAudioData(experiment.login, prompt, participantID, diary, dir,
+            promptNumber, audioDataList);
       } else {
         _addPromptEntry(prompt, participantID, experiment.login,
             diary.id.toString(), promptEntryList);
@@ -73,15 +73,22 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
   }
 }
 
-void _addAudioData(PromptModel prompt, String studyCode, DiaryModel diary,
-    Directory dir, int promptNumber, List<AudioData> audioDataList) {
+void _addAudioData(
+    String experimentCode,
+    PromptModel prompt,
+    String participantID,
+    DiaryModel diary,
+    Directory dir,
+    int promptNumber,
+    List<AudioData> audioDataList) {
   final localPath =
       p.join(dir.path, 'recordings', prompt.answer?.recordings.first.path);
   final date = getPostDate(diary.start);
   final formattedTime = DateFormat('HH-mm-ss').format(DateTime.now());
   final filename =
-      "${studyCode}_${formatSubmissionDate(diary.start)}_$formattedTime.aac";
-  final awsPath = "$studyCode/$date/prompt_$promptNumber/$filename";
+      "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.aac";
+  final awsPath =
+      "$experimentCode/$participantID/$date/prompt_$promptNumber/$filename";
 
   audioDataList
       .add(AudioData(localDirectory: localPath, awsS3Directory: awsPath));
