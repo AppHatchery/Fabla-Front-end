@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -28,12 +29,6 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
   String thisWeek = "";
 
   Map<StudyModel, List<DiaryModel>> data = {};
-
-  static List<Color> colors = [
-    CustomColors.productNormal,
-    CustomColors.teal,
-    CustomColors.amber
-  ];
 
   @override
   void initState() {
@@ -78,10 +73,9 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
             ),
             Column(
                 children: data.entries.isNotEmpty ? data.entries.toList().asMap().entries.map((e) {
-              final index = e.key;
               final value = e.value;
               return goalWidget(
-                  width, totalWidth, value.key, value.value, colors[index]);
+                  width, totalWidth, value.key, value.value, getColorFromName(value.key.name));
             }).toList() : [
               Text("No entries needed this week", style: CustomTypography().titleMedium())
             ]),

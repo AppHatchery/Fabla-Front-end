@@ -1,3 +1,5 @@
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,11 +9,13 @@ class WeeklyGoalWidget extends StatefulWidget {
   final int currentEntries;
   final int weeklyGoal;
   final bool isExpanded;
+  final StudyModel? study;
   const WeeklyGoalWidget(
       {super.key,
       required this.isExpanded,
       required this.currentEntries,
-      required this.weeklyGoal});
+      required this.weeklyGoal,
+      required this.study});
 
   @override
   State<WeeklyGoalWidget> createState() => _WeeklyGoalWidgetState();
@@ -35,6 +39,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
     //calculate the lower goal width/value
     int lowerValue = (0.7 * weeklyGoal).round();
     double lowerGoal = (lowerValue / weeklyGoal) * width;
+    final color = widget.study != null ? getColorFromName(widget.study!.name) : CustomColors.productNormal;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -68,7 +73,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                       width: 70,
                       height: 6,
                       decoration: BoxDecoration(
-                        color: CustomColors.productLightBackground,
+                        color: color.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(27),
                       ),
                     ),
@@ -80,7 +85,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                       width: progressBarWidth,
                       height: 6,
                       decoration: BoxDecoration(
-                        color: CustomColors.productNormal,
+                        color: color,
                         borderRadius: BorderRadius.circular(27),
                       ),
                     ),
@@ -90,8 +95,8 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                     // left: 70 * value - 10,
                     left: lowerGoal,
                     top: 2,
-                    child: const Icon(CupertinoIcons.flag_fill,
-                        color: CustomColors.productNormal, size: 12),
+                    child: Icon(CupertinoIcons.flag_fill,
+                        color: color, size: 12),
                   ),
                 ],
               ),
@@ -102,7 +107,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
               child: Text(
                 "$currentValue/$weeklyGoal",
                 style: CustomTypography()
-                    .caption(color: CustomColors.productNormal),
+                    .caption(color: color),
               ),
             )
           ],

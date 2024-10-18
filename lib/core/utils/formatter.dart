@@ -1,4 +1,5 @@
 // import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 // import 'package:tuple/tuple.dart';
@@ -79,7 +80,7 @@ String formatDurationtoHHMMSS(Duration duration) {
 }
 
 /// Format the date to a [String] of hours and minutes
-String formatDurationToHHMM(DateTime date){
+String formatDurationToHHMM(DateTime date) {
   return DateFormat('HH:mm').format(date);
 }
 
@@ -225,4 +226,10 @@ OptionsType optionTypeFromResponse(ResponseType responseType) {
 TimeOfDay timeOfDayFromString(String value) {
   final parts = value.split(':');
   return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+}
+
+Color getColorFromName(String name) {
+  int hash = name.hashCode;
+  int index = hash % studyColors.length;
+  return studyColors[index];
 }

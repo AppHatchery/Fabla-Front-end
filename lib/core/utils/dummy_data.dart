@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
 import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
+import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../screens/diary/data/diary.dart';
@@ -47,6 +48,12 @@ final List<Incentive> dummyIncentives = [
   Incentive(amount: 5, bonus: 10, currency: '\$', threshold: 50),
   Incentive(amount: 20, bonus: 100, currency: '\$', threshold: 80),
 ];
+
+final List<Color> studyColors = [
+  CustomColors.productNormal,
+  CustomColors.teal,
+  CustomColors.purpleNormal,
+]; 
 
 final List<int> participantCodes = [
   0001,

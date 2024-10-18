@@ -142,6 +142,7 @@ class _HomePageState extends State<HomePage>
                       weeklyGoal:
                           studies.isNotEmpty ? studies.first.goals.weekly : 0,
                       currentEntries: weeklyEntries,
+                      study: studies.firstOrNull,
                     ),
                   ),
                   IconButton(

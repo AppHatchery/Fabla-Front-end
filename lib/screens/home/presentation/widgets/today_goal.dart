@@ -1,11 +1,11 @@
 import 'dart:math';
 
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/ring_progress_indicator.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
-import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
@@ -158,13 +158,14 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
       final displayText = "${study.name}: $completedCount/${study.goals.daily}"
           "${data.length > 1 && i != data.length - 1 ? ' | ' : ''}";
+      final color = getColorFromName(study.name);
 
       entryWidgets.add(Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             Icons.restart_alt_outlined,
-            color: colors[i],
+            color: color,
             size: 20,
           ),
           const SizedBox(width: 6),
@@ -265,9 +266,3 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     }
   }
 }
-
-const List<Color> colors = [
-  CustomColors.productNormal,
-  CustomColors.teal,
-  CustomColors.amber
-];

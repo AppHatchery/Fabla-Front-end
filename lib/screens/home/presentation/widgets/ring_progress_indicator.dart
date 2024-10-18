@@ -1,6 +1,6 @@
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
-import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
 
 class RingProgressIndicator extends StatelessWidget {
@@ -38,11 +38,6 @@ class RingProgressIndicator extends StatelessWidget {
 class GoalProgressIndicators extends StatelessWidget {
   final Map<StudyModel, List<DiaryModel>> goals;
   const GoalProgressIndicators({super.key, required this.goals});
-  static List<Color> colors = [
-    CustomColors.productNormal,
-    CustomColors.teal,
-    CustomColors.amber
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -60,12 +55,13 @@ class GoalProgressIndicators extends StatelessWidget {
               (previousValue, element) => previousValue + element.currentEntry);
           double progress = completed / goal.daily;
           double size = baseSize + (index * spacing);
+          final color = getColorFromName(map.key.name);
 
           return RingProgressIndicator(
             progress: progress,
             size: size,
-            color: colors[index],
-            backgroundColor: colors[index].withOpacity(0.2),
+            color: color,
+            backgroundColor: color.withOpacity(0.2),
           );
         }).toList(),
       ),
