@@ -4,7 +4,7 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/audio_q
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
-import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
+// import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/types.dart';
@@ -262,13 +262,14 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     if (show && mounted) {
       Future.delayed(
           const Duration(milliseconds: 500),
-          () => showModalBottomSheet(
-              backgroundColor: Colors.white,
-              context: context,
-              isScrollControlled: true,
-              builder: (context) => const Wrap(
-                    children: [CustomBottomTipPopUp()],
-                  )));
+          () async => await PendoService.track("DiaryPopUp", null));
+          // () => showModalBottomSheet(
+          //     backgroundColor: Colors.white,
+          //     context: context,
+          //     isScrollControlled: true,
+          //     builder: (context) => const Wrap(
+          //           children: [CustomBottomTipPopUp()],
+          //         )));
     }
   }
 }

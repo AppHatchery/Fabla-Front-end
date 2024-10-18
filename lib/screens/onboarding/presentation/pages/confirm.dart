@@ -11,7 +11,7 @@ import 'dart:io' show Platform;
 
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
-import '../../../../theme/dialogs/pop_ups.dart';
+// import '../../../../theme/dialogs/pop_ups.dart';
 
 class ConfrimJoiningPage extends StatefulWidget {
   final ExperimentModel experiment;
@@ -158,25 +158,24 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
   }
 
   void showResearchDetails(BuildContext context, String name, String duration,
-      String organization, String researcher, String description) {
-    startTimer();
-    showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (context) => Wrap(
-              children: [
-                BottomStudyInfoPopUp(
-                    studyName: name,
-                    description: description,
-                    organisation: organization,
-                    duration: duration,
-                    researcher: researcher)
-              ],
-            )).then((value) async => {
-          stopTimer(),
-          await PendoService.track("ResearchDetails",
-              {"page": "onboarding", "time_on_page": "$secondsSpent"})
-        });
+      String organization, String researcher, String description) async {
+    // startTimer();
+    // showModalBottomSheet(
+    //     context: context,
+    //     isScrollControlled: true,
+    //     builder: (context) => Wrap(
+    //           children: [
+    //             BottomStudyInfoPopUp(
+    //                 studyName: name,
+    //                 description: description,
+    //                 organisation: organization,
+    //                 duration: duration,
+    //                 researcher: researcher)
+    //           ],
+    //         )).then((value) async => {
+    //       stopTimer(),
+    await PendoService.track("StudyDetails", null);
+    // });
   }
 
   void startTimer() {
