@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/login.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -105,7 +106,8 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
                       widget.experiment.duration,
                       widget.experiment.organization,
                       widget.experiment.researcher,
-                      widget.experiment.description),
+                      widget.experiment.description,
+                      widget.experiment.login),
                   child: Text(
                     "View Study Details",
                     style: TextStyle(
@@ -157,8 +159,14 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
     );
   }
 
-  void showResearchDetails(BuildContext context, String name, String duration,
-      String organization, String researcher, String description) async {
+  void showResearchDetails(
+      BuildContext context,
+      String name,
+      String duration,
+      String organization,
+      String researcher,
+      String description,
+      String login) async {
     // startTimer();
     // showModalBottomSheet(
     //     context: context,
@@ -174,7 +182,7 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
     //           ],
     //         )).then((value) async => {
     //       stopTimer(),
-    await PendoService.track("StudyDetails", null);
+    await pendoTrack(login);
     // });
   }
 
@@ -191,4 +199,20 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
   }
 
   void resetTimer() => setState(() => secondsSpent = 0);
+
+  Future<void> pendoTrack(String login) async {
+    final service = PreferenceService();
+    final pendoID = await service.getStringPreference(key: 'pendo-ID');
+
+    if (pendoID == null) {
+      final anonymousID =
+          "$login-anonymous-${DateTime.now().millisecondsSinceEpoch}";
+      await service.setStringPreference(key: 'pendo-ID', value: anonymousID);
+      await PendoService.start(anonymousID);
+    } else {
+      await PendoService.start(pendoID);
+    }
+
+    await PendoService.track("StudyDetails", null);
+  }
 }
