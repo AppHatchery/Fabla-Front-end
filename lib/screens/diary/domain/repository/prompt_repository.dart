@@ -40,6 +40,16 @@ class PromptRepository {
         answer: prompt.answers.elementAtOrNull(diary.currentEntry));
   }
 
+  Future<List<PromptModel>> loadAll(DiaryModel diary) async{
+    final prompts = _promptDAO.getPrompts(id: diary.id);
+    final models = prompts.map((prompt) => PromptModel.fromEntity(prompt)).toList();
+
+    final answered = models.map((prompt) {
+      return load(diary, prompt.id);}).toList();
+
+    return answered;
+  }
+
   /// Saves a response to a prompt in the diary.
   ///
   /// This function saves a response to a prompt within a diary. It determines the type of response (text or audio),

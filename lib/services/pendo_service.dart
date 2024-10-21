@@ -2,8 +2,7 @@ import 'package:audio_diaries_flutter/core/secrets/keys.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:pendo_sdk/pendo_sdk.dart';
 
-const String _accountID = "Validation-Study-Fall23";
-const String _testID = "Test-Fall23";
+const String _testID = "Test";
 
 class PendoService {
   /// Initializes the Pendo Flutter plugin with the given Pendo key.
@@ -35,12 +34,12 @@ class PendoService {
   ///
   /// Returns:
   ///   - A Future<void> representing the asynchronous session start process.
-  static Future<void> start(String code) async {
+  static Future<void> start(String code, String experiment) async {
     try {
       if (foundation.kDebugMode) {
         await PendoFlutterPlugin.startSession(code, _testID, null, null);
       } else {
-        await PendoFlutterPlugin.startSession(code, _accountID, null, null);
+        await PendoFlutterPlugin.startSession(code, 'Exp-$experiment', null, null);
       }
     } catch (e) {
       print('Error starting Pendo session: $e');

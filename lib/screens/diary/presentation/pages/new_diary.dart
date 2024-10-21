@@ -27,8 +27,9 @@ import 'diarysummary.dart';
 /// The page view has a controller which is used to navigate between pages
 class NewDiaryPage extends StatefulWidget {
   final DiaryModel diary;
+  final int? index;
 
-  const NewDiaryPage({super.key, required this.diary});
+  const NewDiaryPage({super.key, required this.diary, this.index});
 
   @override
   State<NewDiaryPage> createState() => _NewDiaryPageState();
@@ -50,11 +51,18 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     controller = PageController();
     controllerInit();
     showTip();
-    if (widget.diary.status == DiaryStatus.idle) {
-      //participantsDiaryStartDate(widget.diary);
-    }
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.diary.status == DiaryStatus.complete || widget.index != null) {
+        currentPage = widget.index != null
+            ? widget.index!
+            : widget.diary.prompts.length - 1;
+        if (controller.hasClients) {
+          controller.jumpToPage(currentPage);
+        }
+      }
+    });
   }
 
   @override
@@ -137,7 +145,30 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                       scheduleContinueDiaryNotifications(widget.diary.id);
                     }
                     //partialDataUpload(widget.diary);
-                    Navigator.pop(context, true);
+                    // Navigator.of(context).popUntil((route) => route.isFirst);
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) => const Hub(),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(-1.0, 0.0); // Left to right for back-to-home effect
+                          const end = Offset.zero;
+                          const curve = Curves.easeInOut;
+
+                          var tween = Tween(begin: begin, end: end)
+                              .chain(CurveTween(curve: curve));
+                          var offsetAnimation = animation.drive(tween);
+
+                          return SlideTransition(
+                            position: offsetAnimation,
+                            child: child,
+                          );
+                        },
+                        transitionDuration: const Duration(milliseconds: 300), // Matches iOS animation speed
+                      ),
+                          (route) => false, // Clears the entire stack
+                    );
+
                     PendoService.track("ExitSurvey", {
                       "Question_number_at_exit": "${currentPage + 1}",
                       "studyDate": "${widget.diary.id}"

@@ -415,4 +415,15 @@ class DiaryRepository {
 
     return tags;
   }
+
+  Future<int> getIndexOfLastAnsweredPrompt(DiaryModel diary) async {
+    final promptRepository = PromptRepository();
+    final prompts = await promptRepository.loadAll(diary);
+
+    // Find the index of the last answered prompt
+    final index = prompts.lastIndexWhere((prompt) => prompt.answer != null);
+
+    // If no prompts are answered, return 0, else return index
+    return index == -1 ? 0 : index ;
+  }
 }

@@ -7,6 +7,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/circle_transition_clipper.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/submit_error.dart';
@@ -86,23 +87,68 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   automaticallyImplyLeading: false,
                   backgroundColor: CustomColors.fillNormal,
                   scrolledUnderElevation: 0.0,
-                  leading: IconButton(
-                    onPressed: () {
-                      scheduleSubmitDiaryNotification(widget.diary.id);
-                      Navigator.pushAndRemoveUntil(
+                  leadingWidth: 100,
+                  leading: isEditable()
+                      ? GestureDetector(
+                          onTap: () {
+                            returnToDiary();
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 16.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.edit_rounded,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  "Edit",
+                                  style: CustomTypography().bodyLarge(
+                                      color: CustomColors.textNormalContent),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : null,
+                  actions: [
+                    IconButton(
+                      onPressed: () {
+                        scheduleSubmitDiaryNotification(widget.diary.id);
+                        Navigator.pushAndRemoveUntil(
                           context,
-                          MaterialPageRoute(builder: (context) => const Hub()),
-                          (route) => false);
-                    },
-                    icon: const Icon(CustomIcons.close),
-                    iconSize: 15.0,
-                  ),
-                  title: Text(
-                    "My Responses",
-                    style: CustomTypography().titleMedium(
-                      color: CustomColors.textNormalContent,
-                    ),
-                  ),
+                          PageRouteBuilder(
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    const Hub(),
+                            transitionsBuilder: (context, animation,
+                                secondaryAnimation, child) {
+                              const begin = Offset(-1.0,
+                                  0.0); // Left to right for backward navigation
+                              const end = Offset.zero;
+                              const curve = Curves.easeInOut;
+
+                              var tween = Tween(begin: begin, end: end)
+                                  .chain(CurveTween(curve: curve));
+                              var offsetAnimation = animation.drive(tween);
+
+                              return SlideTransition(
+                                position: offsetAnimation,
+                                child: child,
+                              );
+                            },
+                            transitionDuration:
+                                const Duration(milliseconds: 200), // Adjust as needed
+                          ),
+                          (route) => false,
+                        );
+                      },
+                      icon: const Icon(CustomIcons.close),
+                      iconSize: 15.0,
+                    )
+                  ],
                   centerTitle: true,
                 ),
           body: state is SummaryInitial
@@ -331,6 +377,14 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     ),
                   );
                 });
+      case ResponseType.text:
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          child: TextAnswerCard(
+            answer: prompt.answer!.response!,
+            delete: () => deleteResponse(prompt, ''),
+          ),
+        );
       //TODO: Add support for other response types
       default:
         return const SizedBox.shrink();
@@ -410,5 +464,40 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         }
       }
     }
+  }
+
+  void returnToDiary() async {
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => NewDiaryPage(
+          diary: widget.diary,
+          index: null,
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(-1.0, 0.0); // Start from left
+          const end = Offset.zero; // End at the center
+          const curve = Curves.easeInOut;
+
+          var tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
+        transitionDuration:
+            const Duration(milliseconds: 300), // Faster transition
+      ),
+    );
+  }
+
+  bool isEditable() {
+    final due = widget.diary.due;
+    final now = DateTime.now();
+
+    //Is it past the due
+    return now.isBefore(due);
   }
 }

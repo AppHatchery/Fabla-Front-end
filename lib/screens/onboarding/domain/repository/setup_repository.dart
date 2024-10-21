@@ -197,6 +197,11 @@ class SetupRepository {
     }
   }
 
+  ExperimentModel getExperiment() {
+    final entity = _experimentDAO.getExperiment();
+    return ExperimentModel.fromEntity(entity!);
+  }
+
   /// Creates and stores metadata related to the participant's study.
   ///
   /// This function generates metadata regarding the participant's study, including
