@@ -1,4 +1,5 @@
 // import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 // import 'package:tuple/tuple.dart';
@@ -79,7 +80,7 @@ String formatDurationtoHHMMSS(Duration duration) {
 }
 
 /// Format the date to a [String] of hours and minutes
-String formatDurationToHHMM(DateTime date){
+String formatDurationToHHMM(DateTime date) {
   return DateFormat('HH:mm').format(date);
 }
 
@@ -225,4 +226,179 @@ OptionsType optionTypeFromResponse(ResponseType responseType) {
 TimeOfDay timeOfDayFromString(String value) {
   final parts = value.split(':');
   return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+}
+
+/// FORMATS
+/// [** text **] -> bold
+/// [__ text __] -> underline
+/// [~~ text ~~] -> italic
+/// [**__ text __**] -> bold and underline
+/// [**~~ text ~~**] -> bold and italic
+/// [__~~ text ~~__] -> underline and italic
+/// [<h1> text </h1>] -> heading 1
+/// [<h2> text </h2>] -> heading 2
+/// [<h3> text </h3>] -> heading 3
+/// [>*] -> indentation (* space replace the * with a number)
+/// [\\n] -> line break
+class CustomFormatterText extends StatelessWidget {
+  final String text;
+
+  const CustomFormatterText({super.key, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      text: TextSpan(
+        style: CustomTypography().bodyMedium(), // Default text style
+        children: _formatText(text),
+      ),
+    );
+  }
+
+  List<TextSpan> _formatText(String text) {
+    // Handle line breaks
+    text = text.replaceAll(r'\\n', '\n');
+
+    final List<TextSpan> spans = [];
+    final RegExp regExp = RegExp(
+        r'(>[0-9]+|<h1>.*?<\/h1>|<h2>.*?<\/h2>|<h3>.*?<\/h3>|\*\*__.*?__\*\*|__\*\*.*?\*\*__|\*\*~~.*?~~\*\*|~~\*\*.*?\*\*~~|__~~.*?~~__|~~__.*?__~~|\*\*.*?\*\*|__.*?__|~~.*?~~)');
+    final matches = regExp.allMatches(text);
+
+    int start = 0;
+
+    for (final match in matches) {
+      // Add text before the match
+      if (match.start > start) {
+        spans.addAll(_handleLineBreaks(text.substring(start, match.start)));
+      }
+
+      String matchText = match.group(0)!;
+
+      // Indentation
+      if (matchText.startsWith('>') && RegExp(r'>[0-9]+').hasMatch(matchText)) {
+        int indentLevel = int.tryParse(matchText.substring(1)) ?? 0;
+        spans.add(TextSpan(
+          text: ' ' * indentLevel, // Add spaces for indentation
+        ));
+      }
+      // Heading 1
+      else if (matchText.startsWith('<h1>') && matchText.endsWith('</h1>')) {
+        spans.add(TextSpan(
+          text: matchText.substring(4, matchText.length - 5),
+          style: CustomTypography().titleLarge(),
+        ));
+      }
+      // Heading 2
+      else if (matchText.startsWith('<h2>') && matchText.endsWith('</h2>')) {
+        spans.add(TextSpan(
+          text: matchText.substring(4, matchText.length - 5),
+          style: CustomTypography().titleMedium(),
+        ));
+      }
+      // Heading 3
+      else if (matchText.startsWith('<h3>') && matchText.endsWith('</h3>')) {
+        spans.add(TextSpan(
+          text: matchText.substring(4, matchText.length - 5),
+          style: CustomTypography().titleSmall(),
+        ));
+      }
+      // Bold and Underline
+      else if (matchText.startsWith('**__') && matchText.endsWith('__**')) {
+        spans.add(TextSpan(
+          text: matchText.substring(4, matchText.length - 4),
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.underline),
+        ));
+      }
+      // Underline and Bold
+      else if (matchText.startsWith('__**') && matchText.endsWith('**__')) {
+        spans.add(TextSpan(
+          text: matchText.substring(4, matchText.length - 4),
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.underline),
+        ));
+      }
+      // Bold and Italics
+      else if (matchText.startsWith('**~~') && matchText.endsWith('~~**')) {
+        spans.add(TextSpan(
+          text: matchText.substring(4, matchText.length - 4),
+          style: TextStyle(
+              fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+        ));
+      }
+      // Italics and Bold
+      else if (matchText.startsWith('~~**') && matchText.endsWith('**~~')) {
+        spans.add(TextSpan(
+          text: matchText.substring(4, matchText.length - 4),
+          style: TextStyle(
+              fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+        ));
+      }
+      // Underline and Italics
+      else if (matchText.startsWith('__~~') && matchText.endsWith('~~__')) {
+        spans.add(TextSpan(
+          text: matchText.substring(4, matchText.length - 4),
+          style: TextStyle(
+              decoration: TextDecoration.underline,
+              fontStyle: FontStyle.italic),
+        ));
+      }
+      // Italics and Underline
+      else if (matchText.startsWith('~~__') && matchText.endsWith('__~~')) {
+        spans.add(TextSpan(
+          text: matchText.substring(4, matchText.length - 4),
+          style: TextStyle(
+              decoration: TextDecoration.underline,
+              fontStyle: FontStyle.italic),
+        ));
+      }
+      // Bold
+      else if (matchText.startsWith('**') && matchText.endsWith('**')) {
+        spans.add(TextSpan(
+          text: matchText.substring(2, matchText.length - 2),
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ));
+      }
+      // Underline
+      else if (matchText.startsWith('__') && matchText.endsWith('__')) {
+        spans.add(TextSpan(
+          text: matchText.substring(2, matchText.length - 2),
+          style: TextStyle(decoration: TextDecoration.underline),
+        ));
+      }
+      // Italics
+      else if (matchText.startsWith('~~') && matchText.endsWith('~~')) {
+        spans.add(TextSpan(
+          text: matchText.substring(2, matchText.length - 2),
+          style: TextStyle(fontStyle: FontStyle.italic),
+        ));
+      }
+
+      start = match.end;
+    }
+
+    // Add remaining text after the last match
+    if (start < text.length) {
+      spans.addAll(_handleLineBreaks(text.substring(start)));
+    }
+
+    return spans;
+  }
+
+  // Function to handle line breaks by splitting text on '\n' and adding a new line
+  List<TextSpan> _handleLineBreaks(String text) {
+    List<TextSpan> spans = [];
+    List<String> lines = text.split('\n');
+
+    for (int i = 0; i < lines.length; i++) {
+      spans.add(TextSpan(text: lines[i]));
+      if (i < lines.length - 1) {
+        spans.add(TextSpan(text: '\n')); // Add a line break
+      }
+    }
+
+    return spans;
+  }
 }
