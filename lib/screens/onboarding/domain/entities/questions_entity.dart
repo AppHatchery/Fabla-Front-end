@@ -8,7 +8,7 @@ class QuestionsEntity {
   @Id(assignable: true)
   final int id;
   final String title;
-  final String subtitle;
+  final String? subtitle;
   final String? options;
   final String type;
   final int? min;

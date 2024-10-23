@@ -6,7 +6,7 @@ import 'package:equatable/equatable.dart';
 class Questions extends Equatable {
   final int id;
   final String title;
-  final String subtitle;
+  final String? subtitle;
   final List<Option>? options;
   final String type;
   final int? min;
