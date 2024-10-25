@@ -8,15 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class WeeklyGoalPopup extends StatefulWidget {
-  final int currentEntries;
-  final int weeklyGoal;
   final List<StudyModel> studies;
   final List<DiaryModel> diaries;
 
   const WeeklyGoalPopup(
       {super.key,
-      required this.currentEntries,
-      required this.weeklyGoal,
       required this.studies,
       required this.diaries});
 

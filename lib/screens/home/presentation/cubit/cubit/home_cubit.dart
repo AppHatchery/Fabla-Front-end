@@ -45,7 +45,7 @@ class HomeCubit extends Cubit<HomeState> {
           monday.subtract(const Duration(days: 1)),
           sunday.add(const Duration(days: 1)));
       final weekDiaries = repository.getRangeDiaries(monday, sunday);
-      
+
       final ids = weekDiaries.map((e) => e.studyID).toSet().toList();
       final studies = repository.getStudies(ids);
 
@@ -53,12 +53,15 @@ class HomeCubit extends Cubit<HomeState> {
           .map((diary) =>
               diary.copyWith(id: diary.id, studyID: diary.studyID, tags: null))
           .toList()
-          .where((element) => element.due.isBefore(DateTime.now()) != true)
+          .where((element) =>
+              element.due.isBefore(DateTime.now()) != true &&
+              (element.status != DiaryStatus.submitted ||
+                  element.status != DiaryStatus.missed))
           .toList();
-      
-      updated.sort((a,b)=> b.compareTo(a));
 
-      emit(HomeLoaded(updated, start, studies, entries));
+      updated.sort((a, b) => b.compareTo(a));
+
+      emit(HomeLoaded(updated, diaries.isNotEmpty, studies, entries));
     } catch (e) {
       debugPrint("Error loading home page: $e");
       emit(const HomeError("Something went wrong"));

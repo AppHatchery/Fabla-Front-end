@@ -307,11 +307,7 @@ class DiaryRepository {
   }
 
   List<DiaryModel> getDiaries(DateTime day) {
-    final diaries = _getDiaryEntities(day)
-        .where((diary) =>
-            diary.status != DiaryStatus.submitted ||
-            diary.status != DiaryStatus.missed)
-        .toList();
+    final diaries = _getDiaryEntities(day);
     return diaries.map((e) => DiaryModel.fromEntity(e)).toList();
   }
 
@@ -351,7 +347,7 @@ class DiaryRepository {
     return studies;
   }
 
-  List<Study> _getAllStudies(){
+  List<Study> _getAllStudies() {
     return _studyDAO.getAllStudies();
   }
 
@@ -359,7 +355,7 @@ class DiaryRepository {
     return _getStudies(ids).map((e) => StudyModel.fromEntity(e)).toList();
   }
 
-  List<StudyModel> getAllStudies(){
+  List<StudyModel> getAllStudies() {
     return _getAllStudies().map((e) => StudyModel.fromEntity(e)).toList();
   }
 
@@ -432,6 +428,6 @@ class DiaryRepository {
     final index = prompts.lastIndexWhere((prompt) => prompt.answer != null);
 
     // If no prompts are answered, return 0, else return index
-    return index == -1 ? 0 : index ;
+    return index == -1 ? 0 : index;
   }
 }
