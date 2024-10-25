@@ -7,13 +7,14 @@ import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_go
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal_popup.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../theme/dialogs/pop_ups.dart';
+// import '../../../../theme/dialogs/pop_ups.dart';
 import '../../../diary/data/diary.dart';
 import '../cubit/cubit/home_cubit.dart';
 import '../widgets/empty_state.dart';
@@ -287,29 +288,30 @@ class _HomePageState extends State<HomePage>
     if (mounted && show) {
       isHomeTipClosed.value = false;
       Future.delayed(const Duration(milliseconds: 500), () async {
-        showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            builder: (context) => const Wrap(
-                  children: [
-                    QuickTipPopUp(
-                      title: "Quick Tips to Get You Started",
-                      image: 'assets/images/idea.png',
-                      messageOne: "Separate Logs for Each Encounter",
-                      descriptionOne:
-                          "Please log each encounter separately to capture every detail",
-                      messageTwo: "Don't be limited to your daily goals!",
-                      descriptionTwo:
-                          "You are encouraged to log as many encounters as you can: More entries, more insights!",
-                      iconOne: "assets/images/arrow_split.png",
-                      iconTwo: "assets/images/record_voice_over.png",
-                    )
-                  ],
-                )).whenComplete(() async {
-          setState(() {
-            isHomeTipClosed.value = true;
-          });
-        });
+        // showModalBottomSheet(
+        //     context: context,
+        //     isScrollControlled: true,
+        //     builder: (context) => const Wrap(
+        //           children: [
+        //             QuickTipPopUp(
+        //               title: "Quick Tips to Get You Started",
+        //               image: 'assets/images/idea.png',
+        //               messageOne: "Separate Logs for Each Encounter",
+        //               descriptionOne:
+        //                   "Please log each encounter separately to capture every detail",
+        //               messageTwo: "Don't be limited to your daily goals!",
+        //               descriptionTwo:
+        //                   "You are encouraged to log as many encounters as you can: More entries, more insights!",
+        //               iconOne: "assets/images/arrow_split.png",
+        //               iconTwo: "assets/images/record_voice_over.png",
+        //             )
+        //           ],
+        //         )).whenComplete(() async {
+        //   setState(() {
+        //     isHomeTipClosed.value = true;
+        //   });
+        // });
+         await PendoService.track("HomePopUp", null);
       });
     }
   }

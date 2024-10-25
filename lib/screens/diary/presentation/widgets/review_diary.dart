@@ -198,8 +198,8 @@ class _ReviewDiaryState extends State<ReviewDiary> {
         return SliderQuestionCard(
           scaleMin: prompt.option!.minValue!,
           scaleMax: prompt.option!.maxValue!,
-          scaleMinText: prompt.option?.startText,
-          scaleMaxText: prompt.option?.endText,
+          scaleMinText: prompt.option?.minLabel,
+          scaleMaxText: prompt.option?.maxLabel,
           isSliderEnabled: false,
           value: double.tryParse(prompt.answer!.response!) ?? 0.0,
         );

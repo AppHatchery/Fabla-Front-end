@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -36,72 +39,75 @@ import 'secrets_handler.dart';
 ///   // Handle upload failure.
 /// }
 /// ```
-Future<bool> upload(String studyCode, DiaryModel diary) async {
+Future<bool> upload(String participantID, DiaryModel diary) async {
   final dir = await getApplicationDocumentsDirectory();
+  final repository = SetupRepository();
+  final experiment = repository.getExperiment();
+
   try {
-    List<PromptEntry> promptEntryList = [];
-    List<AudioData> audioData = [];
+    final promptEntryList = <PromptEntry>[];
+    final audioDataList = <AudioData>[];
 
     int promptNumber = 0;
 
-    for (int i = 0; i < diary.prompts.length; i++) {
-      var prompt = diary.prompts[i];
+    for (final prompt in diary.prompts) {
+      if (prompt.answer == null) continue;
 
-      if (prompt.answer != null) {
-        promptNumber++;
+      promptNumber++;
 
-        if (prompt.responseType == ResponseType.recording) {
-          if (prompt.answer!.recordings.isNotEmpty) {
-            final path = p.join(
-                dir.path, 'recordings', prompt.answer?.recordings.first.path);
-
-            var date = getPostDate(diary.start);
-
-            DateTime now = DateTime.now();
-            String formattedTime = DateFormat('HH-mm-ss').format(now);
-            var filename =
-                "${studyCode}_${formatSubmissionDate(diary.start)}_$formattedTime.aac";
-            var awsPath = "$studyCode/$date/prompt_$promptNumber/$filename";
-            audioData
-                .add(AudioData(localDirectory: path, awsS3Directory: awsPath));
-          } else {
-            promptEntryList.add(PromptEntry(
-                studyCode: studyCode,
-                questionTitle: prompt.question,
-                diaryID: diary.id.toString(),
-                promptID: prompt.id.toString(),
-                response: prompt.answer!.response!,
-                questionsType: AwsUtils.getResponseType(
-                    ResponseType.text.toString()), // Corrected parameter name
-                required: prompt.required));
-          }
-        } else {
-          promptEntryList.add(PromptEntry(
-              studyCode: studyCode,
-              questionTitle: prompt.question,
-              diaryID: diary.id.toString(),
-              promptID: prompt.id.toString(),
-              response: prompt.answer!.response!,
-              questionsType:
-                  AwsUtils.getResponseType(prompt.responseType.toString()),
-              // Corrected parameter name
-              required: prompt.required));
-        }
+      if (prompt.responseType == ResponseType.recording &&
+          prompt.answer!.recordings.isNotEmpty) {
+        _addAudioData(experiment.login, prompt, participantID, diary, dir,
+            promptNumber, audioDataList);
+      } else {
+        _addPromptEntry(prompt, participantID, experiment.login,
+            diary.id.toString(), promptEntryList);
       }
     }
-
-    var uploaded = await awsUploadResponses(promptEntryList, audioData);
-    if (uploaded) {
-      print("All data sent to AWS");
-    } else {
-      print("Data not sent to AWS");
-    }
-
+    final uploaded = await awsUploadResponses(promptEntryList, audioDataList);
     return uploaded;
-  } catch (e) {
-    print("$e");
+  } catch (e, stackTrace) {
+    debugPrint("Failed to upload data: $e");
+    debugPrint(stackTrace.toString());
     return false;
   }
+}
+
+void _addAudioData(
+    String experimentCode,
+    PromptModel prompt,
+    String participantID,
+    DiaryModel diary,
+    Directory dir,
+    int promptNumber,
+    List<AudioData> audioDataList) {
+  final localPath =
+      p.join(dir.path, 'recordings', prompt.answer?.recordings.first.path);
+  final date = getPostDate(diary.start);
+  final formattedTime = DateFormat('HH-mm-ss').format(DateTime.now());
+  final filename =
+      "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.aac";
+  final awsPath =
+      "$experimentCode/$participantID/$date/prompt_$promptNumber/$filename";
+
+  audioDataList
+      .add(AudioData(localDirectory: localPath, awsS3Directory: awsPath));
+}
+
+void _addPromptEntry(PromptModel prompt, String participantID,
+    String experimentCode, String diaryID, List<PromptEntry> promptEntryList) {
+  promptEntryList.add(
+    PromptEntry(
+      participantID: participantID,
+      experimentCode: experimentCode,
+      questionTitle: prompt.question,
+      diaryID: diaryID,
+      promptID: prompt.id.toString(),
+      response: prompt.answer!.response!,
+      questionsType: AwsUtils.getResponseType(prompt.responseType.toString()),
+      required: prompt.required,
+    ),
+  );
 }
 
 String formatSubmissionDate(DateTime date) {
@@ -120,7 +126,7 @@ Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
   // Set up the HTTP POST request
   // var url = Uri.parse(
   //     'https://r79428yn1l.execute-api.us-east-1.amazonaws.com/live/dynsendresponse'); // Replace with your API endpoint
-  var url = Uri.parse(cred?.dynamo_url ?? ""); 
+  var url = Uri.parse(cred?.dynamo_url ?? "");
 
   var headers = {
     'Content-Type': 'application/json',
@@ -133,16 +139,16 @@ Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
 
     if (response.statusCode == 200) {
       // Request successful
-      print('Dynamo DB: All items processed successfully');
+      debugPrint('Dynamo DB: All items processed successfully');
       return true; // Submission successful
     } else {
       // Request failed
-      print('Dynamo DB: Request failed with status: ${response.body}');
+      debugPrint('Dynamo DB: Request failed with status: ${response.body}');
       return false; // Submission failed
     }
   } catch (e) {
     // An error occurred
-    print('Error sending request: $e');
+    debugPrint('Error sending request: $e');
     return false; // Submission failed due to error
   }
 }
@@ -179,7 +185,8 @@ Future<String?> getPresignedUrl(String apiUrl, String filename) async {
       Uri.parse(apiUrl),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': "${cred?.authorization ?? ""}[1]",  // password [ AWS ARN FOR THE CALL ]
+        'Authorization':
+            "${cred?.authorization ?? ""}[1]", // password [ AWS ARN FOR THE CALL ]
         'x-api-key': cred?.xapikey ?? ""
       },
       body: requestBody,
@@ -194,15 +201,15 @@ Future<String?> getPresignedUrl(String apiUrl, String filename) async {
 
       // Extract the 'uploadURL' from the parsed 'body' JSON
       var uploadUrl = body['uploadURL'];
-      print("presigned URL is generated");
+      debugPrint("presigned URL is generated");
       return uploadUrl;
     } else {
-      print(
+      debugPrint(
           'Failed to get presigned URL: ${response.statusCode}, ${response.body}');
       return null;
     }
   } catch (e) {
-    print('Error getting presigned URL: $e');
+    debugPrint('Error getting presigned URL: $e');
     return null;
   }
 }
@@ -221,23 +228,21 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
       bytes.addAll(chunk);
     }
 
-  
-
     // Set the body bytes of the request
-    request.bodyBytes =  bytes;
+    request.bodyBytes = bytes;
 
     var response = await http.Client().send(request);
 
     if (response.statusCode == 200) {
-      print('S3 Storage: File uploaded successfully');
+      debugPrint('S3 Storage: File uploaded successfully');
       return true; // Return true if upload successful
     } else {
-      print(
+      debugPrint(
           'S3 Storage: Failed to upload file. Status code: ${response.statusCode}');
       return false; // Return false if upload failed
     }
   } catch (e) {
-    print('S3 Storage: Error uploading file: $e');
+    debugPrint('S3 Storage: Error uploading file: $e');
     return false; // Return false if an error occurred
   }
 }
@@ -255,7 +260,7 @@ Future<bool> uploadAudios(List<AudioData> audioFileData) async {
       sent = await uploadFileToS3(presignedUrl, data.localDirectory);
     }
   }
-  print("uploaded in array $sent");
+  debugPrint("uploaded in array $sent");
   return sent;
 }
 
@@ -271,7 +276,8 @@ class AudioData {
 ///Class representing audio entry in the dynamo db once an object is created
 ///
 class PromptEntry {
-  String studyCode;
+  String participantID;
+  String experimentCode;
   String questionTitle;
   String diaryID;
   String promptID;
@@ -280,7 +286,8 @@ class PromptEntry {
   bool required;
 
   PromptEntry(
-      {required this.studyCode,
+      {required this.participantID,
+      required this.experimentCode,
       required this.questionTitle,
       required this.diaryID,
       required this.promptID,
@@ -294,7 +301,8 @@ class PromptEntry {
 
     for (var entry in promptEntryList) {
       Map<String, dynamic> map = {
-        "StudyCode": entry.studyCode,
+        "ParticipantID": entry.participantID,
+        "ExperimentCode": entry.experimentCode,
         "QuestionTitle": entry.questionTitle,
         "DiaryID": entry.diaryID,
         "PromptID": entry.promptID,
@@ -330,7 +338,7 @@ Future<bool> awsUploadResponses(
     var nonAudioDataSent = await uploadNonAudioData(promptEntryList);
     return nonAudioDataSent;
   } catch (e) {
-    print("EXCEPTION: $e");
+    debugPrint("EXCEPTION: $e");
     return false;
   }
 }

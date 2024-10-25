@@ -4,7 +4,7 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/audio_q
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
-import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
+// import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/types.dart';
@@ -293,13 +293,14 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     if (show && mounted) {
       Future.delayed(
           const Duration(milliseconds: 500),
-          () => showModalBottomSheet(
-              backgroundColor: Colors.white,
-              context: context,
-              isScrollControlled: true,
-              builder: (context) => const Wrap(
-                    children: [CustomBottomTipPopUp()],
-                  )));
+          () async => await PendoService.track("DiaryPopUp", null));
+          // () => showModalBottomSheet(
+          //     backgroundColor: Colors.white,
+          //     context: context,
+          //     isScrollControlled: true,
+          //     builder: (context) => const Wrap(
+          //           children: [CustomBottomTipPopUp()],
+          //         )));
     }
   }
 }
@@ -422,7 +423,7 @@ class _QuestionPageState extends State<QuestionPage>
   }
 
   Widget buildInitial() {
-    return Container(
+    return SizedBox(
       height: 900,
       width: double.infinity,
     );
@@ -434,16 +435,14 @@ class _QuestionPageState extends State<QuestionPage>
     Widget responseWidget;
 
     if (prompt.responseType == ResponseType.slider) {
-      print(
-          "Min - ${prompt.option?.minValue} | Max - ${prompt.option?.maxValue} | value:  ${prompt.answer?.response}");
       responseWidget = SliderQuestionCard(
         value: prompt.answer?.response != null
             ? double.parse(prompt.answer!.response!)
             : prompt.option!.defaultValue!.toDouble(),
         scaleMin: prompt.option!.minValue!,
         scaleMax: prompt.option!.maxValue!,
-        scaleMinText: prompt.option!.startText,
-        scaleMaxText: prompt.option!.endText,
+        scaleMinText: prompt.option!.minLabel,
+        scaleMaxText: prompt.option!.maxLabel,
         onSliderValueChanged: (value) => updateSliderValue(prompt, value),
         isSliderEnabled: !disabled,
       );
@@ -482,10 +481,8 @@ class _QuestionPageState extends State<QuestionPage>
         disabled: disabled,
       );
     } else if (prompt.responseType == ResponseType.text) {
-      String? freeTextAnswer = "";
-      if (prompt.answer?.response != null) {
-        freeTextAnswer = prompt.answer!.response!.toString();
-      }
+      String? freeTextAnswer = prompt.answer?.response ?? "";
+      
       responseWidget = FreeTextQuestionCard(
         value: freeTextAnswer,
         onChanged: (value) {
@@ -630,9 +627,12 @@ class _QuestionPageState extends State<QuestionPage>
                 minChildSize: 1,
                 snap: true,
                 builder: (context, scrollController) {
+                  final hint = prompt.subtitle?.replaceAll(r'\\n', '\n');
+
                   return BottomRecordingModal(
                     promptId: prompt.id,
                     question: prompt.question,
+                    hint: hint,
                     onSave: (value) {
                       save(prompt, value.toString(), "audio");
                     },
@@ -653,9 +653,12 @@ class _QuestionPageState extends State<QuestionPage>
                 minChildSize: 1,
                 snap: true,
                 builder: (context, scrollController) {
+                  final hint = prompt.subtitle?.replaceAll(r'\\n', '\n');
+
                   return BottomTextModal(
                     prompt: prompt,
                     question: prompt.question,
+                    hint: hint,
                     onSave: (value) {
                       save(prompt, value.toString(), null);
                     },

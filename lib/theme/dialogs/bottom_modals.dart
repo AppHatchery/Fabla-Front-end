@@ -156,6 +156,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),

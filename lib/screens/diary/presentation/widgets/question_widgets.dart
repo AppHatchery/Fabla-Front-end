@@ -488,6 +488,7 @@ class _FreeTextQuestionCardState extends State<FreeTextQuestionCard> {
         ),
         TextField(
           onChanged: widget.onChanged,
+          cursorColor: CustomColors.productNormalActive,
           decoration: InputDecoration(
             hintText: 'Type your message',
             hintStyle: CustomTypography()
