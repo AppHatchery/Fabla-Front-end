@@ -208,9 +208,9 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
       final anonymousID =
           "$login-anonymous-${DateTime.now().millisecondsSinceEpoch}";
       await service.setStringPreference(key: 'pendo-ID', value: anonymousID);
-      await PendoService.start(anonymousID);
+      await PendoService.start(anonymousID, login);
     } else {
-      await PendoService.start(pendoID);
+      await PendoService.start(pendoID, login);
     }
 
     await PendoService.track("StudyDetails", null);
