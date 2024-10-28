@@ -73,11 +73,11 @@ dependencies:
   rive: ^0.13.14
 
   #Amplify
-  # amplify_flutter: ^2.4.1
-  # amplify_auth_cognito: ^2.4.1
-  # amplify_storage_s3: ^2.4.1
-  # amplify_datastore: ^2.4.1
-  # amplify_api: ^2.4.1
+  amplify_flutter: ^2.4.1
+  amplify_auth_cognito: ^2.4.1
+  amplify_storage_s3: ^2.4.1
+  amplify_datastore: ^2.4.1
+  amplify_api: ^2.4.1
 
   #Notification
   awesome_notifications: ^0.10.0
