@@ -310,7 +310,10 @@ class _HomePageState extends State<HomePage>
         //     isHomeTipClosed.value = true;
         //   });
         // });
-         await PendoService.track("HomePopUp", null);
+        await PendoService.track("HomePopUp", null);
+        setState(() {
+          isHomeTipClosed.value = true;
+        });
       });
     }
   }

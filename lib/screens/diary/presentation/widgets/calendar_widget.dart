@@ -180,7 +180,7 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
 
       final showProgress = diaries.isNotEmpty;
 
-      days.add(dayOfTheWeek(_dayAbbreviations[d.weekday]!, isToday, percentage,
+      days.add(dayOfTheWeek(_dayAbbreviations[d.weekday]!, isToday, percentage.isNaN ? 0.0 : percentage,
           showProgress, isAfter));
     }
   }

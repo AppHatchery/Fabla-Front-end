@@ -53,7 +53,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   @override
   void initState() {
     widget.isHomeTipClosed.addListener(() {
-      if (widget.isHomeTipClosed.value) _controller.isActive = true;
+      if (widget.isHomeTipClosed.value) determineAnimation();
     });
 
     // create map of study to diaries
@@ -175,12 +175,22 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
           .setBoolPreference(key: 'cold_start', value: false);
 
       // change animation after 30 seconds
-      Future.delayed(const Duration(seconds: 30), () => determineAnimation());
+      return Future.delayed(
+          const Duration(seconds: 30), () => determineAnimation());
     }
+
+    final totalEntries =
+        widget.diaries.fold(0, (prev, diary) => prev + diary.currentEntry);
+    final totalGoal =
+        widget.studies.fold(0, (prev, study) => prev + study.goals.daily);
+    final weeklyGoal =
+        widget.studies.fold(0, (prev, study) => prev + study.goals.weekly);
+
+    print("TE: $totalEntries | TG: $totalGoal | WG: $weeklyGoal");
 
     //Show Searching 1 or Searching 2 if there is no entry
     // Make the animation random with a 50/50 chance of both showing up
-    if (widget.diaries.every((element) => element.currentEntry == 0)) {
+    if (totalEntries == 0) {
       final searchingOne = _controller.findSMI('Searching_1');
       final searchingTwo = _controller.findSMI('Searching_2');
 
@@ -194,8 +204,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     }
 
     // //Show Blinking + Blowing the horn if the daily goal is achieved
-    if (data.entries.any((map) =>
-        map.value.any((element) => element.currentEntry == map.key.daily))) {
+    if (totalEntries == totalGoal) {
       final blowing = _controller.findSMI('Blinking + Blowing the horn');
 
       if (blowing != null && mounted) {
@@ -205,9 +214,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     }
 
     // //Show Achieving the goal if the weekly goal is achieved
-    if (data.entries.any((map) =>
-        map.value.any((element) => element.currentEntry == map.key.weekly) ||
-        widget.weeklyEntries == map.key.weekly)) {
+    if (totalEntries == weeklyGoal) {
       final achieving = _controller.findSMI('Achieving the goal ');
 
       if (achieving != null && mounted) {
@@ -217,9 +224,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     }
 
     // //Show Beyond the goal if the weekly goal is exceeded
-    if (data.entries.any((map) =>
-        map.value.any((element) => element.currentEntry > map.key.weekly) ||
-        widget.weeklyEntries > map.key.weekly)) {
+    if (totalEntries > weeklyGoal) {
       final beyond = _controller.findSMI('Beyond the goal ');
 
       if (beyond != null && mounted) {
@@ -229,8 +234,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     }
 
     // //Show Searching 3 if there is an entry or more
-    if (data.entries
-        .any((map) => map.value.any((element) => element.currentEntry > 0))) {
+    if (totalEntries > 0) {
       final searchingThree = _controller.findSMI('Searching_3');
       if (searchingThree != null && mounted) {
         searchingThree.value = true;
