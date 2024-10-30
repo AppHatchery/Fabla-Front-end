@@ -108,6 +108,8 @@ class OnBoardingMultipleOption extends StatefulWidget {
 class _OnBoardingMultipleOptionState extends State<OnBoardingMultipleOption> {
   @override
   Widget build(BuildContext context) {
+    final scale = MediaQuery.of(context).textScaleFactor;
+    double padding = ((scale - 1.0) * 10).ceil() * 20;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -118,13 +120,15 @@ class _OnBoardingMultipleOptionState extends State<OnBoardingMultipleOption> {
         const SizedBox(
           height: 12,
         ),
-        CustomMultipleQuestion(
-          selected: widget.selected ,
-          options: widget.options,
-          onChanged: (value) {
-            print("value: ${value.toString()}");
-            widget.onChanged(value.toString());
-          },
+        Padding(
+          padding: EdgeInsets.only(bottom: padding),
+          child: CustomMultipleQuestion(
+            selected: widget.selected ,
+            options: widget.options,
+            onChanged: (value) {
+              widget.onChanged(value.toString());
+            },
+          ),
         )
       ],
     );

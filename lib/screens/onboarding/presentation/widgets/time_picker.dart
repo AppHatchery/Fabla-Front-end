@@ -25,7 +25,7 @@ class _OnboardingTimePickerState extends State<OnboardingTimePicker> {
     if (widget.time != null) {
       time = timeOfDayFromString(widget.time!);
     } else {
-      time = const TimeOfDay(hour: 10, minute: 0);
+      time = const TimeOfDay(hour: 18, minute: 0);
     }
     super.initState();
   }
@@ -90,7 +90,6 @@ class _OnboardingTimePickerState extends State<OnboardingTimePicker> {
         time = _time;
       });
 
-      //TODO: return time
       widget.onChanged(localizations.formatTimeOfDay(time, alwaysUse24HourFormat: true));
     }
   }
