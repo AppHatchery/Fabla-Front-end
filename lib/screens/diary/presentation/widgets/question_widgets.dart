@@ -343,7 +343,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
 
 // radio question summary
 class RadioQuestionSummary extends StatefulWidget {
-  final String selectedOption;
+  final String? selectedOption;
   const RadioQuestionSummary({super.key, required this.selectedOption});
 
   @override
@@ -355,13 +355,13 @@ class _RadioQuestionSummaryState extends State<RadioQuestionSummary> {
   Widget build(BuildContext context) {
     return RadioListTile<String>(
       title: Text(
-        widget.selectedOption,
+        widget.selectedOption ?? "",
         style: CustomTypography()
             .bodyLarge(color: CustomColors.textSecondaryContent),
       ),
       fillColor: MaterialStateProperty.all(CustomColors.textSecondaryContent),
       controlAffinity: ListTileControlAffinity.leading,
-      value: widget.selectedOption,
+      value: widget.selectedOption ?? "",
       groupValue: widget.selectedOption,
       onChanged: (String? value) {},
     );
