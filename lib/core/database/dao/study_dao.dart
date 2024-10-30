@@ -40,4 +40,19 @@ class StudyDAO {
       return false;
     }
   }
+
+  /// Deletes all studies from the database.
+  /// This function removes all study entries from the underlying storage box.
+  ///
+  /// Returns:
+  /// True if all studies were successfully deleted, false otherwise.
+  bool deleteAllStudies() {
+    try {
+      box.removeAll();
+      return true;
+    } catch (e) {
+      debugPrint("Error deleting all studies: $e");
+      return false;
+    }
+  }
 }

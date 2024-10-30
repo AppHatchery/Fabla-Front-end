@@ -424,6 +424,10 @@ class DiaryRepository {
     final index = prompts.lastIndexWhere((prompt) => prompt.answer != null);
 
     // If no prompts are answered, return 0, else return index
-    return index == -1 ? 0 : index ;
+    return index == -1 ? 0 : index;
+  }
+
+  bool removeAllDiaries() {
+    return _diaryDAO.deleteAllDiaries();
   }
 }
