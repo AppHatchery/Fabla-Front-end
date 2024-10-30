@@ -1,6 +1,6 @@
-import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
+import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
 
 class RingProgressIndicator extends StatelessWidget {
@@ -55,13 +55,13 @@ class GoalProgressIndicators extends StatelessWidget {
               (previousValue, element) => previousValue + element.currentEntry);
           double progress = completed / goal.daily;
           double size = baseSize + (index * spacing);
-          final color = getColorFromName(map.key.name);
 
           return RingProgressIndicator(
             progress: progress,
             size: size,
-            color: color,
-            backgroundColor: color.withOpacity(0.2),
+            color: map.key.color ?? CustomColors.productNormal,
+            backgroundColor: map.key.color?.withOpacity(0.2) ??
+                CustomColors.productNormal.withOpacity(0.2),
           );
         }).toList(),
       ),

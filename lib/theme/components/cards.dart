@@ -43,7 +43,7 @@ class _DiaryCardState extends State<DiaryCard> {
   late Duration remainingTime;
   late bool closed;
   String? study;
-  late Color color;
+  Color color = CustomColors.productNormal;
   Timer? timer;
 
   @override
@@ -55,11 +55,12 @@ class _DiaryCardState extends State<DiaryCard> {
     super.initState();
   }
 
-  void getStudyName() {
+  void getStudyName() async {
     final repository = DiaryRepository();
+    final _study = await repository.getStudy(widget.diary!.studyID);
     setState(() {
-      study = repository.getStudy(widget.diary!.studyID)?.name;
-      color = getColorFromName(study!);
+      study = _study?.name ?? '';
+      color = _study!.color!;
     });
   }
 

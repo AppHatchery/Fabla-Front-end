@@ -1,5 +1,9 @@
 // import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'dart:convert';
+
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -233,6 +237,17 @@ Color getColorFromName(String name) {
   int hash = name.hashCode;
   int index = hash % studyColors.length;
   return studyColors[index];
+}
+
+Future<Color> getColorFromSharedPreferences(String name) async {
+  final pref = PreferenceService();
+  final source = await pref.getStringPreference(key: 'study_color_source');
+  final Map<String, String> data =
+      source != null ? Map<String, String>.from(json.decode(source)) : {};
+
+  return data.containsKey(name)
+      ? Color(int.parse(data[name]!, radix: 16))
+      : CustomColors.productNormal;
 }
 
 /// FORMATS

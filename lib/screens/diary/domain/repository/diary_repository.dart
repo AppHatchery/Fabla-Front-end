@@ -328,10 +328,12 @@ class DiaryRepository {
     return _studyDAO.getStudy(id);
   }
 
-  StudyModel? getStudy(int id) {
+  Future<StudyModel?> getStudy(int id) async {
     final study = _getStudy(id);
     if (study != null) {
-      return StudyModel.fromEntity(study);
+      final _study = StudyModel.fromEntity(study);
+      final color = await getColorFromSharedPreferences(study.name);
+      return _study.copyWith(color: color);
     }
 
     return null;
@@ -351,10 +353,18 @@ class DiaryRepository {
     return _studyDAO.getAllStudies();
   }
 
-  List<StudyModel> getStudies(List<int> ids) {
-    return _getStudies(ids).map((e) => StudyModel.fromEntity(e)).toList();
+  Future<List<StudyModel>> getStudies(List<int> ids) async {
+    final _studies =
+        _getStudies(ids).map((e) => StudyModel.fromEntity(e)).toList();
+    final updated = <StudyModel>[];
+    for (final study in _studies) {
+      final color = await getColorFromSharedPreferences(study.name);
+      updated.add(study.copyWith(color: color));
+    }
+    return updated;
   }
 
+  // For calendar use only!!!! - No color is being passed
   List<StudyModel> getAllStudies() {
     return _getAllStudies().map((e) => StudyModel.fromEntity(e)).toList();
   }

@@ -82,8 +82,8 @@ class _HomePageState extends State<HomePage>
               } else if (state is HomeLoading) {
                 return loading();
               } else if (state is HomeLoaded) {
-                return loadedHome(state.diaries, state.available, state.studies,
-                    state.entries);
+                return loadedHome(state.diaries, state.weeksDiaries,
+                    state.available, state.studies, state.entries);
               } else {
                 return initialHome();
               }
@@ -105,8 +105,8 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget loadedHome(List<DiaryModel> diaries, bool available,
-      List<StudyModel> studies, int entries) {
+  Widget loadedHome(List<DiaryModel> diaries, List<DiaryModel> weeksDiaries,
+      bool available, List<StudyModel> studies, int entries) {
     return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -134,7 +134,7 @@ class _HomePageState extends State<HomePage>
                       weeklyGoal:
                           studies.isNotEmpty ? studies.first.goals.weekly : 0,
                       currentEntries: entries,
-                      study: studies.firstOrNull,
+                      studies: studies,
                     ),
                   ),
                   IconButton(
@@ -221,7 +221,7 @@ class _HomePageState extends State<HomePage>
                         parent: _controller, curve: Curves.fastOutSlowIn)),
                     child: WeeklyGoalPopup(
                       studies: studies,
-                      diaries: diaries,
+                      diaries: weeksDiaries,
                     ),
                   ))
             ],

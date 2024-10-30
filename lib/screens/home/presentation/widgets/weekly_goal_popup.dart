@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -12,9 +11,7 @@ class WeeklyGoalPopup extends StatefulWidget {
   final List<DiaryModel> diaries;
 
   const WeeklyGoalPopup(
-      {super.key,
-      required this.studies,
-      required this.diaries});
+      {super.key, required this.studies, required this.diaries});
 
   @override
   State<WeeklyGoalPopup> createState() => _WeeklyGoalPopupState();
@@ -31,7 +28,6 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
     thisWeek = getThisWeek();
     // create map of study to diaries
     for (var study in widget.studies) {
-      
       final diaries =
           widget.diaries.where((diary) => diary.studyID == study.studyId);
       data[study] = diaries.toList();
@@ -68,13 +64,20 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
               height: 6,
             ),
             Column(
-                children: data.entries.isNotEmpty ? data.entries.toList().asMap().entries.map((e) {
-              final value = e.value;
-              return goalWidget(
-                  width, totalWidth, value.key, value.value, getColorFromName(value.key.name));
-            }).toList() : [
-              Text("No entries needed this week", style: CustomTypography().titleMedium())
-            ]),
+                children: data.entries.isNotEmpty
+                    ? data.entries.toList().asMap().entries.map((e) {
+                        final value = e.value;
+                        return goalWidget(
+                            width,
+                            totalWidth,
+                            value.key,
+                            value.value,
+                            e.value.key.color ?? CustomColors.productNormal);
+                      }).toList()
+                    : [
+                        Text("No entries needed this week",
+                            style: CustomTypography().titleMedium())
+                      ]),
           ],
         ),
       ),
@@ -130,7 +133,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
               child: Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: Text(
-                  "Submit at least $lowerGoal repeatable entries this week to complete your goal.",
+                  "Submit at least $lowerGoal ${study.goals.weekly > 1 ? "entries" : "entry"} this week to complete your goal.",
                   style: CustomTypography().caption(),
                   softWrap: true,
                 ),
