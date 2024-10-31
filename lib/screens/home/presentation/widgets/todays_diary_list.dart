@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../theme/components/cards.dart';
@@ -27,21 +28,26 @@ class TodaysDiaryList extends StatelessWidget {
         const SizedBox(
           height: 12,
         ),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: diaries.length,
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: DiaryCard(
-                diary: diaries[index],
-                refresh: (value) => refresh(value),
-                getPageName: getPageName,
+        diaries.isEmpty
+            ? Padding(
+              padding: const EdgeInsets.only(top: 26.0),
+              child: const DayComplete(),
+            )
+            : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: diaries.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: DiaryCard(
+                      diary: diaries[index],
+                      refresh: (value) => refresh(value),
+                      getPageName: getPageName,
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),
         const SizedBox(
           height: 12,
         ),

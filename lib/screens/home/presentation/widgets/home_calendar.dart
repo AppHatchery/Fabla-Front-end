@@ -37,6 +37,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
   late List<DiaryModel> diaries;
   late bool isBeforeToday;
   late List<DiaryModel> diaryList;
+  late List<StudyModel> studies;
   final DiaryRepository repository = DiaryRepository();
   Map<DateTime, List<String>>? events = {};
   int activeDays = 0;
@@ -58,6 +59,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
     activeDays = repository.countSubmittedDays();
     diaries = fetchDiaries(today);
     diaryList = _getAllDiaries();
+    studies = _getStudies();
 
     for (DiaryModel diary in diaryList) {
       final date =
@@ -419,6 +421,10 @@ class _StudyCalendarState extends State<StudyCalendar> {
     return list;
   }
 
+  List<StudyModel> _getStudies(){
+    return repository.getAllStudies();
+  }
+
   //Retrieving entries for a specific date (Called From StudyCalendar)
   List<DiaryModel> fetchDiaries(DateTime date) {
     setState(() {
@@ -451,7 +457,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
           total: total,
           currency: widget.studies.first.incentive.currency,
           diaries: diaryList,
-        ) // TODO: LOOK AT THIS AGAIN
+        )
       ],
     );
   }
@@ -517,11 +523,11 @@ class _StudyCalendarState extends State<StudyCalendar> {
 
     // Create a map for quick lookup of studies by studyId
     Map<int, StudyModel> studyMap = {
-      for (var study in widget.studies) study.studyId: study
+      for (var study in studies) study.studyId: study
     };
 
     // Calculate completed diaries and total incentives
-    for (final diary in diaries) {
+    for (final diary in diaryList) {
       final study = studyMap[diary.studyID]!;
       final incentiveAmount = study.incentive.amount;
       _total += incentiveAmount;

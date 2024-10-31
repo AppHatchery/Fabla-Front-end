@@ -42,17 +42,26 @@ class _DiaryCardState extends State<DiaryCard> {
   final now = DateTime.now();
   late Duration remainingTime;
   late bool closed;
+  String? study;
+  Color color = CustomColors.productNormal;
   Timer? timer;
 
   @override
   void initState() {
-    print(
-        "Diary - ${widget.diary?.name} | Start - ${widget.diary?.start} | End - ${widget.diary?.end} | ${widget.diary!.start.isAfter(now)} - $now");
-    //calculate time left from due vs now
     remainingTime = widget.diary!.due.difference(now);
     closed = isClosed();
     _startTimer();
+    getStudyName();
     super.initState();
+  }
+
+  void getStudyName() async {
+    final repository = DiaryRepository();
+    final _study = await repository.getStudy(widget.diary!.studyID);
+    setState(() {
+      study = _study?.name ?? '';
+      color = _study!.color!;
+    });
   }
 
   void _startTimer() {
@@ -119,9 +128,9 @@ class _DiaryCardState extends State<DiaryCard> {
           decoration: BoxDecoration(
             color: CustomColors.fillWhite,
             borderRadius: BorderRadius.circular(10),
-            border: const Border(
+            border: Border(
                 left: BorderSide(
-              color: CustomColors.productNormal,
+              color: color,
               width: 4,
             )),
             boxShadow: const [
@@ -149,14 +158,14 @@ class _DiaryCardState extends State<DiaryCard> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.restart_alt_outlined,
-                        color: CustomColors.productNormal,
+                        color: color,
                         size: 20,
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        "Routine Entry",
+                        study ?? "",
                         style: CustomTypography()
                             .bodyMedium(weight: FontWeight.w500),
                       ),
@@ -275,9 +284,10 @@ class _DiaryCardState extends State<DiaryCard> {
               ));
     } else {
       final repository = DiaryRepository();
-      final index = await repository.getIndexOfLastAnsweredPrompt(widget.diary!);
-      final results = await Navigator.of(context)
-          .pushNamed("/NewDiaryPage", arguments: {'diary': widget.diary, 'index': index});
+      final index =
+          await repository.getIndexOfLastAnsweredPrompt(widget.diary!);
+      final results = await Navigator.of(context).pushNamed("/NewDiaryPage",
+          arguments: {'diary': widget.diary, 'index': index});
 
       if (results == true) {
         widget.refresh(true);

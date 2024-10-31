@@ -166,7 +166,9 @@ class _ReviewDiaryState extends State<ReviewDiary> {
     );
   }
 
-  List<String> extractAnswers(String response) {
+  List<String> extractAnswers(String? response) {
+    if (response == null) return [];
+
     final answerList = <String>[];
     final lines = response.split(RegExp(r'\d+\.'));
 
@@ -201,18 +203,17 @@ class _ReviewDiaryState extends State<ReviewDiary> {
           scaleMinText: prompt.option?.minLabel,
           scaleMaxText: prompt.option?.maxLabel,
           isSliderEnabled: false,
-          value: double.tryParse(prompt.answer!.response!) ?? 0.0,
+          value: double.tryParse(prompt.answer?.response ?? '') ?? 0.0,
         );
       case ResponseType.multiple:
         return MultipleQuestionSummary(
-          answers: extractAnswers(prompt.answer!.response!),
+          answers: extractAnswers(prompt.answer?.response),
         );
       case ResponseType.radio:
         return RadioQuestionSummary(
-          selectedOption: prompt.answer!.response!,
+          selectedOption: prompt.answer?.response,
         );
       case ResponseType.recording:
-
         return prompt.answer!.recordings.isEmpty
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
