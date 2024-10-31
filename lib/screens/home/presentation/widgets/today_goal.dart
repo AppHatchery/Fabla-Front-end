@@ -56,12 +56,14 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     widget.isHomeTipClosed.addListener(() {
       if (widget.isHomeTipClosed.value) determineAnimation();
     });
-
     // create map of study to diaries
     for (var study in widget.studies) {
-      final diaries =
-          widget.diaries.where((diary) => diary.studyID == study.studyId);
-      data[study] = diaries.toList();
+      final diaries = widget.diaries
+          .where((diary) =>
+              diary.studyID == study.studyId &&
+              diary.due.day == DateTime.now().day)
+          .toList();
+      data[study] = diaries;
     }
 
     super.initState();
@@ -204,8 +206,12 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
           const Duration(seconds: 30), () => determineAnimation());
     }
 
+    final diariesForToday = widget.diaries
+        .where((diary) => diary.due.day == DateTime.now().day)
+        .toList();
+
     final totalEntries =
-        widget.diaries.fold(0, (prev, diary) => prev + diary.currentEntry);
+        diariesForToday.fold(0, (prev, diary) => prev + diary.currentEntry);
     final totalGoal =
         widget.studies.fold(0, (prev, study) => prev + study.goals.daily);
     final weeklyGoal =

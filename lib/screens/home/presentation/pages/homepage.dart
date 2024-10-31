@@ -196,7 +196,7 @@ class _HomePageState extends State<HomePage>
                           TodayGoalWidget(
                             dailyGoal: studies.first.goals.daily,
                             studies: studies,
-                            diaries: diaries,
+                            diaries: weeksDiaries,
                             weeklyEntries: entries,
                             isHomeTipClosed: isHomeTipClosed,
                           ),
