@@ -27,7 +27,7 @@ class CompletionCubit extends Cubit<CompletionState> {
           sunday.add(const Duration(days: 1)));
 
       final ids = diaries.map((e) => e.studyID).toSet().toList();
-      final studies = _diaryRepository.getStudies(ids);
+      final studies = await _diaryRepository.getStudies(ids);
 
 
       emit(CompletionLoaded(
