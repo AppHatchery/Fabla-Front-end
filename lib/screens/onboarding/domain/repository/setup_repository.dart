@@ -138,6 +138,9 @@ class SetupRepository {
   /// await getStudies(); // Fetch and update studies and diaries in the local database.
   /// ```
   Future<void> getStudies() async {
+    // Clean the database
+    clearStudies();
+
     // Retrieve the current experiment from the local database
     final entity = _experimentDAO.getExperiment();
     final experiment = ExperimentModel.fromEntity(entity!);
@@ -169,7 +172,8 @@ class SetupRepository {
         final diariesJson = study['diaries'] as List;
         for (final json in diariesJson) {
           final diary = DiaryModel.fromJson(json, studyModel.studyId);
-          dev.log("Diary start: ${diary.start} | end: ${diary.due}", name: "Get Studies");
+          dev.log("Diary start: ${diary.start} | end: ${diary.due}",
+              name: "Get Studies");
           diaries.add(diary);
         }
       }
@@ -497,5 +501,17 @@ class SetupRepository {
     }
 
     return false;
+  }
+
+  /// Clear All Studies and Diaries
+  /// This function clears all studies and diaries from the local database.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// clearStudies(); // Clear all studies and diaries from the local database.
+  /// ```
+  void clearStudies() {
+    _studyDAO.deleteAllStudies();
+    diaryRepository.removeAllDiaries();
   }
 }

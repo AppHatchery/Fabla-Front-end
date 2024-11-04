@@ -127,4 +127,19 @@ class DiaryDAO {
   void updateDiaries(List<Diary> diaries) {
     box.putMany(diaries);
   }
+
+  /// Delete all diary entries from the database.
+  /// This function removes all diary entries from the storage box, effectively clearing the database.
+  ///
+  /// Returns:
+  /// A boolean value indicating whether the operation was successful.
+  ///
+  bool deleteAllDiaries() {
+    try {
+      box.removeAll();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }
