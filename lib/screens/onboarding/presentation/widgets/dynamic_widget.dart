@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
@@ -109,7 +111,7 @@ class _OnBoardingMultipleOptionState extends State<OnBoardingMultipleOption> {
   @override
   Widget build(BuildContext context) {
     final scale = MediaQuery.of(context).textScaleFactor;
-    double padding = ((scale - 1.0) * 10).ceil() * 20;
+    double padding = max(((scale - 1.0) * 10).ceil() * 20, 20.0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
