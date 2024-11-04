@@ -50,7 +50,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
               children: [
                 const Expanded(flex: 1, child: SizedBox()),
                 Expanded(
-                    flex: 2,
+                    flex: 5,
                     child: Text(
                       widget.title,
                       style: CustomTypography().titleLarge(),
