@@ -8,6 +8,7 @@ import 'package:audio_diaries_flutter/core/database/dao/questions_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
+import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
@@ -190,6 +191,7 @@ class SetupRepository {
       // Convert studies to entities
       final studyEntities =
           studies.map((model) => Study.fromModel(model)).toList();
+      setColorForStudy(studies);
 
       // Update the local database with the fetched studies and diaries
       dev.log("Studies: $studyEntities", name: "Get Studies");
@@ -204,6 +206,22 @@ class SetupRepository {
   ExperimentModel getExperiment() {
     final entity = _experimentDAO.getExperiment();
     return ExperimentModel.fromEntity(entity!);
+  }
+
+  setColorForStudy(List<StudyModel> studies) async {
+    final pref = PreferenceService();
+    final source = await pref.getStringPreference(key: 'study_color_source');
+    final Map<String, String> data = source != null ? json.decode(source) : {};
+
+    for (int i = 0; i < studies.length; i++) {
+      final name = studies[i].name;
+      if (!data.containsKey(name)) {
+        final color = studyColors[i % studyColors.length];
+        data[name] = color.value.toRadixString(16);
+      }
+    }
+    return await pref.setStringPreference(
+        key: 'study_color_source', value: json.encode(data));
   }
 
   /// Creates and stores metadata related to the participant's study.

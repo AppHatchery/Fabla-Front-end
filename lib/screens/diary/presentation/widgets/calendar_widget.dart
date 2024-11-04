@@ -1,18 +1,19 @@
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
 class CompleteCalendarWidget extends StatefulWidget {
+  final DiaryModel diary;
   final List<DiaryModel> diaries;
-  final int dailyGoal;
-  final int weeklyGoal;
+  final List<StudyModel> studies;
   const CompleteCalendarWidget(
       {super.key,
+      required this.diary,
       required this.diaries,
-      required this.dailyGoal,
-      required this.weeklyGoal});
+      required this.studies});
 
   @override
   State<CompleteCalendarWidget> createState() => _CompleteCalendarWidgetState();
@@ -71,7 +72,26 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
     final allEntries =
         widget.diaries.fold(0, (sum, diary) => sum + diary.currentEntry);
 
-    final entriesLeftToday = widget.dailyGoal - currentEntryCount;
+    final weeklyGoals =
+        widget.studies.fold(0, (sum, study) => sum + study.goals.weekly);
+
+    final diariesForToday = widget.diaries
+        .where((element) =>
+            element.due.year == widget.diary.due.year &&
+            element.due.month == widget.diary.due.month &&
+            element.due.day == widget.diary.due.day)
+        .toList();
+
+    final diaryIds = diariesForToday.map((diary) => diary.studyID).toSet();
+
+    final studiesForTheDay = widget.studies
+        .where((study) => diaryIds.contains(study.studyId))
+        .toList();
+
+    final goal =
+        studiesForTheDay.fold(0, (sum, study) => sum + study.goals.daily);
+
+    final entriesLeftToday = goal - currentEntryCount;
 
     if (entriesLeftToday > 1) {
       return "You've got $entriesLeftToday entries left today!";
@@ -79,11 +99,11 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
       return "You've got 1 entry left today, you are almost there!";
     } else if (entriesLeftToday == 0) {
       return "You've reached your daily goal! Great job!";
-    } else if (allEntries < widget.weeklyGoal) {
+    } else if (allEntries < weeklyGoals) {
       return "Way to go on that extra entry! You are getting closer to your weekly goal.";
-    } else if (allEntries > widget.weeklyGoal) {
+    } else if (allEntries > weeklyGoals) {
       return "You've exceeded your weekly goal! Amazing job!";
-    } else if (allEntries == widget.weeklyGoal) {
+    } else if (allEntries == weeklyGoals) {
       return "You've reached your weekly goal! Great job!";
     } else {
       return "";
@@ -135,27 +155,32 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
 
     for (final d in _days) {
       final isToday = d.weekday == today;
-      final diary = widget.diaries
+      final diaries = widget.diaries
           .where(
             (element) => element.start.day == d.day,
           )
-          .firstOrNull;
-      final max = widget.dailyGoal;
-      final current = diary != null ? diary.currentEntry : 0;
+          .toList();
+      final diaryIds = diaries.map((diary) => diary.studyID).toSet();
+      final studies =
+          widget.studies.where((study) => diaryIds.contains(study.studyId));
+
+      final max = studies.fold(0, (sum, study) => sum + study.goals.daily);
+      final current = diaries.isNotEmpty
+          ? diaries.fold(0, (sum, diary) => sum + diary.currentEntry)
+          : 0;
       final isAfter = d.isAfter(now);
 
       final percentage = current / max;
 
-      if (diary?.start.day == now.day && mounted) {
+      if (d.day == now.day && mounted) {
         setState(() {
           currentEntryCount = current;
         });
       }
 
-      final showProgress =
-          diary != null;
+      final showProgress = diaries.isNotEmpty;
 
-      days.add(dayOfTheWeek(_dayAbbreviations[d.weekday]!, isToday, percentage,
+      days.add(dayOfTheWeek(_dayAbbreviations[d.weekday]!, isToday, percentage.isNaN ? 0.0 : percentage,
           showProgress, isAfter));
     }
   }

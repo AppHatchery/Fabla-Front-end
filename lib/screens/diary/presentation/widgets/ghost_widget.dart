@@ -1,15 +1,16 @@
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:rive/rive.dart';
 
 class GhostCompletionWidget extends StatefulWidget {
-  final int currentEntry;
-  final int dailyGoal;
-  final int weeklyGoal;
-  const GhostCompletionWidget(
-      {super.key,
-      required this.currentEntry,
-      required this.dailyGoal,
-      required this.weeklyGoal});
+  final List<StudyModel> studies;
+  final List<DiaryModel> diaries;
+  const GhostCompletionWidget({
+    super.key,
+    required this.studies,
+    required this.diaries,
+  });
 
   @override
   State<GhostCompletionWidget> createState() => _GhostCompletionWidgetState();
@@ -60,8 +61,13 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
   }
 
   determineAnimation() {
+    final totalEntries =
+        widget.diaries.fold(0, (prev, diary) => prev + diary.currentEntry);
+    final totalGoal =
+        widget.studies.fold(0, (prev, study) => prev + study.goals.daily);
+
     //Show Celebration if the daily goal is reached
-    if (widget.currentEntry == widget.dailyGoal) {
+    if (totalEntries == totalGoal) {
       final celebration = _controller.findSMI('Celebration');
       if (celebration != null && mounted) {
         celebration.value = true;
@@ -70,7 +76,7 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
     }
 
     //Show Cheering if the daily goal is exceeded
-    if (widget.currentEntry < widget.dailyGoal) {
+    if (totalEntries < totalGoal) {
       final cheering = _controller.findSMI('Cheering');
       if (cheering != null && mounted) {
         cheering.value = true;
@@ -79,7 +85,7 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
     }
 
     //Show Surprise + Approve if Current Entry is greater than Daily Goal
-    if (widget.currentEntry > widget.dailyGoal) {
+    if (totalEntries > totalGoal) {
       final surprise = _controller.findSMI('Surprise + Approve');
       if (surprise != null && mounted) {
         surprise.value = true;

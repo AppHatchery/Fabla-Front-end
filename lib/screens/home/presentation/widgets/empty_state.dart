@@ -78,3 +78,41 @@ class EndStateWidget extends StatelessWidget {
     );
   }
 }
+
+class DayComplete extends StatelessWidget {
+  const DayComplete({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 47),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/images/complete.png',
+            height: 108,
+          ),
+          const SizedBox(
+            height: 16,
+          ),
+          Text(
+            "That's it for today",
+            style: CustomTypography().titleMedium(),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 6,
+          ),
+          Text(
+            "Check your study calendar to see when your next tasks are due",
+            style: CustomTypography()
+                .bodyMedium(color: CustomColors.textTertiaryContent),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}

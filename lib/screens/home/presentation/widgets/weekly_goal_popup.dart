@@ -7,17 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class WeeklyGoalPopup extends StatefulWidget {
-  final int currentEntries;
-  final int weeklyGoal;
   final List<StudyModel> studies;
   final List<DiaryModel> diaries;
 
   const WeeklyGoalPopup(
-      {super.key,
-      required this.currentEntries,
-      required this.weeklyGoal,
-      required this.studies,
-      required this.diaries});
+      {super.key, required this.studies, required this.diaries});
 
   @override
   State<WeeklyGoalPopup> createState() => _WeeklyGoalPopupState();
@@ -27,23 +21,16 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
     with SingleTickerProviderStateMixin {
   String thisWeek = "";
 
-  Map<Goal, List<DiaryModel>> data = {};
-
-  static List<Color> colors = [
-    CustomColors.productNormal,
-    CustomColors.teal,
-    CustomColors.amber
-  ];
+  Map<StudyModel, List<DiaryModel>> data = {};
 
   @override
   void initState() {
     thisWeek = getThisWeek();
     // create map of study to diaries
     for (var study in widget.studies) {
-      final goal = study.goals;
       final diaries =
           widget.diaries.where((diary) => diary.studyID == study.studyId);
-      data[goal] = diaries.toList();
+      data[study] = diaries.toList();
     }
     super.initState();
   }
@@ -77,12 +64,20 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
               height: 6,
             ),
             Column(
-                children: data.entries.toList().asMap().entries.map((e) {
-              final index = e.key;
-              final value = e.value;
-              return goalWidget(
-                  width, totalWidth, value.key, value.value, colors[index]);
-            }).toList()),
+                children: data.entries.isNotEmpty
+                    ? data.entries.toList().asMap().entries.map((e) {
+                        final value = e.value;
+                        return goalWidget(
+                            width,
+                            totalWidth,
+                            value.key,
+                            value.value,
+                            e.value.key.color ?? CustomColors.productNormal);
+                      }).toList()
+                    : [
+                        Text("No entries needed this week",
+                            style: CustomTypography().titleMedium())
+                      ]),
           ],
         ),
       ),
@@ -99,14 +94,14 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
     return "${formatter.format(monday)} - ${formatter.format(sunday)}";
   }
 
-  Widget goalWidget(double width, double totalWidth, Goal goal,
+  Widget goalWidget(double width, double totalWidth, StudyModel study,
       List<DiaryModel> diaries, Color color) {
-    final lowerGoal = (0.7 * goal.weekly).round();
-    final lowerValue = (lowerGoal / goal.weekly) * totalWidth;
+    final lowerGoal = (0.7 * study.goals.weekly).round();
+    final lowerValue = (lowerGoal / study.goals.weekly) * totalWidth;
 
     final currentEntries = diaries.fold(
         0, (previousValue, element) => previousValue + element.currentEntry);
-    final progress = (currentEntries / goal.weekly) * totalWidth;
+    final progress = (currentEntries / study.goals.weekly) * totalWidth;
     final progressWidth = (progress > totalWidth) ? totalWidth : progress;
 
     return Column(
@@ -115,15 +110,14 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            const Icon(
+            Icon(
               Icons.restart_alt_outlined,
-              color: CustomColors.purpleNormal,
+              color: color,
               size: 20,
             ),
             const SizedBox(width: 6),
-            //TODO: ADD DIARY NAME
             Text(
-              "Repeatable Entry",
+              study.name,
               style: CustomTypography().bodyMedium(),
             )
           ],
@@ -139,7 +133,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
               child: Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: Text(
-                  "Submit at least $lowerGoal repeatable entries this week to complete your goal.",
+                  "Submit at least $lowerGoal ${study.goals.weekly > 1 ? "entries" : "entry"} this week to complete your goal.",
                   style: CustomTypography().caption(),
                   softWrap: true,
                 ),
@@ -199,7 +193,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                             // Adjust padding instead of using SizedBox
                             child: Opacity(
                               opacity: lowerValue == progressWidth ||
-                                      goal.weekly >= progressWidth
+                                      study.goals.weekly >= progressWidth
                                   ? 0
                                   : 1,
                               // Hide the progress indicator when it reaches the lower goal
@@ -247,7 +241,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                             color: color, size: 20),
                         Flexible(
                           child: Text(
-                            "${goal.weekly}",
+                            "${study.goals.weekly}",
                             style: CustomTypography().caption(),
                           ),
                         )

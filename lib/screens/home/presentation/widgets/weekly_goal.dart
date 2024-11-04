@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,34 +8,48 @@ class WeeklyGoalWidget extends StatefulWidget {
   final int currentEntries;
   final int weeklyGoal;
   final bool isExpanded;
+  final List<StudyModel> studies;
   const WeeklyGoalWidget(
       {super.key,
       required this.isExpanded,
       required this.currentEntries,
-      required this.weeklyGoal});
+      required this.weeklyGoal,
+      required this.studies});
 
   @override
   State<WeeklyGoalWidget> createState() => _WeeklyGoalWidgetState();
 }
 
 class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
-  final value = 0.0;
-  @override
-  Widget build(BuildContext context) {
-    double width = 70;
-    //calculate the progress bar width
-    final currentValue = widget.currentEntries;
-    int weeklyGoal = widget.weeklyGoal;
-    double progressValue = (currentValue / weeklyGoal) * width;
+  final double width = 70.0;
+  int weeklyGoal = 0;
+  double progressValue = 0.0;
+  double progressBarWidth = 0.0;
+  double lowerGoal = 0.0;
+  int lowerValue = 0;
+  Color color = CustomColors.productNormal;
 
-    double progressBarWidth = progressValue.isNaN
+  @override
+  void initState() {
+    super.initState();
+
+    //calculate the progress bar width
+    weeklyGoal =
+        widget.studies.fold(0, (sum, study) => sum + study.goals.weekly);
+    progressValue = (widget.currentEntries / weeklyGoal) * width;
+    progressBarWidth = progressValue.isNaN
         ? 0
         : (progressValue > width)
             ? width
             : progressValue;
     //calculate the lower goal width/value
-    int lowerValue = (0.7 * weeklyGoal).round();
-    double lowerGoal = (lowerValue / weeklyGoal) * width;
+    lowerValue = (0.7 * weeklyGoal).round();
+    lowerGoal = (lowerValue / weeklyGoal) * width;
+    color = widget.studies.first.color ?? CustomColors.productNormal;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -68,7 +83,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                       width: 70,
                       height: 6,
                       decoration: BoxDecoration(
-                        color: CustomColors.productLightBackground,
+                        color: color.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(27),
                       ),
                     ),
@@ -80,7 +95,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                       width: progressBarWidth,
                       height: 6,
                       decoration: BoxDecoration(
-                        color: CustomColors.productNormal,
+                        color: color,
                         borderRadius: BorderRadius.circular(27),
                       ),
                     ),
@@ -90,8 +105,8 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                     // left: 70 * value - 10,
                     left: lowerGoal,
                     top: 2,
-                    child: const Icon(CupertinoIcons.flag_fill,
-                        color: CustomColors.productNormal, size: 12),
+                    child:
+                        Icon(CupertinoIcons.flag_fill, color: color, size: 12),
                   ),
                 ],
               ),
@@ -100,9 +115,8 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: Text(
-                "$currentValue/$weeklyGoal",
-                style: CustomTypography()
-                    .caption(color: CustomColors.productNormal),
+                "${widget.currentEntries}/$weeklyGoal",
+                style: CustomTypography().caption(color: color),
               ),
             )
           ],

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/ring_progress_indicator.dart';
@@ -29,7 +30,7 @@ class TodayGoalWidget extends StatefulWidget {
 }
 
 class _TodayGoalWidgetState extends State<TodayGoalWidget> {
-  Map<Goal, List<DiaryModel>> data = {};
+  Map<StudyModel, List<DiaryModel>> data = {};
 
   late StateMachineController _controller;
 
@@ -53,15 +54,16 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   @override
   void initState() {
     widget.isHomeTipClosed.addListener(() {
-      if (widget.isHomeTipClosed.value) _controller.isActive = true;
+      if (widget.isHomeTipClosed.value) determineAnimation();
     });
-
     // create map of study to diaries
     for (var study in widget.studies) {
-      final goal = study.goals;
-      final diaries =
-          widget.diaries.where((diary) => diary.studyID == study.studyId);
-      data[goal] = diaries.toList();
+      final diaries = widget.diaries
+          .where((diary) =>
+              diary.studyID == study.studyId &&
+              diary.due.day == DateTime.now().day)
+          .toList();
+      data[study] = diaries;
     }
 
     super.initState();
@@ -137,26 +139,51 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
           ),
         ),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.restart_alt_outlined,
-              color: CustomColors.purpleNormal,
-              size: 20,
-            ),
-            const SizedBox(width: 6),
-            //TODO: Add Diary Names
-            Flexible(
-              fit: FlexFit.loose,
-              child: Text(
-                "Repeatable Entries: ",
-                style: CustomTypography().bodyMedium(),
-              ),
-            ),
-          ],
-        )
+        SizedBox(width: width, child: entries(data))
       ],
+    );
+  }
+
+  Widget entries(Map<StudyModel, List<DiaryModel>> data) {
+    List<Widget> entryWidgets = [];
+
+    final entriesList = data.entries.toList();
+
+    for (int i = 0; i < entriesList.length; i++) {
+      final entry = entriesList[i];
+      final study = entry.key;
+      final diaries = entry.value;
+
+      final completedCount = diaries
+          .where((diary) => diary.status == DiaryStatus.submitted)
+          .length;
+
+      final displayText = "${study.name}: $completedCount/${study.goals.daily}"
+          "${data.length > 1 && i != data.length - 1 ? ' | ' : ''}";
+      var color = study.color ?? CustomColors.productNormal;
+
+      entryWidgets.add(Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.restart_alt_outlined,
+            color: color,
+            size: 20,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            displayText,
+            style: CustomTypography().bodyMedium(),
+          ),
+        ],
+      ));
+    }
+
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 0.0,
+      runSpacing: 4.0,
+      children: entryWidgets,
     );
   }
 
@@ -175,12 +202,26 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
           .setBoolPreference(key: 'cold_start', value: false);
 
       // change animation after 30 seconds
-      Future.delayed(const Duration(seconds: 30), () => determineAnimation());
+      return Future.delayed(
+          const Duration(seconds: 30), () => determineAnimation());
     }
+
+    final diariesForToday = widget.diaries
+        .where((diary) => diary.due.day == DateTime.now().day)
+        .toList();
+
+    final totalEntries =
+        diariesForToday.fold(0, (prev, diary) => prev + diary.currentEntry);
+    final totalGoal =
+        widget.studies.fold(0, (prev, study) => prev + study.goals.daily);
+    final weeklyGoal =
+        widget.studies.fold(0, (prev, study) => prev + study.goals.weekly);
+
+    print("TE: $totalEntries | TG: $totalGoal | WG: $weeklyGoal");
 
     //Show Searching 1 or Searching 2 if there is no entry
     // Make the animation random with a 50/50 chance of both showing up
-    if (widget.diaries.every((element) => element.currentEntry == 0)) {
+    if (totalEntries == 0) {
       final searchingOne = _controller.findSMI('Searching_1');
       final searchingTwo = _controller.findSMI('Searching_2');
 
@@ -194,8 +235,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     }
 
     // //Show Blinking + Blowing the horn if the daily goal is achieved
-    if (data.entries.any((map) =>
-        map.value.any((element) => element.currentEntry == map.key.daily))) {
+    if (totalEntries == totalGoal) {
       final blowing = _controller.findSMI('Blinking + Blowing the horn');
 
       if (blowing != null && mounted) {
@@ -205,9 +245,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     }
 
     // //Show Achieving the goal if the weekly goal is achieved
-    if (data.entries.any((map) =>
-        map.value.any((element) => element.currentEntry == map.key.weekly) ||
-        widget.weeklyEntries == map.key.weekly)) {
+    if (totalEntries == weeklyGoal) {
       final achieving = _controller.findSMI('Achieving the goal ');
 
       if (achieving != null && mounted) {
@@ -217,9 +255,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     }
 
     // //Show Beyond the goal if the weekly goal is exceeded
-    if (data.entries.any((map) =>
-        map.value.any((element) => element.currentEntry > map.key.weekly) ||
-        widget.weeklyEntries > map.key.weekly)) {
+    if (totalEntries > weeklyGoal) {
       final beyond = _controller.findSMI('Beyond the goal ');
 
       if (beyond != null && mounted) {
@@ -229,8 +265,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     }
 
     // //Show Searching 3 if there is an entry or more
-    if (data.entries
-        .any((map) => map.value.any((element) => element.currentEntry > 0))) {
+    if (totalEntries > 0) {
       final searchingThree = _controller.findSMI('Searching_3');
       if (searchingThree != null && mounted) {
         searchingThree.value = true;

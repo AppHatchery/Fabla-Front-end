@@ -104,7 +104,7 @@ class SummaryRepository {
     try {
       final participant = setupRepository.getParticipant();
       final uploaded = await upload(participant!.studyCode, diary);
-      final study = diaryRepository.getStudy(diary.studyID);
+      final study = await diaryRepository.getStudy(diary.studyID);
       // final entry = diary.status == DiaryStatus.submitted
       //     ? diary.entries
       //     : diary.currentEntry;
