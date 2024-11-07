@@ -5,6 +5,8 @@ import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repo
 import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'dart:developer' as dev;
 
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
+
 /// NotificationManager class is responsible for scheduling notifications
 
 /// The threshold is the number of notification allowed to be scheduled at a time
@@ -79,6 +81,15 @@ class NotificationManager {
               },
             ));
 
+            await PendoService.track("ScheduleReminder", {
+              "status": "scheduled",
+              "page": "home",
+              "notification_type": "reminder",
+              "notification_id": id,
+              "scheduled_time":
+                  "${notification.date.hour}:${notification.date.minute}",
+            });
+
             dev.log(
                 'Scheduling notification - id: $id, title: ${notification.title}, body: ${notification.body}, date: ${notification.date}');
 
@@ -132,6 +143,14 @@ class NotificationManager {
             'diary': diary.id.toString(),
           },
         );
+        await PendoService.track("ScheduleReminder", {
+          "status": "scheduled",
+          "page": "onboarding",
+          "notification_type": "reminder",
+          "notification_id": id,
+          "scheduled_time":
+              "${notification.date.hour}:${notification.date.minute}",
+        });
 
         scheduledCount++;
       }
