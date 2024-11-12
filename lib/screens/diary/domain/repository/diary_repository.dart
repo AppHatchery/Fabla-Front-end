@@ -146,6 +146,16 @@ class DiaryRepository {
     final filteredDiaries =
         unfilteredDiaries.where((diary) => diary.start.isBefore(due)).toList();
 
+    // Change diaries statuses if missed
+    for (final diary in filteredDiaries) {
+      if (now.isAfter(diary.due) &&
+          (diary.status != DiaryStatus.complete ||
+              diary.status != DiaryStatus.submitted) &&
+          (diary.currentEntry < diary.entries && diary.currentEntry == 0)) {
+        diary.status = DiaryStatus.missed;
+      }
+    }
+
     // Sort filtered diaries by due date in descending order
     filteredDiaries.sort((a, b) => b.due.compareTo(a.due));
 
@@ -157,10 +167,11 @@ class DiaryRepository {
       final entryCount = diary.currentEntry;
 
       if (diary.status == DiaryStatus.missed) {
+        diaries.add(diary);
         continue;
       }
 
-      if (entryCount == 0) {
+      if (entryCount == 0 && diary.status != DiaryStatus.missed) {
         diaries.add(diary);
       } else {
         for (var i = 0; i <= entryCount; i++) {
@@ -174,7 +185,8 @@ class DiaryRepository {
           final prompt =
               promptRepository.load(newDiary, newDiary.prompts.first.id);
 
-          if (prompt.answer != null || diary.status == DiaryStatus.idle) {
+          if (prompt.answer != null ||
+              (diary.status == DiaryStatus.idle && diary.due.isAfter(now))) {
             diaries.add(newDiary);
           }
         }
@@ -417,8 +429,8 @@ class DiaryRepository {
 
     if (diary.status == DiaryStatus.submitted) {
       tags.add(const Tag(text: "Done", type: TagType.time));
-    } else if (diary.status == DiaryStatus.missed) {
-      tags.add(const Tag(text: "Missed", type: TagType.time));
+      // } else if (diary.status == DiaryStatus.missed) {
+      //   tags.add(const Tag(text: "Missed", type: TagType.time));
     } else if (diary.status == DiaryStatus.complete) {
       tags.add(const Tag(text: "Awaiting Submission", type: TagType.time));
     } else if (diary.status == DiaryStatus.ongoing) {
