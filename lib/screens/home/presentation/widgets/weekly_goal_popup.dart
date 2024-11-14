@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -99,8 +100,8 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
     final lowerGoal = (0.7 * study.goals.weekly).round();
     final lowerValue = (lowerGoal / study.goals.weekly) * totalWidth;
 
-    final currentEntries = diaries.fold(
-        0, (previousValue, element) => previousValue + element.currentEntry);
+    final currentEntries =
+        diaries.where((diary) => diary.status == DiaryStatus.submitted).length;
     final progress = (currentEntries / study.goals.weekly) * totalWidth;
     final progressWidth = (progress > totalWidth) ? totalWidth : progress;
 

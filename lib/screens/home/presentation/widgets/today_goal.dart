@@ -154,6 +154,10 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       final study = entry.key;
       final diaries = entry.value;
 
+      diaries.forEach((diary) {
+        print("Diary: ${diary.id} | ${diary.status}");
+      });
+
       final completedCount = diaries
           .where((diary) => diary.status == DiaryStatus.submitted)
           .length;
