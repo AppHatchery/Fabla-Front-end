@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -166,7 +167,7 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
 
       final max = studies.fold(0, (sum, study) => sum + study.goals.daily);
       final current = diaries.isNotEmpty
-          ? diaries.fold(0, (sum, diary) => sum + diary.currentEntry)
+          ? diaries.where((diary) => diary.status == DiaryStatus.submitted).length
           : 0;
       final isAfter = d.isAfter(now);
 

@@ -215,7 +215,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         .toList();
 
     final totalEntries =
-        diariesForToday.fold(0, (prev, diary) => prev + diary.currentEntry);
+        diariesForToday.where((diary) => diary.status == DiaryStatus.submitted).length;
     final totalGoal =
         widget.studies.fold(0, (prev, study) => prev + study.goals.daily);
     final weeklyGoal =
