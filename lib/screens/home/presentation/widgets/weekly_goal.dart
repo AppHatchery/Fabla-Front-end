@@ -34,7 +34,6 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
     super.initState();
 
     //calculate the progress bar width
-    print("Current Entries: ${widget.currentEntries}");
     weeklyGoal =
         widget.studies.fold(0, (sum, study) => sum + study.goals.weekly);
     progressValue = (widget.currentEntries / weeklyGoal) * width;
