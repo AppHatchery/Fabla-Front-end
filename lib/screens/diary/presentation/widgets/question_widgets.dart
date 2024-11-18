@@ -1,6 +1,7 @@
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../theme/custom_colors.dart';
@@ -557,5 +558,75 @@ class _FreeTextQuestionSummaryState extends State<FreeTextQuestionSummary> {
         ),
       ),
     );
+  }
+}
+
+class WebViewResponseCard extends StatefulWidget {
+  final DiaryModel diary;
+  final PromptModel prompt;
+  final void Function(String) respond;
+  const WebViewResponseCard(
+      {super.key,
+      required this.diary,
+      required this.prompt,
+      required this.respond});
+
+  @override
+  State<WebViewResponseCard> createState() => _WebViewResponseCardState();
+}
+
+class _WebViewResponseCardState extends State<WebViewResponseCard> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Column(
+                children: widget.prompt.answer?.response?.isEmpty ?? true
+                    ? [
+                        CustomFlatButton(
+                          onClick: () => showModal(),
+                          text: "Enter Survey",
+                        )
+                      ]
+                    : [
+                        CustomFlatButton(
+                          onClick: () => showModal(),
+                          color: CustomColors.fillWhite,
+                          textColor: CustomColors.productNormal,
+                          text: "Retake Survey",
+                        ),
+                        Text(
+                          "✅ Your previous survey responses have been collected. If you retake the survey it will count as a new response. ",
+                          style: CustomTypography().bodyLarge(
+                              color: CustomColors.textTertiaryContent),
+                        ),
+                      ])
+          ],
+        ));
+  }
+
+  void showModal() {
+    showModalBottomSheet(
+        backgroundColor: Colors.transparent,
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        elevation: 0,
+        useSafeArea: true,
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              minChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) {
+                return BottomWebViewModal(
+                  url: widget.prompt.subtitle!,
+                  respond: widget.respond,
+                );
+              },
+            ));
   }
 }

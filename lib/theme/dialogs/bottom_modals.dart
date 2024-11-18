@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
+import 'package:audio_diaries_flutter/theme/components/webview.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
 import 'package:audio_session/audio_session.dart';
@@ -984,5 +985,90 @@ class BottomErrorModal extends StatelessWidget {
             ],
           )),
     );
+  }
+}
+
+class BottomWebViewModal extends StatefulWidget {
+  final String url;
+  final void Function(String) respond;
+  const BottomWebViewModal({super.key, required this.url, required this.respond});
+
+  @override
+  State<BottomWebViewModal> createState() => _BottomWebViewModalState();
+}
+
+class _BottomWebViewModalState extends State<BottomWebViewModal> {
+  late DateTime start;
+  late DateTime end;
+
+  @override
+  void initState() {
+    start = DateTime.now();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+      width: width,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF3F3F3),
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(14), topRight: Radius.circular(14)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 26,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                GestureDetector(
+                  onTap: () => exit(),
+                  child: const Icon(
+                    CupertinoIcons.clear_circled_solid,
+                    size: 26,
+                    color: CustomColors.textSecondaryContent,
+                  ),
+                )
+              ],
+            ),
+          ),
+          Expanded(
+              child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Container(
+              width: width,
+              color: CustomColors.greyTrack,
+              child: CustomWebViewWidget(url: widget.url),
+            ),
+          )),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: CustomFlatButton(onClick: () => save(), text: "Finish Survey"),
+          )
+        ],
+      ),
+    );
+  }
+
+  exit() async {
+    final results = await showDialog<bool>(
+        context: context,
+        builder: (context) => ExitPopUp(
+              title: "Exit Survey?",
+              subheader: "If you exit, your progress will not be saved.",
+            ));
+    if (results == true && mounted) Navigator.pop(context);
+  }
+
+  save() {
+    end = DateTime.now();
+    widget.respond("Start: $start | End: $end");
+    Navigator.pop(context);
   }
 }
