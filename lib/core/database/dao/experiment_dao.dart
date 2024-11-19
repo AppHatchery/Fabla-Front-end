@@ -14,6 +14,11 @@ class ExperimentDAO {
     box.put(experiment);
   }
 
+  void replaceExperiment(Experiment experiment) {
+    deleteExperiment();
+    addExperiment(experiment);
+  }
+
   void deleteExperiment() {
     box.removeAll();
   }

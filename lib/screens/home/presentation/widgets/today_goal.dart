@@ -211,13 +211,12 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         .toList();
 
     final totalEntries =
-        diariesForToday.fold(0, (prev, diary) => prev + diary.currentEntry);
+        diariesForToday.where((diary) => diary.status == DiaryStatus.submitted).length;
     final totalGoal =
         widget.studies.fold(0, (prev, study) => prev + study.goals.daily);
     final weeklyGoal =
         widget.studies.fold(0, (prev, study) => prev + study.goals.weekly);
 
-    print("TE: $totalEntries | TG: $totalGoal | WG: $weeklyGoal");
 
     //Show Searching 1 or Searching 2 if there is no entry
     // Make the animation random with a 50/50 chance of both showing up

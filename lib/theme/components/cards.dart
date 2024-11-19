@@ -39,7 +39,7 @@ class DiaryCard extends StatefulWidget {
 }
 
 class _DiaryCardState extends State<DiaryCard> {
-  final now = DateTime.now();
+  DateTime now = DateTime.now();
   late Duration remainingTime;
   late bool closed;
   String? study;
@@ -48,9 +48,6 @@ class _DiaryCardState extends State<DiaryCard> {
 
   @override
   void initState() {
-    remainingTime = widget.diary!.due.difference(now);
-    closed = isClosed();
-    _startTimer();
     getStudyName();
     super.initState();
   }
@@ -65,20 +62,25 @@ class _DiaryCardState extends State<DiaryCard> {
   }
 
   void _startTimer() {
-    if (!closed) {
-      timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        setState(() {
-          remainingTime = widget.diary!.due.difference(DateTime.now());
-          if (remainingTime.isNegative) {
-            if (widget.diary!.status != DiaryStatus.complete) closed = true;
-            timer.cancel();
-          }
-        });
+    if (!closed && timer == null) {
+      timer = Timer.periodic(const Duration(seconds: 1), (t) {
+        if (mounted) {
+          setState(() {
+            remainingTime = widget.diary!.due.difference(DateTime.now());
+            if (remainingTime.isNegative) {
+              if (widget.diary!.status != DiaryStatus.complete) closed = true;
+              t.cancel();
+              timer = null;
+            }
+          });
+        }
       });
     }
   }
 
   bool isClosed() {
+    now = DateTime.now();
+    remainingTime = widget.diary!.due.difference(now);
     final diary = widget.diary!;
     return (diary.due.isBefore(now) && diary.status != DiaryStatus.complete) ||
         diary.start.isAfter(now) ||
@@ -93,11 +95,14 @@ class _DiaryCardState extends State<DiaryCard> {
   @override
   void dispose() {
     timer?.cancel();
+    timer = null;
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    closed = isClosed();
+    _startTimer();
     return Stack(
       children: [
         Container(

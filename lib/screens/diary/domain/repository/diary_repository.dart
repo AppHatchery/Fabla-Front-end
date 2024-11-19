@@ -146,6 +146,16 @@ class DiaryRepository {
     final filteredDiaries =
         unfilteredDiaries.where((diary) => diary.start.isBefore(due)).toList();
 
+    // Change diaries statuses if missed
+    for (final diary in filteredDiaries) {
+      if (now.isAfter(diary.due) &&
+          (diary.status != DiaryStatus.complete ||
+              diary.status != DiaryStatus.submitted) &&
+          (diary.currentEntry < diary.entries && diary.currentEntry == 0)) {
+        diary.status = DiaryStatus.missed;
+      }
+    }
+
     // Sort filtered diaries by due date in descending order
     filteredDiaries.sort((a, b) => b.due.compareTo(a.due));
 
@@ -157,10 +167,11 @@ class DiaryRepository {
       final entryCount = diary.currentEntry;
 
       if (diary.status == DiaryStatus.missed) {
+        diaries.add(diary);
         continue;
       }
 
-      if (entryCount == 0) {
+      if (entryCount == 0 && diary.status != DiaryStatus.missed) {
         diaries.add(diary);
       } else {
         for (var i = 0; i <= entryCount; i++) {
@@ -174,7 +185,8 @@ class DiaryRepository {
           final prompt =
               promptRepository.load(newDiary, newDiary.prompts.first.id);
 
-          if (prompt.answer != null || diary.status == DiaryStatus.idle) {
+          if (prompt.answer != null ||
+              (diary.status == DiaryStatus.idle && diary.due.isAfter(now))) {
             diaries.add(newDiary);
           }
         }
@@ -263,8 +275,46 @@ class DiaryRepository {
       return element.start.isAfter(start) && element.start.isBefore(end);
     }).toList();
 
+    final List<DiaryModel> _diaries =
+        filtered.map((e) => DiaryModel.fromEntity(e)).toList();
+
+    final List<DiaryModel> updated = [];
+    final DateTime now = DateTime.now();
+    final promptRepository = PromptRepository();
+
+    // Process filtered diaries
+    for (var diary in _diaries) {
+      final entryCount = diary.currentEntry;
+
+      if (diary.status == DiaryStatus.missed) {
+        updated.add(diary);
+        continue;
+      }
+
+      if (entryCount == 0 && diary.status != DiaryStatus.missed) {
+        updated.add(diary);
+      } else {
+        for (var i = 0; i <= entryCount; i++) {
+          final newDiary = diary.copyWith(
+              id: diary.id,
+              studyID: diary.studyID,
+              currentEntry: i,
+              status: entryCount != i ? DiaryStatus.submitted : null);
+
+          //check if diary is answered
+          final prompt =
+              promptRepository.load(newDiary, newDiary.prompts.first.id);
+
+          if (prompt.answer != null ||
+              (diary.status == DiaryStatus.idle && diary.due.isAfter(now))) {
+            updated.add(newDiary);
+          }
+        }
+      }
+    }
+
     // Map filtered diaries to DiaryModel objects and return them
-    return filtered.map((e) => DiaryModel.fromEntity(e)).toList();
+    return updated;
   }
 
   /// Retrieves a diary model by its ID.
@@ -380,8 +430,13 @@ class DiaryRepository {
   /// An integer representing the total number of diary entries within the specified date range.
   int getTotalEntries(DateTime start, DateTime end) {
     final diaries = getRangeDiaries(start, end);
-    return diaries.fold(
-        0, (previousValue, element) => previousValue + element.currentEntry);
+
+    // Filter diaries that are only submitted
+    final submittedDiaries = diaries
+        .where((diary) => diary.status == DiaryStatus.submitted)
+        .toList();
+
+    return submittedDiaries.length;
   }
 
   /// Asynchronous method to add a list of DiaryEntity objects to the data source.
@@ -417,8 +472,8 @@ class DiaryRepository {
 
     if (diary.status == DiaryStatus.submitted) {
       tags.add(const Tag(text: "Done", type: TagType.time));
-    } else if (diary.status == DiaryStatus.missed) {
-      tags.add(const Tag(text: "Missed", type: TagType.time));
+      // } else if (diary.status == DiaryStatus.missed) {
+      //   tags.add(const Tag(text: "Missed", type: TagType.time));
     } else if (diary.status == DiaryStatus.complete) {
       tags.add(const Tag(text: "Awaiting Submission", type: TagType.time));
     } else if (diary.status == DiaryStatus.ongoing) {

@@ -211,7 +211,8 @@ class SetupRepository {
   setColorForStudy(List<StudyModel> studies) async {
     final pref = PreferenceService();
     final source = await pref.getStringPreference(key: 'study_color_source');
-    final Map<String, String> data = source != null ? json.decode(source) : {};
+    final Map<String, String> data = source != null ? (json.decode(source) as Map<String, dynamic>)
+        .map((key, value) => MapEntry(key, value.toString())) : {};
 
     for (int i = 0; i < studies.length; i++) {
       final name = studies[i].name;
