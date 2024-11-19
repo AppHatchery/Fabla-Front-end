@@ -1,6 +1,6 @@
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/participant_details.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
@@ -117,10 +117,8 @@ class _WelcomePageState extends State<WelcomePage> {
   }
 
   void navigateToNextPage() {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => const ParticipantDetailsPage()));
+    RouteService()
+          .navigate(null, context: context, current: 'welcome');
   }
 
   startPendo() async {

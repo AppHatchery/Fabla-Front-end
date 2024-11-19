@@ -1,4 +1,4 @@
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/dynamic_page.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -89,7 +89,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
             padding:
                 const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
             child: CustomFlatButton(
-              onClick: () => navigateToNextPage(),
+              onClick: () => navigateToNextPage(context),
               text: "Continue",
               color: CustomColors.fillWhite,
               textColor: CustomColors.productNormalActive,
@@ -100,22 +100,21 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
     );
   }
 
-  void navigateToNextPage() async {
+  void navigateToNextPage(BuildContext context) async {
     final results = await Permission.notification.request();
     await PreferenceService()
         .setBoolPreference(key: 'notification_requested', value: true);
 
     await PendoService.track("NotificationAccess", {"state": results.name});
     if (results.isGranted) {
-
       if (context.mounted) {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const DynamicOnBoardingHub()));
+        RouteService()
+            .navigate(null, context: context, current: 'notification_access');
       }
     } else {
       if (context.mounted) {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const DynamicOnBoardingHub()));
+        RouteService()
+            .navigate(null, context: context, current: 'notification_access');
       }
       //TODO: Show error
     }

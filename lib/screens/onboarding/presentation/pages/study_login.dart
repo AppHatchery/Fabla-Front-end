@@ -1,6 +1,6 @@
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/study_login_cubit.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/confirm.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/verification_code.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -64,12 +64,8 @@ class _StudyLoginState extends State<StudyLogin> {
                       });
                     } else if (state is StudyLoginSuccess) {
                       error = false;
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ConfrimJoiningPage(
-                                    experiment: state.experiment,
-                                  )));
+                      RouteService().navigate(state.experiment,
+                          context: context, current: 'login');
                     }
                   }),
                 ),

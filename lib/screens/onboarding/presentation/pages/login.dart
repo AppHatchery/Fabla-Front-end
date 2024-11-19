@@ -1,6 +1,6 @@
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welcome.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/verification_code.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -65,11 +65,8 @@ class _LoginPageState extends State<LoginPage> {
               }, listener: (context, state) {
                 if (state is LoginSuccess) {
                   error = false;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const WelcomePage()),
-                  );
+                  RouteService()
+                      .navigate(null, context: context, current: 'participant_login');
                 } else if (state is LoginError) {
                   setState(() {
                     error = true;

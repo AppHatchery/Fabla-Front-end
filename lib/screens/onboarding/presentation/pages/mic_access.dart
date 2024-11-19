@@ -1,6 +1,6 @@
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/notification_access.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/mic_tester.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -205,7 +205,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
                   ),
                 ),
                 CustomFlatButton(
-                  onClick: () => navigateToNextPage(),
+                  onClick: () => navigateToNextPage(context),
                   text: permission ? "Continue" : "Continue",
                   color: CustomColors.fillWhite,
                   isDisabled: requested == true && permission == false,
@@ -248,7 +248,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
         toFile: path, codec: Codec.aacADTS, sampleRate: 44100, bitRate: 48000);
   }
 
-  void navigateToNextPage() async {
+  void navigateToNextPage(BuildContext context) async {
     final results = await Permission.microphone.request();
     await PendoService.track("OnBoardingMicAccess", {"button": "continue"});
     setState(() {
@@ -260,10 +260,8 @@ class _MicAccessPageState extends State<MicAccessPage> {
         await PreferenceService()
             .setBoolPreference(key: 'mic_requested', value: requested);
         if (context.mounted) {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const NotificationAccessPage()));
+          RouteService()
+          .navigate(null, context: context, current: 'mic_access');
         }
       } else {
         startRecorder();
