@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -51,8 +52,7 @@ class GoalProgressIndicators extends StatelessWidget {
           final map = entry.value;
           Goal goal = map.key.goals;
           final diaries = map.value;
-          final completed = diaries.fold(0,
-              (previousValue, element) => previousValue + element.currentEntry);
+          final completed = diaries.where((diary) => diary.status == DiaryStatus.submitted).length;
           double progress = completed / goal.daily;
           double size = baseSize + (index * spacing);
 

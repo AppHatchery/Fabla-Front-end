@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/completion/completion_cubit.dart';
@@ -176,7 +177,7 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
   Widget avatarCircularProgress(
       List<StudyModel> studies, List<DiaryModel> diaries) {
     final totalEntries =
-        diaries.fold(0, (prev, diary) => prev + diary.currentEntry);
+        diaries.where((diary) => diary.status == DiaryStatus.submitted).length;
     final totalGoal =
         studies.fold(0, (prev, study) => prev + study.goals.daily);
 
