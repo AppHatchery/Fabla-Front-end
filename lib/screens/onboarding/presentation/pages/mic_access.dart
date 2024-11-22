@@ -21,7 +21,8 @@ class MicAccessPage extends StatefulWidget {
   State<MicAccessPage> createState() => _MicAccessPageState();
 }
 
-class _MicAccessPageState extends State<MicAccessPage> {
+class _MicAccessPageState extends State<MicAccessPage>
+    with WidgetsBindingObserver {
   late FlutterSoundRecorder recorder;
   bool permission = false;
   bool requested = false;
@@ -41,6 +42,18 @@ class _MicAccessPageState extends State<MicAccessPage> {
   void dispose() {
     recorder.closeRecorder();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      recorderInit();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.inactive) {
+      recorder.closeRecorder();
+    }
+    super.didChangeAppLifecycleState(state);
   }
 
   @override
@@ -261,7 +274,7 @@ class _MicAccessPageState extends State<MicAccessPage> {
             .setBoolPreference(key: 'mic_requested', value: requested);
         if (context.mounted) {
           RouteService()
-          .navigate(null, context: context, current: 'mic_access');
+              .navigate(null, context: context, current: 'mic_access');
         }
       } else {
         startRecorder();

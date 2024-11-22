@@ -19,6 +19,7 @@ import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dar
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
@@ -39,6 +40,7 @@ import 'services/notification_service.dart';
 
 //Global variables
 late ObjectBox objectbox;
+late List<CameraDescription> cameras;
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(
@@ -56,6 +58,7 @@ void main() async {
     return true;
   };
   objectbox = await ObjectBox.create();
+  cameras = await availableCameras();
   //await configureAmplify();
   await NotificationService.init();
   await PendoService.init();

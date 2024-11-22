@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
@@ -21,6 +19,7 @@ import '../screens/onboarding/presentation/pages/mic_access.dart';
 import '../screens/onboarding/presentation/pages/notification_access.dart';
 
 class RouteService {
+  // Main Flow for the onboarding process without any extra permissions
   final List<Map<String, String>> _flow = [
     {'route': 'login', 'next': 'confirm', 'type': 'login'},
     {'route': 'confirm', 'next': 'participant_login', 'type': 'info'},
@@ -67,12 +66,20 @@ class RouteService {
   Future<Widget> getRoute() async {
     await PreferenceService().setBoolPreference(key: 'cold_start', value: true);
 
+    // Get additional permissions if available
+    final extraPermissions = await PreferenceService().getStringListPreference(
+          key: 'extra_permissions',
+        ) ??
+        [];
+
     // Fetch all preferences concurrently
     final preferences = await Future.wait([
       PreferenceService().getBoolPreference(key: 'setup'),
       PreferenceService().getBoolPreference(key: 'notification_requested'),
       PreferenceService().getBoolPreference(key: 'active_dates_seen'),
       PreferenceService().getBoolPreference(key: 'mic_requested'),
+      PreferenceService().getBoolPreference(key: 'location'),
+      PreferenceService().getBoolPreference(key: 'camera'),
       PreferenceService().getBoolPreference(key: 'onboarding_complete'),
     ]);
 
@@ -80,7 +87,12 @@ class RouteService {
     final notificationAccess = preferences[1] ?? false;
     final activeDates = preferences[2] ?? false;
     final micAccess = preferences[3] ?? false;
-    final onboardingComplete = preferences[4] ?? false;
+    final locationAccess = extraPermissions.contains('location')
+        ? (preferences[4] ?? false)
+        : true;
+    final cameraAccess =
+        extraPermissions.contains('camera') ? (preferences[5] ?? false) : true;
+    final onboardingComplete = preferences[6] ?? false;
 
     final setupRepository = SetupRepository();
     final participant = setupRepository.getParticipant();
@@ -97,6 +109,12 @@ class RouteService {
     if (!micAccess) {
       return const MicAccessPage();
     }
+    if (!cameraAccess) {
+      return const CameraAccess();
+    }
+    if (!locationAccess) {
+      return const LocationAccess();
+    }
     if (!notificationAccess) {
       return const NotificationAccessPage();
     }
@@ -111,7 +129,10 @@ class RouteService {
 
   Future<dynamic> navigate(dynamic arguments,
       {required BuildContext context, required String current}) async {
-    final extraPermissions = <String>['camera', 'location'];
+    final extraPermissions = await PreferenceService().getStringListPreference(
+          key: 'extra_permissions',
+        ) ??
+        [];
 
     //add extra permissions to the flow
     final flow = <Map<String, String>>{}; // Set to avoid duplicates
@@ -142,6 +163,7 @@ class RouteService {
 
     final next =
         flow.firstWhere((element) => element['route'] == current)['next'];
+
     switch (next) {
       case 'login':
         Navigator.push(context,
@@ -211,10 +233,6 @@ class RouteService {
       default:
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const StudyLogin()));
-    }
-    if (context.mounted) {
-      return Navigator.push(
-          context, MaterialPageRoute(builder: (context) => const StudyLogin()));
     }
   }
 }
