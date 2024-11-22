@@ -45,6 +45,7 @@ class ParticipantDAO {
   /// add(newParticipant); // Store the new participant record in the database.
   /// ```
   void add(Participant participant) {
+    remove();
     box.put(participant);
   }
 
@@ -69,5 +70,9 @@ class ParticipantDAO {
       participant.name = name;
       box.put(participant);
     }
+  }
+
+  void remove(){
+    box.removeAll();
   }
 }

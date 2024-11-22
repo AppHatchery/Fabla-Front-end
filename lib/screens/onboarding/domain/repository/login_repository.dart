@@ -159,7 +159,7 @@ class LoginRepository {
 
         // Verify the code and save the experiment data to the database
         if (code == experiment.login) {
-          _experimentDAO.addExperiment(Experiment.fromModel(experiment));
+          _experimentDAO.replaceExperiment(Experiment.fromModel(experiment));
           final setup = SetupRepository();
           final questions = data['onboarding_questions'] as List;
           setup.saveOnBoardingQuestions(questions);
