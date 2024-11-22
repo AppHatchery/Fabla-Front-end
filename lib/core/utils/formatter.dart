@@ -186,6 +186,7 @@ final Map<String, ResponseType> _responseTypeMap = {
   'radio': ResponseType.radio,
   'single': ResponseType.radio,
   'slider': ResponseType.slider,
+  'webview': ResponseType.webview,
 };
 
 /// Function that converts a string representation of a response type to its corresponding enum value.
@@ -205,6 +206,7 @@ final Map<ResponseType, String> _responseStringMap = {
   ResponseType.multiple: 'multiple',
   ResponseType.radio: 'radio',
   ResponseType.slider: 'slider',
+  ResponseType.webview: 'webview',
 };
 
 /// Function to convert ResponseType enum value to string

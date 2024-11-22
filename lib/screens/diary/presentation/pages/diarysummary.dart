@@ -139,8 +139,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                                 child: child,
                               );
                             },
-                            transitionDuration:
-                                const Duration(milliseconds: 200), // Adjust as needed
+                            transitionDuration: const Duration(
+                                milliseconds: 200), // Adjust as needed
                           ),
                           (route) => false,
                         );
@@ -383,6 +383,28 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           child: TextAnswerCard(
             answer: prompt.answer!.response!,
             delete: () => deleteResponse(prompt, ''),
+          ),
+        );
+      case ResponseType.webview:
+        final width = MediaQuery.of(context).size.width;
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          child: Container(
+            width: width,
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+            decoration: BoxDecoration(
+              color: CustomColors.grey,
+              borderRadius: BorderRadius.circular(12),
+              shape: BoxShape.rectangle,
+            ),
+            child: Row(children: [
+              Expanded(
+                child: Text("Response submitted through webview",
+                    style: CustomTypography().bodyMedium(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ),
+            ]),
           ),
         );
       //TODO: Add support for other response types

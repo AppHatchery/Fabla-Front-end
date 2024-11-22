@@ -48,6 +48,7 @@ class Prompt {
     assert(ResponseType.radio.index == 3);
     assert(ResponseType.slider.index == 4);
     assert(ResponseType.textAudio.index == 5);
+    assert(ResponseType.webview.index == 6);
   }
 
   factory Prompt.fromModel(PromptModel model) {

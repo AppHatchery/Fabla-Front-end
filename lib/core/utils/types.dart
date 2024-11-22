@@ -1,4 +1,4 @@
-enum ResponseType { recording, text, multiple, radio, slider, textAudio }
+enum ResponseType { recording, text, multiple, radio, slider, textAudio, webview }
 
 enum OptionType {
   radio,
@@ -10,22 +10,4 @@ enum TagType {
   time,
   questions,
   remainder,
-}
-
-enum QuestionType {
-  physically,
-  emotionally,
-  intensity,
-  lonely,
-  leftout,
-  socialinteraction,
-  understood,
-  stressed,
-  whereyouare,
-  peoplearoundyou,
-}
-
-enum GqlModelType {
-  participant,
-  userMetatdata,
 }

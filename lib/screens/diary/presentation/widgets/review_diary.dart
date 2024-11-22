@@ -240,6 +240,28 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                     ),
                   );
                 });
+      case ResponseType.webview:
+        final width = MediaQuery.of(context).size.width;
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          child: Container(
+            width: width,
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+            decoration: BoxDecoration(
+              color: CustomColors.grey,
+              borderRadius: BorderRadius.circular(12),
+              shape: BoxShape.rectangle,
+            ),
+            child: Row(children: [
+              Expanded(
+                child: Text("Response submitted through webview",
+                    style: CustomTypography().bodyMedium(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ),
+            ]),
+          ),
+        );
       //TODO: Add support for other response types
       default:
         return const SizedBox.shrink();
