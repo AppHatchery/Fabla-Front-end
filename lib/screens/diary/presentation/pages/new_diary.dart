@@ -508,13 +508,13 @@ class _QuestionPageState extends State<QuestionPage>
     String questionTip;
 
     if (prompt.responseType == ResponseType.slider) {
-      questionTip = "Please use the slider to rate:";
+      questionTip = prompt.subtitle ?? "Please use the slider to rate:";
     } else if (prompt.responseType == ResponseType.multiple) {
-      questionTip = "Please check all that apply:";
+      questionTip = prompt.subtitle ?? "Please check all that apply:";
     } else if (prompt.responseType == ResponseType.radio) {
-      questionTip = "Please check 1 option:";
+      questionTip = prompt.subtitle ?? "Please check 1 option:";
     } else if (prompt.responseType == ResponseType.text) {
-      questionTip = "Please type your answer:";
+      questionTip = prompt.subtitle ?? "Please type your answer:";
     } else if (prompt.responseType == ResponseType.webview) {
       questionTip =
           "Close the pop-up window when you are done filling the survey.";
