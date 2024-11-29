@@ -484,18 +484,10 @@ class _QuestionPageState extends State<QuestionPage>
         disabled: disabled,
       );
     } else if (prompt.responseType == ResponseType.text) {
-      String? freeTextAnswer = prompt.answer?.response ?? "";
-
       responseWidget = FreeTextQuestionCard(
-        value: freeTextAnswer,
-        onChanged: (value) {
-          if (value == null || value.trim().isEmpty) {
-            widget.answerAdded(false);
-          } else {
-            widget.answerAdded(true);
-            save(prompt, value, null);
-          }
-        },
+        diary: widget.diary,
+        respond: (String type) => recordResponse(prompt, type),
+        prompt: prompt,
       );
     } else if (prompt.responseType == ResponseType.recording ||
         prompt.responseType == ResponseType.textAudio) {
