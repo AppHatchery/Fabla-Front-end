@@ -45,7 +45,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
     //calculate the lower goal width/value
     lowerValue = (0.7 * weeklyGoal).round();
     lowerGoal = (lowerValue / weeklyGoal) * width;
-    color = widget.studies.first.color ?? CustomColors.productNormal;
+    color = widget.studies.firstOrNull?.color ?? CustomColors.productNormal;
   }
 
   @override
