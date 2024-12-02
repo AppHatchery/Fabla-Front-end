@@ -101,6 +101,7 @@ dependencies:
   dotted_border: ^2.1.0
   flutter_secure_storage: ^9.2.1
   wakelock_plus:
+  disable_battery_optimization: ^1.1.1
 
 dev_dependencies:
   flutter_test:
