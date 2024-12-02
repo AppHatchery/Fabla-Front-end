@@ -166,73 +166,101 @@ class RouteService {
 
     switch (next) {
       case 'login':
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const StudyLogin()));
+        if (context.mounted) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const StudyLogin()));
+        }
         break;
       case 'confirm':
         final experiment = arguments as ExperimentModel;
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => ConfirmJoiningPage(
-                      experiment: experiment,
-                    )));
+        if (context.mounted) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ConfirmJoiningPage(
+                        experiment: experiment,
+                      )));
+        }
         break;
       case 'participant_login':
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const LoginPage()));
+        if (context.mounted) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const LoginPage()));
+        }
         break;
       case 'welcome':
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const WelcomePage()));
+        if (context.mounted) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const WelcomePage()));
+        }
         break;
       case 'participant_details':
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const ParticipantDetailsPage()));
+        if (context.mounted) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const ParticipantDetailsPage()));
+        }
         break;
       case 'mic_access':
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const MicAccessPage()));
+        if (context.mounted) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const MicAccessPage()));
+        }
         break;
       case 'notification_access':
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const NotificationAccessPage()));
+        if (context.mounted) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const NotificationAccessPage()));
+        }
         break;
       case 'dynamic_onboarding':
-        await Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const DynamicOnBoardingHub()));
+        if (context.mounted) {
+          await Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const DynamicOnBoardingHub()));
+        }
         break;
       case 'active_dates':
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const ActiveDatesPage()));
+        if (context.mounted) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const ActiveDatesPage()));
+        }
         break;
       case 'finish':
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const FinishPage()));
+        if (context.mounted) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const FinishPage()));
+        }
         break;
       case 'hub':
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const Hub()),
-            (route) => false);
+        if (context.mounted) {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const Hub()),
+              (route) => false);
+        }
 
         break;
       case 'camera':
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const CameraAccess()));
+        if (context.mounted) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const CameraAccess()));
+        }
         break;
       case 'location':
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const LocationAccess()));
+        if (context.mounted) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const LocationAccess()));
+        }
       default:
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const StudyLogin()));
+        if (context.mounted) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const StudyLogin()));
+        }
     }
   }
 }
