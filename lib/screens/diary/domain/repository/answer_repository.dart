@@ -142,4 +142,8 @@ class AnswerRepository {
       print("Catch Error: $e");
     }
   }
+
+  removeAllResponses() {
+    dao.removeAll();
+  }
 }

@@ -78,4 +78,8 @@ class AnswerDAO {
   void removeResponse(int id) {
     box.remove(id);
   }
+
+  void removeAll(){
+    box.removeAll();
+  }
 }
