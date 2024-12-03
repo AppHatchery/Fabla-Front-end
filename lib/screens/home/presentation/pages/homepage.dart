@@ -194,7 +194,7 @@ class _HomePageState extends State<HomePage>
                             height: 24,
                           ),
                           TodayGoalWidget(
-                            dailyGoal: studies.first.goals.daily,
+                            dailyGoal: studies.firstOrNull?.goals.daily ?? 0,
                             studies: studies,
                             diaries: weeksDiaries,
                             weeklyEntries: entries,

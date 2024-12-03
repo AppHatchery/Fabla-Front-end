@@ -101,13 +101,15 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                     ),
                   ),
                   //lower goal
-                  Positioned(
-                    // left: 70 * value - 10,
-                    left: lowerGoal,
-                    top: 2,
-                    child:
-                        Icon(CupertinoIcons.flag_fill, color: color, size: 12),
-                  ),
+                  lowerGoal.isNaN
+                      ? const SizedBox.shrink()
+                      : Positioned(
+                          // left: 70 * value - 10,
+                          left: lowerGoal,
+                          top: 2,
+                          child: Icon(CupertinoIcons.flag_fill,
+                              color: color, size: 12),
+                        ),
                 ],
               ),
             ),
