@@ -13,6 +13,7 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rive/rive.dart';
 
 class DynamicOnBoardingHub extends StatefulWidget {
   const DynamicOnBoardingHub({super.key});
@@ -212,12 +213,19 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   late TextEditingController textEditingController;
   String? answer;
 
+  late StateMachineController _controller;
+  double animationHeight = 0;
+  double foregroundHeight = 0.75;
+  String animationURL = "";
+  String stateMachineName = "";
+
   @override
   void initState() {
     setState(() {
       answer = widget.question.answer;
       textEditingController = TextEditingController(
           text: widget.question.type == 'text' ? answer : null);
+      animationURL = getAnimationAssets();
     });
     super.initState();
   }
@@ -225,6 +233,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   @override
   void dispose() {
     textEditingController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -287,20 +296,28 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
                                           ),
                                         ),
                                         const Expanded(child: SizedBox()),
-                                        SizedBox(
-                                            height: constraintHeight * 0.8,
-                                            child: AvatarBackground(
-                                                height: height,
-                                                width: width,
-                                                image:
-                                                    "assets/images/avatar_onboarding_placeholder.png",
-                                                avatarType: "image",
-                                                animation: "",
-                                                onContinue: () {},
-                                                children: [
-                                                  getWidget(widget.question,
-                                                      index: widget.index)
-                                                ]))
+                                        ConstrainedBox(
+                                            constraints: BoxConstraints(
+                                              minHeight: constraintHeight
+                                            ),
+                                            child: IntrinsicHeight(
+                                              child: AvatarBackground(
+                                                  height: height,
+                                                  width: width,
+                                                  foregroundHeight:
+                                                      foregroundHeight,
+                                                  image: "",
+                                                  avatarType: "animation",
+                                                  animation: animationURL,
+                                                  animationHeight:
+                                                      animationHeight,
+                                                  onContinue: () {},
+                                                  onInit: onInit,
+                                                  children: [
+                                                    getWidget(widget.question,
+                                                        index: widget.index)
+                                                  ]),
+                                            ))
                                       ],
                                     ),
                                   ),
@@ -329,6 +346,62 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
             );
           })),
     );
+  }
+
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, stateMachineName);
+    ctrl?.isActive = false;
+
+    //height of animation
+    setState(() {
+      animationHeight = art.height;
+    });
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
+    }
+  }
+
+  getAnimationAssets() {
+    switch (widget.question.type) {
+      case 'text':
+        setState(() {
+          stateMachineName = "Animation_6";
+        });
+        return "assets/animations/onboarding/left_right.riv";
+      case 'time':
+        setState(() {
+          stateMachineName = "Animation_7";
+        });
+        return "assets/animations/onboarding/time.riv";
+      case 'radio':
+        setState(() {
+          stateMachineName = "Animation_8";
+          foregroundHeight = 0.39;
+        });
+        return "assets/animations/onboarding/hide_peek.riv";
+      case 'multiple':
+        setState(() {
+          stateMachineName = "Animation_6";
+          // foregroundHeight = 0.39;
+        });
+        return "assets/animations/onboarding/left_right.riv";
+      case 'slider':
+        setState(() {
+          stateMachineName = "Animation_6";
+        });
+        return "assets/animations/onboarding/left_right.riv";
+      default:
+        setState(() {
+          stateMachineName = "Animation_6";
+        });
+        return "assets/animations/onboarding/left_right.riv";
+    }
   }
 
   Widget getWidget(Questions question, {int? index}) {
@@ -415,6 +488,8 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
   late String name;
   bool canGoBack = false;
 
+  late StateMachineController _controller;
+
   @override
   void initState() {
     setState(() {
@@ -424,6 +499,12 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
       }
     });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -474,9 +555,11 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                               SizedBox(
                                 height: 300,
                                 width: width,
-                                child: Image.asset(
-                                    'assets/images/avatar_onboarding_placeholder.png',
-                                    fit: BoxFit.fitWidth),
+                                child: RiveAnimation.asset(
+                                  "assets/animations/onboarding/clipboard.riv",
+                                  onInit: onInit,
+                                  fit: BoxFit.fitWidth,
+                                ),
                               ),
                             ]),
                       ),
@@ -496,5 +579,19 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
         }),
       ),
     );
+  }
+
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, "Animation_4");
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
+    }
   }
 }

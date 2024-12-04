@@ -19,12 +19,21 @@ class NotificationAccessPage extends StatefulWidget {
 class _NotificationAccessPageState extends State<NotificationAccessPage> {
   bool canGoBack = false;
 
+  //Animations
+  late rive.StateMachineController _controller;
+
   @override
   void initState() {
     if (Navigator.of(context).canPop()) {
       canGoBack = true;
     }
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -76,10 +85,11 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
                   SizedBox(
                     height: height >= 700 ? 300 : height * 0.65,
                     width: width,
-                    child: const rive.RiveAnimation.asset(
-                        stateMachines: [],
-                        'assets/animations/onboarding/onboarding_getnotified.riv',
-                        fit: BoxFit.fitWidth),
+                    child: rive.RiveAnimation.asset(
+                      'assets/animations/onboarding/notification_access.riv',
+                      fit: BoxFit.fitWidth,
+                      onInit: onInit,
+                    ),
                   ),
                 ],
               ),
@@ -100,6 +110,20 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
     );
   }
 
+  onInit(rive.Artboard art) async {
+    var ctrl = rive.StateMachineController.fromArtboard(art, "Animation_3");
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
+    }
+  }
+
   void navigateToNextPage() async {
     final results = await Permission.notification.request();
     await PreferenceService()
@@ -107,15 +131,18 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
 
     await PendoService.track("NotificationAccess", {"state": results.name});
     if (results.isGranted) {
-
       if (context.mounted) {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const DynamicOnBoardingHub()));
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const DynamicOnBoardingHub()));
       }
     } else {
       if (context.mounted) {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const DynamicOnBoardingHub()));
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const DynamicOnBoardingHub()));
       }
       //TODO: Show error
     }

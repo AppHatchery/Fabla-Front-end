@@ -20,12 +20,35 @@ class WelcomePage extends StatefulWidget {
 class _WelcomePageState extends State<WelcomePage> {
   final SetupRepository repository = SetupRepository();
 
+  late StateMachineController _controller;
+
   late Participant _participant;
   @override
   void initState() {
     _participant = repository.getParticipant()!;
     startPendo();
     super.initState();
+  }
+
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, "Animation_1");
+
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -87,9 +110,10 @@ class _WelcomePageState extends State<WelcomePage> {
                               SizedBox(
                                 height: 250,
                                 width: width,
-                                child: const RiveAnimation.asset(
-                                  'assets/animations/onboarding/onboarding_welcome.riv',
+                                child: RiveAnimation.asset(
+                                  'assets/animations/onboarding/onboarding.riv',
                                   fit: BoxFit.fitWidth,
+                                  onInit: onInit,
                                 ),
                               ),
                             ],
@@ -125,7 +149,8 @@ class _WelcomePageState extends State<WelcomePage> {
 
   startPendo() async {
     final experiment = repository.getExperiment();
-    await PendoService.start(_participant.studyCode.toString(), experiment.login);
+    await PendoService.start(
+        _participant.studyCode.toString(), experiment.login);
 
     await PendoService.track(
         "StudyLogin", {"datetime": DateTime.now().toString()});

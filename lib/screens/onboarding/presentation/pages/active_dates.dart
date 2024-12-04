@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/fini
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rive/rive.dart';
 
 import '../../../../services/preference_service.dart';
 import '../../../../theme/custom_colors.dart';
@@ -22,6 +23,10 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
   late SetupCubit setupCubit;
   bool canGoBack = false;
 
+  //Animations
+  late StateMachineController _controller;
+  double animationHeight = 0;
+
   @override
   void initState() {
     if (Navigator.of(context).canPop()) {
@@ -30,6 +35,12 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
     setupCubit = BlocProvider.of<SetupCubit>(context);
     load();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -127,11 +138,14 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                             child: AvatarBackground(
                                 height: height,
                                 width: width,
-                                image: "assets/images/active_dates.png",
+                                image: "",
                                 avatarType: "animation",
                                 animation:
-                                    "assets/animations/onboarding/onboarding_activedays.riv",
-                                    scrollable: false,
+                                    "assets/animations/onboarding/active_dates.riv",
+                                scrollable: false,
+                                animationHeight: animationHeight,
+                                foregroundHeight: 0.6,
+                                onInit: onInit,
                                 onContinue: navigateToNextPage,
                                 children: [
                                   Text(
@@ -146,7 +160,6 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                                     height: 12,
                                   ),
                                   const CustomCalender(),
-
                                   const SizedBox(height: 6)
                                 ]),
                           )
@@ -166,6 +179,25 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
         ],
       ),
     );
+  }
+
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, 'Animation_12');
+    ctrl?.isActive = false;
+
+    //height of animation
+    setState(() {
+      animationHeight = art.height;
+    });
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
+    }
   }
 
   void navigateToNextPage() async {
