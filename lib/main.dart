@@ -37,8 +37,16 @@ import 'screens/diary/presentation/pages/diarysummary.dart';
 import 'screens/home/presentation/cubit/cubit/home_cubit.dart';
 import 'services/notification_service.dart';
 
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'package:amplify_analytics_pinpoint/amplify_analytics_pinpoint.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:audio_diaries_flutter/core/notifications/controllers/notifications_controller.dart';
+import 'amplifyconfiguration.dart'; // Add this import
+
 //Global variables
 late ObjectBox objectbox;
+NotificationsController notificationController = NotificationsController();
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(
@@ -60,10 +68,36 @@ void main() async {
   await NotificationService.init();
   await PendoService.init();
   final route = await RouteService().getRoute();
+  try {
+    await _configureAmplify();
+    await _configureFirebase();
+  } on AmplifyAlreadyConfiguredException {
+    debugPrint('Amplify configuration failed.');
+  }
   runApp(MyApp(
     route: route,
   ));
   FlutterNativeSplash.remove(); // Close Splash Screen
+}
+
+//pusH notification
+Future<void> _configureAmplify() async {
+  await Amplify.addPlugins([
+    AmplifyAuthCognito(),
+    AmplifyAnalyticsPinpoint(),
+  ]);
+  await Amplify.configure(amplifyconfig);
+}
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  notificationController = NotificationsController();
+  await notificationController.messageHandler(message);
+}
+
+Future<void> _configureFirebase() async {
+  await Firebase.initializeApp();
+  await notificationController.initialize(); // Ensure this waits
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 }
 
 class MyApp extends StatefulWidget {
@@ -124,7 +158,6 @@ class _MyAppState extends State<MyApp> {
                   switch (settings.name) {
                     case "/NewDiaryPage":
                       {
-
                         final Map arguments = settings.arguments as Map;
                         final DiaryModel diary =
                             arguments['diary'] as DiaryModel;
@@ -235,7 +268,8 @@ class _HubState extends State<Hub>
     final repository = SetupRepository();
     final participant = repository.getParticipant();
     final experiment = repository.getExperiment();
-    await PendoService.start(participant!.studyCode.toString(), experiment.login);
+    await PendoService.start(
+        participant!.studyCode.toString(), experiment.login);
   }
 
   _makeNavBars() {

@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "645895584054",
     "project_id": "audio-diaries",
-    "storage_bucket": "audio-diaries.appspot.com"
+    "storage_bucket": "audio-diaries.firebasestorage.app"
   },
   "client": [
     {

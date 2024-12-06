@@ -1,4 +1,10 @@
 {
+  "analytics": {
+    "audiodiariespushnotifications": {
+      "providerPlugin": "awscloudformation",
+      "service": "Pinpoint"
+    }
+  },
   "api": {
     "audiodiaries01": {
       "dependsOn": [],

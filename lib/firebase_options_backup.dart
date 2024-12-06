@@ -54,7 +54,7 @@ class DefaultFirebaseOptions {
     appId: '1:645895584054:android:9a8fa3e27b5aab0b4a5b97',
     messagingSenderId: '645895584054',
     projectId: 'audio-diaries',
-    storageBucket: 'audio-diaries.firebasestorage.app',
+    storageBucket: 'audio-diaries.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -62,8 +62,7 @@ class DefaultFirebaseOptions {
     appId: '1:645895584054:ios:aa3ccda0502986ff4a5b97',
     messagingSenderId: '645895584054',
     projectId: 'audio-diaries',
-    storageBucket: 'audio-diaries.firebasestorage.app',
+    storageBucket: 'audio-diaries.appspot.com',
     iosBundleId: 'edu.emory.audio.diaries',
   );
-
 }
