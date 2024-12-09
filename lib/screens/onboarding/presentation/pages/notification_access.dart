@@ -53,8 +53,6 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
-    print("Battery Optimization: $batteryOptimization");
-    print("Requested: $requested");
     return Scaffold(
       backgroundColor: CustomColors.backgroundSecondary,
       appBar: AppBar(
