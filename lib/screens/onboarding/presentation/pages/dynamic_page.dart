@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
@@ -218,6 +219,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   double foregroundHeight = 0.75;
   String animationURL = "";
   String stateMachineName = "";
+  bool loop = true;
 
   @override
   void initState() {
@@ -259,88 +261,69 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       body: SafeArea(
           bottom: false,
           child: LayoutBuilder(builder: (context, constraints) {
-            final constraintHeight = constraints.maxHeight;
             return SingleChildScrollView(
-              child: SizedBox(
-                height: constraintHeight,
-                child: Container(
-                  color: CustomColors.fillWhite,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, constraint) =>
-                              SingleChildScrollView(
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                  minHeight: constraint.maxHeight),
-                              child: IntrinsicHeight(
-                                child: GestureDetector(
-                                  onTap: () => FocusScope.of(context).unfocus(),
-                                  child: Container(
-                                    color: CustomColors.backgroundSecondary,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 16.0),
-                                          child: Text(
-                                            widget.question.title,
-                                            style: CustomTypography()
-                                                .headlineLarge(
-                                                    color:
-                                                        CustomColors.textWhite),
-                                          ),
-                                        ),
-                                        const Expanded(child: SizedBox()),
-                                        ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                              minHeight: constraintHeight
-                                            ),
-                                            child: IntrinsicHeight(
-                                              child: AvatarBackground(
-                                                  height: height,
-                                                  width: width,
-                                                  foregroundHeight:
-                                                      foregroundHeight,
-                                                  image: "",
-                                                  avatarType: "animation",
-                                                  animation: animationURL,
-                                                  animationHeight:
-                                                      animationHeight,
-                                                  onContinue: () {},
-                                                  onInit: onInit,
-                                                  children: [
-                                                    getWidget(widget.question,
-                                                        index: widget.index)
-                                                  ]),
-                                            ))
-                                      ],
+              child: Container(
+                color: CustomColors.fillWhite,
+                height: constraints.maxHeight,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => FocusScope.of(context).unfocus(),
+                        child: LayoutBuilder(builder: (context, constraint) {
+                          return SingleChildScrollView(
+                            child: Container(
+                              height: constraint.maxHeight,
+                              color: CustomColors.backgroundSecondary,
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0),
+                                    child: Text(
+                                      widget.question.title,
+                                      style: CustomTypography().headlineLarge(
+                                          color: CustomColors.textWhite),
                                     ),
                                   ),
-                                ),
+                                  // const Expanded(child: SizedBox()),
+                                  Flexible(
+                                    child: AvatarBackground(
+                                        height: constraint.maxHeight,
+                                        width: width,
+                                        foregroundHeight: foregroundHeight,
+                                        image: "",
+                                        avatarType: "animation",
+                                        animation: animationURL,
+                                        animationHeight: animationHeight,
+                                        onContinue: () {},
+                                        onInit: onInit,
+                                        children: [
+                                          getWidget(widget.question,
+                                              index: widget.index)
+                                        ]),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        }),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: CustomFlatButton(
-                            onClick: () => {
-                                  FocusScope.of(context).unfocus(),
-                                  widget.onContinue(
-                                      textEditingController.text != ''
-                                          ? textEditingController.text
-                                          : answer)
-                                },
-                            text: "Continue"),
-                      ),
-                    ],
-                  ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: CustomFlatButton(
+                          onClick: () => {
+                                FocusScope.of(context).unfocus(),
+                                widget.onContinue(
+                                    textEditingController.text != ''
+                                        ? textEditingController.text
+                                        : answer)
+                              },
+                          // isDisabled: answer != null || textEditingController.text.isNotEmpty,
+                          text: "Continue"),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -368,39 +351,60 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   }
 
   getAnimationAssets() {
-    switch (widget.question.type) {
-      case 'text':
-        setState(() {
-          stateMachineName = "Animation_6";
-        });
-        return "assets/animations/onboarding/left_right.riv";
-      case 'time':
-        setState(() {
-          stateMachineName = "Animation_7";
-        });
-        return "assets/animations/onboarding/time.riv";
-      case 'radio':
-        setState(() {
-          stateMachineName = "Animation_8";
-          foregroundHeight = 0.39;
-        });
-        return "assets/animations/onboarding/hide_peek.riv";
-      case 'multiple':
-        setState(() {
-          stateMachineName = "Animation_6";
-          // foregroundHeight = 0.39;
-        });
-        return "assets/animations/onboarding/left_right.riv";
-      case 'slider':
-        setState(() {
-          stateMachineName = "Animation_6";
-        });
-        return "assets/animations/onboarding/left_right.riv";
-      default:
-        setState(() {
-          stateMachineName = "Animation_6";
-        });
-        return "assets/animations/onboarding/left_right.riv";
+    if (widget.question.type == 'time') {
+      setState(() {
+        stateMachineName = "Animation_7";
+      });
+      return "assets/animations/onboarding/time.riv";
+    } else {
+      //Select animation randomly
+      final animations = [
+        {
+          'stateMachineName': 'Animation_6',
+          'animationURL': 'assets/animations/onboarding/left_right.riv',
+          'foregroundHeight': 0.75,
+          'loop': true
+        },
+        {
+          'stateMachineName': 'Animation_8',
+          'animationURL': 'assets/animations/onboarding/hide_peek.riv',
+          'foregroundHeight': 0.39,
+          'loop': true,
+        },
+        {
+          'stateMachineName': 'Animation_12',
+          'animationURL': 'assets/animations/onboarding/floats_in.riv',
+          'foregroundHeight': 0.55,
+          'loop': true
+        },
+        {
+          'stateMachineName': 'Animation_9',
+          'animationURL': 'assets/animations/onboarding/flying_left_right.riv',
+          'foregroundHeight': 0.75,
+          'loop': false
+        },
+        {
+          'stateMachineName': 'Animation_5',
+          'animationURL': 'assets/animations/onboarding/questions.riv',
+          'foregroundHeight': 0.75,
+          'loop': true
+        },
+        {
+          'stateMachineName': 'Animation_10',
+          'animationURL': 'assets/animations/onboarding/rolling.riv',
+          'foregroundHeight': 0.75,
+          'loop': false
+        },
+      ];
+
+      final randomizer = Random().nextInt(animations.length);
+      final random = animations[randomizer];
+      setState(() {
+        stateMachineName = random['stateMachineName'] as String;
+        foregroundHeight = random['foregroundHeight'] as double;
+        loop = random['loop'] as bool;
+      });
+      return random['animationURL'];
     }
   }
 
@@ -419,17 +423,16 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       return OnBoardingTextField(
           subtitle: question.subtitle ?? '', controller: textEditingController);
     } else if (question.type == 'radio') {
-      // return OnBoardingRadioOptions(
-      //   subtitle: question.subtitle,
-      //   options: question.options!,
-      //   value: answer,
-      //   onChanged: (String? value) {
-      //     setState(() {
-      //       answer = value;
-      //     });
-      //   },
-      // );
-      return SizedBox();
+      return OnBoardingRadioOptions(
+        subtitle: question.subtitle ?? '',
+        options: question.options!,
+        value: answer,
+        onChanged: (String? value) {
+          setState(() {
+            answer = value;
+          });
+        },
+      );
     } else if (question.type == 'multiple') {
       final selected = question.answer != null
           ? json

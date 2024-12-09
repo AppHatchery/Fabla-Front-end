@@ -74,8 +74,8 @@ class AvatarBackground extends StatelessWidget {
       top: animationHeight * foregroundHeight, // Simplified height logic
       left: 0,
       right: 0,
+      bottom: 0,
       child: Container(
-        height: height,
         width: width,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         decoration: const BoxDecoration(
@@ -87,7 +87,7 @@ class AvatarBackground extends StatelessWidget {
         ),
         child: ListView(
           shrinkWrap: true,
-          physics:const NeverScrollableScrollPhysics(),
+          // physics:const NeverScrollableScrollPhysics(),
           children: children,
         ),
       ),
