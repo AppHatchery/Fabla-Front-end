@@ -74,11 +74,13 @@
 	<false/>
 
     <key>FirebaseAppDelegateProxyEnabled</key>
-	<true/>
+    <true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
 	</array>
+
+
 
 </dict>
 </plist>
