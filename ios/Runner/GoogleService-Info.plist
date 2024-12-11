@@ -2,18 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>570513798471-tnghfij3rng9l6bdokrj7a581ipoe70q.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
-	<string>AIzaSyBFTVXi2gpbrprZUkIBCjJ_dcj8fh76yhM</string>
+	<string>AIzaSyBxeOKbHjYhQbKAeyjjsiYrzHhsDxoCzHk</string>
 	<key>GCM_SENDER_ID</key>
-	<string>645895584054</string>
+	<string>570513798471</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>edu.emory.audio.diaries</string>
 	<key>PROJECT_ID</key>
-	<string>audio-diaries</string>
+	<string>audio-diaries-demo</string>
 	<key>STORAGE_BUCKET</key>
-	<string>audio-diaries.firebasestorage.app</string>
+	<string>audio-diaries-demo.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +27,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:645895584054:ios:aa3ccda0502986ff4a5b97</string>
+	<string>1:570513798471:ios:212c9e9db293f0b2c2c862</string>
 </dict>
 </plist>

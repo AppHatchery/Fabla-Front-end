@@ -50,20 +50,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCzHavxuTMLJ5k4Fnc1JBwI3b49idkwQfo',
-    appId: '1:570513798471:android:f0fa8bbfaac6daedc2c862',
-    messagingSenderId: '570513798471',
-    projectId: 'audio-diaries-demo',
-    storageBucket: 'audio-diaries-demo.firebasestorage.app',
+    apiKey: 'AIzaSyBNUqvKXwhdvYjneUG61KKAzDkS1sscsXk',
+    appId: '1:645895584054:android:9a8fa3e27b5aab0b4a5b97',
+    messagingSenderId: '645895584054',
+    projectId: 'audio-diaries',
+    storageBucket: 'audio-diaries.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBxeOKbHjYhQbKAeyjjsiYrzHhsDxoCzHk',
-    appId: '1:570513798471:ios:212c9e9db293f0b2c2c862',
-    messagingSenderId: '570513798471',
-    projectId: 'audio-diaries-demo',
-    storageBucket: 'audio-diaries-demo.firebasestorage.app',
-    androidClientId: '570513798471-tnghfij3rng9l6bdokrj7a581ipoe70q.apps.googleusercontent.com',
+    apiKey: 'AIzaSyBFTVXi2gpbrprZUkIBCjJ_dcj8fh76yhM',
+    appId: '1:645895584054:ios:aa3ccda0502986ff4a5b97',
+    messagingSenderId: '645895584054',
+    projectId: 'audio-diaries',
+    storageBucket: 'audio-diaries.firebasestorage.app',
     iosBundleId: 'edu.emory.audio.diaries',
   );
 
