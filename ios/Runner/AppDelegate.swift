@@ -2,6 +2,8 @@ import UIKit
 import Flutter
 import Pendo
 import FirebaseCore
+import FirebaseMessaging
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -20,6 +22,15 @@ import FirebaseCore
       )
 
       application.registerForRemoteNotifications()
+      
+      Messaging.messaging().token { token, error in
+          if let error = error {
+              print("Error fetching FCM token..................ios: \(error)")
+          } else if let token = token {
+              print("FCM token.........................ios: \(token)")
+          }
+      }
+
       
       
     
