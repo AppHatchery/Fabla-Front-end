@@ -1,12 +1,12 @@
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
-import 'package:audio_diaries_flutter/theme/custom_icons.dart';
+// import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
-import 'package:disable_battery_optimization/disable_battery_optimization.dart';
+// import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart' as rive;
-import 'dart:io' show Platform;
+// import 'dart:io' show Platform;
 
 import '../../../../services/pendo_service.dart';
 import '../../../../services/preference_service.dart';
@@ -22,7 +22,7 @@ class NotificationAccessPage extends StatefulWidget {
 class _NotificationAccessPageState extends State<NotificationAccessPage>
     with WidgetsBindingObserver {
   bool canGoBack = false;
-  bool batteryOptimization = false;
+  // bool batteryOptimization = false;
   bool requested = false;
 
   @override
@@ -31,14 +31,14 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
     if (Navigator.of(context).canPop()) {
       canGoBack = true;
     }
-    checkBattery();
+    // checkBattery();
     super.initState();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      checkBattery();
+      // checkBattery();
     }
     super.didChangeAppLifecycleState(state);
   }
@@ -87,90 +87,84 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                                 .headlineLarge(color: CustomColors.textWhite),
                           ),
                           const SizedBox(height: 40.0),
-                          !requested
-                              ? Image.asset(
-                                  "assets/images/notification_example.png",
-                                  width: width,
-                                )
-                              : batteryOptimization
-                                  ? Image.asset(
-                                      "assets/images/notification_example.png",
-                                      width: width,
-                                    )
-                                  : Container(
-                                      width: width,
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: CustomColors.warningFill,
-                                        border: Border.all(
-                                          color: CustomColors.warningActive,
-                                          width: 2,
-                                        ),
-                                        borderRadius: BorderRadius.circular(11),
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const Icon(CustomIcons.cancel,
-                                                  size: 20,
-                                                  color: CustomColors
-                                                      .warningActive),
-                                              const SizedBox(
-                                                width: 10,
-                                              ),
-                                              Flexible(
-                                                child: Text(
-                                                  "Oops! We noticed your phone has a battery saving mode ON, this can impact receiving notifications to complete your diaries. To ensure the study runs smoothly for you we recommend you disable the power mode.",
-                                                  style: CustomTypography()
-                                                      .bodyLarge(
-                                                          color: CustomColors
-                                                              .warningActive),
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                          const SizedBox(height: 12),
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const SizedBox(
-                                                  height: 20, width: 20),
-                                              const SizedBox(
-                                                width: 10,
-                                              ),
-                                              TextButton(
-                                                  style: TextButton.styleFrom(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 4),
-                                                    alignment: Alignment.center,
-                                                    backgroundColor:
-                                                        CustomColors
-                                                            .warningActive,
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              11),
-                                                    ),
-                                                  ),
-                                                  onPressed: () =>
-                                                      openSetting(),
-                                                  child: Text("Open Settings",
-                                                      style: CustomTypography()
-                                                          .bodyLarge(
-                                                              color: CustomColors
-                                                                  .textWhite)))
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    )
+                          Image.asset(
+                            "assets/images/notification_example.png",
+                            width: width,
+                          )
+                          // : Container(
+                          //     width: width,
+                          //     padding: const EdgeInsets.all(16),
+                          //     decoration: BoxDecoration(
+                          //       color: CustomColors.warningFill,
+                          //       border: Border.all(
+                          //         color: CustomColors.warningActive,
+                          //         width: 2,
+                          //       ),
+                          //       borderRadius: BorderRadius.circular(11),
+                          //     ),
+                          //     child: Column(
+                          //       children: [
+                          //         Row(
+                          //           crossAxisAlignment:
+                          //               CrossAxisAlignment.start,
+                          //           children: [
+                          //             const Icon(CustomIcons.cancel,
+                          //                 size: 20,
+                          //                 color: CustomColors
+                          //                     .warningActive),
+                          //             const SizedBox(
+                          //               width: 10,
+                          //             ),
+                          //             Flexible(
+                          //               child: Text(
+                          //                 "Oops! We noticed your phone has a battery saving mode ON, this can impact receiving notifications to complete your diaries. To ensure the study runs smoothly for you we recommend you disable the power mode.",
+                          //                 style: CustomTypography()
+                          //                     .bodyLarge(
+                          //                         color: CustomColors
+                          //                             .warningActive),
+                          //               ),
+                          //             )
+                          //           ],
+                          //         ),
+                          //         const SizedBox(height: 12),
+                          //         Row(
+                          //           crossAxisAlignment:
+                          //               CrossAxisAlignment.start,
+                          //           children: [
+                          //             const SizedBox(
+                          //                 height: 20, width: 20),
+                          //             const SizedBox(
+                          //               width: 10,
+                          //             ),
+                          //             TextButton(
+                          //                 style: TextButton.styleFrom(
+                          //                   padding: const EdgeInsets
+                          //                       .symmetric(
+                          //                       horizontal: 8,
+                          //                       vertical: 4),
+                          //                   alignment: Alignment.center,
+                          //                   backgroundColor:
+                          //                       CustomColors
+                          //                           .warningActive,
+                          //                   shape:
+                          //                       RoundedRectangleBorder(
+                          //                     borderRadius:
+                          //                         BorderRadius.circular(
+                          //                             11),
+                          //                   ),
+                          //                 ),
+                          //                 onPressed: () =>
+                          //                     openSetting(),
+                          //                 child: Text("Open Settings",
+                          //                     style: CustomTypography()
+                          //                         .bodyLarge(
+                          //                             color: CustomColors
+                          //                                 .textWhite)))
+                          //           ],
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   )
                         ],
                       ),
                     ),
@@ -213,9 +207,10 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
         requested = true;
       });
     }
-    checkBattery();
+    // checkBattery();
     if (results.isGranted) {
-      if (context.mounted && batteryOptimization) {
+      // if (context.mounted && batteryOptimization) {
+      if (context.mounted) {
         RouteService()
             .navigate(null, context: context, current: 'notification_access');
       }
@@ -228,30 +223,30 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
     }
   }
 
-  checkBattery() async {
-    if (mounted) {
-      if (Platform.isAndroid) {
-        final _batteryOptimization =
-            await DisableBatteryOptimization.isBatteryOptimizationDisabled ??
-                true;
-        setState(() {
-          batteryOptimization = _batteryOptimization;
-        });
-      } else {
-        setState(() {
-          batteryOptimization = true;
-        });
-      }
-    }
-  }
+  // checkBattery() async {
+  //   if (mounted) {
+  //     if (Platform.isAndroid) {
+  //       final _batteryOptimization =
+  //           await DisableBatteryOptimization.isBatteryOptimizationDisabled ??
+  //               true;
+  //       setState(() {
+  //         batteryOptimization = _batteryOptimization;
+  //       });
+  //     } else {
+  //       setState(() {
+  //         batteryOptimization = true;
+  //       });
+  //     }
+  //   }
+  // }
 
-  openSetting() async {
-    bool? allowed = await DisableBatteryOptimization
-        .showDisableBatteryOptimizationSettings();
-    if (mounted) {
-      setState(() {
-        batteryOptimization = allowed ?? false;
-      });
-    }
-  }
+  // openSetting() async {
+  //   bool? allowed = await DisableBatteryOptimization
+  //       .showDisableBatteryOptimizationSettings();
+  //   if (mounted) {
+  //     setState(() {
+  //       batteryOptimization = allowed ?? false;
+  //     });
+  //   }
+  // }
 }
