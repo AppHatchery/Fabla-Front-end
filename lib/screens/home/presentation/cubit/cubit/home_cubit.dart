@@ -45,6 +45,7 @@ class HomeCubit extends Cubit<HomeState> {
           monday.subtract(const Duration(days: 1)),
           sunday.add(const Duration(days: 1)));
       final weekDiaries = repository.getRangeDiaries(monday, sunday);
+      final completedStudy = await noMoreDiaries();
 
       final ids = weekDiaries.map((e) => e.studyID).toSet().toList();
       final studies = await repository.getStudies(ids);
@@ -60,8 +61,8 @@ class HomeCubit extends Cubit<HomeState> {
           .toList();
 
       updated.sort((a, b) => b.compareTo(a));
-      emit(HomeLoaded(
-          updated, weekDiaries, diaries.isNotEmpty, studies, entries));
+      emit(HomeLoaded(updated, weekDiaries, diaries.isNotEmpty, studies,
+          entries, completedStudy));
     } catch (e) {
       debugPrint("Error loading home page: $e");
       emit(const HomeError("Something went wrong"));
@@ -96,6 +97,15 @@ class HomeCubit extends Cubit<HomeState> {
   //Retrieving diaries due on a specific date for the calendar widget
   List<DiaryModel> getAllDiariesThisDay(DateTime date) {
     return repository.getDailyDiaries(date);
+  }
+
+  // Checking if there are no more diaries for study
+  // ! Potential problem: Premature showing of 'End of Journey' if study is ongoing and updatable
+  Future<bool> noMoreDiaries() async {
+    final today = DateTime.now();
+    final diaries = await getAllDiaries();
+    final last = diaries.last;
+    return today.isAfter(last.due);
   }
 }
 
