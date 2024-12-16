@@ -716,8 +716,10 @@ class BottomStudyInfoPopUp extends StatelessWidget {
             const SizedBox(
               height: 24,
             ),
-            CustomFormatterText(text: description,)
-            ],
+            CustomFormatterText(
+              text: description,
+            )
+          ],
         ),
       ),
     );
@@ -1142,6 +1144,79 @@ class DeletePopUp extends StatelessWidget {
                       onClick: () => Navigator.pop(context, true),
                       text: "Delete",
                       color: CustomColors.warningActive,
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ExitPopUp extends StatelessWidget {
+  final String title;
+  final String subheader;
+  const ExitPopUp({super.key, required this.title, required this.subheader});
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      contentPadding: const EdgeInsets.all(0),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Colors.grey, width: 1)),
+      surfaceTintColor: CustomColors.fillWhite,
+      children: [
+        Container(
+          constraints: const BoxConstraints.tightFor(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Title
+              Text(
+                title,
+                style: CustomTypography().headlineMedium(),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(
+                height: 24,
+              ),
+
+              // Message
+              Text(
+                subheader,
+                style: CustomTypography().bodyLarge(),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(
+                height: 24,
+              ),
+
+              // Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomFlatButton(
+                      onClick: () => Navigator.pop(context, false),
+                      text: "Dismiss",
+                      color: CustomColors.greyLight,
+                      borderColor: CustomColors.greyLight,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 18,
+                  ),
+                  Expanded(
+                    child: CustomFlatButton(
+                      onClick: () => Navigator.pop(context, true),
+                      text: "Exit",
+                      color: CustomColors.warningActive,
+                      borderColor: CustomColors.warningActive,
                     ),
                   ),
                 ],

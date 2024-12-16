@@ -91,6 +91,9 @@ dependencies:
   #URL Launcher
   url_launcher: ^6.1.14
 
+  #Web
+  webview_flutter: ^4.10.0
+
   #Pendo
   pendo_sdk: ^3.4.1
 

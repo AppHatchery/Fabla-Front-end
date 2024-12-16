@@ -53,6 +53,18 @@ dart run build_runner build
 ```
 flutter run
 ```
+5. Setup amplify project
+```
+famplify pull --appId d1f2k81mx528zu --envName fablapush
+```
+6. Checkout dev enviroment
+```
+amplify env checkout fablapush
+```
+7. Pull amplify project
+```
+amplify pull
+```
 
 ## Project Structure
 The project is structured as follows:

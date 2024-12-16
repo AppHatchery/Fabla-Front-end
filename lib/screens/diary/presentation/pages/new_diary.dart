@@ -149,9 +149,12 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                     Navigator.pushAndRemoveUntil(
                       context,
                       PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => const Hub(),
-                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                          const begin = Offset(-1.0, 0.0); // Left to right for back-to-home effect
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            const Hub(),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(-1.0,
+                              0.0); // Left to right for back-to-home effect
                           const end = Offset.zero;
                           const curve = Curves.easeInOut;
 
@@ -164,9 +167,10 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                             child: child,
                           );
                         },
-                        transitionDuration: const Duration(milliseconds: 300), // Matches iOS animation speed
+                        transitionDuration: const Duration(
+                            milliseconds: 300), // Matches iOS animation speed
                       ),
-                          (route) => false, // Clears the entire stack
+                      (route) => false, // Clears the entire stack
                     );
 
                     PendoService.track("ExitSurvey", {
@@ -291,16 +295,15 @@ class _NewDiaryPageState extends State<NewDiaryPage>
             true;
 
     if (show && mounted) {
-      Future.delayed(
-          const Duration(milliseconds: 500),
+      Future.delayed(const Duration(milliseconds: 500),
           () async => await PendoService.track("DiaryPopUp", null));
-          // () => showModalBottomSheet(
-          //     backgroundColor: Colors.white,
-          //     context: context,
-          //     isScrollControlled: true,
-          //     builder: (context) => const Wrap(
-          //           children: [CustomBottomTipPopUp()],
-          //         )));
+      // () => showModalBottomSheet(
+      //     backgroundColor: Colors.white,
+      //     context: context,
+      //     isScrollControlled: true,
+      //     builder: (context) => const Wrap(
+      //           children: [CustomBottomTipPopUp()],
+      //         )));
     }
   }
 }
@@ -481,18 +484,10 @@ class _QuestionPageState extends State<QuestionPage>
         disabled: disabled,
       );
     } else if (prompt.responseType == ResponseType.text) {
-      String? freeTextAnswer = prompt.answer?.response ?? "";
-      
       responseWidget = FreeTextQuestionCard(
-        value: freeTextAnswer,
-        onChanged: (value) {
-          if (value == null || value.trim().isEmpty) {
-            widget.answerAdded(false);
-          } else {
-            widget.answerAdded(true);
-            save(prompt, value, null);
-          }
-        },
+        diary: widget.diary,
+        respond: (String type) => recordResponse(prompt, type),
+        prompt: prompt,
       );
     } else if (prompt.responseType == ResponseType.recording ||
         prompt.responseType == ResponseType.textAudio) {
@@ -501,6 +496,11 @@ class _QuestionPageState extends State<QuestionPage>
         respond: (String type) => recordResponse(prompt, type),
         prompt: prompt,
       );
+    } else if (prompt.responseType == ResponseType.webview) {
+      responseWidget = WebViewResponseCard(
+          prompt: prompt,
+          diary: widget.diary,
+          respond: (answer) => save(prompt, answer, null));
     } else {
       responseWidget = const SizedBox.shrink();
     }
@@ -508,13 +508,16 @@ class _QuestionPageState extends State<QuestionPage>
     String questionTip;
 
     if (prompt.responseType == ResponseType.slider) {
-      questionTip = "Please use the slider to rate:";
+      questionTip = prompt.subtitle ?? "Please use the slider to rate:";
     } else if (prompt.responseType == ResponseType.multiple) {
-      questionTip = "Please check all that apply:";
+      questionTip = prompt.subtitle ?? "Please check all that apply:";
     } else if (prompt.responseType == ResponseType.radio) {
-      questionTip = "Please check 1 option:";
+      questionTip = prompt.subtitle ?? "Please check 1 option:";
     } else if (prompt.responseType == ResponseType.text) {
-      questionTip = "Please type your answer:";
+      questionTip = prompt.subtitle ?? "Please type your answer:";
+    } else if (prompt.responseType == ResponseType.webview) {
+      questionTip =
+          "Close the pop-up window when you are done filling the survey.";
     } else {
       questionTip = "You only need to take one response.";
     }

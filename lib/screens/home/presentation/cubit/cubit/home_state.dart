@@ -21,12 +21,13 @@ class HomeLoaded extends HomeState {
   final bool available; // any diaries available that day
   final List<StudyModel> studies;
   final int entries;
+  final bool finished;
   const HomeLoaded(this.diaries, this.weeksDiaries, this.available,
-      this.studies, this.entries);
+      this.studies, this.entries, this.finished);
 
   @override
   List<Object> get props =>
-      [diaries, weeksDiaries, available, studies, entries];
+      [diaries, weeksDiaries, available, studies, entries, finished];
 }
 
 class HomeError extends HomeState {

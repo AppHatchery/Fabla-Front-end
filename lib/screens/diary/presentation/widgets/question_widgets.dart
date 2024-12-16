@@ -1,6 +1,7 @@
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../theme/custom_colors.dart';
@@ -452,71 +453,43 @@ class _TextQuestionCardState extends State<TextQuestionCard> {
 }
 
 class FreeTextQuestionCard extends StatefulWidget {
-  final ValueChanged<String?> onChanged;
-  final String? value;
+  final void Function(String) respond;
+  final DiaryModel diary;
+  final PromptModel prompt;
   const FreeTextQuestionCard(
-      {super.key, required this.onChanged, required this.value});
+      {super.key,
+      required this.respond,
+      required this.diary,
+      required this.prompt});
 
   @override
   State<FreeTextQuestionCard> createState() => _FreeTextQuestionCardState();
 }
 
 class _FreeTextQuestionCardState extends State<FreeTextQuestionCard> {
-  late TextEditingController _freeTextResponseController;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.onChanged;
-    _freeTextResponseController = TextEditingController(text: widget.value);
-  }
-
-  @override
-  void dispose() {
-    _freeTextResponseController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: 24.0,
-          ),
-        ),
-        TextField(
-          onChanged: widget.onChanged,
-          cursorColor: CustomColors.productNormalActive,
-          decoration: InputDecoration(
-            hintText: 'Type your message',
-            hintStyle: CustomTypography()
-                .button(color: CustomColors.textTertiaryContent),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  const BorderSide(color: CustomColors.productBorderNormal),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  const BorderSide(color: CustomColors.productBorderNormal),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  const BorderSide(color: CustomColors.productBorderActive),
-            ),
-            fillColor: Colors.white,
-            filled: true,
-          ),
-          maxLines: null,
-          controller: _freeTextResponseController,
-          keyboardType: TextInputType.text,
-        )
-      ],
-    );
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            (widget.prompt.answer?.response?.isEmpty ?? true)
+                ? Column(
+                    children: [
+                      CustomTextAnswerButton(
+                        onClick: () => widget.respond("text"),
+                        text: "Type My Response",
+                      ),
+                    ],
+                  )
+                : MyResponse(
+                    diary: widget.diary,
+                    edit: widget.respond,
+                    prompt: widget.prompt,
+                    recordings: [])
+          ],
+        ));
   }
 }
 
@@ -557,5 +530,75 @@ class _FreeTextQuestionSummaryState extends State<FreeTextQuestionSummary> {
         ),
       ),
     );
+  }
+}
+
+class WebViewResponseCard extends StatefulWidget {
+  final DiaryModel diary;
+  final PromptModel prompt;
+  final void Function(String) respond;
+  const WebViewResponseCard(
+      {super.key,
+      required this.diary,
+      required this.prompt,
+      required this.respond});
+
+  @override
+  State<WebViewResponseCard> createState() => _WebViewResponseCardState();
+}
+
+class _WebViewResponseCardState extends State<WebViewResponseCard> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Column(
+                children: widget.prompt.answer?.response?.isEmpty ?? true
+                    ? [
+                        CustomFlatButton(
+                          onClick: () => showModal(),
+                          text: "Enter Survey",
+                        )
+                      ]
+                    : [
+                        CustomFlatButton(
+                          onClick: () => showModal(),
+                          color: CustomColors.fillWhite,
+                          textColor: CustomColors.productNormal,
+                          text: "Retake Survey",
+                        ),
+                        Text(
+                          "✅ Your previous survey responses have been collected. If you retake the survey it will count as a new response. ",
+                          style: CustomTypography().bodyLarge(
+                              color: CustomColors.textTertiaryContent),
+                        ),
+                      ])
+          ],
+        ));
+  }
+
+  void showModal() {
+    showModalBottomSheet(
+        backgroundColor: Colors.transparent,
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        elevation: 0,
+        useSafeArea: true,
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              minChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) {
+                return BottomWebViewModal(
+                  url: widget.prompt.subtitle!,
+                  respond: widget.respond,
+                );
+              },
+            ));
   }
 }

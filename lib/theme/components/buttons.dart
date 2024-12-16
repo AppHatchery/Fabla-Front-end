@@ -178,6 +178,7 @@ class CustomFlatButton extends StatelessWidget {
   final Color color;
   final bool isDisabled;
   final Color textColor;
+  final Color borderColor;
   const CustomFlatButton({
     super.key,
     required this.onClick,
@@ -185,6 +186,7 @@ class CustomFlatButton extends StatelessWidget {
     this.color = CustomColors.productNormal,
     this.isDisabled = false,
     this.textColor = CustomColors.fillWhite,
+    this.borderColor = CustomColors.productNormal,
   });
 
   @override
@@ -198,6 +200,9 @@ class CustomFlatButton extends StatelessWidget {
             color: isDisabled ? CustomColors.fillDisabled : color,
             borderRadius: BorderRadius.circular(12),
             shape: BoxShape.rectangle,
+            border: Border.all(
+                color: isDisabled ? CustomColors.fillDisabled : borderColor,
+                width: 1),
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
