@@ -112,7 +112,6 @@ class _HomePageState extends State<HomePage>
 
   Widget loadedHome(List<DiaryModel> diaries, List<DiaryModel> weeksDiaries,
       bool available, List<StudyModel> studies, int entries, bool finished) {
-        print("Available: $available | Finished: $finished | Number of Diaries: ${diaries.length}");
     return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -133,6 +132,7 @@ class _HomePageState extends State<HomePage>
                       } else {
                         isExpanded = !isExpanded;
                         _controller.forward();
+                        track();
                       }
                     }),
                     child: WeeklyGoalWidget(
@@ -256,6 +256,12 @@ class _HomePageState extends State<HomePage>
 
     // ignore: invalid_use_of_protected_member
     _controller.clearStatusListeners();
+  }
+
+  track() async {
+    final now = DateTime.now();
+    await PendoService.track(
+        "Weekly Goal", {"Viewed At": now.toIso8601String()});
   }
 
   void showStudyCalendar(List<StudyModel> studies) {
