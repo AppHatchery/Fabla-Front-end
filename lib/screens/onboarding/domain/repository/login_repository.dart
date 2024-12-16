@@ -159,7 +159,7 @@ class LoginRepository {
         final experiment = ExperimentModel.fromJson(data);
 
         // Verify the code and save the experiment data to the database
-        if (code == experiment.login) {
+        if (code.toLowerCase() == experiment.login.toLowerCase()) {
           _experimentDAO.replaceExperiment(Experiment.fromModel(experiment));
           final setup = SetupRepository();
           final questions = data['onboarding_questions'] as List;
