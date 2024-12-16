@@ -1,5 +1,7 @@
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/camera_preview.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -17,15 +19,20 @@ class CameraAccess extends StatefulWidget {
   State<CameraAccess> createState() => _CameraAccessState();
 }
 
-class _CameraAccessState extends State<CameraAccess> {
+class _CameraAccessState extends State<CameraAccess>
+    with WidgetsBindingObserver {
   bool permission = false;
   bool requested = false;
   bool canGoBack = false;
 
   late CameraController controller;
 
+  final PageTimer timer = PageTimer();
+
   @override
   initState() {
+    WidgetsBinding.instance.addObserver(this);
+    timer.start();
     if (Navigator.of(context).canPop()) {
       canGoBack = true;
     }
@@ -37,8 +44,21 @@ class _CameraAccessState extends State<CameraAccess> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      timer.start();
+    } else if (state == AppLifecycleState.paused) {
+      int spent = timer.stop();
+      track(spent, "Paused");
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
   dispose() {
     controller.dispose();
+    timer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -52,7 +72,8 @@ class _CameraAccessState extends State<CameraAccess> {
           scrolledUnderElevation: 0.0,
           leading: canGoBack
               ? IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () =>
+                      {track(timer.stop(), "Back"), Navigator.pop(context)},
                   icon: const Icon(
                     Icons.arrow_back_rounded,
                     color: CustomColors.fillWhite,
@@ -207,12 +228,19 @@ class _CameraAccessState extends State<CameraAccess> {
       if (requested) {
         await PreferenceService()
             .setBoolPreference(key: 'camera', value: requested);
-        if (context.mounted)
-          {RouteService().navigate(null, context: context, current: 'camera');}
+        if (context.mounted) {
+          track(timer.stop(), "Finished");
+          RouteService().navigate(null, context: context, current: 'camera');
+        }
       }
     } else {
       cameraInit();
     }
+  }
+
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Camera Access", {"Time On Page": spent, "Status": status});
   }
 
   cameraInit() async {

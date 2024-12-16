@@ -1,6 +1,8 @@
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/verification_code.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +18,8 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
+  final PageTimer timer = PageTimer();
   late LoginCubit loginCubit;
   final TextEditingController controller = TextEditingController();
   bool error = false;
@@ -24,8 +27,28 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    timer.start();
     loginCubit = BlocProvider.of<LoginCubit>(context);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    timer.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      timer.start();
+    } else if (state == AppLifecycleState.paused) {
+      int spent = timer.stop();
+      track(spent, "Paused");
+    }
+    super.didChangeAppLifecycleState(state);
   }
 
   @override
@@ -38,7 +61,8 @@ class _LoginPageState extends State<LoginPage> {
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
           leading: IconButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () =>
+                {track(timer.stop(), "Back"), Navigator.pop(context)},
             icon: const Icon(Icons.arrow_back_rounded),
             color: CustomColors.textWhite,
           )),
@@ -205,6 +229,11 @@ class _LoginPageState extends State<LoginPage> {
         loginCubit.login(code);
       } else {}
     }
+  }
+
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Participant Login", {"Time On Page": spent, "Status": status});
   }
 
   Future<void> launchEmail() async {

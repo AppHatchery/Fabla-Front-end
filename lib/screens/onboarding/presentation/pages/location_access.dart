@@ -1,3 +1,5 @@
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -15,21 +17,44 @@ class LocationAccess extends StatefulWidget {
   State<LocationAccess> createState() => _LocationAccessState();
 }
 
-class _LocationAccessState extends State<LocationAccess> {
+class _LocationAccessState extends State<LocationAccess>
+    with WidgetsBindingObserver {
   bool permission = false;
   bool requested = false;
   bool canGoBack = false;
+
+  final PageTimer timer = PageTimer();
 
   late l.Location location;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    timer.start();
     if (Navigator.of(context).canPop()) {
       canGoBack = true;
     }
 
     location = l.Location();
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      timer.start();
+    } else if (state == AppLifecycleState.paused) {
+      int spent = timer.stop();
+      track(spent, "Paused");
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  void dispose() {
+    timer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
@@ -42,7 +67,8 @@ class _LocationAccessState extends State<LocationAccess> {
           scrolledUnderElevation: 0.0,
           leading: canGoBack
               ? IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () =>
+                      {track(timer.stop(), "Back"), Navigator.pop(context)},
                   icon: const Icon(
                     Icons.arrow_back_rounded,
                     color: CustomColors.fillWhite,
@@ -195,12 +221,13 @@ class _LocationAccessState extends State<LocationAccess> {
       permission = results == l.PermissionStatus.granted;
       requested = true;
     });
-
+    await PendoService.track("Location Access", {"state": results.name});
     if (permission) {
       if (requested) {
         await PreferenceService()
             .setBoolPreference(key: 'location', value: requested);
         if (context.mounted) {
+          track(timer.stop(), "Finished");
           RouteService().navigate(null, context: context, current: 'location');
         }
       }
@@ -218,5 +245,10 @@ class _LocationAccessState extends State<LocationAccess> {
 
       if (permission) ;
     }
+  }
+
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Location Access", {"Time On Page": spent, "Status": status});
   }
 }

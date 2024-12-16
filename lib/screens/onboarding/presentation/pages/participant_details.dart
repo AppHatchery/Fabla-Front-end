@@ -1,7 +1,9 @@
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/avatar_background.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/participant_name.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
@@ -17,15 +19,37 @@ class ParticipantDetailsPage extends StatefulWidget {
   State<ParticipantDetailsPage> createState() => _ParticipantDetailsPageState();
 }
 
-class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
+class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
+    with WidgetsBindingObserver {
   late SetupCubit setupCubit;
   final TextEditingController controller = TextEditingController();
+  final PageTimer timer = PageTimer();
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    timer.start();
     setupCubit = BlocProvider.of<SetupCubit>(context);
     load();
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      timer.start();
+    } else if (state == AppLifecycleState.paused) {
+      int spent = timer.stop();
+      track(spent, "Paused");
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  void dispose() {
+    timer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
@@ -53,7 +77,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
       listener: (context, state) {
         if (state is SetupSuccess) {
           RouteService()
-          .navigate(null, context: context, current: 'participant_details');
+              .navigate(null, context: context, current: 'participant_details');
         }
       },
     );
@@ -64,7 +88,8 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
           leading: IconButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () =>
+                  {track(timer.stop(), "Back"), Navigator.pop(context)},
               icon: const Icon(
                 Icons.arrow_back_rounded,
                 color: CustomColors.fillWhite,
@@ -125,7 +150,9 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
                       Padding(
                         padding: const EdgeInsets.all(16),
                         child: CustomFlatButton(
-                            onClick: () => saveName(), text: "Continue"),
+                            onClick: () =>
+                                {track(timer.stop(), "Finished"), saveName()},
+                            text: "Continue"),
                       ),
                     ],
                   ),
@@ -143,7 +170,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
         image: "",
         avatarType: "animation",
         animation: "assets/animations/onboarding/onboarding_nameinput.riv",
-        onContinue: () => saveName(),
+        onContinue: () => {track(timer.stop(), "Finished"), saveName()},
         children: [
           ParticipantName(controller: controller),
         ]);
@@ -156,7 +183,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
         image: "",
         avatarType: "animation",
         animation: "assets/animations/onboarding/onboarding_nameinput.riv",
-        onContinue: () => saveName(),
+        onContinue: () => {track(timer.stop(), "Finished"), saveName()},
         children: [
           ParticipantName(controller: controller),
         ]);
@@ -169,7 +196,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
         image: "",
         avatarType: "animation",
         animation: "assets/animations/onboarding/onboarding_nameinput.riv",
-        onContinue: () => saveName(),
+        onContinue: () => {track(timer.stop(), "Finished"), saveName()},
         children: [
           ParticipantName(controller: controller),
         ]);
@@ -185,5 +212,10 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
       final name = controller.text.substring(0, lastNonSpaceIndex + 1);
       setupCubit.updateParticipant(name);
     }
+  }
+
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Participant Details", {"Time On Page": spent, "Status": status});
   }
 }

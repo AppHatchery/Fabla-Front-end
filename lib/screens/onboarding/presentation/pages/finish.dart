@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -17,7 +18,34 @@ class FinishPage extends StatefulWidget {
   State<FinishPage> createState() => _FinishPageState();
 }
 
-class _FinishPageState extends State<FinishPage> {
+class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
+  final PageTimer timer = PageTimer();
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    timer.start();
+    super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      timer.start();
+    } else if (state == AppLifecycleState.paused) {
+      int spent = timer.stop();
+      track(spent, "Paused");
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  void dispose() {
+    timer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
@@ -102,7 +130,7 @@ class _FinishPageState extends State<FinishPage> {
                 //   height: 38,
                 // ),
                 CustomFlatButton(
-                  onClick: ()=> _next(context),
+                  onClick: () => _next(context),
                   text: "Get Started",
                   color: CustomColors.fillWhite,
                   textColor: CustomColors.productNormalActive,
@@ -128,8 +156,13 @@ class _FinishPageState extends State<FinishPage> {
     setupRepository.removeAllQuestions();
 
     if (context.mounted) {
-      RouteService()
-          .navigate(null, context: context, current: 'finish');
+      track(timer.stop(), "Finished");
+      RouteService().navigate(null, context: context, current: 'finish');
     }
+  }
+
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Finish", {"Time On Page": spent, "Status": status});
   }
 }
