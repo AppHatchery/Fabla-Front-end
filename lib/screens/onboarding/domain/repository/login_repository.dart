@@ -6,6 +6,7 @@ import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/credentials.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:developer' as dev;
 
@@ -162,6 +163,16 @@ class LoginRepository {
           _experimentDAO.replaceExperiment(Experiment.fromModel(experiment));
           final setup = SetupRepository();
           final questions = data['onboarding_questions'] as List;
+
+          final permissions = (data['permissions'] as List)
+              .map((permission) => (permission as String).toLowerCase())
+              .toList();
+          // Save the extra permissions to the shared preferences
+          await PreferenceService().setStringListPreference(
+            key: 'extra_permissions',
+            value: permissions,
+          );
+
           setup.saveOnBoardingQuestions(questions);
           return experiment;
         }

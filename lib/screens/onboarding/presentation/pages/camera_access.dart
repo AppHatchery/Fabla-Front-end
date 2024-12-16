@@ -1,59 +1,45 @@
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/mic_tester.dart';
-import 'package:audio_diaries_flutter/services/pendo_service.dart';
+import 'package:audio_diaries_flutter/main.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/camera_preview.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
-import 'package:audio_session/audio_session.dart';
+import 'package:audio_diaries_flutter/theme/components/buttons.dart';
+import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:audio_diaries_flutter/theme/custom_icons.dart';
+import 'package:audio_diaries_flutter/theme/custom_typography.dart';
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sound/flutter_sound.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:rive/rive.dart';
 
-import '../../../../services/preference_service.dart';
-import '../../../../theme/components/buttons.dart';
-import '../../../../theme/custom_colors.dart';
-import '../../../../theme/custom_icons.dart';
-import '../../../../theme/custom_typography.dart';
-
-class MicAccessPage extends StatefulWidget {
-  const MicAccessPage({super.key});
+class CameraAccess extends StatefulWidget {
+  const CameraAccess({super.key});
 
   @override
-  State<MicAccessPage> createState() => _MicAccessPageState();
+  State<CameraAccess> createState() => _CameraAccessState();
 }
 
-class _MicAccessPageState extends State<MicAccessPage>
-    with WidgetsBindingObserver {
-  late FlutterSoundRecorder recorder;
+class _CameraAccessState extends State<CameraAccess> {
   bool permission = false;
   bool requested = false;
   bool canGoBack = false;
 
+  late CameraController controller;
+
   @override
-  void initState() {
+  initState() {
     if (Navigator.of(context).canPop()) {
       canGoBack = true;
     }
-    recorder = FlutterSoundRecorder();
-    recorderInit();
+    controller = CameraController(
+      cameras[0],
+      ResolutionPreset.max,
+    );
     super.initState();
   }
 
   @override
-  void dispose() {
-    recorder.closeRecorder();
+  dispose() {
+    controller.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      recorderInit();
-    } else if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached ||
-        state == AppLifecycleState.inactive) {
-      recorder.closeRecorder();
-    }
-    super.didChangeAppLifecycleState(state);
   }
 
   @override
@@ -73,6 +59,7 @@ class _MicAccessPageState extends State<MicAccessPage>
                     size: 32,
                   ))
               : null,
+          automaticallyImplyLeading: false,
         ),
         body: LayoutBuilder(builder: (context, constraints) {
           return Padding(
@@ -94,17 +81,10 @@ class _MicAccessPageState extends State<MicAccessPage>
                                 children: [
                                   Text(
                                     permission
-                                        ? "Let's test your microphone, \"say something\""
-                                        : "Great, next enable microphone access",
+                                        ? "Let's test the camera feed."
+                                        : "Let's enable access to your camera.",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
-                                  ),
-                                  const SizedBox(height: 40.0),
-                                  MicTester(
-                                    permission: permission,
-                                    width: width,
-                                    recorder: recorder,
-                                    request: () => _requestPermission(),
                                   ),
                                   const SizedBox(height: 24),
                                   requested == true && permission == false
@@ -135,7 +115,7 @@ class _MicAccessPageState extends State<MicAccessPage>
                                                   ),
                                                   Flexible(
                                                     child: Text(
-                                                      "Oops! You need to enable microphone access to use the recording diary.",
+                                                      "Oops! You need to enable camera access to participate in the study.",
                                                       style: CustomTypography()
                                                           .bodyLarge(
                                                               color: CustomColors
@@ -195,22 +175,14 @@ class _MicAccessPageState extends State<MicAccessPage>
                                 replacement: SizedBox(
                                   height: 300,
                                   width: width,
-                                  child: requested == true &&
-                                          permission == false
-                                      ? const RiveAnimation.asset(
-                                          'assets/animations/onboarding/micaccess_denial.riv',
-                                          fit: BoxFit.fitWidth)
-                                      : const RiveAnimation.asset(
-                                          'assets/animations/onboarding/micaccess.riv',
-                                          fit: BoxFit.fitWidth),
                                 ),
                                 child: SizedBox(
-                                  height: 300,
-                                  width: width,
-                                  child: const RiveAnimation.asset(
-                                      'assets/animations/onboarding/micaccess_ongoing.riv',
-                                      fit: BoxFit.fitWidth),
-                                ),
+                                    height: 300,
+                                    width: width,
+                                    child: controller.value.isInitialized
+                                        ? CustomCameraPreview(
+                                            controller: controller)
+                                        : SizedBox.shrink()),
                               ),
                             ]),
                       ),
@@ -219,7 +191,7 @@ class _MicAccessPageState extends State<MicAccessPage>
                 ),
                 CustomFlatButton(
                   onClick: () => navigateToNextPage(context),
-                  text: permission ? "Continue" : "Continue",
+                  text: permission ? "Continue" : "Allow",
                   color: CustomColors.fillWhite,
                   isDisabled: requested == true && permission == false,
                   textColor: CustomColors.productNormalActive,
@@ -230,82 +202,61 @@ class _MicAccessPageState extends State<MicAccessPage>
         }));
   }
 
-  void recorderInit() async {
-    await recorder.openRecorder();
-    final session = await AudioSession.instance;
-    await session.configure(AudioSessionConfiguration(
-      avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
-      avAudioSessionCategoryOptions:
-          AVAudioSessionCategoryOptions.allowBluetooth |
-              AVAudioSessionCategoryOptions.defaultToSpeaker,
-      avAudioSessionMode: AVAudioSessionMode.spokenAudio,
-      avAudioSessionRouteSharingPolicy:
-          AVAudioSessionRouteSharingPolicy.defaultPolicy,
-      avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
-      androidAudioAttributes: const AndroidAudioAttributes(
-        contentType: AndroidAudioContentType.speech,
-        flags: AndroidAudioFlags.none,
-        usage: AndroidAudioUsage.voiceCommunication,
-      ),
-      androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
-      androidWillPauseWhenDucked: true,
-    ));
-
-    await recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
-  }
-
-  void startRecorder() async {
-    final tempDir = await getTemporaryDirectory();
-    final path = '${tempDir.path}/flutter_sound.aac';
-    recorder.startRecorder(
-        toFile: path, codec: Codec.aacADTS, sampleRate: 44100, bitRate: 48000);
-  }
-
-  void navigateToNextPage(BuildContext context) async {
-    final results = await Permission.microphone.request();
-    await PendoService.track("OnBoardingMicAccess", {"button": "continue"});
-    setState(() {
-      permission = results.isGranted;
-    });
-    await PendoService.track("OnBoardingMicAccess", {"state": results.name});
+  navigateToNextPage(BuildContext context) async {
     if (permission) {
       if (requested) {
         await PreferenceService()
-            .setBoolPreference(key: 'mic_requested', value: requested);
-        if (context.mounted) {
-          RouteService()
-              .navigate(null, context: context, current: 'mic_access');
-        }
-      } else {
-        startRecorder();
+            .setBoolPreference(key: 'camera', value: requested);
+        if (context.mounted)
+          {RouteService().navigate(null, context: context, current: 'camera');}
       }
+    } else {
+      cameraInit();
     }
-
-    if (mounted) requested = true;
   }
 
-  void _requestPermission() async {
-    await PendoService.track("OnBoardingMicAccess", {"button": "icon"});
-    final results = await Permission.microphone.request();
-    setState(() {
-      permission = results.isGranted;
+  cameraInit() async {
+    controller.initialize().then((_) {
+      if (mounted) {
+        setState(() {
+          permission = true;
+          requested = true;
+        });
+      }
+    }).catchError((Object e) {
+      if (e is CameraException) {
+        print('Error: ${e.code}\nError Message: ${e.description}');
+        switch (e.code) {
+          case 'CameraAccessDenied':
+            setState(() {
+              permission = false;
+              requested = true;
+            });
+            break;
+          case 'CameraAccessDeniedWithoutPrompt':
+            setState(() {
+              permission = false;
+              requested = true;
+            });
+            break;
+          default:
+            // Handle other errors here.
+            break;
+        }
+      }
     });
-
-    if (permission) startRecorder();
-
-    if (mounted) requested = true;
   }
 
   void openPermissionSettings() async {
     bool opened = await openAppSettings();
 
     if (opened) {
-      final results = await Permission.microphone.request();
+      final results = await Permission.camera.request();
       setState(() {
         permission = results.isGranted;
       });
 
-      if (permission) startRecorder();
+      if (permission) cameraInit();
     }
   }
 }
