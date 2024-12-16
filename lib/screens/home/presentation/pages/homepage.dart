@@ -82,8 +82,13 @@ class _HomePageState extends State<HomePage>
               } else if (state is HomeLoading) {
                 return loading();
               } else if (state is HomeLoaded) {
-                return loadedHome(state.diaries, state.weeksDiaries,
-                    state.available, state.studies, state.entries);
+                return loadedHome(
+                    state.diaries,
+                    state.weeksDiaries,
+                    state.available,
+                    state.studies,
+                    state.entries,
+                    state.finished);
               } else {
                 return initialHome();
               }
@@ -106,7 +111,8 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget loadedHome(List<DiaryModel> diaries, List<DiaryModel> weeksDiaries,
-      bool available, List<StudyModel> studies, int entries) {
+      bool available, List<StudyModel> studies, int entries, bool finished) {
+        print("Available: $available | Finished: $finished | Number of Diaries: ${diaries.length}");
     return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -172,7 +178,7 @@ class _HomePageState extends State<HomePage>
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: available == false
+                child: available == false || finished
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -184,7 +190,10 @@ class _HomePageState extends State<HomePage>
                             style: CustomTypography().headlineMedium(),
                             textAlign: TextAlign.left,
                           ),
-                          const Expanded(child: FreeDayWidget()),
+                          Expanded(
+                              child: finished
+                                  ? EndStateWidget()
+                                  : FreeDayWidget()),
                         ],
                       )
                     : SingleChildScrollView(
@@ -194,7 +203,7 @@ class _HomePageState extends State<HomePage>
                             height: 24,
                           ),
                           TodayGoalWidget(
-                            dailyGoal: studies.first.goals.daily,
+                            dailyGoal: studies.firstOrNull?.goals.daily ?? 0,
                             studies: studies,
                             diaries: weeksDiaries,
                             weeklyEntries: entries,
