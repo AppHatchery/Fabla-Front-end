@@ -221,6 +221,8 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   String stateMachineName = "";
   bool loop = true;
 
+  SMITrigger? questionTrigger;
+
   @override
   void initState() {
     setState(() {
@@ -242,7 +244,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   @override
   Widget build(BuildContext context) {
     // super.build(context);
-    final height = MediaQuery.of(context).size.height;
+    // final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -346,6 +348,15 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
         _controller = ctrl;
         art.addController(_controller);
         ctrl.isActive = true;
+        if (stateMachineName == "Animation_5") {
+          questionTrigger = _controller.getTriggerInput("Question");
+
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              questionTrigger?.fire();
+            }
+          });
+        }
       });
     }
   }
@@ -386,7 +397,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
         {
           'stateMachineName': 'Animation_5',
           'animationURL': 'assets/animations/onboarding/questions.riv',
-          'foregroundHeight': 0.75,
+          'foregroundHeight': 0.79,
           'loop': true
         },
         {
@@ -399,11 +410,13 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
 
       final randomizer = Random().nextInt(animations.length);
       final random = animations[randomizer];
-      setState(() {
-        stateMachineName = random['stateMachineName'] as String;
-        foregroundHeight = random['foregroundHeight'] as double;
-        loop = random['loop'] as bool;
-      });
+      if (mounted) {
+        setState(() {
+          stateMachineName = random['stateMachineName'] as String;
+          foregroundHeight = random['foregroundHeight'] as double;
+          loop = random['loop'] as bool;
+        });
+      }
       return random['animationURL'];
     }
   }
