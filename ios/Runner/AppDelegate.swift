@@ -40,7 +40,7 @@ import UserNotifications
     override  func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
            Messaging.messaging().apnsToken = deviceToken
            let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
-           print("APNs device token: \(tokenString)")
+          // print("APNs device token: \(tokenString)")
        }
        
        // Handle token errors
