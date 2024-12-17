@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/login.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,15 +14,15 @@ import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 // import '../../../../theme/dialogs/pop_ups.dart';
 
-class ConfrimJoiningPage extends StatefulWidget {
+class ConfirmJoiningPage extends StatefulWidget {
   final ExperimentModel experiment;
-  const ConfrimJoiningPage({super.key, required this.experiment});
+  const ConfirmJoiningPage({super.key, required this.experiment});
 
   @override
-  State<ConfrimJoiningPage> createState() => _ConfrimJoiningPageState();
+  State<ConfirmJoiningPage> createState() => _ConfirmJoiningPageState();
 }
 
-class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
+class _ConfirmJoiningPageState extends State<ConfirmJoiningPage> {
   Timer? timer;
   int secondsSpent = 0;
   late bool isIos;
@@ -127,8 +127,8 @@ class _ConfrimJoiningPageState extends State<ConfrimJoiningPage> {
           child: Wrap(
             children: [
               CustomFlatButton(
-                onClick: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => const LoginPage())),
+                onClick: () => RouteService()
+                    .navigate(null, context: context, current: 'confirm'),
                 text: "Confirm Joining",
                 color: CustomColors.fillWhite,
                 textColor: CustomColors.productNormalActive,

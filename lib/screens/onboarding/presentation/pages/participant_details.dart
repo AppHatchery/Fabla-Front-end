@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/mic_access.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/avatar_background.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/participant_name.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -79,8 +79,8 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage> {
       },
       listener: (context, state) {
         if (state is SetupSuccess) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const MicAccessPage()));
+          RouteService()
+          .navigate(null, context: context, current: 'participant_details');
         }
       },
     );

@@ -14,10 +14,8 @@ const Map<String, String> headers = {
 
 String base() {
   if (kDebugMode) {
-    print("Using dev URL");
     return devURL;
   } else {
-    print("Using prod URL");
     return prodURL;
   }
 }

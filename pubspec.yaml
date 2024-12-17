@@ -47,6 +47,12 @@ dependencies:
   audio_session: ^0.1.16
   audioplayers: ^6.1.0
 
+  #Camera
+  camera: ^0.11.0+2
+
+  #Location
+  location: ^7.0.0
+
   #internal storage
   path_provider: ^2.1.0
 
@@ -73,11 +79,11 @@ dependencies:
   rive: ^0.13.14
 
   #Amplify
-  amplify_flutter: ^2.4.1
-  amplify_auth_cognito: ^2.4.1
-  amplify_storage_s3: ^2.4.1
-  amplify_datastore: ^2.4.1
-  amplify_api: ^2.4.1
+  amplify_flutter: ^2.5.0
+  amplify_auth_cognito: ^2.5.0
+  amplify_storage_s3: ^2.5.0
+  amplify_datastore: ^2.5.0
+  amplify_api: ^2.5.0
 
   #Notification
   awesome_notifications: ^0.10.0
@@ -99,6 +105,7 @@ dependencies:
   flutter_secure_storage: ^9.2.1
   wakelock_plus:
   flutter_keyboard_visibility: ^6.0.0
+  # disable_battery_optimization: ^1.1.1
 
 dev_dependencies:
   flutter_test:

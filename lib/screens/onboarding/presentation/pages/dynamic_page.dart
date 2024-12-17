@@ -9,6 +9,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/av
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/dynamic_widget.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/time_picker.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -50,7 +51,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
                 MaterialPageRoute(
                     builder: (context) => const ActiveDatesPage()));
           } else if (state is DynamicUploaded) {
-            moveOn();
+            moveOn(context);
           }
         },
         builder: (context, state) {
@@ -163,17 +164,19 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
     );
   }
 
-  void moveOn() async {
+  void moveOn(BuildContext context) async {
     await PreferenceService()
         .setBoolPreference(key: 'onboarding_complete', value: true);
-    final cameBack = await Navigator.push(context,
-        MaterialPageRoute(builder: (context) => const ActiveDatesPage()));
+    if (context.mounted) {
+      final cameBack = await RouteService()
+          .navigate(null, context: context, current: 'dynamic_onboarding');
 
-    if (cameBack) {
-      _cubit.load();
-      //  final length = await _cubit.count();
-      // jump to last page
-      // controller.jumpToPage(length - 1); // cant go to the last page
+      if (cameBack) {
+        _cubit.load();
+        //  final length = await _cubit.count();
+        // jump to last page
+        // controller.jumpToPage(length - 1); // cant go to the last page
+      }
     }
   }
 

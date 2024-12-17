@@ -1,5 +1,5 @@
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/finish.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -146,7 +146,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                                 animationHeight: animationHeight,
                                 foregroundHeight: 0.6,
                                 onInit: onInit,
-                                onContinue: navigateToNextPage,
+                                onContinue: () => navigateToNextPage(context),
                                 children: [
                                   Text(
                                     "Study Plan",
@@ -173,8 +173,8 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
           ),
           Padding(
             padding: const EdgeInsets.all(16),
-            child:
-                CustomFlatButton(onClick: navigateToNextPage, text: "Continue"),
+            child: CustomFlatButton(
+                onClick: () => navigateToNextPage(context), text: "Continue"),
           ),
         ],
       ),
@@ -200,13 +200,12 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
     }
   }
 
-  void navigateToNextPage() async {
+  void navigateToNextPage(BuildContext context) async {
     await PreferenceService()
         .setBoolPreference(key: 'active_dates_seen', value: true);
 
     if (context.mounted) {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => const FinishPage()));
+      RouteService().navigate(null, context: context, current: 'finish');
     }
   }
 
