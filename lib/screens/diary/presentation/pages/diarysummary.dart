@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -50,9 +51,12 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   bool isSliderEnabled = false;
   Map<int, bool> sliderEnabledStates = {};
 
+  final PageTimer timer = PageTimer();
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
+    timer.start();
     summaryCubit = BlocProvider.of<SummaryCubit>(context);
     loadDiary(context);
     super.initState();
@@ -60,6 +64,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
   @override
   void dispose() {
+    timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -69,7 +74,10 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     switch (state) {
       case AppLifecycleState.paused:
         scheduleSubmitDiaryNotification(widget.diary.id);
+        track(timer.stop(), "Paused");
         break;
+      case AppLifecycleState.resumed:
+        timer.start();
       default:
     }
     super.didChangeAppLifecycleState(state);
@@ -91,6 +99,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   leading: isEditable()
                       ? GestureDetector(
                           onTap: () {
+                            track(timer.stop(), "Back to Diary");
                             returnToDiary();
                           },
                           child: Padding(
@@ -117,6 +126,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     IconButton(
                       onPressed: () {
                         scheduleSubmitDiaryNotification(widget.diary.id);
+                        track(timer.stop(), "Close");
                         Navigator.pushAndRemoveUntil(
                           context,
                           PageRouteBuilder(
@@ -169,6 +179,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
       listener: (context, state) async {
         if (state is SummarySubmitted) {
           pendoEvent();
+          track(timer.stop(), "Submitted");
           Navigator.of(context).pushReplacement(_completionRoute()).then((_) {
             summaryCubit.loadSummary(widget.diary);
           });
@@ -183,6 +194,14 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
   Widget submitError() {
     return const SubmitErrorPage();
+  }
+
+  track(int spent, String status) async {
+    await PendoService.track("Diary Summary", {
+      "Time On Page": spent,
+      "Status": status,
+      "Diary": widget.diary.name,
+    });
   }
 
   Route _completionRoute() {
@@ -450,6 +469,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   }
 
   void pendoEvent() async {
+    final now = DateTime.now();
     for (final prompt in widget.diary.prompts) {
       int audioPromptCount = 0;
       int totalRecordingCount = 0;
@@ -481,7 +501,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             "number_of_audio_recordings": "$totalRecordingCount",
             "individual_recording_length(s)": "$individualRecordingSizes",
             "total_recording_length": "$totalRecordingDurationInSeconds",
-            "study_day": "day ${widget.diary.id}"
+            "Diary ID": widget.diary.id,
+            "Diary Name": widget.diary.name,
+            "Submission Time": now.toIso8601String()
           });
         }
       }

@@ -16,6 +16,13 @@ class PageTimer {
     return _time;
   }
 
+  int reset() {
+    final time = stop();
+    _time = 0;
+    start();
+    return time;
+  }
+
   void dispose() {
     _timer?.cancel();
     _timer = null;

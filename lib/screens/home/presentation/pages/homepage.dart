@@ -46,6 +46,7 @@ class _HomePageState extends State<HomePage>
       vsync: this,
     );
     show4AmTip();
+    trackLoad();
     super.initState();
   }
 
@@ -262,6 +263,12 @@ class _HomePageState extends State<HomePage>
     final now = DateTime.now();
     await PendoService.track(
         "Weekly Goal", {"Viewed At": now.toIso8601String()});
+  }
+
+  trackLoad()async{
+    final now = DateTime.now();
+    await PendoService.track(
+        "Home", {"Loaded At": now.toIso8601String()});
   }
 
   void showStudyCalendar(List<StudyModel> studies) {

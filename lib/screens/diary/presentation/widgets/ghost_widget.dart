@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:rive/rive.dart';
 
@@ -66,6 +67,8 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
     final totalGoal =
         widget.studies.fold(0, (prev, study) => prev + study.goals.daily);
 
+    track(totalGoal, totalEntries);
+
     //Show Celebration if the daily goal is reached
     if (totalEntries == totalGoal) {
       final celebration = _controller.findSMI('Celebration');
@@ -92,5 +95,11 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
       }
       return;
     }
+  }
+
+  track(int total, int current) async {
+    final now = DateTime.now();
+    await PendoService.track(
+        "Goal Progress", {"Total": total, "Current": current, "Date": now.toIso8601String()});
   }
 }
