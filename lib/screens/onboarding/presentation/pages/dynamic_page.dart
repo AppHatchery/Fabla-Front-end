@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dynamic/dynamic_cubit.dart';
@@ -8,6 +9,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/acti
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/avatar_background.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/dynamic_widget.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/time_picker.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -24,17 +26,39 @@ class DynamicOnBoardingHub extends StatefulWidget {
   State<DynamicOnBoardingHub> createState() => _DynamicOnBoardingHubState();
 }
 
-class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
+class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
+    with WidgetsBindingObserver {
   final PageController controller = PageController();
+  final PageTimer timer = PageTimer();
 
   late DynamicCubit _cubit;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    timer.start();
     _cubit = BlocProvider.of<DynamicCubit>(context);
 
     _cubit.load();
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      timer.start();
+    } else if (state == AppLifecycleState.paused) {
+      int spent = timer.stop();
+      track(spent, "Paused");
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  dispose() {
+    timer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
@@ -46,11 +70,13 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
       body: BlocConsumer<DynamicCubit, DynamicState>(
         listener: (context, state) {
           if (state is DynamicNone) {
+            track(timer.stop(), "Finished");
             Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                     builder: (context) => const ActiveDatesPage()));
           } else if (state is DynamicUploaded) {
+            track(timer.stop(), "Finished");
             moveOn(context);
           }
         },
@@ -65,7 +91,6 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
               controller: controller,
               itemCount: state.questions.length + 1,
               itemBuilder: (context, index) {
-                print("Index: $index");
                 if (index == 0) {
                   return welcome();
                 }
@@ -90,6 +115,11 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
     );
   }
 
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Dynamic Onboarding", {"time_on_page": spent, "status": status});
+  }
+
   void nextPage(int length) {
     if (controller.page == length) {
       // Navigator.push(context,
@@ -103,6 +133,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
 
   void previousPage() {
     if (controller.page == 0) {
+      track(timer.stop(), "Back");
       Navigator.pop(context);
     } else {
       controller.previousPage(
@@ -171,7 +202,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
       final cameBack = await RouteService()
           .navigate(null, context: context, current: 'dynamic_onboarding');
 
-      if (cameBack) {
+      if (cameBack == true) {
         _cubit.load();
         //  final length = await _cubit.count();
         // jump to last page

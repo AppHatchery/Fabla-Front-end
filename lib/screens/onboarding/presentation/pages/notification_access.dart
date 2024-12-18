@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 // import 'package:audio_diaries_flutter/theme/custom_icons.dart';
@@ -28,9 +29,13 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   //Animations
   late rive.StateMachineController _controller;
 
+  final PageTimer timer = PageTimer();
+
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
+    timer.start();
     if (Navigator.of(context).canPop()) {
       canGoBack = true;
     }
@@ -42,6 +47,10 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       // checkBattery();
+      timer.start();
+    } else if (state == AppLifecycleState.paused) {
+      int spent = timer.stop();
+      track(spent, "Paused");
     }
     super.didChangeAppLifecycleState(state);
   }
@@ -49,6 +58,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   @override
   void dispose() {
     _controller.dispose();
+    timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -64,7 +74,8 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
         scrolledUnderElevation: 0.0,
         leading: canGoBack
             ? IconButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () =>
+                    {track(timer.stop(), "Back"), Navigator.pop(context)},
                 icon: const Icon(
                   Icons.arrow_back_rounded,
                   color: CustomColors.fillWhite,
@@ -230,16 +241,23 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
     if (results.isGranted) {
       // if (context.mounted && batteryOptimization) {
       if (context.mounted) {
+        track(timer.stop(), "Finished");
         RouteService()
             .navigate(null, context: context, current: 'notification_access');
       }
     } else {
       if (context.mounted) {
+        track(timer.stop(), "Finished");
         RouteService()
             .navigate(null, context: context, current: 'notification_access');
       }
       //TODO: Show error
     }
+  }
+
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Notification Access", {"time_on_page": spent, "status": status});
   }
 
   // checkBattery() async {

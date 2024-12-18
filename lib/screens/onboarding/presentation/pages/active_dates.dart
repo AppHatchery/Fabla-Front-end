@@ -1,4 +1,6 @@
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +21,8 @@ class ActiveDatesPage extends StatefulWidget {
   State<ActiveDatesPage> createState() => _ActiveDatesPageState();
 }
 
-class _ActiveDatesPageState extends State<ActiveDatesPage> {
+class _ActiveDatesPageState extends State<ActiveDatesPage>
+    with WidgetsBindingObserver {
   late SetupCubit setupCubit;
   bool canGoBack = false;
 
@@ -27,8 +30,13 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
   late StateMachineController _controller;
   double animationHeight = 0;
 
+  final PageTimer timer = PageTimer();
+
+
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    timer.start();
     if (Navigator.of(context).canPop()) {
       canGoBack = true;
     }
@@ -38,8 +46,21 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      timer.start();
+    } else if (state == AppLifecycleState.paused) {
+      int spent = timer.stop();
+      track(spent, "Paused");
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
+    timer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -54,7 +75,10 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
           scrolledUnderElevation: 0.0,
           leading: canGoBack
               ? IconButton(
-                  onPressed: () => Navigator.pop(context, true),
+                  onPressed: () => {
+                        track(timer.stop(), "Back"),
+                        Navigator.pop(context, true)
+                      },
                   icon: const Icon(
                     Icons.arrow_back_rounded,
                     color: CustomColors.fillWhite,
@@ -205,8 +229,14 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
         .setBoolPreference(key: 'active_dates_seen', value: true);
 
     if (context.mounted) {
+      track(timer.stop(), "Finished");
       RouteService().navigate(null, context: context, current: 'finish');
     }
+  }
+
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Active Dates", {"time_on_page": spent, "status": status});
   }
 
   void load() {

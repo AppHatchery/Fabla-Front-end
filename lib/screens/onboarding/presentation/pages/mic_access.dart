@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/mic_tester.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -37,8 +38,12 @@ class _MicAccessPageState extends State<MicAccessPage>
 
   SMITrigger? headphonesAllow;
 
+  final PageTimer timer = PageTimer();
+
+
   @override
   void initState() {
+    timer.start();
     if (Navigator.of(context).canPop()) {
       canGoBack = true;
     }
@@ -49,6 +54,7 @@ class _MicAccessPageState extends State<MicAccessPage>
 
   @override
   void dispose() {
+    timer.dispose();
     recorder.closeRecorder();
     _controller.dispose();
     super.dispose();
@@ -58,10 +64,13 @@ class _MicAccessPageState extends State<MicAccessPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       recorderInit();
+      timer.start();
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached ||
         state == AppLifecycleState.inactive) {
       recorder.closeRecorder();
+       int spent = timer.stop();
+      track(spent, "Paused");
     }
     super.didChangeAppLifecycleState(state);
   }
@@ -76,7 +85,9 @@ class _MicAccessPageState extends State<MicAccessPage>
           scrolledUnderElevation: 0.0,
           leading: canGoBack
               ? IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => {
+                    track(timer.stop(), "Back"),
+                    Navigator.pop(context)},
                   icon: const Icon(
                     Icons.arrow_back_rounded,
                     color: CustomColors.fillWhite,
@@ -325,6 +336,7 @@ class _MicAccessPageState extends State<MicAccessPage>
         await PreferenceService()
             .setBoolPreference(key: 'mic_requested', value: requested);
         if (context.mounted) {
+          track(timer.stop(), "Finished");
           RouteService()
               .navigate(null, context: context, current: 'mic_access');
         }
@@ -336,6 +348,11 @@ class _MicAccessPageState extends State<MicAccessPage>
     }
 
     if (mounted) requested = true;
+  }
+
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Microphone Access", {"time_on_page": spent, "status": status});
   }
 
   void _requestPermission() async {

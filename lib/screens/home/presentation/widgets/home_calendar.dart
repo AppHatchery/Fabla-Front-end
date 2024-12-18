@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repo
 import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -72,6 +73,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
 
     calculateIncentives();
 
+    track();
     super.initState();
   }
 
@@ -157,6 +159,12 @@ class _StudyCalendarState extends State<StudyCalendar> {
         ),
       ),
     );
+  }
+
+  track() async {
+    final now = DateTime.now();
+    await PendoService.track(
+        "Study Calendar", {"viewed_at": now.toIso8601String()});
   }
 
   Widget header(Incentive? incentive) {

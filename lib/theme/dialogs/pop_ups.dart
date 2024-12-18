@@ -967,6 +967,7 @@ class WarningPopUp extends StatelessWidget {
                       onClick: () => Navigator.pop(context),
                       text: "Cancel",
                       color: CustomColors.greyLight,
+                      borderColor: CustomColors.greyLight,
                     ),
                   ),
                   const SizedBox(
@@ -977,6 +978,7 @@ class WarningPopUp extends StatelessWidget {
                       onClick: () => Navigator.pop(context),
                       text: "Change Response",
                       color: CustomColors.warningActive,
+                      borderColor: CustomColors.warningActive,
                     ),
                   ),
                 ],
@@ -1061,6 +1063,7 @@ class _RedoPopUpState extends State<RedoPopUp> {
                       onClick: () => Navigator.pop(context, false),
                       text: "Cancel",
                       color: CustomColors.greyLight,
+                      borderColor: CustomColors.greyLight,
                     ),
                   ),
                   const SizedBox(
@@ -1071,6 +1074,7 @@ class _RedoPopUpState extends State<RedoPopUp> {
                       onClick: () => Navigator.pop(context, true),
                       text: "Yes",
                       color: CustomColors.warningActive,
+                      borderColor: CustomColors.warningActive,
                     ),
                   ),
                 ],
@@ -1134,6 +1138,7 @@ class DeletePopUp extends StatelessWidget {
                       onClick: () => Navigator.pop(context, false),
                       text: "Cancel",
                       color: CustomColors.greyLight,
+                      borderColor: CustomColors.greyLight,
                     ),
                   ),
                   const SizedBox(
@@ -1144,6 +1149,7 @@ class DeletePopUp extends StatelessWidget {
                       onClick: () => Navigator.pop(context, true),
                       text: "Delete",
                       color: CustomColors.warningActive,
+                      borderColor: CustomColors.warningActive,
                     ),
                   ),
                 ],
