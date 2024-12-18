@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/login_repository.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 part 'study_login_state.dart';
@@ -15,6 +16,10 @@ class StudyLoginCubit extends Cubit<StudyLoginState> {
       if (result != null) {
         emit(StudyLoginSuccess(result));
       } else {
+        PendoService.track("Study Login", {
+          "code": code,
+          "status": "error",
+        });
         emit(const StudyLoginError(
             "Oops! We do not have this code in the study list. Please check your email and try again."));
       }

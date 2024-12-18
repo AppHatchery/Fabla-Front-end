@@ -1,5 +1,7 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:rive/rive.dart';
 
@@ -62,9 +64,11 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
 
   determineAnimation() {
     final totalEntries =
-        widget.diaries.fold(0, (prev, diary) => prev + diary.currentEntry);
+        widget.diaries.where((diary) => diary.status == DiaryStatus.submitted).length;
     final totalGoal =
         widget.studies.fold(0, (prev, study) => prev + study.goals.daily);
+
+    track(totalGoal, totalEntries);
 
     //Show Celebration if the daily goal is reached
     if (totalEntries == totalGoal) {
@@ -92,5 +96,11 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
       }
       return;
     }
+  }
+
+  track(int total, int current) async {
+    final now = DateTime.now();
+    await PendoService.track(
+        "Goal Progress", {"total": total, "current": current, "date": now.toIso8601String()});
   }
 }
