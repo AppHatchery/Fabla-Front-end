@@ -1,7 +1,7 @@
-import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
 
@@ -102,7 +102,7 @@ class _FinishPageState extends State<FinishPage> {
                 //   height: 38,
                 // ),
                 CustomFlatButton(
-                  onClick: _next,
+                  onClick: ()=> _next(context),
                   text: "Get Started",
                   color: CustomColors.fillWhite,
                   textColor: CustomColors.productNormalActive,
@@ -115,7 +115,7 @@ class _FinishPageState extends State<FinishPage> {
     );
   }
 
-  void _next() async {
+  void _next(BuildContext context) async {
     await PreferenceService().setBoolPreference(key: 'setup', value: true);
     final start = DateTime.fromMillisecondsSinceEpoch(
         await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
@@ -128,10 +128,8 @@ class _FinishPageState extends State<FinishPage> {
     setupRepository.removeAllQuestions();
 
     if (context.mounted) {
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const Hub()),
-          (route) => false);
+      RouteService()
+          .navigate(null, context: context, current: 'finish');
     }
   }
 }

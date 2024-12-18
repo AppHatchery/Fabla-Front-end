@@ -1,5 +1,5 @@
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/finish.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -131,8 +131,8 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                                 avatarType: "animation",
                                 animation:
                                     "assets/animations/onboarding/onboarding_activedays.riv",
-                                    scrollable: false,
-                                onContinue: navigateToNextPage,
+                                scrollable: false,
+                                onContinue: () => navigateToNextPage(context),
                                 children: [
                                   Text(
                                     "Study Plan",
@@ -146,7 +146,6 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
                                     height: 12,
                                   ),
                                   const CustomCalender(),
-
                                   const SizedBox(height: 6)
                                 ]),
                           )
@@ -160,21 +159,20 @@ class _ActiveDatesPageState extends State<ActiveDatesPage> {
           ),
           Padding(
             padding: const EdgeInsets.all(16),
-            child:
-                CustomFlatButton(onClick: navigateToNextPage, text: "Continue"),
+            child: CustomFlatButton(
+                onClick: () => navigateToNextPage(context), text: "Continue"),
           ),
         ],
       ),
     );
   }
 
-  void navigateToNextPage() async {
+  void navigateToNextPage(BuildContext context) async {
     await PreferenceService()
         .setBoolPreference(key: 'active_dates_seen', value: true);
 
     if (context.mounted) {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => const FinishPage()));
+      RouteService().navigate(null, context: context, current: 'finish');
     }
   }
 
