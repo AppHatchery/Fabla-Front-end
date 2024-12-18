@@ -30,8 +30,8 @@ class LoginCubit extends Cubit<LoginState> {
         emit(const LoginSuccess());
       } else {
         PendoService.track("Participant Login", {
-          "Participant ID": code,
-          "Status": "error",
+          "participant_id": code,
+          "status": "error",
         });
         emit(const LoginError("Oops! We do not have this ID in the participant list. Please check your email and try again."));
       }

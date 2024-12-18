@@ -233,7 +233,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
 
   track(int spent, String status) async {
     await PendoService.track(
-        "Participant Login", {"Time On Page": spent, "Status": status});
+        "Participant Login", {"time_on_page": spent, "status": status});
   }
 
   Future<void> launchEmail() async {

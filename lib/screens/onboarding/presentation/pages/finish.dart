@@ -163,6 +163,6 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
 
   track(int spent, String status) async {
     await PendoService.track(
-        "Finish", {"Time On Page": spent, "Status": status});
+        "Finish", {"time_on_page": spent, "status": status});
   }
 }

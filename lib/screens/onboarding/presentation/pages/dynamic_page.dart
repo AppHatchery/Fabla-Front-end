@@ -115,7 +115,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
 
   track(int spent, String status) async {
     await PendoService.track(
-        "Dynamic Onboarding", {"Time On Page": spent, "Status": status});
+        "Dynamic Onboarding", {"time_on_page": spent, "status": status});
   }
 
   void nextPage(int length) {

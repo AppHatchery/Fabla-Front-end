@@ -101,6 +101,6 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
   track(int total, int current) async {
     final now = DateTime.now();
     await PendoService.track(
-        "Goal Progress", {"Total": total, "Current": current, "Date": now.toIso8601String()});
+        "Goal Progress", {"total": total, "current": current, "date": now.toIso8601String()});
   }
 }

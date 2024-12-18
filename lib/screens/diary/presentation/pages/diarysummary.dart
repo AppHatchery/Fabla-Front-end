@@ -198,9 +198,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
   track(int spent, String status) async {
     await PendoService.track("Diary Summary", {
-      "Time On Page": spent,
-      "Status": status,
-      "Diary": widget.diary.name,
+      "time_on_page": spent,
+      "status": status,
+      "diary": widget.diary.name,
     });
   }
 
@@ -501,9 +501,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             "number_of_audio_recordings": "$totalRecordingCount",
             "individual_recording_length(s)": "$individualRecordingSizes",
             "total_recording_length": "$totalRecordingDurationInSeconds",
-            "Diary ID": widget.diary.id,
-            "Diary Name": widget.diary.name,
-            "Submission Time": now.toIso8601String()
+            "diary_id": widget.diary.id,
+            "diary_name": widget.diary.name,
+            "submission_time": now.toIso8601String()
           });
         }
       }

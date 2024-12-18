@@ -248,7 +248,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
 
   track(int spent, String status) async {
     await PendoService.track(
-        "Study Login", {"Time On Page": spent, "Status": status});
+        "Study Login", {"time_on_page": spent, "status": status});
   }
 
   String? encodeQueryParameters(Map<String, String> params) {

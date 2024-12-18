@@ -249,6 +249,6 @@ class _LocationAccessState extends State<LocationAccess>
 
   track(int spent, String status) async {
     await PendoService.track(
-        "Location Access", {"Time On Page": spent, "Status": status});
+        "Location Access", {"time_on_page": spent, "status": status});
   }
 }

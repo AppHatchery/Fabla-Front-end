@@ -240,7 +240,7 @@ class _CameraAccessState extends State<CameraAccess>
 
   track(int spent, String status) async {
     await PendoService.track(
-        "Camera Access", {"Time On Page": spent, "Status": status});
+        "Camera Access", {"time_on_page": spent, "status": status});
   }
 
   cameraInit() async {

@@ -207,7 +207,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
 
   track(int spent, String status) async {
     await PendoService.track(
-        "Active Dates", {"Time On Page": spent, "Status": status});
+        "Active Dates", {"time_on_page": spent, "status": status});
   }
 
   void load() {

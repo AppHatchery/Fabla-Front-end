@@ -216,6 +216,6 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
 
   track(int spent, String status) async {
     await PendoService.track(
-        "Participant Details", {"Time On Page": spent, "Status": status});
+        "Participant Details", {"time_on_page": spent, "status": status});
   }
 }

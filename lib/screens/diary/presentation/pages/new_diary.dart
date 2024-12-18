@@ -310,10 +310,10 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   track(int spent, String status) async {
     await PendoService.track("Diary Entry", {
-      "Time On Page": spent,
-      "Status": status,
-      "Diary": widget.diary.name,
-      "Prompt": currentPage + 1
+      "time_on_page": spent,
+      "status": status,
+      "diary": widget.diary.name,
+      "prompt": currentPage + 1
     });
   }
 
@@ -321,11 +321,11 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     final now = DateTime.now();
 
     PendoService.track("Exit Survey", {
-      "Question at Exit": "${currentPage + 1}",
-      "Diary Id": widget.diary.id,
-      "Diary Name": widget.diary.name,
-      "Time": now.toIso8601String(),
-      "State": state
+      "question_at_exit": "${currentPage + 1}",
+      "diary_id": widget.diary.id,
+      "diary_name": widget.diary.name,
+      "time": now.toIso8601String(),
+      "state": state
     });
   }
 }
@@ -697,9 +697,9 @@ class _QuestionPageState extends State<QuestionPage>
   }
 
   track(String option) async {
-    await PendoService.track("Diary Entry", {
-      "Option Selected": option,
-      "Diary": widget.diary.name,
+    await PendoService.track("Diary Entry Question Type", {
+      "option_selected": option,
+      "diary": widget.diary.name,
     });
   }
 

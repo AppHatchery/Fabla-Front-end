@@ -147,7 +147,7 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
 
   track(int spent, String status) async {
     await PendoService.track(
-        "Welcome", {"Time On Page": spent, "Status": status});
+        "Welcome", {"time_on_page": spent, "status": status});
   }
 
   startPendo() async {

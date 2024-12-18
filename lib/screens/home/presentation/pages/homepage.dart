@@ -262,13 +262,13 @@ class _HomePageState extends State<HomePage>
   track() async {
     final now = DateTime.now();
     await PendoService.track(
-        "Weekly Goal", {"Viewed At": now.toIso8601String()});
+        "Weekly Goal", {"viewed_at": now.toIso8601String()});
   }
 
   trackLoad()async{
     final now = DateTime.now();
     await PendoService.track(
-        "Home", {"Loaded At": now.toIso8601String()});
+        "Home", {"loaded_at": now.toIso8601String()});
   }
 
   void showStudyCalendar(List<StudyModel> studies) {

@@ -237,7 +237,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
 
   track(int spent, String status) async {
     await PendoService.track(
-        "Notification Access", {"Time On Page": spent, "Status": status});
+        "Notification Access", {"time_on_page": spent, "status": status});
   }
 
   // checkBattery() async {

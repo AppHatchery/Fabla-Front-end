@@ -207,7 +207,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
 
   track(int spent, String status) async {
     await PendoService.track(
-        "Confirm Study", {"Time On Page": spent, "Status": status});
+        "Confirm Study", {"time_on_page": spent, "status": status});
   }
 
   Future<void> pendoTrack(String login) async {

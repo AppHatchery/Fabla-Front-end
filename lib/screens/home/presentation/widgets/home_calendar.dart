@@ -164,7 +164,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
   track() async {
     final now = DateTime.now();
     await PendoService.track(
-        "Study Calendar", {"Viewed At": now.toIso8601String()});
+        "Study Calendar", {"viewed_at": now.toIso8601String()});
   }
 
   Widget header(Incentive? incentive) {

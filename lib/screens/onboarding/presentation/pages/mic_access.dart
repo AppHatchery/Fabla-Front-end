@@ -297,7 +297,7 @@ class _MicAccessPageState extends State<MicAccessPage>
 
   track(int spent, String status) async {
     await PendoService.track(
-        "Microphone Access", {"Time On Page": spent, "Status": status});
+        "Microphone Access", {"time_on_page": spent, "status": status});
   }
 
   void _requestPermission() async {
