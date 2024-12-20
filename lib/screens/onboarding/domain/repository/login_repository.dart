@@ -164,9 +164,9 @@ class LoginRepository {
           final setup = SetupRepository();
           final questions = data['onboarding_questions'] as List;
 
-          final permissions = (data['permissions'] as List)
-              .map((permission) => (permission as String).toLowerCase())
-              .toList();
+          final permissions = (data['permissions'] as List?)
+              ?.map((permission) => (permission as String).toLowerCase())
+              .toList() ?? [];
           // Save the extra permissions to the shared preferences
           await PreferenceService().setStringListPreference(
             key: 'extra_permissions',
