@@ -9,6 +9,7 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart' as l;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:rive/rive.dart' as rive;
 
 class LocationAccess extends StatefulWidget {
   const LocationAccess({super.key});
@@ -22,6 +23,9 @@ class _LocationAccessState extends State<LocationAccess>
   bool permission = false;
   bool requested = false;
   bool canGoBack = false;
+
+  //Animations
+  late rive.StateMachineController _controller;
 
   final PageTimer timer = PageTimer();
 
@@ -52,6 +56,7 @@ class _LocationAccessState extends State<LocationAccess>
 
   @override
   void dispose() {
+    _controller.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -60,6 +65,7 @@ class _LocationAccessState extends State<LocationAccess>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     return Scaffold(
         backgroundColor: CustomColors.backgroundSecondary,
         appBar: AppBar(
@@ -91,14 +97,12 @@ class _LocationAccessState extends State<LocationAccess>
                         constraints:
                             BoxConstraints(minHeight: constraint.maxHeight),
                         child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Column(
                                 children: [
                                   Text(
-                                    permission
-                                        ? "Let's test the camera feed."
-                                        : "Let's enable access to your location.",
+                                    "Let's enable access to your location.",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
                                   ),
@@ -186,16 +190,15 @@ class _LocationAccessState extends State<LocationAccess>
                                       : const SizedBox.shrink(),
                                 ],
                               ),
-                              Visibility(
-                                visible: permission,
-                                replacement: SizedBox(
-                                  height: 300,
-                                  width: width,
+
+                              SizedBox(
+                                height: height * 0.65,
+                                width: width,
+                                child: rive.RiveAnimation.asset(
+                                  'assets/animations/onboarding/location.riv',
+                                  fit: BoxFit.fitWidth,
+                                  onInit: onInit,
                                 ),
-                                child: SizedBox(
-                                    height: 300,
-                                    width: width,
-                                    child: SizedBox.shrink()),
                               ),
                             ]),
                       ),
@@ -231,6 +234,20 @@ class _LocationAccessState extends State<LocationAccess>
           RouteService().navigate(null, context: context, current: 'location');
         }
       }
+    }
+  }
+
+  onInit(rive.Artboard art) async {
+    var ctrl = rive.StateMachineController.fromArtboard(art, "Animation_3");
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
     }
   }
 

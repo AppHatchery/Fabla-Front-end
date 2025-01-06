@@ -255,6 +255,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
         lookDown = _controller.getBoolInput('Animation_1_Looks_Down');
       });
     }
+  }
 
   track(int spent, String status) async {
     await PendoService.track(

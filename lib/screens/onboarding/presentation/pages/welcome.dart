@@ -52,11 +52,6 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
   @override
   void dispose() {
     _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  void dispose() {
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -165,8 +160,7 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
 
   void navigateToNextPage() {
     track(timer.stop(), "Finished");
-    RouteService()
-          .navigate(null, context: context, current: 'welcome');
+    RouteService().navigate(null, context: context, current: 'welcome');
   }
 
   track(int spent, String status) async {
