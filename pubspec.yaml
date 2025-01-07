@@ -104,6 +104,7 @@ dependencies:
   dotted_border: ^2.1.0
   flutter_secure_storage: ^9.2.1
   wakelock_plus:
+  flutter_keyboard_visibility: ^6.0.0
   # disable_battery_optimization: ^1.1.1
 
 dev_dependencies:

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
@@ -8,6 +9,8 @@ import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:rive/rive.dart';
 
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
@@ -22,8 +25,16 @@ class ParticipantDetailsPage extends StatefulWidget {
 class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
     with WidgetsBindingObserver {
   late SetupCubit setupCubit;
+  late StateMachineController _controller;
+
+  SMIBool? lookDown;
+
   final TextEditingController controller = TextEditingController();
+  double animationHeight = 0;
+  late StreamSubscription<bool> keyboardSubscription;
+
   final PageTimer timer = PageTimer();
+
 
   @override
   void initState() {
@@ -31,6 +42,16 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
     timer.start();
     setupCubit = BlocProvider.of<SetupCubit>(context);
     load();
+    var keyboardVisibilityController = KeyboardVisibilityController();
+
+    keyboardSubscription =
+        keyboardVisibilityController.onChange.listen((bool visible) {
+      if (visible) {
+        lookDown?.value = true;
+      } else {
+        lookDown?.value = false;
+      }
+    });
     super.initState();
   }
 
@@ -47,6 +68,8 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
 
   @override
   void dispose() {
+    keyboardSubscription.cancel();
+    _controller.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -169,7 +192,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
         width: width,
         image: "",
         avatarType: "animation",
-        animation: "assets/animations/onboarding/onboarding_nameinput.riv",
+        animation: "assets/animations/onboarding/keyboard.riv",
         onContinue: () => {track(timer.stop(), "Finished"), saveName()},
         children: [
           ParticipantName(controller: controller),
@@ -182,7 +205,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
         width: width,
         image: "",
         avatarType: "animation",
-        animation: "assets/animations/onboarding/onboarding_nameinput.riv",
+        animation: "assets/animations/onboarding/keyboard.riv",
         onContinue: () => {track(timer.stop(), "Finished"), saveName()},
         children: [
           ParticipantName(controller: controller),
@@ -195,7 +218,9 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
         width: width,
         image: "",
         avatarType: "animation",
-        animation: "assets/animations/onboarding/onboarding_nameinput.riv",
+        animation: "assets/animations/onboarding/keyboard.riv",
+        animationHeight: animationHeight,
+        onInit: onInit,
         onContinue: () => {track(timer.stop(), "Finished"), saveName()},
         children: [
           ParticipantName(controller: controller),
@@ -211,6 +236,24 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
       final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
       final name = controller.text.substring(0, lastNonSpaceIndex + 1);
       setupCubit.updateParticipant(name);
+    }
+  }
+
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, "Animation_100");
+    setState(() {
+      animationHeight = art.height;
+    });
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+        lookDown = _controller.getBoolInput('Animation_1_Looks_Down');
+      });
     }
   }
 

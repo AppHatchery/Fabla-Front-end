@@ -26,7 +26,11 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   // bool batteryOptimization = false;
   bool requested = false;
 
+  //Animations
+  late rive.StateMachineController _controller;
+
   final PageTimer timer = PageTimer();
+
 
   @override
   void initState() {
@@ -53,6 +57,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
 
   @override
   void dispose() {
+    _controller.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -182,10 +187,11 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                   SizedBox(
                     height: height >= 700 ? 300 : height * 0.65,
                     width: width,
-                    child: const rive.RiveAnimation.asset(
-                        stateMachines: [],
-                        'assets/animations/onboarding/onboarding_getnotified.riv',
-                        fit: BoxFit.fitWidth),
+                    child: rive.RiveAnimation.asset(
+                      'assets/animations/onboarding/notification_access.riv',
+                      fit: BoxFit.fitWidth,
+                      onInit: onInit,
+                    ),
                   ),
                 ],
               ),
@@ -204,6 +210,20 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
         ],
       ),
     );
+  }
+
+  onInit(rive.Artboard art) async {
+    var ctrl = rive.StateMachineController.fromArtboard(art, "Animation_3");
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
+    }
   }
 
   void navigateToNextPage(BuildContext context) async {

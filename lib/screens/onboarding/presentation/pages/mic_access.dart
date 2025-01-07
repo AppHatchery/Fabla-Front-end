@@ -29,7 +29,17 @@ class _MicAccessPageState extends State<MicAccessPage>
   bool requested = false;
   bool canGoBack = false;
 
+  //Animations
+  late StateMachineController _controller;
+  SMIBool? wearHeadphones;
+
+  SMITrigger? thumbsUp;
+  bool hasTriggeredThumbsUp = false;
+
+  SMITrigger? headphonesAllow;
+
   final PageTimer timer = PageTimer();
+
 
   @override
   void initState() {
@@ -46,6 +56,7 @@ class _MicAccessPageState extends State<MicAccessPage>
   void dispose() {
     timer.dispose();
     recorder.closeRecorder();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -200,28 +211,37 @@ class _MicAccessPageState extends State<MicAccessPage>
                                       : const SizedBox.shrink(),
                                 ],
                               ),
-                              Visibility(
-                                visible: permission,
-                                replacement: SizedBox(
-                                  height: 300,
-                                  width: width,
-                                  child: requested == true &&
-                                          permission == false
-                                      ? const RiveAnimation.asset(
-                                          'assets/animations/onboarding/micaccess_denial.riv',
-                                          fit: BoxFit.fitWidth)
-                                      : const RiveAnimation.asset(
-                                          'assets/animations/onboarding/micaccess.riv',
-                                          fit: BoxFit.fitWidth),
-                                ),
-                                child: SizedBox(
-                                  height: 300,
-                                  width: width,
-                                  child: const RiveAnimation.asset(
-                                      'assets/animations/onboarding/micaccess_ongoing.riv',
-                                      fit: BoxFit.fitWidth),
+                              SizedBox(
+                                height: 300,
+                                width: width,
+                                child: RiveAnimation.asset(
+                                  'assets/animations/onboarding/mic_access.riv',
+                                  fit: BoxFit.fitWidth,
+                                  onInit: onInit,
                                 ),
                               ),
+                              // Visibility(
+                              //   visible: permission,
+                              //   replacement: SizedBox(
+                              //     height: 300,
+                              //     width: width,
+                              //     child: requested == true &&
+                              //             permission == false
+                              //         ? const RiveAnimation.asset(
+                              //             'assets/animations/onboarding/micaccess_denial.riv',
+                              //             fit: BoxFit.fitWidth)
+                              //         : const RiveAnimation.asset(
+                              //             'assets/animations/onboarding/micaccess.riv',
+                              //             fit: BoxFit.fitWidth),
+                              //   ),
+                              //   child: SizedBox(
+                              //     height: 300,
+                              //     width: width,
+                              //     child: const RiveAnimation.asset(
+                              //         'assets/animations/onboarding/micaccess_ongoing.riv',
+                              //         fit: BoxFit.fitWidth),
+                              //   ),
+                              // ),
                             ]),
                       ),
                     ),
@@ -238,6 +258,23 @@ class _MicAccessPageState extends State<MicAccessPage>
             ),
           );
         }));
+  }
+
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, "Animation_2");
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+        wearHeadphones = _controller.getBoolInput('Puts the Headphones on');
+        thumbsUp = _controller.getTriggerInput('Thumbs Up');
+        headphonesAllow = _controller.getTriggerInput('Headphones_Allow');
+      });
+    }
   }
 
   void recorderInit() async {
@@ -269,6 +306,21 @@ class _MicAccessPageState extends State<MicAccessPage>
     final path = '${tempDir.path}/flutter_sound.aac';
     recorder.startRecorder(
         toFile: path, codec: Codec.aacADTS, sampleRate: 44100, bitRate: 48000);
+
+    recorder.onProgress!.listen((event) {
+      if (!hasTriggeredThumbsUp &&
+          event.decibels != null &&
+          event.decibels! > 40) {
+        //Thumbs up
+        thumbsUp?.fire();
+
+        if (mounted) {
+          setState(() {
+            hasTriggeredThumbsUp = true;
+          });
+        }
+      }
+    });
   }
 
   void navigateToNextPage(BuildContext context) async {
@@ -279,6 +331,7 @@ class _MicAccessPageState extends State<MicAccessPage>
     });
     await PendoService.track("OnBoardingMicAccess", {"state": results.name});
     if (permission) {
+      wearHeadphones?.value = true;
       if (requested) {
         await PreferenceService()
             .setBoolPreference(key: 'mic_requested', value: requested);
@@ -290,6 +343,8 @@ class _MicAccessPageState extends State<MicAccessPage>
       } else {
         startRecorder();
       }
+    } else {
+      headphonesAllow?.fire();
     }
 
     if (mounted) requested = true;
@@ -321,7 +376,10 @@ class _MicAccessPageState extends State<MicAccessPage>
         permission = results.isGranted;
       });
 
-      if (permission) startRecorder();
+      if (permission) {
+        startRecorder();
+        wearHeadphones?.value = true; //! Test This
+      }
     }
   }
 }

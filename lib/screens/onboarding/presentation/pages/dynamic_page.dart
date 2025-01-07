@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
@@ -16,6 +17,7 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rive/rive.dart';
 
 class DynamicOnBoardingHub extends StatefulWidget {
   const DynamicOnBoardingHub({super.key});
@@ -246,12 +248,22 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   late TextEditingController textEditingController;
   String? answer;
 
+  late StateMachineController _controller;
+  double animationHeight = 0;
+  double foregroundHeight = 0.75;
+  String animationURL = "";
+  String stateMachineName = "";
+  bool loop = true;
+
+  SMITrigger? questionTrigger;
+
   @override
   void initState() {
     setState(() {
       answer = widget.question.answer;
       textEditingController = TextEditingController(
           text: widget.question.type == 'text' ? answer : null);
+      animationURL = getAnimationAssets();
     });
     super.initState();
   }
@@ -259,13 +271,14 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   @override
   void dispose() {
     textEditingController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     // super.build(context);
-    final height = MediaQuery.of(context).size.height;
+    // final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -284,85 +297,162 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       body: SafeArea(
           bottom: false,
           child: LayoutBuilder(builder: (context, constraints) {
-            final constraintHeight = constraints.maxHeight;
             return SingleChildScrollView(
-              child: SizedBox(
-                height: constraintHeight,
-                child: Container(
-                  color: CustomColors.fillWhite,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, constraint) =>
-                              SingleChildScrollView(
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                  minHeight: constraint.maxHeight),
-                              child: IntrinsicHeight(
-                                child: GestureDetector(
-                                  onTap: () => FocusScope.of(context).unfocus(),
-                                  child: Container(
-                                    color: CustomColors.backgroundSecondary,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 16.0),
-                                          child: Text(
-                                            widget.question.title,
-                                            style: CustomTypography()
-                                                .headlineLarge(
-                                                    color:
-                                                        CustomColors.textWhite),
-                                          ),
-                                        ),
-                                        const Expanded(child: SizedBox()),
-                                        SizedBox(
-                                            height: constraintHeight * 0.8,
-                                            child: AvatarBackground(
-                                                height: height,
-                                                width: width,
-                                                image:
-                                                    "assets/images/avatar_onboarding_placeholder.png",
-                                                avatarType: "image",
-                                                animation: "",
-                                                onContinue: () {},
-                                                children: [
-                                                  getWidget(widget.question,
-                                                      index: widget.index)
-                                                ]))
-                                      ],
+              child: Container(
+                color: CustomColors.fillWhite,
+                height: constraints.maxHeight,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => FocusScope.of(context).unfocus(),
+                        child: LayoutBuilder(builder: (context, constraint) {
+                          return SingleChildScrollView(
+                            child: Container(
+                              height: constraint.maxHeight,
+                              color: CustomColors.backgroundSecondary,
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0),
+                                    child: Text(
+                                      widget.question.title,
+                                      style: CustomTypography().headlineLarge(
+                                          color: CustomColors.textWhite),
                                     ),
                                   ),
-                                ),
+                                  // const Expanded(child: SizedBox()),
+                                  Flexible(
+                                    child: AvatarBackground(
+                                        height: constraint.maxHeight,
+                                        width: width,
+                                        foregroundHeight: foregroundHeight,
+                                        image: "",
+                                        avatarType: "animation",
+                                        animation: animationURL,
+                                        animationHeight: animationHeight,
+                                        onContinue: () {},
+                                        onInit: onInit,
+                                        children: [
+                                          getWidget(widget.question,
+                                              index: widget.index)
+                                        ]),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        }),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: CustomFlatButton(
-                            onClick: () => {
-                                  FocusScope.of(context).unfocus(),
-                                  widget.onContinue(
-                                      textEditingController.text != ''
-                                          ? textEditingController.text
-                                          : answer)
-                                },
-                            text: "Continue"),
-                      ),
-                    ],
-                  ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: CustomFlatButton(
+                          onClick: () => {
+                                FocusScope.of(context).unfocus(),
+                                widget.onContinue(
+                                    textEditingController.text != ''
+                                        ? textEditingController.text
+                                        : answer)
+                              },
+                          // isDisabled: answer != null || textEditingController.text.isNotEmpty,
+                          text: "Continue"),
+                    ),
+                  ],
                 ),
               ),
             );
           })),
     );
+  }
+
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, stateMachineName);
+    ctrl?.isActive = false;
+
+    //height of animation
+    setState(() {
+      animationHeight = art.height;
+    });
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+        if (stateMachineName == "Animation_5") {
+          questionTrigger = _controller.getTriggerInput("Question");
+
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              questionTrigger?.fire();
+            }
+          });
+        }
+      });
+    }
+  }
+
+  getAnimationAssets() {
+    if (widget.question.type == 'time') {
+      setState(() {
+        stateMachineName = "Animation_7";
+      });
+      return "assets/animations/onboarding/time.riv";
+    } else {
+      //Select animation randomly
+      final animations = [
+        {
+          'stateMachineName': 'Animation_6',
+          'animationURL': 'assets/animations/onboarding/left_right.riv',
+          'foregroundHeight': 0.75,
+          'loop': true
+        },
+        {
+          'stateMachineName': 'Animation_8',
+          'animationURL': 'assets/animations/onboarding/hide_peek.riv',
+          'foregroundHeight': 0.39,
+          'loop': true,
+        },
+        {
+          'stateMachineName': 'Animation_12',
+          'animationURL': 'assets/animations/onboarding/floats_in.riv',
+          'foregroundHeight': 0.55,
+          'loop': true
+        },
+        {
+          'stateMachineName': 'Animation_9',
+          'animationURL': 'assets/animations/onboarding/flying_left_right.riv',
+          'foregroundHeight': 0.75,
+          'loop': false
+        },
+        {
+          'stateMachineName': 'Animation_5',
+          'animationURL': 'assets/animations/onboarding/questions.riv',
+          'foregroundHeight': 0.79,
+          'loop': true
+        },
+        {
+          'stateMachineName': 'Animation_10',
+          'animationURL': 'assets/animations/onboarding/rolling.riv',
+          'foregroundHeight': 0.75,
+          'loop': false
+        },
+      ];
+
+      final randomizer = Random().nextInt(animations.length);
+      final random = animations[randomizer];
+      if (mounted) {
+        setState(() {
+          stateMachineName = random['stateMachineName'] as String;
+          foregroundHeight = random['foregroundHeight'] as double;
+          loop = random['loop'] as bool;
+        });
+      }
+      return random['animationURL'];
+    }
   }
 
   Widget getWidget(Questions question, {int? index}) {
@@ -380,17 +470,16 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       return OnBoardingTextField(
           subtitle: question.subtitle ?? '', controller: textEditingController);
     } else if (question.type == 'radio') {
-      // return OnBoardingRadioOptions(
-      //   subtitle: question.subtitle,
-      //   options: question.options!,
-      //   value: answer,
-      //   onChanged: (String? value) {
-      //     setState(() {
-      //       answer = value;
-      //     });
-      //   },
-      // );
-      return SizedBox();
+      return OnBoardingRadioOptions(
+        subtitle: question.subtitle ?? '',
+        options: question.options!,
+        value: answer,
+        onChanged: (String? value) {
+          setState(() {
+            answer = value;
+          });
+        },
+      );
     } else if (question.type == 'multiple') {
       final selected = question.answer != null
           ? json
@@ -449,6 +538,8 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
   late String name;
   bool canGoBack = false;
 
+  late StateMachineController _controller;
+
   @override
   void initState() {
     setState(() {
@@ -458,6 +549,12 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
       }
     });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -508,9 +605,11 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                               SizedBox(
                                 height: 300,
                                 width: width,
-                                child: Image.asset(
-                                    'assets/images/avatar_onboarding_placeholder.png',
-                                    fit: BoxFit.fitWidth),
+                                child: RiveAnimation.asset(
+                                  "assets/animations/onboarding/clipboard.riv",
+                                  onInit: onInit,
+                                  fit: BoxFit.fitWidth,
+                                ),
                               ),
                             ]),
                       ),
@@ -530,5 +629,19 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
         }),
       ),
     );
+  }
+
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, "Animation_4");
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
+    }
   }
 }

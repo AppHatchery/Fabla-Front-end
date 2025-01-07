@@ -22,6 +22,8 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
   final SetupRepository repository = SetupRepository();
   final PageTimer timer = PageTimer();
 
+  late StateMachineController _controller;
+
   late Participant _participant;
   @override
   void initState() {
@@ -32,8 +34,24 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
     super.initState();
   }
 
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, "Animation_1");
+
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
+    }
+  }
+
   @override
   void dispose() {
+    _controller.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -110,9 +128,10 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
                               SizedBox(
                                 height: 250,
                                 width: width,
-                                child: const RiveAnimation.asset(
-                                  'assets/animations/onboarding/onboarding_welcome.riv',
+                                child: RiveAnimation.asset(
+                                  'assets/animations/onboarding/onboarding.riv',
                                   fit: BoxFit.fitWidth,
+                                  onInit: onInit,
                                 ),
                               ),
                             ],
@@ -141,8 +160,7 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
 
   void navigateToNextPage() {
     track(timer.stop(), "Finished");
-    RouteService()
-          .navigate(null, context: context, current: 'welcome');
+    RouteService().navigate(null, context: context, current: 'welcome');
   }
 
   track(int spent, String status) async {
