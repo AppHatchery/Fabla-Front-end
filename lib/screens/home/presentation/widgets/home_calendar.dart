@@ -151,7 +151,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
                 children: [
                   calendar(),
                   const SizedBox(height: 12),
-                  body(widget.studies.isNotEmpty ? widget.studies.first.incentive: null),
+                  body(widget.studies.isNotEmpty
+                      ? widget.studies.first.incentive
+                      : null),
                 ],
               ),
             )
@@ -429,7 +431,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
     return list;
   }
 
-  List<StudyModel> _getStudies(){
+  List<StudyModel> _getStudies() {
     return repository.getAllStudies();
   }
 
@@ -572,6 +574,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
 
       if (percentage >= threshold) {
         _acquired += study.incentive.bonus;
+        bonusAchieved();
       }
     }
 
@@ -579,6 +582,10 @@ class _StudyCalendarState extends State<StudyCalendar> {
       total = _total;
       acquired = _acquired;
     });
+  }
+
+  void bonusAchieved() async {
+    await PendoService.track("BonusAchieved", null);
   }
 }
 
