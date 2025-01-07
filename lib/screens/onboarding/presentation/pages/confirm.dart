@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -22,13 +23,15 @@ class ConfirmJoiningPage extends StatefulWidget {
   State<ConfirmJoiningPage> createState() => _ConfirmJoiningPageState();
 }
 
-class _ConfirmJoiningPageState extends State<ConfirmJoiningPage> {
-  Timer? timer;
-  int secondsSpent = 0;
+class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
+    with WidgetsBindingObserver {
+  final PageTimer timer = PageTimer();
   late bool isIos;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    timer.start();
     setState(() {
       isIos = Platform.isIOS;
     });
@@ -37,8 +40,20 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage> {
 
   @override
   void dispose() {
-    timer?.cancel();
+    timer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      timer.start();
+    } else if (state == AppLifecycleState.paused) {
+      int spent = timer.stop();
+      track(spent, "Paused");
+    }
+    super.didChangeAppLifecycleState(state);
   }
 
   @override
@@ -127,8 +142,11 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage> {
           child: Wrap(
             children: [
               CustomFlatButton(
-                onClick: () => RouteService()
-                    .navigate(null, context: context, current: 'confirm'),
+                onClick: () => {
+                  track(timer.stop(), "Finished"),
+                  RouteService()
+                      .navigate(null, context: context, current: 'confirm')
+                },
                 text: "Confirm Joining",
                 color: CustomColors.fillWhite,
                 textColor: CustomColors.productNormalActive,
@@ -139,7 +157,8 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage> {
               ),
 
               CustomFlatButton(
-                onClick: () => Navigator.pop(context),
+                onClick: () =>
+                    {track(timer.stop(), "Back"), Navigator.pop(context)},
                 text: "This isn’t right - take me back",
                 color: CustomColors.fillWhite,
                 textColor: CustomColors.productNormalActive,
@@ -186,19 +205,10 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage> {
     // });
   }
 
-  void startTimer() {
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        secondsSpent++;
-      });
-    });
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Confirm Study", {"time_on_page": spent, "status": status});
   }
-
-  void stopTimer() {
-    timer?.cancel();
-  }
-
-  void resetTimer() => setState(() => secondsSpent = 0);
 
   Future<void> pendoTrack(String login) async {
     final service = PreferenceService();

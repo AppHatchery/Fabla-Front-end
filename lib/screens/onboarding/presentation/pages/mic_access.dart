@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/mic_tester.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -28,8 +29,21 @@ class _MicAccessPageState extends State<MicAccessPage>
   bool requested = false;
   bool canGoBack = false;
 
+  //Animations
+  late StateMachineController _controller;
+  SMIBool? wearHeadphones;
+
+  SMITrigger? thumbsUp;
+  bool hasTriggeredThumbsUp = false;
+
+  SMITrigger? headphonesAllow;
+
+  final PageTimer timer = PageTimer();
+
+
   @override
   void initState() {
+    timer.start();
     if (Navigator.of(context).canPop()) {
       canGoBack = true;
     }
@@ -40,7 +54,9 @@ class _MicAccessPageState extends State<MicAccessPage>
 
   @override
   void dispose() {
+    timer.dispose();
     recorder.closeRecorder();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -48,10 +64,13 @@ class _MicAccessPageState extends State<MicAccessPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       recorderInit();
+      timer.start();
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached ||
         state == AppLifecycleState.inactive) {
       recorder.closeRecorder();
+       int spent = timer.stop();
+      track(spent, "Paused");
     }
     super.didChangeAppLifecycleState(state);
   }
@@ -66,7 +85,9 @@ class _MicAccessPageState extends State<MicAccessPage>
           scrolledUnderElevation: 0.0,
           leading: canGoBack
               ? IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => {
+                    track(timer.stop(), "Back"),
+                    Navigator.pop(context)},
                   icon: const Icon(
                     Icons.arrow_back_rounded,
                     color: CustomColors.fillWhite,
@@ -190,28 +211,37 @@ class _MicAccessPageState extends State<MicAccessPage>
                                       : const SizedBox.shrink(),
                                 ],
                               ),
-                              Visibility(
-                                visible: permission,
-                                replacement: SizedBox(
-                                  height: 300,
-                                  width: width,
-                                  child: requested == true &&
-                                          permission == false
-                                      ? const RiveAnimation.asset(
-                                          'assets/animations/onboarding/micaccess_denial.riv',
-                                          fit: BoxFit.fitWidth)
-                                      : const RiveAnimation.asset(
-                                          'assets/animations/onboarding/micaccess.riv',
-                                          fit: BoxFit.fitWidth),
-                                ),
-                                child: SizedBox(
-                                  height: 300,
-                                  width: width,
-                                  child: const RiveAnimation.asset(
-                                      'assets/animations/onboarding/micaccess_ongoing.riv',
-                                      fit: BoxFit.fitWidth),
+                              SizedBox(
+                                height: 300,
+                                width: width,
+                                child: RiveAnimation.asset(
+                                  'assets/animations/onboarding/mic_access.riv',
+                                  fit: BoxFit.fitWidth,
+                                  onInit: onInit,
                                 ),
                               ),
+                              // Visibility(
+                              //   visible: permission,
+                              //   replacement: SizedBox(
+                              //     height: 300,
+                              //     width: width,
+                              //     child: requested == true &&
+                              //             permission == false
+                              //         ? const RiveAnimation.asset(
+                              //             'assets/animations/onboarding/micaccess_denial.riv',
+                              //             fit: BoxFit.fitWidth)
+                              //         : const RiveAnimation.asset(
+                              //             'assets/animations/onboarding/micaccess.riv',
+                              //             fit: BoxFit.fitWidth),
+                              //   ),
+                              //   child: SizedBox(
+                              //     height: 300,
+                              //     width: width,
+                              //     child: const RiveAnimation.asset(
+                              //         'assets/animations/onboarding/micaccess_ongoing.riv',
+                              //         fit: BoxFit.fitWidth),
+                              //   ),
+                              // ),
                             ]),
                       ),
                     ),
@@ -228,6 +258,23 @@ class _MicAccessPageState extends State<MicAccessPage>
             ),
           );
         }));
+  }
+
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, "Animation_2");
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+        wearHeadphones = _controller.getBoolInput('Puts the Headphones on');
+        thumbsUp = _controller.getTriggerInput('Thumbs Up');
+        headphonesAllow = _controller.getTriggerInput('Headphones_Allow');
+      });
+    }
   }
 
   void recorderInit() async {
@@ -259,6 +306,21 @@ class _MicAccessPageState extends State<MicAccessPage>
     final path = '${tempDir.path}/flutter_sound.aac';
     recorder.startRecorder(
         toFile: path, codec: Codec.aacADTS, sampleRate: 44100, bitRate: 48000);
+
+    recorder.onProgress!.listen((event) {
+      if (!hasTriggeredThumbsUp &&
+          event.decibels != null &&
+          event.decibels! > 40) {
+        //Thumbs up
+        thumbsUp?.fire();
+
+        if (mounted) {
+          setState(() {
+            hasTriggeredThumbsUp = true;
+          });
+        }
+      }
+    });
   }
 
   void navigateToNextPage(BuildContext context) async {
@@ -269,19 +331,28 @@ class _MicAccessPageState extends State<MicAccessPage>
     });
     await PendoService.track("OnBoardingMicAccess", {"state": results.name});
     if (permission) {
+      wearHeadphones?.value = true;
       if (requested) {
         await PreferenceService()
             .setBoolPreference(key: 'mic_requested', value: requested);
         if (context.mounted) {
+          track(timer.stop(), "Finished");
           RouteService()
               .navigate(null, context: context, current: 'mic_access');
         }
       } else {
         startRecorder();
       }
+    } else {
+      headphonesAllow?.fire();
     }
 
     if (mounted) requested = true;
+  }
+
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Microphone Access", {"time_on_page": spent, "status": status});
   }
 
   void _requestPermission() async {
@@ -305,7 +376,10 @@ class _MicAccessPageState extends State<MicAccessPage>
         permission = results.isGranted;
       });
 
-      if (permission) startRecorder();
+      if (permission) {
+        startRecorder();
+        wearHeadphones?.value = true; //! Test This
+      }
     }
   }
 }

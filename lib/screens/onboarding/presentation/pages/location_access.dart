@@ -1,3 +1,5 @@
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -7,6 +9,7 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart' as l;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:rive/rive.dart' as rive;
 
 class LocationAccess extends StatefulWidget {
   const LocationAccess({super.key});
@@ -15,15 +18,23 @@ class LocationAccess extends StatefulWidget {
   State<LocationAccess> createState() => _LocationAccessState();
 }
 
-class _LocationAccessState extends State<LocationAccess> {
+class _LocationAccessState extends State<LocationAccess>
+    with WidgetsBindingObserver {
   bool permission = false;
   bool requested = false;
   bool canGoBack = false;
+
+  //Animations
+  late rive.StateMachineController _controller;
+
+  final PageTimer timer = PageTimer();
 
   late l.Location location;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    timer.start();
     if (Navigator.of(context).canPop()) {
       canGoBack = true;
     }
@@ -33,8 +44,28 @@ class _LocationAccessState extends State<LocationAccess> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      timer.start();
+    } else if (state == AppLifecycleState.paused) {
+      int spent = timer.stop();
+      track(spent, "Paused");
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    timer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     return Scaffold(
         backgroundColor: CustomColors.backgroundSecondary,
         appBar: AppBar(
@@ -42,7 +73,8 @@ class _LocationAccessState extends State<LocationAccess> {
           scrolledUnderElevation: 0.0,
           leading: canGoBack
               ? IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () =>
+                      {track(timer.stop(), "Back"), Navigator.pop(context)},
                   icon: const Icon(
                     Icons.arrow_back_rounded,
                     color: CustomColors.fillWhite,
@@ -65,14 +97,12 @@ class _LocationAccessState extends State<LocationAccess> {
                         constraints:
                             BoxConstraints(minHeight: constraint.maxHeight),
                         child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Column(
                                 children: [
                                   Text(
-                                    permission
-                                        ? "Let's test the camera feed."
-                                        : "Let's enable access to your location.",
+                                    "Let's enable access to your location.",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
                                   ),
@@ -160,16 +190,15 @@ class _LocationAccessState extends State<LocationAccess> {
                                       : const SizedBox.shrink(),
                                 ],
                               ),
-                              Visibility(
-                                visible: permission,
-                                replacement: SizedBox(
-                                  height: 300,
-                                  width: width,
+
+                              SizedBox(
+                                height: height * 0.65,
+                                width: width,
+                                child: rive.RiveAnimation.asset(
+                                  'assets/animations/onboarding/location.riv',
+                                  fit: BoxFit.fitWidth,
+                                  onInit: onInit,
                                 ),
-                                child: SizedBox(
-                                    height: 300,
-                                    width: width,
-                                    child: SizedBox.shrink()),
                               ),
                             ]),
                       ),
@@ -195,15 +224,30 @@ class _LocationAccessState extends State<LocationAccess> {
       permission = results == l.PermissionStatus.granted;
       requested = true;
     });
-
+    await PendoService.track("Location Access", {"state": results.name});
     if (permission) {
       if (requested) {
         await PreferenceService()
             .setBoolPreference(key: 'location', value: requested);
         if (context.mounted) {
+          track(timer.stop(), "Finished");
           RouteService().navigate(null, context: context, current: 'location');
         }
       }
+    }
+  }
+
+  onInit(rive.Artboard art) async {
+    var ctrl = rive.StateMachineController.fromArtboard(art, "Animation_3");
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
     }
   }
 
@@ -218,5 +262,10 @@ class _LocationAccessState extends State<LocationAccess> {
 
       if (permission) ;
     }
+  }
+
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Location Access", {"time_on_page": spent, "status": status});
   }
 }

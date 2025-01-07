@@ -159,14 +159,14 @@ class LoginRepository {
         final experiment = ExperimentModel.fromJson(data);
 
         // Verify the code and save the experiment data to the database
-        if (code == experiment.login) {
+        if (code.toLowerCase() == experiment.login.toLowerCase()) {
           _experimentDAO.replaceExperiment(Experiment.fromModel(experiment));
           final setup = SetupRepository();
           final questions = data['onboarding_questions'] as List;
 
-          final permissions = (data['permissions'] as List)
-              .map((permission) => (permission as String).toLowerCase())
-              .toList();
+          final permissions = (data['permissions'] as List?)
+              ?.map((permission) => (permission as String).toLowerCase())
+              .toList() ?? [];
           // Save the extra permissions to the shared preferences
           await PreferenceService().setStringListPreference(
             key: 'extra_permissions',
