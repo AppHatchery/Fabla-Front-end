@@ -394,6 +394,8 @@ class CustomOutlineButton extends StatelessWidget {
   final Color color;
   final Color backgroundColor;
   final bool? isDisabled;
+  final double borderRadius;
+  final EdgeInsetsGeometry padding;
 
   const CustomOutlineButton(
       {super.key,
@@ -401,7 +403,10 @@ class CustomOutlineButton extends StatelessWidget {
       required this.children,
       required this.color,
       required this.backgroundColor,
-      this.isDisabled});
+      this.isDisabled,
+      this.borderRadius = 10,
+      this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0)
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -410,7 +415,7 @@ class CustomOutlineButton extends StatelessWidget {
       child: Ink(
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(borderRadius),
           border: Border.all(color: color, width: 1),
           shape: BoxShape.rectangle,
         ),
@@ -419,7 +424,7 @@ class CustomOutlineButton extends StatelessWidget {
             onTap: isDisabled ?? false ? null : () => onClick(),
             child: Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding,
               child: Container(child: children),
             )),
       ),

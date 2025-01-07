@@ -36,7 +36,7 @@ class _TestMicrophoneState extends State<TestMicrophone> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
         decoration: BoxDecoration(
           color: CustomColors.fillWhite,
           borderRadius: BorderRadius.circular(14),
@@ -64,14 +64,12 @@ class _TestMicrophoneState extends State<TestMicrophone> {
                     },
                     style: TextButton.styleFrom(
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(100)),
                         backgroundColor: CustomColors.productNormal),
-                    child: Text(
-                      isRecording ? "Stop Test" : "Test Microphone",
-                      style: CustomTypography()
-                          .title(color: CustomColors.textWhite),
-                      textAlign: TextAlign.center
-                    ),
+                    child: Text(isRecording ? "Stop Test" : "Test Microphone",
+                        style: CustomTypography()
+                            .title(color: CustomColors.textWhite),
+                        textAlign: TextAlign.center),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
