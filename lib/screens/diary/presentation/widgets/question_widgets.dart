@@ -1,3 +1,9 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:math';
+
+import 'package:alarm/alarm.dart';
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -9,7 +15,7 @@ import '../../../../theme/custom_typography.dart';
 import 'my_responses.dart';
 
 ///These widgets are being used in the QuestionPage class
-///They are used to diplay tbe answer options for each question
+///They are used to display tbe answer options for each question
 ///whether slider option, multiple questions or radio questions
 
 class SliderQuestionCard extends StatefulWidget {
@@ -600,5 +606,226 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                 );
               },
             ));
+  }
+}
+
+class TimerWidget extends StatefulWidget {
+  final String time;
+  const TimerWidget({super.key, required this.time});
+
+  @override
+  State<TimerWidget> createState() => _TimerWidgetState();
+}
+
+class _TimerWidgetState extends State<TimerWidget>
+    with TickerProviderStateMixin {
+  late Duration duration;
+  late Duration remaining;
+  Timer? timer;
+  bool inProgress = false;
+
+  double progress = 0.0;
+
+  //Animations
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late AnimationController _gradientController;
+  late Animation<List<Color>> _gradientAnimation;
+
+  late AnimationController _progressController;
+  late Animation<double> _progressAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    duration = formatStringToDuration(widget.time);
+    remaining = formatStringToDuration(widget.time);
+
+    // Initialize AnimationController
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+    _gradientController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    )..repeat();
+
+    _gradientAnimation = _gradientController.drive(
+      ColorListTween(
+        [
+          [CustomColors.productLightBackground, const Color(0xFF4396FE)],
+          [CustomColors.productNormal, CustomColors.productLightPrimaryActive],
+          [CustomColors.productLightBackground, CustomColors.productNormal],
+        ],
+      ),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+
+    _progressController = AnimationController(
+      vsync: this,
+      duration: duration,
+    );
+
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _progressController, curve: Curves.linear),
+    );
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    _animationController.dispose();
+    _gradientController.dispose();
+    _progressController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
+      child: inProgress
+          ? Stack(
+              alignment: Alignment.center,
+              children: [
+                AnimatedBuilder(
+                    animation: _progressAnimation,
+                    builder: (context, child) {
+                      return SizedBox(
+                        width: 250,
+                        height: 250,
+                        child: CircularProgressIndicator(
+                          value: _progressAnimation.value,
+                          strokeWidth: 8,
+                          color: CustomColors.productNormalActive,
+                          backgroundColor: CustomColors.productLightBackground,
+                          strokeCap: StrokeCap.round,
+                        ),
+                      );
+                    }),
+                AnimatedBuilder(
+                  animation: Listenable.merge(
+                    [_scaleAnimation, _gradientAnimation],
+                  ),
+                  builder: (context, child) {
+                    final colors = _gradientAnimation.value;
+                    return Transform.scale(
+                      scale: _scaleAnimation.value,
+                      child: Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          gradient:
+                              RadialGradient(colors: colors, stops: [0.5, 1.0]),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      formatDurationtoHHMMSS(remaining),
+                      style: CustomTypography()
+                          .titleLarge(color: CustomColors.textWhite),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CustomFlatButton(
+                  onClick: () => start(),
+                  text: "Start",
+                )
+              ],
+            ),
+    );
+  }
+
+  void start() {
+    setState(() {
+      inProgress = true;
+    });
+    timer?.cancel();
+    _progressController.forward();
+    timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      setState(() {
+        if (remaining.inSeconds > 0) {
+          remaining -= const Duration(seconds: 1);
+        } else {
+          timer?.cancel();
+          _animationController.stop();
+        }
+      });
+    });
+    setAlarm();
+  }
+
+  void pause() {
+    _progressController.stop();
+    timer?.cancel();
+  }
+
+  void stop() {
+    timer?.cancel();
+    _progressController.reset();
+    setState(() {
+      duration = formatStringToDuration(widget.time);
+      progress = 1.0;
+    });
+  }
+
+  void stopAlarm() async {
+    await Alarm.stopAll();
+  }
+
+  void setAlarm() async {
+    // Ensure the alarm is cancelled after firing
+    stopAlarm();
+
+    final alarmID = Random().nextInt(1000);
+    final time = DateTime.now().add(duration);
+    await Alarm.set(
+        alarmSettings: AlarmSettings(
+            id: alarmID,
+            dateTime: time,
+            assetAudioPath: 'assets/audio/chime.mp3',
+            loopAudio: false,
+            vibrate: true,
+            volume: 1.0,
+            fadeDuration: 0.0,
+            warningNotificationOnKill: Platform.isIOS,
+            androidFullScreenIntent: false,
+            notificationSettings: const NotificationSettings(
+                title: "Time's Up!",
+                body: "Please come back to Fabla to finish your entry")));
+  }
+}
+
+class ColorListTween extends Tween<List<Color>> {
+  final List<List<Color>> colors;
+
+  ColorListTween(this.colors) : super(begin: colors.first, end: colors.last);
+
+  @override
+  List<Color> lerp(double t) {
+    final index = (t * (colors.length - 1)).floor();
+    final nextIndex = min(index + 1, colors.length - 1);
+    final localT = (t * (colors.length - 1)) - index;
+
+    return List<Color>.generate(
+      begin!.length,
+      (i) => Color.lerp(colors[index][i], colors[nextIndex][i], localT)!,
+    );
   }
 }

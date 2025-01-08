@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.gdelataillade.fetch</string>
+	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -45,20 +49,23 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Recording videos and taking pictures as you answer the prompts of the study is a crucial part of the research. We ask that you enable the camera for this app.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Recording your voice as you answer the prompts of the study is a crucial part of the research. We ask that you enable the microphone for this app</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Sharing your location as you participate in the study is a crucial part of the research. We ask that you enable location services for this app.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Recording your voice as you answer the prompts of the study is a crucial part of the research. We ask that you enable the microphone for this app</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
+		<string>fetch</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>$(LAUNCH_SCREEN_STORYBOARD)</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>UIStatusBarHidden</key>
+	<false/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -73,8 +80,6 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
-	<key>UIStatusBarHidden</key>
 	<false/>
 </dict>
 </plist>
