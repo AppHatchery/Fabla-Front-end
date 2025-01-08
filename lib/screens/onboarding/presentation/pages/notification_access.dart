@@ -199,7 +199,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
           ),
           Padding(
             padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34),
             child: CustomFlatButton(
               onClick: () => navigateToNextPage(context),
               text: "Continue",

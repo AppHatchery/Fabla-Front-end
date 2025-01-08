@@ -50,7 +50,7 @@ class AvatarBackground extends StatelessWidget {
       left: 0,
       right: 0,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 0.0),
         child: avatarType == "image"
             ? Image.asset(
                 image,

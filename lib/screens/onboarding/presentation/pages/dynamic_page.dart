@@ -312,6 +312,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
                               height: constraint.maxHeight,
                               color: CustomColors.backgroundSecondary,
                               child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
@@ -578,53 +579,56 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
       body: SafeArea(
         bottom: false,
         child: LayoutBuilder(builder: (context, constraints) {
-          return Padding(
-            padding:
-                const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraint) => SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints:
-                            BoxConstraints(minHeight: constraint.maxHeight),
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                children: [
-                                  Text(
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraint) => SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraint.maxHeight),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+                                  child: Text(
                                     "Hooray $name! Now a couple of extra questions to customize this study for you",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
                                   ),
-                                ],
-                              ),
-                              SizedBox(
-                                height: 300,
-                                width: width,
-                                child: RiveAnimation.asset(
-                                  "assets/animations/onboarding/clipboard.riv",
-                                  onInit: onInit,
-                                  fit: BoxFit.fitWidth,
                                 ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 300,
+                              width: width,
+                              child: RiveAnimation.asset(
+                                "assets/animations/onboarding/clipboard.riv",
+                                onInit: onInit,
+                                fit: BoxFit.fitWidth,
                               ),
-                            ]),
-                      ),
+                            ),
+                          ]),
                     ),
                   ),
                 ),
-                CustomFlatButton(
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
+                child: CustomFlatButton(
                   onClick: () => widget.onContinue(),
                   text: "Continue",
                   color: CustomColors.fillWhite,
                   isDisabled: false,
                   textColor: CustomColors.productNormalActive,
-                )
-              ],
-            ),
+                ),
+              )
+            ],
           );
         }),
       ),
