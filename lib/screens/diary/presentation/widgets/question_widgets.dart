@@ -9,6 +9,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
@@ -611,7 +612,8 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
 
 class TimerWidget extends StatefulWidget {
   final String time;
-  const TimerWidget({super.key, required this.time});
+  final void Function(String) respond;
+  const TimerWidget({super.key, required this.time, required this.respond});
 
   @override
   State<TimerWidget> createState() => _TimerWidgetState();
@@ -752,7 +754,13 @@ class _TimerWidgetState extends State<TimerWidget>
     );
   }
 
-  void start() {
+  void start() async {
+    final permission = await seekPermission();
+
+    if (!permission) {
+      return;
+    }
+
     setState(() {
       inProgress = true;
     });
@@ -765,9 +773,11 @@ class _TimerWidgetState extends State<TimerWidget>
         } else {
           timer?.cancel();
           _animationController.stop();
+          widget.respond("Done");
         }
       });
     });
+
     setAlarm();
   }
 
@@ -809,6 +819,19 @@ class _TimerWidgetState extends State<TimerWidget>
             notificationSettings: const NotificationSettings(
                 title: "Time's Up!",
                 body: "Please come back to Fabla to finish your entry")));
+  }
+
+  /// Get special permission for the alarm
+  /// Only applies to Android
+  Future<bool> seekPermission() async {
+    if (Platform.isIOS) return true;
+
+    final status = await Permission.scheduleExactAlarm.status;
+    if (status.isDenied) {
+      final result = await Permission.scheduleExactAlarm.request();
+      return result.isGranted;
+    }
+    return status.isGranted;
   }
 }
 

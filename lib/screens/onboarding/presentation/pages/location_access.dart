@@ -209,7 +209,7 @@ class _LocationAccessState extends State<LocationAccess>
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 34),
                 child: CustomFlatButton(
                   onClick: () => navigateToNextPage(context),
-                  text: permission ? "Continue" : "Allow",
+                  text: "Continue",
                   color: CustomColors.fillWhite,
                   isDisabled: requested == true && permission == false,
                   textColor: CustomColors.productNormalActive,

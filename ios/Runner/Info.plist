@@ -51,6 +51,8 @@
 	<string>Recording videos and taking pictures as you answer the prompts of the study is a crucial part of the research. We ask that you enable the camera for this app.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Sharing your location as you participate in the study is a crucial part of the research. We ask that you enable location services for this app.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Sharing your location as you participate in the study is a crucial part of the research. We ask that you enable location services for this app.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Recording your voice as you answer the prompts of the study is a crucial part of the research. We ask that you enable the microphone for this app</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

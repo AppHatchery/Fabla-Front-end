@@ -212,7 +212,7 @@ class _CameraAccessState extends State<CameraAccess>
                 ),
                 CustomFlatButton(
                   onClick: () => navigateToNextPage(context),
-                  text: permission ? "Continue" : "Allow",
+                  text: "Continue",
                   color: CustomColors.fillWhite,
                   isDisabled: requested == true && permission == false,
                   textColor: CustomColors.productNormalActive,

@@ -524,7 +524,7 @@ class _QuestionPageState extends State<QuestionPage>
           diary: widget.diary,
           respond: (answer) => save(prompt, answer, null));
     } else if(prompt.responseType == ResponseType.timer){
-      responseWidget = TimerWidget(time: prompt.subtitle ?? '00:30',);
+      responseWidget = TimerWidget(time: prompt.subtitle ?? '00:30', respond: (answer) => save(prompt, answer, null));
     }else {
       responseWidget = const SizedBox.shrink();
     }
