@@ -28,6 +28,8 @@ class NotificationManager {
     // Get the number of notifications scheduled
     final scheduledNotifications =
         (await NotificationService.getScheduledNotifications())
+            .where((e) =>
+                e.content?.payload?['date'] != null) // Filter out null payloads
             .map((e) => DateTime.parse(e.content!.payload!['date']!))
             .toSet(); // Convert to a Set for faster lookup
 

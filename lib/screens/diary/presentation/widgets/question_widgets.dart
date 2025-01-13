@@ -42,8 +42,11 @@ class SliderQuestionCard extends StatefulWidget {
 }
 
 class _SliderQuestionCardState extends State<SliderQuestionCard> {
+  double _value = 0;
+
   @override
   void initState() {
+    _value = widget.value ?? 0;
     super.initState();
   }
 
@@ -84,18 +87,23 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
                       valueIndicatorTextStyle: CustomTypography()
                           .bodyLarge(color: CustomColors.textWhite)),
                   child: Slider(
-                    value: widget.value ?? 0,
+                    value: _value,
                     min: widget.scaleMin.toDouble(),
                     max: widget.scaleMax.toDouble(),
                     divisions: widget.scaleMax - widget.scaleMin,
-                    label: widget.value?.round().toString(),
-                    onChanged: widget.isSliderEnabled
+                    label: _value.round().toString(),
+                    onChangeEnd: widget.isSliderEnabled
                         ? (double value) {
                             if (widget.onSliderValueChanged != null) {
                               widget.onSliderValueChanged!(value);
                             }
                           }
                         : null,
+                    onChanged: (val) {
+                      setState(() {
+                        _value = val;
+                      });
+                    },
                     //overlayColor:CustomColors.newBlue,
                   ),
                 ),
