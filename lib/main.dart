@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -60,6 +61,7 @@ void main() async {
   objectbox = await ObjectBox.create();
   cameras = await availableCameras();
   //await configureAmplify();
+  await Alarm.init();
   await NotificationService.init();
   await PendoService.init();
   final route = await RouteService().getRoute();

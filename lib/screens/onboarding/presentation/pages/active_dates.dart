@@ -230,7 +230,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
 
     if (context.mounted) {
       track(timer.stop(), "Finished");
-      RouteService().navigate(null, context: context, current: 'finish');
+      RouteService().navigate(null, context: context, current: 'active_dates');
     }
   }
 

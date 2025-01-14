@@ -84,22 +84,22 @@ class _LocationAccessState extends State<LocationAccess>
           automaticallyImplyLeading: false,
         ),
         body: LayoutBuilder(builder: (context, constraints) {
-          return Padding(
-            padding:
-                const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraint) => SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints:
-                            BoxConstraints(minHeight: constraint.maxHeight),
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Column(
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraint) => SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraint.maxHeight),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Column(
                                 children: [
                                   Text(
                                     "Let's enable access to your location.",
@@ -190,30 +190,32 @@ class _LocationAccessState extends State<LocationAccess>
                                       : const SizedBox.shrink(),
                                 ],
                               ),
-
-                              SizedBox(
-                                height: height * 0.65,
-                                width: width,
-                                child: rive.RiveAnimation.asset(
-                                  'assets/animations/onboarding/location.riv',
-                                  fit: BoxFit.fitWidth,
-                                  onInit: onInit,
-                                ),
+                            ),
+                            SizedBox(
+                              height: height * 0.65,
+                              width: width,
+                              child: rive.RiveAnimation.asset(
+                                'assets/animations/onboarding/location.riv',
+                                fit: BoxFit.fitWidth,
+                                onInit: onInit,
                               ),
-                            ]),
-                      ),
+                            ),
+                          ]),
                     ),
                   ),
                 ),
-                CustomFlatButton(
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 34),
+                child: CustomFlatButton(
                   onClick: () => navigateToNextPage(context),
-                  text: permission ? "Continue" : "Allow",
+                  text: "Continue",
                   color: CustomColors.fillWhite,
                   isDisabled: requested == true && permission == false,
                   textColor: CustomColors.productNormalActive,
-                )
-              ],
-            ),
+                ),
+              )
+            ],
           );
         }));
   }
