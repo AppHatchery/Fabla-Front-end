@@ -660,7 +660,7 @@ class _TimerWidgetState extends State<TimerWidget>
     _gradientController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 10),
-    )..repeat();
+    )..repeat(reverse: true);
 
     _gradientAnimation = _gradientController.drive(
       ColorListTween(
@@ -700,54 +700,78 @@ class _TimerWidgetState extends State<TimerWidget>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
       child: inProgress
-          ? Stack(
-              alignment: Alignment.center,
+          ? Column(
               children: [
-                AnimatedBuilder(
-                    animation: _progressAnimation,
-                    builder: (context, child) {
-                      return SizedBox(
-                        width: 250,
-                        height: 250,
-                        child: CircularProgressIndicator(
-                          value: _progressAnimation.value,
-                          strokeWidth: 8,
-                          color: CustomColors.productNormalActive,
-                          backgroundColor: CustomColors.productLightBackground,
-                          strokeCap: StrokeCap.round,
-                        ),
-                      );
-                    }),
-                AnimatedBuilder(
-                  animation: Listenable.merge(
-                    [_scaleAnimation, _gradientAnimation],
-                  ),
-                  builder: (context, child) {
-                    final colors = _gradientAnimation.value;
-                    return Transform.scale(
-                      scale: _scaleAnimation.value,
-                      child: Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          gradient:
-                              RadialGradient(colors: colors, stops: [0.5, 1.0]),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Stack(
+                  alignment: Alignment.center,
                   children: [
-                    Text(
-                      formatDurationtoHHMMSS(remaining),
-                      style: CustomTypography()
-                          .titleLarge(color: CustomColors.textWhite),
+                    AnimatedBuilder(
+                        animation: _progressAnimation,
+                        builder: (context, child) {
+                          return SizedBox(
+                            width: 250,
+                            height: 250,
+                            child: CircularProgressIndicator(
+                              value: _progressAnimation.value,
+                              strokeWidth: 8,
+                              color: CustomColors.productNormalActive,
+                              backgroundColor:
+                                  CustomColors.productLightBackground,
+                              strokeCap: StrokeCap.round,
+                            ),
+                          );
+                        }),
+                    AnimatedBuilder(
+                      animation: Listenable.merge(
+                        [_scaleAnimation, _gradientAnimation],
+                      ),
+                      builder: (context, child) {
+                        final colors = _gradientAnimation.value;
+                        return Transform.scale(
+                          scale: _scaleAnimation.value,
+                          child: Container(
+                            width: 150,
+                            height: 150,
+                            decoration: BoxDecoration(
+                              gradient: RadialGradient(
+                                  colors: colors, stops: [0.5, 1.0]),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          formatDurationtoHHMMSS(remaining),
+                          style: CustomTypography()
+                              .titleLarge(color: CustomColors.textWhite),
+                        ),
+                      ],
                     ),
                   ],
                 ),
+                const SizedBox(height: 24,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: CustomFlatButton(
+                        onClick: () => restart(),
+                        text: "Restart",
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: CustomFlatButton(
+                        onClick: () => pause(),
+                        text: "Pause",
+                      ),
+                    )
+                  ],
+                )
               ],
             )
           : Column(
@@ -786,37 +810,65 @@ class _TimerWidgetState extends State<TimerWidget>
       });
     });
 
-    setAlarm();
+    setAlarm(remaining);
   }
 
   void pause() {
-    _progressController.stop();
-    timer?.cancel();
+    if (timer?.isActive ?? false) {
+      _progressController.stop();
+      _animationController.stop();
+      _gradientController.stop();
+      timer?.cancel();
+      timer = null;
+    } else {
+      _progressController.forward();
+      _animationController.repeat(reverse: true);
+      _gradientController.repeat(reverse: true);
+
+      timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        setState(() {
+          if (remaining.inSeconds > 0) {
+            remaining -= const Duration(seconds: 1);
+          } else {
+            timer?.cancel();
+            _animationController.stop();
+            widget.respond("Done");
+          }
+        });
+      });
+    }
   }
 
   void stop() {
     timer?.cancel();
+    timer = null;
     _progressController.reset();
     setState(() {
       duration = formatStringToDuration(widget.time);
-      progress = 1.0;
+      remaining = formatStringToDuration(widget.time);
+      progress = 0.0;
     });
+  }
+
+  void restart() {
+    stop();
+    start();
   }
 
   void stopAlarm() async {
     await Alarm.stopAll();
   }
 
-  void setAlarm() async {
+  void setAlarm(Duration time) async {
     // Ensure the alarm is cancelled after firing
     stopAlarm();
 
     final alarmID = Random().nextInt(1000);
-    final time = DateTime.now().add(duration);
+    final _time = DateTime.now().add(time);
     await Alarm.set(
         alarmSettings: AlarmSettings(
             id: alarmID,
-            dateTime: time,
+            dateTime: _time,
             assetAudioPath: 'assets/audio/chime.mp3',
             loopAudio: false,
             vibrate: true,
