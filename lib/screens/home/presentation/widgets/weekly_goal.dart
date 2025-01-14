@@ -1,3 +1,5 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -5,16 +7,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class WeeklyGoalWidget extends StatefulWidget {
-  final int currentEntries;
-  final int weeklyGoal;
-  final bool isExpanded;
   final List<StudyModel> studies;
+  final List<DiaryModel> diaries;
+  final bool isExpanded;
   const WeeklyGoalWidget(
       {super.key,
       required this.isExpanded,
-      required this.currentEntries,
-      required this.weeklyGoal,
-      required this.studies});
+      required this.studies,
+      required this.diaries});
 
   @override
   State<WeeklyGoalWidget> createState() => _WeeklyGoalWidgetState();
@@ -28,24 +28,13 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
   double lowerGoal = 0.0;
   int lowerValue = 0;
   Color color = CustomColors.productNormal;
+  int currentEntries = 0;
 
   @override
   void initState() {
     super.initState();
 
-    //calculate the progress bar width
-    weeklyGoal =
-        widget.studies.fold(0, (sum, study) => sum + study.goals.weekly);
-    progressValue = (widget.currentEntries / weeklyGoal) * width;
-    progressBarWidth = progressValue.isNaN
-        ? 0
-        : (progressValue > width)
-            ? width
-            : progressValue;
-    //calculate the lower goal width/value
-    lowerValue = (0.7 * weeklyGoal).round();
-    lowerGoal = (lowerValue / weeklyGoal) * width;
-    color = widget.studies.firstOrNull?.color ?? CustomColors.productNormal;
+    calculate();
   }
 
   @override
@@ -117,7 +106,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: Text(
-                "${widget.currentEntries}/$weeklyGoal",
+                "$currentEntries/$weeklyGoal",
                 style: CustomTypography().caption(color: color),
               ),
             )
@@ -125,5 +114,41 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
         ),
       ],
     );
+  }
+
+  void calculate() {
+    Map<StudyModel, List<DiaryModel>> data = {};
+
+    for (var study in widget.studies) {
+      final diaries =
+          widget.diaries.where((diary) => diary.studyID == study.studyId);
+      data[study] = diaries.toList();
+    }
+
+    final first = data.entries.firstOrNull;
+
+    if (first != null) {
+      // If the weekly goal is more than the number of entries, use the number of available entries
+      // Possible entries taking into consideration the number of entries allowed per diary
+      final possibleEntries =
+          first.value.fold(0, (prev, diary) => prev + diary.entries);
+      weeklyGoal = first.key.goals.weekly > possibleEntries
+          ? possibleEntries
+          : first.key.goals.weekly;
+      currentEntries = first.value
+          .where((diary) => diary.status == DiaryStatus.submitted)
+          .length;
+    }
+
+    progressValue = (currentEntries / weeklyGoal) * width;
+    progressBarWidth = progressValue.isNaN
+        ? 0
+        : (progressValue > width)
+            ? width
+            : progressValue;
+    //calculate the lower goal width/value
+    lowerValue = (0.7 * weeklyGoal).round();
+    lowerGoal = (lowerValue / weeklyGoal) * width;
+    color = widget.studies.firstOrNull?.color ?? CustomColors.productNormal;
   }
 }
