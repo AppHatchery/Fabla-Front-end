@@ -230,7 +230,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text(
-          "$timer / 5:00",
+          "$timer / ${formatDurationtoHHMMSS(limit)}",
           style: CustomTypography().titleMedium(color: CustomColors.textWhite),
         )
       ],
@@ -355,13 +355,20 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     await recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
   }
 
+  final limit = Duration(minutes: 1);
+
   void startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (time) {
-      if (mounted) {
+      if(elapsed < limit) {
+        if (mounted) {
         setState(() {
           elapsed = const Duration(seconds: 1) + elapsed;
           timer = formatDurationtoHHMMSS(elapsed);
         });
+      }
+      } else {
+        _timer?.cancel();
+        save();
       }
     });
   }
