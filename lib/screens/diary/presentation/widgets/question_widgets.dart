@@ -6,9 +6,16 @@ import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
+import 'package:audio_diaries_flutter/theme/resources/strings.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../theme/custom_colors.dart';
@@ -649,8 +656,8 @@ class _TimerWidgetState extends State<TimerWidget>
   void initState() {
     super.initState();
 
-    duration = formatStringToDuration(widget.time);
-    remaining = formatStringToDuration(widget.time);
+    duration = formatStringToDuration("00:05");
+    remaining = formatStringToDuration("00:05");
 
     // Initialize AnimationController
     _animationController = AnimationController(
@@ -753,7 +760,9 @@ class _TimerWidgetState extends State<TimerWidget>
                     ),
                   ],
                 ),
-                const SizedBox(height: 24,),
+                const SizedBox(
+                  height: 24,
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -909,6 +918,157 @@ class ColorListTween extends Tween<List<Color>> {
     return List<Color>.generate(
       begin!.length,
       (i) => Color.lerp(colors[index][i], colors[nextIndex][i], localT)!,
+    );
+  }
+}
+
+class ImageWidget extends StatefulWidget {
+  final void Function(String) respond;
+  final DiaryModel diary;
+  final PromptModel prompt;
+  const ImageWidget(
+      {super.key,
+      required this.diary,
+      required this.prompt,
+      required this.respond});
+
+  @override
+  State<ImageWidget> createState() => _ImageWidgetState();
+}
+
+class _ImageWidgetState extends State<ImageWidget> {
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            widget.prompt.answer?.response == null
+                ? CustomFlatButton(
+                    onClick: () => showModal(),
+                    text: "Take a Picture",
+                  )
+                : Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              delete();
+                            },
+                            icon: const Icon(CupertinoIcons.delete),
+                            color: CustomColors.warningActive,
+                            iconSize: 20,
+                          )
+                        ],
+                      ),
+                      SizedBox(
+                          width: width,
+                          child: ImageViewer(
+                              name: widget.prompt.answer!.response!)),
+                    ],
+                  )
+          ],
+        ));
+  }
+
+  delete() async {
+    final result = await showDialog<bool>(
+        context: context,
+        builder: (context) => DeletePopUp(
+              title: Strings.deletePopUpTitle,
+              subheader: Strings.deletePopUpSubheader,
+            ));
+
+    if (result == true && mounted) {
+      final promptCubit = context.read<PromptCubit>();
+      promptCubit.removeResponse(
+          diary: widget.diary, path: "", prompt: widget.prompt);
+    }
+  }
+
+  void showModal() {
+    showModalBottomSheet(
+        backgroundColor: Colors.transparent,
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        elevation: 0,
+        useSafeArea: true,
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              minChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) {
+                return BottomCameraModal(
+                  respond: widget.respond,
+                  prompt: widget.prompt,
+                );
+              },
+            ));
+  }
+}
+
+class ImageViewer extends StatefulWidget {
+  final String name;
+  const ImageViewer({super.key, required this.name});
+
+  @override
+  State<ImageViewer> createState() => _ImageViewerState();
+}
+
+class _ImageViewerState extends State<ImageViewer> {
+  File? file;
+
+  @override
+  initState() {
+    imageInit();
+    super.initState();
+  }
+
+  imageInit() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final path = p.join(dir.path, 'images', widget.name);
+    setState(() {
+      file = File(path);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return file != null ? Image.file(file!) : SizedBox.shrink();
+  }
+}
+
+class VideoWidget extends StatefulWidget {
+  final void Function(String) respond;
+  final DiaryModel diary;
+  final PromptModel prompt;
+  const VideoWidget(
+      {super.key,
+      required this.diary,
+      required this.prompt,
+      required this.respond});
+
+  @override
+  State<VideoWidget> createState() => _VideoWidgetState();
+}
+
+class _VideoWidgetState extends State<VideoWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text("Video"),
     );
   }
 }

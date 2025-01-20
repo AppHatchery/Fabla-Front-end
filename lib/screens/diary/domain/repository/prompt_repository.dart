@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
@@ -40,12 +41,14 @@ class PromptRepository {
         answer: prompt.answers.elementAtOrNull(diary.currentEntry));
   }
 
-  Future<List<PromptModel>> loadAll(DiaryModel diary) async{
+  Future<List<PromptModel>> loadAll(DiaryModel diary) async {
     final prompts = _promptDAO.getPrompts(id: diary.id);
-    final models = prompts.map((prompt) => PromptModel.fromEntity(prompt)).toList();
+    final models =
+        prompts.map((prompt) => PromptModel.fromEntity(prompt)).toList();
 
     final answered = models.map((prompt) {
-      return load(diary, prompt.id);}).toList();
+      return load(diary, prompt.id);
+    }).toList();
 
     return answered;
   }
@@ -132,6 +135,12 @@ class PromptRepository {
 
         final file = File(_path);
         await file.delete();
+      } else if (prompt.responseType == ResponseType.image) {
+        final dir = await getApplicationDocumentsDirectory();
+        final _path = p.join(dir.path, 'images', answer.response);
+
+        final file = File(_path);
+        await file.delete();
       }
 
       //update the prompt
@@ -152,6 +161,6 @@ class PromptRepository {
 
   /// Deletes all responses to prompts in the diary.
   /// This function removes all responses to prompts in the diary, effectively clearing the diary of all responses.
-  /// 
+  ///
   removeAll() async => _promptDAO.removeAllPrompts();
 }

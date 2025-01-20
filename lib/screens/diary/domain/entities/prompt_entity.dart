@@ -50,6 +50,8 @@ class Prompt {
     assert(ResponseType.textAudio.index == 5);
     assert(ResponseType.webview.index == 6);
     assert(ResponseType.timer.index == 7);
+    assert(ResponseType.image.index == 8);
+    assert(ResponseType.video.index == 9);
   }
 
   factory Prompt.fromModel(PromptModel model) {

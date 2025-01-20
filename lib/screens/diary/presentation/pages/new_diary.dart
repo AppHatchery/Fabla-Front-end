@@ -523,9 +523,21 @@ class _QuestionPageState extends State<QuestionPage>
           prompt: prompt,
           diary: widget.diary,
           respond: (answer) => save(prompt, answer, null));
-    } else if(prompt.responseType == ResponseType.timer){
-      responseWidget = TimerWidget(time: prompt.subtitle ?? '00:30', respond: (answer) => save(prompt, answer, null));
-    }else {
+    } else if (prompt.responseType == ResponseType.timer) {
+      responseWidget = TimerWidget(
+          time: prompt.subtitle ?? '00:30',
+          respond: (answer) => save(prompt, answer, null));
+    } else if (prompt.responseType == ResponseType.image) {
+      responseWidget = ImageWidget(
+          diary: widget.diary,
+          prompt: prompt,
+          respond: (answer) => save(prompt, answer, 'image'));
+    } else if (prompt.responseType == ResponseType.video) {
+      responseWidget = VideoWidget(
+          diary: widget.diary,
+          prompt: prompt,
+          respond: (answer) => save(prompt, answer, 'video'));
+    } else {
       responseWidget = const SizedBox.shrink();
     }
 
