@@ -656,8 +656,8 @@ class _TimerWidgetState extends State<TimerWidget>
   void initState() {
     super.initState();
 
-    duration = formatStringToDuration("00:05");
-    remaining = formatStringToDuration("00:05");
+    duration = formatStringToDuration(widget.time);
+    remaining = formatStringToDuration(widget.time);
 
     // Initialize AnimationController
     _animationController = AnimationController(
