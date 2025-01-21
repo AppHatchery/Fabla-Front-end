@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -97,7 +98,23 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future<void> _configureFirebase() async {
   await Firebase.initializeApp();
   await notificationController.initialize(); // Ensure this waits
+    _gettoken();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+}
+
+Future<void> _gettoken() async {
+  String? firebaseToken;
+  try {
+    firebaseToken = await FirebaseMessaging.instance.getToken();
+    if (firebaseToken != null) {
+      debugPrint("Firebase Token: $firebaseToken");
+    } else {
+      debugPrint("Failed to fetch Firebase token: Token is null.");
+    }
+  } catch (e) {
+    debugPrint("Error fetching Firebase token: $e");
+  }
 }
 
 class MyApp extends StatefulWidget {
