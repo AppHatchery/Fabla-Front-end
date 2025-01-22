@@ -99,6 +99,20 @@ class NotificationsController {
     log("Token value: $token");
   }
 
+  // Future<void> setupNotificationPlugin() async {
+  //   const AndroidInitializationSettings initializationSettingsAndroid =
+  //       AndroidInitializationSettings('@mipmap/ic_launcher');
+
+  //   const InitializationSettings initializationSettings =
+  //       InitializationSettings(
+  //     android: initializationSettingsAndroid,
+  //   );
+  //   flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  //   flutterLocalNotificationsPlugin.initialize(
+  //     initializationSettings,
+  //   );
+  // }
+
   Future<void> setupNotificationPlugin() async {
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
