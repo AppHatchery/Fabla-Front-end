@@ -1,9 +1,13 @@
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/dynamic_page.dart';
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
+// import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
+// import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart' as rive;
+// import 'dart:io' show Platform;
 
 import '../../../../services/pendo_service.dart';
 import '../../../../services/preference_service.dart';
@@ -16,15 +20,47 @@ class NotificationAccessPage extends StatefulWidget {
   State<NotificationAccessPage> createState() => _NotificationAccessPageState();
 }
 
-class _NotificationAccessPageState extends State<NotificationAccessPage> {
+class _NotificationAccessPageState extends State<NotificationAccessPage>
+    with WidgetsBindingObserver {
   bool canGoBack = false;
+  // bool batteryOptimization = false;
+  bool requested = false;
+
+  //Animations
+  late rive.StateMachineController _controller;
+
+  final PageTimer timer = PageTimer();
+
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    timer.start();
     if (Navigator.of(context).canPop()) {
       canGoBack = true;
     }
+    // checkBattery();
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // checkBattery();
+      timer.start();
+    } else if (state == AppLifecycleState.paused) {
+      int spent = timer.stop();
+      track(spent, "Paused");
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    timer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
@@ -38,7 +74,8 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
         scrolledUnderElevation: 0.0,
         leading: canGoBack
             ? IconButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () =>
+                    {track(timer.stop(), "Back"), Navigator.pop(context)},
                 icon: const Icon(
                   Icons.arrow_back_rounded,
                   color: CustomColors.fillWhite,
@@ -68,7 +105,81 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
                           Image.asset(
                             "assets/images/notification_example.png",
                             width: width,
-                          ),
+                          )
+                          // : Container(
+                          //     width: width,
+                          //     padding: const EdgeInsets.all(16),
+                          //     decoration: BoxDecoration(
+                          //       color: CustomColors.warningFill,
+                          //       border: Border.all(
+                          //         color: CustomColors.warningActive,
+                          //         width: 2,
+                          //       ),
+                          //       borderRadius: BorderRadius.circular(11),
+                          //     ),
+                          //     child: Column(
+                          //       children: [
+                          //         Row(
+                          //           crossAxisAlignment:
+                          //               CrossAxisAlignment.start,
+                          //           children: [
+                          //             const Icon(CustomIcons.cancel,
+                          //                 size: 20,
+                          //                 color: CustomColors
+                          //                     .warningActive),
+                          //             const SizedBox(
+                          //               width: 10,
+                          //             ),
+                          //             Flexible(
+                          //               child: Text(
+                          //                 "Oops! We noticed your phone has a battery saving mode ON, this can impact receiving notifications to complete your diaries. To ensure the study runs smoothly for you we recommend you disable the power mode.",
+                          //                 style: CustomTypography()
+                          //                     .bodyLarge(
+                          //                         color: CustomColors
+                          //                             .warningActive),
+                          //               ),
+                          //             )
+                          //           ],
+                          //         ),
+                          //         const SizedBox(height: 12),
+                          //         Row(
+                          //           crossAxisAlignment:
+                          //               CrossAxisAlignment.start,
+                          //           children: [
+                          //             const SizedBox(
+                          //                 height: 20, width: 20),
+                          //             const SizedBox(
+                          //               width: 10,
+                          //             ),
+                          //             TextButton(
+                          //                 style: TextButton.styleFrom(
+                          //                   padding: const EdgeInsets
+                          //                       .symmetric(
+                          //                       horizontal: 8,
+                          //                       vertical: 4),
+                          //                   alignment: Alignment.center,
+                          //                   backgroundColor:
+                          //                       CustomColors
+                          //                           .warningActive,
+                          //                   shape:
+                          //                       RoundedRectangleBorder(
+                          //                     borderRadius:
+                          //                         BorderRadius.circular(
+                          //                             11),
+                          //                   ),
+                          //                 ),
+                          //                 onPressed: () =>
+                          //                     openSetting(),
+                          //                 child: Text("Open Settings",
+                          //                     style: CustomTypography()
+                          //                         .bodyLarge(
+                          //                             color: CustomColors
+                          //                                 .textWhite)))
+                          //           ],
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   )
                         ],
                       ),
                     ),
@@ -76,10 +187,11 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
                   SizedBox(
                     height: height >= 700 ? 300 : height * 0.65,
                     width: width,
-                    child: const rive.RiveAnimation.asset(
-                        stateMachines: [],
-                        'assets/animations/onboarding/onboarding_getnotified.riv',
-                        fit: BoxFit.fitWidth),
+                    child: rive.RiveAnimation.asset(
+                      'assets/animations/onboarding/notification_access.riv',
+                      fit: BoxFit.fitWidth,
+                      onInit: onInit,
+                    ),
                   ),
                 ],
               ),
@@ -87,9 +199,9 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
           ),
           Padding(
             padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34),
             child: CustomFlatButton(
-              onClick: () => navigateToNextPage(),
+              onClick: () => navigateToNextPage(context),
               text: "Continue",
               color: CustomColors.fillWhite,
               textColor: CustomColors.productNormalActive,
@@ -100,24 +212,78 @@ class _NotificationAccessPageState extends State<NotificationAccessPage> {
     );
   }
 
-  void navigateToNextPage() async {
+  onInit(rive.Artboard art) async {
+    var ctrl = rive.StateMachineController.fromArtboard(art, "Animation_3");
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
+    }
+  }
+
+  void navigateToNextPage(BuildContext context) async {
     final results = await Permission.notification.request();
     await PreferenceService()
         .setBoolPreference(key: 'notification_requested', value: true);
 
     await PendoService.track("NotificationAccess", {"state": results.name});
+    if (mounted) {
+      setState(() {
+        requested = true;
+      });
+    }
+    // checkBattery();
     if (results.isGranted) {
-
+      // if (context.mounted && batteryOptimization) {
       if (context.mounted) {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const DynamicOnBoardingHub()));
+        track(timer.stop(), "Finished");
+        RouteService()
+            .navigate(null, context: context, current: 'notification_access');
       }
     } else {
       if (context.mounted) {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const DynamicOnBoardingHub()));
+        track(timer.stop(), "Finished");
+        RouteService()
+            .navigate(null, context: context, current: 'notification_access');
       }
       //TODO: Show error
     }
   }
+
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Notification Access", {"time_on_page": spent, "status": status});
+  }
+
+  // checkBattery() async {
+  //   if (mounted) {
+  //     if (Platform.isAndroid) {
+  //       final _batteryOptimization =
+  //           await DisableBatteryOptimization.isBatteryOptimizationDisabled ??
+  //               true;
+  //       setState(() {
+  //         batteryOptimization = _batteryOptimization;
+  //       });
+  //     } else {
+  //       setState(() {
+  //         batteryOptimization = true;
+  //       });
+  //     }
+  //   }
+  // }
+
+  // openSetting() async {
+  //   bool? allowed = await DisableBatteryOptimization
+  //       .showDisableBatteryOptimizationSettings();
+  //   if (mounted) {
+  //     setState(() {
+  //       batteryOptimization = allowed ?? false;
+  //     });
+  //   }
+  // }
 }

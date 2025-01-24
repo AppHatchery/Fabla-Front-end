@@ -149,4 +149,9 @@ class PromptRepository {
       return false;
     }
   }
+
+  /// Deletes all responses to prompts in the diary.
+  /// This function removes all responses to prompts in the diary, effectively clearing the diary of all responses.
+  /// 
+  removeAll() async => _promptDAO.removeAllPrompts();
 }

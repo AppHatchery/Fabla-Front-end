@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/login_repository.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,10 @@ class LoginCubit extends Cubit<LoginState> {
       if (result) {
         emit(const LoginSuccess());
       } else {
+        PendoService.track("Participant Login", {
+          "participant_id": code,
+          "status": "error",
+        });
         emit(const LoginError("Oops! We do not have this ID in the participant list. Please check your email and try again."));
       }
     } catch (e) {

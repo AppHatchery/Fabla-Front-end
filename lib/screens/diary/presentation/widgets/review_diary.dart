@@ -240,6 +240,11 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                     ),
                   );
                 });
+      case ResponseType.text:
+        return TextAnswerCard(
+            isVisible: true,
+            answer: prompt.answer!.response!,
+            delete: () => deleteResponse(prompt, ''));
       case ResponseType.webview:
         final width = MediaQuery.of(context).size.width;
         return Padding(

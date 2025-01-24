@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:audio_diaries_flutter/core/network/request.dart';
+import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -20,6 +21,7 @@ import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dar
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
@@ -48,6 +50,7 @@ import 'amplifyconfiguration.dart'; // Add this import
 //Global variables
 late ObjectBox objectbox;
 NotificationsController notificationController = NotificationsController();
+late List<CameraDescription> cameras;
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(
@@ -65,7 +68,9 @@ void main() async {
     return true;
   };
   objectbox = await ObjectBox.create();
+  cameras = await availableCameras();
   //await configureAmplify();
+  await Alarm.init();
   await NotificationService.init();
   await PendoService.init();
   final route = await RouteService().getRoute();

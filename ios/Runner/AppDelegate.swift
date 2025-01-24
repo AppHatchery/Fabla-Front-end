@@ -4,6 +4,8 @@ import Pendo
 import FirebaseCore
 import FirebaseMessaging
 import UserNotifications
+import UserNotifications
+import alarm
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -23,6 +25,10 @@ import UserNotifications
       )
 
       application.registerForRemoteNotifications()
+      if #available(iOS 10.0, *) {
+        UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
+      }
+      SwiftAlarmPlugin.registerBackgroundTasks()
       
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)

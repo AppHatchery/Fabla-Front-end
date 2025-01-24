@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/audio_quiestions_widget.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
@@ -41,6 +42,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   late PageController controller;
   late int currentPage;
 
+  final PageTimer timer = PageTimer();
+
   bool ableToContinue = false;
   bool showCloseIcon = true;
 
@@ -51,6 +54,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     controller = PageController();
     controllerInit();
     showTip();
+    timer.start();
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -68,15 +72,16 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
-      PendoService.track("ExitSurvey", {
-        "Question_number_at_exit": "${currentPage + 1}",
-        "studyDate": "${widget.diary.id}"
-      });
+      trackExit("Paused");
+      track(timer.stop(), "Paused");
+    } else if (state == AppLifecycleState.resumed) {
+      timer.start();
     }
   }
 
   void nextPage() {
     if (currentPage < widget.diary.prompts.length - 1) {
+      track(timer.reset(), "Next");
       controller.nextPage(
           duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
@@ -88,6 +93,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         DiaryRepository repository = DiaryRepository();
         widget.diary.status = DiaryStatus.complete;
         repository.updateDiary(widget.diary);
+        track(timer.stop(), "Finished");
         Navigator.push(
             context,
             MaterialPageRoute(
@@ -113,6 +119,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   @override
   void dispose() {
     controller.dispose();
+    timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -144,8 +151,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                     if (widget.diary.status == DiaryStatus.ongoing) {
                       scheduleContinueDiaryNotifications(widget.diary.id);
                     }
-                    //partialDataUpload(widget.diary);
-                    // Navigator.of(context).popUntil((route) => route.isFirst);
+                    trackExit("Closed");
+                    track(timer.stop(), "Close");
                     Navigator.pushAndRemoveUntil(
                       context,
                       PageRouteBuilder(
@@ -172,11 +179,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                       ),
                       (route) => false, // Clears the entire stack
                     );
-
-                    PendoService.track("ExitSurvey", {
-                      "Question_number_at_exit": "${currentPage + 1}",
-                      "studyDate": "${widget.diary.id}"
-                    });
                   },
                   icon: const Icon(CustomIcons.close),
                   iconSize: 15.0,
@@ -221,8 +223,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                       visible: currentPage != 0,
                       child: CustomElevatedIconButton(
                         onClick: () {
-                          PendoService.track(" DiaryBack",
-                              {"study_day": "${widget.diary.id}"});
+                          track(timer.reset(), "Previous");
                           previousPage();
                         },
                         icon: Icons.arrow_back,
@@ -305,6 +306,27 @@ class _NewDiaryPageState extends State<NewDiaryPage>
       //           children: [CustomBottomTipPopUp()],
       //         )));
     }
+  }
+
+  track(int spent, String status) async {
+    await PendoService.track("Diary Entry", {
+      "time_on_page": spent,
+      "status": status,
+      "diary": widget.diary.name,
+      "prompt": currentPage + 1
+    });
+  }
+
+  trackExit(String state) async {
+    final now = DateTime.now();
+
+    PendoService.track("Exit Survey", {
+      "question_at_exit": "${currentPage + 1}",
+      "diary_id": widget.diary.id,
+      "diary_name": widget.diary.name,
+      "time": now.toIso8601String(),
+      "state": state
+    });
   }
 }
 
@@ -484,18 +506,10 @@ class _QuestionPageState extends State<QuestionPage>
         disabled: disabled,
       );
     } else if (prompt.responseType == ResponseType.text) {
-      String? freeTextAnswer = prompt.answer?.response ?? "";
-
       responseWidget = FreeTextQuestionCard(
-        value: freeTextAnswer,
-        onChanged: (value) {
-          if (value == null || value.trim().isEmpty) {
-            widget.answerAdded(false);
-          } else {
-            widget.answerAdded(true);
-            save(prompt, value, null);
-          }
-        },
+        diary: widget.diary,
+        respond: (String type) => recordResponse(prompt, type),
+        prompt: prompt,
       );
     } else if (prompt.responseType == ResponseType.recording ||
         prompt.responseType == ResponseType.textAudio) {
@@ -509,20 +523,22 @@ class _QuestionPageState extends State<QuestionPage>
           prompt: prompt,
           diary: widget.diary,
           respond: (answer) => save(prompt, answer, null));
-    } else {
+    } else if(prompt.responseType == ResponseType.timer){
+      responseWidget = TimerWidget(time: prompt.subtitle ?? '00:30', respond: (answer) => save(prompt, answer, null));
+    }else {
       responseWidget = const SizedBox.shrink();
     }
 
     String questionTip;
 
     if (prompt.responseType == ResponseType.slider) {
-      questionTip = "Please use the slider to rate:";
+      questionTip = prompt.subtitle ?? "Please use the slider to rate:";
     } else if (prompt.responseType == ResponseType.multiple) {
-      questionTip = "Please check all that apply:";
+      questionTip = prompt.subtitle ?? "Please check all that apply:";
     } else if (prompt.responseType == ResponseType.radio) {
-      questionTip = "Please check 1 option:";
+      questionTip = prompt.subtitle ?? "Please check 1 option:";
     } else if (prompt.responseType == ResponseType.text) {
-      questionTip = "Please type your answer:";
+      questionTip = prompt.subtitle ?? "Please type your answer:";
     } else if (prompt.responseType == ResponseType.webview) {
       questionTip =
           "Close the pop-up window when you are done filling the survey.";
@@ -625,6 +641,7 @@ class _QuestionPageState extends State<QuestionPage>
 
   void recordResponse(PromptModel prompt, String type) {
     if (type == "audio") {
+      track("Audio");
       showModalBottomSheet(
           backgroundColor: Colors.transparent,
           context: context,
@@ -651,6 +668,7 @@ class _QuestionPageState extends State<QuestionPage>
                 },
               ));
     } else {
+      track("Text");
       showModalBottomSheet(
           backgroundColor: Colors.transparent,
           context: context,
@@ -678,6 +696,13 @@ class _QuestionPageState extends State<QuestionPage>
                 },
               ));
     }
+  }
+
+  track(String option) async {
+    await PendoService.track("Diary Entry Question Type", {
+      "option_selected": option,
+      "diary": widget.diary.name,
+    });
   }
 
   void save(PromptModel prompt, dynamic response, String? type) {
@@ -728,13 +753,3 @@ class _QuestionPageState extends State<QuestionPage>
         .showBottomSheet((context) => const BottomErrorModal());
   }
 }
-
-//TODO: TO BE REMOVED
-
-// Future<void> partialDataUpload(DiaryModel diary) async {
-//   SetupRepository srepo = SetupRepository();
-//   SummaryRepository surepo = SummaryRepository();
-//   var diary2 = await surepo.loadSummary(diary);
-
-//   upload(srepo.getParticipant()!.studyCode, diary2);
-// }

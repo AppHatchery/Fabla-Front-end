@@ -53,7 +53,7 @@ class _OnBoardingTextFieldState extends State<OnBoardingTextField> {
 
 class OnBoardingRadioOptions extends StatefulWidget {
   final String subtitle;
-  final List<String> options;
+  final List<Option> options;
   final String? value;
   final ValueChanged<String?> onChanged;
   const OnBoardingRadioOptions(
@@ -80,8 +80,8 @@ class _OnBoardingRadioOptionsState extends State<OnBoardingRadioOptions> {
         const SizedBox(
           height: 12,
         ),
-        RadioQuestion(
-          value: widget.value,
+        CustomRadioQuestion(
+          selected: widget.value,
           options: widget.options,
           onChanged: (value) => widget.onChanged(value),
         )
@@ -125,7 +125,7 @@ class _OnBoardingMultipleOptionState extends State<OnBoardingMultipleOption> {
         Padding(
           padding: EdgeInsets.only(bottom: padding),
           child: CustomMultipleQuestion(
-            selected: widget.selected ,
+            selected: widget.selected,
             options: widget.options,
             onChanged: (value) {
               widget.onChanged(value.toString());
@@ -136,7 +136,6 @@ class _OnBoardingMultipleOptionState extends State<OnBoardingMultipleOption> {
     );
   }
 }
-
 
 class CustomMultipleQuestion extends StatefulWidget {
   final List<Option> options;
@@ -176,13 +175,15 @@ class _CustomMultipleQuestion extends State<CustomMultipleQuestion> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 4.0, vertical: 3.0),
               decoration: BoxDecoration(
-                  color: selectedOptions.contains(widget.options[index].value) &&
-                          !widget.disabled
-                      ? CustomColors.productLightBackground
-                      : CustomColors.productLightPrimaryNormalWhite,
+                  color:
+                      selectedOptions.contains(widget.options[index].value) &&
+                              !widget.disabled
+                          ? CustomColors.productLightBackground
+                          : CustomColors.productLightPrimaryNormalWhite,
                   borderRadius: BorderRadius.circular(14.0),
                   border: Border.all(
-                      color: selectedOptions.contains(widget.options[index].value) &&
+                      color: selectedOptions
+                                  .contains(widget.options[index].value) &&
                               !widget.disabled
                           ? CustomColors.productBorderActive
                           : CustomColors.productBorderNormal,
@@ -191,16 +192,17 @@ class _CustomMultipleQuestion extends State<CustomMultipleQuestion> {
                 title: Text(
                   widget.options[index].title,
                   style: CustomTypography().button(
-                      color: selectedOptions.contains(widget.options[index].value) &&
+                      color: selectedOptions
+                                  .contains(widget.options[index].value) &&
                               !widget.disabled
                           ? CustomColors.productNormalActive
                           : Colors.black),
                 ),
                 checkColor: CustomColors.productLightPrimaryNormalWhite,
-                fillColor: selectedOptions.contains(widget.options[index].value) &&
+                fillColor: selectedOptions
+                            .contains(widget.options[index].value) &&
                         !widget.disabled
-                    ? WidgetStateProperty.all(
-                        CustomColors.productNormalActive)
+                    ? WidgetStateProperty.all(CustomColors.productNormalActive)
                     : selectedOptions.contains(widget.options[index].value)
                         ? WidgetStateProperty.all(
                             CustomColors.textTertiaryContent)
@@ -211,9 +213,11 @@ class _CustomMultipleQuestion extends State<CustomMultipleQuestion> {
                   print("value: $value");
                   if (!widget.disabled) {
                     if (value!) {
-                      selectedOptions.add(widget.options[index].value.toString());
+                      selectedOptions
+                          .add(widget.options[index].value.toString());
                     } else {
-                      selectedOptions.remove(widget.options[index].value.toString());
+                      selectedOptions
+                          .remove(widget.options[index].value.toString());
                     }
 
                     setState(() {
@@ -231,7 +235,78 @@ class _CustomMultipleQuestion extends State<CustomMultipleQuestion> {
   }
 }
 
+class CustomRadioQuestion extends StatefulWidget {
+  final List<Option> options;
+  final String? selected;
+  final ValueChanged<String?>? onChanged;
+  final bool disabled;
+  const CustomRadioQuestion(
+      {super.key,
+      required this.options,
+      required this.selected,
+      required this.onChanged,
+      this.disabled = false});
 
+  @override
+  State<CustomRadioQuestion> createState() => _CustomRadioQuestionState();
+}
+
+class _CustomRadioQuestionState extends State<CustomRadioQuestion> {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: widget.options.length,
+      itemBuilder: (context, index) {
+        return Column(children: [
+          Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 3.0),
+              decoration: BoxDecoration(
+                  color: widget.selected == widget.options[index].value &&
+                          !widget.disabled
+                      ? CustomColors.productLightBackground
+                      : CustomColors.productLightPrimaryNormalWhite,
+                  borderRadius: BorderRadius.circular(14.0),
+                  border: Border.all(
+                      color: widget.selected == widget.options[index].value &&
+                              !widget.disabled
+                          ? CustomColors.productNormalActive
+                          : CustomColors.productBorderNormal,
+                      width: 2)),
+              child: RadioListTile<String>(
+                title: Text(
+                  widget.options[index].title,
+                  style: CustomTypography().button(
+                      color: !widget.disabled
+                          ? widget.selected == widget.options[index].value
+                              ? CustomColors.productNormalActive
+                              : Colors.black
+                          : CustomColors.textTertiaryContent),
+                ),
+                fillColor: WidgetStateProperty.all(!widget.disabled
+                    ? widget.selected == widget.options[index].value
+                        ? CustomColors.productNormalActive
+                        : Colors.black
+                    : CustomColors.textTertiaryContent),
+                controlAffinity: ListTileControlAffinity.leading,
+                value: widget.options[index].value,
+                groupValue: widget.selected,
+                onChanged: (String? value) {
+                  if (!widget.disabled) {
+                    widget.onChanged!(value);
+                  }
+                },
+              )),
+          const SizedBox(
+            height: 12,
+          ),
+        ]);
+      },
+    );
+  }
+}
 
 class OnBoardingSlider extends StatefulWidget {
   final String scaleMinText;
@@ -248,7 +323,8 @@ class OnBoardingSlider extends StatefulWidget {
       required this.scaleMin,
       required this.scaleMax,
       required this.value,
-      required this.defaultValue, required this.onChanged});
+      required this.defaultValue,
+      required this.onChanged});
 
   @override
   State<OnBoardingSlider> createState() => _OnBoardingSliderState();
@@ -260,7 +336,8 @@ class _OnBoardingSliderState extends State<OnBoardingSlider> {
   @override
   void initState() {
     value = widget.value ?? widget.defaultValue.toDouble();
-    print("value: $value | defaultValue: ${widget.defaultValue} | scaleMin: ${widget.scaleMin} | scaleMax: ${widget.scaleMax}");
+    print(
+        "value: $value | defaultValue: ${widget.defaultValue} | scaleMin: ${widget.scaleMin} | scaleMax: ${widget.scaleMax}");
     super.initState();
   }
 

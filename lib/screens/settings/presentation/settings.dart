@@ -1,8 +1,11 @@
 import 'package:audio_diaries_flutter/screens/settings/widgets/settings_active_reminders.dart';
+import 'package:audio_diaries_flutter/screens/settings/widgets/study_details.dart';
 import 'package:audio_diaries_flutter/screens/settings/widgets/test_microphone_widget.dart';
+import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../services/preference_service.dart';
@@ -20,12 +23,15 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
   List<TimeOfDay> times = [];
   bool isButtonVisible = true;
 
+  String version = "1.0";
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     checkNotificationPermission();
     checkMicrophonePermission();
+    getAppVersion();
   }
 
   @override
@@ -88,257 +94,276 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
               color: CustomColors.productBorderNormal,
               width: 2,
             ))),
-        body: Column(children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12.0, vertical: 12.0),
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Microphone",
-                              style: CustomTypography().titleLarge(
-                                  color: CustomColors.textNormalContent),
-                            ),
-                          ],
-                        ),
-                        Visibility(
-                            visible: !micCheck,
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                    color: CustomColors.productBorderNormal,
-                                    width: 1),
-                                color: CustomColors.fillWhite,
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Stack(
-                                    children: <Widget>[
-                                      const Icon(
-                                        Icons.mic,
-                                        color: CustomColors.productNormalActive,
-                                        size: 46,
-                                      ),
-                                      Positioned(
-                                        right: 7,
-                                        top: 3,
-                                        child: Container(
-                                          padding: const EdgeInsets.all(1),
-                                          decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(50),
-                                              border: Border.all(
-                                                width: 1,
-                                                color: Colors.white,
-                                              )),
-                                          constraints: const BoxConstraints(
-                                            minWidth: 15,
-                                            minHeight: 15,
-                                          ),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(1),
-                                            decoration: BoxDecoration(
-                                              color: CustomColors
-                                                  .productNormalActive,
-                                              borderRadius:
-                                                  BorderRadius.circular(50),
-                                            ),
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                  const SizedBox(
-                                    width: 20,
-                                  ),
-                                  Expanded(
-                                      child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Enable Microphone Access',
-                                        style: CustomTypography().bodyLarge(
-                                            color:
-                                                CustomColors.textNormalContent),
-                                      ),
-                                      Text(
-                                        'You must enable microphone Access to record audio diaries.',
-                                        style: CustomTypography().bodyMedium(
-                                            color: CustomColors
-                                                .textTertiaryContent),
-                                      ),
-                                      TextButton(
-                                          onPressed: () {
-                                            openAppSettings().then((_) {});
-                                          },
-                                          child: Text(
-                                            'Open Settings',
-                                            style: CustomTypography().button(
-                                                color: CustomColors
-                                                    .productNormalActive),
-                                          ))
-                                    ],
-                                  ))
-                                ],
-                              ),
-                            )),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        Visibility(
-                            visible: micCheck, child: const TestMicrophone()),
+        body: SingleChildScrollView(
+          child: Column(children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+              child:
+                  Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+                const SettingsStudyDetails(),
 
-                        ///REMINDERS
-                        const SizedBox(
-                          height: 24,
-                        ),
+                const SizedBox(
+                  height: 24,
+                ),
 
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Reminders",
-                              style: CustomTypography().titleLarge(
-                                  color: CustomColors.textNormalContent),
-                            ),
-                          ],
-                        ),
-                        Visibility(
-                            visible: !notificationCheck,
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                    color: CustomColors.productBorderNormal,
-                                    width: 1),
-                                color: CustomColors.fillWhite,
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Stack(
-                                    children: <Widget>[
-                                      const Icon(
-                                        Icons.notifications,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Microphone",
+                      style: CustomTypography()
+                          .titleLarge(color: CustomColors.textNormalContent),
+                    ),
+                  ],
+                ),
+                Visibility(
+                    visible: !micCheck,
+                    replacement: const TestMicrophone(),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: CustomColors.productBorderNormal, width: 1),
+                        color: CustomColors.fillWhite,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16.0, left: 16),
+                            child: Stack(
+                              children: <Widget>[
+                                const Icon(
+                                  Icons.mic,
+                                  color: CustomColors.productNormalActive,
+                                  size: 46,
+                                ),
+                                Positioned(
+                                  right: 7,
+                                  top: 3,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(1),
+                                    decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(50),
+                                        border: Border.all(
+                                          width: 1,
+                                          color: Colors.white,
+                                        )),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 15,
+                                      minHeight: 15,
+                                    ),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(1),
+                                      decoration: BoxDecoration(
                                         color: CustomColors.productNormalActive,
-                                        size: 46,
+                                        borderRadius: BorderRadius.circular(50),
                                       ),
-                                      Positioned(
-                                        right: 6,
-                                        top: 6,
-                                        child: Container(
-                                          padding: const EdgeInsets.all(1),
-                                          decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(50),
-                                              border: Border.all(
-                                                width: 1,
-                                                color: Colors.white,
-                                              )),
-                                          constraints: const BoxConstraints(
-                                            minWidth: 15,
-                                            minHeight: 15,
-                                          ),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(1),
-                                            decoration: BoxDecoration(
-                                              color: CustomColors
-                                                  .productNormalActive,
-                                              borderRadius:
-                                                  BorderRadius.circular(50),
-                                            ),
-                                          ),
-                                        ),
-                                      )
-                                    ],
+                                    ),
                                   ),
-                                  const SizedBox(
-                                    width: 20,
-                                  ),
-                                  Expanded(
-                                      child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Enable Notifications',
-                                        style: CustomTypography().bodyLarge(
-                                            color:
-                                                CustomColors.textNormalContent),
-                                      ),
-                                      Text(
-                                        'We will keep you in the loop on your tasks and provide reminders for completion.',
-                                        style: CustomTypography().bodyMedium(
-                                            color: CustomColors
-                                                .textTertiaryContent),
-                                      ),
-                                      TextButton(
-                                          onPressed: () {
-                                            openAppSettings().then((_) {});
-                                          },
-                                          child: Text(
-                                            'Open Settings',
-                                            style: CustomTypography().button(
-                                                color: CustomColors
-                                                    .productNormalActive),
-                                          ))
-                                    ],
-                                  ))
-                                ],
+                                )
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Enable Microphone Access',
+                                  style: CustomTypography().bodyLarge(
+                                      color: CustomColors.textNormalContent),
+                                ),
+                                Text(
+                                  'You must enable microphone Access to record audio diaries.',
+                                  style: CustomTypography().bodyMedium(
+                                      color: CustomColors.textSecondaryContent),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Divider(
+                            thickness: 0.5,
+                            height: 24,
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(left: 16.0, bottom: 16),
+                            child: CustomOutlineButton(
+                              onClick: () => openAppSettings().then((_) {}),
+                              backgroundColor: CustomColors.productNormal,
+                              color: CustomColors.productNormal,
+                              borderRadius: 200,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.0, vertical: 4.0),
+                              children: Wrap(children: [
+                                Text(
+                                  "Open Settings",
+                                  style: CustomTypography()
+                                      .button(color: CustomColors.textWhite),
+                                )
+                              ]),
+                            ),
+                          )
+                        ],
+                      ),
+                    )),
+
+                ///REMINDERS
+                const SizedBox(
+                  height: 24,
+                ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Reminders",
+                      style: CustomTypography()
+                          .titleLarge(color: CustomColors.textNormalContent),
+                    ),
+                  ],
+                ),
+                Visibility(
+                    visible: !notificationCheck,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: CustomColors.productBorderNormal, width: 1),
+                        color: CustomColors.fillWhite,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Stack(
+                            children: <Widget>[
+                              const Icon(
+                                Icons.notifications,
+                                color: CustomColors.productNormalActive,
+                                size: 46,
                               ),
-                            )),
-                        const SizedBox(height: 12.0),
-                        ActiveReminders(
-                          times: times,
-                          isEnabled: notificationCheck,
-                        ),
-                        const SizedBox(height: 12.0),
-                      ]),
+                              Positioned(
+                                right: 6,
+                                top: 6,
+                                child: Container(
+                                  padding: const EdgeInsets.all(1),
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(50),
+                                      border: Border.all(
+                                        width: 1,
+                                        color: Colors.white,
+                                      )),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 15,
+                                    minHeight: 15,
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(1),
+                                    decoration: BoxDecoration(
+                                      color: CustomColors.productNormalActive,
+                                      borderRadius: BorderRadius.circular(50),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          Expanded(
+                              child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Enable Notifications',
+                                style: CustomTypography().bodyLarge(
+                                    color: CustomColors.textNormalContent),
+                              ),
+                              Text(
+                                'We will keep you in the loop on your tasks and provide reminders for completion.',
+                                style: CustomTypography().bodyMedium(
+                                    color: CustomColors.textTertiaryContent),
+                              ),
+                              TextButton(
+                                  onPressed: () {
+                                    openAppSettings().then((_) {});
+                                  },
+                                  child: Text(
+                                    'Open Settings',
+                                    style: CustomTypography().button(
+                                        color:
+                                            CustomColors.productNormalActive),
+                                  ))
+                            ],
+                          ))
+                        ],
+                      ),
+                    )),
+                const SizedBox(height: 12.0),
+                ActiveReminders(
+                  times: times,
+                  isEnabled: notificationCheck,
                 ),
-                //
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Column(
-                    children: [
-                      Text(
-                        "Fabla 1.0",
-                        style: CustomTypography().bodyMedium(
-                            color: CustomColors.textSecondaryContent),
-                      ),
-                      const SizedBox(height: 12),
-                      Image.asset(
-                        "assets/images/emory_image.png",
-                        width: 180,
-                        height: 55,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        "Copyright © 2023 Emory University",
-                        style: CustomTypography().bodyMedium(
-                            color: CustomColors.textSecondaryContent),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12.0),
               ]),
             ),
-          )
-        ]));
+            //
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Column(
+                children: [
+                  Text(
+                    "Fabla v$version",
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textSecondaryContent),
+                  ),
+                  const SizedBox(height: 12),
+                  Image.asset(
+                    "assets/images/emory_image.png",
+                    width: 180,
+                    height: 55,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "Copyright © 2024 Emory University",
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textSecondaryContent),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Text(
+                    "Powered by AppHatchery",
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textSecondaryContent),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ]),
+        ));
+  }
+
+  void getAppVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    final version = packageInfo.version;
+
+    if (mounted) {
+      this.version = version;
+    }
   }
 }

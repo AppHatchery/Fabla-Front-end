@@ -1,6 +1,7 @@
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/participant_details.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
@@ -17,15 +18,54 @@ class WelcomePage extends StatefulWidget {
   State<WelcomePage> createState() => _WelcomePageState();
 }
 
-class _WelcomePageState extends State<WelcomePage> {
+class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
   final SetupRepository repository = SetupRepository();
+  final PageTimer timer = PageTimer();
+
+  late StateMachineController _controller;
 
   late Participant _participant;
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    timer.start();
     _participant = repository.getParticipant()!;
     startPendo();
     super.initState();
+  }
+
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, "Animation_1");
+
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    timer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      timer.start();
+    } else if (state == AppLifecycleState.paused) {
+      int spent = timer.stop();
+      track(spent, "Paused");
+    }
+    super.didChangeAppLifecycleState(state);
   }
 
   @override
@@ -37,7 +77,8 @@ class _WelcomePageState extends State<WelcomePage> {
         backgroundColor: CustomColors.backgroundSecondary,
         scrolledUnderElevation: 0.0,
         leading: IconButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () =>
+                {track(timer.stop(), "Back"), Navigator.pop(context)},
             icon: const Icon(
               Icons.arrow_back_rounded,
               color: CustomColors.fillWhite,
@@ -87,9 +128,10 @@ class _WelcomePageState extends State<WelcomePage> {
                               SizedBox(
                                 height: 250,
                                 width: width,
-                                child: const RiveAnimation.asset(
-                                  'assets/animations/onboarding/onboarding_welcome.riv',
+                                child: RiveAnimation.asset(
+                                  'assets/animations/onboarding/onboarding.riv',
                                   fit: BoxFit.fitWidth,
+                                  onInit: onInit,
                                 ),
                               ),
                             ],
@@ -117,15 +159,19 @@ class _WelcomePageState extends State<WelcomePage> {
   }
 
   void navigateToNextPage() {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => const ParticipantDetailsPage()));
+    track(timer.stop(), "Finished");
+    RouteService().navigate(null, context: context, current: 'welcome');
+  }
+
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Welcome", {"time_on_page": spent, "status": status});
   }
 
   startPendo() async {
     final experiment = repository.getExperiment();
-    await PendoService.start(_participant.studyCode.toString(), experiment.login);
+    await PendoService.start(
+        _participant.studyCode.toString(), experiment.login);
 
     await PendoService.track(
         "StudyLogin", {"datetime": DateTime.now().toString()});

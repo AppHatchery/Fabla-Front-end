@@ -1,6 +1,7 @@
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/study_login_cubit.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/confirm.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/verification_code.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -9,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../services/pendo_service.dart';
+
 class StudyLogin extends StatefulWidget {
   const StudyLogin({super.key});
 
@@ -16,7 +19,9 @@ class StudyLogin extends StatefulWidget {
   State<StudyLogin> createState() => _StudyLoginState();
 }
 
-class _StudyLoginState extends State<StudyLogin> {
+class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
+  final PageTimer timer = PageTimer();
+
   final TextEditingController controller = TextEditingController();
   bool error = false;
   String message = '';
@@ -25,8 +30,29 @@ class _StudyLoginState extends State<StudyLogin> {
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     cubit = BlocProvider.of<StudyLoginCubit>(context);
+    timer.start();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    timer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      timer.start();
+    } else if (state == AppLifecycleState.paused) {
+      int spent = timer.stop();
+      track(spent, "Paused");
+    }
+    super.didChangeAppLifecycleState(state);
   }
 
   @override
@@ -64,12 +90,10 @@ class _StudyLoginState extends State<StudyLogin> {
                       });
                     } else if (state is StudyLoginSuccess) {
                       error = false;
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ConfrimJoiningPage(
-                                    experiment: state.experiment,
-                                  )));
+                      int spent = timer.stop();
+                      track(spent, "Finished");
+                      RouteService().navigate(state.experiment,
+                          context: context, current: 'login');
                     }
                   }),
                 ),
@@ -220,6 +244,11 @@ class _StudyLoginState extends State<StudyLogin> {
         }));
 
     await launchUrl(uri);
+  }
+
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Study Login", {"time_on_page": spent, "status": status});
   }
 
   String? encodeQueryParameters(Map<String, String> params) {

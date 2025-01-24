@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'dart:developer' as dev;
 import 'dart:io';
@@ -13,20 +14,24 @@ import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/answer_repository.dart';
 
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
-import 'package:audio_diaries_flutter/services/diary_init.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import '../../../../core/database/dao/participant_dao.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
@@ -45,6 +50,9 @@ class SetupRepository {
       QuestionsDAO(box: Box<QuestionsEntity>(objectbox.store));
   final ExperimentDAO _experimentDAO =
       ExperimentDAO(box: Box<Experiment>(objectbox.store));
+  final DiaryRepository diaryRepository = DiaryRepository();
+  final PromptRepository promptRepository = PromptRepository();
+  final AnswerRepository answerRepository = AnswerRepository();
 
   /// Retrieves the participant's information from the database.
   ///
@@ -213,8 +221,10 @@ class SetupRepository {
   setColorForStudy(List<StudyModel> studies) async {
     final pref = PreferenceService();
     final source = await pref.getStringPreference(key: 'study_color_source');
-    final Map<String, String> data = source != null ? (json.decode(source) as Map<String, dynamic>)
-        .map((key, value) => MapEntry(key, value.toString())) : {};
+    final Map<String, String> data = source != null
+        ? (json.decode(source) as Map<String, dynamic>)
+            .map((key, value) => MapEntry(key, value.toString()))
+        : {};
 
     for (int i = 0; i < studies.length; i++) {
       final name = studies[i].name;
@@ -563,5 +573,52 @@ class SetupRepository {
   void clearStudies() {
     _studyDAO.deleteAllStudies();
     diaryRepository.removeAllDiaries();
+  }
+
+  /// Leave the current study
+  /// Purge all data related to the current study and participant
+  /// This function clears all studies and diaries from the local database.
+  /// It also removes the participant's information from the local database.
+  /// The function then navigates the user to the onboarding screen.
+  /// Example usage:
+  /// ```dart
+  /// leaveStudy(); // Leave the current study and navigate to the onboarding screen.
+  /// ```
+  /// Returns:
+  /// - A `Future` that resolves to a `bool` value indicating the success of the operation.
+  Future<bool> leaveStudy() async {
+    try {
+      _participantDAO.remove();
+      _experimentDAO.deleteExperiment();
+      _protocolDAO.deleteProtocol();
+      _studyDAO.deleteAllStudies();
+      _questionsDAO.removeAllQuestions();
+      diaryRepository.removeAllDiaries();
+      promptRepository.removeAll();
+      answerRepository.removeAllResponses();
+
+      // Clear all notifications
+      await NotificationService.cancelAllNotifications();
+
+      // Clear all preferences
+      await PreferenceService().clearPreferences();
+
+      // Clear all saved recordings
+      final dir = await getApplicationDocumentsDirectory();
+      final path = p.join(dir.path, 'recordings');
+
+      final recordingsDir = Directory(path);
+      if (await recordingsDir.exists()) {
+        recordingsDir.deleteSync(recursive: true);
+      }
+
+      // Clear Credentials
+      final storage = const FlutterSecureStorage();
+      await storage.deleteAll();
+
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }

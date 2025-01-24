@@ -45,7 +45,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
     //calculate the lower goal width/value
     lowerValue = (0.7 * weeklyGoal).round();
     lowerGoal = (lowerValue / weeklyGoal) * width;
-    color = widget.studies.first.color ?? CustomColors.productNormal;
+    color = widget.studies.firstOrNull?.color ?? CustomColors.productNormal;
   }
 
   @override
@@ -101,13 +101,15 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                     ),
                   ),
                   //lower goal
-                  Positioned(
-                    // left: 70 * value - 10,
-                    left: lowerGoal,
-                    top: 2,
-                    child:
-                        Icon(CupertinoIcons.flag_fill, color: color, size: 12),
-                  ),
+                  lowerGoal.isNaN
+                      ? const SizedBox.shrink()
+                      : Positioned(
+                          // left: 70 * value - 10,
+                          left: lowerGoal,
+                          top: 2,
+                          child: Icon(CupertinoIcons.flag_fill,
+                              color: color, size: 12),
+                        ),
                 ],
               ),
             ),

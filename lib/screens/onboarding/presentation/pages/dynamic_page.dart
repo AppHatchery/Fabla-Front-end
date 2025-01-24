@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:math';
 
+import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dynamic/dynamic_cubit.dart';
@@ -7,12 +9,15 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/acti
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/avatar_background.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/dynamic_widget.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/time_picker.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rive/rive.dart';
 
 class DynamicOnBoardingHub extends StatefulWidget {
   const DynamicOnBoardingHub({super.key});
@@ -21,17 +26,39 @@ class DynamicOnBoardingHub extends StatefulWidget {
   State<DynamicOnBoardingHub> createState() => _DynamicOnBoardingHubState();
 }
 
-class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
+class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
+    with WidgetsBindingObserver {
   final PageController controller = PageController();
+  final PageTimer timer = PageTimer();
 
   late DynamicCubit _cubit;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    timer.start();
     _cubit = BlocProvider.of<DynamicCubit>(context);
 
     _cubit.load();
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      timer.start();
+    } else if (state == AppLifecycleState.paused) {
+      int spent = timer.stop();
+      track(spent, "Paused");
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  dispose() {
+    timer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
@@ -43,12 +70,14 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
       body: BlocConsumer<DynamicCubit, DynamicState>(
         listener: (context, state) {
           if (state is DynamicNone) {
+            track(timer.stop(), "Finished");
             Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                     builder: (context) => const ActiveDatesPage()));
           } else if (state is DynamicUploaded) {
-            moveOn();
+            track(timer.stop(), "Finished");
+            moveOn(context);
           }
         },
         builder: (context, state) {
@@ -62,7 +91,6 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
               controller: controller,
               itemCount: state.questions.length + 1,
               itemBuilder: (context, index) {
-                print("Index: $index");
                 if (index == 0) {
                   return welcome();
                 }
@@ -87,6 +115,11 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
     );
   }
 
+  track(int spent, String status) async {
+    await PendoService.track(
+        "Dynamic Onboarding", {"time_on_page": spent, "status": status});
+  }
+
   void nextPage(int length) {
     if (controller.page == length) {
       // Navigator.push(context,
@@ -100,6 +133,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
 
   void previousPage() {
     if (controller.page == 0) {
+      track(timer.stop(), "Back");
       Navigator.pop(context);
     } else {
       controller.previousPage(
@@ -161,17 +195,19 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub> {
     );
   }
 
-  void moveOn() async {
+  void moveOn(BuildContext context) async {
     await PreferenceService()
         .setBoolPreference(key: 'onboarding_complete', value: true);
-    final cameBack = await Navigator.push(context,
-        MaterialPageRoute(builder: (context) => const ActiveDatesPage()));
+    if (context.mounted) {
+      final cameBack = await RouteService()
+          .navigate(null, context: context, current: 'dynamic_onboarding');
 
-    if (cameBack) {
-      _cubit.load();
-      //  final length = await _cubit.count();
-      // jump to last page
-      // controller.jumpToPage(length - 1); // cant go to the last page
+      if (cameBack == true) {
+        _cubit.load();
+        //  final length = await _cubit.count();
+        // jump to last page
+        // controller.jumpToPage(length - 1); // cant go to the last page
+      }
     }
   }
 
@@ -212,12 +248,22 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   late TextEditingController textEditingController;
   String? answer;
 
+  late StateMachineController _controller;
+  double animationHeight = 0;
+  double foregroundHeight = 0.75;
+  String animationURL = "";
+  String stateMachineName = "";
+  bool loop = true;
+
+  SMITrigger? questionTrigger;
+
   @override
   void initState() {
     setState(() {
       answer = widget.question.answer;
       textEditingController = TextEditingController(
           text: widget.question.type == 'text' ? answer : null);
+      animationURL = getAnimationAssets();
     });
     super.initState();
   }
@@ -225,13 +271,14 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   @override
   void dispose() {
     textEditingController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     // super.build(context);
-    final height = MediaQuery.of(context).size.height;
+    // final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -250,85 +297,163 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       body: SafeArea(
           bottom: false,
           child: LayoutBuilder(builder: (context, constraints) {
-            final constraintHeight = constraints.maxHeight;
             return SingleChildScrollView(
-              child: SizedBox(
-                height: constraintHeight,
-                child: Container(
-                  color: CustomColors.fillWhite,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, constraint) =>
-                              SingleChildScrollView(
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                  minHeight: constraint.maxHeight),
-                              child: IntrinsicHeight(
-                                child: GestureDetector(
-                                  onTap: () => FocusScope.of(context).unfocus(),
-                                  child: Container(
-                                    color: CustomColors.backgroundSecondary,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 16.0),
-                                          child: Text(
-                                            widget.question.title,
-                                            style: CustomTypography()
-                                                .headlineLarge(
-                                                    color:
-                                                        CustomColors.textWhite),
-                                          ),
-                                        ),
-                                        const Expanded(child: SizedBox()),
-                                        SizedBox(
-                                            height: constraintHeight * 0.8,
-                                            child: AvatarBackground(
-                                                height: height,
-                                                width: width,
-                                                image:
-                                                    "assets/images/avatar_onboarding_placeholder.png",
-                                                avatarType: "image",
-                                                animation: "",
-                                                onContinue: () {},
-                                                children: [
-                                                  getWidget(widget.question,
-                                                      index: widget.index)
-                                                ]))
-                                      ],
+              child: Container(
+                color: CustomColors.fillWhite,
+                height: constraints.maxHeight,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => FocusScope.of(context).unfocus(),
+                        child: LayoutBuilder(builder: (context, constraint) {
+                          return SingleChildScrollView(
+                            child: Container(
+                              height: constraint.maxHeight,
+                              color: CustomColors.backgroundSecondary,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0),
+                                    child: Text(
+                                      widget.question.title,
+                                      style: CustomTypography().headlineLarge(
+                                          color: CustomColors.textWhite),
                                     ),
                                   ),
-                                ),
+                                  // const Expanded(child: SizedBox()),
+                                  Flexible(
+                                    child: AvatarBackground(
+                                        height: constraint.maxHeight,
+                                        width: width,
+                                        foregroundHeight: foregroundHeight,
+                                        image: "",
+                                        avatarType: "animation",
+                                        animation: animationURL,
+                                        animationHeight: animationHeight,
+                                        onContinue: () {},
+                                        onInit: onInit,
+                                        children: [
+                                          getWidget(widget.question,
+                                              index: widget.index)
+                                        ]),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        }),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: CustomFlatButton(
-                            onClick: () => {
-                                  FocusScope.of(context).unfocus(),
-                                  widget.onContinue(
-                                      textEditingController.text != ''
-                                          ? textEditingController.text
-                                          : answer)
-                                },
-                            text: "Continue"),
-                      ),
-                    ],
-                  ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: CustomFlatButton(
+                          onClick: () => {
+                                FocusScope.of(context).unfocus(),
+                                widget.onContinue(
+                                    textEditingController.text != ''
+                                        ? textEditingController.text
+                                        : answer)
+                              },
+                          // isDisabled: answer != null || textEditingController.text.isNotEmpty,
+                          text: "Continue"),
+                    ),
+                  ],
                 ),
               ),
             );
           })),
     );
+  }
+
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, stateMachineName);
+    ctrl?.isActive = false;
+
+    //height of animation
+    setState(() {
+      animationHeight = art.height;
+    });
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+        if (stateMachineName == "Animation_5") {
+          questionTrigger = _controller.getTriggerInput("Question");
+
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              questionTrigger?.fire();
+            }
+          });
+        }
+      });
+    }
+  }
+
+  getAnimationAssets() {
+    if (widget.question.type == 'time') {
+      setState(() {
+        stateMachineName = "Animation_7";
+      });
+      return "assets/animations/onboarding/time.riv";
+    } else {
+      //Select animation randomly
+      final animations = [
+        {
+          'stateMachineName': 'Animation_6',
+          'animationURL': 'assets/animations/onboarding/left_right.riv',
+          'foregroundHeight': 0.75,
+          'loop': true
+        },
+        {
+          'stateMachineName': 'Animation_8',
+          'animationURL': 'assets/animations/onboarding/hide_peek.riv',
+          'foregroundHeight': 0.39,
+          'loop': true,
+        },
+        {
+          'stateMachineName': 'Animation_12',
+          'animationURL': 'assets/animations/onboarding/floats_in.riv',
+          'foregroundHeight': 0.55,
+          'loop': true
+        },
+        {
+          'stateMachineName': 'Animation_9',
+          'animationURL': 'assets/animations/onboarding/flying_left_right.riv',
+          'foregroundHeight': 0.75,
+          'loop': false
+        },
+        {
+          'stateMachineName': 'Animation_5',
+          'animationURL': 'assets/animations/onboarding/questions.riv',
+          'foregroundHeight': 0.79,
+          'loop': true
+        },
+        {
+          'stateMachineName': 'Animation_10',
+          'animationURL': 'assets/animations/onboarding/rolling.riv',
+          'foregroundHeight': 0.75,
+          'loop': false
+        },
+      ];
+
+      final randomizer = Random().nextInt(animations.length);
+      final random = animations[randomizer];
+      if (mounted) {
+        setState(() {
+          stateMachineName = random['stateMachineName'] as String;
+          foregroundHeight = random['foregroundHeight'] as double;
+          loop = random['loop'] as bool;
+        });
+      }
+      return random['animationURL'];
+    }
   }
 
   Widget getWidget(Questions question, {int? index}) {
@@ -346,17 +471,16 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       return OnBoardingTextField(
           subtitle: question.subtitle ?? '', controller: textEditingController);
     } else if (question.type == 'radio') {
-      // return OnBoardingRadioOptions(
-      //   subtitle: question.subtitle,
-      //   options: question.options!,
-      //   value: answer,
-      //   onChanged: (String? value) {
-      //     setState(() {
-      //       answer = value;
-      //     });
-      //   },
-      // );
-      return SizedBox();
+      return OnBoardingRadioOptions(
+        subtitle: question.subtitle ?? '',
+        options: question.options!,
+        value: answer,
+        onChanged: (String? value) {
+          setState(() {
+            answer = value;
+          });
+        },
+      );
     } else if (question.type == 'multiple') {
       final selected = question.answer != null
           ? json
@@ -415,6 +539,8 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
   late String name;
   bool canGoBack = false;
 
+  late StateMachineController _controller;
+
   @override
   void initState() {
     setState(() {
@@ -424,6 +550,12 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
       }
     });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -447,54 +579,73 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
       body: SafeArea(
         bottom: false,
         child: LayoutBuilder(builder: (context, constraints) {
-          return Padding(
-            padding:
-                const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraint) => SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints:
-                            BoxConstraints(minHeight: constraint.maxHeight),
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                children: [
-                                  Text(
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraint) => SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraint.maxHeight),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+                                  child: Text(
                                     "Hooray $name! Now a couple of extra questions to customize this study for you",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
                                   ),
-                                ],
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 300,
+                              width: width,
+                              child: RiveAnimation.asset(
+                                "assets/animations/onboarding/clipboard.riv",
+                                onInit: onInit,
+                                fit: BoxFit.fitWidth,
                               ),
-                              SizedBox(
-                                height: 300,
-                                width: width,
-                                child: Image.asset(
-                                    'assets/images/avatar_onboarding_placeholder.png',
-                                    fit: BoxFit.fitWidth),
-                              ),
-                            ]),
-                      ),
+                            ),
+                          ]),
                     ),
                   ),
                 ),
-                CustomFlatButton(
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
+                child: CustomFlatButton(
                   onClick: () => widget.onContinue(),
                   text: "Continue",
                   color: CustomColors.fillWhite,
                   isDisabled: false,
                   textColor: CustomColors.productNormalActive,
-                )
-              ],
-            ),
+                ),
+              )
+            ],
           );
         }),
       ),
     );
+  }
+
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, "Animation_4");
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
+    }
   }
 }

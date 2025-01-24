@@ -89,6 +89,15 @@ String formatDurationToHHMM(DateTime date) {
   return DateFormat('HH:mm').format(date);
 }
 
+Duration formatStringToDuration(String time) {
+  List<String> parts =
+      time.split(":"); // Split the string into hours and minutes
+  int minutes = int.parse(parts[0]); // Parse the hours
+  int seconds = int.parse(parts[1]); // Parse the minutes
+
+  return Duration(minutes: minutes, seconds: seconds);
+}
+
 /// Formats a given date into a human-readable history date string.
 ///
 /// This function formats the provided date into a string representing a historical date,
@@ -187,6 +196,7 @@ final Map<String, ResponseType> _responseTypeMap = {
   'single': ResponseType.radio,
   'slider': ResponseType.slider,
   'webview': ResponseType.webview,
+  'timer': ResponseType.timer,
 };
 
 /// Function that converts a string representation of a response type to its corresponding enum value.
@@ -207,6 +217,7 @@ final Map<ResponseType, String> _responseStringMap = {
   ResponseType.radio: 'radio',
   ResponseType.slider: 'slider',
   ResponseType.webview: 'webview',
+  ResponseType.timer: 'timer',
 };
 
 /// Function to convert ResponseType enum value to string

@@ -73,4 +73,11 @@ class PromptDAO {
     // Remove the item from the database using its ID
     box.remove(id);
   }
+
+  /// Removes all prompts from the database.
+  /// This function removes all prompts from the database.
+  void removeAllPrompts() {
+    // Remove all prompts from the database
+    box.removeAll();
+  }
 }
