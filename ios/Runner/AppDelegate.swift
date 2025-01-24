@@ -45,13 +45,13 @@ import alarm
     // APNs token received
     override  func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
            Messaging.messaging().apnsToken = deviceToken
-           let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+          // let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
           // print("APNs device token: \(tokenString)")
        }
        
        // Handle token errors
     override  func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-           print("Failed to register for remote notifications: \(error.localizedDescription)")
+         //  print("Failed to register for remote notifications: \(error.localizedDescription)")
        }
         
 }
