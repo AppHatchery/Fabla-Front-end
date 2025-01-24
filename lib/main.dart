@@ -70,7 +70,7 @@ void main() async {
   await PendoService.init();
   final route = await RouteService().getRoute();
   try {
-    await _configureAmplify();
+    //await _configureAmplify();
     await _configureFirebase();
   } on AmplifyAlreadyConfiguredException {
     debugPrint('Amplify configuration failed.');
@@ -81,15 +81,6 @@ void main() async {
   FlutterNativeSplash.remove(); // Close Splash Screen
 }
 
-//pusH notification
-Future<void> _configureAmplify() async {
-  await Amplify.addPlugins([
-    AmplifyAuthCognito(),
-    AmplifyAnalyticsPinpoint(),
-  ]);
-  await Amplify.configure(amplifyconfig);
-}
-
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   notificationController = NotificationsController();
   await notificationController.messageHandler(message);
@@ -98,9 +89,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future<void> _configureFirebase() async {
   await Firebase.initializeApp();
   await notificationController.initialize(); // Ensure this waits
-    _gettoken();
+  _gettoken();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
 }
 
 Future<void> _gettoken() async {

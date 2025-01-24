@@ -1,9 +1,8 @@
 import 'dart:developer';
 import 'dart:io';
-import 'package:audio_diaries_flutter/core/notifications/data/pinpoint_notification.dart';
-import 'package:http/http.dart' as http;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
 class NotificationsController {
@@ -11,79 +10,66 @@ class NotificationsController {
 
   Future<void> initialize() async {
     await FirebaseMessaging.instance.getInitialMessage();
-    //await requestPermission();
+   // await requestPermission();
+    await setupNotificationPlugin();
     await getToken();
+
     FirebaseMessaging.onMessage.listen((RemoteMessage event) {
       messageHandler(event);
     });
   }
 
   Future<void> messageHandler(RemoteMessage message) async {
-    PinPointNotification pinpointMessage =
-        PinPointNotification.fromMap(message.data);
+    final notification = message.notification;
+    final androidNotification = notification?.android;
 
-    FilePathAndroidBitmap? iconBitmap;
-    StyleInformation notificationStyle =
-        const DefaultStyleInformation(true, true);
+    if (notification != null && androidNotification != null) {
+      String? imagePath;
+      StyleInformation notificationStyle = const DefaultStyleInformation(true, true);
 
-    await setupNotificationPlugin();
+      if (androidNotification.imageUrl != null &&
+          androidNotification.imageUrl!.isNotEmpty) {
+        imagePath = await _downloadAndSaveFile(androidNotification.imageUrl!, 'bigPicture');
 
-    AndroidNotificationChannel channel = const AndroidNotificationChannel(
-      'high_importance_channel', // id
-      'High Importance Notifications', // title
-      description:
-          'This channel is used for important notifications.', // description
-      importance: Importance.max,
-    );
-
-    if (pinpointMessage.imageUrl != null &&
-        pinpointMessage.imageUrl!.isNotEmpty) {
-      String imagePath =
-          await _downloadAndSaveFile(pinpointMessage.imageUrl!, 'bigPicture');
-
-      notificationStyle = BigPictureStyleInformation(
+        notificationStyle = BigPictureStyleInformation(
           FilePathAndroidBitmap(imagePath),
-          contentTitle: '<b>${pinpointMessage.title}</b>',
+          contentTitle: '<b>${notification.title}</b>',
           htmlFormatContentTitle: true,
-          summaryText: '${pinpointMessage.body}',
-          htmlFormatSummaryText: true);
-    }
+          summaryText: '${notification.body}',
+          htmlFormatSummaryText: true,
+        );
+      }
 
-    if (pinpointMessage.imageIconUrl != null &&
-        pinpointMessage.imageIconUrl!.isNotEmpty) {
-      String iconPath = await _downloadAndSaveFile(
-          pinpointMessage.imageIconUrl!, 'largeIcon');
-
-      iconBitmap = FilePathAndroidBitmap(iconPath);
-    }
-
-    await flutterLocalNotificationsPlugin.show(
-        pinpointMessage.id,
-        pinpointMessage.title,
-        pinpointMessage.body,
+      await flutterLocalNotificationsPlugin.show(
+        message.hashCode,
+        notification.title,
+        notification.body,
         NotificationDetails(
           android: AndroidNotificationDetails(
-            channel.id, // id
-            channel.name, // title
-            channelDescription: channel.description,
+            'high_importance_channel', // Channel ID
+            'High Importance Notifications', // Channel Name
+            channelDescription: 'This channel is used for important notifications.',
             importance: Importance.max,
-            largeIcon: iconBitmap,
             styleInformation: notificationStyle,
+            largeIcon: imagePath != null ? FilePathAndroidBitmap(imagePath) : null,
           ),
-        ));
+        ),
+      );
+    }
   }
 
   Future<void> requestPermission() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
 
     NotificationSettings settings = await messaging.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: true,
-        provisional: false,
-        sound: true);
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: true,
+      provisional: false,
+      sound: true,
+    );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       messaging.setForegroundNotificationPresentationOptions(
@@ -96,22 +82,8 @@ class NotificationsController {
 
   Future<void> getToken() async {
     final token = await FirebaseMessaging.instance.getToken();
-    log("Token value: $token");
+    log("Firebase Token: $token");
   }
-
-  // Future<void> setupNotificationPlugin() async {
-  //   const AndroidInitializationSettings initializationSettingsAndroid =
-  //       AndroidInitializationSettings('@mipmap/ic_launcher');
-
-  //   const InitializationSettings initializationSettings =
-  //       InitializationSettings(
-  //     android: initializationSettingsAndroid,
-  //   );
-  //   flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  //   flutterLocalNotificationsPlugin.initialize(
-  //     initializationSettings,
-  //   );
-  // }
 
   Future<void> setupNotificationPlugin() async {
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -133,11 +105,9 @@ class NotificationsController {
         onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
   }
 
-  void onDidReceiveNotificationResponse(
-      NotificationResponse notificationResponse) async {
-    final String? payload = notificationResponse.payload;
-    if (notificationResponse.payload != null) {
-      log('notification payload: $payload');
+  void onDidReceiveNotificationResponse(NotificationResponse response) async {
+    if (response.payload != null) {
+      log('Notification payload: ${response.payload}');
     }
   }
 
