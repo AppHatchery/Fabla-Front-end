@@ -12,7 +12,7 @@ class NotificationsController {
     await FirebaseMessaging.instance.getInitialMessage();
    // await requestPermission();
     await setupNotificationPlugin();
-    await getToken();
+    //await getToken();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage event) {
       messageHandler(event);
