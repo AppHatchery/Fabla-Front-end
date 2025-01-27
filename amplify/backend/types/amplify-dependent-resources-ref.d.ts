@@ -1,4 +1,11 @@
 export type AmplifyDependentResourcesAttributes = {
+  "analytics": {
+    "audiodiariespushnotifications": {
+      "Id": "string",
+      "Region": "string",
+      "appName": "string"
+    }
+  },
   "api": {
     "audiodiaries01": {
       "GraphQLAPIEndpointOutput": "string",
