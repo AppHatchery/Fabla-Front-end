@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -41,11 +40,8 @@ import 'screens/home/presentation/cubit/cubit/home_cubit.dart';
 import 'services/notification_service.dart';
 
 import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
-import 'package:amplify_analytics_pinpoint/amplify_analytics_pinpoint.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:audio_diaries_flutter/core/notifications/controllers/notifications_controller.dart';
-import 'amplifyconfiguration.dart'; // Add this import
 
 //Global variables
 late ObjectBox objectbox;
