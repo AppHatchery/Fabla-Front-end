@@ -129,19 +129,17 @@ class PromptRepository {
       }
 
       //if recording is present, remove it
+      final dir = await getApplicationDocumentsDirectory();
+      String _path = '';
       if (answer.recordings.isNotEmpty) {
-        final dir = await getApplicationDocumentsDirectory();
-        final _path = p.join(dir.path, 'recordings', path);
-
-        final file = File(_path);
-        await file.delete();
+        _path = p.join(dir.path, 'recordings', path);
       } else if (prompt.responseType == ResponseType.image) {
-        final dir = await getApplicationDocumentsDirectory();
-        final _path = p.join(dir.path, 'images', answer.response);
-
-        final file = File(_path);
-        await file.delete();
+        _path = p.join(dir.path, 'images', answer.response);
+      } else if (prompt.responseType == ResponseType.video) {
+        _path = p.join(dir.path, 'videos', answer.response);
       }
+      final file = File(_path);
+      await file.delete();
 
       //update the prompt
       //Removing the recordings

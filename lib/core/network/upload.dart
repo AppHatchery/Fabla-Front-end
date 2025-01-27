@@ -55,8 +55,9 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
 
       promptNumber++;
 
-      if (prompt.responseType == ResponseType.recording &&
-          prompt.answer!.recordings.isNotEmpty) {
+      if ((prompt.responseType == ResponseType.recording &&
+              prompt.answer!.recordings.isNotEmpty) ||
+          prompt.responseType == ResponseType.image || prompt.responseType == ResponseType.video) {
         _addAudioData(experiment.login, prompt, participantID, diary, dir,
             promptNumber, audioDataList);
       } else {
@@ -81,12 +82,35 @@ void _addAudioData(
     Directory dir,
     int promptNumber,
     List<AudioData> audioDataList) {
-  final localPath =
-      p.join(dir.path, 'recordings', prompt.answer?.recordings.first.path);
+  final type = prompt.responseType;
+
+  String localPath = '';
   final date = getPostDate(diary.start);
   final formattedTime = DateFormat('HH-mm-ss').format(DateTime.now());
-  final filename =
-      "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.aac";
+  String filename = '';
+
+  // get the appropriate path and filename
+  switch (type) {
+    case ResponseType.recording:
+      localPath =
+          p.join(dir.path, 'recordings', prompt.answer?.recordings.first.path);
+      filename =
+          "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.aac";
+      break;
+    case ResponseType.image:
+      localPath = p.join(dir.path, 'images', prompt.answer?.response);
+      filename =
+          "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.jpg";
+      break;
+    case ResponseType.video:
+      localPath = p.join(dir.path, 'videos', prompt.answer?.response);
+      filename =
+          "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.mp4";
+      break;
+    default:
+      break;
+  }
+
   final awsPath =
       "$experimentCode/$participantID/$date/prompt_$promptNumber/$filename";
 

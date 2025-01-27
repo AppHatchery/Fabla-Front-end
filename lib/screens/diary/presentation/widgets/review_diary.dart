@@ -267,7 +267,10 @@ class _ReviewDiaryState extends State<ReviewDiary> {
             ]),
           ),
         );
-      //TODO: Add support for other response types
+      case ResponseType.image:
+        return ImageViewer(name: prompt.answer!.response!);
+      case ResponseType.video:
+        return VideoViewer(name: prompt.answer!.response!, delete: null);
       default:
         return const SizedBox.shrink();
     }

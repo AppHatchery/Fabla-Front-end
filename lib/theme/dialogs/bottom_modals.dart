@@ -1081,8 +1081,12 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
 class BottomCameraModal extends StatefulWidget {
   final void Function(String) respond;
   final PromptModel prompt;
+  final bool isImage;
   const BottomCameraModal(
-      {super.key, required this.respond, required this.prompt});
+      {super.key,
+      required this.respond,
+      required this.prompt,
+      this.isImage = true});
 
   @override
   State<BottomCameraModal> createState() => _BottomCameraModalState();
@@ -1092,6 +1096,10 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
   late CameraController controller;
   IconData flashIcon = CupertinoIcons.bolt_badge_a_fill;
 
+  // Video Recording
+  Timer? _timer;
+  Duration elapsed = const Duration();
+
   @override
   void initState() {
     controller = CameraController(
@@ -1100,6 +1108,12 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
     );
     cameraInit();
     super.initState();
+  }
+
+  @override
+  dispose() {
+    controller.dispose();
+    super.dispose();
   }
 
   cameraInit() async {
@@ -1155,10 +1169,39 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
             height: 26,
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                GestureDetector(
+                  onTap: () => flash(),
+                  child: Container(
+                      height: 35,
+                      width: 35,
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black, width: 0.5),
+                          borderRadius: BorderRadius.circular(68)),
+                      padding: const EdgeInsets.all(4),
+                      child: SizedBox(
+                        height: 35,
+                        width: 35,
+                        child: Center(
+                          child: Icon(
+                            flashIcon,
+                            size: 20,
+                          ),
+                        ),
+                      )),
+                ),
+
+                Visibility(
+                    visible: widget.isImage,
+                    replacement: Text(formatDurationtoHHMMSS(elapsed),
+                        style: CustomTypography().titleMedium(
+                            color: CustomColors.textSecondaryContent)),
+                    child: SizedBox.shrink()),
+
+                // Close Modal Button
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: const Icon(
@@ -1181,7 +1224,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
           )),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            child: cameraControl(context),
+            child: widget.isImage ? pictureControls() : recordingControls(),
           )
         ],
       ),
@@ -1204,30 +1247,11 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
     );
   }
 
-  Widget cameraControl(BuildContext context) {
+  Widget pictureControls() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        GestureDetector(
-          onTap: () => flash(),
-          child: Container(
-              height: 50,
-              width: 50,
-              decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 0.5),
-                  borderRadius: BorderRadius.circular(68)),
-              padding: const EdgeInsets.all(4),
-              child: SizedBox(
-                height: 45,
-                width: 45,
-                child: Center(
-                  child: Icon(
-                    flashIcon,
-                    size: 25,
-                  ),
-                ),
-              )),
-        ),
+        const SizedBox(width: 50),
         GestureDetector(
           onTap: () => capture(),
           child: Container(
@@ -1252,7 +1276,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
               height: 50,
               width: 50,
               decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 0.5),
+                  border: Border.all(color: Colors.black, width: 1.5),
                   borderRadius: BorderRadius.circular(68)),
               padding: const EdgeInsets.all(4),
               child: SizedBox(
@@ -1267,6 +1291,109 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
               )),
         )
       ],
+    );
+  }
+
+  Widget recordingControls() {
+    final width = MediaQuery.of(context).size.width;
+    return SizedBox(
+      width: width,
+      height: 68,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          //Pause
+          Visibility(
+              visible: controller.value.isRecordingVideo,
+              replacement: const SizedBox(width: 50),
+              child: GestureDetector(
+                  onTap: () => pause(),
+                  child: AnimatedContainer(
+                      duration: Duration(milliseconds: 100),
+                      height: controller.value.isRecordingPaused ? 68 : 50,
+                      width: controller.value.isRecordingPaused ? 68 : 50,
+                      decoration: BoxDecoration(
+                          border: Border.all(
+                              color: controller.value.isRecordingPaused
+                                  ? CustomColors.warningActive
+                                  : Colors.black,
+                              width: 1.5),
+                          borderRadius: BorderRadius.circular(68)),
+                      padding: const EdgeInsets.all(4),
+                      child: AnimatedSwitcher(
+                        duration: Duration(milliseconds: 100),
+                        transitionBuilder: (child, animation) {
+                          return ScaleTransition(
+                              scale: animation, child: child);
+                        },
+                        child: controller.value.isRecordingPaused
+                            ? Container(
+                                key: ValueKey(1),
+                                height: 60,
+                                width: 60,
+                                decoration: BoxDecoration(
+                                    color: CustomColors.warningActive,
+                                    borderRadius: BorderRadius.circular(60)),
+                              )
+                            : SizedBox(
+                                key: ValueKey(2),
+                                height: 50,
+                                width: 50,
+                                child: Icon(
+                                  CupertinoIcons.pause_fill,
+                                  size: 25,
+                                ),
+                              ),
+                      )))),
+
+          //Record
+          GestureDetector(
+            onTap: () => record(),
+            child: AnimatedContainer(
+                duration: Duration(milliseconds: 100),
+                height: controller.value.isRecordingPaused ? 50 : 68,
+                width: controller.value.isRecordingPaused ? 50 : 68,
+                decoration: BoxDecoration(
+                    border: Border.all(
+                        color: CustomColors.warningActive, width: 1.5),
+                    borderRadius: BorderRadius.circular(68)),
+                padding:
+                    EdgeInsets.all(controller.value.isRecordingPaused ? 10 : controller.value.isRecordingVideo ? 15 : 4),
+                child: Container(
+                  // height: controller.value.isRecordingPaused ? 42 : 50,
+                  // width: controller.value.isRecordingPaused ? 42 : 50,
+                  decoration: BoxDecoration(
+                      color: CustomColors.warningActive,
+                      shape: controller.value.isRecordingVideo
+                          ? BoxShape.rectangle
+                          : BoxShape.circle,
+                      borderRadius: controller.value.isRecordingVideo
+                          ? BorderRadius.circular(4)
+                          : null),
+                )),
+          ),
+          GestureDetector(
+            onTap: () => flip(),
+            child: Container(
+                height: 50,
+                width: 50,
+                decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black, width: 1.5),
+                    borderRadius: BorderRadius.circular(68)),
+                padding: const EdgeInsets.all(4),
+                child: SizedBox(
+                  height: 45,
+                  width: 45,
+                  child: Center(
+                    child: Icon(
+                      CupertinoIcons.switch_camera,
+                      size: 25,
+                    ),
+                  ),
+                )),
+          )
+        ],
+      ),
     );
   }
 
@@ -1287,12 +1414,56 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
 
   Future<String> getFilePath() async {
     final directory = await getApplicationDocumentsDirectory();
-    final dir = await Directory(p.join(directory.path, 'images'))
+    final dir = await Directory(
+            p.join(directory.path, widget.isImage ? 'images' : 'videos'))
         .create(recursive: true);
     final now = DateTime.now();
-    final fileName = '${widget.prompt.id + 1}_${formatDate(now)}.jpg';
+    final fileName =
+        '${widget.prompt.id + 1}_${formatDate(now)}${widget.isImage ? ".jpg" : ".mp4"}';
     final filePath = p.join(dir.path, fileName);
     return filePath;
+  }
+
+  record() async {
+    if (controller.value.isRecordingVideo) {
+      stop();
+      return;
+    }
+
+    await controller.startVideoRecording();
+    startTimer();
+  }
+
+  pause() async {
+    if (controller.value.isRecordingVideo &&
+        !controller.value.isRecordingPaused) {
+      await controller.pauseVideoRecording();
+      if (mounted) {
+        setState(() {
+          stopTimer();
+        });
+      }
+      return;
+    }
+
+    await controller.resumeVideoRecording();
+    setState(() {
+      startTimer();
+    });
+  }
+
+  stop() async {
+    try {
+      stopTimer();
+      final XFile file = await controller.stopVideoRecording();
+      final path = await getFilePath();
+      await file.saveTo(path);
+      final name = p.basename(path);
+      widget.respond(name);
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      dev.log(e.toString(), name: 'Video Recording');
+    }
   }
 
   flip() async {
@@ -1350,5 +1521,24 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
         });
         break;
     }
+  }
+
+  startTimer() {
+    _timer ??= Timer.periodic(const Duration(seconds: 1), (value) {
+      if (mounted) {
+        setState(() {
+          elapsed = const Duration(seconds: 1) + elapsed;
+        });
+      }
+    });
+  }
+
+  stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  pauseTimer() {
+    _timer?.cancel();
   }
 }
