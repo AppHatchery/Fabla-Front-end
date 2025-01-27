@@ -138,10 +138,8 @@ class _HomePageState extends State<HomePage>
                     }),
                     child: WeeklyGoalWidget(
                       isExpanded: isExpanded,
-                      weeklyGoal:
-                          studies.isNotEmpty ? studies.first.goals.weekly : 0,
-                      currentEntries: entries,
                       studies: studies,
+                      diaries: weeksDiaries,
                     ),
                   ),
                   IconButton(
@@ -265,10 +263,9 @@ class _HomePageState extends State<HomePage>
         "Weekly Goal", {"viewed_at": now.toIso8601String()});
   }
 
-  trackLoad()async{
+  trackLoad() async {
     final now = DateTime.now();
-    await PendoService.track(
-        "Home", {"loaded_at": now.toIso8601String()});
+    await PendoService.track("Home", {"loaded_at": now.toIso8601String()});
   }
 
   void showStudyCalendar(List<StudyModel> studies) {

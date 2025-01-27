@@ -5,8 +5,8 @@ import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 
 @Entity()
 class QuestionsEntity {
-  @Id(assignable: true)
-  final int id;
+  @Id()
+  int id;
   final String title;
   final String? subtitle;
   final String? options;

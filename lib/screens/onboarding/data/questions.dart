@@ -29,7 +29,7 @@ class Questions extends Equatable {
 
   factory Questions.fromJson(Map<String, dynamic> json) {
     return Questions(
-        id: json['id'],
+        id: 0,
         title: json['title'],
         subtitle: json['subtitle'],
         options: json['options'] != null ? (json['options'] as List<dynamic>)
