@@ -506,32 +506,32 @@ class SetupRepository {
       extras[question.variable] = question.answer;
     }
 
-  String? firebaseToken;
-  try {
-    firebaseToken = await FirebaseMessaging.instance.getToken();
-    if (firebaseToken != null) {
-      debugPrint("Firebase Token: $firebaseToken");
-    } else {
-      debugPrint("Failed to fetch Firebase token: Token is null.");
+    String? firebaseToken;
+    try {
+      firebaseToken = await FirebaseMessaging.instance.getToken();
+      if (firebaseToken != null) {
+        debugPrint("Firebase Token: $firebaseToken");
+      } else {
+        debugPrint("Failed to fetch Firebase token: Token is null.");
+      }
+    } catch (e) {
+      debugPrint("Error fetching Firebase token: $e");
     }
-  } catch (e) {
-    debugPrint("Error fetching Firebase token: $e");
-  }
 
-  String platformName;
-  if (Platform.isAndroid) {
-    platformName = 'GCM';
-    debugPrint("Running on Android platform.");
-  } else if (Platform.isIOS) {
-    platformName = 'APNS';
-    debugPrint("Running on iOS platform.");
-  } else {
-    platformName = 'Unsupported';
-    debugPrint("Running on an unsupported platform.");
-  }
+    String platformName;
+    if (Platform.isAndroid) {
+      platformName = 'GCM';
+      debugPrint("Running on Android platform.");
+    } else if (Platform.isIOS) {
+      platformName = 'APNS';
+      debugPrint("Running on iOS platform.");
+    } else {
+      platformName = 'Unsupported';
+      debugPrint("Running on an unsupported platform.");
+    }
 
-  // Log the platform-specific name (optional)
-  debugPrint("Firebase Platform Name: $platformName");
+    // Log the platform-specific name (optional)
+    debugPrint("Firebase Platform Name: $platformName");
 
     map.addAll(
       {
@@ -619,5 +619,9 @@ class SetupRepository {
     } catch (e) {
       return false;
     }
+  }
+
+  void deleteAllStudies() {
+    _studyDAO.deleteAllStudies();
   }
 }
