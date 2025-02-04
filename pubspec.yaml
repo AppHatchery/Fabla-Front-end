@@ -47,6 +47,9 @@ dependencies:
   audio_session: ^0.1.16
   audioplayers: ^6.1.0
 
+  #Video Playback
+  video_player: ^2.9.2
+
   #Camera
   camera: ^0.11.0+2
 

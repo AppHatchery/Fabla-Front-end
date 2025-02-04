@@ -9,7 +9,6 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
-import '../utils/formatter.dart';
 import 'secrets_handler.dart';
 
 /// Uploads audio files associated with a diary to an S3 storage and returns the result.
@@ -55,8 +54,10 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
 
       promptNumber++;
 
-      if (prompt.responseType == ResponseType.recording &&
-          prompt.answer!.recordings.isNotEmpty) {
+      if ((prompt.responseType == ResponseType.recording &&
+              prompt.answer!.recordings.isNotEmpty) ||
+          prompt.responseType == ResponseType.image ||
+          prompt.responseType == ResponseType.video) {
         _addAudioData(experiment.login, prompt, participantID, diary, dir,
             promptNumber, audioDataList);
       } else {
@@ -81,14 +82,39 @@ void _addAudioData(
     Directory dir,
     int promptNumber,
     List<AudioData> audioDataList) {
-  final localPath =
-      p.join(dir.path, 'recordings', prompt.answer?.recordings.first.path);
-  final date = getPostDate(diary.start);
+  final type = prompt.responseType;
+
+  String localPath = '';
   final formattedTime = DateFormat('HH-mm-ss').format(DateTime.now());
-  final filename =
-      "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.aac";
-  final awsPath =
-      "$experimentCode/$participantID/$date/prompt_$promptNumber/$filename";
+  String filename = '';
+  String folder = '';
+
+  // get the appropriate path and filename
+  switch (type) {
+    case ResponseType.recording:
+      localPath =
+          p.join(dir.path, 'recordings', prompt.answer?.recordings.first.path);
+      filename =
+          "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.aac";
+      folder = 'Audios';
+      break;
+    case ResponseType.image:
+      localPath = p.join(dir.path, 'images', prompt.answer?.response);
+      filename =
+          "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.jpg";
+      folder = 'Images';
+      break;
+    case ResponseType.video:
+      localPath = p.join(dir.path, 'videos', prompt.answer?.response);
+      filename =
+          "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.mp4";
+      folder = 'Videos';
+      break;
+    default:
+      break;
+  }
+
+  final awsPath = "$experimentCode/$folder/$filename";
 
   audioDataList
       .add(AudioData(localDirectory: localPath, awsS3Directory: awsPath));
