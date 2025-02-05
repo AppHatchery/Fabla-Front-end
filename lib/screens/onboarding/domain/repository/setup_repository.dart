@@ -10,6 +10,7 @@ import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
+import 'package:audio_diaries_flutter/core/utils/extensions.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
@@ -148,9 +149,6 @@ class SetupRepository {
   /// await getStudies(); // Fetch and update studies and diaries in the local database.
   /// ```
   Future<void> getStudies() async {
-    // Clean the database
-    clearStudies();
-
     // Retrieve the current experiment from the local database
     final entity = _experimentDAO.getExperiment();
     final experiment = ExperimentModel.fromEntity(entity!);
@@ -188,8 +186,15 @@ class SetupRepository {
         }
       }
 
+      // Fetch all diaries from the local database
+      // Filter out duplicates from the new diaries
+      // For fresh installs it will be empty and result in all diaries being fetched
+      final all = diaryRepository.getAllDiaries();
+      final filtered =
+          all.isEmpty ? diaries : filterDuplicateDiaries(diaries, all);
+
       // Convert diaries to entities and map prompts to their models
-      final entities = diaries.map((model) {
+      final entities = filtered.map((model) {
         final prompts =
             model.prompts.map((prompt) => Prompt.fromModel(prompt)).toList();
         final entity = Diary.fromModel(model);
@@ -210,6 +215,17 @@ class SetupRepository {
       // Schedule notifications for the diaries
       NotificationManager().scheduleLimit();
     }
+  }
+
+  // Function to filter out duplicates from the new diaries
+  List<DiaryModel> filterDuplicateDiaries(
+      List<DiaryModel> newDiaries, List<DiaryModel> existingDiaries) {
+    return newDiaries.where((newDiary) {
+      // Check if this diary already exists in the database
+      final isDuplicate = existingDiaries
+          .any((existingDiary) => newDiary.isEffectivelyEqual(existingDiary));
+      return !isDuplicate;
+    }).toList();
   }
 
   ExperimentModel getExperiment() {
@@ -234,46 +250,6 @@ class SetupRepository {
     }
     return await pref.setStringPreference(
         key: 'study_color_source', value: json.encode(data));
-  }
-
-  /// Creates and stores metadata related to the participant's study.
-  ///
-  /// This function generates metadata regarding the participant's study, including
-  /// their study code and the current date. It then stores this metadata in a text
-  /// file named "metadata.txt". The file is created in the temporary directory.
-  /// The metadata file can later be used for logging and record-keeping.
-  ///
-  /// After creating the metadata file, the function sends the file to a designated
-  /// S3 bucket, which may serve as the participant's root folder for
-  /// study-related data.
-  ///
-  /// Example usage:
-  /// ```dart
-  /// createMetadata(); // Generate and store participant's study metadata.
-  /// ```
-
-  void createMetadata() async {
-    // final participant = getParticipant();
-
-    // final code = participant!.studyCode;
-    // await diaryInit(code);
-
-    await getStudies();
-    // final startDate = DateTime.fromMillisecondsSinceEpoch(
-    //     await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
-    // final metadata = Strings().participantMetadata(
-    //     code, formatDate(startDate), formatDate(startDate));
-
-    // final directory = await getApplicationDocumentsDirectory();
-    // final path = p.join(directory.path, 'metadata.txt');
-    // final file = File(path);
-
-    // if (!file.existsSync()) {
-    //   file.writeAsStringSync(metadata);
-    //   print('File content is ${file.readAsStringSync()}');
-    //   //TODO: TO BE REMOVED
-    //   //uploadMetaDataS3(code, file);
-    // }
   }
 
   /// Creates and schedules notifications for daily diaries.
@@ -555,6 +531,8 @@ class SetupRepository {
     });
 
     if (result) {
+      // Clean the database first
+      clearStudies();
       await getStudies();
       return true;
     }

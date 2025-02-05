@@ -14,7 +14,7 @@ class HubCubit extends Cubit<HubState> {
     }
 
     emit(HubUpdating());
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 2)); // TODO: Remove this line
     final done = await ExperimentManager().update();
     if (done) emit(HubUpdated());
 

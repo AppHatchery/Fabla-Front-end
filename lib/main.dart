@@ -21,6 +21,7 @@ import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dar
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -192,6 +193,8 @@ class Hub extends StatefulWidget {
 
 class _HubState extends State<Hub>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  // used to refresh the page
+  Key key = UniqueKey();
   late HubCubit cubit;
   late TabController tabController;
   List<Tab> navigationBars = [];
@@ -227,49 +230,59 @@ class _HubState extends State<Hub>
     super.didChangeAppLifecycleState(state);
   }
 
+  updateKey() {
+    setState(() {
+      key = UniqueKey();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isIos = Platform.isIOS;
-    return BlocConsumer<HubCubit, HubState>(
-      listener: (context, state) {
-        if (state is HubUpdating) {
-          showUpdateDialog();
-        }else if(state is HubUpdated){
-          Navigator.pop(context);
-        }
-      },
-      builder: (context, state) {
-        return Scaffold(
-          body: TabBarView(
-              physics: const NeverScrollableScrollPhysics(),
-              controller: tabController,
-              children: pages),
-          bottomNavigationBar: Material(
-            color: CustomColors.fillWhite,
-            child: Container(
-              decoration: const BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: CustomColors.productBorderNormal,
-                    width: 1.0,
+    return KeyedSubtree(
+      key: key,
+      child: BlocConsumer<HubCubit, HubState>(
+        listener: (context, state) {
+          if (state is HubUpdating) {
+            showUpdateDialog();
+          } else if (state is HubUpdated) {
+            Navigator.pop(context);
+            updateKey();
+          }
+        },
+        builder: (context, state) {
+          return Scaffold(
+            body: TabBarView(
+                physics: const NeverScrollableScrollPhysics(),
+                controller: tabController,
+                children: pages),
+            bottomNavigationBar: Material(
+              color: CustomColors.fillWhite,
+              child: Container(
+                decoration: const BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: CustomColors.productBorderNormal,
+                      width: 1.0,
+                    ),
                   ),
                 ),
-              ),
-              child: TabBar(
-                controller: tabController,
-                tabs: navigationBars,
-                labelColor: CustomColors.productNormal,
-                unselectedLabelColor: Colors.black,
-                indicatorColor: Colors.transparent,
-                indicatorWeight: 2,
-                indicator: null,
-                padding: EdgeInsets.only(bottom: isIos ? 34 : 0),
-                dividerColor: Colors.transparent,
+                child: TabBar(
+                  controller: tabController,
+                  tabs: navigationBars,
+                  labelColor: CustomColors.productNormal,
+                  unselectedLabelColor: Colors.black,
+                  indicatorColor: Colors.transparent,
+                  indicatorWeight: 2,
+                  indicator: null,
+                  padding: EdgeInsets.only(bottom: isIos ? 34 : 0),
+                  dividerColor: Colors.transparent,
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -314,23 +327,6 @@ class _HubState extends State<Hub>
     return showDialog(
         barrierDismissible: false,
         context: context,
-        builder: (context) {
-          return SimpleDialog(
-
-            children: [Container(
-              decoration: BoxDecoration(
-                  color: CustomColors.fillWhite,
-                  borderRadius: BorderRadius.all(Radius.circular(12))),
-              child: Center(
-                child: Column(
-                  children: [
-                    Text("Currently Updating"),
-                    Text("Hold on..."),
-                  ],
-                ),
-              ),
-            )],
-          );
-        });
+        builder: (context) => const UpdatePopUp());
   }
 }

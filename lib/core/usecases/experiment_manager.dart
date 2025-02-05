@@ -21,7 +21,6 @@ class ExperimentManager {
   Future<bool> update() async {
     try {
       // Get rid of all the data from now till last while keeping all the old data
-      dev.log("Let's get the show on the road!");
       final now = DateTime.now();
 
       final result = _diaryRepository.removeDiariesFrom(now);
@@ -29,7 +28,6 @@ class ExperimentManager {
       dev.log("Removed diaries: $result");
 
       // get new content
-      // !Overrides diaries that are ongoing, completed and submitted
       await _setupRepository.getStudies();
 
       return true;

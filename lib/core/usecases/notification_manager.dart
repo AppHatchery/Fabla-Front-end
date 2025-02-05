@@ -168,9 +168,9 @@ class NotificationManager {
     dev.log('Cancelling notifications for diary $id');
     final notifications = await NotificationService.getScheduledNotifications();
     for (final notification in notifications) {
-      final payload = notification.content!.payload!;
+      final payload = notification.content!.payload;
       dev.log('Notification payload: $payload');
-      if (payload['diary'] == id.toString() &&
+      if (payload?['diary'] == id.toString() &&
           notification.content?.id != null) {
         await NotificationService.cancelNotification(notification.content!.id!);
       }

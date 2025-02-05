@@ -21,6 +21,8 @@ class DynamicCubit extends Cubit<DynamicState> {
         emit(DynamicLoaded(questions: questions));
       } else {
         upload();
+        // Clean the database first
+        setupRepository.clearStudies();
         await setupRepository.getStudies();
         emit(DynamicNone());
       }
@@ -29,7 +31,9 @@ class DynamicCubit extends Cubit<DynamicState> {
     }
   }
 
-  Future<int> count () async => await setupRepository.getOnBoardingQuestions().then((value) => value.length);
+  Future<int> count() async => await setupRepository
+      .getOnBoardingQuestions()
+      .then((value) => value.length);
 
   void save(Questions question, String answer) {
     try {
