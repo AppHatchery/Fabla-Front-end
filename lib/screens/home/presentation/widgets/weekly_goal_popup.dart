@@ -97,12 +97,19 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
 
   Widget goalWidget(double width, double totalWidth, StudyModel study,
       List<DiaryModel> diaries, Color color) {
-    final lowerGoal = (0.7 * study.goals.weekly).round();
-    final lowerValue = (lowerGoal / study.goals.weekly) * totalWidth;
+    final possibleEntries =
+        diaries.fold(0, (prev, diary) => prev + diary.entries);
+
+    final goal = study.goals.weekly > possibleEntries
+        ? possibleEntries
+        : study.goals.weekly;
+
+    final lowerGoal = (0.7 * goal).round();
+    final lowerValue = (lowerGoal / goal) * totalWidth;
 
     final currentEntries =
         diaries.where((diary) => diary.status == DiaryStatus.submitted).length;
-    final progress = (currentEntries / study.goals.weekly) * totalWidth;
+    final progress = (currentEntries / goal) * totalWidth;
     final progressWidth = (progress > totalWidth) ? totalWidth : progress;
 
     return Column(
@@ -134,7 +141,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
               child: Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: Text(
-                  "Submit at least $lowerGoal ${study.goals.weekly > 1 ? "entries" : "entry"} this week to complete your goal.",
+                  "Submit at least $lowerGoal ${goal > 1 ? "entries" : "entry"} this week to complete your goal.",
                   style: CustomTypography().caption(),
                   softWrap: true,
                 ),
@@ -194,7 +201,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                             // Adjust padding instead of using SizedBox
                             child: Opacity(
                               opacity: lowerValue == progressWidth ||
-                                      study.goals.weekly >= progressWidth
+                                      goal >= progressWidth
                                   ? 0
                                   : 1,
                               // Hide the progress indicator when it reaches the lower goal
@@ -242,7 +249,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                             color: color, size: 20),
                         Flexible(
                           child: Text(
-                            "${study.goals.weekly}",
+                            "$goal",
                             style: CustomTypography().caption(),
                           ),
                         )

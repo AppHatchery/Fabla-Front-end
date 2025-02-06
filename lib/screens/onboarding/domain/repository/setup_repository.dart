@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:developer' as dev;
+import 'dart:io';
 // import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/database/dao/experiment_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
@@ -37,6 +38,7 @@ import '../../../../objectbox.g.dart';
 import '../../../diary/data/protocol.dart';
 import '../../../diary/domain/entities/protocol_entity.dart';
 import '../entities/participant.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class SetupRepository {
   final ParticipantDAO _participantDAO =
@@ -505,11 +507,40 @@ class SetupRepository {
       extras[question.variable] = question.answer;
     }
 
+  String? firebaseToken;
+  try {
+    firebaseToken = await FirebaseMessaging.instance.getToken();
+    if (firebaseToken != null) {
+      debugPrint("Firebase Token: $firebaseToken");
+    } else {
+      debugPrint("Failed to fetch Firebase token: Token is null.");
+    }
+  } catch (e) {
+    debugPrint("Error fetching Firebase token: $e");
+  }
+
+  String platformName;
+  if (Platform.isAndroid) {
+    platformName = 'GCM';
+    debugPrint("Running on Android platform.");
+  } else if (Platform.isIOS) {
+    platformName = 'APNS';
+    debugPrint("Running on iOS platform.");
+  } else {
+    platformName = 'Unsupported';
+    debugPrint("Running on an unsupported platform.");
+  }
+
+  // Log the platform-specific name (optional)
+  debugPrint("Firebase Platform Name: $platformName");
+
     map.addAll(
       {
         'participant_id': participant!.studyCode.toString(),
         'login_code': experiment!.login,
         'extras': jsonEncode(extras),
+        'token': firebaseToken,
+        'service': platformName,
       },
     );
 
@@ -574,12 +605,15 @@ class SetupRepository {
 
       // Clear all saved recordings
       final dir = await getApplicationDocumentsDirectory();
-      final path = p.join(dir.path, 'recordings');
+      final paths = ['recordings', 'images', 'videos']
+          .map((folder) => p.join(dir.path, folder)).toList();
 
-      final recordingsDir = Directory(path);
-      if (await recordingsDir.exists()) {
-        recordingsDir.deleteSync(recursive: true);
-      }
+      await Future.wait(paths.map((path) async {
+        final pathDir = Directory(path);
+        if (await pathDir.exists()) {
+          pathDir.deleteSync(recursive: true);
+        }
+      }));
 
       // Clear Credentials
       final storage = const FlutterSecureStorage();

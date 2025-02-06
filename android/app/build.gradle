@@ -68,7 +68,8 @@ android {
             signingConfig signingConfigs.debug
         }
         debug {
-            minifyEnabled true
+            minifyEnabled false
+            shrinkResources false
             signingConfig signingConfigs.debug
         }
     }

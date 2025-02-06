@@ -22,5 +22,32 @@
         "audiodiaries01": {}
       }
     }
+  },
+  "fablapush": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-audiodiaries01-fablapush-aad2d-authRole",
+      "UnauthRoleArn": "arn:aws:iam::008918235193:role/amplify-audiodiaries01-fablapush-aad2d-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::008918235193:role/amplify-audiodiaries01-fablapush-aad2d-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-audiodiaries01-fablapush-aad2d-deployment",
+      "UnauthRoleName": "amplify-audiodiaries01-fablapush-aad2d-unauthRole",
+      "StackName": "amplify-audiodiaries01-fablapush-aad2d",
+      "StackId": "arn:aws:cloudformation:us-east-1:008918235193:stack/amplify-audiodiaries01-fablapush-aad2d/f55255f0-b3ae-11ef-9a0a-1206e6321509",
+      "AmplifyAppId": "d1f2k81mx528zu"
+    },
+    "categories": {
+      "auth": {
+        "audiodiaries01b1efc40a": {}
+      },
+      "api": {
+        "audiodiaries01": {}
+      },
+      "storage": {
+        "audiodiariesbucket": {}
+      },
+      "analytics": {
+        "audiodiariespushnotifications": {}
+      }
+    }
   }
 }

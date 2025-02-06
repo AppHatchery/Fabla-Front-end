@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
@@ -20,6 +21,7 @@ class DynamicCubit extends Cubit<DynamicState> {
       if (questions.isNotEmpty) {
         emit(DynamicLoaded(questions: questions));
       } else {
+        upload();
         await setupRepository.getStudies();
         emit(DynamicNone());
       }

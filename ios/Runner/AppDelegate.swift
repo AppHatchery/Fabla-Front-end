@@ -1,15 +1,30 @@
 import UIKit
 import Flutter
 import Pendo
+import FirebaseCore
+import FirebaseMessaging
+import UserNotifications
 import UserNotifications
 import alarm
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
+    
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+      FirebaseApp.configure()
+      
+      UNUserNotificationCenter.current().delegate = self
+
+      let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+      UNUserNotificationCenter.current().requestAuthorization(
+        options: authOptions,
+        completionHandler: { _, _ in }
+      )
+
+      application.registerForRemoteNotifications()
       if #available(iOS 10.0, *) {
         UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
       }
@@ -26,5 +41,17 @@ import alarm
         }
         return true
     }
+    
+    // APNs token received
+    override  func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+           Messaging.messaging().apnsToken = deviceToken
+          // let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+          // print("APNs device token: \(tokenString)")
+       }
+       
+       // Handle token errors
+    override  func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+         //  print("Failed to register for remote notifications: \(error.localizedDescription)")
+       }
         
 }

@@ -6,10 +6,18 @@ import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
+import 'package:audio_diaries_flutter/theme/resources/strings.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
@@ -99,11 +107,13 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
                             }
                           }
                         : null,
-                    onChanged: (val) {
-                      setState(() {
-                        _value = val;
-                      });
-                    },
+                    onChanged: widget.isSliderEnabled
+                        ? (val) {
+                            setState(() {
+                              _value = val;
+                            });
+                          }
+                        : null,
                     //overlayColor:CustomColors.newBlue,
                   ),
                 ),
@@ -753,7 +763,9 @@ class _TimerWidgetState extends State<TimerWidget>
                     ),
                   ],
                 ),
-                const SizedBox(height: 24,),
+                const SizedBox(
+                  height: 24,
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -910,5 +922,354 @@ class ColorListTween extends Tween<List<Color>> {
       begin!.length,
       (i) => Color.lerp(colors[index][i], colors[nextIndex][i], localT)!,
     );
+  }
+}
+
+class ImageWidget extends StatefulWidget {
+  final void Function(String) respond;
+  final DiaryModel diary;
+  final PromptModel prompt;
+  const ImageWidget(
+      {super.key,
+      required this.diary,
+      required this.prompt,
+      required this.respond});
+
+  @override
+  State<ImageWidget> createState() => _ImageWidgetState();
+}
+
+class _ImageWidgetState extends State<ImageWidget> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            widget.prompt.answer?.response == null
+                ? CustomFlatButton(
+                    onClick: () => showModal(),
+                    text: "Take a Picture",
+                  )
+                : Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              delete();
+                            },
+                            icon: const Icon(CupertinoIcons.delete),
+                            color: CustomColors.warningActive,
+                            iconSize: 20,
+                          )
+                        ],
+                      ),
+                      SizedBox(
+                          width: width,
+                          child: ImageViewer(
+                              name: widget.prompt.answer!.response!)),
+                    ],
+                  )
+          ],
+        ));
+  }
+
+  delete() async {
+    final result = await showDialog<bool>(
+        context: context,
+        builder: (context) => DeletePopUp(
+              title: Strings.deletePopUpTitle,
+              subheader: Strings.deletePopUpSubheader,
+            ));
+
+    if (result == true && mounted) {
+      final promptCubit = context.read<PromptCubit>();
+      promptCubit.removeResponse(
+          diary: widget.diary, path: "", prompt: widget.prompt);
+    }
+  }
+
+  void showModal() {
+    showModalBottomSheet(
+        backgroundColor: Colors.transparent,
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        elevation: 0,
+        useSafeArea: true,
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              minChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) {
+                return BottomCameraModal(
+                  respond: widget.respond,
+                  prompt: widget.prompt,
+                );
+              },
+            ));
+  }
+}
+
+class ImageViewer extends StatefulWidget {
+  final String name;
+  const ImageViewer({super.key, required this.name});
+
+  @override
+  State<ImageViewer> createState() => _ImageViewerState();
+}
+
+class _ImageViewerState extends State<ImageViewer> {
+  File? file;
+
+  @override
+  initState() {
+    imageInit();
+    super.initState();
+  }
+
+  imageInit() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final path = p.join(dir.path, 'images', widget.name);
+    setState(() {
+      file = File(path);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return file != null ? Image.file(file!) : SizedBox.shrink();
+  }
+}
+
+class VideoWidget extends StatefulWidget {
+  final void Function(String) respond;
+  final DiaryModel diary;
+  final PromptModel prompt;
+  const VideoWidget(
+      {super.key,
+      required this.diary,
+      required this.prompt,
+      required this.respond});
+
+  @override
+  State<VideoWidget> createState() => _VideoWidgetState();
+}
+
+class _VideoWidgetState extends State<VideoWidget> {
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            widget.prompt.answer?.response == null
+                ? CustomFlatButton(
+                    onClick: () => showModal(),
+                    text: "Take a Video",
+                  )
+                : SizedBox(
+                    width: width,
+                    child: VideoViewer(
+                        name: widget.prompt.answer!.response!, delete: delete),
+                  )
+          ],
+        ));
+  }
+
+  delete() async {
+    final result = await showDialog<bool>(
+        context: context,
+        builder: (context) => DeletePopUp(
+              title: Strings.deletePopUpTitle,
+              subheader: Strings.deletePopUpSubheader,
+            ));
+
+    if (result == true && mounted) {
+      final promptCubit = context.read<PromptCubit>();
+      promptCubit.removeResponse(
+          diary: widget.diary, path: "", prompt: widget.prompt);
+    }
+  }
+
+  void showModal() {
+    showModalBottomSheet(
+        backgroundColor: Colors.transparent,
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        elevation: 0,
+        useSafeArea: true,
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              minChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) {
+                return BottomCameraModal(
+                  respond: widget.respond,
+                  prompt: widget.prompt,
+                  isImage: false,
+                );
+              },
+            ));
+  }
+}
+
+class VideoViewer extends StatefulWidget {
+  final String name;
+  final Function? delete;
+  const VideoViewer({super.key, required this.name, required this.delete});
+
+  @override
+  State<VideoViewer> createState() => _VideoViewerState();
+}
+
+class _VideoViewerState extends State<VideoViewer> {
+  VideoPlayerController? controller;
+
+  // Slider
+  double max = 0.0;
+  double current = 0.0;
+  Duration maxDuration = const Duration();
+
+  @override
+  initState() {
+    super.initState();
+    init();
+  }
+
+  @override
+  dispose() {
+    controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return controller != null
+        ? Column(children: [
+            Row(
+              children: [
+                Container(
+                    width: 24,
+                    height: 24,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: CustomColors.productNormalActive,
+                    ),
+                    child: Center(
+                      child: IconButton(
+                        onPressed: () => play(),
+                        icon: Icon(controller!.value.isPlaying
+                            ? CupertinoIcons.pause_fill
+                            : CupertinoIcons.play_arrow_solid),
+                        color: CustomColors.fillWhite,
+                        iconSize: 10,
+                      ),
+                    )),
+                const SizedBox(width: 3),
+                Expanded(
+                  child: slider(),
+                ),
+                Row(
+                  children: [
+                    Text(formatDuration(current.toInt())),
+                    const Text(" / "),
+                    Text(formatDuration(maxDuration.inMilliseconds.toInt()))
+                  ],
+                ),
+                widget.delete == null
+                    ? SizedBox.shrink()
+                    : IconButton(
+                        onPressed: () => widget.delete!(),
+                        icon: const Icon(CupertinoIcons.delete),
+                        color: CustomColors.warningActive,
+                        iconSize: 20,
+                      )
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 6.0),
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: controller!.value.aspectRatio,
+                  child: VideoPlayer(controller!),
+                ),
+              ),
+            )
+          ])
+        : Center(
+            child: CircularProgressIndicator(),
+          );
+  }
+
+  Widget slider() {
+    return Column(
+      children: [
+        SizedBox(
+            child: SliderTheme(
+          data: SliderThemeData(
+              trackHeight: 5,
+              activeTrackColor: CustomColors.productNormalActive,
+              thumbColor: CustomColors.productNormalActive,
+              inactiveTrackColor: CustomColors.greyTrack,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+              overlayShape: SliderComponentShape.noOverlay),
+          child: Slider(
+            value: current,
+            max: max,
+            onChanged: (val) => seek(val),
+          ),
+        )),
+      ],
+    );
+  }
+
+  init() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final path = p.join(dir.path, 'videos', widget.name);
+    final file = File(path);
+    controller = VideoPlayerController.file(file);
+
+    controller!.addListener(() {
+      if (mounted) {
+        setState(() {
+          current = controller!.value.position.inMilliseconds.toDouble();
+        });
+      }
+    });
+    controller!.initialize().then((_) {
+      if (mounted) {
+        setState(() {
+          max = controller!.value.duration.inMilliseconds.toDouble();
+          maxDuration = controller!.value.duration;
+        });
+      }
+    });
+  }
+
+  play() async {
+    if (controller!.value.isPlaying) {
+      await controller!.pause();
+    } else {
+      await controller!.play();
+    }
+  }
+
+  seek(double value) async {
+    await controller!.seekTo(Duration(milliseconds: value.toInt()));
   }
 }
