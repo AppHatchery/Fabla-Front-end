@@ -991,7 +991,8 @@ class BottomErrorModal extends StatelessWidget {
 class BottomWebViewModal extends StatefulWidget {
   final String url;
   final void Function(String) respond;
-  const BottomWebViewModal({super.key, required this.url, required this.respond});
+  const BottomWebViewModal(
+      {super.key, required this.url, required this.respond});
 
   @override
   State<BottomWebViewModal> createState() => _BottomWebViewModalState();
@@ -1049,7 +1050,8 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
           )),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            child: CustomFlatButton(onClick: () => save(), text: "Finish Survey"),
+            child:
+                CustomFlatButton(onClick: () => save(), text: "Finish Survey"),
           )
         ],
       ),
@@ -1070,5 +1072,89 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
     end = DateTime.now();
     widget.respond("Start: $start | End: $end");
     Navigator.pop(context);
+  }
+}
+
+class BottomUpdateModal extends StatefulWidget {
+  final ValueNotifier<bool> completeNotifier;
+  const BottomUpdateModal({super.key, required this.completeNotifier});
+
+  @override
+  State<BottomUpdateModal> createState() => _BottomUpdateModalState();
+}
+
+class _BottomUpdateModalState extends State<BottomUpdateModal> {
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+      height: 300,
+      width: width,
+      decoration: const BoxDecoration(
+        color: CustomColors.fillWhite,
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(14), topRight: Radius.circular(14)),
+      ),
+      child: ValueListenableBuilder(
+          valueListenable: widget.completeNotifier,
+          builder: (context, complete, _) {
+            return Column(
+              children: [
+                const SizedBox(
+                  height: 26,
+                ),
+                Text(
+                  "Updating Experiment \nContent",
+                  style: CustomTypography().headlineMedium(),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(
+                  height: 24,
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 50),
+                  child: Text(
+                    complete
+                        ? "Content Update Complete!"
+                        : "Hang tight! We're updating the experiment content. This won’t take long!",
+                    style: CustomTypography().bodyMedium(),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(
+                  height: 36,
+                ),
+                // Progress
+
+                SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      child: !complete
+                          ? CircularProgressIndicator(
+                              key: ValueKey(1), // Unique key for transition
+                              color: CustomColors.productNormal,
+                              strokeCap: StrokeCap.round,
+                            )
+                          : Center(
+                              child: Icon(
+                                Icons.check_circle_rounded,
+                                key: ValueKey(2), // Unique key for transition
+                                color: CustomColors.darkGreen,
+                                size: 32,
+                              ),
+                            ),
+                    )),
+              ],
+            );
+          }),
+    );
   }
 }

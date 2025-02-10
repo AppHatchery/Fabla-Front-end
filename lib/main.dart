@@ -21,7 +21,7 @@ import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dar
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
-import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -193,8 +193,10 @@ class Hub extends StatefulWidget {
 
 class _HubState extends State<Hub>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  // used to refresh the page
+  // used to refresh the page for updating
   Key key = UniqueKey();
+  final ValueNotifier<bool> completeNotifier = ValueNotifier(false);
+
   late HubCubit cubit;
   late TabController tabController;
   List<Tab> navigationBars = [];
@@ -230,12 +232,6 @@ class _HubState extends State<Hub>
     super.didChangeAppLifecycleState(state);
   }
 
-  updateKey() {
-    setState(() {
-      key = UniqueKey();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final isIos = Platform.isIOS;
@@ -246,8 +242,7 @@ class _HubState extends State<Hub>
           if (state is HubUpdating) {
             showUpdateDialog();
           } else if (state is HubUpdated) {
-            Navigator.pop(context);
-            updateKey();
+            completeUpdate();
           }
         },
         builder: (context, state) {
@@ -323,10 +318,36 @@ class _HubState extends State<Hub>
     ]);
   }
 
+  void completeUpdate() {
+    if (mounted) {
+      setState(() => completeNotifier.value = true);
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      }).then((_) {
+        Future.delayed(const Duration(seconds: 1), () {
+          setState(() => key = UniqueKey());
+        });
+      });
+    }
+  }
+
   showUpdateDialog() {
-    return showDialog(
-        barrierDismissible: false,
+    setState(() {
+      completeNotifier.value = false;
+    });
+    showModalBottomSheet(
         context: context,
-        builder: (context) => const UpdatePopUp());
+        isDismissible: false,
+        enableDrag: false,
+        useSafeArea: true,
+        builder: (context) => Wrap(
+              children: [
+                BottomUpdateModal(
+                  completeNotifier: completeNotifier,
+                ),
+              ],
+            ));
   }
 }
