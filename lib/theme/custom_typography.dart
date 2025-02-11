@@ -166,4 +166,17 @@ class CustomTypography {
       letterSpacing: 0,
     );
   }
+
+  TextStyle custom(
+      {Color color = Colors.black,
+      double fontSize = 12,
+      FontWeight fontWeight = FontWeight.normal}) {
+    return TextStyle(
+      fontFamily: fontName,
+      fontWeight: fontWeight,
+      fontSize: fontSize,
+      color: color,
+      letterSpacing: 0,
+    );
+  }
 }

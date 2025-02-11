@@ -638,19 +638,13 @@ class TimerWidget extends StatefulWidget {
 }
 
 class _TimerWidgetState extends State<TimerWidget>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late Duration duration;
   late Duration remaining;
   Timer? timer;
   bool inProgress = false;
 
   double progress = 0.0;
-
-  //Animations
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
-  late AnimationController _gradientController;
-  late Animation<List<Color>> _gradientAnimation;
 
   late AnimationController _progressController;
   late Animation<double> _progressAnimation;
@@ -661,30 +655,6 @@ class _TimerWidgetState extends State<TimerWidget>
 
     duration = formatStringToDuration(widget.time);
     remaining = formatStringToDuration(widget.time);
-
-    // Initialize AnimationController
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat(reverse: true);
-    _gradientController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10),
-    )..repeat(reverse: true);
-
-    _gradientAnimation = _gradientController.drive(
-      ColorListTween(
-        [
-          [CustomColors.productLightBackground, const Color(0xFF4396FE)],
-          [CustomColors.productNormal, CustomColors.productLightPrimaryActive],
-          [CustomColors.productLightBackground, CustomColors.productNormal],
-        ],
-      ),
-    );
-
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
 
     _progressController = AnimationController(
       vsync: this,
@@ -699,8 +669,6 @@ class _TimerWidgetState extends State<TimerWidget>
   @override
   void dispose() {
     timer?.cancel();
-    _animationController.dispose();
-    _gradientController.dispose();
     _progressController.dispose();
     super.dispose();
   }
@@ -708,94 +676,243 @@ class _TimerWidgetState extends State<TimerWidget>
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
-      child: inProgress
-          ? Column(
-              children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    AnimatedBuilder(
-                        animation: _progressAnimation,
-                        builder: (context, child) {
-                          return SizedBox(
-                            width: 250,
-                            height: 250,
-                            child: CircularProgressIndicator(
-                              value: _progressAnimation.value,
-                              strokeWidth: 8,
-                              color: CustomColors.productNormalActive,
-                              backgroundColor:
-                                  CustomColors.productLightBackground,
-                              strokeCap: StrokeCap.round,
-                            ),
-                          );
-                        }),
-                    AnimatedBuilder(
-                      animation: Listenable.merge(
-                        [_scaleAnimation, _gradientAnimation],
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Column(
+        children: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              AnimatedBuilder(
+                  animation: _progressAnimation,
+                  builder: (context, child) {
+                    return SizedBox(
+                      width: 315,
+                      height: 315,
+                      child: CircularProgressIndicator(
+                        value: _progressAnimation.value,
+                        strokeWidth: 19,
+                        color: CustomColors.productNormalActive,
+                        backgroundColor: CustomColors.productLightBackground,
+                        strokeCap: StrokeCap.round,
                       ),
-                      builder: (context, child) {
-                        final colors = _gradientAnimation.value;
-                        return Transform.scale(
-                          scale: _scaleAnimation.value,
-                          child: Container(
-                            width: 150,
-                            height: 150,
-                            decoration: BoxDecoration(
-                              gradient: RadialGradient(
-                                  colors: colors, stops: [0.5, 1.0]),
-                              shape: BoxShape.circle,
+                    );
+                  }),
+              Positioned(
+                bottom: 0,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 46.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          inProgress
+                              ? Container(
+                                  constraints: BoxConstraints(minWidth: 140),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                      color:
+                                          CustomColors.productLightBackground,
+                                      borderRadius: BorderRadius.circular(8)),
+                                  child: Center(
+                                    child: Text(
+                                      formatDurationtoHHMMSS(remaining),
+                                      style: CustomTypography().custom(
+                                          color:
+                                              CustomColors.productNormalActive,
+                                          fontSize: 36),
+                                    ),
+                                  ),
+                                )
+                              : editableControls()
+                        ],
+                      ),
+                      const SizedBox(height: 36),
+                      // Controls
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Restart
+                          InkWell(
+                            onTap: () => inProgress ? restart() : null,
+                            child: Container(
+                              height: 46,
+                              width: 46,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 8),
+                              decoration: ShapeDecoration(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(
+                                      width: 1,
+                                      color: inProgress
+                                          ? CustomColors.warningActive
+                                          : CustomColors.fillDisabled),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    clipBehavior: Clip.antiAlias,
+                                    decoration: BoxDecoration(),
+                                    child: Icon(
+                                      Icons.refresh_rounded,
+                                      color: inProgress
+                                          ? CustomColors.warningActive
+                                          : CustomColors.fillDisabled,
+                                    ),
+                                  )
+                                ],
+                              ),
                             ),
                           ),
-                        );
-                      },
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          formatDurationtoHHMMSS(remaining),
-                          style: CustomTypography()
-                              .titleLarge(color: CustomColors.textWhite),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: CustomFlatButton(
-                        onClick: () => restart(),
-                        text: "Restart",
+                          const SizedBox(width: 16),
+                          // Play/Pause
+                          InkWell(
+                            onTap: () => start(),
+                            child: Container(
+                              height: 46,
+                              width: 46,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 8),
+                              decoration: ShapeDecoration(
+                                color: CustomColors.productNormal,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    clipBehavior: Clip.antiAlias,
+                                    decoration: BoxDecoration(),
+                                    child: Icon(
+                                      timer?.isActive ?? false
+                                          ? Icons.pause_rounded
+                                          : Icons
+                                              .play_arrow_rounded, // Cant find resume icon
+                                      color: CustomColors.fillWhite,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: CustomFlatButton(
-                        onClick: () => pause(),
-                        text: "Pause",
-                      ),
-                    )
-                  ],
-                )
-              ],
-            )
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomFlatButton(
-                  onClick: () => start(),
-                  text: "Start",
-                )
-              ],
-            ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
+  }
+
+  Widget editableControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Minus
+        Padding(
+          padding: const EdgeInsets.only(right: 6.0),
+          child: IconButton(
+            onPressed: () => subtract(),
+            icon: Icon(Icons.remove),
+            iconSize: 40,
+            color: CustomColors.productNormal,
+          ),
+        ),
+
+        // Mins
+        Container(
+          height: 55,
+          constraints: BoxConstraints(minWidth: 65),
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+          decoration: ShapeDecoration(
+              color: CustomColors.fillDisabled,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6))),
+          child: Center(
+            child: Text(
+              formatDurationMMOnly(duration),
+              style: CustomTypography()
+                  .custom(color: CustomColors.productNormal, fontSize: 30),
+            ),
+          ),
+        ),
+
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Text(
+            ":",
+            style: CustomTypography()
+                .headlineMedium(color: CustomColors.productNormal),
+          ),
+        ),
+        // Secs
+        Container(
+          height: 55,
+          constraints: BoxConstraints(minWidth: 65),
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+          decoration: ShapeDecoration(
+              color: CustomColors.fillDisabled,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6))),
+          child: Center(
+            child: Text(
+              formatDurationSSOnly(duration),
+              style: CustomTypography()
+                  .custom(color: CustomColors.productNormal, fontSize: 30),
+            ),
+          ),
+        ),
+
+        // Plus
+        Padding(
+          padding: const EdgeInsets.only(left: 6.0),
+          child: IconButton(
+            onPressed: () => add(),
+            icon: Icon(Icons.add),
+            iconSize: 40,
+            color: CustomColors.productNormal,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void add() {
+    if (mounted) {
+      setState(() {
+        duration += const Duration(seconds: 30);
+        remaining = duration;
+        _progressController.duration = duration;
+      });
+    }
+  }
+
+  void subtract() {
+    if (mounted) {
+      setState(() {
+        duration -= const Duration(seconds: 30);
+        remaining = duration;
+        _progressController.duration = duration;
+      });
+    }
   }
 
   void start() async {
@@ -805,49 +922,43 @@ class _TimerWidgetState extends State<TimerWidget>
       return;
     }
 
-    setState(() {
-      inProgress = true;
-    });
-    timer?.cancel();
-    _progressController.forward();
-    timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() {
-        if (remaining.inSeconds > 0) {
-          remaining -= const Duration(seconds: 1);
-        } else {
-          timer?.cancel();
-          _animationController.stop();
-          widget.respond("Done");
-        }
-      });
-    });
-
-    setAlarm(remaining);
-  }
-
-  void pause() {
+    // Pausing the timer
     if (timer?.isActive ?? false) {
       _progressController.stop();
-      _animationController.stop();
-      _gradientController.stop();
       timer?.cancel();
-      timer = null;
+      if (mounted) setState(() => timer = null);
+
+      stopAlarm();
     } else {
-      _progressController.forward();
-      _animationController.repeat(reverse: true);
-      _gradientController.repeat(reverse: true);
+      if (mounted) {
+        setState(() {
+          inProgress = true;
+        });
+      }
+
+      timer?.cancel();
+
+      // Calculate the progress value based on remaining time
+      final progress =
+          1.0 - (remaining.inMilliseconds / duration.inMilliseconds);
+
+      // Start the animation from current position
+      _progressController.forward(from: progress);
 
       timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        setState(() {
-          if (remaining.inSeconds > 0) {
-            remaining -= const Duration(seconds: 1);
-          } else {
-            timer?.cancel();
-            _animationController.stop();
-            widget.respond("Done");
-          }
-        });
+        if (mounted) {
+          setState(() {
+            if (remaining.inSeconds > 0) {
+              remaining -= const Duration(seconds: 1);
+            } else {
+              timer?.cancel();
+              widget.respond("Complete");
+            }
+          });
+        }
       });
+
+      setAlarm(remaining);
     }
   }
 
@@ -855,11 +966,13 @@ class _TimerWidgetState extends State<TimerWidget>
     timer?.cancel();
     timer = null;
     _progressController.reset();
-    setState(() {
-      duration = formatStringToDuration(widget.time);
-      remaining = formatStringToDuration(widget.time);
-      progress = 0.0;
-    });
+    if (mounted) {
+      setState(() {
+        duration = formatStringToDuration(widget.time);
+        remaining = formatStringToDuration(widget.time);
+        progress = 0.0;
+      });
+    }
   }
 
   void restart() {
@@ -904,24 +1017,6 @@ class _TimerWidgetState extends State<TimerWidget>
       return result.isGranted;
     }
     return status.isGranted;
-  }
-}
-
-class ColorListTween extends Tween<List<Color>> {
-  final List<List<Color>> colors;
-
-  ColorListTween(this.colors) : super(begin: colors.first, end: colors.last);
-
-  @override
-  List<Color> lerp(double t) {
-    final index = (t * (colors.length - 1)).floor();
-    final nextIndex = min(index + 1, colors.length - 1);
-    final localT = (t * (colors.length - 1)) - index;
-
-    return List<Color>.generate(
-      begin!.length,
-      (i) => Color.lerp(colors[index][i], colors[nextIndex][i], localT)!,
-    );
   }
 }
 

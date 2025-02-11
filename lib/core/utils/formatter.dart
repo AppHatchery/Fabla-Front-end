@@ -12,6 +12,8 @@ import 'package:intl/intl.dart';
 import '../../screens/diary/data/options.dart';
 import 'types.dart';
 
+String twoDigits(int n) => n.toString().padLeft(2, "0");
+
 /// Formats a DateTime object into a string representation with a specific format.
 /// This function converts a given DateTime value into a formatted string following the pattern 'yyyy-MM-dd-HH-mm-ss'.
 ///
@@ -52,8 +54,6 @@ String formatDateShort(DateTime dateTime) {
 String formatDuration(int milli) {
   Duration duration = Duration(milliseconds: milli);
 
-  String twoDigits(int n) => n.toString().padLeft(2, "0");
-
   return duration.inHours > 0
       ? "${twoDigits(duration.inHours)}:${twoDigits(duration.inMinutes.remainder(60))}:${twoDigits(duration.inSeconds.remainder(60))}"
       : "${twoDigits(duration.inMinutes)}:${twoDigits(duration.inSeconds.remainder(60))}";
@@ -72,11 +72,6 @@ String formatDuration(int milli) {
 /// A formatted string representing the provided duration in hours, minutes, and seconds.
 ///
 String formatDurationtoHHMMSS(Duration duration) {
-  String twoDigits(int n) {
-    if (n >= 10) return "$n";
-    return "0$n";
-  }
-
   // String hours = twoDigits(duration.inHours.remainder(24));
   String minutes = twoDigits(duration.inMinutes.remainder(60));
   String seconds = twoDigits(duration.inSeconds.remainder(60));
@@ -96,6 +91,14 @@ Duration formatStringToDuration(String time) {
   int seconds = int.parse(parts[1]); // Parse the minutes
 
   return Duration(minutes: minutes, seconds: seconds);
+}
+
+String formatDurationMMOnly(Duration duration) {
+  return twoDigits(duration.inMinutes.remainder(60));
+}
+
+String formatDurationSSOnly(Duration duration) {
+  return twoDigits(duration.inSeconds.remainder(60));
 }
 
 /// Formats a given date into a human-readable history date string.
