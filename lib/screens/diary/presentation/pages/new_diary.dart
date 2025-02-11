@@ -673,6 +673,7 @@ class _QuestionPageState extends State<QuestionPage>
                     promptId: prompt.id,
                     question: prompt.question,
                     hint: hint,
+                    limit: prompt.option?.audioLength,
                     onSave: (value) {
                       save(prompt, value.toString(), "audio");
                     },
