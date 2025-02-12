@@ -93,10 +93,12 @@ Duration formatStringToDuration(String time) {
   return Duration(minutes: minutes, seconds: seconds);
 }
 
+/// Returns ONLY the minutes of the duration
 String formatDurationMMOnly(Duration duration) {
   return twoDigits(duration.inMinutes.remainder(60));
 }
 
+/// Returns ONLY the seconds of the Duration
 String formatDurationSSOnly(Duration duration) {
   return twoDigits(duration.inSeconds.remainder(60));
 }

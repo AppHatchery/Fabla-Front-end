@@ -13,6 +13,7 @@ import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -638,16 +639,25 @@ class TimerWidget extends StatefulWidget {
 }
 
 class _TimerWidgetState extends State<TimerWidget>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late Duration duration;
   late Duration remaining;
   Timer? timer;
   bool inProgress = false;
+  bool complete = false;
+  bool hasError = false;
 
   double progress = 0.0;
 
   late AnimationController _progressController;
   late Animation<double> _progressAnimation;
+
+  // Icon Shake animation
+  late AnimationController _shakeController;
+
+  // Text Controllers
+  late TextEditingController minuteController;
+  late TextEditingController secondsController;
 
   @override
   void initState() {
@@ -655,6 +665,11 @@ class _TimerWidgetState extends State<TimerWidget>
 
     duration = formatStringToDuration(widget.time);
     remaining = formatStringToDuration(widget.time);
+
+    minuteController =
+        TextEditingController(text: formatDurationMMOnly(duration));
+    secondsController =
+        TextEditingController(text: formatDurationSSOnly(duration));
 
     _progressController = AnimationController(
       vsync: this,
@@ -664,12 +679,22 @@ class _TimerWidgetState extends State<TimerWidget>
     _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _progressController, curve: Curves.linear),
     );
+
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _shakeController.repeat();
+        }
+      });
   }
 
   @override
   void dispose() {
     timer?.cancel();
     _progressController.dispose();
+    _shakeController.dispose();
     super.dispose();
   }
 
@@ -707,25 +732,11 @@ class _TimerWidgetState extends State<TimerWidget>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          inProgress
-                              ? Container(
-                                  constraints: BoxConstraints(minWidth: 140),
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                      color:
-                                          CustomColors.productLightBackground,
-                                      borderRadius: BorderRadius.circular(8)),
-                                  child: Center(
-                                    child: Text(
-                                      formatDurationtoHHMMSS(remaining),
-                                      style: CustomTypography().custom(
-                                          color:
-                                              CustomColors.productNormalActive,
-                                          fontSize: 36),
-                                    ),
-                                  ),
-                                )
-                              : editableControls()
+                          complete
+                              ? timerDisplay()
+                              : inProgress && (timer != null && timer!.isActive)
+                                  ? timerDisplay()
+                                  : editableControls()
                         ],
                       ),
                       const SizedBox(height: 36),
@@ -798,10 +809,12 @@ class _TimerWidgetState extends State<TimerWidget>
                                     clipBehavior: Clip.antiAlias,
                                     decoration: BoxDecoration(),
                                     child: Icon(
-                                      timer?.isActive ?? false
-                                          ? Icons.pause_rounded
-                                          : Icons
-                                              .play_arrow_rounded, // Cant find resume icon
+                                      complete
+                                          ? Icons.stop
+                                          : timer?.isActive ?? false
+                                              ? Icons.pause_rounded
+                                              : Icons
+                                                  .play_arrow_rounded, //! Cant find resume icon
                                       color: CustomColors.fillWhite,
                                     ),
                                   )
@@ -818,6 +831,65 @@ class _TimerWidgetState extends State<TimerWidget>
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget timerDisplay() {
+    return GestureDetector(
+      onTap: () {
+        //TODO: Add if timer is editable condition
+        pause();
+      },
+      child: Container(
+        constraints: BoxConstraints(minWidth: 140),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+            gradient: complete
+                ? LinearGradient(
+                    begin: Alignment(0.88, 0.48),
+                    end: Alignment(-0.88, -0.48),
+                    colors: [Color(0xFF4186F5), Color(0xFF8DAFFF)],
+                  )
+                : null,
+            color: !complete ? CustomColors.productLightBackground : null,
+            borderRadius: BorderRadius.circular(8)),
+        child: complete
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedBuilder(
+                    animation: _shakeController,
+                    builder: (context, child) {
+                      return Transform.rotate(
+                        angle: sin(_shakeController.value * pi * 2) * 0.1,
+                        child: Icon(
+                          Icons.notifications_active,
+                          color: CustomColors.fillWhite,
+                          size: 36,
+                        ),
+                      );
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10.0),
+                    child: Text(
+                      "Time's Up!",
+                      style: CustomTypography()
+                          .custom(color: CustomColors.textWhite, fontSize: 24),
+                    ),
+                  ),
+                ],
+              )
+            : Center(
+                child: Text(
+                  formatDurationtoHHMMSS(remaining),
+                  style: CustomTypography().custom(
+                      color: CustomColors.productNormalActive, fontSize: 36),
+                ),
+              ),
       ),
     );
   }
@@ -839,18 +911,46 @@ class _TimerWidgetState extends State<TimerWidget>
 
         // Mins
         Container(
-          height: 55,
-          constraints: BoxConstraints(minWidth: 65),
+          constraints: BoxConstraints(
+              minWidth: 65, minHeight: 55, maxWidth: 65, maxHeight: 55),
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
           decoration: ShapeDecoration(
-              color: CustomColors.fillDisabled,
+              color: hasError
+                  ? CustomColors.warningFill
+                  : CustomColors.fillDisabled,
               shape: RoundedRectangleBorder(
+                  side: hasError
+                      ? BorderSide(color: CustomColors.warningActive)
+                      : BorderSide.none,
                   borderRadius: BorderRadius.circular(6))),
           child: Center(
-            child: Text(
-              formatDurationMMOnly(duration),
-              style: CustomTypography()
-                  .custom(color: CustomColors.productNormal, fontSize: 30),
+            child: TextField(
+              controller: minuteController,
+              keyboardType: TextInputType.number,
+              minLines: 1,
+              decoration: InputDecoration(
+                  border: InputBorder.none,
+                  focusColor: CustomColors.productNormal,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero),
+              cursorColor: CustomColors.productNormal,
+              cursorHeight: 30,
+              inputFormatters: [LengthLimitingTextInputFormatter(2)],
+              style: CustomTypography().custom(
+                  color: hasError
+                      ? CustomColors.warningActive
+                      : CustomColors.productNormal,
+                  fontSize: 30),
+              onChanged: (value) {
+                if (value.isNotEmpty && mounted) {
+                  setState(() {
+                    duration += Duration(minutes: int.parse(value));
+                    remaining = duration;
+                    _progressController.duration = duration;
+                    hasError = false;
+                  });
+                }
+              },
             ),
           ),
         ),
@@ -865,18 +965,46 @@ class _TimerWidgetState extends State<TimerWidget>
         ),
         // Secs
         Container(
-          height: 55,
-          constraints: BoxConstraints(minWidth: 65),
+          constraints: BoxConstraints(
+              minWidth: 65, minHeight: 55, maxWidth: 65, maxHeight: 55),
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
           decoration: ShapeDecoration(
-              color: CustomColors.fillDisabled,
+              color: hasError
+                  ? CustomColors.warningFill
+                  : CustomColors.fillDisabled,
               shape: RoundedRectangleBorder(
+                  side: hasError
+                      ? BorderSide(color: CustomColors.warningActive)
+                      : BorderSide.none,
                   borderRadius: BorderRadius.circular(6))),
           child: Center(
-            child: Text(
-              formatDurationSSOnly(duration),
-              style: CustomTypography()
-                  .custom(color: CustomColors.productNormal, fontSize: 30),
+            child: TextField(
+              controller: secondsController,
+              keyboardType: TextInputType.number,
+              minLines: 1,
+              decoration: InputDecoration(
+                  border: InputBorder.none,
+                  focusColor: CustomColors.productNormal,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero),
+              cursorColor: CustomColors.productNormal,
+              cursorHeight: 30,
+              inputFormatters: [LengthLimitingTextInputFormatter(2)],
+              style: CustomTypography().custom(
+                  color: hasError
+                      ? CustomColors.warningActive
+                      : CustomColors.productNormal,
+                  fontSize: 30),
+              onChanged: (value) {
+                if (value.isNotEmpty && mounted) {
+                  setState(() {
+                    duration += Duration(seconds: int.parse(value));
+                    remaining = duration;
+                    _progressController.duration = duration;
+                    hasError = false;
+                  });
+                }
+              },
             ),
           ),
         ),
@@ -901,17 +1029,36 @@ class _TimerWidgetState extends State<TimerWidget>
         duration += const Duration(seconds: 30);
         remaining = duration;
         _progressController.duration = duration;
+        minuteController.text = formatDurationMMOnly(remaining);
+        secondsController.text = formatDurationSSOnly(remaining);
+        hasError = false;
       });
     }
   }
 
   void subtract() {
     if (mounted) {
-      setState(() {
-        duration -= const Duration(seconds: 30);
-        remaining = duration;
-        _progressController.duration = duration;
-      });
+      final isNegative =
+          (duration - Duration(seconds: 30)).inMilliseconds.isNegative;
+      if (!isNegative) {
+        setState(() {
+          duration -= const Duration(seconds: 30);
+          remaining = duration;
+          _progressController.duration = duration;
+          minuteController.text = formatDurationMMOnly(remaining);
+          secondsController.text = formatDurationSSOnly(remaining);
+          hasError = false;
+        });
+      } else {
+        setState(() {
+          duration = Duration.zero;
+          remaining = duration;
+          _progressController.duration = duration;
+          minuteController.text = formatDurationMMOnly(remaining);
+          secondsController.text = formatDurationSSOnly(remaining);
+          hasError = false;
+        });
+      }
     }
   }
 
@@ -922,17 +1069,24 @@ class _TimerWidgetState extends State<TimerWidget>
       return;
     }
 
+    // Stopping if complete
+    if (complete) {
+      stop();
+      return;
+    }
     // Pausing the timer
     if (timer?.isActive ?? false) {
-      _progressController.stop();
-      timer?.cancel();
-      if (mounted) setState(() => timer = null);
-
-      stopAlarm();
+      pause();
     } else {
+      if (duration.inMilliseconds <= 0) {
+        if (mounted) setState(() => hasError = true);
+        return;
+      }
+
       if (mounted) {
         setState(() {
           inProgress = true;
+          complete = false;
         });
       }
 
@@ -953,6 +1107,8 @@ class _TimerWidgetState extends State<TimerWidget>
             } else {
               timer?.cancel();
               widget.respond("Complete");
+              complete = true;
+              _shakeController.forward();
             }
           });
         }
@@ -960,6 +1116,20 @@ class _TimerWidgetState extends State<TimerWidget>
 
       setAlarm(remaining);
     }
+  }
+
+  void pause() {
+    _progressController.stop();
+    timer?.cancel();
+    if (mounted) {
+      setState(() {
+        timer = null;
+        minuteController.text = formatDurationMMOnly(remaining);
+        secondsController.text = formatDurationSSOnly(remaining);
+      });
+    }
+
+    stopAlarm();
   }
 
   void stop() {
@@ -971,7 +1141,10 @@ class _TimerWidgetState extends State<TimerWidget>
         duration = formatStringToDuration(widget.time);
         remaining = formatStringToDuration(widget.time);
         progress = 0.0;
+        complete = false;
+        _shakeController.stop();
       });
+      stopAlarm();
     }
   }
 
@@ -995,7 +1168,7 @@ class _TimerWidgetState extends State<TimerWidget>
             id: alarmID,
             dateTime: _time,
             assetAudioPath: 'assets/audio/chime.mp3',
-            loopAudio: false,
+            loopAudio: true,
             vibrate: true,
             volume: 1.0,
             fadeDuration: 0.0,
