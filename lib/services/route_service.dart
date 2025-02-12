@@ -226,7 +226,7 @@ class RouteService {
         break;
       case 'active_dates':
         if (context.mounted) {
-          Navigator.push(context,
+          return Navigator.push(context,
               MaterialPageRoute(builder: (context) => const ActiveDatesPage()));
         }
         break;

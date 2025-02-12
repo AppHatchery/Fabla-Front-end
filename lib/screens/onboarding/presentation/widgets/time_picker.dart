@@ -18,14 +18,12 @@ class OnboardingTimePicker extends StatefulWidget {
 class _OnboardingTimePickerState extends State<OnboardingTimePicker> {
   late MaterialLocalizations localizations = MaterialLocalizations.of(context);
 
-  late TimeOfDay time;
+  TimeOfDay? time;
 
   @override
   void initState() {
     if (widget.time != null) {
       time = timeOfDayFromString(widget.time!);
-    } else {
-      time = const TimeOfDay(hour: 18, minute: 0);
     }
     super.initState();
   }
@@ -46,7 +44,9 @@ class _OnboardingTimePickerState extends State<OnboardingTimePicker> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                localizations.formatTimeOfDay(time),
+                time != null
+                    ? localizations.formatTimeOfDay(time!)
+                    : 'Select Time',
                 style: CustomTypography()
                     .titleMedium(color: CustomColors.textNormalContent),
               ),
@@ -90,7 +90,8 @@ class _OnboardingTimePickerState extends State<OnboardingTimePicker> {
         time = _time;
       });
 
-      widget.onChanged(localizations.formatTimeOfDay(time, alwaysUse24HourFormat: true));
+      widget.onChanged(
+          localizations.formatTimeOfDay(time!, alwaysUse24HourFormat: true));
     }
   }
 }
