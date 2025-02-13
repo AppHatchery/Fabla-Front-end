@@ -30,6 +30,7 @@ class CustomColors {
   static const Color fillNormal = Color(0xFFF4F4F4);
   static const Color fillDisabled = Color(0xFFE5E5E5);
   static const Color fillWhiteShade = Color(0xFFFDFDFD);
+  static const Color fillVanilla = Color(0xFFFFF8DE);
 
   //Text
   static const Color textWhite = Color(0xFFFFFFFF);
@@ -56,6 +57,7 @@ class CustomColors {
   //Orange
   static const Color orangeLight = Color(0xFFFFF1EA);
   static const Color orangeDark = Color(0xFFFF6915);
+  static const Color pumpkinOrange = Color(0xFFD26B00);
 
   //Purple
   static const Color purpleLight = Color(0xFFF7ECFF);
