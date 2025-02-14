@@ -4,7 +4,6 @@ import Pendo
 import FirebaseCore
 import FirebaseMessaging
 import UserNotifications
-import UserNotifications
 import alarm
 
 @main
@@ -17,12 +16,6 @@ import alarm
       FirebaseApp.configure()
       
       UNUserNotificationCenter.current().delegate = self
-
-      let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
-      UNUserNotificationCenter.current().requestAuthorization(
-        options: authOptions,
-        completionHandler: { _, _ in }
-      )
 
       application.registerForRemoteNotifications()
       if #available(iOS 10.0, *) {
