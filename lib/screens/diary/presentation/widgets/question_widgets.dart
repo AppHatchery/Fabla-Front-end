@@ -10,6 +10,7 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/pr
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
+import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -639,7 +640,7 @@ class TimerWidget extends StatefulWidget {
 }
 
 class _TimerWidgetState extends State<TimerWidget>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late Duration duration;
   late Duration remaining;
   Timer? timer;
@@ -658,11 +659,12 @@ class _TimerWidgetState extends State<TimerWidget>
   // Text Controllers
   late TextEditingController minuteController;
   late TextEditingController secondsController;
+  late OverlayEntry? _overlayEntry;
+  double keyboardHeight = 0;
 
   @override
   void initState() {
-    super.initState();
-
+    WidgetsBinding.instance.addObserver(this);
     duration = formatStringToDuration(widget.time);
     remaining = formatStringToDuration(widget.time);
 
@@ -670,6 +672,7 @@ class _TimerWidgetState extends State<TimerWidget>
         TextEditingController(text: formatDurationMMOnly(duration));
     secondsController =
         TextEditingController(text: formatDurationSSOnly(duration));
+    _overlayEntry = null;
 
     _progressController = AnimationController(
       vsync: this,
@@ -688,6 +691,7 @@ class _TimerWidgetState extends State<TimerWidget>
           _shakeController.repeat();
         }
       });
+    super.initState();
   }
 
   @override
@@ -695,7 +699,45 @@ class _TimerWidgetState extends State<TimerWidget>
     timer?.cancel();
     _progressController.dispose();
     _shakeController.dispose();
+    hideOverlay();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    if (mounted) {
+      final size = View.of(context).viewInsets.bottom;
+      if (size > 0) {
+        showOverlay(context);
+      } else {
+        hideOverlay();
+      }
+
+      setState(() {
+        keyboardHeight = size;
+      });
+    }
+    super.didChangeMetrics();
+  }
+
+  showOverlay(BuildContext context) {
+    if (_overlayEntry != null) return;
+    OverlayState overlayState = Overlay.of(context);
+    _overlayEntry = OverlayEntry(
+        builder: (context) => Positioned(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 0,
+            right: 0,
+            child: const CustomKeyboardOverlay()));
+    overlayState.insert(_overlayEntry!);
+  }
+
+  hideOverlay() {
+    if (_overlayEntry != null) {
+      _overlayEntry?.remove();
+      _overlayEntry = null;
+    }
   }
 
   @override
@@ -944,7 +986,11 @@ class _TimerWidgetState extends State<TimerWidget>
               onChanged: (value) {
                 if (value.isNotEmpty && mounted) {
                   setState(() {
-                    duration += Duration(minutes: int.parse(value));
+                    duration = Duration(
+                        minutes: int.parse(value),
+                        seconds: secondsController.text.isNotEmpty
+                            ? int.parse(secondsController.text)
+                            : 0);
                     remaining = duration;
                     _progressController.duration = duration;
                     hasError = false;
@@ -998,7 +1044,11 @@ class _TimerWidgetState extends State<TimerWidget>
               onChanged: (value) {
                 if (value.isNotEmpty && mounted) {
                   setState(() {
-                    duration += Duration(seconds: int.parse(value));
+                    duration = Duration(
+                        seconds: int.parse(value),
+                        minutes: minuteController.text.isNotEmpty
+                            ? int.parse(minuteController.text)
+                            : 0);
                     remaining = duration;
                     _progressController.duration = duration;
                     hasError = false;
@@ -1132,14 +1182,17 @@ class _TimerWidgetState extends State<TimerWidget>
     stopAlarm();
   }
 
-  void stop() {
+  void stop({bool? restarting}) {
     timer?.cancel();
     timer = null;
     _progressController.reset();
+
+    final _duration =
+        restarting ?? false ? duration : formatStringToDuration(widget.time);
     if (mounted) {
       setState(() {
-        duration = formatStringToDuration(widget.time);
-        remaining = formatStringToDuration(widget.time);
+        duration = _duration;
+        remaining = _duration;
         progress = 0.0;
         complete = false;
         _shakeController.stop();
@@ -1149,7 +1202,7 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   void restart() {
-    stop();
+    stop(restarting: true);
     start();
   }
 
