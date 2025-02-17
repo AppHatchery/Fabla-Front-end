@@ -31,6 +31,7 @@ class BottomRecordingModal extends StatefulWidget {
   final int promptId;
   final String question;
   final String? hint;
+  final Duration? limit;
   final ValueChanged<String?>? onSave;
 
   const BottomRecordingModal(
@@ -38,6 +39,7 @@ class BottomRecordingModal extends StatefulWidget {
       required this.promptId,
       required this.onSave,
       required this.question,
+      this.limit,
       this.hint});
 
   @override
@@ -112,7 +114,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-
     return Container(
       width: width,
       decoration: const BoxDecoration(
@@ -233,7 +234,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text(
-          "$timer / 5:00",
+          "$timer / ${formatDurationtoHHMMSS((widget.limit != null && widget.limit!.inSeconds > 0) ? widget.limit! : const Duration(minutes: 5))}",
           style: CustomTypography().titleMedium(color: CustomColors.textWhite),
         )
       ],
@@ -359,13 +360,22 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   void startTimer() {
+    final limit = (widget.limit != null && widget.limit!.inSeconds > 0)
+        ? widget.limit
+        : null;
     _timer = Timer.periodic(const Duration(seconds: 1), (time) {
-      if (mounted) {
-        setState(() {
-          elapsed = const Duration(seconds: 1) + elapsed;
-          timer = formatDurationtoHHMMSS(elapsed);
-        });
+      if (limit != null && elapsed >= limit) {
+        _timer?.cancel();
+        save();
+        return;
       }
+
+      if (!mounted) return;
+
+      setState(() {
+        elapsed += const Duration(seconds: 1);
+        timer = formatDurationtoHHMMSS(elapsed);
+      });
     });
   }
 
@@ -1357,8 +1367,11 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                     border: Border.all(
                         color: CustomColors.warningActive, width: 1.5),
                     borderRadius: BorderRadius.circular(68)),
-                padding:
-                    EdgeInsets.all(controller.value.isRecordingPaused ? 10 : controller.value.isRecordingVideo ? 15 : 4),
+                padding: EdgeInsets.all(controller.value.isRecordingPaused
+                    ? 10
+                    : controller.value.isRecordingVideo
+                        ? 15
+                        : 4),
                 child: Container(
                   // height: controller.value.isRecordingPaused ? 42 : 50,
                   // width: controller.value.isRecordingPaused ? 42 : 50,

@@ -452,9 +452,13 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             minChildSize: 1,
             snap: true,
             builder: (context, scrollController) {
+              final hint = prompt.subtitle?.replaceAll(r'\\n', '\n');
+
               return BottomRecordingModal(
                 promptId: prompt.id,
                 question: prompt.question,
+                limit: prompt.option?.audioLength,
+                hint: hint,
                 onSave: (value) {
                   summaryCubit.saveResponse(
                       widget.diary, prompt, value.toString());
