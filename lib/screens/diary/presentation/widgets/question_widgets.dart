@@ -1229,7 +1229,9 @@ class _TimerWidgetState extends State<TimerWidget>
             androidFullScreenIntent: false,
             notificationSettings: const NotificationSettings(
                 title: "Time's Up!",
-                body: "Please come back to Fabla to finish your entry")));
+                body: "Please come back to Fabla to finish your entry",
+                stopButton: "Stop",
+                )));
   }
 
   /// Get special permission for the alarm
