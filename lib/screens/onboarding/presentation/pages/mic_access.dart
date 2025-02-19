@@ -334,11 +334,11 @@ class _MicAccessPageState extends State<MicAccessPage>
       wearHeadphones?.value = true;
       if (requested) {
         await PreferenceService()
-            .setBoolPreference(key: 'mic_requested', value: requested);
+            .setBoolPreference(key: 'microphone', value: requested);
         if (context.mounted) {
           track(timer.stop(), "Finished");
           RouteService()
-              .navigate(null, context: context, current: 'mic_access');
+              .navigate(null, context: context, current: 'microphone');
         }
       } else {
         startRecorder();
