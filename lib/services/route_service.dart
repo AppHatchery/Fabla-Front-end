@@ -149,6 +149,8 @@ class RouteService {
             'next': nextPermission ?? f['next']!,
             'type': 'permission'
           };
+          // Notification access is the anchor for the extra permissions (if any)
+          // The notification permission is the only permission that is not optional
           if (f['route'] == 'notification_access') {
             flow.remove(f);
             flow.add({
