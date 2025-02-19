@@ -418,7 +418,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             ),
             child: Row(children: [
               Expanded(
-                child: Text("Response submitted through webview",
+                child: Text("Response recorded externally",
                     style: CustomTypography().bodyMedium(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
