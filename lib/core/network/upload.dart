@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:audio_diaries_flutter/core/usecases/location.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
@@ -65,6 +66,15 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
             diary.id.toString(), promptEntryList);
       }
     }
+
+    //Add Location if Experiment has location
+    final location = await appendLocation(
+        experimentCode: experiment.login,
+        participantID: participantID,
+        promptLength: diary.prompts.length,
+        diaryID: diary.id.toString());
+    if (location != null) promptEntryList.add(location);
+
     final uploaded = await awsUploadResponses(promptEntryList, audioDataList);
     return uploaded;
   } catch (e, stackTrace) {
