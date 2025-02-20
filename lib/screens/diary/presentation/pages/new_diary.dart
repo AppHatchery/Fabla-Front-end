@@ -541,7 +541,7 @@ class _QuestionPageState extends State<QuestionPage>
       responseWidget = const SizedBox.shrink();
     }
 
-    String questionTip;
+    String questionTip = "";
 
     if (prompt.responseType == ResponseType.slider) {
       questionTip = prompt.subtitle ?? "Please use the slider to rate:";
@@ -554,8 +554,6 @@ class _QuestionPageState extends State<QuestionPage>
     } else if (prompt.responseType == ResponseType.webview) {
       questionTip =
           "Close the pop-up window when you are done filling the survey.";
-    } else {
-      questionTip = "You only need to take one response.";
     }
 
     return (prompt.responseType == ResponseType.recording ||
