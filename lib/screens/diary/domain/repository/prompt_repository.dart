@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 
 import 'dart:io';
+import 'dart:developer' as dev;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../../../core/database/dao/prompt_dao.dart';
@@ -118,7 +119,6 @@ class PromptRepository {
     return true;
   }
 
-//TODO: clean implementation - REDO This
   Future<bool> removeResponse(
       Diary diary, PromptModel prompt, String path) async {
     try {
@@ -126,6 +126,14 @@ class PromptRepository {
 
       if (answer == null) {
         return false;
+      }
+
+      if (prompt.responseType == ResponseType.text) {
+        answer.response = null;
+        final updatedPrompt = Prompt.fromModel(prompt.copyWith(answer: answer));
+        updatedPrompt.diary.target = diary;
+        _promptDAO.updatePrompt(updatedPrompt);
+        return true;
       }
 
       //if recording is present, remove it
@@ -152,7 +160,7 @@ class PromptRepository {
       _promptDAO.updatePrompt(updatedPrompt);
       return true;
     } catch (e) {
-      print("Error deleting response: $e");
+      dev.log("Error deleting response: $e", name: "PromptRepository");
       return false;
     }
   }
