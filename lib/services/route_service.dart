@@ -25,11 +25,10 @@ class RouteService {
     {'route': 'confirm', 'next': 'participant_login', 'type': 'info'},
     {'route': 'participant_login', 'next': 'welcome', 'type': 'login'},
     {'route': 'welcome', 'next': 'participant_details', 'type': 'info'},
-    {'route': 'participant_details', 'next': 'mic_access', 'type': 'data'},
     {
-      'route': 'mic_access',
+      'route': 'participant_details',
       'next': 'notification_access',
-      'type': 'permission'
+      'type': 'data'
     },
     {
       'route': 'notification_access',
@@ -77,7 +76,7 @@ class RouteService {
       PreferenceService().getBoolPreference(key: 'setup'),
       PreferenceService().getBoolPreference(key: 'notification_requested'),
       PreferenceService().getBoolPreference(key: 'active_dates_seen'),
-      PreferenceService().getBoolPreference(key: 'mic_requested'),
+      PreferenceService().getBoolPreference(key: 'microphone'),
       PreferenceService().getBoolPreference(key: 'location'),
       PreferenceService().getBoolPreference(key: 'camera'),
       PreferenceService().getBoolPreference(key: 'onboarding_complete'),
@@ -86,7 +85,9 @@ class RouteService {
     final setup = preferences[0] ?? false;
     final notificationAccess = preferences[1] ?? false;
     final activeDates = preferences[2] ?? false;
-    final micAccess = preferences[3] ?? false;
+    final micAccess = extraPermissions.contains('microphone')
+        ? (preferences[3] ?? false)
+        : true;
     final locationAccess = extraPermissions.contains('location')
         ? (preferences[4] ?? false)
         : true;
@@ -106,6 +107,9 @@ class RouteService {
     if (participant.name.isEmpty) {
       return const WelcomePage();
     }
+    if (!notificationAccess) {
+      return const NotificationAccessPage();
+    }
     if (!micAccess) {
       return const MicAccessPage();
     }
@@ -114,9 +118,6 @@ class RouteService {
     }
     if (!locationAccess) {
       return const LocationAccess();
-    }
-    if (!notificationAccess) {
-      return const NotificationAccessPage();
     }
     if (!onboardingComplete) {
       return const DynamicOnBoardingHub();
@@ -148,7 +149,9 @@ class RouteService {
             'next': nextPermission ?? f['next']!,
             'type': 'permission'
           };
-          if (f['route'] == 'mic_access') {
+          // Notification access is the anchor for the extra permissions (if any)
+          // The notification permission is the only permission that is not optional
+          if (f['route'] == 'notification_access') {
             flow.remove(f);
             flow.add({
               'route': f['route']!,
@@ -202,7 +205,7 @@ class RouteService {
                   builder: (context) => const ParticipantDetailsPage()));
         }
         break;
-      case 'mic_access':
+      case 'microphone':
         if (context.mounted) {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => const MicAccessPage()));

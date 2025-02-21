@@ -165,9 +165,16 @@ class LoginRepository {
           final questions = data['onboarding_questions'] as List;
 
           final permissions = (data['permissions'] as List?)
-              ?.map((permission) => (permission as String).toLowerCase())
-              .toList() ?? [];
+                  ?.map((permission) => (permission as String).toLowerCase())
+                  .toList() ??
+              [];
           // Save the extra permissions to the shared preferences
+
+          // Rearrange the permissions to ensure microphone is the first
+          if (permissions.contains('microphone') && permissions.length > 1) {
+            permissions.remove('microphone');
+            permissions.insert(0, 'microphone');
+          }
           await PreferenceService().setStringListPreference(
             key: 'extra_permissions',
             value: permissions,
