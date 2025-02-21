@@ -542,7 +542,7 @@ class _QuestionPageState extends State<QuestionPage>
       responseWidget = const SizedBox.shrink();
     }
 
-    String questionTip;
+    String questionTip = "";
 
     if (prompt.responseType == ResponseType.slider) {
       questionTip = prompt.subtitle ?? "Please use the slider to rate:";
@@ -558,8 +558,6 @@ class _QuestionPageState extends State<QuestionPage>
     } else if (prompt.responseType == ResponseType.timer) {
       questionTip =
           'Hit the “Start” button to begin meditation countdown.\nDuring the countdown, if you leave the page, the timer will continue on the background.';
-    } else {
-      questionTip = "You only need to take one response.";
     }
 
     return (prompt.responseType == ResponseType.recording ||
