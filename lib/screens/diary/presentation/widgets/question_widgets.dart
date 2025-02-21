@@ -10,9 +10,11 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/pr
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
+import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -638,53 +640,39 @@ class TimerWidget extends StatefulWidget {
 }
 
 class _TimerWidgetState extends State<TimerWidget>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late Duration duration;
   late Duration remaining;
   Timer? timer;
   bool inProgress = false;
+  bool complete = false;
+  bool hasError = false;
 
   double progress = 0.0;
-
-  //Animations
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
-  late AnimationController _gradientController;
-  late Animation<List<Color>> _gradientAnimation;
 
   late AnimationController _progressController;
   late Animation<double> _progressAnimation;
 
+  // Icon Shake animation
+  late AnimationController _shakeController;
+
+  // Text Controllers
+  late TextEditingController minuteController;
+  late TextEditingController secondsController;
+  late OverlayEntry? _overlayEntry;
+  double keyboardHeight = 0;
+
   @override
   void initState() {
-    super.initState();
-
+    WidgetsBinding.instance.addObserver(this);
     duration = formatStringToDuration(widget.time);
     remaining = formatStringToDuration(widget.time);
 
-    // Initialize AnimationController
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat(reverse: true);
-    _gradientController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10),
-    )..repeat(reverse: true);
-
-    _gradientAnimation = _gradientController.drive(
-      ColorListTween(
-        [
-          [CustomColors.productLightBackground, const Color(0xFF4396FE)],
-          [CustomColors.productNormal, CustomColors.productLightPrimaryActive],
-          [CustomColors.productLightBackground, CustomColors.productNormal],
-        ],
-      ),
-    );
-
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
+    minuteController =
+        TextEditingController(text: formatDurationMMOnly(duration));
+    secondsController =
+        TextEditingController(text: formatDurationSSOnly(duration));
+    _overlayEntry = null;
 
     _progressController = AnimationController(
       vsync: this,
@@ -694,108 +682,434 @@ class _TimerWidgetState extends State<TimerWidget>
     _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _progressController, curve: Curves.linear),
     );
+
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _shakeController.repeat();
+        }
+      });
+    super.initState();
   }
 
   @override
   void dispose() {
     timer?.cancel();
-    _animationController.dispose();
-    _gradientController.dispose();
     _progressController.dispose();
+    _shakeController.dispose();
+    hideOverlay();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    if (mounted) {
+      final size = View.of(context).viewInsets.bottom;
+      if (size > 0) {
+        showOverlay(context);
+      } else {
+        hideOverlay();
+      }
+
+      setState(() {
+        keyboardHeight = size;
+      });
+    }
+    super.didChangeMetrics();
+  }
+
+  showOverlay(BuildContext context) {
+    if (_overlayEntry != null) return;
+    OverlayState overlayState = Overlay.of(context);
+    _overlayEntry = OverlayEntry(
+        builder: (context) => Positioned(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 0,
+            right: 0,
+            child: const CustomKeyboardOverlay()));
+    overlayState.insert(_overlayEntry!);
+  }
+
+  hideOverlay() {
+    if (_overlayEntry != null) {
+      _overlayEntry?.remove();
+      _overlayEntry = null;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
-      child: inProgress
-          ? Column(
-              children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    AnimatedBuilder(
-                        animation: _progressAnimation,
-                        builder: (context, child) {
-                          return SizedBox(
-                            width: 250,
-                            height: 250,
-                            child: CircularProgressIndicator(
-                              value: _progressAnimation.value,
-                              strokeWidth: 8,
-                              color: CustomColors.productNormalActive,
-                              backgroundColor:
-                                  CustomColors.productLightBackground,
-                              strokeCap: StrokeCap.round,
-                            ),
-                          );
-                        }),
-                    AnimatedBuilder(
-                      animation: Listenable.merge(
-                        [_scaleAnimation, _gradientAnimation],
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Column(
+        children: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              AnimatedBuilder(
+                  animation: _progressAnimation,
+                  builder: (context, child) {
+                    return SizedBox(
+                      width: 315,
+                      height: 315,
+                      child: CircularProgressIndicator(
+                        value: _progressAnimation.value,
+                        strokeWidth: 19,
+                        color: CustomColors.productNormalActive,
+                        backgroundColor: CustomColors.productLightBackground,
+                        strokeCap: StrokeCap.round,
                       ),
-                      builder: (context, child) {
-                        final colors = _gradientAnimation.value;
-                        return Transform.scale(
-                          scale: _scaleAnimation.value,
-                          child: Container(
-                            width: 150,
-                            height: 150,
-                            decoration: BoxDecoration(
-                              gradient: RadialGradient(
-                                  colors: colors, stops: [0.5, 1.0]),
-                              shape: BoxShape.circle,
+                    );
+                  }),
+              Positioned(
+                bottom: 0,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 46.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          complete
+                              ? timerDisplay()
+                              : inProgress && (timer != null && timer!.isActive)
+                                  ? timerDisplay()
+                                  : editableControls()
+                        ],
+                      ),
+                      const SizedBox(height: 36),
+                      // Controls
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Restart
+                          InkWell(
+                            onTap: () => inProgress ? restart() : null,
+                            child: Container(
+                              height: 46,
+                              width: 46,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 8),
+                              decoration: ShapeDecoration(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(
+                                      width: 1,
+                                      color: inProgress
+                                          ? CustomColors.warningActive
+                                          : CustomColors.fillDisabled),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    clipBehavior: Clip.antiAlias,
+                                    decoration: BoxDecoration(),
+                                    child: Icon(
+                                      Icons.refresh_rounded,
+                                      color: inProgress
+                                          ? CustomColors.warningActive
+                                          : CustomColors.fillDisabled,
+                                    ),
+                                  )
+                                ],
+                              ),
                             ),
                           ),
-                        );
-                      },
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          formatDurationtoHHMMSS(remaining),
-                          style: CustomTypography()
-                              .titleLarge(color: CustomColors.textWhite),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: CustomFlatButton(
-                        onClick: () => restart(),
-                        text: "Restart",
+                          const SizedBox(width: 16),
+                          // Play/Pause
+                          InkWell(
+                            onTap: () => start(),
+                            child: Container(
+                              height: 46,
+                              width: 46,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 8),
+                              decoration: ShapeDecoration(
+                                color: CustomColors.productNormal,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    clipBehavior: Clip.antiAlias,
+                                    decoration: BoxDecoration(),
+                                    child: Icon(
+                                      complete
+                                          ? Icons.stop
+                                          : timer?.isActive ?? false
+                                              ? Icons.pause_rounded
+                                              : Icons
+                                                  .play_arrow_rounded, //! Cant find resume icon
+                                      color: CustomColors.fillWhite,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: CustomFlatButton(
-                        onClick: () => pause(),
-                        text: "Pause",
-                      ),
-                    )
-                  ],
-                )
-              ],
-            )
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomFlatButton(
-                  onClick: () => start(),
-                  text: "Start",
-                )
-              ],
-            ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
+  }
+
+  Widget timerDisplay() {
+    return GestureDetector(
+      onTap: () {
+        //TODO: Add if timer is editable condition
+        pause();
+      },
+      child: Container(
+        constraints: BoxConstraints(minWidth: 140),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+            gradient: complete
+                ? LinearGradient(
+                    begin: Alignment(0.88, 0.48),
+                    end: Alignment(-0.88, -0.48),
+                    colors: [Color(0xFF4186F5), Color(0xFF8DAFFF)],
+                  )
+                : null,
+            color: !complete ? CustomColors.productLightBackground : null,
+            borderRadius: BorderRadius.circular(8)),
+        child: complete
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedBuilder(
+                    animation: _shakeController,
+                    builder: (context, child) {
+                      return Transform.rotate(
+                        angle: sin(_shakeController.value * pi * 2) * 0.1,
+                        child: Icon(
+                          Icons.notifications_active,
+                          color: CustomColors.fillWhite,
+                          size: 36,
+                        ),
+                      );
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10.0),
+                    child: Text(
+                      "Time's Up!",
+                      style: CustomTypography()
+                          .custom(color: CustomColors.textWhite, fontSize: 24),
+                    ),
+                  ),
+                ],
+              )
+            : Center(
+                child: Text(
+                  formatDurationtoHHMMSS(remaining),
+                  style: CustomTypography().custom(
+                      color: CustomColors.productNormalActive, fontSize: 36),
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget editableControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Minus
+        Padding(
+          padding: const EdgeInsets.only(right: 6.0),
+          child: IconButton(
+            onPressed: () => subtract(),
+            icon: Icon(Icons.remove),
+            iconSize: 40,
+            color: CustomColors.productNormal,
+          ),
+        ),
+
+        // Mins
+        Container(
+          constraints: BoxConstraints(
+              minWidth: 65, minHeight: 55, maxWidth: 65, maxHeight: 55),
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+          decoration: ShapeDecoration(
+              color: hasError
+                  ? CustomColors.warningFill
+                  : CustomColors.fillDisabled,
+              shape: RoundedRectangleBorder(
+                  side: hasError
+                      ? BorderSide(color: CustomColors.warningActive)
+                      : BorderSide.none,
+                  borderRadius: BorderRadius.circular(6))),
+          child: Center(
+            child: TextField(
+              controller: minuteController,
+              keyboardType: TextInputType.number,
+              minLines: 1,
+              decoration: InputDecoration(
+                  border: InputBorder.none,
+                  focusColor: CustomColors.productNormal,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero),
+              cursorColor: CustomColors.productNormal,
+              cursorHeight: 30,
+              inputFormatters: [LengthLimitingTextInputFormatter(2)],
+              style: CustomTypography().custom(
+                  color: hasError
+                      ? CustomColors.warningActive
+                      : CustomColors.productNormal,
+                  fontSize: 30),
+              onChanged: (value) {
+                if (value.isNotEmpty && mounted) {
+                  setState(() {
+                    duration = Duration(
+                        minutes: int.parse(value),
+                        seconds: secondsController.text.isNotEmpty
+                            ? int.parse(secondsController.text)
+                            : 0);
+                    remaining = duration;
+                    _progressController.duration = duration;
+                    hasError = false;
+                  });
+                }
+              },
+            ),
+          ),
+        ),
+
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Text(
+            ":",
+            style: CustomTypography()
+                .headlineMedium(color: CustomColors.productNormal),
+          ),
+        ),
+        // Secs
+        Container(
+          constraints: BoxConstraints(
+              minWidth: 65, minHeight: 55, maxWidth: 65, maxHeight: 55),
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+          decoration: ShapeDecoration(
+              color: hasError
+                  ? CustomColors.warningFill
+                  : CustomColors.fillDisabled,
+              shape: RoundedRectangleBorder(
+                  side: hasError
+                      ? BorderSide(color: CustomColors.warningActive)
+                      : BorderSide.none,
+                  borderRadius: BorderRadius.circular(6))),
+          child: Center(
+            child: TextField(
+              controller: secondsController,
+              keyboardType: TextInputType.number,
+              minLines: 1,
+              decoration: InputDecoration(
+                  border: InputBorder.none,
+                  focusColor: CustomColors.productNormal,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero),
+              cursorColor: CustomColors.productNormal,
+              cursorHeight: 30,
+              inputFormatters: [LengthLimitingTextInputFormatter(2)],
+              style: CustomTypography().custom(
+                  color: hasError
+                      ? CustomColors.warningActive
+                      : CustomColors.productNormal,
+                  fontSize: 30),
+              onChanged: (value) {
+                if (value.isNotEmpty && mounted) {
+                  setState(() {
+                    duration = Duration(
+                        seconds: int.parse(value),
+                        minutes: minuteController.text.isNotEmpty
+                            ? int.parse(minuteController.text)
+                            : 0);
+                    remaining = duration;
+                    _progressController.duration = duration;
+                    hasError = false;
+                  });
+                }
+              },
+            ),
+          ),
+        ),
+
+        // Plus
+        Padding(
+          padding: const EdgeInsets.only(left: 6.0),
+          child: IconButton(
+            onPressed: () => add(),
+            icon: Icon(Icons.add),
+            iconSize: 40,
+            color: CustomColors.productNormal,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void add() {
+    if (mounted) {
+      setState(() {
+        duration += const Duration(seconds: 30);
+        remaining = duration;
+        _progressController.duration = duration;
+        minuteController.text = formatDurationMMOnly(remaining);
+        secondsController.text = formatDurationSSOnly(remaining);
+        hasError = false;
+      });
+    }
+  }
+
+  void subtract() {
+    if (mounted) {
+      final isNegative =
+          (duration - Duration(seconds: 30)).inMilliseconds.isNegative;
+      if (!isNegative) {
+        setState(() {
+          duration -= const Duration(seconds: 30);
+          remaining = duration;
+          _progressController.duration = duration;
+          minuteController.text = formatDurationMMOnly(remaining);
+          secondsController.text = formatDurationSSOnly(remaining);
+          hasError = false;
+        });
+      } else {
+        setState(() {
+          duration = Duration.zero;
+          remaining = duration;
+          _progressController.duration = duration;
+          minuteController.text = formatDurationMMOnly(remaining);
+          secondsController.text = formatDurationSSOnly(remaining);
+          hasError = false;
+        });
+      }
+    }
   }
 
   void start() async {
@@ -805,65 +1119,90 @@ class _TimerWidgetState extends State<TimerWidget>
       return;
     }
 
-    setState(() {
-      inProgress = true;
-    });
-    timer?.cancel();
-    _progressController.forward();
-    timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() {
-        if (remaining.inSeconds > 0) {
-          remaining -= const Duration(seconds: 1);
-        } else {
-          timer?.cancel();
-          _animationController.stop();
-          widget.respond("Done");
-        }
-      });
-    });
-
-    setAlarm(remaining);
-  }
-
-  void pause() {
+    // Stopping if complete
+    if (complete) {
+      stop();
+      return;
+    }
+    // Pausing the timer
     if (timer?.isActive ?? false) {
-      _progressController.stop();
-      _animationController.stop();
-      _gradientController.stop();
-      timer?.cancel();
-      timer = null;
+      pause();
     } else {
-      _progressController.forward();
-      _animationController.repeat(reverse: true);
-      _gradientController.repeat(reverse: true);
+      if (duration.inMilliseconds <= 0) {
+        if (mounted) setState(() => hasError = true);
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          inProgress = true;
+          complete = false;
+        });
+      }
+
+      timer?.cancel();
+
+      // Calculate the progress value based on remaining time
+      final progress =
+          1.0 - (remaining.inMilliseconds / duration.inMilliseconds);
+
+      // Start the animation from current position
+      _progressController.forward(from: progress);
 
       timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        setState(() {
-          if (remaining.inSeconds > 0) {
-            remaining -= const Duration(seconds: 1);
-          } else {
-            timer?.cancel();
-            _animationController.stop();
-            widget.respond("Done");
-          }
-        });
+        if (mounted) {
+          setState(() {
+            if (remaining.inSeconds > 0) {
+              remaining -= const Duration(seconds: 1);
+            } else {
+              timer?.cancel();
+              widget.respond("Complete");
+              complete = true;
+              _shakeController.forward();
+            }
+          });
+        }
       });
+
+      setAlarm(remaining);
     }
   }
 
-  void stop() {
+  void pause() {
+    _progressController.stop();
+    timer?.cancel();
+    if (mounted) {
+      setState(() {
+        timer = null;
+        minuteController.text = formatDurationMMOnly(remaining);
+        secondsController.text = formatDurationSSOnly(remaining);
+      });
+    }
+
+    stopAlarm();
+  }
+
+  void stop({bool? restarting}) {
     timer?.cancel();
     timer = null;
     _progressController.reset();
-    setState(() {
-      duration = formatStringToDuration(widget.time);
-      remaining = formatStringToDuration(widget.time);
-      progress = 0.0;
-    });
+
+    final _duration =
+        restarting ?? false ? duration : formatStringToDuration(widget.time);
+    if (mounted) {
+      setState(() {
+        duration = _duration;
+        remaining = _duration;
+        progress = 0.0;
+        complete = false;
+        _shakeController.stop();
+      });
+      stopAlarm();
+    }
   }
 
   void restart() {
-    stop();
+    stop(restarting: true);
     start();
   }
 
@@ -882,7 +1221,7 @@ class _TimerWidgetState extends State<TimerWidget>
             id: alarmID,
             dateTime: _time,
             assetAudioPath: 'assets/audio/chime.mp3',
-            loopAudio: false,
+            loopAudio: true,
             vibrate: true,
             volume: 1.0,
             fadeDuration: 0.0,
@@ -890,7 +1229,9 @@ class _TimerWidgetState extends State<TimerWidget>
             androidFullScreenIntent: false,
             notificationSettings: const NotificationSettings(
                 title: "Time's Up!",
-                body: "Please come back to Fabla to finish your entry")));
+                body: "Please come back to Fabla to finish your entry",
+                stopButton: "Stop",
+                )));
   }
 
   /// Get special permission for the alarm
@@ -904,24 +1245,6 @@ class _TimerWidgetState extends State<TimerWidget>
       return result.isGranted;
     }
     return status.isGranted;
-  }
-}
-
-class ColorListTween extends Tween<List<Color>> {
-  final List<List<Color>> colors;
-
-  ColorListTween(this.colors) : super(begin: colors.first, end: colors.last);
-
-  @override
-  List<Color> lerp(double t) {
-    final index = (t * (colors.length - 1)).floor();
-    final nextIndex = min(index + 1, colors.length - 1);
-    final localT = (t * (colors.length - 1)) - index;
-
-    return List<Color>.generate(
-      begin!.length,
-      (i) => Color.lerp(colors[index][i], colors[nextIndex][i], localT)!,
-    );
   }
 }
 
