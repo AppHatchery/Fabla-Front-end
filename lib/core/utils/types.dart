@@ -1,4 +1,4 @@
-enum ResponseType { recording, text, multiple, radio, slider, textAudio, webview, timer, image, video }
+enum ResponseType { recording, text, multiple, radio, slider, textAudio, webview, timer, image, video, instructions }
 
 enum OptionType {
   radio,

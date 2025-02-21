@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/theme/resources/strings.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../theme/custom_colors.dart';
@@ -23,7 +22,7 @@ class BeforeStartWidget extends StatelessWidget {
             height: 16,
           ),
           Text(
-            'Your Fresh Start${Strings.champagne}',
+            'No Responses Recorded Yet',
             style: CustomTypography().titleLarge(),
             textAlign: TextAlign.center,
           ),
@@ -31,7 +30,7 @@ class BeforeStartWidget extends StatelessWidget {
             height: 6,
           ),
           Text(
-            "You're all set for a fresh start – no previous responses here!",
+            "Your past responses will be available here as you progress through the study.",
             style: CustomTypography()
                 .bodyMedium(color: CustomColors.textTertiaryContent),
             textAlign: TextAlign.center,

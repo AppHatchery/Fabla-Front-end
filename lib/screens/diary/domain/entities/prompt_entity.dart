@@ -52,6 +52,7 @@ class Prompt {
     assert(ResponseType.timer.index == 7);
     assert(ResponseType.image.index == 8);
     assert(ResponseType.video.index == 9);
+    assert(ResponseType.instructions.index == 10);
   }
 
   factory Prompt.fromModel(PromptModel model) {

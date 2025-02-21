@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'dart:developer' as dev;
@@ -36,8 +37,14 @@ class SummaryRepository {
       for (var i = 0; i < diary.prompts.length; i++) {
         final newPrompt =
             await promptRepository.load(diary, diary.prompts[i].id);
+        final isInstruction =
+            newPrompt.responseType == ResponseType.instructions;
         newPrompt.id = diary.prompts[i].id;
-        diary.prompts[i] = newPrompt;
+        if (isInstruction) {
+          diary.prompts.removeAt(i);
+        } else {
+          diary.prompts[i] = newPrompt;
+        }
       }
       return diary;
     } catch (e) {

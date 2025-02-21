@@ -1,3 +1,5 @@
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
+
 class Options {
   OptionsType type;
   List<String>? choices;
@@ -6,6 +8,7 @@ class Options {
   int? minValue;
   int? maxValue;
   int? defaultValue;
+  Duration? audioLength;
 
   Options({
     required this.type,
@@ -15,6 +18,7 @@ class Options {
     this.minValue,
     this.maxValue,
     this.defaultValue,
+    this.audioLength,
   });
 
   factory Options.fromJson(Map<String, dynamic> json) {
@@ -27,6 +31,9 @@ class Options {
       minValue: json['minValue'],
       maxValue: json['maxValue'],
       defaultValue: json['defaultValue'],
+      audioLength: json['audio_length'] != null
+          ? formatStringToDuration(json['audio_length'])
+          : null,
     );
   }
 
@@ -39,6 +46,8 @@ class Options {
       'minValue': minValue,
       'maxValue': maxValue,
       'defaultValue': defaultValue,
+      'audio_length':
+          audioLength != null ? formatDurationToString(audioLength!) : null,
     };
   }
 }

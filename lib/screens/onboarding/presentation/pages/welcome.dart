@@ -19,6 +19,7 @@ class WelcomePage extends StatefulWidget {
 }
 
 class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
+  bool canGoBack = false;
   final SetupRepository repository = SetupRepository();
   final PageTimer timer = PageTimer();
 
@@ -28,6 +29,9 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
+    if (Navigator.of(context).canPop()) {
+      canGoBack = true;
+    }
     timer.start();
     _participant = repository.getParticipant()!;
     startPendo();
@@ -76,14 +80,16 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
       appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
         scrolledUnderElevation: 0.0,
-        leading: IconButton(
-            onPressed: () =>
-                {track(timer.stop(), "Back"), Navigator.pop(context)},
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
-            )),
+        leading: canGoBack
+            ? IconButton(
+                onPressed: () =>
+                    {track(timer.stop(), "Back"), Navigator.pop(context)},
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: CustomColors.fillWhite,
+                  size: 32,
+                ))
+            : null,
       ),
       backgroundColor: CustomColors.backgroundSecondary,
       body: LayoutBuilder(

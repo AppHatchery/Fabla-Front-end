@@ -86,9 +86,9 @@ String formatDurationToHHMM(DateTime date) {
 
 Duration formatStringToDuration(String time) {
   List<String> parts =
-      time.split(":"); // Split the string into hours and minutes
-  int minutes = int.parse(parts[0]); // Parse the hours
-  int seconds = int.parse(parts[1]); // Parse the minutes
+      time.split(":"); // Split the string into minutes and seconds
+  int minutes = int.parse(parts[0]); // Parse the minutes
+  int seconds = int.parse(parts[1]); // Parse the seconds
 
   return Duration(minutes: minutes, seconds: seconds);
 }
@@ -101,6 +101,12 @@ String formatDurationMMOnly(Duration duration) {
 /// Returns ONLY the seconds of the Duration
 String formatDurationSSOnly(Duration duration) {
   return twoDigits(duration.inSeconds.remainder(60));
+}
+
+/// Formats a duration into a string representation.
+String formatDurationToString(Duration duration) {
+  return '${duration.inMinutes}:${duration.inSeconds}';
+
 }
 
 /// Formats a given date into a human-readable history date string.
@@ -204,6 +210,7 @@ final Map<String, ResponseType> _responseTypeMap = {
   'timer': ResponseType.timer,
   'image': ResponseType.image,
   'video': ResponseType.video,
+  'instructions': ResponseType.instructions,
 };
 
 /// Function that converts a string representation of a response type to its corresponding enum value.
@@ -227,6 +234,7 @@ final Map<ResponseType, String> _responseStringMap = {
   ResponseType.timer: 'timer',
   ResponseType.image: 'image',
   ResponseType.video: 'video',
+  ResponseType.instructions: 'instructions',
 };
 
 /// Function to convert ResponseType enum value to string
