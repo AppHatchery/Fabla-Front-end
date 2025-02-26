@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
 import 'package:audio_diaries_flutter/theme/components/webview.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
 import 'package:audio_session/audio_session.dart';
+import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
@@ -28,6 +31,7 @@ class BottomRecordingModal extends StatefulWidget {
   final int promptId;
   final String question;
   final String? hint;
+  final Duration? limit;
   final ValueChanged<String?>? onSave;
 
   const BottomRecordingModal(
@@ -35,6 +39,7 @@ class BottomRecordingModal extends StatefulWidget {
       required this.promptId,
       required this.onSave,
       required this.question,
+      this.limit,
       this.hint});
 
   @override
@@ -109,7 +114,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-
     return Container(
       width: width,
       decoration: const BoxDecoration(
@@ -230,7 +234,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text(
-          "$timer / 5:00",
+          "$timer / ${formatDurationtoHHMMSS((widget.limit != null && widget.limit!.inSeconds > 0) ? widget.limit! : const Duration(minutes: 5))}",
           style: CustomTypography().titleMedium(color: CustomColors.textWhite),
         )
       ],
@@ -356,13 +360,22 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   void startTimer() {
+    final limit = (widget.limit != null && widget.limit!.inSeconds > 0)
+        ? widget.limit
+        : null;
     _timer = Timer.periodic(const Duration(seconds: 1), (time) {
-      if (mounted) {
-        setState(() {
-          elapsed = const Duration(seconds: 1) + elapsed;
-          timer = formatDurationtoHHMMSS(elapsed);
-        });
+      if (limit != null && elapsed >= limit) {
+        _timer?.cancel();
+        save();
+        return;
       }
+
+      if (!mounted) return;
+
+      setState(() {
+        elapsed += const Duration(seconds: 1);
+        timer = formatDurationtoHHMMSS(elapsed);
+      });
     });
   }
 
@@ -1072,6 +1085,474 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
     end = DateTime.now();
     widget.respond("Start: $start | End: $end");
     Navigator.pop(context);
+  }
+}
+
+class BottomCameraModal extends StatefulWidget {
+  final void Function(String) respond;
+  final PromptModel prompt;
+  final bool isImage;
+  const BottomCameraModal(
+      {super.key,
+      required this.respond,
+      required this.prompt,
+      this.isImage = true});
+
+  @override
+  State<BottomCameraModal> createState() => _BottomCameraModalState();
+}
+
+class _BottomCameraModalState extends State<BottomCameraModal> {
+  late CameraController controller;
+  IconData flashIcon = CupertinoIcons.bolt_badge_a_fill;
+
+  // Video Recording
+  Timer? _timer;
+  Duration elapsed = const Duration();
+
+  @override
+  void initState() {
+    controller = CameraController(
+      cameras[0],
+      ResolutionPreset.max,
+    );
+    cameraInit();
+    super.initState();
+  }
+
+  @override
+  dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  cameraInit() async {
+    // If the controller is updated then update the UI.
+    controller.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+      if (controller.value.hasError) {
+        dev.log('Camera error ${controller.value.errorDescription}');
+      }
+    });
+    try {
+      await controller.initialize();
+    } on CameraException catch (e) {
+      switch (e.code) {
+        case 'CameraAccessDenied':
+          dev.log('You have denied camera access.');
+        case 'CameraAccessDeniedWithoutPrompt':
+          // iOS only
+          dev.log('Please go to Settings app to enable camera access.');
+        case 'CameraAccessRestricted':
+          // iOS only
+          dev.log('Camera access is restricted.');
+        case 'AudioAccessDenied':
+          dev.log('You have denied audio access.');
+        case 'AudioAccessDeniedWithoutPrompt':
+          // iOS only
+          dev.log('Please go to Settings app to enable audio access.');
+        case 'AudioAccessRestricted':
+          // iOS only
+          dev.log('Audio access is restricted.');
+        default:
+          dev.log(e.toString());
+          break;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+      width: width,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF3F3F3),
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(14), topRight: Radius.circular(14)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 26,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                GestureDetector(
+                  onTap: () => flash(),
+                  child: Container(
+                      height: 35,
+                      width: 35,
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black, width: 0.5),
+                          borderRadius: BorderRadius.circular(68)),
+                      padding: const EdgeInsets.all(4),
+                      child: SizedBox(
+                        height: 35,
+                        width: 35,
+                        child: Center(
+                          child: Icon(
+                            flashIcon,
+                            size: 20,
+                          ),
+                        ),
+                      )),
+                ),
+
+                Visibility(
+                    visible: widget.isImage,
+                    replacement: Text(formatDurationtoHHMMSS(elapsed),
+                        style: CustomTypography().titleMedium(
+                            color: CustomColors.textSecondaryContent)),
+                    child: SizedBox.shrink()),
+
+                // Close Modal Button
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(
+                    CupertinoIcons.clear_circled_solid,
+                    size: 26,
+                    color: CustomColors.textSecondaryContent,
+                  ),
+                )
+              ],
+            ),
+          ),
+          Expanded(
+              child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Container(
+              width: width,
+              color: CustomColors.greyTrack,
+              child: cameraFeed(),
+            ),
+          )),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: widget.isImage ? pictureControls() : recordingControls(),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget cameraFeed() {
+    return AspectRatio(
+      aspectRatio: 1,
+      child: ClipRect(
+        child: FittedBox(
+          fit: BoxFit.cover,
+          child: SizedBox(
+            width: controller.value.previewSize?.height ?? 0,
+            height: controller.value.previewSize?.width ?? 0,
+            child: CameraPreview(controller),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget pictureControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const SizedBox(width: 50),
+        GestureDetector(
+          onTap: () => capture(),
+          child: Container(
+              height: 68,
+              width: 68,
+              decoration: BoxDecoration(
+                  border: Border.all(
+                      color: CustomColors.productNormalActive, width: 1.5),
+                  borderRadius: BorderRadius.circular(68)),
+              padding: const EdgeInsets.all(4),
+              child: Container(
+                height: 60,
+                width: 60,
+                decoration: BoxDecoration(
+                    color: CustomColors.productNormalActive,
+                    borderRadius: BorderRadius.circular(60)),
+              )),
+        ),
+        GestureDetector(
+          onTap: () => flip(),
+          child: Container(
+              height: 50,
+              width: 50,
+              decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black, width: 1.5),
+                  borderRadius: BorderRadius.circular(68)),
+              padding: const EdgeInsets.all(4),
+              child: SizedBox(
+                height: 45,
+                width: 45,
+                child: Center(
+                  child: Icon(
+                    CupertinoIcons.switch_camera,
+                    size: 25,
+                  ),
+                ),
+              )),
+        )
+      ],
+    );
+  }
+
+  Widget recordingControls() {
+    final width = MediaQuery.of(context).size.width;
+    return SizedBox(
+      width: width,
+      height: 68,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          //Pause
+          Visibility(
+              visible: controller.value.isRecordingVideo,
+              replacement: const SizedBox(width: 50),
+              child: GestureDetector(
+                  onTap: () => pause(),
+                  child: AnimatedContainer(
+                      duration: Duration(milliseconds: 100),
+                      height: controller.value.isRecordingPaused ? 68 : 50,
+                      width: controller.value.isRecordingPaused ? 68 : 50,
+                      decoration: BoxDecoration(
+                          border: Border.all(
+                              color: controller.value.isRecordingPaused
+                                  ? CustomColors.warningActive
+                                  : Colors.black,
+                              width: 1.5),
+                          borderRadius: BorderRadius.circular(68)),
+                      padding: const EdgeInsets.all(4),
+                      child: AnimatedSwitcher(
+                        duration: Duration(milliseconds: 100),
+                        transitionBuilder: (child, animation) {
+                          return ScaleTransition(
+                              scale: animation, child: child);
+                        },
+                        child: controller.value.isRecordingPaused
+                            ? Container(
+                                key: ValueKey(1),
+                                height: 60,
+                                width: 60,
+                                decoration: BoxDecoration(
+                                    color: CustomColors.warningActive,
+                                    borderRadius: BorderRadius.circular(60)),
+                              )
+                            : SizedBox(
+                                key: ValueKey(2),
+                                height: 50,
+                                width: 50,
+                                child: Icon(
+                                  CupertinoIcons.pause_fill,
+                                  size: 25,
+                                ),
+                              ),
+                      )))),
+
+          //Record
+          GestureDetector(
+            onTap: () => record(),
+            child: AnimatedContainer(
+                duration: Duration(milliseconds: 100),
+                height: controller.value.isRecordingPaused ? 50 : 68,
+                width: controller.value.isRecordingPaused ? 50 : 68,
+                decoration: BoxDecoration(
+                    border: Border.all(
+                        color: CustomColors.warningActive, width: 1.5),
+                    borderRadius: BorderRadius.circular(68)),
+                padding: EdgeInsets.all(controller.value.isRecordingPaused
+                    ? 10
+                    : controller.value.isRecordingVideo
+                        ? 15
+                        : 4),
+                child: Container(
+                  // height: controller.value.isRecordingPaused ? 42 : 50,
+                  // width: controller.value.isRecordingPaused ? 42 : 50,
+                  decoration: BoxDecoration(
+                      color: CustomColors.warningActive,
+                      shape: controller.value.isRecordingVideo
+                          ? BoxShape.rectangle
+                          : BoxShape.circle,
+                      borderRadius: controller.value.isRecordingVideo
+                          ? BorderRadius.circular(4)
+                          : null),
+                )),
+          ),
+          GestureDetector(
+            onTap: () => flip(),
+            child: Container(
+                height: 50,
+                width: 50,
+                decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black, width: 1.5),
+                    borderRadius: BorderRadius.circular(68)),
+                padding: const EdgeInsets.all(4),
+                child: SizedBox(
+                  height: 45,
+                  width: 45,
+                  child: Center(
+                    child: Icon(
+                      CupertinoIcons.switch_camera,
+                      size: 25,
+                    ),
+                  ),
+                )),
+          )
+        ],
+      ),
+    );
+  }
+
+  capture() async {
+    if (controller.value.isTakingPicture) return;
+
+    try {
+      final XFile file = await controller.takePicture();
+      final path = await getFilePath();
+      await file.saveTo(path);
+      final name = p.basename(path);
+      widget.respond(name);
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      dev.log(e.toString(), name: 'Camera Capture');
+    }
+  }
+
+  Future<String> getFilePath() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final dir = await Directory(
+            p.join(directory.path, widget.isImage ? 'images' : 'videos'))
+        .create(recursive: true);
+    final now = DateTime.now();
+    final fileName =
+        '${widget.prompt.id + 1}_${formatDate(now)}${widget.isImage ? ".jpg" : ".mp4"}';
+    final filePath = p.join(dir.path, fileName);
+    return filePath;
+  }
+
+  record() async {
+    if (controller.value.isRecordingVideo) {
+      stop();
+      return;
+    }
+
+    await controller.startVideoRecording();
+    startTimer();
+  }
+
+  pause() async {
+    if (controller.value.isRecordingVideo &&
+        !controller.value.isRecordingPaused) {
+      await controller.pauseVideoRecording();
+      if (mounted) {
+        setState(() {
+          stopTimer();
+        });
+      }
+      return;
+    }
+
+    await controller.resumeVideoRecording();
+    setState(() {
+      startTimer();
+    });
+  }
+
+  stop() async {
+    try {
+      stopTimer();
+      final XFile file = await controller.stopVideoRecording();
+      final path = await getFilePath();
+      await file.saveTo(path);
+      final name = p.basename(path);
+      widget.respond(name);
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      dev.log(e.toString(), name: 'Video Recording');
+    }
+  }
+
+  flip() async {
+    final currentLensDirection = controller.description.lensDirection;
+    CameraDescription lens = cameras[0];
+
+    for (final camera in cameras) {
+      if (camera.lensDirection != currentLensDirection) {
+        lens = camera;
+        break;
+      }
+    }
+
+    controller.setDescription(lens);
+  }
+
+  flash() async {
+    final flashes = [FlashMode.auto, FlashMode.always, FlashMode.off];
+    final current = controller.value.flashMode;
+
+    // Get the index of the current mode
+    int currentIndex = flashes.indexOf(current);
+
+    // Calculate the next index (looping back to 0 if at the end)
+    int nextIndex = (currentIndex + 1) % flashes.length;
+
+    final mode = flashes[nextIndex];
+
+    // Set new flash
+    try {
+      await controller.setFlashMode(mode);
+    } catch (e) {
+      dev.log("Problem setting flash: $e");
+    }
+
+    switch (mode) {
+      case FlashMode.auto:
+        setState(() {
+          flashIcon = CupertinoIcons.bolt_badge_a_fill;
+        });
+        break;
+      case FlashMode.always:
+        setState(() {
+          flashIcon = CupertinoIcons.bolt_fill;
+        });
+        break;
+      case FlashMode.off:
+        setState(() {
+          flashIcon = CupertinoIcons.bolt_slash_fill;
+        });
+        break;
+      default:
+        setState(() {
+          flashIcon = CupertinoIcons.bolt;
+        });
+        break;
+    }
+  }
+
+  startTimer() {
+    _timer ??= Timer.periodic(const Duration(seconds: 1), (value) {
+      if (mounted) {
+        setState(() {
+          elapsed = const Duration(seconds: 1) + elapsed;
+        });
+      }
+    });
+  }
+
+  stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  pauseTimer() {
+    _timer?.cancel();
   }
 }
 

@@ -49,7 +49,7 @@ class PromptModel {
     String? subtitle,
   }) {
     return PromptModel(
-      id: id,
+        id: id,
         question: question ?? this.question,
         responseType: responseType ?? this.responseType,
         answer: answer ?? this.answer,
@@ -59,7 +59,7 @@ class PromptModel {
   }
 
   factory PromptModel.fromEntity(Prompt prompt) {
-    final model =  PromptModel(
+    final model = PromptModel(
         id: prompt.id,
         question: prompt.question,
         responseType: prompt.responseType,
@@ -74,7 +74,7 @@ class PromptModel {
 
   factory PromptModel.fromJson(Map<String, dynamic> json) {
     return PromptModel(
-       id: json['id'] ?? 0,
+        id: json['id'] ?? 0,
         question: json['title'],
         responseType: responseTypeString(json['type']),
         answer: null,
@@ -87,7 +87,10 @@ class PromptModel {
             maxValue: json['max_value'],
             minLabel: json['min_label'],
             maxLabel: json['max_label'],
-            defaultValue: json['default_value']),
+            defaultValue: json['default_value'],
+            audioLength: json['audio_length'] != null
+                ? formatStringToDuration(json['audio_length'])
+                : null),
         required: json['required'] == 1 ? true : false,
         subtitle: json['subtitle']);
   }

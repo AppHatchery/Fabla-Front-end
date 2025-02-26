@@ -418,7 +418,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             ),
             child: Row(children: [
               Expanded(
-                child: Text("Response submitted through webview",
+                child: Text("Response recorded externally",
                     style: CustomTypography().bodyMedium(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
@@ -426,7 +426,32 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             ]),
           ),
         );
-      //TODO: Add support for other response types
+      case ResponseType.image:
+        return ImageViewer(name: prompt.answer!.response!);
+      case ResponseType.video:
+        return VideoViewer(name: prompt.answer!.response!, delete: null);
+      case ResponseType.timer:
+        final width = MediaQuery.of(context).size.width;
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          child: Container(
+            width: width,
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+            decoration: BoxDecoration(
+              color: CustomColors.grey,
+              borderRadius: BorderRadius.circular(12),
+              shape: BoxShape.rectangle,
+            ),
+            child: Row(children: [
+              Expanded(
+                child: Text("Completed the timer ✅",
+                    style: CustomTypography().bodyMedium(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ),
+            ]),
+          ),
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -449,9 +474,13 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             minChildSize: 1,
             snap: true,
             builder: (context, scrollController) {
+              final hint = prompt.subtitle?.replaceAll(r'\\n', '\n');
+
               return BottomRecordingModal(
                 promptId: prompt.id,
                 question: prompt.question,
+                limit: prompt.option?.audioLength,
+                hint: hint,
                 onSave: (value) {
                   summaryCubit.saveResponse(
                       widget.diary, prompt, value.toString());

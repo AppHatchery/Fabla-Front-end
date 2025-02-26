@@ -25,12 +25,12 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   bool canGoBack = false;
   // bool batteryOptimization = false;
   bool requested = false;
+  bool? granted;
 
   //Animations
   late rive.StateMachineController _controller;
 
   final PageTimer timer = PageTimer();
-
 
   @override
   void initState() {
@@ -102,10 +102,87 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                                 .headlineLarge(color: CustomColors.textWhite),
                           ),
                           const SizedBox(height: 40.0),
-                          Image.asset(
-                            "assets/images/notification_example.png",
-                            width: width,
-                          )
+                          granted == null || granted == true
+                              ? Image.asset(
+                                  "assets/images/notification_example.png",
+                                  width: width,
+                                )
+                              : granted == false && requested
+                                  ? Container(
+                                      width: width,
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: CustomColors.fillVanilla,
+                                        border: Border.all(
+                                          color: CustomColors.pumpkinOrange,
+                                          width: 2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(11),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const Icon(Icons.warning_rounded,
+                                                  size: 24,
+                                                  color: CustomColors
+                                                      .pumpkinOrange),
+                                              const SizedBox(
+                                                width: 10,
+                                              ),
+                                              Flexible(
+                                                child: Text(
+                                                  "Oops! We recommend you turn ON notifications to allow Fabla to send you reminders to complete the study, otherwise you might not know when to submit the diaries and measures needed for this study.",
+                                                  style: CustomTypography()
+                                                      .bodyLarge(
+                                                          color: CustomColors
+                                                              .pumpkinOrange),
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                          const SizedBox(height: 12),
+                                          Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const SizedBox(
+                                                  height: 20, width: 20),
+                                              const SizedBox(
+                                                width: 10,
+                                              ),
+                                              TextButton(
+                                                  style: TextButton.styleFrom(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 4),
+                                                    alignment: Alignment.center,
+                                                    backgroundColor:
+                                                        CustomColors
+                                                            .pumpkinOrange,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              11),
+                                                    ),
+                                                  ),
+                                                  onPressed:
+                                                      openPermissionSettings,
+                                                  child: Text("Open Settings",
+                                                      style: CustomTypography()
+                                                          .bodyLarge(
+                                                              color: CustomColors
+                                                                  .textWhite)))
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : SizedBox.shrink()
                           // : Container(
                           //     width: width,
                           //     padding: const EdgeInsets.all(16),
@@ -198,8 +275,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
             ),
           ),
           Padding(
-            padding:
-                const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34),
+            padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34),
             child: CustomFlatButton(
               onClick: () => navigateToNextPage(context),
               text: "Continue",
@@ -235,6 +311,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
     if (mounted) {
       setState(() {
         requested = true;
+        granted = results.isGranted;
       });
     }
     // checkBattery();
@@ -245,13 +322,6 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
         RouteService()
             .navigate(null, context: context, current: 'notification_access');
       }
-    } else {
-      if (context.mounted) {
-        track(timer.stop(), "Finished");
-        RouteService()
-            .navigate(null, context: context, current: 'notification_access');
-      }
-      //TODO: Show error
     }
   }
 
@@ -286,4 +356,15 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   //     });
   //   }
   // }
+
+  void openPermissionSettings() async {
+    bool opened = await openAppSettings();
+
+    if (opened) {
+      final results = await Permission.microphone.request();
+      setState(() {
+        granted = results.isGranted;
+      });
+    }
+  }
 }

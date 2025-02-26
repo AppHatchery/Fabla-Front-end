@@ -583,12 +583,15 @@ class SetupRepository {
 
       // Clear all saved recordings
       final dir = await getApplicationDocumentsDirectory();
-      final path = p.join(dir.path, 'recordings');
+      final paths = ['recordings', 'images', 'videos']
+          .map((folder) => p.join(dir.path, folder)).toList();
 
-      final recordingsDir = Directory(path);
-      if (await recordingsDir.exists()) {
-        recordingsDir.deleteSync(recursive: true);
-      }
+      await Future.wait(paths.map((path) async {
+        final pathDir = Directory(path);
+        if (await pathDir.exists()) {
+          pathDir.deleteSync(recursive: true);
+        }
+      }));
 
       // Clear Credentials
       final storage = const FlutterSecureStorage();

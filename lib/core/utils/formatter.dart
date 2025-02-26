@@ -12,6 +12,8 @@ import 'package:intl/intl.dart';
 import '../../screens/diary/data/options.dart';
 import 'types.dart';
 
+String twoDigits(int n) => n.toString().padLeft(2, "0");
+
 /// Formats a DateTime object into a string representation with a specific format.
 /// This function converts a given DateTime value into a formatted string following the pattern 'yyyy-MM-dd-HH-mm-ss'.
 ///
@@ -72,8 +74,6 @@ DateTime stringDateOnlyToDateTime(String date) {
 String formatDuration(int milli) {
   Duration duration = Duration(milliseconds: milli);
 
-  String twoDigits(int n) => n.toString().padLeft(2, "0");
-
   return duration.inHours > 0
       ? "${twoDigits(duration.inHours)}:${twoDigits(duration.inMinutes.remainder(60))}:${twoDigits(duration.inSeconds.remainder(60))}"
       : "${twoDigits(duration.inMinutes)}:${twoDigits(duration.inSeconds.remainder(60))}";
@@ -92,11 +92,6 @@ String formatDuration(int milli) {
 /// A formatted string representing the provided duration in hours, minutes, and seconds.
 ///
 String formatDurationtoHHMMSS(Duration duration) {
-  String twoDigits(int n) {
-    if (n >= 10) return "$n";
-    return "0$n";
-  }
-
   // String hours = twoDigits(duration.inHours.remainder(24));
   String minutes = twoDigits(duration.inMinutes.remainder(60));
   String seconds = twoDigits(duration.inSeconds.remainder(60));
@@ -111,11 +106,27 @@ String formatDurationToHHMM(DateTime date) {
 
 Duration formatStringToDuration(String time) {
   List<String> parts =
-      time.split(":"); // Split the string into hours and minutes
-  int minutes = int.parse(parts[0]); // Parse the hours
-  int seconds = int.parse(parts[1]); // Parse the minutes
+      time.split(":"); // Split the string into minutes and seconds
+  int minutes = int.parse(parts[0]); // Parse the minutes
+  int seconds = int.parse(parts[1]); // Parse the seconds
 
   return Duration(minutes: minutes, seconds: seconds);
+}
+
+/// Returns ONLY the minutes of the duration
+String formatDurationMMOnly(Duration duration) {
+  return twoDigits(duration.inMinutes.remainder(60));
+}
+
+/// Returns ONLY the seconds of the Duration
+String formatDurationSSOnly(Duration duration) {
+  return twoDigits(duration.inSeconds.remainder(60));
+}
+
+/// Formats a duration into a string representation.
+String formatDurationToString(Duration duration) {
+  return '${duration.inMinutes}:${duration.inSeconds}';
+
 }
 
 /// Formats a given date into a human-readable history date string.
@@ -217,6 +228,9 @@ final Map<String, ResponseType> _responseTypeMap = {
   'slider': ResponseType.slider,
   'webview': ResponseType.webview,
   'timer': ResponseType.timer,
+  'image': ResponseType.image,
+  'video': ResponseType.video,
+  'instructions': ResponseType.instructions,
 };
 
 /// Function that converts a string representation of a response type to its corresponding enum value.
@@ -238,6 +252,9 @@ final Map<ResponseType, String> _responseStringMap = {
   ResponseType.slider: 'slider',
   ResponseType.webview: 'webview',
   ResponseType.timer: 'timer',
+  ResponseType.image: 'image',
+  ResponseType.video: 'video',
+  ResponseType.instructions: 'instructions',
 };
 
 /// Function to convert ResponseType enum value to string

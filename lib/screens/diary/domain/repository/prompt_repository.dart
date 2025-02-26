@@ -1,8 +1,10 @@
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 
 import 'dart:io';
+import 'dart:developer' as dev;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../../../core/database/dao/prompt_dao.dart';
@@ -40,12 +42,14 @@ class PromptRepository {
         answer: prompt.answers.elementAtOrNull(diary.currentEntry));
   }
 
-  Future<List<PromptModel>> loadAll(DiaryModel diary) async{
+  Future<List<PromptModel>> loadAll(DiaryModel diary) async {
     final prompts = _promptDAO.getPrompts(id: diary.id);
-    final models = prompts.map((prompt) => PromptModel.fromEntity(prompt)).toList();
+    final models =
+        prompts.map((prompt) => PromptModel.fromEntity(prompt)).toList();
 
     final answered = models.map((prompt) {
-      return load(diary, prompt.id);}).toList();
+      return load(diary, prompt.id);
+    }).toList();
 
     return answered;
   }
@@ -115,7 +119,6 @@ class PromptRepository {
     return true;
   }
 
-//TODO: clean implementation - REDO This
   Future<bool> removeResponse(
       Diary diary, PromptModel prompt, String path) async {
     try {
@@ -125,14 +128,26 @@ class PromptRepository {
         return false;
       }
 
-      //if recording is present, remove it
-      if (answer.recordings.isNotEmpty) {
-        final dir = await getApplicationDocumentsDirectory();
-        final _path = p.join(dir.path, 'recordings', path);
-
-        final file = File(_path);
-        await file.delete();
+      if (prompt.responseType == ResponseType.text) {
+        answer.response = null;
+        final updatedPrompt = Prompt.fromModel(prompt.copyWith(answer: answer));
+        updatedPrompt.diary.target = diary;
+        _promptDAO.updatePrompt(updatedPrompt);
+        return true;
       }
+
+      //if recording is present, remove it
+      final dir = await getApplicationDocumentsDirectory();
+      String _path = '';
+      if (answer.recordings.isNotEmpty) {
+        _path = p.join(dir.path, 'recordings', path);
+      } else if (prompt.responseType == ResponseType.image) {
+        _path = p.join(dir.path, 'images', answer.response);
+      } else if (prompt.responseType == ResponseType.video) {
+        _path = p.join(dir.path, 'videos', answer.response);
+      }
+      final file = File(_path);
+      await file.delete();
 
       //update the prompt
       //Removing the recordings
@@ -145,13 +160,13 @@ class PromptRepository {
       _promptDAO.updatePrompt(updatedPrompt);
       return true;
     } catch (e) {
-      print("Error deleting response: $e");
+      dev.log("Error deleting response: $e", name: "PromptRepository");
       return false;
     }
   }
 
   /// Deletes all responses to prompts in the diary.
   /// This function removes all responses to prompts in the diary, effectively clearing the diary of all responses.
-  /// 
+  ///
   removeAll() async => _promptDAO.removeAllPrompts();
 }

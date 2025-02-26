@@ -22,7 +22,7 @@ class FreeDayWidget extends StatelessWidget {
             height: 16,
           ),
           Text(
-            'This is a Free Day',
+            'No Surveys Scheduled Today',
             style: CustomTypography().titleLarge(),
             textAlign: TextAlign.center,
           ),
@@ -30,7 +30,7 @@ class FreeDayWidget extends StatelessWidget {
             height: 6,
           ),
           Text(
-            "It's a blank slate for today on your study calendar – embrace this open day!",
+            "We’ll notify you when your next one is available.",
             style: CustomTypography()
                 .bodyMedium(color: CustomColors.textTertiaryContent),
             textAlign: TextAlign.center,

@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/audio_quiestions_widget.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
@@ -523,13 +524,25 @@ class _QuestionPageState extends State<QuestionPage>
           prompt: prompt,
           diary: widget.diary,
           respond: (answer) => save(prompt, answer, null));
-    } else if(prompt.responseType == ResponseType.timer){
-      responseWidget = TimerWidget(time: prompt.subtitle ?? '00:30', respond: (answer) => save(prompt, answer, null));
-    }else {
+    } else if (prompt.responseType == ResponseType.timer) {
+      responseWidget = TimerWidget(
+          time: prompt.subtitle ?? '00:30',
+          respond: (answer) => save(prompt, answer, null));
+    } else if (prompt.responseType == ResponseType.image) {
+      responseWidget = ImageWidget(
+          diary: widget.diary,
+          prompt: prompt,
+          respond: (answer) => save(prompt, answer, 'image'));
+    } else if (prompt.responseType == ResponseType.video) {
+      responseWidget = VideoWidget(
+          diary: widget.diary,
+          prompt: prompt,
+          respond: (answer) => save(prompt, answer, 'video'));
+    } else {
       responseWidget = const SizedBox.shrink();
     }
 
-    String questionTip;
+    String questionTip = "";
 
     if (prompt.responseType == ResponseType.slider) {
       questionTip = prompt.subtitle ?? "Please use the slider to rate:";
@@ -542,8 +555,9 @@ class _QuestionPageState extends State<QuestionPage>
     } else if (prompt.responseType == ResponseType.webview) {
       questionTip =
           "Close the pop-up window when you are done filling the survey.";
-    } else {
-      questionTip = "You only need to take one response.";
+    } else if (prompt.responseType == ResponseType.timer) {
+      questionTip =
+          'Hit the “Start” button to begin meditation countdown.\nDuring the countdown, if you leave the page, the timer will continue on the background.';
     }
 
     return (prompt.responseType == ResponseType.recording ||
@@ -555,69 +569,76 @@ class _QuestionPageState extends State<QuestionPage>
             responseWidget: responseWidget,
             bottomSheetController: _bottomSheetController,
           )
-        : Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            width: MediaQuery.of(context).size.width,
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-              color: CustomColors.fillWhite,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        : prompt.responseType == ResponseType.instructions
+            ? SizedBox(
+                child: CustomFormatterText(text: prompt.question),
+              )
+            : Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                width: MediaQuery.of(context).size.width,
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                  color: CustomColors.fillWhite,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
                     children: [
-                      Container(
-                          alignment: Alignment.topLeft,
-                          child: Text(
-                            "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
-                            style: CustomTypography().button(),
-                          )),
-                      const SizedBox(height: 15),
-                    ],
-                  ),
-
-                  const SizedBox(
-                    height: 12,
-                  ),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          prompt.question.toString(),
-                          style: CustomTypography().titleLarge(),
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                              alignment: Alignment.topLeft,
+                              child: Text(
+                                "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
+                                style: CustomTypography().button(),
+                              )),
+                          const SizedBox(height: 15),
+                        ],
                       ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          questionTip,
-                          style: const TextStyle(
-                              color: CustomColors.textTertiaryContent),
-                        ),
-                      )
-                    ],
-                  ),
-                  SizedBox(
-                      height:
-                          prompt.responseType == ResponseType.text ? 24 : 112),
-                  responseWidget,
-                  if (widget.diary.status != DiaryStatus.submitted &&
-                      widget.diary.status != DiaryStatus.missed &&
-                      prompt.responseType == ResponseType.recording)
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.3),
 
-                  // const CustomTextButton(
-                  //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
-                ],
-              ),
-            ),
-          );
+                      const SizedBox(
+                        height: 12,
+                      ),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              prompt.question.toString(),
+                              style: CustomTypography().titleLarge(),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              questionTip,
+                              style: const TextStyle(
+                                  color: CustomColors.textTertiaryContent),
+                            ),
+                          )
+                        ],
+                      ),
+                      SizedBox(
+                          height: prompt.responseType == ResponseType.text
+                              ? 24
+                              : 112),
+                      responseWidget,
+                      if (widget.diary.status != DiaryStatus.submitted &&
+                          widget.diary.status != DiaryStatus.missed &&
+                          prompt.responseType == ResponseType.recording)
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.3),
+
+                      // const CustomTextButton(
+                      //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
+                    ],
+                  ),
+                ),
+              );
   }
 
   void loadPrompt() {
@@ -630,7 +651,9 @@ class _QuestionPageState extends State<QuestionPage>
   void checkForResponse(PromptModel prompt1) {
     bool isValidResponse = false;
     final answer = prompt1.answer;
-    if (prompt1.responseType != ResponseType.recording) {
+    if (prompt1.responseType == ResponseType.instructions) {
+      isValidResponse = true;
+    } else if (prompt1.responseType != ResponseType.recording) {
       isValidResponse = answer?.response?.isNotEmpty ?? false;
     } else {
       isValidResponse = (answer?.response?.isNotEmpty ?? false) ||
@@ -661,6 +684,7 @@ class _QuestionPageState extends State<QuestionPage>
                     promptId: prompt.id,
                     question: prompt.question,
                     hint: hint,
+                    limit: prompt.option?.audioLength,
                     onSave: (value) {
                       save(prompt, value.toString(), "audio");
                     },
