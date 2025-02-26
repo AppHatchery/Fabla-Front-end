@@ -7,14 +7,12 @@ part 'hub_state.dart';
 class HubCubit extends Cubit<HubState> {
   HubCubit() : super(const HubInitial());
 
-  checkForUpdate() async {
-    final update = await ExperimentManager().checkForUpdate();
+  update() async {
+    final update = await ExperimentManager().update();
     if (!update) {
       return;
     }
-
     emit(HubUpdating());
-    await Future.delayed(const Duration(seconds: 2)); // TODO: Remove this line
     final done = await ExperimentManager().update();
     if (done) emit(HubUpdated());
 

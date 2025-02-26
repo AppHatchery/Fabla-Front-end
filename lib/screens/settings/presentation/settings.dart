@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/screens/settings/widgets/participant_details.dart';
 import 'package:audio_diaries_flutter/screens/settings/widgets/settings_active_reminders.dart';
 import 'package:audio_diaries_flutter/screens/settings/widgets/study_details.dart';
 import 'package:audio_diaries_flutter/screens/settings/widgets/test_microphone_widget.dart';
@@ -102,6 +103,12 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
               child:
                   Column(mainAxisAlignment: MainAxisAlignment.start, children: [
                 const SettingsStudyDetails(),
+
+                const SizedBox(
+                  height: 24,
+                ),
+
+                const ParticipantDetails(),
 
                 const SizedBox(
                   height: 24,

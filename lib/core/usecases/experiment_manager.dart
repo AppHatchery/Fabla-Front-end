@@ -10,13 +10,6 @@ final SetupRepository _setupRepository = SetupRepository();
 final _version = '0.1';
 
 class ExperimentManager {
-  Future<bool> checkForUpdate() async {
-    // Retrieve version from api
-    final version = '0.2';
-
-    return _version != version;
-  }
-
   /// Update Experiment
   Future<bool> update() async {
     try {
@@ -28,9 +21,9 @@ class ExperimentManager {
       dev.log("Removed diaries: $result");
 
       // get new content
-      await _setupRepository.getStudies();
+      final done = await _setupRepository.uploadOnBoardingQuestions();
 
-      return true;
+      return done;
     } catch (e) {
       dev.log(e.toString(), name: 'Experiment Manager Update');
       return false;

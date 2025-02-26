@@ -573,6 +573,7 @@ class SetupRepository {
       diaryRepository.removeAllDiaries();
       promptRepository.removeAll();
       answerRepository.removeAllResponses();
+      removeAllQuestions();
 
       // Clear all notifications
       await NotificationService.cancelAllNotifications();

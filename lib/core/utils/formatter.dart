@@ -40,6 +40,26 @@ String formatDateShort(DateTime dateTime) {
   return formatter.format(dateTime);
 }
 
+/// Returns: Month/Day/Year
+String formatDateOnly(DateTime date) {
+  final DateFormat formatter = DateFormat.yMd();
+  return formatter.format(date);
+}
+
+/// Reverses the top function
+DateTime stringDateOnlyToDateTime(String date) {
+  List<String> dateParts = date.split('/');
+
+  // Parse the month, day, and year as integers
+  int month = int.parse(dateParts[0]);
+  int day = int.parse(dateParts[1]);
+  int year = int.parse(dateParts[2]);
+
+  // Create a new DateTime object with just the date components
+  // Time will be set to 00:00:00
+  return DateTime(year, month, day, 0, 0, 0, 0);
+}
+
 /// Formats a duration in milliseconds into a human-readable time format.
 /// This function converts a given duration in milliseconds into a formatted string that represents the duration as hours, minutes, and seconds.
 ///

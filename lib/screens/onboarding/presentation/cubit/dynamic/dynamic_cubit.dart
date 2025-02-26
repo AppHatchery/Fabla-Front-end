@@ -1,6 +1,7 @@
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -50,6 +51,9 @@ class DynamicCubit extends Cubit<DynamicState> {
     try {
       final result = await setupRepository.uploadOnBoardingQuestions();
       if (result) {
+        await PreferenceService().setStringPreference(
+            key: "onboardingSurveyCompletedDate",
+            value: DateTime.now().toString());
         emit(DynamicUploaded());
       } else {
         emit(const DynamicError("Failed to upload answers"));

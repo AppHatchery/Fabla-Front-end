@@ -17,6 +17,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dyna
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/study_login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
+import 'package:audio_diaries_flutter/screens/settings/cubit/settings_cubit.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -110,10 +111,7 @@ class _MyAppState extends State<MyApp> {
   initState() {
     NotificationService.setListeners();
     _route = widget.route;
-    // final repo = SetupRepository();
-    // repo.createProtocol();
     super.initState();
-    // initPlatformState();
   }
 
   @override
@@ -141,7 +139,9 @@ class _MyAppState extends State<MyApp> {
                 BlocProvider<CompletionCubit>(
                     create: (context) => CompletionCubit()),
                 BlocProvider<DynamicCubit>(create: (context) => DynamicCubit()),
-                BlocProvider<HubCubit>(create: (context) => HubCubit())
+                BlocProvider<HubCubit>(create: (context) => HubCubit()),
+                BlocProvider<SettingsCubit>(
+                    create: (context) => SettingsCubit()),
               ],
               child: MaterialApp(
                 title: 'Audio Diaries',
@@ -227,7 +227,6 @@ class _HubState extends State<Hub>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       NotificationManager().scheduleAdditional();
-      cubit.checkForUpdate();
     }
     super.didChangeAppLifecycleState(state);
   }
