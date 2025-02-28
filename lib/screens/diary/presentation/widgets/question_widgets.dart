@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
+import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
@@ -353,10 +354,12 @@ class _AudioTextCardState extends State<AudioTextCard> {
                         onClick: () => widget.respond("audio"),
                         text: "Record My Response",
                       ),
-                      CustomTextAnswerButton(
-                        onClick: () => widget.respond("text"),
-                        text: "Type My Response",
-                      ),
+                      widget.prompt.responseType == ResponseType.textAudio
+                          ? CustomTextAnswerButton(
+                              onClick: () => widget.respond("text"),
+                              text: "Type My Response",
+                            )
+                          : const SizedBox.shrink(),
                     ],
                   )
                 : MyResponse(
@@ -622,7 +625,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
               snap: true,
               builder: (context, scrollController) {
                 return BottomWebViewModal(
-                  url: widget.prompt.subtitle!,
+                  url: widget.prompt.option!.link!,
                   respond: widget.respond,
                 );
               },
@@ -631,9 +634,16 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
 }
 
 class TimerWidget extends StatefulWidget {
-  final String time;
+  final Duration time;
+  final bool playbackControls;
+  final bool userInteraction;
   final void Function(String) respond;
-  const TimerWidget({super.key, required this.time, required this.respond});
+  const TimerWidget(
+      {super.key,
+      required this.time,
+      required this.playbackControls,
+      required this.userInteraction,
+      required this.respond});
 
   @override
   State<TimerWidget> createState() => _TimerWidgetState();
@@ -665,8 +675,8 @@ class _TimerWidgetState extends State<TimerWidget>
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
-    duration = formatStringToDuration(widget.time);
-    remaining = formatStringToDuration(widget.time);
+    duration = widget.time;
+    remaining = widget.time;
 
     minuteController =
         TextEditingController(text: formatDurationMMOnly(duration));
@@ -778,7 +788,9 @@ class _TimerWidgetState extends State<TimerWidget>
                               ? timerDisplay()
                               : inProgress && (timer != null && timer!.isActive)
                                   ? timerDisplay()
-                                  : editableControls()
+                                  : widget.userInteraction
+                                      ? editableControls()
+                                      : timerDisplay(),
                         ],
                       ),
                       const SizedBox(height: 36),
@@ -788,7 +800,11 @@ class _TimerWidgetState extends State<TimerWidget>
                         children: [
                           // Restart
                           InkWell(
-                            onTap: () => inProgress ? restart() : null,
+                            onTap: () => inProgress
+                                ? widget.playbackControls
+                                    ? restart()
+                                    : null
+                                : null,
                             child: Container(
                               height: 46,
                               width: 46,
@@ -800,7 +816,9 @@ class _TimerWidgetState extends State<TimerWidget>
                                   side: BorderSide(
                                       width: 1,
                                       color: inProgress
-                                          ? CustomColors.warningActive
+                                          ? widget.playbackControls
+                                              ? CustomColors.warningActive
+                                              : CustomColors.fillDisabled
                                           : CustomColors.fillDisabled),
                                 ),
                               ),
@@ -817,7 +835,9 @@ class _TimerWidgetState extends State<TimerWidget>
                                     child: Icon(
                                       Icons.refresh_rounded,
                                       color: inProgress
-                                          ? CustomColors.warningActive
+                                          ? widget.playbackControls
+                                              ? CustomColors.warningActive
+                                              : CustomColors.fillDisabled
                                           : CustomColors.fillDisabled,
                                     ),
                                   )
@@ -835,7 +855,13 @@ class _TimerWidgetState extends State<TimerWidget>
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 8),
                               decoration: ShapeDecoration(
-                                color: CustomColors.productNormal,
+                                color: complete
+                                    ? CustomColors.productNormal
+                                    : widget.playbackControls
+                                        ? CustomColors.productNormal
+                                        : !inProgress
+                                            ? CustomColors.productNormal
+                                            : CustomColors.fillDisabled,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
@@ -879,10 +905,11 @@ class _TimerWidgetState extends State<TimerWidget>
 
   Widget timerDisplay() {
     return GestureDetector(
-      onTap: () {
-        //TODO: Add if timer is editable condition
-        pause();
-      },
+      onTap: widget.playbackControls
+          ? () {
+              pause();
+            }
+          : null,
       child: Container(
         constraints: BoxConstraints(minWidth: 140),
         padding: const EdgeInsets.all(16),
@@ -1124,6 +1151,10 @@ class _TimerWidgetState extends State<TimerWidget>
       stop();
       return;
     }
+
+    if (!widget.playbackControls && inProgress) {
+      return;
+    }
     // Pausing the timer
     if (timer?.isActive ?? false) {
       pause();
@@ -1187,8 +1218,7 @@ class _TimerWidgetState extends State<TimerWidget>
     timer = null;
     _progressController.reset();
 
-    final _duration =
-        restarting ?? false ? duration : formatStringToDuration(widget.time);
+    final _duration = restarting ?? false ? duration : widget.time;
     if (mounted) {
       setState(() {
         duration = _duration;
@@ -1228,10 +1258,10 @@ class _TimerWidgetState extends State<TimerWidget>
             warningNotificationOnKill: Platform.isIOS,
             androidFullScreenIntent: false,
             notificationSettings: const NotificationSettings(
-                title: "Time's Up!",
-                body: "Please come back to Fabla to finish your entry",
-                stopButton: "Stop",
-                )));
+              title: "Time's Up!",
+              body: "Please come back to Fabla to finish your entry",
+              stopButton: "Stop",
+            )));
   }
 
   /// Get special permission for the alarm
@@ -1399,9 +1429,19 @@ class _VideoWidgetState extends State<VideoWidget> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             widget.prompt.answer?.response == null
-                ? CustomFlatButton(
-                    onClick: () => showModal(),
-                    text: "Take a Video",
+                ? Column(
+                    children: [
+                      widget.prompt.responseType == ResponseType.imageVideo
+                          ? CustomFlatButton(
+                              onClick: () => showModal(isImage: true),
+                              text: "Take a Picture",
+                            )
+                          : const SizedBox.shrink(),
+                      CustomFlatButton(
+                        onClick: () => showModal(isImage: false),
+                        text: "Take a Video",
+                      ),
+                    ],
                   )
                 : SizedBox(
                     width: width,
@@ -1427,7 +1467,7 @@ class _VideoWidgetState extends State<VideoWidget> {
     }
   }
 
-  void showModal() {
+  void showModal({required bool isImage}) {
     showModalBottomSheet(
         backgroundColor: Colors.transparent,
         context: context,
@@ -1444,7 +1484,7 @@ class _VideoWidgetState extends State<VideoWidget> {
                 return BottomCameraModal(
                   respond: widget.respond,
                   prompt: widget.prompt,
-                  isImage: false,
+                  isImage: isImage,
                 );
               },
             ));

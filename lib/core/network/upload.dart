@@ -55,7 +55,8 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
 
       promptNumber++;
 
-      if ((prompt.responseType == ResponseType.recording &&
+      if (((prompt.responseType == ResponseType.audio ||
+                  prompt.responseType == ResponseType.textAudio) &&
               prompt.answer!.recordings.isNotEmpty) ||
           prompt.responseType == ResponseType.image ||
           prompt.responseType == ResponseType.video) {
@@ -101,7 +102,14 @@ void _addAudioData(
 
   // get the appropriate path and filename
   switch (type) {
-    case ResponseType.recording:
+    case ResponseType.audio:
+      localPath =
+          p.join(dir.path, 'recordings', prompt.answer?.recordings.first.path);
+      filename =
+          "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.aac";
+      folder = 'Audios';
+      break;
+    case ResponseType.textAudio:
       localPath =
           p.join(dir.path, 'recordings', prompt.answer?.recordings.first.path);
       filename =

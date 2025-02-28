@@ -10,21 +10,25 @@ import 'tip.dart';
 
 class PromptModel {
   int id;
+  int questionNumber;
   String question;
   ResponseType? responseType;
   Answer? answer;
   Options? option;
   bool required = true;
   String? subtitle;
+  bool? multipleAnswer;
 
   PromptModel(
       {this.id = 0,
+      required this.questionNumber,
       required this.question,
       required this.responseType,
       this.answer,
       this.option,
       required this.required,
-      this.subtitle});
+      this.subtitle,
+      required this.multipleAnswer});
 
   /// Creates a new Prompt object with optional modifications.
   /// This method generates a new Prompt instance based on the current prompt object while allowing specific properties to be updated or changed.
@@ -41,57 +45,55 @@ class PromptModel {
   ///
   PromptModel copyWith({
     String? question,
+    int? questionNumber,
     ResponseType? responseType,
     String? note,
     Tip? tip,
     Answer? answer,
     Options? option,
     String? subtitle,
+    bool? multipleAnswer,
   }) {
     return PromptModel(
         id: id,
+        questionNumber: questionNumber ?? this.questionNumber,
         question: question ?? this.question,
         responseType: responseType ?? this.responseType,
         answer: answer ?? this.answer,
         option: option ?? this.option,
         subtitle: subtitle ?? this.subtitle,
-        required: required);
+        required: required,
+        multipleAnswer: multipleAnswer ?? this.multipleAnswer);
   }
 
   factory PromptModel.fromEntity(Prompt prompt) {
     final model = PromptModel(
-        id: prompt.id,
-        question: prompt.question,
-        responseType: prompt.responseType,
-        answer: null,
-        option: prompt.option != null
-            ? Options.fromJson(jsonDecode(prompt.option!))
-            : null,
-        required: prompt.required,
-        subtitle: prompt.subtitle);
+      id: prompt.id,
+      questionNumber: prompt.questionNumber,
+      question: prompt.question,
+      responseType: prompt.responseType,
+      answer: null,
+      option: prompt.option != null
+          ? Options.fromJson(jsonDecode(prompt.option!))
+          : null,
+      required: prompt.required,
+      subtitle: prompt.subtitle,
+      multipleAnswer: prompt.multipleAnswer,
+    );
     return model;
   }
 
   factory PromptModel.fromJson(Map<String, dynamic> json) {
     return PromptModel(
-        id: json['id'] ?? 0,
-        question: json['title'],
-        responseType: responseTypeString(json['type']),
-        answer: null,
-        option: Options(
-            type: optionTypeFromResponse(responseTypeString(json['type'])),
-            choices: json['options'] != null
-                ? List<String>.from(json['options'])
-                : null,
-            minValue: json['min_value'],
-            maxValue: json['max_value'],
-            minLabel: json['min_label'],
-            maxLabel: json['max_label'],
-            defaultValue: json['default_value'],
-            audioLength: json['audio_length'] != null
-                ? formatStringToDuration(json['audio_length'])
-                : null),
-        required: json['required'] == 1 ? true : false,
-        subtitle: json['subtitle']);
+      id: json['id'] ?? 0,
+      questionNumber: json['question_number'],
+      question: json['title'],
+      responseType: responseTypeString(json['type']),
+      answer: null,
+      option: Options.fromJson(json),
+      required: json['required'],
+      subtitle: json['subtitle'],
+      multipleAnswer: json['multiple_answer'],
+    );
   }
 }

@@ -107,10 +107,11 @@ String formatDurationToHHMM(DateTime date) {
 Duration formatStringToDuration(String time) {
   List<String> parts =
       time.split(":"); // Split the string into minutes and seconds
-  int minutes = int.parse(parts[0]); // Parse the minutes
-  int seconds = int.parse(parts[1]); // Parse the seconds
+  int hours = int.parse(parts[0]); // Parse the hours
+  int minutes = int.parse(parts[1]); // Parse the minutes
+  int seconds = int.parse(parts[2]); // Parse the seconds
 
-  return Duration(minutes: minutes, seconds: seconds);
+  return Duration(hours: hours, minutes: minutes, seconds: seconds);
 }
 
 /// Returns ONLY the minutes of the duration
@@ -125,8 +126,21 @@ String formatDurationSSOnly(Duration duration) {
 
 /// Formats a duration into a string representation.
 String formatDurationToString(Duration duration) {
-  return '${duration.inMinutes}:${duration.inSeconds}';
+  // Get hours directly
+  int hours = duration.inHours;
 
+  // Get minutes (modulo 60 to get just the minutes part)
+  int minutes = duration.inMinutes.remainder(60);
+
+  // Get seconds (modulo 60 to get just the seconds part)
+  int seconds = duration.inSeconds.remainder(60);
+
+  // Format each component to ensure 2 digits with leading zeros
+  String hoursStr = hours.toString().padLeft(2, '0');
+  String minutesStr = minutes.toString().padLeft(2, '0');
+  String secondsStr = seconds.toString().padLeft(2, '0');
+
+  return '$hoursStr:$minutesStr:$secondsStr';
 }
 
 /// Formats a given date into a human-readable history date string.
@@ -220,41 +234,51 @@ String getPostDate(DateTime date) {
 
 /// Map that associates string representations of response types with their corresponding enum values.
 final Map<String, ResponseType> _responseTypeMap = {
-  'audio': ResponseType.recording,
+  'audio': ResponseType.audio,
   'text': ResponseType.text,
+  'textaudio': ResponseType.textAudio,
   'multiple': ResponseType.multiple,
   'radio': ResponseType.radio,
   'single': ResponseType.radio,
   'slider': ResponseType.slider,
   'webview': ResponseType.webview,
   'timer': ResponseType.timer,
-  'image': ResponseType.image,
-  'video': ResponseType.video,
-  'instructions': ResponseType.instructions,
+  'visualResponse-image': ResponseType.image,
+  'visualResponse-video': ResponseType.video,
+  'visualResponse-imageVideo': ResponseType.imageVideo,
+  'instruction': ResponseType.instruction,
+  'image': ResponseType.mediaImage,
+  'video': ResponseType.mediaVideo,
+  'psychomotor': ResponseType.psychomotor,
 };
 
 /// Function that converts a string representation of a response type to its corresponding enum value.
 /// Throws an exception if the provided string does not match any valid response type.
 ResponseType responseTypeString(String value) {
-  final responseType = _responseTypeMap[value.toLowerCase()];
+  final responseType = _responseTypeMap[value];
   if (responseType == null) {
-    throw Exception('Invalid response type');
+    throw Exception('Invalid response type: $value');
   }
   return responseType;
 }
 
 /// Map of ResponseType enum values with their corresponding string representations
 final Map<ResponseType, String> _responseStringMap = {
-  ResponseType.recording: 'audio',
+  ResponseType.audio: 'audio',
   ResponseType.text: 'text',
+  ResponseType.textAudio: 'textaudio',
   ResponseType.multiple: 'multiple',
   ResponseType.radio: 'radio',
   ResponseType.slider: 'slider',
   ResponseType.webview: 'webview',
   ResponseType.timer: 'timer',
-  ResponseType.image: 'image',
-  ResponseType.video: 'video',
-  ResponseType.instructions: 'instructions',
+  ResponseType.image: 'visualResponse-image',
+  ResponseType.video: 'visualResponse-video',
+  ResponseType.imageVideo: 'visualResponse-imageVideo',
+  ResponseType.instruction: 'instruction',
+  ResponseType.mediaImage: 'image',
+  ResponseType.mediaVideo: 'video',
+  ResponseType.psychomotor: 'psychomotor',
 };
 
 /// Function to convert ResponseType enum value to string
@@ -274,6 +298,17 @@ OptionsType optionTypeFromResponse(ResponseType responseType) {
       return OptionsType.radio;
     default:
       return OptionsType.multiple;
+  }
+}
+
+String optionTypeToString(OptionsType type) {
+  switch (type) {
+    case OptionsType.multiple:
+      return 'multiple';
+    case OptionsType.radio:
+      return 'radio';
+    case OptionsType.slider:
+      return 'slider';
   }
 }
 

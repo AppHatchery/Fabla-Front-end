@@ -38,7 +38,7 @@ class SummaryRepository {
         final newPrompt =
             await promptRepository.load(diary, diary.prompts[i].id);
         final isInstruction =
-            newPrompt.responseType == ResponseType.instructions;
+            newPrompt.responseType == ResponseType.instruction;
         newPrompt.id = diary.prompts[i].id;
         if (isInstruction) {
           diary.prompts.removeAt(i);

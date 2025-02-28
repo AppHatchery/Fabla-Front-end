@@ -31,6 +31,7 @@ class BottomRecordingModal extends StatefulWidget {
   final int promptId;
   final String question;
   final String? hint;
+  final Duration? suggested;
   final Duration? limit;
   final ValueChanged<String?>? onSave;
 
@@ -39,6 +40,7 @@ class BottomRecordingModal extends StatefulWidget {
       required this.promptId,
       required this.onSave,
       required this.question,
+      this.suggested,
       this.limit,
       this.hint});
 
@@ -230,11 +232,17 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Widget recordingTimer() {
+    final text =
+        widget.suggested != null && widget.suggested!.inMilliseconds > 0
+            ? widget.suggested!
+            : widget.limit != null && widget.limit!.inMilliseconds > 0
+                ? widget.limit!
+                : const Duration(minutes: 5);
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text(
-          "$timer / ${formatDurationtoHHMMSS((widget.limit != null && widget.limit!.inSeconds > 0) ? widget.limit! : const Duration(minutes: 5))}",
+          "$timer / ${formatDurationtoHHMMSS(text)}",
           style: CustomTypography().titleMedium(color: CustomColors.textWhite),
         )
       ],
@@ -1014,6 +1022,7 @@ class BottomWebViewModal extends StatefulWidget {
 class _BottomWebViewModalState extends State<BottomWebViewModal> {
   late DateTime start;
   late DateTime end;
+  bool completed = false;
 
   @override
   void initState() {
@@ -1058,13 +1067,18 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
             child: Container(
               width: width,
               color: CustomColors.greyTrack,
-              child: CustomWebViewWidget(url: widget.url),
+              child: CustomWebViewWidget(
+                  url: widget.url,
+                  onComplete: (value) => setState(() => completed = value)),
             ),
           )),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            child:
-                CustomFlatButton(onClick: () => save(), text: "Finish Survey"),
+            child: CustomFlatButton(
+              isDisabled: !completed,
+              onClick: () => save(),
+              text: "Finish Survey",
+            ),
           )
         ],
       ),

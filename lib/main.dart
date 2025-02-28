@@ -333,9 +333,11 @@ class _HubState extends State<Hub>
   }
 
   showUpdateDialog() {
-    setState(() {
-      completeNotifier.value = false;
-    });
+    if (mounted) {
+      setState(() {
+        completeNotifier.value = false;
+      });
+    }
     showModalBottomSheet(
         context: context,
         isDismissible: false,

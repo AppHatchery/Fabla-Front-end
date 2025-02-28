@@ -371,7 +371,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         return RadioQuestionSummary(
           selectedOption: prompt.answer!.response!,
         );
-      case ResponseType.recording:
+      case ResponseType.audio:
         return prompt.answer!.recordings.isEmpty
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
@@ -479,7 +479,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
               return BottomRecordingModal(
                 promptId: prompt.id,
                 question: prompt.question,
-                limit: prompt.option?.audioLength,
+                limit: prompt.option?.maxLength,
+                suggested: prompt.option?.suggestedLength,
                 hint: hint,
                 onSave: (value) {
                   summaryCubit.saveResponse(
@@ -504,7 +505,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
       int totalRecordingCount = 0;
       List<int> individualRecordingSizes = [];
       int totalRecordingDurationInSeconds = 0;
-      if (prompt.responseType == ResponseType.recording) {
+      if (prompt.responseType == ResponseType.audio) {
         audioPromptCount = widget.diary.prompts.indexOf(prompt) + 1;
         if (prompt.answer?.recordings != null) {
           totalRecordingCount += prompt.answer!.recordings.length;

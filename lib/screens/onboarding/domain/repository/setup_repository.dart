@@ -584,7 +584,8 @@ class SetupRepository {
       // Clear all saved recordings
       final dir = await getApplicationDocumentsDirectory();
       final paths = ['recordings', 'images', 'videos']
-          .map((folder) => p.join(dir.path, folder)).toList();
+          .map((folder) => p.join(dir.path, folder))
+          .toList();
 
       await Future.wait(paths.map((path) async {
         final pathDir = Directory(path);

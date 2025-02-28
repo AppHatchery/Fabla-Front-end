@@ -169,7 +169,7 @@
     },
     {
       "id": "5:8772867094899341742",
-      "lastPropertyId": "7:2145501645015716071",
+      "lastPropertyId": "9:2371406240884662852",
       "name": "Prompt",
       "properties": [
         {
@@ -210,6 +210,16 @@
           "id": "7:2145501645015716071",
           "name": "responseTypeValue",
           "type": 6
+        },
+        {
+          "id": "8:7773254165595787356",
+          "name": "questionNumber",
+          "type": 6
+        },
+        {
+          "id": "9:2371406240884662852",
+          "name": "multipleAnswer",
+          "type": 1
         }
       ],
       "relations": []
