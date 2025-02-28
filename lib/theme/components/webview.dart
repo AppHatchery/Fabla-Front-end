@@ -71,14 +71,13 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
       }
       
       // Execute the function and return the result
-      return JSON.stringify(detectPhrases());
+      return detectPhrases();
     })();
     ''';
 
     final data = await controller.runJavaScriptReturningResult(javaScript);
-    final result = bool.parse(data.toString());
 
-    if (result && mounted) {
+    if (data == true && mounted) {
       _checkTimer?.cancel();
       widget.onComplete(true);
     }

@@ -36,86 +36,96 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     localizations = MaterialLocalizations.of(context);
-    return Scaffold(
-      backgroundColor: CustomColors.fillNormal,
-      resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        backgroundColor: CustomColors.fillNormal,
-        scrolledUnderElevation: 0.0,
-        title: Text(
-          "Participant Details",
-          style: CustomTypography().titleLarge(),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-            onPressed: () => Navigator.pop(context, updated),
-            icon: Icon(
-              Icons.arrow_back_rounded,
-              size: 32,
-            )),
-        shape: const Border(
-            bottom: BorderSide(
-          color: CustomColors.productBorderNormal,
-          width: 2,
-        )),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Important Note
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6, bottom: 12),
-                    child: Text(
-                      "Important Note",
-                      style: CustomTypography()
-                          .titleLarge(color: CustomColors.textNormalContent),
-                    ),
-                  ),
-                ],
-              ),
+    return PopScope<bool>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, bool? result) {
+        if (didPop) {
+          return;
+        }
 
-              Container(
-                width: width,
-                padding: const EdgeInsets.all(16),
-                decoration: ShapeDecoration(
-                  color: Color(0xFFD0DEF4),
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(width: 2, color: Color(0xFF4396FE)),
-                    borderRadius: BorderRadius.circular(11),
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        Navigator.pop(context, updated);
+      },
+      child: Scaffold(
+        backgroundColor: CustomColors.fillNormal,
+        resizeToAvoidBottomInset: true,
+        appBar: AppBar(
+          backgroundColor: CustomColors.fillNormal,
+          scrolledUnderElevation: 0.0,
+          title: Text(
+            "Participant Details",
+            style: CustomTypography().titleLarge(),
+          ),
+          centerTitle: true,
+          leading: IconButton(
+              onPressed: () => Navigator.pop(context, updated),
+              icon: Icon(
+                Icons.arrow_back_rounded,
+                size: 32,
+              )),
+          shape: const Border(
+              bottom: BorderSide(
+            color: CustomColors.productBorderNormal,
+            width: 2,
+          )),
+        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Important Note
+                Row(
                   children: [
-                    Icon(
-                      Icons.warning_rounded,
-                      size: 24,
-                      color: Color(0xFF0066E6),
-                    ),
-                    const SizedBox(
-                      width: 8,
-                    ),
-                    Expanded(
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6, bottom: 12),
                       child: Text(
-                        "Changing the settings here will change the properties related to the study. Please only do so under the researcher’s instructions.",
+                        "Important Note",
                         style: CustomTypography()
-                            .bodyLarge(color: Color(0xFF0066E6)),
+                            .titleLarge(color: CustomColors.textNormalContent),
                       ),
                     ),
                   ],
                 ),
-              ),
 
-              const SizedBox(
-                height: 40,
-              ),
+                Container(
+                  width: width,
+                  padding: const EdgeInsets.all(16),
+                  decoration: ShapeDecoration(
+                    color: Color(0xFFD0DEF4),
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(width: 2, color: Color(0xFF4396FE)),
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.warning_rounded,
+                        size: 24,
+                        color: Color(0xFF0066E6),
+                      ),
+                      const SizedBox(
+                        width: 8,
+                      ),
+                      Expanded(
+                        child: Text(
+                          "Changing the settings here will change the properties related to the study. Please only do so under the researcher’s instructions.",
+                          style: CustomTypography()
+                              .bodyLarge(color: Color(0xFF0066E6)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-              questionList(),
-            ],
+                const SizedBox(
+                  height: 40,
+                ),
+
+                questionList(),
+              ],
+            ),
           ),
         ),
       ),

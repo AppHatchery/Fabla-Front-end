@@ -44,18 +44,19 @@ String formatDateShort(DateTime dateTime) {
 
 /// Returns: Month/Day/Year
 String formatDateOnly(DateTime date) {
-  final DateFormat formatter = DateFormat.yMd();
+  final DateFormat formatter = DateFormat('yyyy-MM-dd');
   return formatter.format(date);
 }
 
 /// Reverses the top function
 DateTime stringDateOnlyToDateTime(String date) {
-  List<String> dateParts = date.split('/');
+  List<String> dateParts = date.split('-');
 
   // Parse the month, day, and year as integers
-  int month = int.parse(dateParts[0]);
-  int day = int.parse(dateParts[1]);
-  int year = int.parse(dateParts[2]);
+  int year = int.parse(dateParts[0]);
+  int month = int.parse(dateParts[1]);
+  int day = int.parse(dateParts[2]);
+  
 
   // Create a new DateTime object with just the date components
   // Time will be set to 00:00:00

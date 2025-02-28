@@ -34,19 +34,19 @@ class SummaryRepository {
   ///
   Future<DiaryModel> loadSummary(DiaryModel diary) async {
     try {
-      for (var i = 0; i < diary.prompts.length; i++) {
-        final newPrompt =
-            await promptRepository.load(diary, diary.prompts[i].id);
+      final List<PromptModel> cleanPrompts = [];
+      for (final prompt in diary.prompts) {
+        final newPrompt = promptRepository.load(diary, prompt.id);
         final isInstruction =
             newPrompt.responseType == ResponseType.instruction;
-        newPrompt.id = diary.prompts[i].id;
-        if (isInstruction) {
-          diary.prompts.removeAt(i);
-        } else {
-          diary.prompts[i] = newPrompt;
+        newPrompt.id = prompt.id;
+        if (!isInstruction) {
+          cleanPrompts.add(newPrompt);
         }
       }
-      return diary;
+      final newDiary = diary.copyWith(
+          id: diary.id, studyID: diary.studyID, prompts: cleanPrompts);
+      return newDiary;
     } catch (e) {
       dev.log("Error loading summary: $e",
           name: "SummaryRepository - loadSummary");

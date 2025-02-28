@@ -638,12 +638,14 @@ class TimerWidget extends StatefulWidget {
   final bool playbackControls;
   final bool userInteraction;
   final void Function(String) respond;
+  final Function(Function) addToPreFunction;
   const TimerWidget(
       {super.key,
       required this.time,
       required this.playbackControls,
       required this.userInteraction,
-      required this.respond});
+      required this.respond,
+      required this.addToPreFunction});
 
   @override
   State<TimerWidget> createState() => _TimerWidgetState();
@@ -909,7 +911,9 @@ class _TimerWidgetState extends State<TimerWidget>
           ? () {
               pause();
             }
-          : null,
+          : complete
+              ? stop
+              : null,
       child: Container(
         constraints: BoxConstraints(minWidth: 140),
         padding: const EdgeInsets.all(16),
@@ -1103,7 +1107,7 @@ class _TimerWidgetState extends State<TimerWidget>
   void add() {
     if (mounted) {
       setState(() {
-        duration += const Duration(seconds: 30);
+        duration = remaining + Duration(seconds: 30);
         remaining = duration;
         _progressController.duration = duration;
         minuteController.text = formatDurationMMOnly(remaining);
@@ -1116,10 +1120,10 @@ class _TimerWidgetState extends State<TimerWidget>
   void subtract() {
     if (mounted) {
       final isNegative =
-          (duration - Duration(seconds: 30)).inMilliseconds.isNegative;
+          (remaining - Duration(seconds: 30)).inMilliseconds.isNegative;
       if (!isNegative) {
         setState(() {
-          duration -= const Duration(seconds: 30);
+          duration = remaining - Duration(seconds: 30);
           remaining = duration;
           _progressController.duration = duration;
           minuteController.text = formatDurationMMOnly(remaining);
@@ -1190,6 +1194,7 @@ class _TimerWidgetState extends State<TimerWidget>
               widget.respond("Complete");
               complete = true;
               _shakeController.forward();
+              widget.addToPreFunction(() => stopAlarm());
             }
           });
         }

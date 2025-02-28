@@ -147,8 +147,8 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
           },
           todayBuilder: (context, date, time) {
             final _day = DateTime(date.year, date.month, date.day, 0, 0, 0);
-            final _selected =
-                DateTime(selectedDate.year, selectedDate.month, 0, 0, 0);
+            final _selected = DateTime(selectedDate.year, selectedDate.month,
+                selectedDate.day, 0, 0, 0);
             final color = (today == _selected || _day == _selected)
                 ? CustomColors.productNormal
                 : CustomColors.productLightBackground;

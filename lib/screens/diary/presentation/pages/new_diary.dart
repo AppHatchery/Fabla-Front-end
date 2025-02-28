@@ -48,6 +48,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   bool ableToContinue = false;
   bool showCloseIcon = true;
 
+  // Functions to run before moving to the next page
+  List<Function> preFunctions = [];
+
   //get page => currentPage = widget.diary.prompts.length;
 
   @override
@@ -81,6 +84,10 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   }
 
   void nextPage() {
+    for (var function in preFunctions) {
+      function();
+    }
+
     if (currentPage < widget.diary.prompts.length - 1) {
       track(timer.reset(), "Next");
       controller.nextPage(
@@ -274,6 +281,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               previousPage: previousPage,
               nextPage: nextPage,
               isLastPage: isCurrentPageLast,
+              addToPreFunction: (p0) {
+                preFunctions.add(p0);
+              },
             ))
         .toList();
   }
@@ -343,6 +353,7 @@ class QuestionPage extends StatefulWidget {
   final int currentPage;
   final VoidCallback nextPage;
   final VoidCallback previousPage;
+  final ValueChanged<Function> addToPreFunction;
   final bool? isLastPage;
 
   const QuestionPage({
@@ -354,6 +365,7 @@ class QuestionPage extends StatefulWidget {
     required this.answerAdded,
     required this.previousPage,
     required this.nextPage,
+    required this.addToPreFunction,
     this.isLastPage,
   });
 
@@ -526,10 +538,12 @@ class _QuestionPageState extends State<QuestionPage>
           respond: (answer) => save(prompt, answer, null));
     } else if (prompt.responseType == ResponseType.timer) {
       responseWidget = TimerWidget(
-          time: prompt.option?.timerLength ?? Duration(seconds: 30),
-          userInteraction: prompt.option?.userInteraction ?? false,
-          playbackControls: prompt.option?.playbackControl ?? false,
-          respond: (answer) => save(prompt, answer, null));
+        time: prompt.option?.timerLength ?? Duration(seconds: 30),
+        userInteraction: prompt.option?.userInteraction ?? false,
+        playbackControls: prompt.option?.playbackControl ?? false,
+        respond: (answer) => save(prompt, answer, null),
+        addToPreFunction: (p0) => {widget.addToPreFunction(p0)},
+      );
     } else if (prompt.responseType == ResponseType.image) {
       responseWidget = ImageWidget(
           diary: widget.diary,
