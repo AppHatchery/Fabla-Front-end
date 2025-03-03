@@ -73,9 +73,6 @@ class PromptRepository {
     required dynamic response,
     String? type,
   }) {
-    print(
-        "Saving response: $response for prompt: ${prompt.question} with type: $type");
-
     // Retrieve the current answer for the prompt
     final answer = prompt.answer;
     // Declare a variable to hold the updated prompt
