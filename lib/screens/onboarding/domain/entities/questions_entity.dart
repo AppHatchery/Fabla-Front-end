@@ -14,6 +14,8 @@ class QuestionsEntity {
   final int? min;
   final int? max;
   final int? defaultValue;
+  final String? minLabel;
+  final String? maxLabel;
   final String variable;
   String? answer;
 
@@ -26,6 +28,8 @@ class QuestionsEntity {
       this.min,
       this.max,
       this.defaultValue,
+      this.minLabel,
+      this.maxLabel,
       required this.variable,
       this.answer});
 
@@ -34,11 +38,16 @@ class QuestionsEntity {
         id: model.id,
         title: model.title,
         subtitle: model.subtitle,
-        options: model.options != null ? json.encode(model.options?.map((element) => element.toJson()).toList()): null,
+        options: model.options != null
+            ? json.encode(
+                model.options?.map((element) => element.toJson()).toList())
+            : null,
         type: model.type,
         min: model.min,
         max: model.max,
         defaultValue: model.defaultValue,
+        minLabel: model.minLabel,
+        maxLabel: model.maxLabel,
         variable: model.variable,
         answer: model.answer);
   }

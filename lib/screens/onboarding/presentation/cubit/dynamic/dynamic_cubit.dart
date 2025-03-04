@@ -1,7 +1,7 @@
-import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +22,8 @@ class DynamicCubit extends Cubit<DynamicState> {
         emit(DynamicLoaded(questions: questions));
       } else {
         upload();
+        // Clean the database first
+        setupRepository.clearStudies();
         await setupRepository.getStudies();
         emit(DynamicNone());
       }
@@ -30,7 +32,9 @@ class DynamicCubit extends Cubit<DynamicState> {
     }
   }
 
-  Future<int> count () async => await setupRepository.getOnBoardingQuestions().then((value) => value.length);
+  Future<int> count() async => await setupRepository
+      .getOnBoardingQuestions()
+      .then((value) => value.length);
 
   void save(Questions question, String answer) {
     try {
@@ -47,6 +51,9 @@ class DynamicCubit extends Cubit<DynamicState> {
     try {
       final result = await setupRepository.uploadOnBoardingQuestions();
       if (result) {
+        await PreferenceService().setStringPreference(
+            key: "onboardingSurveyCompletedDate",
+            value: DateTime.now().toString());
         emit(DynamicUploaded());
       } else {
         emit(const DynamicError("Failed to upload answers"));

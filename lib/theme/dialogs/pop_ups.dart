@@ -1234,3 +1234,51 @@ class ExitPopUp extends StatelessWidget {
     );
   }
 }
+
+class UpdatePopUp extends StatefulWidget {
+  const UpdatePopUp({super.key});
+
+  @override
+  State<UpdatePopUp> createState() => _UpdatePopUpState();
+}
+
+class _UpdatePopUpState extends State<UpdatePopUp> {
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      contentPadding: const EdgeInsets.all(0),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: CustomColors.fillWhite, width: 1)),
+      surfaceTintColor: CustomColors.fillWhite,
+      children: [
+        Container(
+          constraints: const BoxConstraints.tightFor(),
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+              color: CustomColors.fillWhite,
+              borderRadius: BorderRadius.all(Radius.circular(12))),
+          child: Center(
+            child: Column(
+              children: [
+                Text(
+                  "Updating Experiment Content",
+                  style: CustomTypography().headlineMedium(),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(
+                  height: 24,
+                ),
+                Text(
+                  "Hang tight! We're updating the experiment content. This won’t take long!",
+                  style: CustomTypography().bodyMedium(),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        )
+      ],
+    );
+  }
+}

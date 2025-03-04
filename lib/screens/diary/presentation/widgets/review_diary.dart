@@ -184,7 +184,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
 
   /// Returns an empty container or calls `getResponseWidget` based on availability of a response
   Widget getPromptWidget(PromptModel prompt) {
-    if (prompt.responseType == ResponseType.recording) {
+    if (prompt.responseType == ResponseType.audio) {
       if ((prompt.answer?.recordings.isEmpty ?? true) &&
           (prompt.answer?.response?.isEmpty ?? true)) {
         return Container();
@@ -213,7 +213,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
         return RadioQuestionSummary(
           selectedOption: prompt.answer?.response,
         );
-      case ResponseType.recording:
+      case ResponseType.audio:
         return prompt.answer!.recordings.isEmpty
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),

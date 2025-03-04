@@ -142,4 +142,13 @@ class DiaryDAO {
       return false;
     }
   }
+
+  int deleteDiaries(List<Diary> diaries) {
+    try {
+      final ids = diaries.map((diary) => diary.id).toList();
+      return box.removeMany(ids);
+    } catch (e) {
+      return 0;
+    }
+  }
 }

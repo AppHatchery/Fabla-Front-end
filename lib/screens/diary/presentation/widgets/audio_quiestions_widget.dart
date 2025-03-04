@@ -129,7 +129,7 @@ class AudioQuestionsWidget extends StatelessWidget {
                 Expanded(child: Center(child: responseWidget)),
                 if (diary.status != DiaryStatus.submitted &&
                     diary.status != DiaryStatus.missed &&
-                    prompt.responseType == ResponseType.recording)
+                    prompt.responseType == ResponseType.audio)
                   SizedBox(height: MediaQuery.of(context).size.height * 0),
                 // const CustomTextButton(
                 //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),

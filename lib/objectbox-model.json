@@ -169,7 +169,7 @@
     },
     {
       "id": "5:8772867094899341742",
-      "lastPropertyId": "7:2145501645015716071",
+      "lastPropertyId": "9:2371406240884662852",
       "name": "Prompt",
       "properties": [
         {
@@ -210,6 +210,16 @@
           "id": "7:2145501645015716071",
           "name": "responseTypeValue",
           "type": 6
+        },
+        {
+          "id": "8:7773254165595787356",
+          "name": "questionNumber",
+          "type": 6
+        },
+        {
+          "id": "9:2371406240884662852",
+          "name": "multipleAnswer",
+          "type": 1
         }
       ],
       "relations": []
@@ -331,7 +341,7 @@
     },
     {
       "id": "10:2851749120900257167",
-      "lastPropertyId": "10:4922930426466913637",
+      "lastPropertyId": "12:484686793405024867",
       "name": "QuestionsEntity",
       "properties": [
         {
@@ -383,6 +393,16 @@
         {
           "id": "10:4922930426466913637",
           "name": "answer",
+          "type": 9
+        },
+        {
+          "id": "11:7226026629410015265",
+          "name": "minLabel",
+          "type": 9
+        },
+        {
+          "id": "12:484686793405024867",
+          "name": "maxLabel",
           "type": 9
         }
       ],

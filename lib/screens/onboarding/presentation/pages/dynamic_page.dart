@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dynamic/dynamic_cubit.dart';
@@ -13,6 +14,7 @@ import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
+import 'package:audio_diaries_flutter/theme/components/calendar.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -402,6 +404,13 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
         stateMachineName = "Animation_7";
       });
       return "assets/animations/onboarding/time.riv";
+    } else if (widget.question.type == 'date') {
+      setState(() {
+        stateMachineName = "Animation_8";
+        foregroundHeight = 0.39;
+        loop = true;
+      });
+      return 'assets/animations/onboarding/hide_peek.riv';
     } else {
       //Select animation randomly
       final animations = [
@@ -504,8 +513,8 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       final value =
           question.answer != null ? double.parse(question.answer!) : null;
       return OnBoardingSlider(
-          scaleMinText: "Min",
-          scaleMaxText: "Max",
+          scaleMinText: question.minLabel ?? "",
+          scaleMaxText: question.maxLabel ?? "",
           scaleMin: question.min!,
           scaleMax: question.max!,
           value: value,
@@ -515,6 +524,25 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
               answer = value.toString();
             });
           });
+    } else if (question.type == 'date') {
+      final _date = answer != null ? stringDateOnlyToDateTime(answer!) : null;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            question.subtitle ?? "",
+            style: CustomTypography().titleLarge(),
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          CustomDatePicker(
+              date: _date,
+              onSelect: (date) => setState(() {
+                    answer = formatDateOnly(date);
+                  })),
+        ],
+      );
     } else {
       return const SizedBox.shrink();
     }
@@ -595,7 +623,8 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+                                  padding: const EdgeInsets.only(
+                                      left: 16.0, right: 16.0),
                                   child: Text(
                                     "Hooray $name! Now a couple of extra questions to customize this study for you",
                                     style: CustomTypography().headlineLarge(
@@ -619,7 +648,8 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
+                padding: const EdgeInsets.only(
+                    left: 16.0, right: 16.0, bottom: 34.0),
                 child: CustomFlatButton(
                   onClick: () => widget.onContinue(),
                   text: "Continue",

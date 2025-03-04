@@ -68,7 +68,9 @@ class PromptCubit extends Cubit<PromptState> {
           response: response,
           type: type);
       if (saved) {
-        if (prompt.responseType == ResponseType.recording) {
+        if (prompt.responseType == ResponseType.audio ||
+            prompt.responseType == ResponseType.textAudio ||
+            prompt.responseType == ResponseType.text) {
           showSuccessModal();
         }
       }

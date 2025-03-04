@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
+import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
@@ -498,5 +499,29 @@ class DiaryRepository {
 
   bool removeAllDiaries() {
     return _diaryDAO.deleteAllDiaries();
+  }
+
+  /// Removing all the diaries that start after now
+  bool removeDiariesFrom(DateTime now) {
+    final all = getAllDiaries();
+
+    // filter
+    // ! What if there is a change in the current diary the user is replying to
+    final filtered = all
+        .where((diary) =>
+            diary.start.isAfter(now) &&
+            (diary.status != DiaryStatus.submitted &&
+                diary.status != DiaryStatus.ongoing &&
+                diary.status != DiaryStatus.complete))
+        .map((model) => Diary.fromModel(model))
+        .toList();
+
+    // Cancel all notifications
+    for (var diary in filtered) {
+      NotificationManager().cancelDiaryNotifications(diary.id);
+    }
+
+    final result = _diaryDAO.deleteDiaries(filtered);
+    return result > 0 ? true : false;
   }
 }

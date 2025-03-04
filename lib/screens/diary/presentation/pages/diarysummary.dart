@@ -371,8 +371,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         return RadioQuestionSummary(
           selectedOption: prompt.answer!.response!,
         );
-      case ResponseType.recording:
-        return prompt.answer!.recordings.isEmpty
+      case ResponseType.audio || ResponseType.textAudio:
+        return prompt.answer != null && prompt.answer!.recordings.isEmpty
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
@@ -380,22 +380,24 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   delete: () => deleteResponse(prompt, ''),
                 ),
               )
-            : ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: prompt.answer!.recordings.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6.0),
-                    child: NewAudioCard(
-                      recording: prompt.answer!.recordings[index],
-                      delete: () => deleteResponse(
-                          prompt, prompt.answer!.recordings[index].path),
-                      viewOnly: true,
-                      promptId: prompt.id,
-                    ),
-                  );
-                });
+            : prompt.answer != null
+                ? ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: prompt.answer?.recordings.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6.0),
+                        child: NewAudioCard(
+                          recording: prompt.answer!.recordings[index],
+                          delete: () => deleteResponse(
+                              prompt, prompt.answer!.recordings[index].path),
+                          viewOnly: true,
+                          promptId: prompt.id,
+                        ),
+                      );
+                    })
+                : const SizedBox.shrink();
       case ResponseType.text:
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 6.0),
@@ -479,7 +481,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
               return BottomRecordingModal(
                 promptId: prompt.id,
                 question: prompt.question,
-                limit: prompt.option?.audioLength,
+                limit: prompt.option?.maxLength,
+                suggested: prompt.option?.suggestedLength,
                 hint: hint,
                 onSave: (value) {
                   summaryCubit.saveResponse(
@@ -504,7 +507,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
       int totalRecordingCount = 0;
       List<int> individualRecordingSizes = [];
       int totalRecordingDurationInSeconds = 0;
-      if (prompt.responseType == ResponseType.recording) {
+      if (prompt.responseType == ResponseType.audio) {
         audioPromptCount = widget.diary.prompts.indexOf(prompt) + 1;
         if (prompt.answer?.recordings != null) {
           totalRecordingCount += prompt.answer!.recordings.length;

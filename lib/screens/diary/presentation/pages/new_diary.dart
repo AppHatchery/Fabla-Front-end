@@ -48,6 +48,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   bool ableToContinue = false;
   bool showCloseIcon = true;
 
+  // Functions to run before moving to the next page
+  List<Function> preFunctions = [];
+
   //get page => currentPage = widget.diary.prompts.length;
 
   @override
@@ -81,6 +84,10 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   }
 
   void nextPage() {
+    for (var function in preFunctions) {
+      function();
+    }
+
     if (currentPage < widget.diary.prompts.length - 1) {
       track(timer.reset(), "Next");
       controller.nextPage(
@@ -274,6 +281,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               previousPage: previousPage,
               nextPage: nextPage,
               isLastPage: isCurrentPageLast,
+              addToPreFunction: (p0) {
+                preFunctions.add(p0);
+              },
             ))
         .toList();
   }
@@ -343,6 +353,7 @@ class QuestionPage extends StatefulWidget {
   final int currentPage;
   final VoidCallback nextPage;
   final VoidCallback previousPage;
+  final ValueChanged<Function> addToPreFunction;
   final bool? isLastPage;
 
   const QuestionPage({
@@ -354,6 +365,7 @@ class QuestionPage extends StatefulWidget {
     required this.answerAdded,
     required this.previousPage,
     required this.nextPage,
+    required this.addToPreFunction,
     this.isLastPage,
   });
 
@@ -512,7 +524,7 @@ class _QuestionPageState extends State<QuestionPage>
         respond: (String type) => recordResponse(prompt, type),
         prompt: prompt,
       );
-    } else if (prompt.responseType == ResponseType.recording ||
+    } else if (prompt.responseType == ResponseType.audio ||
         prompt.responseType == ResponseType.textAudio) {
       responseWidget = AudioTextCard(
         diary: widget.diary,
@@ -526,14 +538,23 @@ class _QuestionPageState extends State<QuestionPage>
           respond: (answer) => save(prompt, answer, null));
     } else if (prompt.responseType == ResponseType.timer) {
       responseWidget = TimerWidget(
-          time: prompt.subtitle ?? '00:30',
-          respond: (answer) => save(prompt, answer, null));
+        time: prompt.option?.timerLength ?? Duration(seconds: 30),
+        userInteraction: prompt.option?.userInteraction ?? false,
+        playbackControls: prompt.option?.playbackControl ?? false,
+        respond: (answer) => save(prompt, answer, null),
+        addToPreFunction: (p0) => {widget.addToPreFunction(p0)},
+      );
     } else if (prompt.responseType == ResponseType.image) {
       responseWidget = ImageWidget(
           diary: widget.diary,
           prompt: prompt,
           respond: (answer) => save(prompt, answer, 'image'));
     } else if (prompt.responseType == ResponseType.video) {
+      responseWidget = VideoWidget(
+          diary: widget.diary,
+          prompt: prompt,
+          respond: (answer) => save(prompt, answer, 'video'));
+    } else if (prompt.responseType == ResponseType.imageVideo) {
       responseWidget = VideoWidget(
           diary: widget.diary,
           prompt: prompt,
@@ -560,7 +581,7 @@ class _QuestionPageState extends State<QuestionPage>
           'Hit the “Start” button to begin meditation countdown.\nDuring the countdown, if you leave the page, the timer will continue on the background.';
     }
 
-    return (prompt.responseType == ResponseType.recording ||
+    return (prompt.responseType == ResponseType.audio ||
             prompt.responseType == ResponseType.textAudio)
         ? AudioQuestionsWidget(
             diary: widget.diary,
@@ -569,7 +590,7 @@ class _QuestionPageState extends State<QuestionPage>
             responseWidget: responseWidget,
             bottomSheetController: _bottomSheetController,
           )
-        : prompt.responseType == ResponseType.instructions
+        : prompt.responseType == ResponseType.instruction
             ? SizedBox(
                 child: CustomFormatterText(text: prompt.question),
               )
@@ -629,7 +650,7 @@ class _QuestionPageState extends State<QuestionPage>
                       responseWidget,
                       if (widget.diary.status != DiaryStatus.submitted &&
                           widget.diary.status != DiaryStatus.missed &&
-                          prompt.responseType == ResponseType.recording)
+                          prompt.responseType == ResponseType.audio)
                         SizedBox(
                             height: MediaQuery.of(context).size.height * 0.3),
 
@@ -651,9 +672,9 @@ class _QuestionPageState extends State<QuestionPage>
   void checkForResponse(PromptModel prompt1) {
     bool isValidResponse = false;
     final answer = prompt1.answer;
-    if (prompt1.responseType == ResponseType.instructions) {
+    if (prompt1.responseType == ResponseType.instruction) {
       isValidResponse = true;
-    } else if (prompt1.responseType != ResponseType.recording) {
+    } else if (prompt1.responseType != ResponseType.audio) {
       isValidResponse = answer?.response?.isNotEmpty ?? false;
     } else {
       isValidResponse = (answer?.response?.isNotEmpty ?? false) ||
@@ -684,7 +705,8 @@ class _QuestionPageState extends State<QuestionPage>
                     promptId: prompt.id,
                     question: prompt.question,
                     hint: hint,
-                    limit: prompt.option?.audioLength,
+                    limit: prompt.option?.maxLength,
+                    suggested: prompt.option?.suggestedLength,
                     onSave: (value) {
                       save(prompt, value.toString(), "audio");
                     },
@@ -739,7 +761,7 @@ class _QuestionPageState extends State<QuestionPage>
     promptCubit.saveResponse(
         diary: widget.diary, prompt: prompt, response: response, type: type);
     cancelContinueNotifications(widget.diary.id);
-    if (!isClicked) {
+    if (!isClicked && mounted) {
       setState(() {
         isClicked = true;
       });

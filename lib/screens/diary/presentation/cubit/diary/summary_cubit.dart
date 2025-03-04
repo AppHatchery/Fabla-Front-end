@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'dart:developer' as dev;
 
 import '../../../data/diary.dart';
 
@@ -30,7 +31,7 @@ class SummaryCubit extends Cubit<SummaryState> {
         emit(SummaryLoaded(value));
       });
     } catch (e) {
-      print("Error loading summary: $e");
+      dev.log("Error loading summary: $e", name: "SummaryCubit - loadSummary");
     }
   }
 
@@ -51,7 +52,7 @@ class SummaryCubit extends Cubit<SummaryState> {
     try {
       _summaryRepository.saveResponse(prompt, path);
     } catch (e) {
-      print("Error saving response: $e");
+      dev.log("Error saving response: $e", name: "SummaryCubit - saveResponse");
     } finally {
       loadSummary(diary);
     }
@@ -78,7 +79,7 @@ class SummaryCubit extends Cubit<SummaryState> {
         }
       });
     } catch (e) {
-      print("Error deleting response: $e");
+      dev.log("Error deleting response: $e", name: "SummaryCubit - removeResponse");
     }
   }
 
@@ -115,7 +116,7 @@ class SummaryCubit extends Cubit<SummaryState> {
         emit(const SubmitError());
       }
     } catch (e) {
-      print("Error submitting diary: $e");
+      dev.log("Error submitting diary: $e", name: "SummaryCubit - submitDiary");
       emit(const SubmitError());
     }
   }

@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -12,15 +11,18 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/sum
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.dart';
+import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dynamic/dynamic_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/study_login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
+import 'package:audio_diaries_flutter/screens/settings/cubit/settings_cubit.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -41,11 +43,8 @@ import 'screens/home/presentation/cubit/cubit/home_cubit.dart';
 import 'services/notification_service.dart';
 
 import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
-import 'package:amplify_analytics_pinpoint/amplify_analytics_pinpoint.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:audio_diaries_flutter/core/notifications/controllers/notifications_controller.dart';
-import 'amplifyconfiguration.dart'; // Add this import
 
 //Global variables
 late ObjectBox objectbox;
@@ -112,10 +111,7 @@ class _MyAppState extends State<MyApp> {
   initState() {
     NotificationService.setListeners();
     _route = widget.route;
-    // final repo = SetupRepository();
-    // repo.createProtocol();
     super.initState();
-    // initPlatformState();
   }
 
   @override
@@ -142,7 +138,10 @@ class _MyAppState extends State<MyApp> {
                     create: (context) => DiaryHistoryCubit()),
                 BlocProvider<CompletionCubit>(
                     create: (context) => CompletionCubit()),
-                BlocProvider<DynamicCubit>(create: (context) => DynamicCubit())
+                BlocProvider<DynamicCubit>(create: (context) => DynamicCubit()),
+                BlocProvider<HubCubit>(create: (context) => HubCubit()),
+                BlocProvider<SettingsCubit>(
+                    create: (context) => SettingsCubit()),
               ],
               child: MaterialApp(
                 title: 'Audio Diaries',
@@ -194,6 +193,11 @@ class Hub extends StatefulWidget {
 
 class _HubState extends State<Hub>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  // used to refresh the page for updating
+  Key key = UniqueKey();
+  final ValueNotifier<bool> completeNotifier = ValueNotifier(false);
+
+  late HubCubit cubit;
   late TabController tabController;
   List<Tab> navigationBars = [];
   static const pages = [
@@ -205,6 +209,7 @@ class _HubState extends State<Hub>
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
+    cubit = BlocProvider.of<HubCubit>(context);
     tabController = TabController(length: pages.length, vsync: this);
     startPendo();
     _makeNavBars();
@@ -229,34 +234,48 @@ class _HubState extends State<Hub>
   @override
   Widget build(BuildContext context) {
     final isIos = Platform.isIOS;
-    return Scaffold(
-      body: TabBarView(
-          physics: const NeverScrollableScrollPhysics(),
-          controller: tabController,
-          children: pages),
-      bottomNavigationBar: Material(
-        color: CustomColors.fillWhite,
-        child: Container(
-          decoration: const BoxDecoration(
-            border: Border(
-              top: BorderSide(
-                color: CustomColors.productBorderNormal,
-                width: 1.0,
+    return KeyedSubtree(
+      key: key,
+      child: BlocConsumer<HubCubit, HubState>(
+        listener: (context, state) {
+          if (state is HubUpdating) {
+            showUpdateDialog();
+          } else if (state is HubUpdated) {
+            completeUpdate();
+          }
+        },
+        builder: (context, state) {
+          return Scaffold(
+            body: TabBarView(
+                physics: const NeverScrollableScrollPhysics(),
+                controller: tabController,
+                children: pages),
+            bottomNavigationBar: Material(
+              color: CustomColors.fillWhite,
+              child: Container(
+                decoration: const BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: CustomColors.productBorderNormal,
+                      width: 1.0,
+                    ),
+                  ),
+                ),
+                child: TabBar(
+                  controller: tabController,
+                  tabs: navigationBars,
+                  labelColor: CustomColors.productNormal,
+                  unselectedLabelColor: Colors.black,
+                  indicatorColor: Colors.transparent,
+                  indicatorWeight: 2,
+                  indicator: null,
+                  padding: EdgeInsets.only(bottom: isIos ? 34 : 0),
+                  dividerColor: Colors.transparent,
+                ),
               ),
             ),
-          ),
-          child: TabBar(
-            controller: tabController,
-            tabs: navigationBars,
-            labelColor: CustomColors.productNormal,
-            unselectedLabelColor: Colors.black,
-            indicatorColor: Colors.transparent,
-            indicatorWeight: 2,
-            indicator: null,
-            padding: EdgeInsets.only(bottom: isIos ? 34 : 0),
-            dividerColor: Colors.transparent,
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -296,5 +315,40 @@ class _HubState extends State<Hub>
         text: "Settings",
       ),
     ]);
+  }
+
+  void completeUpdate() {
+    if (mounted) {
+      setState(() => completeNotifier.value = true);
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      }).then((_) {
+        Future.delayed(const Duration(seconds: 1), () {
+          setState(() => key = UniqueKey());
+        });
+      });
+    }
+  }
+
+  showUpdateDialog() {
+    if (mounted) {
+      setState(() {
+        completeNotifier.value = false;
+      });
+    }
+    showModalBottomSheet(
+        context: context,
+        isDismissible: false,
+        enableDrag: false,
+        useSafeArea: true,
+        builder: (context) => Wrap(
+              children: [
+                BottomUpdateModal(
+                  completeNotifier: completeNotifier,
+                ),
+              ],
+            ));
   }
 }

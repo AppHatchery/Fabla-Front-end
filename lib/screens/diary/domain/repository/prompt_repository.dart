@@ -128,7 +128,9 @@ class PromptRepository {
         return false;
       }
 
-      if (prompt.responseType == ResponseType.text) {
+      if (prompt.responseType == ResponseType.text ||
+          (prompt.responseType == ResponseType.textAudio &&
+              answer.response != null)) {
         answer.response = null;
         final updatedPrompt = Prompt.fromModel(prompt.copyWith(answer: answer));
         updatedPrompt.diary.target = diary;
@@ -142,9 +144,17 @@ class PromptRepository {
       if (answer.recordings.isNotEmpty) {
         _path = p.join(dir.path, 'recordings', path);
       } else if (prompt.responseType == ResponseType.image) {
-        _path = p.join(dir.path, 'images', answer.response);
+        _path = p.join(
+            dir.path,
+            'images',
+            answer
+                .response); //TODO: remove the path from the answer to recordings
       } else if (prompt.responseType == ResponseType.video) {
-        _path = p.join(dir.path, 'videos', answer.response);
+        _path = p.join(
+            dir.path,
+            'videos',
+            answer
+                .response); //TODO: remove the path from the answer to recordings
       }
       final file = File(_path);
       await file.delete();

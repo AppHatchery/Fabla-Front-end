@@ -1,5 +1,4 @@
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -150,10 +149,6 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
 
     await PendoService.track("FinishOnBoarding",
         {"datetime": DateTime.now().toString(), "startDate": start.toString()});
-
-    // removing all onboarding dynamic questions (if any)
-    final setupRepository = SetupRepository();
-    setupRepository.removeAllQuestions();
 
     if (context.mounted) {
       track(timer.stop(), "Finished");

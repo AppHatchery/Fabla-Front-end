@@ -12,6 +12,8 @@ class Questions extends Equatable {
   final int? min;
   final int? max;
   final int? defaultValue;
+  final String? minLabel;
+  final String? maxLabel;
   final String variable;
   final String? answer;
 
@@ -24,6 +26,8 @@ class Questions extends Equatable {
       required this.min,
       required this.max,
       required this.defaultValue,
+      required this.minLabel,
+      required this.maxLabel,
       required this.variable,
       required this.answer});
 
@@ -32,13 +36,17 @@ class Questions extends Equatable {
         id: 0,
         title: json['title'],
         subtitle: json['subtitle'],
-        options: json['options'] != null ? (json['options'] as List<dynamic>)
-            .map((element) => Option.fromJson(element))
-            .toList() : null,
+        options: json['options'] != null
+            ? (json['options'] as List<dynamic>)
+                .map((element) => Option.fromJson(element))
+                .toList()
+            : null,
         type: json['type'],
         min: json['min_value'],
         max: json['max_value'],
         defaultValue: json['default_value'],
+        minLabel: json['min_label'],
+        maxLabel: json['max_label'],
         variable: json['variable'],
         answer: null);
   }
@@ -54,6 +62,8 @@ class Questions extends Equatable {
       'min_value': min,
       'max_value': max,
       'default_value': defaultValue,
+      'min_label': minLabel,
+      'max_label': maxLabel,
       'variable': variable,
       'answer': answer
     };
@@ -64,13 +74,17 @@ class Questions extends Equatable {
         id: entity.id,
         title: entity.title,
         subtitle: entity.subtitle,
-        options:entity.options != null ? (jsonDecode(entity.options!) as List<dynamic>)
-            .map((element) => Option.fromJson(element))
-            .toList() : null,
+        options: entity.options != null
+            ? (jsonDecode(entity.options!) as List<dynamic>)
+                .map((element) => Option.fromJson(element))
+                .toList()
+            : null,
         type: entity.type,
         min: entity.min,
         max: entity.max,
         defaultValue: entity.defaultValue,
+        minLabel: entity.minLabel,
+        maxLabel: entity.maxLabel,
         variable: entity.variable,
         answer: entity.answer);
   }
@@ -84,6 +98,8 @@ class Questions extends Equatable {
     int? min,
     int? max,
     int? defaultValue,
+    String? minLabel,
+    String? maxLabel,
     String? variable,
     String? answer,
   }) {
@@ -96,6 +112,8 @@ class Questions extends Equatable {
       min: min ?? this.min,
       max: max ?? this.max,
       defaultValue: defaultValue ?? this.defaultValue,
+      minLabel: minLabel ?? this.minLabel,
+      maxLabel: maxLabel ?? this.maxLabel,
       variable: variable ?? this.variable,
       answer: answer,
     );
@@ -111,6 +129,8 @@ class Questions extends Equatable {
         min,
         max,
         defaultValue,
+        minLabel,
+        maxLabel,
         variable,
         answer
       ];

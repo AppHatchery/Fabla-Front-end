@@ -104,8 +104,8 @@ class HomeCubit extends Cubit<HomeState> {
   Future<bool> noMoreDiaries() async {
     final today = DateTime.now();
     final diaries = await getAllDiaries();
-    final last = diaries.last;
-    return today.isAfter(last.due);
+    final last = diaries.where((diary) => diary.due.isAfter(today)).toList();
+    return last.isEmpty;
   }
 }
 
