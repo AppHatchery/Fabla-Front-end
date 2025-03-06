@@ -54,7 +54,7 @@ class _MyResponseState extends State<MyResponse> {
                   edit: widget.edit,
                   answer: widget.prompt.answer!.response!,
                   callerWidget: "diary",
-                  delete: () => deleteResponse(widget.prompt, ''),
+                  delete: () => deleteResponse(widget.prompt, null),
                 ),
               )
             : ListView.builder(
@@ -80,7 +80,7 @@ class _MyResponseState extends State<MyResponse> {
     );
   }
 
-  void deleteResponse(PromptModel loadedPrompt, String path) {
+  void deleteResponse(PromptModel loadedPrompt, String? path) {
     final promptCubit = context.read<PromptCubit>();
     promptCubit.removeResponse(
         diary: widget.diary, path: path, prompt: loadedPrompt);

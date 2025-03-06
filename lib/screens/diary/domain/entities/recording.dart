@@ -8,11 +8,13 @@ class Recording {
   int id;
   String name;
   String path;
+  String type;
   String? transcript;
   @Property(type: PropertyType.date)
   DateTime date;
 
   final answer = ToOne<Answer>();
 
-  Recording(this.name, this.path, this.transcript, this.date, {this.id = 0});
+  Recording(this.name, this.path, this.type, this.transcript, this.date,
+      {this.id = 0});
 }

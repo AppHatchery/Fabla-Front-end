@@ -3,16 +3,19 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:alarm/alarm.dart';
+import 'package:alarm/model/volume_settings.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1258,8 +1261,8 @@ class _TimerWidgetState extends State<TimerWidget>
             assetAudioPath: 'assets/audio/chime.mp3',
             loopAudio: true,
             vibrate: true,
-            volume: 1.0,
-            fadeDuration: 0.0,
+            volumeSettings: VolumeSettings.fade(
+                fadeDuration: const Duration(milliseconds: 500), volume: 1.0),
             warningNotificationOnKill: Platform.isIOS,
             androidFullScreenIntent: false,
             notificationSettings: const NotificationSettings(
@@ -1283,181 +1286,105 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 }
 
-class ImageWidget extends StatefulWidget {
-  final void Function(String) respond;
-  final DiaryModel diary;
-  final PromptModel prompt;
-  const ImageWidget(
-      {super.key,
-      required this.diary,
-      required this.prompt,
-      required this.respond});
-
-  @override
-  State<ImageWidget> createState() => _ImageWidgetState();
-}
-
-class _ImageWidgetState extends State<ImageWidget> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            widget.prompt.answer?.response == null
-                ? CustomFlatButton(
-                    onClick: () => showModal(),
-                    text: "Take a Picture",
-                  )
-                : Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                              delete();
-                            },
-                            icon: const Icon(CupertinoIcons.delete),
-                            color: CustomColors.warningActive,
-                            iconSize: 20,
-                          )
-                        ],
-                      ),
-                      SizedBox(
-                          width: width,
-                          child: ImageViewer(
-                              name: widget.prompt.answer!.response!)),
-                    ],
-                  )
-          ],
-        ));
-  }
-
-  delete() async {
-    final result = await showDialog<bool>(
-        context: context,
-        builder: (context) => DeletePopUp(
-              title: Strings.deletePopUpTitle,
-              subheader: Strings.deletePopUpSubheader,
-            ));
-
-    if (result == true && mounted) {
-      final promptCubit = context.read<PromptCubit>();
-      promptCubit.removeResponse(
-          diary: widget.diary, path: "", prompt: widget.prompt);
-    }
-  }
-
-  void showModal() {
-    showModalBottomSheet(
-        backgroundColor: Colors.transparent,
-        context: context,
-        isScrollControlled: true,
-        isDismissible: false,
-        enableDrag: false,
-        elevation: 0,
-        useSafeArea: true,
-        builder: (context) => DraggableScrollableSheet(
-              initialChildSize: 1,
-              minChildSize: 1,
-              snap: true,
-              builder: (context, scrollController) {
-                return BottomCameraModal(
-                  respond: widget.respond,
-                  prompt: widget.prompt,
-                );
-              },
-            ));
-  }
-}
-
 class ImageViewer extends StatefulWidget {
-  final String name;
-  const ImageViewer({super.key, required this.name});
+  final File file;
+  const ImageViewer({super.key, required this.file});
 
   @override
   State<ImageViewer> createState() => _ImageViewerState();
 }
 
 class _ImageViewerState extends State<ImageViewer> {
-  File? file;
-
-  @override
-  initState() {
-    imageInit();
-    super.initState();
-  }
-
-  imageInit() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final path = p.join(dir.path, 'images', widget.name);
-    setState(() {
-      file = File(path);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return file != null ? Image.file(file!) : SizedBox.shrink();
+    return Image.file(widget.file);
   }
 }
 
-class VideoWidget extends StatefulWidget {
+class VisualResponseWidget extends StatefulWidget {
   final void Function(String) respond;
   final DiaryModel diary;
   final PromptModel prompt;
-  const VideoWidget(
+  const VisualResponseWidget(
       {super.key,
       required this.diary,
       required this.prompt,
       required this.respond});
 
   @override
-  State<VideoWidget> createState() => _VideoWidgetState();
+  State<VisualResponseWidget> createState() => _VisualResponseWidgetState();
 }
 
-class _VideoWidgetState extends State<VideoWidget> {
+class _VisualResponseWidgetState extends State<VisualResponseWidget> {
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            widget.prompt.answer?.response == null
-                ? Column(
-                    children: [
-                      widget.prompt.responseType == ResponseType.imageVideo
-                          ? CustomFlatButton(
-                              onClick: () => showModal(isImage: true),
-                              text: "Take a Picture",
-                            )
-                          : const SizedBox.shrink(),
-                      CustomFlatButton(
+            Column(
+              children: [
+                widget.prompt.responseType == ResponseType.image ||
+                        widget.prompt.responseType == ResponseType.imageVideo
+                    ? CustomButton(
+                        onClick: () => showModal(isImage: true),
+                        children: [
+                          Icon(
+                            CupertinoIcons.camera_fill,
+                            color: CustomColors.fillWhite,
+                            size: 24,
+                          ),
+                          const SizedBox(
+                            width: 8,
+                          ),
+                          Text(
+                            widget.prompt.answer?.recordings.isNotEmpty ?? false
+                                ? 'Add Picture'
+                                : 'Open Camera',
+                            style: CustomTypography()
+                                .button(color: CustomColors.textWhite),
+                          )
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+                widget.prompt.responseType == ResponseType.video ||
+                        widget.prompt.responseType == ResponseType.imageVideo
+                    ? CustomButton(
                         onClick: () => showModal(isImage: false),
-                        text: "Take a Video",
-                      ),
-                    ],
+                        children: [
+                          Icon(
+                            CupertinoIcons.camera_fill,
+                            color: CustomColors.fillWhite,
+                            size: 24,
+                          ),
+                          const SizedBox(
+                            width: 8,
+                          ),
+                          Text(
+                            'Open Camera',
+                            style: CustomTypography()
+                                .button(color: CustomColors.textWhite),
+                          )
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+              ],
+            ),
+            const SizedBox(height: 32),
+            widget.prompt.answer?.recordings.isNotEmpty ?? false
+                ? SizedBox(
+                    child: Preview(
+                      recordings: widget.prompt.answer!.recordings,
+                      delete: (path) => delete(path),
+                    ),
                   )
-                : SizedBox(
-                    width: width,
-                    child: VideoViewer(
-                        name: widget.prompt.answer!.response!, delete: delete),
-                  )
+                : const SizedBox.shrink()
           ],
         ));
   }
 
-  delete() async {
+  delete(String path) async {
     final result = await showDialog<bool>(
         context: context,
         builder: (context) => DeletePopUp(
@@ -1468,7 +1395,7 @@ class _VideoWidgetState extends State<VideoWidget> {
     if (result == true && mounted) {
       final promptCubit = context.read<PromptCubit>();
       promptCubit.removeResponse(
-          diary: widget.diary, path: "", prompt: widget.prompt);
+          diary: widget.diary, path: path, prompt: widget.prompt);
     }
   }
 
@@ -1494,6 +1421,205 @@ class _VideoWidgetState extends State<VideoWidget> {
               },
             ));
   }
+}
+
+class Preview extends StatefulWidget {
+  final List<Recording> recordings;
+  final Function(String path) delete;
+  const Preview({super.key, required this.recordings, required this.delete});
+
+  @override
+  State<Preview> createState() => _PreviewState();
+}
+
+class _PreviewState extends State<Preview> {
+  final children = <Widget>[];
+
+  @override
+  void initState() {
+    getData();
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant Preview oldWidget) {
+    if (oldWidget.recordings != widget.recordings) {
+      children.clear();
+      getData();
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DottedBorder(
+        color: CustomColors.productNormalActive,
+        strokeWidth: 4,
+        radius: Radius.circular(4),
+        padding: const EdgeInsets.all(16),
+        dashPattern: [15, 15],
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: children,
+        ));
+  }
+
+  getData() async {
+    for (int i = 0; i < widget.recordings.length; i++) {
+      final recording = widget.recordings[i];
+      final path = await getPath(name: recording.path);
+      final file = File(path);
+
+      if (children.length >= 3) {
+        final remaining =
+            widget.recordings.length > 4 ? widget.recordings.sublist(4) : [];
+        final child = remaining.isNotEmpty
+            ? lastPreviewTile(file, remaining.length)
+            : previewTile(file, recording.path);
+        children.add(child);
+
+        break;
+      }
+      // final type = recording.type;
+
+      final child = previewTile(file, recording.path);
+      children.add(child);
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Widget previewTile(File file, String path) {
+    return GestureDetector(
+      onTap: () => showModal(file),
+      child: SizedBox(
+        height: 140,
+        width: 140,
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: Image.file(
+                file,
+                fit: BoxFit.cover,
+                height: 140,
+                width: 140,
+              ),
+            ),
+            Positioned(
+                top: 0,
+                right: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: GestureDetector(
+                    onTap: () => widget.delete(path),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          shape: BoxShape.circle, color: Color(0xFF616161)),
+                      child: Icon(
+                        Icons.remove,
+                        size: 28,
+                        color: CustomColors.fillWhite,
+                      ),
+                    ),
+                  ),
+                ))
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget lastPreviewTile(File file, int remaining) {
+    return SizedBox(
+      height: 140,
+      width: 140,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: Stack(
+          children: [
+            Container(
+              foregroundDecoration:
+                  BoxDecoration(color: Colors.black.withValues(alpha: 0.4)),
+              child: Image.file(
+                file,
+                fit: BoxFit.cover,
+                height: 140,
+                width: 140,
+              ),
+            ),
+            Center(
+              child: Text(
+                '+$remaining',
+                style: CustomTypography().custom(
+                    color: CustomColors.textWhite,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 24),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  void showModal(File file) {
+    final width = MediaQuery.of(context).size.width;
+    showModalBottomSheet(
+        backgroundColor: Colors.transparent,
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        elevation: 0,
+        useSafeArea: true,
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              minChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) {
+                return Container(
+                  width: width,
+                  decoration: const BoxDecoration(
+                    color: CustomColors.greyLight,
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(14),
+                        topRight: Radius.circular(14)),
+                  ),
+                  child: Column(
+                    children: [
+                      const SizedBox(
+                        height: 32,
+                      ),
+                      // Close Modal Button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: const Icon(
+                              CupertinoIcons.clear_circled_solid,
+                              size: 26,
+                              color: CustomColors.textSecondaryContent,
+                            ),
+                          )
+                        ],
+                      ),
+                      SizedBox(width: width, child: ImageViewer(file: file)),
+                    ],
+                  ),
+                );
+              },
+            ));
+  }
+}
+
+Future<String> getPath({required String name}) async {
+  final dir = await getApplicationDocumentsDirectory();
+  return p.join(dir.path, name);
 }
 
 class VideoViewer extends StatefulWidget {

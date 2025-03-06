@@ -5,8 +5,6 @@ import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.da
 
 import 'dart:io';
 import 'dart:developer' as dev;
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import '../../../../core/database/dao/prompt_dao.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
@@ -71,97 +69,87 @@ class PromptRepository {
     required Diary diary,
     required PromptModel prompt,
     required dynamic response,
-    String? type,
+    required String type,
   }) {
-    // Retrieve the current answer for the prompt
+    // Determine if the response is for media (audio, image, video)
+    final isMediaResponse = ['audio', 'image', 'video'].contains(type);
+    // Retrieve the current answer
     final answer = prompt.answer;
-    // Declare a variable to hold the updated prompt
-    late Prompt updatedPrompt;
 
-    // Create a new answer based on the response type
-    final newAnswer = type == "audio"
-        ? Answer(id: 0, date: DateTime.now()) // Create an audio answer
-        : Answer(
-            id: 0,
-            date: DateTime.now(),
-            response: response); // Create a text-based answer
+    // Create a new answer based on response type
+    final newAnswer = isMediaResponse
+        ? Answer(id: 0, date: DateTime.now())
+        : Answer(id: 0, date: DateTime.now(), response: response);
 
-    // If the response type is audio, create a recording and associate it with the new answer
-    if (type == "audio") {
-      final recording = Recording("Audio Diary", response, "", DateTime.now());
-      recording.answer.target = newAnswer;
-      newAnswer.recordings.add(recording);
+    // Create a recording for media responses
+    Recording? createRecording() {
+      return isMediaResponse
+          ? Recording(prompt.question, response, type, null, DateTime.now())
+          : null;
     }
 
-    // If there is no existing answer, update the prompt with the new answer
-    if (answer == null) {
-      updatedPrompt = Prompt.fromModel(prompt.copyWith(answer: newAnswer));
-    }
-    // If the response type is audio and there is an existing answer, add a recording to the existing answer
-    else if (type == "audio") {
-      final recording = Recording("Audio Diary", response, "", DateTime.now());
-      recording.answer.target = answer;
-      answer.recordings.add(recording);
-      updatedPrompt = Prompt.fromModel(prompt.copyWith(answer: answer));
-    }
-    // If the response type is not audio, update the existing answer with the new response
-    else {
-      updatedPrompt = Prompt.fromModel(
-          prompt.copyWith(answer: answer.copyWith(response: response)));
-    }
+    // Determine how to update the prompt based on existing answer and response type
+    Prompt updatedPrompt = _determinePromptUpdate(
+      prompt,
+      answer,
+      newAnswer,
+      createRecording(),
+    );
 
-    // Associate the updated prompt with the specified diary
+    // Associate the updated prompt with the diary
     updatedPrompt.diary.target = diary;
+
     // Update the prompt in the data access object
     _promptDAO.updatePrompt(updatedPrompt);
 
-    // Return true to indicate successful saving of the response
     return true;
   }
 
+  /// Separate function to determine if the Prompt is updating or adding a new response
+  Prompt _determinePromptUpdate(
+    PromptModel prompt,
+    Answer? existingAnswer,
+    Answer newAnswer,
+    Recording? recording,
+  ) {
+    // No existing answer - use the new answer
+    if (existingAnswer == null) {
+      return Prompt.fromModel(prompt.copyWith(answer: newAnswer));
+    }
+
+    // Media response with existing answer - add recording to existing answer
+    if (recording != null) {
+      recording.answer.target = existingAnswer;
+      existingAnswer.recordings.add(recording);
+      return Prompt.fromModel(prompt.copyWith(answer: existingAnswer));
+    }
+
+    // Text response - update existing answer's response
+    return Prompt.fromModel(prompt.copyWith(
+        answer: existingAnswer.copyWith(response: newAnswer.response)));
+  }
+
   Future<bool> removeResponse(
-      Diary diary, PromptModel prompt, String path) async {
+      Diary diary, PromptModel prompt, String? path) async {
     try {
       final answer = prompt.answer;
 
-      if (answer == null) {
-        return false;
-      }
+      if (answer == null) return false;
 
-      if (prompt.responseType == ResponseType.text ||
-          (prompt.responseType == ResponseType.textAudio &&
-              answer.response != null)) {
-        answer.response = null;
-        final updatedPrompt = Prompt.fromModel(prompt.copyWith(answer: answer));
-        updatedPrompt.diary.target = diary;
-        _promptDAO.updatePrompt(updatedPrompt);
-        return true;
-      }
+      final isMedia = [
+        ResponseType.textAudio,
+        ResponseType.audio,
+        ResponseType.image,
+        ResponseType.video,
+        ResponseType.imageVideo
+      ].contains(prompt.responseType);
 
-      //if recording is present, remove it
-      final dir = await getApplicationDocumentsDirectory();
-      String _path = '';
-      if (answer.recordings.isNotEmpty) {
-        _path = p.join(dir.path, 'recordings', path);
-      } else if (prompt.responseType == ResponseType.image) {
-        _path = p.join(
-            dir.path,
-            'images',
-            answer
-                .response); //TODO: remove the path from the answer to recordings
-      } else if (prompt.responseType == ResponseType.video) {
-        _path = p.join(
-            dir.path,
-            'videos',
-            answer
-                .response); //TODO: remove the path from the answer to recordings
+      if (isMedia) {
+        if (path != null) {
+          _deleteFile(path);
+          answer.recordings.removeWhere((record) => record.path == path);
+        }
       }
-      final file = File(_path);
-      await file.delete();
-
-      //update the prompt
-      //Removing the recordings
-      answer.recordings.clear();
 
       //Removing the response for text questions
       answer.response = null;
@@ -170,8 +158,15 @@ class PromptRepository {
       _promptDAO.updatePrompt(updatedPrompt);
       return true;
     } catch (e) {
-      dev.log("Error deleting response: $e", name: "PromptRepository");
+      dev.log("Error deleting response: $e", name: "Prompt Repository - Remove Response");
       return false;
+    }
+  }
+
+  _deleteFile(String path) async {
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
     }
   }
 

@@ -194,11 +194,12 @@ class _CameraAccessState extends State<CameraAccess>
                               Visibility(
                                 visible: permission,
                                 replacement: SizedBox(
-                                  height: 300,
                                   width: width,
+                                  child: Image.asset(
+                                      'assets/images/phone_camera.png'),
                                 ),
                                 child: SizedBox(
-                                    height: 300,
+                                  height: 378,
                                     width: width,
                                     child: controller.value.isInitialized
                                         ? CustomCameraPreview(

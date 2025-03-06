@@ -65,9 +65,9 @@ class SummaryRepository {
   /// Note:
   /// Any exceptions that occur during the saving process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
-  void saveResponse(PromptModel prompt, String path) {
+  void saveResponse(PromptModel prompt, String path, String type) {
     try {
-      answerRepository.saveResponse(prompt: prompt, response: path);
+      answerRepository.saveResponse(prompt: prompt, response: path, type: type);
     } catch (e) {
       dev.log("Error saving response: $e",
           name: "SummaryRepository - saveResponse");
@@ -85,7 +85,7 @@ class SummaryRepository {
   /// Note:
   /// Any exceptions that occur during the removal process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
-  Future<bool> removeResponse(PromptModel prompt, String path) async {
+  Future<bool> removeResponse(PromptModel prompt, String? path) async {
     try {
       await answerRepository.removeResponse(prompt, path);
       return true;

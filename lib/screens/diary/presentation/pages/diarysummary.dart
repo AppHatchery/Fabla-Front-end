@@ -377,7 +377,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
                   answer: prompt.answer!.response!,
-                  delete: () => deleteResponse(prompt, ''),
+                  delete: () => deleteResponse(prompt, null),
                 ),
               )
             : prompt.answer != null
@@ -403,7 +403,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           padding: const EdgeInsets.symmetric(vertical: 6.0),
           child: TextAnswerCard(
             answer: prompt.answer!.response!,
-            delete: () => deleteResponse(prompt, ''),
+            delete: () => deleteResponse(prompt, null),
           ),
         );
       case ResponseType.webview:
@@ -429,7 +429,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           ),
         );
       case ResponseType.image:
-        return ImageViewer(name: prompt.answer!.response!);
+        return SizedBox.shrink(); // TODO: CHECK
       case ResponseType.video:
         return VideoViewer(name: prompt.answer!.response!, delete: null);
       case ResponseType.timer:
@@ -486,13 +486,13 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                 hint: hint,
                 onSave: (value) {
                   summaryCubit.saveResponse(
-                      widget.diary, prompt, value.toString());
+                      widget.diary, prompt, value.toString(), 'audio');
                 },
               );
             }));
   }
 
-  void deleteResponse(PromptModel prompt, String path) {
+  void deleteResponse(PromptModel prompt, String? path) {
     summaryCubit.removeResponse(widget.diary, prompt, path);
   }
 

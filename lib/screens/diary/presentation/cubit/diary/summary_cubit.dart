@@ -48,9 +48,10 @@ class SummaryCubit extends Cubit<SummaryState> {
   /// Note:
   /// Any exceptions that occur during the saving process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
-  void saveResponse(DiaryModel diary, PromptModel prompt, String path) {
+  void saveResponse(
+      DiaryModel diary, PromptModel prompt, String path, String type) {
     try {
-      _summaryRepository.saveResponse(prompt, path);
+      _summaryRepository.saveResponse(prompt, path, type);
     } catch (e) {
       dev.log("Error saving response: $e", name: "SummaryCubit - saveResponse");
     } finally {
@@ -71,7 +72,7 @@ class SummaryCubit extends Cubit<SummaryState> {
   /// Note:
   /// Any exceptions that occur during the removal process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
-  void removeResponse(DiaryModel diary, PromptModel prompt, String path) {
+  void removeResponse(DiaryModel diary, PromptModel prompt, String? path) {
     try {
       _summaryRepository.removeResponse(prompt, path).then((value) {
         if (value) {
@@ -79,7 +80,8 @@ class SummaryCubit extends Cubit<SummaryState> {
         }
       });
     } catch (e) {
-      dev.log("Error deleting response: $e", name: "SummaryCubit - removeResponse");
+      dev.log("Error deleting response: $e",
+          name: "SummaryCubit - removeResponse");
     }
   }
 

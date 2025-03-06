@@ -754,7 +754,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
 
   void playerInit() async {
     final dir = await getApplicationDocumentsDirectory();
-    final path = p.join(dir.path, 'recordings', widget.recording.path);
+    final path = p.join(dir.path, widget.recording.path);
     audioPlayer = AudioPlayer()
       ..setSourceDeviceFile(path)
       ..setReleaseMode(ReleaseMode.stop)
@@ -938,7 +938,7 @@ class _NewAudioCardState extends State<NewAudioCard> {
 
   void playerInit() async {
     final dir = await getApplicationDocumentsDirectory();
-    final path = p.join(dir.path, 'recordings', widget.recording.path);
+    final path = p.join(dir.path, widget.recording.path);
     audioPlayer = AudioPlayer()
       ..setSourceDeviceFile(path)
       ..setReleaseMode(ReleaseMode.stop)

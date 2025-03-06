@@ -266,11 +266,13 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   List<Widget> pages() {
     return widget.diary.prompts
-        .map((e) => QuestionPage(
+        .map((e) {
+        final _key = GlobalKey<ScaffoldState>();
+        return  QuestionPage(
               currentPage: currentPage,
               diary: widget.diary,
               prompt: e,
-              scaffoldKey: key,
+              scaffoldKey: _key,
               answerAdded: (value) {
                 if (mounted) {
                   setState(() {
@@ -284,7 +286,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               addToPreFunction: (p0) {
                 preFunctions.add(p0);
               },
-            ))
+            );})
         .toList();
   }
 
@@ -383,7 +385,7 @@ class _QuestionPageState extends State<QuestionPage>
   PersistentBottomSheetController? _bottomSheetController;
 
   void updateSliderValue(PromptModel prompt, double value) {
-    save(prompt, value.toString(), null);
+    save(prompt, value.toString(), 'other');
     widget.answerAdded(true);
   }
 
@@ -494,7 +496,7 @@ class _QuestionPageState extends State<QuestionPage>
         selected: selected,
         onChanged: (value) {
           final response = value.join("/ ");
-          save(prompt, response, null);
+          save(prompt, response, 'other');
           if (value.isNotEmpty) {
             widget.answerAdded(true);
           } else {
@@ -509,7 +511,7 @@ class _QuestionPageState extends State<QuestionPage>
         value: selected,
         options: prompt.option!.choices!,
         onChanged: (value) {
-          save(prompt, value, null);
+          save(prompt, value, 'other');
           if (value != null) {
             widget.answerAdded(true);
           } else {
@@ -535,27 +537,27 @@ class _QuestionPageState extends State<QuestionPage>
       responseWidget = WebViewResponseCard(
           prompt: prompt,
           diary: widget.diary,
-          respond: (answer) => save(prompt, answer, null));
+          respond: (answer) => save(prompt, answer, 'other'));
     } else if (prompt.responseType == ResponseType.timer) {
       responseWidget = TimerWidget(
         time: prompt.option?.timerLength ?? Duration(seconds: 30),
         userInteraction: prompt.option?.userInteraction ?? false,
         playbackControls: prompt.option?.playbackControl ?? false,
-        respond: (answer) => save(prompt, answer, null),
+        respond: (answer) => save(prompt, answer, 'other'),
         addToPreFunction: (p0) => {widget.addToPreFunction(p0)},
       );
     } else if (prompt.responseType == ResponseType.image) {
-      responseWidget = ImageWidget(
+      responseWidget = VisualResponseWidget(
           diary: widget.diary,
           prompt: prompt,
           respond: (answer) => save(prompt, answer, 'image'));
     } else if (prompt.responseType == ResponseType.video) {
-      responseWidget = VideoWidget(
+      responseWidget = VisualResponseWidget(
           diary: widget.diary,
           prompt: prompt,
           respond: (answer) => save(prompt, answer, 'video'));
     } else if (prompt.responseType == ResponseType.imageVideo) {
-      responseWidget = VideoWidget(
+      responseWidget = VisualResponseWidget(
           diary: widget.diary,
           prompt: prompt,
           respond: (answer) => save(prompt, answer, 'video'));
@@ -672,14 +674,20 @@ class _QuestionPageState extends State<QuestionPage>
   void checkForResponse(PromptModel prompt1) {
     bool isValidResponse = false;
     final answer = prompt1.answer;
-    if (prompt1.responseType == ResponseType.instruction) {
-      isValidResponse = true;
-    } else if (prompt1.responseType != ResponseType.audio) {
-      isValidResponse = answer?.response?.isNotEmpty ?? false;
-    } else {
-      isValidResponse = (answer?.response?.isNotEmpty ?? false) ||
-          (answer?.recordings.isNotEmpty ?? false);
+
+    switch (prompt1.responseType) {
+      case ResponseType.instruction:
+        isValidResponse = true;
+        break;
+      case ResponseType.audio:
+      case ResponseType.image:
+      case ResponseType.video:
+        isValidResponse = answer?.recordings.isNotEmpty ?? false;
+        break;
+      default:
+        isValidResponse = answer?.response?.isNotEmpty ?? false;
     }
+
     widget.answerAdded(isValidResponse);
   }
 
@@ -735,7 +743,7 @@ class _QuestionPageState extends State<QuestionPage>
                     question: prompt.question,
                     hint: hint,
                     onSave: (value) {
-                      save(prompt, value.toString(), null);
+                      save(prompt, value.toString(), 'other');
                     },
                     scrollController: scrollController,
                   );
@@ -751,7 +759,7 @@ class _QuestionPageState extends State<QuestionPage>
     });
   }
 
-  void save(PromptModel prompt, dynamic response, String? type) {
+  void save(PromptModel prompt, dynamic response, String type) {
     // Change diary status
     if (widget.diary.status == DiaryStatus.idle) {
       widget.diary.status = DiaryStatus.ongoing;

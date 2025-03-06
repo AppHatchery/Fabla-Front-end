@@ -220,7 +220,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                 child: TextAnswerCard(
                   isVisible: true,
                   answer: prompt.answer!.response!,
-                  delete: () => deleteResponse(prompt, ''),
+                  delete: () => deleteResponse(prompt, null),
                 ),
               )
             : ListView.builder(
@@ -244,7 +244,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
         return TextAnswerCard(
             isVisible: true,
             answer: prompt.answer!.response!,
-            delete: () => deleteResponse(prompt, ''));
+            delete: () => deleteResponse(prompt, null));
       case ResponseType.webview:
         final width = MediaQuery.of(context).size.width;
         return Padding(
@@ -268,7 +268,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
           ),
         );
       case ResponseType.image:
-        return ImageViewer(name: prompt.answer!.response!);
+        return SizedBox.shrink(); // TODO: CHECK
       case ResponseType.video:
         return VideoViewer(name: prompt.answer!.response!, delete: null);
       default:
@@ -276,7 +276,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
     }
   }
 
-  void deleteResponse(PromptModel prompt, String path) {
+  void deleteResponse(PromptModel prompt, String? path) {
     summaryCubit.removeResponse(widget.diary, prompt, path);
   }
 
