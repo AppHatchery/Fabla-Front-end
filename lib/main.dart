@@ -42,7 +42,6 @@ import 'screens/diary/presentation/pages/diarysummary.dart';
 import 'screens/home/presentation/cubit/cubit/home_cubit.dart';
 import 'services/notification_service.dart';
 
-import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:audio_diaries_flutter/core/notifications/controllers/notifications_controller.dart';
 
@@ -73,12 +72,7 @@ void main() async {
   await NotificationService.init();
   await PendoService.init();
   final route = await RouteService().getRoute();
-  try {
-    //await _configureAmplify();
-    await _configureFirebase();
-  } on AmplifyAlreadyConfiguredException {
-    debugPrint('Amplify configuration failed.');
-  }
+  await _configureFirebase();
   runApp(MyApp(
     route: route,
   ));
