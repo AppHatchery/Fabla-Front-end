@@ -31,6 +31,7 @@ class TodayGoalWidget extends StatefulWidget {
 
 class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   Map<StudyModel, List<DiaryModel>> data = {};
+  bool goalsAvailable = true;
 
   late StateMachineController _controller;
 
@@ -66,6 +67,15 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       data[study] = diaries;
     }
 
+    for (final entry in data.keys) {
+      if (entry.goals.daily > 0) {
+        goalsAvailable = true;
+        break;
+      }
+
+      goalsAvailable = false;
+    }
+
     super.initState();
   }
 
@@ -78,7 +88,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return Column(
+    return goalsAvailable ? Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text("Today's Goal", style: CustomTypography().titleLarge()),
@@ -141,7 +151,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         const SizedBox(height: 16),
         SizedBox(width: width, child: entries(data))
       ],
-    );
+    ) : const SizedBox.shrink();
   }
 
   Widget entries(Map<StudyModel, List<DiaryModel>> data) {
@@ -210,13 +220,13 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         .where((diary) => diary.due.day == DateTime.now().day)
         .toList();
 
-    final totalEntries =
-        diariesForToday.where((diary) => diary.status == DiaryStatus.submitted).length;
+    final totalEntries = diariesForToday
+        .where((diary) => diary.status == DiaryStatus.submitted)
+        .length;
     final totalGoal =
         widget.studies.fold(0, (prev, study) => prev + study.goals.daily);
     final weeklyGoal =
         widget.studies.fold(0, (prev, study) => prev + study.goals.weekly);
-
 
     //Show Searching 1 or Searching 2 if there is no entry
     // Make the animation random with a 50/50 chance of both showing up

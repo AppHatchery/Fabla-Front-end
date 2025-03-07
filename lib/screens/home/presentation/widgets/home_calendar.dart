@@ -427,7 +427,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   List<DiaryModel> _getAllDiaries() {
-    final list = repository.getAllDiaries();
+    final list = repository.getAllDiariesWithMultipleEntries();
     return list;
   }
 
