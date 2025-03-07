@@ -167,11 +167,19 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
 
       final max = studies.fold(0, (sum, study) => sum + study.goals.daily);
       final current = diaries.isNotEmpty
-          ? diaries.where((diary) => diary.status == DiaryStatus.submitted).length
+          ? diaries
+              .where((diary) => diary.status == DiaryStatus.submitted)
+              .length
           : 0;
       final isAfter = d.isAfter(now);
 
-      final percentage = current / max;
+      // If the max is less than or equal to 0 then it should default to one to show completion for that day
+      // [isNaN] & [isInfinite] are checks to see if the value we are calculating is an actual double
+      final percentage = max <= 0
+          ? current / 1.0
+          : (current / max).isNaN || (current / max).isInfinite
+              ? 0.0
+              : current / max;
 
       if (d.day == now.day && mounted) {
         setState(() {
@@ -181,7 +189,7 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
 
       final showProgress = diaries.isNotEmpty;
 
-      days.add(dayOfTheWeek(_dayAbbreviations[d.weekday]!, isToday, percentage.isNaN ? 0.0 : percentage,
+      days.add(dayOfTheWeek(_dayAbbreviations[d.weekday]!, isToday, percentage,
           showProgress, isAfter));
     }
   }
