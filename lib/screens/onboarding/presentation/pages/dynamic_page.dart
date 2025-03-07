@@ -411,6 +411,13 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
         loop = true;
       });
       return 'assets/animations/onboarding/hide_peek.riv';
+    } else if (widget.question.type == 'text') {
+      setState(() {
+        stateMachineName = "Animation_8";
+        foregroundHeight = 0.39;
+        loop = true;
+      });
+      return 'assets/animations/onboarding/hide_peek.riv';
     } else {
       //Select animation randomly
       final animations = [

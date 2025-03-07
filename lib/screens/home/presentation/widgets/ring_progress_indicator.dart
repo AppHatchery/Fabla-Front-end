@@ -52,8 +52,15 @@ class GoalProgressIndicators extends StatelessWidget {
           final map = entry.value;
           Goal goal = map.key.goals;
           final diaries = map.value;
-          final completed = diaries.where((diary) => diary.status == DiaryStatus.submitted).length;
-          double progress = completed / goal.daily;
+          final completed = diaries
+              .where((diary) => diary.status == DiaryStatus.submitted)
+              .length;
+
+          // [isNaN] & [isInfinite] are checks to see if the value we are calculating is an actual double
+          double progress = (completed / goal.daily).isNaN ||
+                  (completed / goal.daily).isInfinite
+              ? 0
+              : completed / goal.daily;
           double size = baseSize + (index * spacing);
 
           return RingProgressIndicator(

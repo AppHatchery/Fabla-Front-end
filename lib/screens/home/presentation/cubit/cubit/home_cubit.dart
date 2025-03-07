@@ -60,7 +60,7 @@ class HomeCubit extends Cubit<HomeState> {
                   element.status != DiaryStatus.missed))
           .toList();
 
-      updated.sort((a, b) => b.compareTo(a));
+      updated.sort((a, b) => a.start.compareTo(b.start));
       emit(HomeLoaded(updated, weekDiaries, diaries.isNotEmpty, studies,
           entries, completedStudy));
     } catch (e) {
