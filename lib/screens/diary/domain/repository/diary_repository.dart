@@ -317,7 +317,9 @@ class DiaryRepository {
 
     // Filter diaries based on their start dates falling within the specified range
     final filtered = diaries.where((element) {
-      return element.start.isAfter(start) && element.start.isBefore(end);
+      return (element.start.isAfter(start) ||
+              element.start.isAtSameMomentAs(start)) &&
+          element.start.isBefore(end);
     }).toList();
 
     final List<DiaryModel> _diaries =
