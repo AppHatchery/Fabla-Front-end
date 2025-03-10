@@ -579,8 +579,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
     }
 
     setState(() {
-      total = _total;
-      acquired = _acquired;
+      total = _total.roundToDouble();
+      acquired = _acquired.roundToDouble();
     });
   }
 
