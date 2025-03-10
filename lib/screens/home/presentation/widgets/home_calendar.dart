@@ -175,7 +175,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
       children: [
         Text(
           incentive != null
-              ? '${incentive.currency}$acquired'
+              ? '${incentive.currency}${acquired.toStringAsFixed(2)}'
               : activeDays.toString(),
           style: CustomTypography().headlineLargeCustom(
               color: CustomColors.yellowDark, fontSize: 64.sp),
@@ -520,7 +520,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
         children: [
           Text("Total Incentive Available",
               style: CustomTypography().titleSmall()),
-          Text("${widget.studies.first.incentive.currency}$total",
+          Text("${widget.studies.first.incentive.currency}${total.toStringAsFixed(2)}",
               style: CustomTypography().titleSmall()),
         ],
       ),
@@ -579,8 +579,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
     }
 
     setState(() {
-      total = _total.roundToDouble();
-      acquired = _acquired.roundToDouble();
+      total = _total;
+      acquired = _acquired;
     });
   }
 
@@ -636,7 +636,7 @@ class _CurrentIncentiveState extends State<CurrentIncentive> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Earned Incentive: ${widget.currency}${widget.acquired}",
+              Text("Earned Incentive: ${widget.currency}${widget.acquired.toStringAsFixed(2)}",
                   style: CustomTypography().titleSmall()),
               IconButton(
                   onPressed: () {
