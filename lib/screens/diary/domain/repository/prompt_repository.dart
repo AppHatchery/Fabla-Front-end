@@ -114,6 +114,10 @@ class PromptRepository {
   ) {
     // No existing answer - use the new answer
     if (existingAnswer == null) {
+      if(recording != null){
+        recording.answer.target = newAnswer;
+        newAnswer.recordings.add(recording);
+      }
       return Prompt.fromModel(prompt.copyWith(answer: newAnswer));
     }
 
@@ -158,7 +162,8 @@ class PromptRepository {
       _promptDAO.updatePrompt(updatedPrompt);
       return true;
     } catch (e) {
-      dev.log("Error deleting response: $e", name: "Prompt Repository - Remove Response");
+      dev.log("Error deleting response: $e",
+          name: "Prompt Repository - Remove Response");
       return false;
     }
   }

@@ -1121,6 +1121,9 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
   // Video Recording
   Timer? _timer;
   Duration elapsed = const Duration();
+  // "" Playback
+  VideoPlayerController? videoController;
+  bool videoPlaying = false;
 
   @override
   void initState() {
@@ -1328,7 +1331,9 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
         ),
         child: switch (widget.isImage) {
           true => Image.file(_file),
-          false => VideoPreview(file: _file),
+          false => videoController != null
+              ? VideoPreview(controller: videoController!)
+              : const SizedBox.shrink(),
         },
       );
     }
@@ -1598,9 +1603,11 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                       shape: BoxShape.circle, color: CustomColors.fillWhite),
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 4.0),
+                      padding: EdgeInsets.only(left: videoPlaying ? 0 : 4.0),
                       child: Icon(
-                        CupertinoIcons.play_arrow_solid,
+                        videoPlaying
+                            ? CupertinoIcons.pause_fill
+                            : CupertinoIcons.play_arrow_solid,
                         color: CustomColors.productNormalActive,
                         size: 32,
                       ),
@@ -1658,7 +1665,23 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
   }
 
   // Used to play the video
-  play() async {}
+  play() async {
+    if (videoController?.value.isPlaying ?? false) {
+      await videoController?.pause();
+      if (mounted) {
+        setState(() {
+          videoPlaying = false;
+        });
+      }
+    } else {
+      await videoController?.play();
+      if (mounted) {
+        setState(() {
+          videoPlaying = true;
+        });
+      }
+    }
+  }
 
   save() async {
     try {
@@ -1677,6 +1700,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
   redo() async {
     setState(() {
       file = null;
+      elapsed = const Duration();
     });
   }
 
@@ -1704,6 +1728,14 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
     if (mounted) {
       setState(() {
         file = _file;
+        videoController = VideoPlayerController.file(File(_file.path));
+        videoController?.addListener(() {
+          if (mounted) {
+            setState(() {
+              videoPlaying = videoController?.value.isPlaying ?? false;
+            });
+          }
+        });
       });
     }
   }
@@ -1786,20 +1818,20 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
 }
 
 class VideoPreview extends StatefulWidget {
-  final File file;
-  const VideoPreview({super.key, required this.file});
+  final VideoPlayerController controller;
+  const VideoPreview({super.key, required this.controller});
 
   @override
   State<VideoPreview> createState() => _VideoPreviewState();
 }
 
 class _VideoPreviewState extends State<VideoPreview> {
-  VideoPlayerController? controller;
-
   // Slider
   double max = 0.0;
   double current = 0.0;
   Duration maxDuration = const Duration();
+  Duration remaining = const Duration();
+  Duration elapsed = const Duration();
 
   @override
   void initState() {
@@ -1809,72 +1841,83 @@ class _VideoPreviewState extends State<VideoPreview> {
 
   @override
   Widget build(BuildContext context) {
-    return controller != null
-        ? Stack(
+    return Stack(
+      children: [
+        Center(
+          child: AspectRatio(
+            aspectRatio: widget.controller.value.aspectRatio,
+            child: VideoPlayer(widget.controller),
+          ),
+        ),
+        Positioned(
+          bottom: 15,
+          left: 8,
+          right: 8,
+          child: SizedBox(
+              child: Column(
             children: [
-              Center(
-                child: AspectRatio(
-                  aspectRatio: controller!.value.aspectRatio,
-                  child: VideoPlayer(controller!),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  //Elapsed
+                  Text(
+                    formatDurationtoHHMMSS(elapsed),
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textWhite),
+                  ),
+                  //Remaining
+                  Text(
+                    formatDurationtoHHMMSS(remaining),
+                    style: CustomTypography()
+                        .bodyMedium(color: CustomColors.textWhite),
+                  ),
+                ],
+              ),
+              SliderTheme(
+                data: SliderThemeData(
+                    trackHeight: 8,
+                    activeTrackColor: CustomColors.fillWhite,
+                    thumbColor: CustomColors.fillWhite,
+                    inactiveTrackColor: Color(0xFF545454),
+                    thumbShape: const RoundSliderThumbShape(
+                        enabledThumbRadius: 2, elevation: 0),
+                    overlayShape: SliderComponentShape.noThumb),
+                child: Slider(
+                  value: current,
+                  max: max,
+                  onChanged: (val) => seek(val),
                 ),
               ),
-              Positioned(
-                bottom: 15,
-                left: 8,
-                right: 8,
-                child: SizedBox(
-                    child: SliderTheme(
-                  data: SliderThemeData(
-                      trackHeight: 8,
-                      activeTrackColor: CustomColors.fillWhite,
-                      thumbColor: CustomColors.fillWhite,
-                      inactiveTrackColor: Color(0xFF545454),
-                      thumbShape:
-                          const RoundSliderThumbShape(enabledThumbRadius: 4, elevation: 0),
-                      overlayShape: SliderComponentShape.noThumb),
-                  child: Slider(
-                    value: current,
-                    max: max,
-                    onChanged: (val) => seek(val),
-                  ),
-                )),
-              ),
             ],
-          )
-        : const SizedBox.shrink();
+          )),
+        ),
+      ],
+    );
   }
 
   init() async {
-    final file = File(widget.file.path);
-    controller = VideoPlayerController.file(file);
-
-    controller!.addListener(() {
+    widget.controller.addListener(() {
       if (mounted) {
         setState(() {
-          current = controller!.value.position.inMilliseconds.toDouble();
+          current = widget.controller.value.position.inMilliseconds.toDouble();
+          elapsed = widget.controller.value.position;
+          remaining = maxDuration - elapsed;
         });
       }
     });
-    controller!.initialize().then((_) {
+    widget.controller.initialize().then((_) {
       if (mounted) {
         setState(() {
-          max = controller!.value.duration.inMilliseconds.toDouble();
-          maxDuration = controller!.value.duration;
+          max = widget.controller.value.duration.inMilliseconds.toDouble();
+          maxDuration = widget.controller.value.duration;
+          remaining = maxDuration;
         });
       }
     });
-  }
-
-  play() async {
-    if (controller!.value.isPlaying) {
-      await controller!.pause();
-    } else {
-      await controller!.play();
-    }
   }
 
   seek(double value) async {
-    await controller!.seekTo(Duration(milliseconds: value.toInt()));
+    await widget.controller.seekTo(Duration(milliseconds: value.toInt()));
   }
 }
 

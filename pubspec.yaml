@@ -49,6 +49,7 @@ dependencies:
 
   #Video Playback
   video_player: ^2.9.3
+  video_compress: ^3.1.4
 
   #Camera
   camera: ^0.11.1
@@ -117,6 +118,7 @@ dependencies:
   package_info_plus: ^8.3.0 
   flutter_keyboard_visibility: ^6.0.0
   alarm: ^5.0.3
+  gradient_borders: ^1.0.1
   # disable_battery_optimization: ^1.1.1
 
 dev_dependencies:

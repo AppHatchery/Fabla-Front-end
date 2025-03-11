@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:alarm/alarm.dart';
 import 'package:alarm/model/volume_settings.dart';
+import 'package:audio_diaries_flutter/core/usecases/video_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -20,8 +21,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
@@ -1286,21 +1285,6 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 }
 
-class ImageViewer extends StatefulWidget {
-  final File file;
-  const ImageViewer({super.key, required this.file});
-
-  @override
-  State<ImageViewer> createState() => _ImageViewerState();
-}
-
-class _ImageViewerState extends State<ImageViewer> {
-  @override
-  Widget build(BuildContext context) {
-    return Image.file(widget.file);
-  }
-}
-
 class VisualResponseWidget extends StatefulWidget {
   final void Function(String) respond;
   final DiaryModel diary;
@@ -1362,7 +1346,9 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
                             width: 8,
                           ),
                           Text(
-                            'Open Camera',
+                            widget.prompt.answer?.recordings.isNotEmpty ?? false
+                                ? 'Add Video'
+                                :'Open Camera',
                             style: CustomTypography()
                                 .button(color: CustomColors.textWhite),
                           )
@@ -1450,40 +1436,28 @@ class _PreviewState extends State<Preview> {
     super.didUpdateWidget(oldWidget);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return DottedBorder(
-        color: CustomColors.productNormalActive,
-        strokeWidth: 4,
-        radius: Radius.circular(4),
-        padding: const EdgeInsets.all(16),
-        dashPattern: [15, 15],
-        child: Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: children,
-        ));
-  }
-
   getData() async {
     for (int i = 0; i < widget.recordings.length; i++) {
       final recording = widget.recordings[i];
-      final path = await getPath(name: recording.path);
-      final file = File(path);
+      final path = recording.path;
+      final type = recording.type;
 
       if (children.length >= 3) {
-        final remaining =
-            widget.recordings.length > 4 ? widget.recordings.sublist(4) : [];
-        final child = remaining.isNotEmpty
-            ? lastPreviewTile(file, remaining.length)
-            : previewTile(file, recording.path);
+        final remaining = widget.recordings.length - 4;
+        final child = remaining > 0
+            ? type == 'video'
+                ? lastVideoPreviewTile(path, remaining)
+                : lastPreviewTile(path, remaining)
+            : type == 'video'
+                ? videoPreviewTile(path)
+                : previewTile(path);
         children.add(child);
 
         break;
       }
-      // final type = recording.type;
 
-      final child = previewTile(file, recording.path);
+      final child =
+          type == 'video' ? videoPreviewTile(path) : previewTile(path);
       children.add(child);
     }
 
@@ -1492,81 +1466,338 @@ class _PreviewState extends State<Preview> {
     }
   }
 
-  Widget previewTile(File file, String path) {
-    return GestureDetector(
-      onTap: () => showModal(file),
-      child: SizedBox(
-        height: 140,
-        width: 140,
-        child: Stack(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: Image.file(
-                file,
-                fit: BoxFit.cover,
+  @override
+  Widget build(BuildContext context) {
+    return DottedBorder(
+      color: CustomColors.productNormalActive,
+      strokeWidth: 4,
+      radius: Radius.circular(4),
+      padding: const EdgeInsets.all(16),
+      dashPattern: [8, 8],
+      borderType: BorderType.RRect,
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: children,
+      ),
+    );
+  }
+
+  Widget previewTile(
+    String path,
+  ) {
+    return FutureBuilder(
+        future: getImageFile(path: path),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return GestureDetector(
+              onTap: () => showModal(snapshot.data!.path, 'image'),
+              child: SizedBox(
                 height: 140,
                 width: 140,
-              ),
-            ),
-            Positioned(
-                top: 0,
-                right: 0,
-                child: Padding(
-                  padding: const EdgeInsets.all(6),
-                  child: GestureDetector(
-                    onTap: () => widget.delete(path),
-                    child: Container(
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle, color: Color(0xFF616161)),
-                      child: Icon(
-                        Icons.remove,
-                        size: 28,
-                        color: CustomColors.fillWhite,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Image.file(
+                        snapshot.data!,
+                        fit: BoxFit.cover,
+                        height: 140,
+                        width: 140,
                       ),
                     ),
-                  ),
-                ))
-          ],
-        ),
-      ),
-    );
+                    Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: GestureDetector(
+                            onTap: () => widget.delete(path),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xFF616161)),
+                              child: Icon(
+                                Icons.remove,
+                                size: 28,
+                                color: CustomColors.fillWhite,
+                              ),
+                            ),
+                          ),
+                        )),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return Container(
+            height: 140,
+            width: 140,
+            decoration: BoxDecoration(
+              color: CustomColors.greyDark,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          );
+        });
   }
 
-  Widget lastPreviewTile(File file, int remaining) {
-    return SizedBox(
-      height: 140,
-      width: 140,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: Stack(
-          children: [
-            Container(
-              foregroundDecoration:
-                  BoxDecoration(color: Colors.black.withValues(alpha: 0.4)),
-              child: Image.file(
-                file,
-                fit: BoxFit.cover,
+  Widget lastPreviewTile(String path, int remaining) {
+    return FutureBuilder(
+        future: getImageFile(path: path),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return GestureDetector(
+              onTap: () => showAllModal(),
+              child: SizedBox(
                 height: 140,
                 width: 140,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Stack(
+                    children: [
+                      Container(
+                        foregroundDecoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.4)),
+                        child: Image.file(
+                          snapshot.data!,
+                          fit: BoxFit.cover,
+                          height: 140,
+                          width: 140,
+                        ),
+                      ),
+                      Center(
+                        child: Text(
+                          '+$remaining',
+                          style: CustomTypography().custom(
+                              color: CustomColors.textWhite,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 24),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
               ),
+            );
+          }
+
+          return Container(
+            height: 140,
+            width: 140,
+            decoration: BoxDecoration(
+              color: CustomColors.greyDark,
+              borderRadius: BorderRadius.circular(4),
             ),
-            Center(
-              child: Text(
-                '+$remaining',
-                style: CustomTypography().custom(
-                    color: CustomColors.textWhite,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 24),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
+          );
+        });
   }
 
-  void showModal(File file) {
+  Widget videoPreviewTile(String path) {
+    return FutureBuilder(
+        future: getVideoFileInfo(path: path),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return GestureDetector(
+              onTap: () => showModal(snapshot.data!.absolutePath, 'video'),
+              child: SizedBox(
+                height: 140,
+                width: 140,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Image.file(
+                        snapshot.data!.thumbnail,
+                        fit: BoxFit.cover,
+                        height: 140,
+                        width: 140,
+                      ),
+                    ),
+                    Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: GestureDetector(
+                            onTap: () => widget.delete(path),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xFF616161)),
+                              child: Icon(
+                                Icons.remove,
+                                size: 28,
+                                color: CustomColors.fillWhite,
+                              ),
+                            ),
+                          ),
+                        )),
+                    Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: Text(
+                            formatDurationtoHHMMSS(snapshot.data!.length),
+                            style: CustomTypography().custom(
+                                color: CustomColors.textWhite,
+                                fontWeight: FontWeight.w500),
+                          ),
+                        ))
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return Container(
+            height: 140,
+            width: 140,
+            decoration: BoxDecoration(
+              color: CustomColors.greyDark,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          );
+        });
+  }
+
+  Widget lastVideoPreviewTile(String path, int remaining) {
+    return FutureBuilder(
+        future: getVideoFileInfo(path: path),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return GestureDetector(
+              onTap: () => showAllModal(),
+              child: SizedBox(
+                height: 140,
+                width: 140,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Container(
+                        foregroundDecoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.4)),
+                        child: Stack(
+                          children: [
+                            Image.file(
+                              snapshot.data!.thumbnail,
+                              fit: BoxFit.cover,
+                              height: 140,
+                              width: 140,
+                            ),
+                            Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(6),
+                                  child: Text(
+                                    formatDurationtoHHMMSS(
+                                        snapshot.data!.length),
+                                    style: CustomTypography().custom(
+                                        color: CustomColors.textWhite,
+                                        fontWeight: FontWeight.w500),
+                                  ),
+                                ))
+                          ],
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: Text(
+                        '+$remaining',
+                        style: CustomTypography().custom(
+                            color: CustomColors.textWhite,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 24),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return Container(
+            height: 140,
+            width: 140,
+            decoration: BoxDecoration(
+              color: CustomColors.greyDark,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          );
+        });
+  }
+
+  void showModal(String path, String type) {
+    final File _file = File(path);
+    final width = MediaQuery.of(context).size.width;
+    showModalBottomSheet(
+        backgroundColor: CustomColors.fillNormal,
+        barrierColor: CustomColors.fillNormal,
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        elevation: 0,
+        useSafeArea: true,
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              minChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) {
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 16.0),
+                            child: GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: const Icon(
+                                CupertinoIcons.clear,
+                                size: 24,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 32,
+                    ),
+                    type == 'video'
+                        ? Expanded(
+                            child:
+                                LayoutBuilder(builder: (context, constraints) {
+                              return VideoViewer(
+                                file: _file,
+                                height: constraints.maxHeight,
+                                width: constraints.maxWidth,
+                              );
+                            }),
+                          )
+                        : Expanded(
+                            child: Container(
+                              width: width,
+                              decoration: const BoxDecoration(
+                                color: CustomColors.greyLight,
+                              ),
+                              child: Image.file(_file),
+                            ),
+                          ),
+                  ],
+                );
+              },
+            ));
+  }
+
+  showAllModal() {
     final width = MediaQuery.of(context).size.width;
     showModalBottomSheet(
         backgroundColor: Colors.transparent,
@@ -1584,7 +1815,7 @@ class _PreviewState extends State<Preview> {
                 return Container(
                   width: width,
                   decoration: const BoxDecoration(
-                    color: CustomColors.greyLight,
+                    color: Color(0xFFF3F3F3),
                     borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(14),
                         topRight: Radius.circular(14)),
@@ -1592,23 +1823,37 @@ class _PreviewState extends State<Preview> {
                   child: Column(
                     children: [
                       const SizedBox(
-                        height: 32,
+                        height: 26,
                       ),
-                      // Close Modal Button
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: const Icon(
-                              CupertinoIcons.clear_circled_solid,
-                              size: 26,
-                              color: CustomColors.textSecondaryContent,
-                            ),
-                          )
-                        ],
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: const Icon(
+                                CupertinoIcons.clear_circled_solid,
+                                size: 26,
+                                color: CustomColors.textSecondaryContent,
+                              ),
+                            )
+                          ],
+                        ),
                       ),
-                      SizedBox(width: width, child: ImageViewer(file: file)),
+                      Padding(
+                          padding: const EdgeInsets.fromLTRB(32, 32, 32, 8),
+                          child: Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: [
+                              for (int i = 0; i < widget.recordings.length; i++)
+                                widget.recordings[i].type == 'video'
+                                    ? videoPreviewTile(
+                                        widget.recordings[i].path)
+                                    : previewTile(widget.recordings[i].path)
+                            ],
+                          ))
                     ],
                   ),
                 );
@@ -1617,15 +1862,15 @@ class _PreviewState extends State<Preview> {
   }
 }
 
-Future<String> getPath({required String name}) async {
-  final dir = await getApplicationDocumentsDirectory();
-  return p.join(dir.path, name);
-}
-
 class VideoViewer extends StatefulWidget {
-  final String name;
-  final Function? delete;
-  const VideoViewer({super.key, required this.name, required this.delete});
+  final File file;
+  final double height;
+  final double width;
+  const VideoViewer(
+      {super.key,
+      required this.file,
+      required this.height,
+      required this.width});
 
   @override
   State<VideoViewer> createState() => _VideoViewerState();
@@ -1633,11 +1878,14 @@ class VideoViewer extends StatefulWidget {
 
 class _VideoViewerState extends State<VideoViewer> {
   VideoPlayerController? controller;
+  bool videoPlaying = false;
 
   // Slider
   double max = 0.0;
   double current = 0.0;
   Duration maxDuration = const Duration();
+  Duration remaining = const Duration();
+  Duration elapsed = const Duration();
 
   @override
   initState() {
@@ -1654,94 +1902,120 @@ class _VideoViewerState extends State<VideoViewer> {
   @override
   Widget build(BuildContext context) {
     return controller != null
-        ? Column(children: [
-            Row(
-              children: [
-                Container(
-                    width: 24,
-                    height: 24,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: CustomColors.productNormalActive,
+        ? SizedBox(
+            height: widget.height,
+            width: widget.width,
+            child: Column(children: [
+              Expanded(
+                child: Container(
+                  width: widget.width,
+                  decoration: const BoxDecoration(
+                    color: CustomColors.greyLight,
+                  ),
+                  child: Center(
+                    child: Stack(
+                      children: [
+                        AspectRatio(
+                          aspectRatio: controller!.value.aspectRatio,
+                          child: VideoPlayer(controller!),
+                        ),
+                        Positioned(
+                          bottom: 15,
+                          left: 8,
+                          right: 8,
+                          child: SizedBox(
+                              child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  //Elapsed
+                                  Text(
+                                    formatDurationtoHHMMSS(elapsed),
+                                    style: CustomTypography().bodyMedium(
+                                        color: CustomColors.textWhite),
+                                  ),
+                                  //Remaining
+                                  Text(
+                                    formatDurationtoHHMMSS(remaining),
+                                    style: CustomTypography().bodyMedium(
+                                        color: CustomColors.textWhite),
+                                  ),
+                                ],
+                              ),
+                              SliderTheme(
+                                data: SliderThemeData(
+                                    trackHeight: 8,
+                                    activeTrackColor: CustomColors.fillWhite,
+                                    thumbColor: CustomColors.fillWhite,
+                                    inactiveTrackColor: Color(0xFF545454),
+                                    thumbShape: const RoundSliderThumbShape(
+                                        enabledThumbRadius: 2, elevation: 0),
+                                    overlayShape: SliderComponentShape.noThumb),
+                                child: Slider(
+                                  value: current,
+                                  max: max,
+                                  onChanged: (val) => seek(val),
+                                ),
+                              ),
+                            ],
+                          )),
+                        ),
+                      ],
                     ),
-                    child: Center(
-                      child: IconButton(
-                        onPressed: () => play(),
-                        icon: Icon(controller!.value.isPlaying
-                            ? CupertinoIcons.pause_fill
-                            : CupertinoIcons.play_arrow_solid),
-                        color: CustomColors.fillWhite,
-                        iconSize: 10,
-                      ),
-                    )),
-                const SizedBox(width: 3),
-                Expanded(
-                  child: slider(),
-                ),
-                Row(
-                  children: [
-                    Text(formatDuration(current.toInt())),
-                    const Text(" / "),
-                    Text(formatDuration(maxDuration.inMilliseconds.toInt()))
-                  ],
-                ),
-                widget.delete == null
-                    ? SizedBox.shrink()
-                    : IconButton(
-                        onPressed: () => widget.delete!(),
-                        icon: const Icon(CupertinoIcons.delete),
-                        color: CustomColors.warningActive,
-                        iconSize: 20,
-                      )
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 6.0),
-              child: Center(
-                child: AspectRatio(
-                  aspectRatio: controller!.value.aspectRatio,
-                  child: VideoPlayer(controller!),
+                  ),
                 ),
               ),
-            )
-          ])
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 28.5),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () => play(),
+                      child: Container(
+                        height: 64,
+                        width: 64,
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: CustomColors.fillWhite),
+                        child: Center(
+                          child: Padding(
+                            padding:
+                                EdgeInsets.only(left: videoPlaying ? 0 : 4.0),
+                            child: Icon(
+                              videoPlaying
+                                  ? CupertinoIcons.pause_fill
+                                  : CupertinoIcons.play_arrow_solid,
+                              color: CustomColors.productNormalActive,
+                              size: 32,
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              )
+            ]),
+          )
         : Center(
             child: CircularProgressIndicator(),
           );
   }
 
-  Widget slider() {
-    return Column(
-      children: [
-        SizedBox(
-            child: SliderTheme(
-          data: SliderThemeData(
-              trackHeight: 5,
-              activeTrackColor: CustomColors.productNormalActive,
-              thumbColor: CustomColors.productNormalActive,
-              inactiveTrackColor: CustomColors.greyTrack,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-              overlayShape: SliderComponentShape.noOverlay),
-          child: Slider(
-            value: current,
-            max: max,
-            onChanged: (val) => seek(val),
-          ),
-        )),
-      ],
-    );
-  }
-
   init() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final path = p.join(dir.path, 'videos', widget.name);
-    final file = File(path);
-    controller = VideoPlayerController.file(file);
+    controller = VideoPlayerController.file(widget.file);
 
     controller!.addListener(() {
       if (mounted) {
         setState(() {
           current = controller!.value.position.inMilliseconds.toDouble();
+          elapsed = controller!.value.position;
+          remaining = maxDuration - elapsed;
+          if (elapsed == maxDuration) videoPlaying = false;
         });
       }
     });
@@ -1750,6 +2024,7 @@ class _VideoViewerState extends State<VideoViewer> {
         setState(() {
           max = controller!.value.duration.inMilliseconds.toDouble();
           maxDuration = controller!.value.duration;
+          remaining = maxDuration;
         });
       }
     });
@@ -1758,8 +2033,10 @@ class _VideoViewerState extends State<VideoViewer> {
   play() async {
     if (controller!.value.isPlaying) {
       await controller!.pause();
+      if (mounted) setState(() => videoPlaying = false);
     } else {
       await controller!.play();
+      if (mounted) setState(() => videoPlaying = true);
     }
   }
 

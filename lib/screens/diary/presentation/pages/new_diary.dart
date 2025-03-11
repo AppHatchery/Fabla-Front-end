@@ -682,6 +682,7 @@ class _QuestionPageState extends State<QuestionPage>
       case ResponseType.audio:
       case ResponseType.image:
       case ResponseType.video:
+      case ResponseType.imageVideo:
         isValidResponse = answer?.recordings.isNotEmpty ?? false;
         break;
       default:
@@ -780,7 +781,7 @@ class _QuestionPageState extends State<QuestionPage>
     bool isLast = widget.isLastPage ?? true;
 
     _bottomSheetController =
-        widget.scaffoldKey.currentState!.showBottomSheet((context) {
+        widget.scaffoldKey.currentState?.showBottomSheet((context) {
       // _scrollController.animateTo(
       //   _scrollController.position.maxScrollExtent,
       //   duration: const Duration(milliseconds: 300),
