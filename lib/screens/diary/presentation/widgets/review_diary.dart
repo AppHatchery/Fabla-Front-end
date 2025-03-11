@@ -270,7 +270,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
       case ResponseType.image:
         return SizedBox.shrink(); // TODO: CHECK
       case ResponseType.video:
-        return VideoViewer(name: prompt.answer!.response!, delete: null);
+        return SizedBox.shrink();
       default:
         return const SizedBox.shrink();
     }

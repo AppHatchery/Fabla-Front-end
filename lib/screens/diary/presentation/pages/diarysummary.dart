@@ -8,6 +8,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/pages/diary_edit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/circle_transition_clipper.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
@@ -47,9 +48,6 @@ class DiarySummaryPage extends StatefulWidget {
 class _DiarySummaryPageState extends State<DiarySummaryPage>
     with WidgetsBindingObserver {
   late SummaryCubit summaryCubit;
-  int? expandedCardId;
-  bool isSliderEnabled = false;
-  Map<int, bool> sliderEnabledStates = {};
 
   final PageTimer timer = PageTimer();
 
@@ -292,28 +290,42 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   }
 
   Widget buildPrompt(PromptModel prompt, int index) {
-    if (!sliderEnabledStates.containsKey(index)) {
-      sliderEnabledStates[index] = false;
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4.0),
-          ),
+              borderRadius: BorderRadius.circular(4.0),
+              color: CustomColors.fillWhite),
           child: Column(
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Text(
-                      "Q ${index + 1}. ${prompt.question}",
+                      "Q${index + 1}. ${prompt.question}",
+                      style: CustomTypography()
+                          .custom(fontSize: 18, fontWeight: FontWeight.w400),
                     ),
                   ),
+
+                  // Edit Button
+                  GestureDetector(
+                    onTap: () => editResponse(prompt, index + 1),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Icon(Icons.edit_note_sharp,
+                            color: Color(0xFF4186F5), size: 24),
+                        Text(' Edit',
+                            style: CustomTypography()
+                                .button(color: Color(0xFF4186F5)))
+                      ],
+                    ),
+                  )
                 ],
               ),
               getResponseWidget(prompt),
@@ -374,33 +386,36 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
       case ResponseType.audio || ResponseType.textAudio:
         return prompt.answer != null && prompt.answer!.recordings.isEmpty
             ? Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6.0),
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
                 child: TextAnswerCard(
                   answer: prompt.answer!.response!,
                   delete: () => deleteResponse(prompt, null),
                 ),
               )
             : prompt.answer != null
-                ? ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: prompt.answer?.recordings.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6.0),
-                        child: NewAudioCard(
-                          recording: prompt.answer!.recordings[index],
-                          delete: () => deleteResponse(
-                              prompt, prompt.answer!.recordings[index].path),
-                          viewOnly: true,
-                          promptId: prompt.id,
-                        ),
-                      );
-                    })
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: prompt.answer?.recordings.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6.0),
+                            child: NewAudioCard(
+                              recording: prompt.answer!.recordings[index],
+                              delete: () => deleteResponse(prompt,
+                                  prompt.answer!.recordings[index].path),
+                              viewOnly: true,
+                              promptId: prompt.id,
+                            ),
+                          );
+                        }),
+                  )
                 : const SizedBox.shrink();
       case ResponseType.text:
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: TextAnswerCard(
             answer: prompt.answer!.response!,
             delete: () => deleteResponse(prompt, null),
@@ -409,7 +424,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
       case ResponseType.webview:
         final width = MediaQuery.of(context).size.width;
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: Container(
             width: width,
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
@@ -429,21 +444,24 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           ),
         );
       case ResponseType.image:
-        return SizedBox.shrink(); // TODO: CHECK
       case ResponseType.video:
-        return VideoViewer(name: prompt.answer!.response!, delete: null);
+      case ResponseType.imageVideo:
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Preview(
+            recordings: prompt.answer?.recordings ?? [],
+            delete: (String path) {},
+            interactions: false,
+          ),
+        );
+
       case ResponseType.timer:
         final width = MediaQuery.of(context).size.width;
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: Container(
             width: width,
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-            decoration: BoxDecoration(
-              color: CustomColors.grey,
-              borderRadius: BorderRadius.circular(12),
-              shape: BoxShape.rectangle,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Row(children: [
               Expanded(
                 child: Text("Completed the timer ✅",
@@ -461,6 +479,23 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
   void loadDiary(BuildContext context) {
     summaryCubit.loadSummary(widget.diary);
+  }
+
+  void editResponse(PromptModel _prompt, int index) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditDiaryPage(
+          diary: widget.diary,
+          prompt: _prompt,
+          index: index,
+        ),
+      ),
+    );
+
+    if (result == true && mounted) {
+      loadDiary(context);
+    }
   }
 
   void recordResponse(BuildContext context, PromptModel prompt) {
@@ -547,7 +582,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => NewDiaryPage(
           diary: widget.diary,
-          index: null,
+          index:
+              null, // TODO: Add index of the prompt to edit & have a way to skip the other prompts back to the summary
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(-1.0, 0.0); // Start from left

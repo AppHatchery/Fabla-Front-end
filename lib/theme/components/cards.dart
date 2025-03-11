@@ -832,7 +832,8 @@ class _NewAudioCardState extends State<NewAudioCard> {
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
       decoration: BoxDecoration(
-        color: CustomColors.grey,
+        color:
+            widget.isVisible == true ? CustomColors.grey : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         shape: BoxShape.rectangle,
       ),
@@ -998,7 +999,8 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
       decoration: BoxDecoration(
-        color: CustomColors.grey,
+        color:
+            widget.isVisible == true ? CustomColors.grey : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         shape: BoxShape.rectangle,
       ),

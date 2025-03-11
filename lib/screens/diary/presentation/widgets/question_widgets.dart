@@ -4,7 +4,7 @@ import 'dart:math';
 
 import 'package:alarm/alarm.dart';
 import 'package:alarm/model/volume_settings.dart';
-import 'package:audio_diaries_flutter/core/usecases/video_thumbnail.dart';
+import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -1348,7 +1348,7 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
                           Text(
                             widget.prompt.answer?.recordings.isNotEmpty ?? false
                                 ? 'Add Video'
-                                :'Open Camera',
+                                : 'Open Camera',
                             style: CustomTypography()
                                 .button(color: CustomColors.textWhite),
                           )
@@ -1412,7 +1412,12 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
 class Preview extends StatefulWidget {
   final List<Recording> recordings;
   final Function(String path) delete;
-  const Preview({super.key, required this.recordings, required this.delete});
+  final bool interactions;
+  const Preview(
+      {super.key,
+      required this.recordings,
+      required this.delete,
+      this.interactions = true});
 
   @override
   State<Preview> createState() => _PreviewState();
@@ -1506,25 +1511,27 @@ class _PreviewState extends State<Preview> {
                         width: 140,
                       ),
                     ),
-                    Positioned(
-                        top: 0,
-                        right: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(6),
-                          child: GestureDetector(
-                            onTap: () => widget.delete(path),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFF616161)),
-                              child: Icon(
-                                Icons.remove,
-                                size: 28,
-                                color: CustomColors.fillWhite,
+                    widget.interactions
+                        ? Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: GestureDetector(
+                                onTap: () => widget.delete(path),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0xFF616161)),
+                                  child: Icon(
+                                    Icons.remove,
+                                    size: 28,
+                                    color: CustomColors.fillWhite,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        )),
+                            ))
+                        : const SizedBox.shrink(),
                   ],
                 ),
               ),
@@ -1614,25 +1621,27 @@ class _PreviewState extends State<Preview> {
                         width: 140,
                       ),
                     ),
-                    Positioned(
-                        top: 0,
-                        right: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(6),
-                          child: GestureDetector(
-                            onTap: () => widget.delete(path),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFF616161)),
-                              child: Icon(
-                                Icons.remove,
-                                size: 28,
-                                color: CustomColors.fillWhite,
+                    widget.interactions
+                        ? Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: GestureDetector(
+                                onTap: () => widget.delete(path),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0xFF616161)),
+                                  child: Icon(
+                                    Icons.remove,
+                                    size: 28,
+                                    color: CustomColors.fillWhite,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        )),
+                            ))
+                        : const SizedBox.shrink(),
                     Positioned(
                         bottom: 0,
                         right: 0,
