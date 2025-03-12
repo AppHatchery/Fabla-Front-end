@@ -32,12 +32,6 @@ class AnswerRepository {
   /// ```
   Future<PromptModel> load(PromptModel prompt) async {
     final answers = dao.getAnswers(prompt.id);
-    answers.forEach((element) {
-      final prompt = element.prompt.target;
-      dev.log("Prompt id: ${prompt?.id}| Prompt question: ${prompt?.question}",
-          name: 'Answer Repository - Load');
-      dev.log("Answer: ${element.response}", name: 'Answer Repository - Load');
-    });
 
     // Determine the updated prompt based on whether answers are available
     final updatedPrompt = answers.isEmpty

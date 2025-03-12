@@ -210,7 +210,6 @@ class _CustomMultipleQuestion extends State<CustomMultipleQuestion> {
                 controlAffinity: ListTileControlAffinity.leading,
                 value: selectedOptions.contains(widget.options[index].value),
                 onChanged: (value) {
-                  print("value: $value");
                   if (!widget.disabled) {
                     if (value!) {
                       selectedOptions

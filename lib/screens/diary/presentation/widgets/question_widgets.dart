@@ -220,10 +220,10 @@ class _MultipleQuestionState extends State<MultipleQuestion> {
                 checkColor: CustomColors.productLightPrimaryNormalWhite,
                 fillColor: selectedOptions.contains(widget.options[index]) &&
                         !widget.disabled
-                    ? MaterialStateProperty.all(
+                    ? WidgetStateProperty.all(
                         CustomColors.productNormalActive)
                     : selectedOptions.contains(widget.options[index])
-                        ? MaterialStateProperty.all(
+                        ? WidgetStateProperty.all(
                             CustomColors.textTertiaryContent)
                         : null,
                 controlAffinity: ListTileControlAffinity.leading,
@@ -302,7 +302,7 @@ class _RadioQuestionState extends State<RadioQuestion> {
                               : Colors.black
                           : CustomColors.textTertiaryContent),
                 ),
-                fillColor: MaterialStateProperty.all(!widget.disabled
+                fillColor: WidgetStateProperty.all(!widget.disabled
                     ? widget.options[index] == widget.value
                         ? CustomColors.productNormalActive
                         : Colors.black
@@ -392,7 +392,7 @@ class _RadioQuestionSummaryState extends State<RadioQuestionSummary> {
         style: CustomTypography()
             .bodyLarge(color: CustomColors.textSecondaryContent),
       ),
-      fillColor: MaterialStateProperty.all(CustomColors.textSecondaryContent),
+      fillColor: WidgetStateProperty.all(CustomColors.textSecondaryContent),
       controlAffinity: ListTileControlAffinity.leading,
       value: widget.selectedOption ?? "",
       groupValue: widget.selectedOption,
@@ -428,7 +428,7 @@ class _MultipleQuestionSummaryState extends State<MultipleQuestionSummary> {
                 .bodyLarge(color: CustomColors.textSecondaryContent),
           ),
           fillColor:
-              MaterialStateProperty.all(CustomColors.textSecondaryContent),
+              WidgetStateProperty.all(CustomColors.textSecondaryContent),
           checkColor: CustomColors.productLightPrimaryNormalWhite,
           controlAffinity: ListTileControlAffinity.leading,
           value: true,

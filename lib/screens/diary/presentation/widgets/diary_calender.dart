@@ -159,15 +159,6 @@ class _DiaryCalenderState extends State<DiaryCalender> {
       );
     }
   }
-
-  _changeDate(DateTime? date) {
-    if (date != null) {
-      setState(() {
-        today = date;
-      });
-      diaryCubit.loadDiaries(date: today);
-    }
-  }
 }
 
 String _formatDate(DateTime date) {

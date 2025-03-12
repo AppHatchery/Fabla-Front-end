@@ -1,6 +1,7 @@
 import 'package:audio_diaries_flutter/core/secrets/keys.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:pendo_sdk/pendo_sdk.dart';
+import 'dart:developer' as dev;
 
 const String _testID = "Test";
 
@@ -17,7 +18,7 @@ class PendoService {
     try {
       await PendoFlutterPlugin.setup(pendoKey);
     } catch (e) {
-      print('Error initializing Pendo: $e');
+      dev.log('Error initializing Pendo: $e', name: 'Pendo Service - Init');
     }
   }
 
@@ -39,10 +40,11 @@ class PendoService {
       if (foundation.kDebugMode) {
         await PendoFlutterPlugin.startSession(code, _testID, null, null);
       } else {
-        await PendoFlutterPlugin.startSession(code, 'Exp-$experiment', null, null);
+        await PendoFlutterPlugin.startSession(
+            code, 'Exp-$experiment', null, null);
       }
     } catch (e) {
-      print('Error starting Pendo session: $e');
+      dev.log('Error starting Pendo session: $e', name: 'Pendo Service - Init');
     }
   }
 
@@ -59,7 +61,7 @@ class PendoService {
     try {
       await PendoFlutterPlugin.endSession();
     } catch (e) {
-      print('Error stopping Pendo session: $e');
+      dev.log('Error stopping Pendo session: $e', name: 'Pendo Service - Init');
     }
   }
 
@@ -80,7 +82,7 @@ class PendoService {
     try {
       await PendoFlutterPlugin.track(event, data);
     } catch (e) {
-      print('Error tracking Pendo event: $e');
+      dev.log('Error tracking Pendo event: $e', name: 'Pendo Service - Init');
     }
   }
 }

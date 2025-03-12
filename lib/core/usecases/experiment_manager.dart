@@ -6,9 +6,6 @@ import 'dart:developer' as dev;
 final DiaryRepository _diaryRepository = DiaryRepository();
 final SetupRepository _setupRepository = SetupRepository();
 
-// saved version of experiment
-final _version = '0.1';
-
 class ExperimentManager {
   /// Update Experiment
   Future<bool> update() async {

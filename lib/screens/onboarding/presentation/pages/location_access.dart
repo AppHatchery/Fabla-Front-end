@@ -202,7 +202,8 @@ class _LocationAccessState extends State<LocationAccess>
                             ),
                             SizedBox(
                               width: width,
-                              child: Image.asset('assets/images/phone_location.png'),
+                              child: Image.asset(
+                                  'assets/images/phone_location.png'),
                             )
                           ]),
                     ),
@@ -266,7 +267,14 @@ class _LocationAccessState extends State<LocationAccess>
         permission = results.isGranted;
       });
 
-      if (permission) ;
+      if (permission) {
+        await PreferenceService()
+            .setBoolPreference(key: 'location', value: requested);
+        if (mounted) {
+          track(timer.stop(), "Finished");
+          RouteService().navigate(null, context: context, current: 'location');
+        }
+      }
     }
   }
 

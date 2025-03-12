@@ -11,6 +11,7 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dart:developer' as dev;
 
 class CameraAccess extends StatefulWidget {
   const CameraAccess({super.key});
@@ -199,7 +200,7 @@ class _CameraAccessState extends State<CameraAccess>
                                       'assets/images/phone_camera.png'),
                                 ),
                                 child: SizedBox(
-                                  height: 378,
+                                    height: 378,
                                     width: width,
                                     child: controller.value.isInitialized
                                         ? CustomCameraPreview(
@@ -254,7 +255,8 @@ class _CameraAccessState extends State<CameraAccess>
       }
     }).catchError((Object e) {
       if (e is CameraException) {
-        print('Error: ${e.code}\nError Message: ${e.description}');
+        dev.log('Error: ${e.code}\nError Message: ${e.description}',
+            name: 'Camera Access - Camera Init');
         switch (e.code) {
           case 'CameraAccessDenied':
             setState(() {
