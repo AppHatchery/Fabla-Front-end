@@ -21,11 +21,11 @@ class DynamicCubit extends Cubit<DynamicState> {
       if (questions.isNotEmpty) {
         emit(DynamicLoaded(questions: questions));
       } else {
-        upload();
+        emit(DynamicUploading());
         // Clean the database first
         setupRepository.clearStudies();
         await setupRepository.getStudies();
-        emit(DynamicNone());
+        upload(questions.length);
       }
     } catch (e) {
       debugPrint("Error fetching Onboarding Questions: $e");
@@ -46,7 +46,7 @@ class DynamicCubit extends Cubit<DynamicState> {
     }
   }
 
-  void upload() async {
+  void upload(int length) async {
     emit(DynamicUploading());
     try {
       final result = await setupRepository.uploadOnBoardingQuestions();
@@ -54,7 +54,7 @@ class DynamicCubit extends Cubit<DynamicState> {
         await PreferenceService().setStringPreference(
             key: "onboardingSurveyCompletedDate",
             value: DateTime.now().toString());
-        emit(DynamicUploaded());
+        emit(DynamicUploaded(length));
       } else {
         emit(const DynamicError("Failed to upload answers"));
       }
