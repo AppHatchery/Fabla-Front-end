@@ -2,9 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:developer' as dev;
 
+import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
 import 'package:audio_diaries_flutter/theme/components/webview.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -1099,7 +1102,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
 }
 
 class BottomCameraModal extends StatefulWidget {
-  final void Function(String) respond;
+  final void Function(String p, [String? type]) respond;
   final PromptModel prompt;
   final bool isImage;
   const BottomCameraModal(
@@ -1129,7 +1132,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
   void initState() {
     controller = CameraController(
       cameras[0],
-      ResolutionPreset.max,
+      ResolutionPreset.high,
     );
     cameraInit();
     super.initState();
@@ -1689,7 +1692,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
         final path = await getFilePath();
         await file!.saveTo(path);
         final name = basePath(path);
-        widget.respond(name);
+        widget.respond(name, widget.isImage ? "image" : "video");
         if (mounted) Navigator.pop(context, true);
       }
     } catch (e) {
@@ -2002,5 +2005,283 @@ class _BottomUpdateModalState extends State<BottomUpdateModal> {
             );
           }),
     );
+  }
+}
+
+class ViewAllMediaModal extends StatefulWidget {
+  final List<Recording> recordings;
+  final bool interactions;
+  final Function(String path) delete;
+  const ViewAllMediaModal(
+      {super.key,
+      required this.recordings,
+      this.interactions = true,
+      required this.delete});
+
+  @override
+  State<ViewAllMediaModal> createState() => _ViewAllMediaModalState();
+}
+
+class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
+  List<Recording> recordings = [];
+
+  @override
+  void initState() {
+    recordings = widget.recordings;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+      width: width,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF3F3F3),
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(14), topRight: Radius.circular(14)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 26,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(
+                    CupertinoIcons.clear_circled_solid,
+                    size: 26,
+                    color: CustomColors.textSecondaryContent,
+                  ),
+                )
+              ],
+            ),
+          ),
+          Padding(
+              padding: const EdgeInsets.fromLTRB(32, 32, 32, 8),
+              child: Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  for (int i = 0; i < widget.recordings.length; i++)
+                    widget.recordings[i].type == 'video'
+                        ? videoPreviewTile(widget.recordings[i].path)
+                        : previewTile(widget.recordings[i].path)
+                ],
+              ))
+        ],
+      ),
+    );
+  }
+
+  Widget previewTile(
+    String path,
+  ) {
+    return FutureBuilder(
+        future: getImageFile(path: path),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return GestureDetector(
+              onTap: () => showModal(snapshot.data!.path, 'image'),
+              child: SizedBox(
+                height: 140,
+                width: 140,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Image.file(
+                        snapshot.data!,
+                        fit: BoxFit.cover,
+                        height: 140,
+                        width: 140,
+                      ),
+                    ),
+                    widget.interactions
+                        ? Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: GestureDetector(
+                                onTap: () => deleteRecording(path),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0xFF616161)),
+                                  child: Icon(
+                                    Icons.remove,
+                                    size: 28,
+                                    color: CustomColors.fillWhite,
+                                  ),
+                                ),
+                              ),
+                            ))
+                        : const SizedBox.shrink(),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return Container(
+            height: 140,
+            width: 140,
+            decoration: BoxDecoration(
+              color: CustomColors.greyDark,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          );
+        });
+  }
+
+  Widget videoPreviewTile(String path) {
+    return FutureBuilder(
+        future: getVideoFileInfo(path: path),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return GestureDetector(
+              onTap: () => showModal(snapshot.data!.absolutePath, 'video'),
+              child: SizedBox(
+                height: 140,
+                width: 140,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Image.file(
+                        snapshot.data!.thumbnail,
+                        fit: BoxFit.cover,
+                        height: 140,
+                        width: 140,
+                      ),
+                    ),
+                    widget.interactions
+                        ? Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: GestureDetector(
+                                onTap: () => deleteRecording(path),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0xFF616161)),
+                                  child: Icon(
+                                    Icons.remove,
+                                    size: 28,
+                                    color: CustomColors.fillWhite,
+                                  ),
+                                ),
+                              ),
+                            ))
+                        : const SizedBox.shrink(),
+                    Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: Text(
+                            formatDurationtoHHMMSS(snapshot.data!.length),
+                            style: CustomTypography().custom(
+                                color: CustomColors.textWhite,
+                                fontWeight: FontWeight.w500),
+                          ),
+                        ))
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return Container(
+            height: 140,
+            width: 140,
+            decoration: BoxDecoration(
+              color: CustomColors.greyDark,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          );
+        });
+  }
+
+  void deleteRecording(String path) {
+    widget.delete(path);
+    setState(() {
+      recordings.removeWhere((element) => element.path == path);
+    });
+  }
+
+  void showModal(String path, String type) {
+    final File _file = File(path);
+    final width = MediaQuery.of(context).size.width;
+    showModalBottomSheet(
+        backgroundColor: CustomColors.fillNormal,
+        barrierColor: CustomColors.fillNormal,
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        elevation: 0,
+        useSafeArea: true,
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              minChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) {
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 16.0),
+                            child: GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: const Icon(
+                                CupertinoIcons.clear,
+                                size: 24,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 32,
+                    ),
+                    type == 'video'
+                        ? Expanded(
+                            child:
+                                LayoutBuilder(builder: (context, constraints) {
+                              return VideoViewer(
+                                file: _file,
+                                height: constraints.maxHeight,
+                                width: constraints.maxWidth,
+                              );
+                            }),
+                          )
+                        : Expanded(
+                            child: Container(
+                              width: width,
+                              decoration: const BoxDecoration(
+                                color: CustomColors.greyLight,
+                              ),
+                              child: Image.file(_file),
+                            ),
+                          ),
+                  ],
+                );
+              },
+            ));
   }
 }

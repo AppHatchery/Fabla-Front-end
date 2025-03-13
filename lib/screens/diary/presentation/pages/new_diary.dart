@@ -265,29 +265,28 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   }
 
   List<Widget> pages() {
-    return widget.diary.prompts
-        .map((e) {
-        final _key = GlobalKey<ScaffoldState>();
-        return  QuestionPage(
-              currentPage: currentPage,
-              diary: widget.diary,
-              prompt: e,
-              scaffoldKey: _key,
-              answerAdded: (value) {
-                if (mounted) {
-                  setState(() {
-                    ableToContinue = value;
-                  });
-                }
-              },
-              previousPage: previousPage,
-              nextPage: nextPage,
-              isLastPage: isCurrentPageLast,
-              addToPreFunction: (p0) {
-                preFunctions.add(p0);
-              },
-            );})
-        .toList();
+    return widget.diary.prompts.map((e) {
+      final _key = GlobalKey<ScaffoldState>();
+      return QuestionPage(
+        currentPage: currentPage,
+        diary: widget.diary,
+        prompt: e,
+        scaffoldKey: _key,
+        answerAdded: (value) {
+          if (mounted) {
+            setState(() {
+              ableToContinue = value;
+            });
+          }
+        },
+        previousPage: previousPage,
+        nextPage: nextPage,
+        isLastPage: isCurrentPageLast,
+        addToPreFunction: (p0) {
+          preFunctions.add(p0);
+        },
+      );
+    }).toList();
   }
 
   void controllerInit() {
@@ -550,17 +549,17 @@ class _QuestionPageState extends State<QuestionPage>
       responseWidget = VisualResponseWidget(
           diary: widget.diary,
           prompt: prompt,
-          respond: (answer) => save(prompt, answer, 'image'));
+          respond: (answer, [type]) => save(prompt, answer, 'image'));
     } else if (prompt.responseType == ResponseType.video) {
       responseWidget = VisualResponseWidget(
           diary: widget.diary,
           prompt: prompt,
-          respond: (answer) => save(prompt, answer, 'video'));
+          respond: (answer, [type]) => save(prompt, answer, 'video'));
     } else if (prompt.responseType == ResponseType.imageVideo) {
       responseWidget = VisualResponseWidget(
           diary: widget.diary,
           prompt: prompt,
-          respond: (answer) => save(prompt, answer, 'video'));
+          respond: (answer, [type]) => save(prompt, answer, type ?? 'video'));
     } else {
       responseWidget = const SizedBox.shrink();
     }

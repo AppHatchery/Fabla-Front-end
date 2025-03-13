@@ -46,7 +46,9 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CustomColors.fillNormal,
       appBar: AppBar(
+        backgroundColor: CustomColors.fillNormal,
         leading: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: Icon(Icons.close_rounded)),
@@ -133,14 +135,18 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
                     children: [
                       Expanded(
                         child: Text(
-                          "Subtitle",
+                          prompt.subtitle ?? "",
                           style: const TextStyle(
                               color: CustomColors.textTertiaryContent),
                         ),
                       )
                     ],
                   ),
-                  getResponseWidget(prompt)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 36.0),
+                    child: getResponseWidget(prompt),
+                  )
+
                   // const CustomTextButton(
                   //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
                 ],
@@ -168,7 +174,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
         return VisualResponseWidget(
             diary: widget.diary,
             prompt: prompt,
-            respond: (answer) => save(prompt, answer, 'image'));
+            respond: (answer, [type]) => save(prompt, answer, type ?? 'image'));
       case ResponseType.multiple:
         final selected = prompt.answer?.response != null
             ? prompt.answer?.response!.split("/ ")

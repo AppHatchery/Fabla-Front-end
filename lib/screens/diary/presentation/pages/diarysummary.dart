@@ -93,70 +93,46 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   automaticallyImplyLeading: false,
                   backgroundColor: CustomColors.fillNormal,
                   scrolledUnderElevation: 0.0,
-                  leadingWidth: 100,
-                  leading: isEditable()
-                      ? GestureDetector(
-                          onTap: () {
-                            track(timer.stop(), "Back to Diary");
-                            returnToDiary();
+                  leading: IconButton(
+                    onPressed: () {
+                      scheduleSubmitDiaryNotification(widget.diary.id);
+                      track(timer.stop(), "Close");
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  const Hub(),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(-1.0,
+                                0.0); // Left to right for backward navigation
+                            const end = Offset.zero;
+                            const curve = Curves.easeInOut;
+
+                            var tween = Tween(begin: begin, end: end)
+                                .chain(CurveTween(curve: curve));
+                            var offsetAnimation = animation.drive(tween);
+
+                            return SlideTransition(
+                              position: offsetAnimation,
+                              child: child,
+                            );
                           },
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 16.0),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.edit_rounded,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  "Edit",
-                                  style: CustomTypography().bodyLarge(
-                                      color: CustomColors.textNormalContent),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : null,
-                  actions: [
-                    IconButton(
-                      onPressed: () {
-                        scheduleSubmitDiaryNotification(widget.diary.id);
-                        track(timer.stop(), "Close");
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder:
-                                (context, animation, secondaryAnimation) =>
-                                    const Hub(),
-                            transitionsBuilder: (context, animation,
-                                secondaryAnimation, child) {
-                              const begin = Offset(-1.0,
-                                  0.0); // Left to right for backward navigation
-                              const end = Offset.zero;
-                              const curve = Curves.easeInOut;
-
-                              var tween = Tween(begin: begin, end: end)
-                                  .chain(CurveTween(curve: curve));
-                              var offsetAnimation = animation.drive(tween);
-
-                              return SlideTransition(
-                                position: offsetAnimation,
-                                child: child,
-                              );
-                            },
-                            transitionDuration: const Duration(
-                                milliseconds: 200), // Adjust as needed
-                          ),
-                          (route) => false,
-                        );
-                      },
-                      icon: const Icon(CustomIcons.close),
-                      iconSize: 15.0,
-                    )
-                  ],
+                          transitionDuration: const Duration(
+                              milliseconds: 200), // Adjust as needed
+                        ),
+                        (route) => false,
+                      );
+                    },
+                    icon: const Icon(CustomIcons.close),
+                    iconSize: 15.0,
+                  ),
+                  title: Text(
+                    "Response Summary",
+                    style: CustomTypography()
+                        .headlineMedium(color: CustomColors.textNormalContent),
+                  ),
                   centerTitle: true,
                 ),
           body: state is SummaryInitial
@@ -247,15 +223,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 100.0),
           child: Column(
             children: [
-              Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  "Response Summary",
-                  style: CustomTypography()
-                      .headlineMedium(color: CustomColors.textNormalContent),
-                ),
-              ),
-              const SizedBox(height: 24),
               Expanded(
                   child: SingleChildScrollView(
                 child: ListView.builder(
@@ -278,7 +245,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                 const EdgeInsets.only(bottom: 34, top: 24, left: 16, right: 16),
             alignment: Alignment.bottomCenter,
             child: CustomFlatButton(
-              onClick: () => submitDiary(),
+              onClick: () => submitDiary(diary),
               text: "Submit My Response",
               color: CustomColors.productNormal,
               textColor: CustomColors.textWhite,
@@ -313,19 +280,21 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   ),
 
                   // Edit Button
-                  GestureDetector(
-                    onTap: () => editResponse(prompt, index + 1),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Icon(Icons.edit_note_sharp,
-                            color: Color(0xFF4186F5), size: 24),
-                        Text(' Edit',
-                            style: CustomTypography()
-                                .button(color: Color(0xFF4186F5)))
-                      ],
-                    ),
-                  )
+                  isEditable()
+                      ? GestureDetector(
+                          onTap: () => editResponse(prompt, index + 1),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(Icons.edit_note_sharp,
+                                  color: Color(0xFF4186F5), size: 24),
+                              Text(' Edit',
+                                  style: CustomTypography()
+                                      .button(color: Color(0xFF4186F5)))
+                            ],
+                          ),
+                        )
+                      : const SizedBox.shrink()
                 ],
               ),
               getResponseWidget(prompt),
@@ -427,12 +396,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: Container(
             width: width,
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-            decoration: BoxDecoration(
-              color: CustomColors.grey,
-              borderRadius: BorderRadius.circular(12),
-              shape: BoxShape.rectangle,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Row(children: [
               Expanded(
                 child: Text("Response recorded externally",
@@ -531,8 +495,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     summaryCubit.removeResponse(widget.diary, prompt, path);
   }
 
-  void submitDiary() {
-    summaryCubit.submitDiary(widget.diary);
+  void submitDiary(DiaryModel diary) {
+    summaryCubit.submitDiary(diary);
   }
 
   void pendoEvent() async {

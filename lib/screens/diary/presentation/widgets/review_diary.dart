@@ -214,7 +214,8 @@ class _ReviewDiaryState extends State<ReviewDiary> {
           selectedOption: prompt.answer?.response,
         );
       case ResponseType.audio:
-        return prompt.answer!.recordings.isEmpty
+      case ResponseType.textAudio:
+        return prompt.answer != null && prompt.answer!.recordings.isEmpty
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: TextAnswerCard(
@@ -223,23 +224,25 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                   delete: () => deleteResponse(prompt, null),
                 ),
               )
-            : ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: prompt.answer!.recordings.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6.0),
-                    child: NewAudioCard(
-                      isVisible: true,
-                      recording: prompt.answer!.recordings[index],
-                      delete: () => deleteResponse(
-                          prompt, prompt.answer!.recordings[index].path),
-                      viewOnly: true,
-                      promptId: prompt.id,
-                    ),
-                  );
-                });
+            : prompt.answer != null
+                ? ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: prompt.answer!.recordings.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6.0),
+                        child: NewAudioCard(
+                          isVisible: true,
+                          recording: prompt.answer!.recordings[index],
+                          delete: () => deleteResponse(
+                              prompt, prompt.answer!.recordings[index].path),
+                          viewOnly: true,
+                          promptId: prompt.id,
+                        ),
+                      );
+                    })
+                : const SizedBox.shrink();
       case ResponseType.text:
         return TextAnswerCard(
             isVisible: true,
@@ -268,9 +271,33 @@ class _ReviewDiaryState extends State<ReviewDiary> {
           ),
         );
       case ResponseType.image:
-        return SizedBox.shrink(); // TODO: CHECK
       case ResponseType.video:
-        return SizedBox.shrink();
+      case ResponseType.imageVideo:
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Preview(
+            recordings: prompt.answer?.recordings ?? [],
+            delete: (String path) {},
+            interactions: false,
+          ),
+        );
+      case ResponseType.timer:
+        final width = MediaQuery.of(context).size.width;
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: Container(
+            width: width,
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Row(children: [
+              Expanded(
+                child: Text("Completed the timer ✅",
+                    style: CustomTypography().bodyMedium(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ),
+            ]),
+          ),
+        );
       default:
         return const SizedBox.shrink();
     }

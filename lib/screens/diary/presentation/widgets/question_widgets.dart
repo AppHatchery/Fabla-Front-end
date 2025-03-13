@@ -220,8 +220,7 @@ class _MultipleQuestionState extends State<MultipleQuestion> {
                 checkColor: CustomColors.productLightPrimaryNormalWhite,
                 fillColor: selectedOptions.contains(widget.options[index]) &&
                         !widget.disabled
-                    ? WidgetStateProperty.all(
-                        CustomColors.productNormalActive)
+                    ? WidgetStateProperty.all(CustomColors.productNormalActive)
                     : selectedOptions.contains(widget.options[index])
                         ? WidgetStateProperty.all(
                             CustomColors.textTertiaryContent)
@@ -427,8 +426,7 @@ class _MultipleQuestionSummaryState extends State<MultipleQuestionSummary> {
             style: CustomTypography()
                 .bodyLarge(color: CustomColors.textSecondaryContent),
           ),
-          fillColor:
-              WidgetStateProperty.all(CustomColors.textSecondaryContent),
+          fillColor: WidgetStateProperty.all(CustomColors.textSecondaryContent),
           checkColor: CustomColors.productLightPrimaryNormalWhite,
           controlAffinity: ListTileControlAffinity.leading,
           value: true,
@@ -1286,7 +1284,7 @@ class _TimerWidgetState extends State<TimerWidget>
 }
 
 class VisualResponseWidget extends StatefulWidget {
-  final void Function(String) respond;
+  final void Function(String answer, [String? type]) respond;
   final DiaryModel diary;
   final PromptModel prompt;
   const VisualResponseWidget(
@@ -1807,7 +1805,6 @@ class _PreviewState extends State<Preview> {
   }
 
   showAllModal() {
-    final width = MediaQuery.of(context).size.width;
     showModalBottomSheet(
         backgroundColor: Colors.transparent,
         context: context,
@@ -1821,51 +1818,8 @@ class _PreviewState extends State<Preview> {
               minChildSize: 1,
               snap: true,
               builder: (context, scrollController) {
-                return Container(
-                  width: width,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF3F3F3),
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(14),
-                        topRight: Radius.circular(14)),
-                  ),
-                  child: Column(
-                    children: [
-                      const SizedBox(
-                        height: 26,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            GestureDetector(
-                              onTap: () => Navigator.pop(context),
-                              child: const Icon(
-                                CupertinoIcons.clear_circled_solid,
-                                size: 26,
-                                color: CustomColors.textSecondaryContent,
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      Padding(
-                          padding: const EdgeInsets.fromLTRB(32, 32, 32, 8),
-                          child: Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: [
-                              for (int i = 0; i < widget.recordings.length; i++)
-                                widget.recordings[i].type == 'video'
-                                    ? videoPreviewTile(
-                                        widget.recordings[i].path)
-                                    : previewTile(widget.recordings[i].path)
-                            ],
-                          ))
-                    ],
-                  ),
-                );
+                return ViewAllMediaModal(
+                    recordings: widget.recordings, delete: widget.delete);
               },
             ));
   }
