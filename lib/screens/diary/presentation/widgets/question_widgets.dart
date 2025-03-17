@@ -1256,7 +1256,7 @@ class _TimerWidgetState extends State<TimerWidget>
         alarmSettings: AlarmSettings(
             id: alarmID,
             dateTime: _time,
-            assetAudioPath: 'assets/audio/chime.mp3',
+            assetAudioPath: 'assets/audio/bowl.wav',
             loopAudio: true,
             vibrate: true,
             volumeSettings: VolumeSettings.fade(
