@@ -31,6 +31,7 @@ class TodayGoalWidget extends StatefulWidget {
 
 class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   Map<StudyModel, List<DiaryModel>> data = {};
+  bool goalsAvailable = true;
 
   late StateMachineController _controller;
 
@@ -61,9 +62,20 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       final diaries = widget.diaries
           .where((diary) =>
               diary.studyID == study.studyId &&
-              diary.due.day == DateTime.now().day)
+              diary.start.day == DateTime.now().day)
           .toList();
-      data[study] = diaries;
+      if (diaries.isNotEmpty) {
+        data[study] = diaries;
+      }
+    }
+
+    for (final entry in data.keys) {
+      if (entry.goals.daily > 0) {
+        goalsAvailable = true;
+        break;
+      }
+
+      goalsAvailable = false;
     }
 
     super.initState();
@@ -78,70 +90,72 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Today's Goal", style: CustomTypography().titleLarge()),
-        const SizedBox(height: 16),
-        Align(
-          alignment: Alignment.center,
-          child: SizedBox(
-            // height: 150,
-            width: width,
-            child: Stack(
-              children: [
-                Align(
-                  alignment: Alignment.center,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 5.0),
-                    child: GoalProgressIndicators(
-                      goals: data,
-                    ),
-                  ),
-                ),
-                Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 5,
-                          height: 10,
-                          color: Colors.white,
-                        ),
-                      ],
-                    )),
-                Positioned(
-                  bottom: 0,
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 5.0),
-                      child: SizedBox(
-                        height: 120,
-                        width: 180,
-                        child: RiveAnimation.asset(
-                          'assets/animations/ghosts.riv',
-                          onInit: _onInit,
-                          fit: BoxFit.cover,
+    return goalsAvailable
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Today's Goal", style: CustomTypography().titleLarge()),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.center,
+                child: SizedBox(
+                  // height: 150,
+                  width: width,
+                  child: Stack(
+                    children: [
+                      Align(
+                        alignment: Alignment.center,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 5.0),
+                          child: GoalProgressIndicators(
+                            goals: data,
+                          ),
                         ),
                       ),
-                    ),
+                      Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 5,
+                                height: 10,
+                                color: Colors.white,
+                              ),
+                            ],
+                          )),
+                      Positioned(
+                        bottom: 0,
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 5.0),
+                            child: SizedBox(
+                              height: 120,
+                              width: 180,
+                              child: RiveAnimation.asset(
+                                'assets/animations/ghosts.riv',
+                                onInit: _onInit,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
                   ),
-                )
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        SizedBox(width: width, child: entries(data))
-      ],
-    );
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(width: width, child: entries(data))
+            ],
+          )
+        : const SizedBox.shrink();
   }
 
   Widget entries(Map<StudyModel, List<DiaryModel>> data) {
@@ -210,13 +224,13 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         .where((diary) => diary.due.day == DateTime.now().day)
         .toList();
 
-    final totalEntries =
-        diariesForToday.where((diary) => diary.status == DiaryStatus.submitted).length;
+    final totalEntries = diariesForToday
+        .where((diary) => diary.status == DiaryStatus.submitted)
+        .length;
     final totalGoal =
         widget.studies.fold(0, (prev, study) => prev + study.goals.daily);
     final weeklyGoal =
         widget.studies.fold(0, (prev, study) => prev + study.goals.weekly);
-
 
     //Show Searching 1 or Searching 2 if there is no entry
     // Make the animation random with a 50/50 chance of both showing up

@@ -181,8 +181,27 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
     final totalGoal =
         studies.fold(0, (prev, study) => prev + study.goals.daily);
 
-    final begin = (totalEntries - 1) / totalGoal;
-    final end = totalEntries / totalGoal;
+    double begin = 0.0;
+    double end = 0.0;
+
+    // If the total Goal is less than or equal to 0 then it should default to one to show completion for that day
+      // [isNaN] & [isInfinite] are checks to see if the value we are calculating is an actual double
+    if (totalGoal == 0) {
+      begin = ((totalEntries - 1) / totalGoal).isNaN ||
+              ((totalEntries - 1) / totalGoal).isInfinite
+          ? 0.0
+          : (totalEntries - 1) / totalGoal;
+      end = 1.0;
+    } else {
+      begin = ((totalEntries - 1) / totalGoal).isNaN ||
+              ((totalEntries - 1) / totalGoal).isInfinite
+          ? 0.0
+          : (totalEntries - 1) / totalGoal;
+      end = (totalEntries / totalGoal).isNaN ||
+              (totalEntries / totalGoal).isInfinite
+          ? 0.0
+          : totalEntries / totalGoal;
+    }
 
     return SizedBox(
         height: 150,

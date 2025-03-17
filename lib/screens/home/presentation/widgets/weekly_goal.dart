@@ -118,28 +118,28 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
 
   void calculate() {
     Map<StudyModel, List<DiaryModel>> data = {};
+    int totalWeeklyGoals = 0;
+    int totalPossibleEntries = 0;
+    int totalCurrentEntries = 0;
 
     for (var study in widget.studies) {
       final diaries =
           widget.diaries.where((diary) => diary.studyID == study.studyId);
       data[study] = diaries.toList();
-    }
 
-    final first = data.entries.firstOrNull;
+      totalWeeklyGoals += study.goals.weekly;
+      final studyPossibleEntries =
+          diaries.fold(0, (prev, diary) => prev + diary.entries);
+      totalPossibleEntries += studyPossibleEntries;
 
-    if (first != null) {
-      // If the weekly goal is more than the number of entries, use the number of available entries
-      // Possible entries taking into consideration the number of entries allowed per diary
-      final possibleEntries =
-          first.value.fold(0, (prev, diary) => prev + diary.entries);
-      weeklyGoal = first.key.goals.weekly > possibleEntries
-          ? possibleEntries
-          : first.key.goals.weekly;
-      currentEntries = first.value
+      totalCurrentEntries += diaries
           .where((diary) => diary.status == DiaryStatus.submitted)
           .length;
     }
-
+    weeklyGoal = totalPossibleEntries >= totalWeeklyGoals
+        ? totalWeeklyGoals
+        : totalPossibleEntries;
+    currentEntries = totalCurrentEntries;
     progressValue = (currentEntries / weeklyGoal) * width;
     progressBarWidth = progressValue.isNaN
         ? 0

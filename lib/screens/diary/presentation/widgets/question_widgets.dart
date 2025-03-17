@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:alarm/alarm.dart';
+import 'package:alarm/model/volume_settings.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -1258,8 +1259,8 @@ class _TimerWidgetState extends State<TimerWidget>
             assetAudioPath: 'assets/audio/chime.mp3',
             loopAudio: true,
             vibrate: true,
-            volume: 1.0,
-            fadeDuration: 0.0,
+            volumeSettings: VolumeSettings.fade(
+                fadeDuration: const Duration(milliseconds: 500), volume: 1.0),
             warningNotificationOnKill: Platform.isIOS,
             androidFullScreenIntent: false,
             notificationSettings: const NotificationSettings(

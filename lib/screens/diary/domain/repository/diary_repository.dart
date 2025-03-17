@@ -118,6 +118,50 @@ class DiaryRepository {
     return diaries.map((e) => DiaryModel.fromEntity(e)).toList();
   }
 
+  /// Retrieves a list of Diary objects representing all stored diary entries.
+  List<DiaryModel> getAllDiariesWithMultipleEntries() {
+    // Retrieve all diaries from the database
+    List<DiaryModel> unfilteredDiaries = getAllDiaries();
+    final promptRepository = PromptRepository();
+
+    // Prepare a list to store processed diaries
+    final now = DateTime.now();
+    final List<DiaryModel> diaries = [];
+
+    // Process filtered diaries
+    for (var diary in unfilteredDiaries) {
+      final entryCount = diary.currentEntry;
+
+      if (diary.status == DiaryStatus.missed) {
+        diaries.add(diary);
+        continue;
+      }
+
+      if (entryCount == 0 && diary.status != DiaryStatus.missed) {
+        diaries.add(diary);
+      } else {
+        for (var i = 0; i <= entryCount; i++) {
+          final newDiary = diary.copyWith(
+              id: diary.id,
+              studyID: diary.studyID,
+              currentEntry: i,
+              status: entryCount != i ? DiaryStatus.submitted : null);
+
+          //check if diary is answered
+          final prompt =
+              promptRepository.load(newDiary, newDiary.prompts.first.id);
+
+          if (prompt.answer != null ||
+              (diary.status == DiaryStatus.idle && diary.due.isAfter(now))) {
+            diaries.add(newDiary);
+          }
+        }
+      }
+    }
+
+    return diaries;
+  }
+
   /// Retrieves all history diaries grouped by date.
   ///
   /// This function retrieves all diaries from the database and filters them based on their due dates,
@@ -273,7 +317,9 @@ class DiaryRepository {
 
     // Filter diaries based on their start dates falling within the specified range
     final filtered = diaries.where((element) {
-      return element.start.isAfter(start) && element.start.isBefore(end);
+      return (element.start.isAfter(start) ||
+              element.start.isAtSameMomentAs(start)) &&
+          element.start.isBefore(end);
     }).toList();
 
     final List<DiaryModel> _diaries =

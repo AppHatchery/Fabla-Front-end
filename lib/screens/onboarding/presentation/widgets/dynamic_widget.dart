@@ -336,8 +336,6 @@ class _OnBoardingSliderState extends State<OnBoardingSlider> {
   @override
   void initState() {
     value = widget.value ?? widget.defaultValue.toDouble();
-    print(
-        "value: $value | defaultValue: ${widget.defaultValue} | scaleMin: ${widget.scaleMin} | scaleMax: ${widget.scaleMax}");
     super.initState();
   }
 
@@ -353,7 +351,6 @@ class _OnBoardingSliderState extends State<OnBoardingSlider> {
         onSliderValueChanged: (value) {
           setState(() {
             this.value = value;
-            print("value: $value");
             widget.onChanged(value);
           });
         });
