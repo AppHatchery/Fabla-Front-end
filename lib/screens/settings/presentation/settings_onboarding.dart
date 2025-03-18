@@ -239,6 +239,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
           isScrollControlled: true,
           enableDrag: false,
           context: context,
+          routeSettings: RouteSettings(name: "/SettingsUpdateTimePickerModal"),
           builder: (context) => LayoutBuilder(builder: (context, constraints) {
                 return SingleChildScrollView(
                   child: UpdateTimePicker(
@@ -260,6 +261,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
           isScrollControlled: true,
           enableDrag: false,
           context: context,
+          routeSettings: RouteSettings(name: "/SettingsUpdateTextModal"),
           builder: (context) => Padding(
                 padding: EdgeInsets.only(
                     bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -284,6 +286,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
           isScrollControlled: true,
           enableDrag: false,
           context: context,
+          routeSettings: RouteSettings(name: "/SettingsUpdateSliderModal"),
           builder: (context) => LayoutBuilder(builder: (context, constraints) {
                 return SingleChildScrollView(
                   child: UpdateSliderOption(
@@ -316,6 +319,8 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
           isScrollControlled: true,
           enableDrag: false,
           context: context,
+          routeSettings:
+              RouteSettings(name: "/SettingsUpdateMultipleChoiceModal"),
           builder: (context) => LayoutBuilder(builder: (context, constraints) {
                 return SingleChildScrollView(
                   child: UpdateMultipleOptions(
@@ -336,6 +341,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
           isScrollControlled: true,
           enableDrag: false,
           context: context,
+          routeSettings: RouteSettings(name: "/SettingsUpdateRadioOptionModal"),
           builder: (context) => LayoutBuilder(builder: (context, constraints) {
                 return SingleChildScrollView(
                   child: UpdateRadioOptions(
@@ -360,6 +366,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
           isScrollControlled: true,
           enableDrag: false,
           context: context,
+          routeSettings: RouteSettings(name: "/SettingsUpdateDateModal"),
           builder: (context) => LayoutBuilder(builder: (context, constraints) {
                 return SingleChildScrollView(
                   child: UpdateDateOption(

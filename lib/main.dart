@@ -32,6 +32,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pendo_sdk/pendo_sdk.dart';
 import 'dart:io' show Platform;
 
 import 'core/database/object_box.dart';
@@ -137,41 +138,50 @@ class _MyAppState extends State<MyApp> {
                 BlocProvider<SettingsCubit>(
                     create: (context) => SettingsCubit()),
               ],
-              child: MaterialApp(
-                title: 'Audio Diaries',
-                theme: ThemeData(
-                    primaryColor: CustomColors.productNormal,
-                    useMaterial3: true),
-                home: child,
-                debugShowCheckedModeBanner: false,
-                onGenerateRoute: (settings) {
-                  switch (settings.name) {
-                    case "/NewDiaryPage":
-                      {
-                        final Map arguments = settings.arguments as Map;
-                        final DiaryModel diary =
-                            arguments['diary'] as DiaryModel;
-                        final int? index = arguments['index'] as int?;
-                        return MaterialPageRoute(
+              child: PendoActionListener(
+                child: MaterialApp(
+                  title: 'Audio Diaries',
+                  theme: ThemeData(
+                      primaryColor: CustomColors.productNormal,
+                      useMaterial3: true),
+                  home: child,
+                  debugShowCheckedModeBanner: false,
+                  navigatorObservers: [PendoNavigationObserver()],
+                  onGenerateRoute: (settings) {
+                    switch (settings.name) {
+                      case "/NewDiaryPage":
+                        {
+                          final Map arguments = settings.arguments as Map;
+                          final DiaryModel diary =
+                              arguments['diary'] as DiaryModel;
+                          final int? index = arguments['index'] as int?;
+                          return MaterialPageRoute(
                             builder: (context) => NewDiaryPage(
-                                  diary: diary,
-                                  index: index,
-                                ));
-                      }
-                    case "/DiarySummaryPage":
-                      {
-                        final DiaryModel diary =
-                            settings.arguments as DiaryModel;
-                        return MaterialPageRoute(
+                              diary: diary,
+                              index: index,
+                            ),
+                            settings: RouteSettings(name: "/NewDiaryPage"),
+                          );
+                        }
+                      case "/DiarySummaryPage":
+                        {
+                          final DiaryModel diary =
+                              settings.arguments as DiaryModel;
+                          return MaterialPageRoute(
                             builder: (context) => DiarySummaryPage(
-                                  diary: diary,
-                                ));
-                      }
-                    default:
-                      return MaterialPageRoute(
-                          builder: (context) => const Hub());
-                  }
-                },
+                              diary: diary,
+                            ),
+                            settings: RouteSettings(name: "/DiarySummaryPage"),
+                          );
+                        }
+                      default:
+                        return MaterialPageRoute(
+                          builder: (context) => const Hub(),
+                          settings: RouteSettings(name: "/Hub"),
+                        );
+                    }
+                  },
+                ),
               ));
         },
         child: _route);
@@ -337,6 +347,7 @@ class _HubState extends State<Hub>
         isDismissible: false,
         enableDrag: false,
         useSafeArea: true,
+        routeSettings: RouteSettings(name: "/UpdateModal"),
         builder: (context) => Wrap(
               children: [
                 BottomUpdateModal(

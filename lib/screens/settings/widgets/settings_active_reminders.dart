@@ -95,6 +95,7 @@ class _ActiveRemindersState extends State<ActiveReminders> {
         backgroundColor: CustomColors.fillWhite,
         isScrollControlled: true,
         context: context,
+        routeSettings: RouteSettings(name: "/SettingsTimePickerModal"),
         builder: (context) => LayoutBuilder(builder: (context, constraints) {
               return const SingleChildScrollView(
                 child: CustomTimePicker(date: null),

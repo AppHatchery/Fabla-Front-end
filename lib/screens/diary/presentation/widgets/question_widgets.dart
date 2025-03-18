@@ -620,6 +620,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
         enableDrag: false,
         elevation: 0,
         useSafeArea: true,
+        routeSettings: RouteSettings(name: "/WebViewModal"),
         builder: (context) => DraggableScrollableSheet(
               initialChildSize: 1,
               minChildSize: 1,
@@ -1366,6 +1367,7 @@ class _ImageWidgetState extends State<ImageWidget> {
         enableDrag: false,
         elevation: 0,
         useSafeArea: true,
+        routeSettings: RouteSettings(name: "/CameraModal"),
         builder: (context) => DraggableScrollableSheet(
               initialChildSize: 1,
               minChildSize: 1,
@@ -1482,6 +1484,7 @@ class _VideoWidgetState extends State<VideoWidget> {
         enableDrag: false,
         elevation: 0,
         useSafeArea: true,
+        routeSettings: RouteSettings(name: "/CameraModal"),
         builder: (context) => DraggableScrollableSheet(
               initialChildSize: 1,
               minChildSize: 1,

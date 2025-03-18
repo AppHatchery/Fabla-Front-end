@@ -76,7 +76,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
             Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const ActiveDatesPage()));
+                    builder: (context) => const ActiveDatesPage(), settings: RouteSettings(name: "/ActiveDatesPage")));
           } else if (state is DynamicUploaded) {
             track(timer.stop(), "Finished");
             moveOn(context);
