@@ -1,3 +1,4 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -46,6 +47,7 @@ class _LocationAccessState extends State<LocationAccess>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      checkForPermission();
       timer.start();
     } else if (state == AppLifecycleState.paused) {
       int spent = timer.stop();
@@ -253,17 +255,12 @@ class _LocationAccessState extends State<LocationAccess>
     }
   }
 
-  void openPermissionSettings() async {
-    bool opened = await openAppSettings();
+  void openPermissionSettings() async =>
+      await AppSettings.openAppSettings(type: AppSettingsType.settings);
 
-    if (opened) {
-      final results = await Permission.camera.request();
-      setState(() {
-        permission = results.isGranted;
-      });
-
-      if (permission) ;
-    }
+  checkForPermission() async {
+    final result = await Permission.location.isGranted;
+    if (mounted) setState(() => permission = result);
   }
 
   track(int spent, String status) async {

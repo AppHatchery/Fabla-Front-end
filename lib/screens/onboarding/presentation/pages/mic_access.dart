@@ -1,3 +1,4 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/mic_tester.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -40,9 +41,9 @@ class _MicAccessPageState extends State<MicAccessPage>
 
   final PageTimer timer = PageTimer();
 
-
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     timer.start();
     if (Navigator.of(context).canPop()) {
       canGoBack = true;
@@ -57,6 +58,7 @@ class _MicAccessPageState extends State<MicAccessPage>
     timer.dispose();
     recorder.closeRecorder();
     _controller.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -64,12 +66,13 @@ class _MicAccessPageState extends State<MicAccessPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       recorderInit();
+      checkForPermission();
       timer.start();
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached ||
         state == AppLifecycleState.inactive) {
       recorder.closeRecorder();
-       int spent = timer.stop();
+      int spent = timer.stop();
       track(spent, "Paused");
     }
     super.didChangeAppLifecycleState(state);
@@ -85,9 +88,8 @@ class _MicAccessPageState extends State<MicAccessPage>
           scrolledUnderElevation: 0.0,
           leading: canGoBack
               ? IconButton(
-                  onPressed: () => {
-                    track(timer.stop(), "Back"),
-                    Navigator.pop(context)},
+                  onPressed: () =>
+                      {track(timer.stop(), "Back"), Navigator.pop(context)},
                   icon: const Icon(
                     Icons.arrow_back_rounded,
                     color: CustomColors.fillWhite,
@@ -302,6 +304,7 @@ class _MicAccessPageState extends State<MicAccessPage>
   }
 
   void startRecorder() async {
+    print('Starting recorder');
     final tempDir = await getTemporaryDirectory();
     final path = '${tempDir.path}/flutter_sound.aac';
     recorder.startRecorder(
@@ -367,18 +370,17 @@ class _MicAccessPageState extends State<MicAccessPage>
     if (mounted) requested = true;
   }
 
-  void openPermissionSettings() async {
-    bool opened = await openAppSettings();
+  void openPermissionSettings() async =>
+      await AppSettings.openAppSettings(type: AppSettingsType.settings);
 
-    if (opened) {
-      final results = await Permission.microphone.request();
-      setState(() {
-        permission = results.isGranted;
-      });
+  checkForPermission() async {
+    final result = await Permission.microphone.isGranted;
+    if (mounted) {
+      setState(() => permission = result);
 
       if (permission) {
         startRecorder();
-        wearHeadphones?.value = true; //! Test This
+        wearHeadphones?.value = true;
       }
     }
   }
