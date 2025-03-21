@@ -1128,6 +1128,9 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
   VideoPlayerController? videoController;
   bool videoPlaying = false;
 
+  double feedHeight = 0;
+  double feedWidth = 0;
+
   @override
   void initState() {
     controller = CameraController(
@@ -1170,7 +1173,13 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
     // If the controller is updated then update the UI.
     controller.addListener(() {
       if (mounted) {
-        setState(() {});
+        setState(() {
+          if (controller.value.previewSize != null) {
+            // Reversed for portrait
+            feedWidth = controller.value.previewSize!.height / 3;
+            feedHeight = controller.value.previewSize!.width / 3;
+          }
+        });
       }
       if (controller.value.hasError) {
         dev.log('Camera error ${controller.value.errorDescription}');
@@ -1321,8 +1330,8 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
     if (file != null) {
       final _file = File(file!.path);
       return Container(
-        height: 398,
-        width: 398,
+        height: feedHeight,
+        width: feedWidth,
         decoration: BoxDecoration(
           color: CustomColors.grey,
           border: GradientBoxBorder(
@@ -1346,8 +1355,8 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
 
   Widget cameraFeed() {
     return Container(
-      height: 398,
-      width: 398,
+      width: feedWidth,
+      height: feedHeight,
       decoration: BoxDecoration(
         color: CustomColors.grey,
         border: GradientBoxBorder(
@@ -1362,22 +1371,11 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
         child: controller.value.isInitialized
             ? Stack(
                 children: [
-                  AspectRatio(
-                    aspectRatio: controller.value.aspectRatio,
-                    child: OverflowBox(
-                      alignment: Alignment.center,
-                      maxWidth: double.infinity,
-                      maxHeight: double.infinity,
-                      child: FittedBox(
-                        fit: BoxFit.cover,
-                        child: SizedBox(
-                          width: 398 / controller.value.aspectRatio,
-                          height: 398,
-                          child: CameraPreview(controller),
-                        ),
-                      ),
-                    ),
-                  ),
+                  Center(
+                      child: SizedBox(
+                          width: controller.value.previewSize!.height / 3,
+                          height: controller.value.previewSize!.width / 3,
+                          child: CameraPreview(controller))),
 
                   // Time
                   elapsed.inMilliseconds > 0
@@ -1412,9 +1410,9 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                       : const SizedBox.shrink()
                 ],
               )
-            : const SizedBox(
-                height: 398,
-                width: 398,
+            : SizedBox(
+                height: feedHeight,
+                width: feedWidth,
               ),
       ),
     );
