@@ -15,7 +15,7 @@ class PendoService {
 
   static Future<void> init() async {
     try {
-      await PendoSDK.setup(pendoKey);
+      await PendoFlutterPlugin.setup(pendoKey);
     } catch (e) {
       print('Error initializing Pendo: $e');
     }
@@ -37,9 +37,9 @@ class PendoService {
   static Future<void> start(String code, String experiment) async {
     try {
       if (foundation.kDebugMode) {
-        await PendoSDK.startSession(code, _testID, null, null);
+        await PendoFlutterPlugin.startSession(code, _testID, null, null);
       } else {
-        await PendoSDK.startSession(code, 'Exp-$experiment', null, null);
+        await PendoFlutterPlugin.startSession(code, 'Exp-$experiment', null, null);
       }
     } catch (e) {
       print('Error starting Pendo session: $e');
@@ -57,7 +57,7 @@ class PendoService {
   ///   - A Future<void> representing the asynchronous session termination process.
   static Future<void> stop() async {
     try {
-      await PendoSDK.endSession();
+      await PendoFlutterPlugin.endSession();
     } catch (e) {
       print('Error stopping Pendo session: $e');
     }
@@ -78,7 +78,7 @@ class PendoService {
   ///   - A Future<void> representing the asynchronous event tracking process.
   static Future<void> track(String event, Map<String, dynamic>? data) async {
     try {
-      await PendoSDK.track(event, data);
+      await PendoFlutterPlugin.track(event, data);
     } catch (e) {
       print('Error tracking Pendo event: $e');
     }
