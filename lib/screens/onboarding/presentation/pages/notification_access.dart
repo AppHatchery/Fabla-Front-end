@@ -285,22 +285,22 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
     final results = await Permission.notification.request();
 
     await PendoService.track("NotificationAccess", {"state": results.name});
-    if (mounted) {
-      setState(() {
-        requested = true;
-        granted = results.isGranted;
-      });
-    }
+    if (mounted) setState(() => granted = results.isGranted);
+
     checkBattery();
-    if (results.isGranted && batteryOptimization) {
-      await PreferenceService()
-          .setBoolPreference(key: 'notification_requested', value: true);
-      track(timer.stop(), "Finished");
-      if (context.mounted) {
-        RouteService()
-            .navigate(null, context: context, current: 'notification_access');
+    if (results.isGranted) {
+      if (requested) {
+        await PreferenceService()
+            .setBoolPreference(key: 'notification_requested', value: true);
+        track(timer.stop(), "Finished");
+        if (context.mounted) {
+          RouteService()
+              .navigate(null, context: context, current: 'notification_access');
+        }
       }
     }
+
+    if (mounted) setState(() => requested = true);
   }
 
   track(int spent, String status) async {
