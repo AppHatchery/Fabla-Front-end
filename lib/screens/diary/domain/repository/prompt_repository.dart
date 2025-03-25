@@ -65,21 +65,32 @@ class PromptRepository {
   ///
   /// Returns:
   /// true if the response is successfully saved, false otherwise.
-  bool saveResponse({
-    required Diary diary,
-    required PromptModel prompt,
-    required dynamic response,
-    required String type,
-  }) {
+  bool saveResponse(
+      {required Diary diary,
+      required PromptModel prompt,
+      required dynamic response,
+      required String type,
+      int? index}) {
     // Determine if the response is for media (audio, image, video)
     final isMediaResponse = ['audio', 'image', 'video'].contains(type);
     // Retrieve the current answer
     final answer = prompt.answer;
 
+    // Allowing multiple responses for text questions
+    // If the index is provided, update the response at the specified index
+    //! Slider | Multiple | Radio | Timer | Webview : Their index is always 0 because they can only have one response
+    //! Audio | Image | Video : Their index is always null because they are being saved as a recording
+    final responses = answer?.response ?? [];
+    if (index != null && index >= 0 && index < responses.length) {
+      responses[index] = response;
+    } else if (!isMediaResponse) {
+      responses.add(response);
+    }
+
     // Create a new answer based on response type
     final newAnswer = isMediaResponse
         ? Answer(id: 0, date: DateTime.now())
-        : Answer(id: 0, date: DateTime.now(), response: response);
+        : Answer(id: 0, date: DateTime.now(), response: responses);
 
     // Create a recording for media responses
     Recording? createRecording() {
@@ -114,7 +125,7 @@ class PromptRepository {
   ) {
     // No existing answer - use the new answer
     if (existingAnswer == null) {
-      if(recording != null){
+      if (recording != null) {
         recording.answer.target = newAnswer;
         newAnswer.recordings.add(recording);
       }
@@ -133,8 +144,8 @@ class PromptRepository {
         answer: existingAnswer.copyWith(response: newAnswer.response)));
   }
 
-  Future<bool> removeResponse(
-      Diary diary, PromptModel prompt, String? path) async {
+  Future<bool> removeResponse(Diary diary, PromptModel prompt, String? path,
+      {int? index}) async {
     try {
       final answer = prompt.answer;
 
@@ -156,7 +167,13 @@ class PromptRepository {
       }
 
       //Removing the response for text questions
-      answer.response = null;
+      if (index != null &&
+          index >= 0 &&
+          answer.response != null &&
+          index < answer.response!.length) {
+        answer.response!.removeAt(index);
+      }
+      // answer.response = null;
       final updatedPrompt = Prompt.fromModel(prompt.copyWith(answer: answer));
       updatedPrompt.diary.target = diary;
       _promptDAO.updatePrompt(updatedPrompt);

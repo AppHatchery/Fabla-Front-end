@@ -384,7 +384,7 @@ class _QuestionPageState extends State<QuestionPage>
   PersistentBottomSheetController? _bottomSheetController;
 
   void updateSliderValue(PromptModel prompt, double value) {
-    save(prompt, value.toString(), 'other');
+    save(prompt, value.toString(), 'other', 0);
     widget.answerAdded(true);
   }
 
@@ -476,7 +476,7 @@ class _QuestionPageState extends State<QuestionPage>
     if (prompt.responseType == ResponseType.slider) {
       responseWidget = SliderQuestionCard(
         value: prompt.answer?.response != null
-            ? double.parse(prompt.answer!.response!)
+            ? double.parse(prompt.answer!.response!.first)
             : prompt.option!.defaultValue!.toDouble(),
         scaleMin: prompt.option!.minValue!,
         scaleMax: prompt.option!.maxValue!,
@@ -487,7 +487,7 @@ class _QuestionPageState extends State<QuestionPage>
       );
     } else if (prompt.responseType == ResponseType.multiple) {
       final selected = prompt.answer?.response != null
-          ? prompt.answer?.response!.split("/ ")
+          ? prompt.answer?.response!.first.split("/ ")
           : <String>[];
 
       responseWidget = MultipleQuestion(
@@ -495,7 +495,7 @@ class _QuestionPageState extends State<QuestionPage>
         selected: selected,
         onChanged: (value) {
           final response = value.join("/ ");
-          save(prompt, response, 'other');
+          save(prompt, response, 'other', 0);
           if (value.isNotEmpty) {
             widget.answerAdded(true);
           } else {
@@ -505,12 +505,12 @@ class _QuestionPageState extends State<QuestionPage>
         disabled: disabled,
       );
     } else if (prompt.responseType == ResponseType.radio) {
-      final selected = prompt.answer?.response;
+      final selected = prompt.answer?.response?.first;
       responseWidget = RadioQuestion(
         value: selected,
         options: prompt.option!.choices!,
         onChanged: (value) {
-          save(prompt, value, 'other');
+          save(prompt, value, 'other', 0);
           if (value != null) {
             widget.answerAdded(true);
           } else {
@@ -522,44 +522,47 @@ class _QuestionPageState extends State<QuestionPage>
     } else if (prompt.responseType == ResponseType.text) {
       responseWidget = FreeTextQuestionCard(
         diary: widget.diary,
-        respond: (String type) => recordResponse(prompt, type),
+        respond: (String type, int index) =>
+            recordResponse(prompt, type, index: index),
         prompt: prompt,
       );
     } else if (prompt.responseType == ResponseType.audio ||
         prompt.responseType == ResponseType.textAudio) {
       responseWidget = AudioTextCard(
         diary: widget.diary,
-        respond: (String type) => recordResponse(prompt, type),
+        respond: (String type, int? index) =>
+            recordResponse(prompt, type, index: index),
         prompt: prompt,
       );
     } else if (prompt.responseType == ResponseType.webview) {
       responseWidget = WebViewResponseCard(
           prompt: prompt,
           diary: widget.diary,
-          respond: (answer) => save(prompt, answer, 'other'));
+          respond: (answer) => save(prompt, answer, 'other', 0));
     } else if (prompt.responseType == ResponseType.timer) {
       responseWidget = TimerWidget(
         time: prompt.option?.timerLength ?? Duration(seconds: 30),
         userInteraction: prompt.option?.userInteraction ?? false,
         playbackControls: prompt.option?.playbackControl ?? false,
-        respond: (answer) => save(prompt, answer, 'other'),
+        respond: (answer) => save(prompt, answer, 'other', 0),
         addToPreFunction: (p0) => {widget.addToPreFunction(p0)},
       );
     } else if (prompt.responseType == ResponseType.image) {
       responseWidget = VisualResponseWidget(
           diary: widget.diary,
           prompt: prompt,
-          respond: (answer, [type]) => save(prompt, answer, 'image'));
+          respond: (answer, [type]) => save(prompt, answer, 'image', null));
     } else if (prompt.responseType == ResponseType.video) {
       responseWidget = VisualResponseWidget(
           diary: widget.diary,
           prompt: prompt,
-          respond: (answer, [type]) => save(prompt, answer, 'video'));
+          respond: (answer, [type]) => save(prompt, answer, 'video', null));
     } else if (prompt.responseType == ResponseType.imageVideo) {
       responseWidget = VisualResponseWidget(
           diary: widget.diary,
           prompt: prompt,
-          respond: (answer, [type]) => save(prompt, answer, type ?? 'video'));
+          respond: (answer, [type]) =>
+              save(prompt, answer, type ?? 'video', null));
     } else {
       responseWidget = const SizedBox.shrink();
     }
@@ -691,7 +694,7 @@ class _QuestionPageState extends State<QuestionPage>
     widget.answerAdded(isValidResponse);
   }
 
-  void recordResponse(PromptModel prompt, String type) {
+  void recordResponse(PromptModel prompt, String type, {int? index}) {
     if (type == "audio") {
       track("Audio");
       showModalBottomSheet(
@@ -716,7 +719,7 @@ class _QuestionPageState extends State<QuestionPage>
                     limit: prompt.option?.maxLength,
                     suggested: prompt.option?.suggestedLength,
                     onSave: (value) {
-                      save(prompt, value.toString(), "audio");
+                      save(prompt, value.toString(), "audio", null);
                     },
                   );
                 },
@@ -743,8 +746,9 @@ class _QuestionPageState extends State<QuestionPage>
                     question: prompt.question,
                     hint: hint,
                     onSave: (value) {
-                      save(prompt, value.toString(), 'other');
+                      save(prompt, value.toString(), 'other', index);
                     },
+                    index: index,
                     scrollController: scrollController,
                   );
                 },
@@ -759,7 +763,7 @@ class _QuestionPageState extends State<QuestionPage>
     });
   }
 
-  void save(PromptModel prompt, dynamic response, String type) {
+  void save(PromptModel prompt, dynamic response, String type, int? index) {
     // Change diary status
     if (widget.diary.status == DiaryStatus.idle) {
       widget.diary.status = DiaryStatus.ongoing;
@@ -767,7 +771,11 @@ class _QuestionPageState extends State<QuestionPage>
       repository.updateDiary(widget.diary);
     }
     promptCubit.saveResponse(
-        diary: widget.diary, prompt: prompt, response: response, type: type);
+        diary: widget.diary,
+        prompt: prompt,
+        response: response,
+        type: type,
+        index: index);
     cancelContinueNotifications(widget.diary.id);
     if (!isClicked && mounted) {
       setState(() {

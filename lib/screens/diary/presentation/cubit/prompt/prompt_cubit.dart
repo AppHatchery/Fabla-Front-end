@@ -61,13 +61,15 @@ class PromptCubit extends Cubit<PromptState> {
       {required DiaryModel diary,
       required PromptModel prompt,
       required dynamic response,
-      required String type}) async {
+      required String type,
+      int? index}) async {
     try {
       final saved = _repository.saveResponse(
           diary: Diary.fromModel(diary),
           prompt: prompt,
           response: response,
-          type: type);
+          type: type,
+          index: index);
       if (saved) {
         if (prompt.responseType == ResponseType.audio ||
             prompt.responseType == ResponseType.textAudio ||
@@ -81,6 +83,17 @@ class PromptCubit extends Cubit<PromptState> {
     } finally {
       loadPrompt(diary, prompt);
     }
+  }
+
+  processTextAnswers(String response, String? existingResponse) {
+    if (existingResponse == null) {
+      return response;
+    }
+    return '$existingResponse | $response';
+  }
+
+  extractTextAnswers(String response) {
+    return response.split('|');
   }
 
   /// Removes a user response, handling errors and prompt reloading.
@@ -102,10 +115,10 @@ class PromptCubit extends Cubit<PromptState> {
   Future<void> removeResponse(
       {required DiaryModel diary,
       required PromptModel prompt,
-      required String? path}) async {
+      required String? path, int? index}) async {
     try {
       _repository
-          .removeResponse(Diary.fromModel(diary), prompt, path)
+          .removeResponse(Diary.fromModel(diary), prompt, path, index: index)
           .then((value) {
         if (value) {
           loadPrompt(diary, prompt);

@@ -325,7 +325,7 @@ class _RadioQuestionState extends State<RadioQuestion> {
 }
 
 class AudioTextCard extends StatefulWidget {
-  final void Function(String) respond;
+  final void Function(String, int?) respond;
   final DiaryModel diary;
   final PromptModel prompt;
   const AudioTextCard({
@@ -344,32 +344,47 @@ class _AudioTextCardState extends State<AudioTextCard> {
   Widget build(BuildContext context) {
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            (widget.prompt.answer?.recordings.isEmpty ?? true) &&
-                    (widget.prompt.answer?.response?.isEmpty ?? true)
-                ? Column(
-                    children: [
-                      CustomRecordButton(
-                        onClick: () => widget.respond("audio"),
-                        text: "Record My Response",
-                      ),
-                      widget.prompt.responseType == ResponseType.textAudio
-                          ? CustomTextAnswerButton(
-                              onClick: () => widget.respond("text"),
-                              text: "Type My Response",
-                            )
-                          : const SizedBox.shrink(),
-                    ],
-                  )
-                : MyResponse(
-                    diary: widget.diary,
-                    edit: widget.respond,
-                    prompt: widget.prompt,
-                    recordings: widget.prompt.answer?.recordings ?? [])
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              controls(),
+              const SizedBox(height: 12),
+              (widget.prompt.answer != null &&
+                      (widget.prompt.answer!.recordings.isNotEmpty ||
+                          widget.prompt.answer!.response != null))
+                  ? MyResponse(
+                      diary: widget.diary,
+                      edit: widget.respond,
+                      prompt: widget.prompt,
+                      recordings: widget.prompt.answer?.recordings ?? [])
+                  : const SizedBox.shrink()
+            ],
+          ),
         ));
+  }
+
+  Widget controls() {
+    final multipleAnswers = widget.prompt.option?.multipleAnswers ?? true;
+    final length = widget.prompt.answer?.recordings.length ?? 0;
+    final textPresent = widget.prompt.answer?.response != null &&
+        widget.prompt.answer!.response!.isNotEmpty;
+    return !multipleAnswers && (length > 0 || textPresent)
+        ? const SizedBox.shrink()
+        : Column(
+            children: [
+              CustomRecordButton(
+                onClick: () => widget.respond("audio", null),
+                text: "Record My Response",
+              ),
+              widget.prompt.responseType == ResponseType.textAudio
+                  ? CustomTextAnswerButton(
+                      onClick: () => widget.respond("text", null),
+                      text: "Type My Response",
+                    )
+                  : const SizedBox.shrink(),
+            ],
+          );
   }
 }
 
@@ -483,7 +498,7 @@ class _TextQuestionCardState extends State<TextQuestionCard> {
 }
 
 class FreeTextQuestionCard extends StatefulWidget {
-  final void Function(String) respond;
+  final void Function(String, int) respond;
   final DiaryModel diary;
   final PromptModel prompt;
   const FreeTextQuestionCard(
@@ -508,7 +523,7 @@ class _FreeTextQuestionCardState extends State<FreeTextQuestionCard> {
                 ? Column(
                     children: [
                       CustomTextAnswerButton(
-                        onClick: () => widget.respond("text"),
+                        onClick: () => widget.respond("text", 0),
                         text: "Type My Response",
                       ),
                     ],
@@ -585,27 +600,16 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Column(
-                children: widget.prompt.answer?.response?.isEmpty ?? true
-                    ? [
-                        CustomFlatButton(
-                          onClick: () => showModal(),
-                          text: "Enter Survey",
-                        )
-                      ]
-                    : [
-                        CustomFlatButton(
-                          onClick: () => showModal(),
-                          color: CustomColors.fillWhite,
-                          textColor: CustomColors.productNormal,
-                          text: "Retake Survey",
-                        ),
-                        Text(
-                          "✅ Your previous survey responses have been collected. If you retake the survey it will count as a new response. ",
-                          style: CustomTypography().bodyLarge(
-                              color: CustomColors.textTertiaryContent),
-                        ),
-                      ])
+            widget.prompt.answer?.response?.isEmpty ?? true
+                ? CustomFlatButton(
+                    onClick: () => showModal(),
+                    text: "Enter Survey",
+                  )
+                : Text(
+                    "✅ Your survey responses have been collected.",
+                    style: CustomTypography()
+                        .bodyLarge(color: CustomColors.textTertiaryContent),
+                  ),
           ],
         ));
   }

@@ -60,6 +60,13 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
           prompt.responseType == ResponseType.imageVideo) {
         _addFileData(
             experiment.login, prompt, participantID, diary, dir, files);
+
+        // If the prompt is textAudio and has a text response, add the text response
+        if (prompt.responseType == ResponseType.textAudio &&
+            (prompt.answer?.response?.isNotEmpty ?? false)) {
+          _addPromptEntry(prompt, participantID, experiment.login,
+              diary.id.toString(), promptEntryList);
+        }
       } else {
         _addPromptEntry(prompt, participantID, experiment.login,
             diary.id.toString(), promptEntryList);
@@ -120,7 +127,7 @@ void _addPromptEntry(PromptModel prompt, String participantID,
       questionTitle: prompt.question,
       diaryID: diaryID,
       promptID: prompt.id.toString(),
-      response: prompt.answer?.response ?? '',
+      response: prompt.answer?.response?.join(' | ') ?? "",
       questionsType: responseTypeValue(prompt.responseType!),
       required: prompt.required,
     ),

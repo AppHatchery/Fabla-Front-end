@@ -174,10 +174,11 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
         return VisualResponseWidget(
             diary: widget.diary,
             prompt: prompt,
-            respond: (answer, [type]) => save(prompt, answer, type ?? 'image'));
+            respond: (answer, [type]) =>
+                save(prompt, answer, type ?? 'image', null));
       case ResponseType.multiple:
         final selected = prompt.answer?.response != null
-            ? prompt.answer?.response!.split("/ ")
+            ? prompt.answer?.response!.first.split("/ ")
             : <String>[];
 
         return MultipleQuestion(
@@ -185,56 +186,58 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
           selected: selected,
           onChanged: (value) {
             final response = value.join("/ ");
-            save(prompt, response, 'other');
+            save(prompt, response, 'other', 0);
           },
           disabled: false,
         );
       case ResponseType.radio:
-        final selected = prompt.answer?.response;
+        final selected = prompt.answer?.response?.first;
         return RadioQuestion(
           value: selected,
           options: prompt.option!.choices!,
           onChanged: (value) {
-            save(prompt, value, 'other');
+            save(prompt, value, 'other', 0);
           },
           disabled: false,
         );
       case ResponseType.text:
         return FreeTextQuestionCard(
           diary: widget.diary,
-          respond: (String type) => recordResponse(prompt, type),
+          respond: (String type, index) =>
+              recordResponse(prompt, type, index: index),
           prompt: prompt,
         );
       case ResponseType.textAudio:
       case ResponseType.audio:
         return AudioTextCard(
           diary: widget.diary,
-          respond: (String type) => recordResponse(prompt, type),
+          respond: (String type, index) =>
+              recordResponse(prompt, type, index: index),
           prompt: prompt,
         );
       case ResponseType.slider:
         return SliderQuestionCard(
           value: prompt.answer?.response != null
-              ? double.parse(prompt.answer!.response!)
+              ? double.parse(prompt.answer!.response!.first)
               : prompt.option!.defaultValue!.toDouble(),
           scaleMin: prompt.option!.minValue!,
           scaleMax: prompt.option!.maxValue!,
           scaleMinText: prompt.option!.minLabel,
           scaleMaxText: prompt.option!.maxLabel,
-          onSliderValueChanged: (value) => save(prompt, value, 'other'),
+          onSliderValueChanged: (value) => save(prompt, value, 'other', 0),
           isSliderEnabled: true,
         );
       case ResponseType.webview:
         return WebViewResponseCard(
             prompt: prompt,
             diary: widget.diary,
-            respond: (answer) => save(prompt, answer, 'other'));
+            respond: (answer) => save(prompt, answer, 'other', 0));
       case ResponseType.timer:
         return TimerWidget(
           time: prompt.option?.timerLength ?? Duration(seconds: 30),
           userInteraction: prompt.option?.userInteraction ?? false,
           playbackControls: prompt.option?.playbackControl ?? false,
-          respond: (answer) => save(prompt, answer, 'other'),
+          respond: (answer) => save(prompt, answer, 'other', 0),
           addToPreFunction: (p0) => preFunctions.add(p0),
         );
       default:
@@ -242,7 +245,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
     }
   }
 
-  void save(PromptModel prompt, dynamic response, String type) {
+  void save(PromptModel prompt, dynamic response, String type, int? index) {
     // Change diary status
     if (widget.diary.status == DiaryStatus.idle) {
       widget.diary.status = DiaryStatus.ongoing;
@@ -250,10 +253,14 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
       repository.updateDiary(widget.diary);
     }
     promptCubit.saveResponse(
-        diary: widget.diary, prompt: prompt, response: response, type: type);
+        diary: widget.diary,
+        prompt: prompt,
+        response: response,
+        type: type,
+        index: index);
   }
 
-  void recordResponse(PromptModel prompt, String type) {
+  void recordResponse(PromptModel prompt, String type, {int? index}) {
     if (type == "audio") {
       showModalBottomSheet(
           backgroundColor: Colors.transparent,
@@ -277,7 +284,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
                     limit: prompt.option?.maxLength,
                     suggested: prompt.option?.suggestedLength,
                     onSave: (value) {
-                      save(prompt, value.toString(), "audio");
+                      save(prompt, value.toString(), "audio", null);
                     },
                   );
                 },
@@ -303,8 +310,9 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
                     question: prompt.question,
                     hint: hint,
                     onSave: (value) {
-                      save(prompt, value.toString(), 'other');
+                      save(prompt, value.toString(), 'other', index);
                     },
+                    index: index,
                     scrollController: scrollController,
                   );
                 },

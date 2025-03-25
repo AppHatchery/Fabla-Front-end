@@ -18,7 +18,7 @@ class MyResponse extends StatefulWidget {
   final DiaryModel diary;
   final PromptModel prompt;
   final List<Recording> recordings;
-  final void Function(String) edit;
+  final void Function(String, int) edit;
 
   const MyResponse({
     super.key,
@@ -46,43 +46,51 @@ class _MyResponseState extends State<MyResponse> {
               .titleLarge(color: CustomColors.textNormalContent),
         ),
         const SizedBox(height: 12),
-        widget.prompt.answer!.recordings.isEmpty
-            ? Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6.0),
-                child: TextAnswerCard(
-                  isVisible: true,
-                  edit: widget.edit,
-                  answer: widget.prompt.answer!.response!,
-                  callerWidget: "diary",
-                  delete: () => deleteResponse(widget.prompt, null),
-                ),
-              )
-            : ListView.builder(
+        widget.prompt.answer?.response != null
+            ? ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: widget.recordings.length,
+                itemCount: widget.prompt.answer!.response!.length,
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
-                    child: NewAudioCard(
+                    child: TextAnswerCard(
                       isVisible: true,
-                      recording: widget.recordings[index],
-                      delete: () => deleteResponse(
-                          widget.prompt, widget.recordings[index].path),
-                      viewOnly: false,
-                      promptId: widget.prompt.id,
+                      edit: widget.edit,
+                      index: index,
+                      answer: widget.prompt.answer!.response![index],
                       callerWidget: "diary",
+                      delete: () => deleteResponse(widget.prompt, '', index: index),
                     ),
                   );
-                }),
+                })
+            : const SizedBox.shrink(),
+        ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: widget.recordings.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6.0),
+                child: NewAudioCard(
+                  isVisible: true,
+                  recording: widget.recordings[index],
+                  delete: () => deleteResponse(
+                      widget.prompt, widget.recordings[index].path),
+                  viewOnly: false,
+                  promptId: widget.prompt.id,
+                  callerWidget: "diary",
+                ),
+              );
+            }),
         const SizedBox(height: 12),
       ],
     );
   }
 
-  void deleteResponse(PromptModel loadedPrompt, String? path) {
+  void deleteResponse(PromptModel loadedPrompt, String? path, {int? index}) {
     final promptCubit = context.read<PromptCubit>();
     promptCubit.removeResponse(
-        diary: widget.diary, path: path, prompt: loadedPrompt);
+        diary: widget.diary, path: path, prompt: loadedPrompt, index: index);
   }
 }

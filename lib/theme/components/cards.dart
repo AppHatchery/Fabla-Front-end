@@ -977,7 +977,8 @@ class TextAnswerCard extends StatefulWidget {
   final VoidCallback? delete;
   final String? callerWidget;
   final bool? isVisible;
-  final void Function(String)? edit;
+  final void Function(String, int)? edit;
+  final int index;
 
   const TextAnswerCard(
       {super.key,
@@ -985,6 +986,7 @@ class TextAnswerCard extends StatefulWidget {
       this.delete,
       this.callerWidget,
       this.edit,
+      required this.index,
       this.isVisible});
 
   @override
@@ -1015,7 +1017,7 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
             ? IconButton(
                 onPressed: () {
                   if (widget.edit != null) {
-                    widget.edit!("text");
+                    widget.edit!("text", widget.index);
                   }
                 },
                 icon: const Icon(Icons.edit),

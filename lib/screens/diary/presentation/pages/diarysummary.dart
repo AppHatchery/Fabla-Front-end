@@ -342,26 +342,55 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           scaleMinText: prompt.option?.minLabel,
           scaleMaxText: prompt.option?.maxLabel,
           isSliderEnabled: false,
-          value: double.tryParse(prompt.answer!.response!) ?? 0.0,
+          value: double.tryParse(prompt.answer!.response!.first) ?? 0.0,
         );
       case ResponseType.multiple:
         return MultipleQuestionSummary(
-          answers: extractAnswers(prompt.answer!.response!),
+          answers: extractAnswers(prompt.answer!.response!.first),
         );
       case ResponseType.radio:
         return RadioQuestionSummary(
-          selectedOption: prompt.answer!.response!,
+          selectedOption: prompt.answer!.response!.first,
         );
       case ResponseType.audio || ResponseType.textAudio:
-        return prompt.answer != null && prompt.answer!.recordings.isEmpty
-            ? Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                child: TextAnswerCard(
-                  answer: prompt.answer!.response!,
-                  delete: () => deleteResponse(prompt, null),
-                ),
-              )
-            : prompt.answer != null
+        return Column(
+          children: [
+            prompt.answer != null && prompt.answer!.response != null
+                ? ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: prompt.answer!.response!.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                        child: Column(
+                          children: [
+                            TextAnswerCard(
+                              answer: prompt.answer!.response![index],
+                              index: index,
+                              delete: () => deleteResponse(prompt, null),
+                            ),
+
+                            // Add a divider if there are multiple responses
+                            prompt.answer!.response!.length > 1 &&
+                                    index != prompt.answer!.response!.length - 1
+                                ? Padding(
+                                    padding: const EdgeInsets.only(top: 6.0),
+                                    child: const Divider(
+                                      height: 1,
+                                      thickness: 0.5,
+                                      indent: 12,
+                                      endIndent: 12,
+                                      color: CustomColors.greyLight,
+                                    ),
+                                  )
+                                : const SizedBox.shrink()
+                          ],
+                        ),
+                      );
+                    })
+                : const SizedBox.shrink(),
+            prompt.answer != null && prompt.answer!.recordings.isNotEmpty
                 ? Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12.0),
                     child: ListView.builder(
@@ -371,25 +400,74 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                         itemBuilder: (context, index) {
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 6.0),
-                            child: NewAudioCard(
-                              recording: prompt.answer!.recordings[index],
-                              delete: () => deleteResponse(prompt,
-                                  prompt.answer!.recordings[index].path),
-                              viewOnly: true,
-                              promptId: prompt.id,
+                            child: Column(
+                              children: [
+                                NewAudioCard(
+                                  recording: prompt.answer!.recordings[index],
+                                  delete: () => deleteResponse(prompt,
+                                      prompt.answer!.recordings[index].path),
+                                  viewOnly: true,
+                                  promptId: prompt.id,
+                                ),
+
+                                // Add a divider if there are multiple responses
+                                prompt.answer!.recordings.length > 1 &&
+                                        index !=
+                                            prompt.answer!.recordings.length - 1
+                                    ? Padding(
+                                        padding:
+                                            const EdgeInsets.only(top: 6.0),
+                                        child: const Divider(
+                                          height: 1,
+                                          thickness: 0.5,
+                                          indent: 12,
+                                          endIndent: 12,
+                                          color: CustomColors.greyLight,
+                                        ),
+                                      )
+                                    : const SizedBox.shrink()
+                              ],
                             ),
                           );
                         }),
                   )
-                : const SizedBox.shrink();
-      case ResponseType.text:
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
-          child: TextAnswerCard(
-            answer: prompt.answer!.response!,
-            delete: () => deleteResponse(prompt, null),
-          ),
+                : const SizedBox.shrink()
+          ],
         );
+      case ResponseType.text:
+        return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: prompt.answer!.response!.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Column(
+                  children: [
+                    TextAnswerCard(
+                      answer: prompt.answer!.response![index],
+                      index: index,
+                      delete: () => deleteResponse(prompt, null),
+                    ),
+
+                    // Add a divider if there are multiple responses
+                    prompt.answer!.response!.length > 1 &&
+                            index != prompt.answer!.response!.length - 1
+                        ? Padding(
+                            padding: const EdgeInsets.only(top: 6.0),
+                            child: const Divider(
+                              height: 1,
+                              thickness: 0.5,
+                              indent: 12,
+                              endIndent: 12,
+                              color: CustomColors.greyLight,
+                            ),
+                          )
+                        : const SizedBox.shrink()
+                  ],
+                ),
+              );
+            });
       case ResponseType.webview:
         final width = MediaQuery.of(context).size.width;
         return Padding(

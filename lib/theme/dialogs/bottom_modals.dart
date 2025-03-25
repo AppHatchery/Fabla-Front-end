@@ -516,6 +516,7 @@ class BottomTextModal extends StatefulWidget {
   final PromptModel prompt;
   final String question;
   final String? hint;
+  final int? index;
   final ValueChanged<String?>? onSave;
   final ScrollController scrollController;
 
@@ -524,6 +525,7 @@ class BottomTextModal extends StatefulWidget {
       required this.prompt,
       required this.question,
       this.hint,
+      required this.index,
       required this.onSave,
       required this.scrollController});
 
@@ -566,8 +568,12 @@ class _BottomTextModalState extends State<BottomTextModal>
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
-    textController =
-        TextEditingController(text: widget.prompt.answer?.response);
+    if (widget.index != null) {
+      textController = TextEditingController(
+          text: widget.prompt.answer?.response?.elementAtOrNull(widget.index!));
+    } else {
+      textController = TextEditingController();
+    }
     textController.addListener(() {
       if (mounted) {
         setState(() {
