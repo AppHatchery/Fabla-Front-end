@@ -114,6 +114,10 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   bool get isCurrentPageLast => currentPage == widget.diary.prompts.length - 1;
 
   void previousPage() {
+    for (var function in preFunctions) {
+      function();
+    }
+
     if (currentPage > 0) {
       controller.previousPage(
           duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
@@ -164,6 +168,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                     }
                     trackExit("Closed");
                     track(timer.stop(), "Close");
+                    for (var function in preFunctions) {
+                      function();
+                    }
                     Navigator.pushAndRemoveUntil(
                       context,
                       PageRouteBuilder(

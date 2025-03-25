@@ -14,6 +14,7 @@ import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -664,6 +665,8 @@ class _TimerWidgetState extends State<TimerWidget>
 
   double progress = 0.0;
 
+  AudioPlayer? player;
+
   late AnimationController _progressController;
   late Animation<double> _progressAnimation;
 
@@ -714,6 +717,7 @@ class _TimerWidgetState extends State<TimerWidget>
     _progressController.dispose();
     _shakeController.dispose();
     hideOverlay();
+    player?.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -1148,6 +1152,9 @@ class _TimerWidgetState extends State<TimerWidget>
   void start() async {
     final permission = await seekPermission();
 
+    // Play sound at the start
+    if (!inProgress) startSound();
+
     if (!permission) {
       return;
     }
@@ -1196,17 +1203,21 @@ class _TimerWidgetState extends State<TimerWidget>
               widget.respond("Complete");
               complete = true;
               _shakeController.forward();
-              widget.addToPreFunction(() => stopAlarm());
             }
           });
         }
       });
 
       setAlarm(remaining);
+      widget.addToPreFunction(() => stopAlarm());
     }
   }
 
   void pause() {
+    if (player != null && player!.state == PlayerState.playing) {
+      player?.stop();
+    }
+
     _progressController.stop();
     timer?.cancel();
     if (mounted) {
@@ -1221,6 +1232,10 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   void stop({bool? restarting}) {
+    if (player != null && player!.state == PlayerState.playing) {
+      player?.stop();
+    }
+
     timer?.cancel();
     timer = null;
     _progressController.reset();
@@ -1232,6 +1247,7 @@ class _TimerWidgetState extends State<TimerWidget>
         remaining = _duration;
         progress = 0.0;
         complete = false;
+        inProgress = false;
         _shakeController.stop();
       });
       stopAlarm();
@@ -1269,6 +1285,11 @@ class _TimerWidgetState extends State<TimerWidget>
               body: "Please come back to Fabla to finish your entry",
               stopButton: "Stop",
             )));
+  }
+
+  void startSound() async {
+    player = AudioPlayer();
+    await player?.play(AssetSource('audio/bowl.wav'), volume: 1);
   }
 
   /// Get special permission for the alarm
