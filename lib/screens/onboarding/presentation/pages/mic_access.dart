@@ -71,7 +71,6 @@ class _MicAccessPageState extends State<MicAccessPage>
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached ||
         state == AppLifecycleState.inactive) {
-      recorder.closeRecorder();
       int spent = timer.stop();
       track(spent, "Paused");
     }
@@ -304,7 +303,6 @@ class _MicAccessPageState extends State<MicAccessPage>
   }
 
   void startRecorder() async {
-    print('Starting recorder');
     final tempDir = await getTemporaryDirectory();
     final path = '${tempDir.path}/flutter_sound.aac';
     recorder.startRecorder(

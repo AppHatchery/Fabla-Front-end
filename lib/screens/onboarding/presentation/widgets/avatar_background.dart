@@ -87,7 +87,7 @@ class AvatarBackground extends StatelessWidget {
         ),
         child: ListView(
           shrinkWrap: true,
-          // physics:const NeverScrollableScrollPhysics(),
+          physics: scrollable ? null : const NeverScrollableScrollPhysics(),
           children: children,
         ),
       ),
