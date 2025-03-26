@@ -365,7 +365,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
   }
 
   Widget controls() {
-    final multipleAnswers = widget.prompt.option?.multipleAnswers ?? true;
+    final multipleAnswers = widget.prompt.option?.multipleAnswers ?? false;
     final length = widget.prompt.answer?.recordings.length ?? 0;
     final textPresent = widget.prompt.answer?.response != null &&
         widget.prompt.answer!.response!.isNotEmpty;
@@ -375,12 +375,14 @@ class _AudioTextCardState extends State<AudioTextCard> {
             children: [
               CustomRecordButton(
                 onClick: () => widget.respond("audio", null),
-                text: "Record My Response",
+                text: length > 0 ? "Record Another Answer" : "Record My Answer",
               ),
               widget.prompt.responseType == ResponseType.textAudio
                   ? CustomTextAnswerButton(
                       onClick: () => widget.respond("text", null),
-                      text: "Type My Response",
+                      text: textPresent
+                          ? "Type Another Answer"
+                          : "Type My Answer",
                     )
                   : const SizedBox.shrink(),
             ],
@@ -519,22 +521,28 @@ class _FreeTextQuestionCardState extends State<FreeTextQuestionCard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            (widget.prompt.answer?.response?.isEmpty ?? true)
-                ? Column(
-                    children: [
-                      CustomTextAnswerButton(
-                        onClick: () => widget.respond("text", 0),
-                        text: "Type My Response",
-                      ),
-                    ],
-                  )
-                : MyResponse(
+            controls(),
+            (widget.prompt.answer?.response?.isNotEmpty ?? false)
+                ? MyResponse(
                     diary: widget.diary,
                     edit: widget.respond,
                     prompt: widget.prompt,
                     recordings: [])
+                : const SizedBox.shrink()
           ],
         ));
+  }
+
+  Widget controls() {
+    final multipleAnswers = widget.prompt.option?.multipleAnswers ?? false;
+    final textPresent = widget.prompt.answer?.response != null &&
+        widget.prompt.answer!.response!.isNotEmpty;
+    return !multipleAnswers && textPresent
+        ? const SizedBox.shrink()
+        : CustomTextAnswerButton(
+            onClick: () => widget.respond("text", 0),
+            text: textPresent ? "Type Another Answer" : "Type My Answer",
+          );
   }
 }
 
@@ -1326,8 +1334,8 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
                           ),
                           Text(
                             widget.prompt.answer?.recordings.isNotEmpty ?? false
-                                ? 'Add Picture'
-                                : 'Open Camera',
+                                ? 'Add Another Picture'
+                                : 'Take a Picture',
                             style: CustomTypography()
                                 .button(color: CustomColors.textWhite),
                           )
@@ -1349,8 +1357,8 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
                           ),
                           Text(
                             widget.prompt.answer?.recordings.isNotEmpty ?? false
-                                ? 'Add Video'
-                                : 'Open Camera',
+                                ? 'Add Another Video'
+                                : 'Take a Video',
                             style: CustomTypography()
                                 .button(color: CustomColors.textWhite),
                           )

@@ -33,7 +33,29 @@ class MyResponse extends StatefulWidget {
 }
 
 class _MyResponseState extends State<MyResponse> {
-  int? expandedCardId;
+  bool isPlural = false;
+
+  @override
+  void initState() {
+    checkPlural();
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant MyResponse oldWidget) {
+    checkPlural();
+    super.didUpdateWidget(oldWidget);
+  }
+
+  void checkPlural() {
+    if (mounted) {
+      setState(() {
+        isPlural = (widget.prompt.answer?.response != null &&
+                widget.prompt.answer!.response!.length > 1) ||
+            widget.recordings.length > 1;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +63,7 @@ class _MyResponseState extends State<MyResponse> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "My Response",
+          isPlural ? "My Answers" : "My Answer",
           style: CustomTypography()
               .titleLarge(color: CustomColors.textNormalContent),
         ),
@@ -60,7 +82,8 @@ class _MyResponseState extends State<MyResponse> {
                       index: index,
                       answer: widget.prompt.answer!.response![index],
                       callerWidget: "diary",
-                      delete: () => deleteResponse(widget.prompt, '', index: index),
+                      delete: () =>
+                          deleteResponse(widget.prompt, '', index: index),
                     ),
                   );
                 })

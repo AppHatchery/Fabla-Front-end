@@ -1429,22 +1429,31 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const SizedBox(width: 50),
-        GestureDetector(
-          onTap: () => capture(),
-          child: Container(
-              height: 64,
-              width: 64,
-              decoration: BoxDecoration(
-                  border: Border.all(color: CustomColors.fillWhite, width: 5),
-                  borderRadius: BorderRadius.circular(68)),
-              padding: const EdgeInsets.all(4),
-              child: Container(
-                height: 60,
-                width: 60,
+        SizedBox(
+          height: 64,
+          width: 64,
+          child: Material(
+            color: Colors.transparent,
+            child: Ink(
                 decoration: BoxDecoration(
-                    color: CustomColors.fillWhite,
-                    borderRadius: BorderRadius.circular(60)),
-              )),
+                    border: Border.all(color: CustomColors.fillWhite, width: 5),
+                    borderRadius: BorderRadius.circular(68)),
+                child: InkWell(
+                  splashColor: CustomColors.fillWhiteShade,
+                  borderRadius: BorderRadius.circular(68),
+                  onTap: () => capture(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Container(
+                      height: 60,
+                      width: 60,
+                      decoration: BoxDecoration(
+                          color: CustomColors.fillWhite,
+                          borderRadius: BorderRadius.circular(60)),
+                    ),
+                  ),
+                )),
+          ),
         ),
         GestureDetector(
           onTap: () => flip(),
