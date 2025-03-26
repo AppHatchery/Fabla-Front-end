@@ -61,6 +61,7 @@ class Prompt {
     assert(ResponseType.psychomotor.index == 12);
     assert(ResponseType.mediaImage.index == 13);
     assert(ResponseType.mediaVideo.index == 14);
+    assert(ResponseType.timePicker.index == 15);
   }
 
   factory Prompt.fromModel(PromptModel model) {

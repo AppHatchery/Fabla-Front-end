@@ -9,6 +9,7 @@ import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/time_picker.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
@@ -1640,5 +1641,26 @@ class _VideoViewerState extends State<VideoViewer> {
 
   seek(double value) async {
     await controller!.seekTo(Duration(milliseconds: value.toInt()));
+  }
+}
+
+class TimePickerWidget extends StatefulWidget {
+  final PromptModel prompt;
+  final void Function(String) respond;
+  const TimePickerWidget(
+      {super.key, required this.prompt, required this.respond});
+
+  @override
+  State<TimePickerWidget> createState() => _TimePickerWidgetState();
+}
+
+class _TimePickerWidgetState extends State<TimePickerWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return OnboardingTimePicker(
+      time: widget.prompt.answer?.response,
+      subtitle: widget.prompt.subtitle ?? "",
+      onChanged: (value) => widget.respond(value),
+    );
   }
 }

@@ -559,6 +559,9 @@ class _QuestionPageState extends State<QuestionPage>
           diary: widget.diary,
           prompt: prompt,
           respond: (answer) => save(prompt, answer, 'video'));
+    } else if (prompt.responseType == ResponseType.timePicker) {
+      responseWidget = TimePickerWidget(
+          prompt: prompt, respond: (answer) => save(prompt, answer, null));
     } else {
       responseWidget = const SizedBox.shrink();
     }
@@ -579,6 +582,8 @@ class _QuestionPageState extends State<QuestionPage>
     } else if (prompt.responseType == ResponseType.timer) {
       questionTip =
           'Hit the “Start” button to begin meditation countdown.\nDuring the countdown, if you leave the page, the timer will continue on the background.';
+    } else if(prompt.responseType == ResponseType.timePicker){
+      questionTip = prompt.subtitle ?? "";
     }
 
     return (prompt.responseType == ResponseType.audio ||
