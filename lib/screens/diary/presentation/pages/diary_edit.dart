@@ -240,6 +240,10 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
           respond: (answer) => save(prompt, answer, 'other', 0),
           addToPreFunction: (p0) => preFunctions.add(p0),
         );
+      case ResponseType.timePicker:
+        return TimePickerWidget(
+            prompt: prompt,
+            respond: (answer) => save(prompt, answer, "other", 0));
       default:
         return const SizedBox.shrink();
     }
