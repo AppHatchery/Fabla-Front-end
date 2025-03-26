@@ -13,7 +13,8 @@ enum ResponseType {
   instruction,
   psychomotor,
   mediaImage,
-  mediaVideo
+  mediaVideo,
+  timePicker
 }
 
 enum OptionType {
