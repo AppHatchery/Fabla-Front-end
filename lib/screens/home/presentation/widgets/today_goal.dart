@@ -99,105 +99,71 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return goalsAvailable ? Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Today's Goal", style: CustomTypography().titleLarge()),
-        const SizedBox(height: 16),
-        Align(
-          alignment: Alignment.center,
-          child: SizedBox(
-            // height: 150,
-            width: width,
-            child: Stack(
-              children: [
-                Align(
+    return goalsAvailable
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Today's Goal", style: CustomTypography().titleLarge()),
+              const SizedBox(height: 16),
+              Align(
                   alignment: Alignment.center,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 5.0),
-                    child: GoalProgressIndicators(
-                      goals: data,
-                    ),
-                  ),
-                ),
-                Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  child: SizedBox(
+                    // height: 150,
+                    width: width,
+                    child: Stack(
                       children: [
-                        Container(
-                          width: 5,
-                          height: 10,
-                          color: Colors.white,
-                        ),
-                      ],
-                    )),
-                Positioned(
-                  bottom: 0,
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 5.0),
-                      child: SizedBox(
-                        height: 120,
-                        width: 180,
-                        child: RiveAnimation.asset(
-                          'assets/animations/ghosts.riv',
-                          onInit: _onInit,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 5,
-                                height: 10,
-                                color: Colors.white,
-                              ),
-                            ],
-                          )),
-                      Positioned(
-                        bottom: 0,
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: Align(
+                        Align(
                           alignment: Alignment.center,
                           child: Padding(
                             padding: const EdgeInsets.only(top: 5.0),
-                            child: SizedBox(
-                              height: 120,
-                              width: 180,
-                              child: RiveAnimation.asset(
-                                'assets/animations/ghosts.riv',
-                                onInit: _onInit,
-                                fit: BoxFit.cover,
-                              ),
+                            child: GoalProgressIndicators(
+                              goals: data,
                             ),
                           ),
                         ),
-                      )
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        SizedBox(width: width, child: entries(data))
-      ],
-    ) : const SizedBox.shrink();
+                        Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 5,
+                                  height: 10,
+                                  color: Colors.white,
+                                ),
+                              ],
+                            )),
+                        Positioned(
+                          bottom: 0,
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 5.0),
+                              child: SizedBox(
+                                height: 120,
+                                width: 180,
+                                child: RiveAnimation.asset(
+                                  'assets/animations/ghosts.riv',
+                                  onInit: _onInit,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  )),
+              const SizedBox(height: 16),
+              SizedBox(width: width, child: entries(data))
+            ],
+          )
+        : const SizedBox.shrink();
   }
 
   Widget entries(Map<StudyModel, List<DiaryModel>> data) {
