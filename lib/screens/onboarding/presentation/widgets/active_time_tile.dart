@@ -115,6 +115,7 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
         isScrollControlled: true,
         enableDrag: false,
         context: context,
+        routeSettings: RouteSettings(name: "/TimePickerModal"),
         builder: (context) => LayoutBuilder(builder: (context, constraints) {
               return SingleChildScrollView(
                 child: CustomTimePicker(

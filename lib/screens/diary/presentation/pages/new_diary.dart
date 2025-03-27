@@ -105,7 +105,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => DiarySummaryPage(diary: widget.diary)));
+                builder: (context) => DiarySummaryPage(diary: widget.diary),
+                settings: RouteSettings(name: "/DiarySummaryPage")));
       }
     }
   }
@@ -113,13 +114,19 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   bool get isCurrentPageLast => currentPage == widget.diary.prompts.length - 1;
 
   void previousPage() {
+    for (var function in preFunctions) {
+      function();
+    }
+
     if (currentPage > 0) {
       controller.previousPage(
           duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
       Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const Hub()),
+          MaterialPageRoute(
+              builder: (context) => const Hub(),
+              settings: RouteSettings(name: "/Hub")),
           (route) => false);
     }
   }
@@ -161,6 +168,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                     }
                     trackExit("Closed");
                     track(timer.stop(), "Close");
+                    for (var function in preFunctions) {
+                      function();
+                    }
                     Navigator.pushAndRemoveUntil(
                       context,
                       PageRouteBuilder(
@@ -694,6 +704,7 @@ class _QuestionPageState extends State<QuestionPage>
           enableDrag: false,
           elevation: 0,
           useSafeArea: true,
+          routeSettings: RouteSettings(name: "/RecordingModal"),
           builder: (context) => DraggableScrollableSheet(
                 initialChildSize: 1,
                 minChildSize: 1,
@@ -723,6 +734,7 @@ class _QuestionPageState extends State<QuestionPage>
           enableDrag: false,
           elevation: 0,
           useSafeArea: true,
+          routeSettings: RouteSettings(name: "/TextModal"),
           builder: (context) => DraggableScrollableSheet(
                 initialChildSize: 1,
                 minChildSize: 1,

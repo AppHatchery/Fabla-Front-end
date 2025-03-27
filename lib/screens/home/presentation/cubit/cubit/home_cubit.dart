@@ -31,12 +31,13 @@ class HomeCubit extends Cubit<HomeState> {
   ///
   Future<void> loadDiaries() async {
     final today = DateTime.now();
-    final start = DateTime(today.year, today.month, today.day, 0, 0, 0);
-    // final due = DateTime(today.year, today.month, today.day, 23, 59, 59);
+    final start = DateTime(today.year, today.month, today.day, 4, 0, 0);
+    // final due = DateTime(today.year, today.month, today.day, 3, 59, 59);
 
-    final monday = DateTime(today.year, today.month, today.day)
+    final monday = DateTime(today.year, today.month, today.day, 4, 0, 0)
         .subtract(Duration(days: today.weekday - 1));
-    final sunday = monday.add(const Duration(days: 6));
+    final sunday = DateTime(monday.year, monday.month, monday.day, 3, 59, 0)
+        .add(const Duration(days: 6));
 
     try {
       emit(const HomeLoading());

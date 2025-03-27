@@ -74,6 +74,7 @@ class _OnboardingTimePickerState extends State<OnboardingTimePicker> {
         isScrollControlled: true,
         enableDrag: false,
         context: context,
+        routeSettings: RouteSettings(name: "/TimePickerModal"),
         builder: (context) => LayoutBuilder(builder: (context, constraints) {
               return SingleChildScrollView(
                 child: CustomTimePicker(

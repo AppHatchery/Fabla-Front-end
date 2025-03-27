@@ -158,7 +158,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => StudyLogin()),
+            MaterialPageRoute(builder: (context) => StudyLogin(), settings: RouteSettings(name: "/StudyLogin")),
             (route) => false);
       }
     }

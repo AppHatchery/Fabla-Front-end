@@ -161,7 +161,7 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
               onClick: () {
                 Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => const Hub()),
+                    MaterialPageRoute(builder: (context) => const Hub(), settings: RouteSettings(name: "/Hub")),
                     (route) => false);
               },
               text: "Return Home",
