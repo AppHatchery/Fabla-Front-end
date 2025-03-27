@@ -388,6 +388,47 @@ class CustomTextAnswerButton extends StatelessWidget {
   }
 }
 
+class CustomButton extends StatelessWidget {
+  final VoidCallback? onClick;
+  final List<Widget> children;
+  const CustomButton(
+      {super.key, required this.onClick, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10.0),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: CustomColors.productNormal,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white, width: 2),
+            shape: BoxShape.rectangle,
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => {
+              if (onClick != null) {onClick!()}
+            },
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+              width: MediaQuery.of(context).size.width,
+              child: Center(
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: children,
+              )),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class CustomOutlineButton extends StatelessWidget {
   final VoidCallback onClick;
   final Wrap children;
@@ -405,8 +446,8 @@ class CustomOutlineButton extends StatelessWidget {
       required this.backgroundColor,
       this.isDisabled,
       this.borderRadius = 10,
-      this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0)
-      });
+      this.padding =
+          const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0)});
 
   @override
   Widget build(BuildContext context) {
@@ -423,8 +464,7 @@ class CustomOutlineButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             onTap: isDisabled ?? false ? null : () => onClick(),
             child: Padding(
-              padding:
-                  padding,
+              padding: padding,
               child: Container(child: children),
             )),
       ),

@@ -4,23 +4,25 @@ import 'dart:math';
 
 import 'package:alarm/alarm.dart';
 import 'package:alarm/model/volume_settings.dart';
+import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/time_picker.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
@@ -220,10 +222,9 @@ class _MultipleQuestionState extends State<MultipleQuestion> {
                 checkColor: CustomColors.productLightPrimaryNormalWhite,
                 fillColor: selectedOptions.contains(widget.options[index]) &&
                         !widget.disabled
-                    ? MaterialStateProperty.all(
-                        CustomColors.productNormalActive)
+                    ? WidgetStateProperty.all(CustomColors.productNormalActive)
                     : selectedOptions.contains(widget.options[index])
-                        ? MaterialStateProperty.all(
+                        ? WidgetStateProperty.all(
                             CustomColors.textTertiaryContent)
                         : null,
                 controlAffinity: ListTileControlAffinity.leading,
@@ -302,7 +303,7 @@ class _RadioQuestionState extends State<RadioQuestion> {
                               : Colors.black
                           : CustomColors.textTertiaryContent),
                 ),
-                fillColor: MaterialStateProperty.all(!widget.disabled
+                fillColor: WidgetStateProperty.all(!widget.disabled
                     ? widget.options[index] == widget.value
                         ? CustomColors.productNormalActive
                         : Colors.black
@@ -326,7 +327,7 @@ class _RadioQuestionState extends State<RadioQuestion> {
 }
 
 class AudioTextCard extends StatefulWidget {
-  final void Function(String) respond;
+  final void Function(String, int?) respond;
   final DiaryModel diary;
   final PromptModel prompt;
   const AudioTextCard({
@@ -345,32 +346,49 @@ class _AudioTextCardState extends State<AudioTextCard> {
   Widget build(BuildContext context) {
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            (widget.prompt.answer?.recordings.isEmpty ?? true) &&
-                    (widget.prompt.answer?.response?.isEmpty ?? true)
-                ? Column(
-                    children: [
-                      CustomRecordButton(
-                        onClick: () => widget.respond("audio"),
-                        text: "Record My Response",
-                      ),
-                      widget.prompt.responseType == ResponseType.textAudio
-                          ? CustomTextAnswerButton(
-                              onClick: () => widget.respond("text"),
-                              text: "Type My Response",
-                            )
-                          : const SizedBox.shrink(),
-                    ],
-                  )
-                : MyResponse(
-                    diary: widget.diary,
-                    edit: widget.respond,
-                    prompt: widget.prompt,
-                    recordings: widget.prompt.answer?.recordings ?? [])
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              controls(),
+              const SizedBox(height: 12),
+              (widget.prompt.answer != null &&
+                      (widget.prompt.answer!.recordings.isNotEmpty ||
+                          widget.prompt.answer!.response != null))
+                  ? MyResponse(
+                      diary: widget.diary,
+                      edit: widget.respond,
+                      prompt: widget.prompt,
+                      recordings: widget.prompt.answer?.recordings ?? [])
+                  : const SizedBox.shrink()
+            ],
+          ),
         ));
+  }
+
+  Widget controls() {
+    final multipleAnswers = widget.prompt.option?.multipleAnswers ?? false;
+    final length = widget.prompt.answer?.recordings.length ?? 0;
+    final textPresent = widget.prompt.answer?.response != null &&
+        widget.prompt.answer!.response!.isNotEmpty;
+    return !multipleAnswers && (length > 0 || textPresent)
+        ? const SizedBox.shrink()
+        : Column(
+            children: [
+              CustomRecordButton(
+                onClick: () => widget.respond("audio", null),
+                text: length > 0 ? "Record Another Answer" : "Record My Answer",
+              ),
+              widget.prompt.responseType == ResponseType.textAudio
+                  ? CustomTextAnswerButton(
+                      onClick: () => widget.respond("text", null),
+                      text: textPresent
+                          ? "Type Another Answer"
+                          : "Type My Answer",
+                    )
+                  : const SizedBox.shrink(),
+            ],
+          );
   }
 }
 
@@ -392,7 +410,7 @@ class _RadioQuestionSummaryState extends State<RadioQuestionSummary> {
         style: CustomTypography()
             .bodyLarge(color: CustomColors.textSecondaryContent),
       ),
-      fillColor: MaterialStateProperty.all(CustomColors.textSecondaryContent),
+      fillColor: WidgetStateProperty.all(CustomColors.textSecondaryContent),
       controlAffinity: ListTileControlAffinity.leading,
       value: widget.selectedOption ?? "",
       groupValue: widget.selectedOption,
@@ -427,8 +445,7 @@ class _MultipleQuestionSummaryState extends State<MultipleQuestionSummary> {
             style: CustomTypography()
                 .bodyLarge(color: CustomColors.textSecondaryContent),
           ),
-          fillColor:
-              MaterialStateProperty.all(CustomColors.textSecondaryContent),
+          fillColor: WidgetStateProperty.all(CustomColors.textSecondaryContent),
           checkColor: CustomColors.productLightPrimaryNormalWhite,
           controlAffinity: ListTileControlAffinity.leading,
           value: true,
@@ -485,7 +502,7 @@ class _TextQuestionCardState extends State<TextQuestionCard> {
 }
 
 class FreeTextQuestionCard extends StatefulWidget {
-  final void Function(String) respond;
+  final void Function(String, int) respond;
   final DiaryModel diary;
   final PromptModel prompt;
   const FreeTextQuestionCard(
@@ -506,22 +523,28 @@ class _FreeTextQuestionCardState extends State<FreeTextQuestionCard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            (widget.prompt.answer?.response?.isEmpty ?? true)
-                ? Column(
-                    children: [
-                      CustomTextAnswerButton(
-                        onClick: () => widget.respond("text"),
-                        text: "Type My Response",
-                      ),
-                    ],
-                  )
-                : MyResponse(
+            controls(),
+            (widget.prompt.answer?.response?.isNotEmpty ?? false)
+                ? MyResponse(
                     diary: widget.diary,
                     edit: widget.respond,
                     prompt: widget.prompt,
                     recordings: [])
+                : const SizedBox.shrink()
           ],
         ));
+  }
+
+  Widget controls() {
+    final multipleAnswers = widget.prompt.option?.multipleAnswers ?? false;
+    final textPresent = widget.prompt.answer?.response != null &&
+        widget.prompt.answer!.response!.isNotEmpty;
+    return !multipleAnswers && textPresent
+        ? const SizedBox.shrink()
+        : CustomTextAnswerButton(
+            onClick: () => widget.respond("text", 0),
+            text: textPresent ? "Type Another Answer" : "Type My Answer",
+          );
   }
 }
 
@@ -587,27 +610,16 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Column(
-                children: widget.prompt.answer?.response?.isEmpty ?? true
-                    ? [
-                        CustomFlatButton(
-                          onClick: () => showModal(),
-                          text: "Enter Survey",
-                        )
-                      ]
-                    : [
-                        CustomFlatButton(
-                          onClick: () => showModal(),
-                          color: CustomColors.fillWhite,
-                          textColor: CustomColors.productNormal,
-                          text: "Retake Survey",
-                        ),
-                        Text(
-                          "✅ Your previous survey responses have been collected. If you retake the survey it will count as a new response. ",
-                          style: CustomTypography().bodyLarge(
-                              color: CustomColors.textTertiaryContent),
-                        ),
-                      ])
+            widget.prompt.answer?.response?.isEmpty ?? true
+                ? CustomFlatButton(
+                    onClick: () => showModal(),
+                    text: "Enter Survey",
+                  )
+                : Text(
+                    "✅ Your survey responses have been collected.",
+                    style: CustomTypography()
+                        .bodyLarge(color: CustomColors.textTertiaryContent),
+                  ),
           ],
         ));
   }
@@ -1306,182 +1318,92 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 }
 
-class ImageWidget extends StatefulWidget {
-  final void Function(String) respond;
+class VisualResponseWidget extends StatefulWidget {
+  final void Function(String answer, [String? type]) respond;
   final DiaryModel diary;
   final PromptModel prompt;
-  const ImageWidget(
+  const VisualResponseWidget(
       {super.key,
       required this.diary,
       required this.prompt,
       required this.respond});
 
   @override
-  State<ImageWidget> createState() => _ImageWidgetState();
+  State<VisualResponseWidget> createState() => _VisualResponseWidgetState();
 }
 
-class _ImageWidgetState extends State<ImageWidget> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
+class _VisualResponseWidgetState extends State<VisualResponseWidget> {
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            widget.prompt.answer?.response == null
-                ? CustomFlatButton(
-                    onClick: () => showModal(),
-                    text: "Take a Picture",
-                  )
-                : Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+            Column(
+              children: [
+                widget.prompt.responseType == ResponseType.image ||
+                        widget.prompt.responseType == ResponseType.imageVideo
+                    ? CustomButton(
+                        onClick: () => showModal(isImage: true),
                         children: [
-                          IconButton(
-                            onPressed: () {
-                              delete();
-                            },
-                            icon: const Icon(CupertinoIcons.delete),
-                            color: CustomColors.warningActive,
-                            iconSize: 20,
+                          Icon(
+                            CupertinoIcons.camera_fill,
+                            color: CustomColors.fillWhite,
+                            size: 24,
+                          ),
+                          const SizedBox(
+                            width: 8,
+                          ),
+                          Text(
+                            widget.prompt.answer?.recordings.isNotEmpty ?? false
+                                ? 'Add Another Picture'
+                                : 'Take a Picture',
+                            style: CustomTypography()
+                                .button(color: CustomColors.textWhite),
                           )
                         ],
-                      ),
-                      SizedBox(
-                          width: width,
-                          child: ImageViewer(
-                              name: widget.prompt.answer!.response!)),
-                    ],
-                  )
-          ],
-        ));
-  }
-
-  delete() async {
-    final result = await showDialog<bool>(
-        context: context,
-        builder: (context) => DeletePopUp(
-              title: Strings.deletePopUpTitle,
-              subheader: Strings.deletePopUpSubheader,
-            ));
-
-    if (result == true && mounted) {
-      final promptCubit = context.read<PromptCubit>();
-      promptCubit.removeResponse(
-          diary: widget.diary, path: "", prompt: widget.prompt);
-    }
-  }
-
-  void showModal() {
-    showModalBottomSheet(
-        backgroundColor: Colors.transparent,
-        context: context,
-        isScrollControlled: true,
-        isDismissible: false,
-        enableDrag: false,
-        elevation: 0,
-        useSafeArea: true,
-        routeSettings: RouteSettings(name: "/CameraModal"),
-        builder: (context) => DraggableScrollableSheet(
-              initialChildSize: 1,
-              minChildSize: 1,
-              snap: true,
-              builder: (context, scrollController) {
-                return BottomCameraModal(
-                  respond: widget.respond,
-                  prompt: widget.prompt,
-                );
-              },
-            ));
-  }
-}
-
-class ImageViewer extends StatefulWidget {
-  final String name;
-  const ImageViewer({super.key, required this.name});
-
-  @override
-  State<ImageViewer> createState() => _ImageViewerState();
-}
-
-class _ImageViewerState extends State<ImageViewer> {
-  File? file;
-
-  @override
-  initState() {
-    imageInit();
-    super.initState();
-  }
-
-  imageInit() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final path = p.join(dir.path, 'images', widget.name);
-    setState(() {
-      file = File(path);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return file != null ? Image.file(file!) : SizedBox.shrink();
-  }
-}
-
-class VideoWidget extends StatefulWidget {
-  final void Function(String) respond;
-  final DiaryModel diary;
-  final PromptModel prompt;
-  const VideoWidget(
-      {super.key,
-      required this.diary,
-      required this.prompt,
-      required this.respond});
-
-  @override
-  State<VideoWidget> createState() => _VideoWidgetState();
-}
-
-class _VideoWidgetState extends State<VideoWidget> {
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            widget.prompt.answer?.response == null
-                ? Column(
-                    children: [
-                      widget.prompt.responseType == ResponseType.imageVideo
-                          ? CustomFlatButton(
-                              onClick: () => showModal(isImage: true),
-                              text: "Take a Picture",
-                            )
-                          : const SizedBox.shrink(),
-                      CustomFlatButton(
+                      )
+                    : const SizedBox.shrink(),
+                widget.prompt.responseType == ResponseType.video ||
+                        widget.prompt.responseType == ResponseType.imageVideo
+                    ? CustomButton(
                         onClick: () => showModal(isImage: false),
-                        text: "Take a Video",
-                      ),
-                    ],
+                        children: [
+                          Icon(
+                            CupertinoIcons.camera_fill,
+                            color: CustomColors.fillWhite,
+                            size: 24,
+                          ),
+                          const SizedBox(
+                            width: 8,
+                          ),
+                          Text(
+                            widget.prompt.answer?.recordings.isNotEmpty ?? false
+                                ? 'Add Another Video'
+                                : 'Take a Video',
+                            style: CustomTypography()
+                                .button(color: CustomColors.textWhite),
+                          )
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+              ],
+            ),
+            const SizedBox(height: 32),
+            widget.prompt.answer?.recordings.isNotEmpty ?? false
+                ? SizedBox(
+                    child: Preview(
+                      recordings: widget.prompt.answer!.recordings,
+                      delete: (path) => delete(path),
+                    ),
                   )
-                : SizedBox(
-                    width: width,
-                    child: VideoViewer(
-                        name: widget.prompt.answer!.response!, delete: delete),
-                  )
+                : const SizedBox.shrink()
           ],
         ));
   }
 
-  delete() async {
+  delete(String path) async {
     final result = await showDialog<bool>(
         context: context,
         builder: (context) => DeletePopUp(
@@ -1492,7 +1414,7 @@ class _VideoWidgetState extends State<VideoWidget> {
     if (result == true && mounted) {
       final promptCubit = context.read<PromptCubit>();
       promptCubit.removeResponse(
-          diary: widget.diary, path: "", prompt: widget.prompt);
+          diary: widget.diary, path: path, prompt: widget.prompt);
     }
   }
 
@@ -1521,10 +1443,434 @@ class _VideoWidgetState extends State<VideoWidget> {
   }
 }
 
+class Preview extends StatefulWidget {
+  final List<Recording> recordings;
+  final Function(String path) delete;
+  final bool interactions;
+  const Preview(
+      {super.key,
+      required this.recordings,
+      required this.delete,
+      this.interactions = true});
+
+  @override
+  State<Preview> createState() => _PreviewState();
+}
+
+class _PreviewState extends State<Preview> {
+  final children = <Widget>[];
+
+  @override
+  void initState() {
+    getData();
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant Preview oldWidget) {
+    if (oldWidget.recordings != widget.recordings) {
+      children.clear();
+      getData();
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  getData() async {
+    for (int i = 0; i < widget.recordings.length; i++) {
+      final recording = widget.recordings[i];
+      final path = recording.path;
+      final type = recording.type;
+
+      if (children.length >= 3) {
+        final remaining = widget.recordings.length - 4;
+        final child = remaining > 0
+            ? type == 'video'
+                ? lastVideoPreviewTile(path, remaining)
+                : lastPreviewTile(path, remaining)
+            : type == 'video'
+                ? videoPreviewTile(path)
+                : previewTile(path);
+        children.add(child);
+
+        break;
+      }
+
+      final child =
+          type == 'video' ? videoPreviewTile(path) : previewTile(path);
+      children.add(child);
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DottedBorder(
+      color: CustomColors.productNormalActive,
+      strokeWidth: 4,
+      radius: Radius.circular(4),
+      padding: const EdgeInsets.all(16),
+      dashPattern: [8, 8],
+      borderType: BorderType.RRect,
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: children,
+      ),
+    );
+  }
+
+  Widget previewTile(
+    String path,
+  ) {
+    return FutureBuilder(
+        future: getImageFile(path: path),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return GestureDetector(
+              onTap: () => showModal(snapshot.data!.path, 'image'),
+              child: SizedBox(
+                height: 140,
+                width: 140,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Image.file(
+                        snapshot.data!,
+                        fit: BoxFit.cover,
+                        height: 140,
+                        width: 140,
+                      ),
+                    ),
+                    widget.interactions
+                        ? Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: GestureDetector(
+                                onTap: () => widget.delete(path),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0xFF616161)),
+                                  child: Icon(
+                                    Icons.remove,
+                                    size: 28,
+                                    color: CustomColors.fillWhite,
+                                  ),
+                                ),
+                              ),
+                            ))
+                        : const SizedBox.shrink(),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return Container(
+            height: 140,
+            width: 140,
+            decoration: BoxDecoration(
+              color: CustomColors.greyDark,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          );
+        });
+  }
+
+  Widget lastPreviewTile(String path, int remaining) {
+    return FutureBuilder(
+        future: getImageFile(path: path),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return GestureDetector(
+              onTap: () => showAllModal(),
+              child: SizedBox(
+                height: 140,
+                width: 140,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Stack(
+                    children: [
+                      Container(
+                        foregroundDecoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.4)),
+                        child: Image.file(
+                          snapshot.data!,
+                          fit: BoxFit.cover,
+                          height: 140,
+                          width: 140,
+                        ),
+                      ),
+                      Center(
+                        child: Text(
+                          '+$remaining',
+                          style: CustomTypography().custom(
+                              color: CustomColors.textWhite,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 24),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return Container(
+            height: 140,
+            width: 140,
+            decoration: BoxDecoration(
+              color: CustomColors.greyDark,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          );
+        });
+  }
+
+  Widget videoPreviewTile(String path) {
+    return FutureBuilder(
+        future: getVideoFileInfo(path: path),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return GestureDetector(
+              onTap: () => showModal(snapshot.data!.absolutePath, 'video'),
+              child: SizedBox(
+                height: 140,
+                width: 140,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Image.file(
+                        snapshot.data!.thumbnail,
+                        fit: BoxFit.cover,
+                        height: 140,
+                        width: 140,
+                      ),
+                    ),
+                    widget.interactions
+                        ? Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: GestureDetector(
+                                onTap: () => widget.delete(path),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0xFF616161)),
+                                  child: Icon(
+                                    Icons.remove,
+                                    size: 28,
+                                    color: CustomColors.fillWhite,
+                                  ),
+                                ),
+                              ),
+                            ))
+                        : const SizedBox.shrink(),
+                    Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: Text(
+                            formatDurationtoHHMMSS(snapshot.data!.length),
+                            style: CustomTypography().custom(
+                                color: CustomColors.textWhite,
+                                fontWeight: FontWeight.w500),
+                          ),
+                        ))
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return Container(
+            height: 140,
+            width: 140,
+            decoration: BoxDecoration(
+              color: CustomColors.greyDark,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          );
+        });
+  }
+
+  Widget lastVideoPreviewTile(String path, int remaining) {
+    return FutureBuilder(
+        future: getVideoFileInfo(path: path),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return GestureDetector(
+              onTap: () => showAllModal(),
+              child: SizedBox(
+                height: 140,
+                width: 140,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Container(
+                        foregroundDecoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.4)),
+                        child: Stack(
+                          children: [
+                            Image.file(
+                              snapshot.data!.thumbnail,
+                              fit: BoxFit.cover,
+                              height: 140,
+                              width: 140,
+                            ),
+                            Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(6),
+                                  child: Text(
+                                    formatDurationtoHHMMSS(
+                                        snapshot.data!.length),
+                                    style: CustomTypography().custom(
+                                        color: CustomColors.textWhite,
+                                        fontWeight: FontWeight.w500),
+                                  ),
+                                ))
+                          ],
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: Text(
+                        '+$remaining',
+                        style: CustomTypography().custom(
+                            color: CustomColors.textWhite,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 24),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return Container(
+            height: 140,
+            width: 140,
+            decoration: BoxDecoration(
+              color: CustomColors.greyDark,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          );
+        });
+  }
+
+  void showModal(String path, String type) {
+    final File _file = File(path);
+    final width = MediaQuery.of(context).size.width;
+    showModalBottomSheet(
+        backgroundColor: CustomColors.fillNormal,
+        barrierColor: CustomColors.fillNormal,
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        elevation: 0,
+        useSafeArea: true,
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              minChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) {
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 16.0),
+                            child: GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: const Icon(
+                                CupertinoIcons.clear,
+                                size: 24,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 32,
+                    ),
+                    type == 'video'
+                        ? Expanded(
+                            child:
+                                LayoutBuilder(builder: (context, constraints) {
+                              return VideoViewer(
+                                file: _file,
+                                height: constraints.maxHeight,
+                                width: constraints.maxWidth,
+                              );
+                            }),
+                          )
+                        : Expanded(
+                            child: Container(
+                              width: width,
+                              decoration: const BoxDecoration(
+                                color: CustomColors.greyLight,
+                              ),
+                              child: Image.file(_file),
+                            ),
+                          ),
+                  ],
+                );
+              },
+            ));
+  }
+
+  showAllModal() {
+    showModalBottomSheet(
+        backgroundColor: Colors.transparent,
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        elevation: 0,
+        useSafeArea: true,
+        routeSettings: RouteSettings(name: "/CameraModal"),
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              minChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) {
+                return ViewAllMediaModal(
+                    recordings: widget.recordings, delete: widget.delete);
+              },
+            ));
+  }
+}
+
 class VideoViewer extends StatefulWidget {
-  final String name;
-  final Function? delete;
-  const VideoViewer({super.key, required this.name, required this.delete});
+  final File file;
+  final double height;
+  final double width;
+  const VideoViewer(
+      {super.key,
+      required this.file,
+      required this.height,
+      required this.width});
 
   @override
   State<VideoViewer> createState() => _VideoViewerState();
@@ -1532,11 +1878,14 @@ class VideoViewer extends StatefulWidget {
 
 class _VideoViewerState extends State<VideoViewer> {
   VideoPlayerController? controller;
+  bool videoPlaying = false;
 
   // Slider
   double max = 0.0;
   double current = 0.0;
   Duration maxDuration = const Duration();
+  Duration remaining = const Duration();
+  Duration elapsed = const Duration();
 
   @override
   initState() {
@@ -1553,94 +1902,120 @@ class _VideoViewerState extends State<VideoViewer> {
   @override
   Widget build(BuildContext context) {
     return controller != null
-        ? Column(children: [
-            Row(
-              children: [
-                Container(
-                    width: 24,
-                    height: 24,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: CustomColors.productNormalActive,
+        ? SizedBox(
+            height: widget.height,
+            width: widget.width,
+            child: Column(children: [
+              Expanded(
+                child: Container(
+                  width: widget.width,
+                  decoration: const BoxDecoration(
+                    color: CustomColors.greyLight,
+                  ),
+                  child: Center(
+                    child: Stack(
+                      children: [
+                        AspectRatio(
+                          aspectRatio: controller!.value.aspectRatio,
+                          child: VideoPlayer(controller!),
+                        ),
+                        Positioned(
+                          bottom: 15,
+                          left: 8,
+                          right: 8,
+                          child: SizedBox(
+                              child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  //Elapsed
+                                  Text(
+                                    formatDurationtoHHMMSS(elapsed),
+                                    style: CustomTypography().bodyMedium(
+                                        color: CustomColors.textWhite),
+                                  ),
+                                  //Remaining
+                                  Text(
+                                    formatDurationtoHHMMSS(remaining),
+                                    style: CustomTypography().bodyMedium(
+                                        color: CustomColors.textWhite),
+                                  ),
+                                ],
+                              ),
+                              SliderTheme(
+                                data: SliderThemeData(
+                                    trackHeight: 8,
+                                    activeTrackColor: CustomColors.fillWhite,
+                                    thumbColor: CustomColors.fillWhite,
+                                    inactiveTrackColor: Color(0xFF545454),
+                                    thumbShape: const RoundSliderThumbShape(
+                                        enabledThumbRadius: 2, elevation: 0),
+                                    overlayShape: SliderComponentShape.noThumb),
+                                child: Slider(
+                                  value: current,
+                                  max: max,
+                                  onChanged: (val) => seek(val),
+                                ),
+                              ),
+                            ],
+                          )),
+                        ),
+                      ],
                     ),
-                    child: Center(
-                      child: IconButton(
-                        onPressed: () => play(),
-                        icon: Icon(controller!.value.isPlaying
-                            ? CupertinoIcons.pause_fill
-                            : CupertinoIcons.play_arrow_solid),
-                        color: CustomColors.fillWhite,
-                        iconSize: 10,
-                      ),
-                    )),
-                const SizedBox(width: 3),
-                Expanded(
-                  child: slider(),
-                ),
-                Row(
-                  children: [
-                    Text(formatDuration(current.toInt())),
-                    const Text(" / "),
-                    Text(formatDuration(maxDuration.inMilliseconds.toInt()))
-                  ],
-                ),
-                widget.delete == null
-                    ? SizedBox.shrink()
-                    : IconButton(
-                        onPressed: () => widget.delete!(),
-                        icon: const Icon(CupertinoIcons.delete),
-                        color: CustomColors.warningActive,
-                        iconSize: 20,
-                      )
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 6.0),
-              child: Center(
-                child: AspectRatio(
-                  aspectRatio: controller!.value.aspectRatio,
-                  child: VideoPlayer(controller!),
+                  ),
                 ),
               ),
-            )
-          ])
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 28.5),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () => play(),
+                      child: Container(
+                        height: 64,
+                        width: 64,
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: CustomColors.fillWhite),
+                        child: Center(
+                          child: Padding(
+                            padding:
+                                EdgeInsets.only(left: videoPlaying ? 0 : 4.0),
+                            child: Icon(
+                              videoPlaying
+                                  ? CupertinoIcons.pause_fill
+                                  : CupertinoIcons.play_arrow_solid,
+                              color: CustomColors.productNormalActive,
+                              size: 32,
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              )
+            ]),
+          )
         : Center(
             child: CircularProgressIndicator(),
           );
   }
 
-  Widget slider() {
-    return Column(
-      children: [
-        SizedBox(
-            child: SliderTheme(
-          data: SliderThemeData(
-              trackHeight: 5,
-              activeTrackColor: CustomColors.productNormalActive,
-              thumbColor: CustomColors.productNormalActive,
-              inactiveTrackColor: CustomColors.greyTrack,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-              overlayShape: SliderComponentShape.noOverlay),
-          child: Slider(
-            value: current,
-            max: max,
-            onChanged: (val) => seek(val),
-          ),
-        )),
-      ],
-    );
-  }
-
   init() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final path = p.join(dir.path, 'videos', widget.name);
-    final file = File(path);
-    controller = VideoPlayerController.file(file);
+    controller = VideoPlayerController.file(widget.file);
 
     controller!.addListener(() {
       if (mounted) {
         setState(() {
           current = controller!.value.position.inMilliseconds.toDouble();
+          elapsed = controller!.value.position;
+          remaining = maxDuration - elapsed;
+          if (elapsed == maxDuration) videoPlaying = false;
         });
       }
     });
@@ -1649,6 +2024,7 @@ class _VideoViewerState extends State<VideoViewer> {
         setState(() {
           max = controller!.value.duration.inMilliseconds.toDouble();
           maxDuration = controller!.value.duration;
+          remaining = maxDuration;
         });
       }
     });
@@ -1657,12 +2033,35 @@ class _VideoViewerState extends State<VideoViewer> {
   play() async {
     if (controller!.value.isPlaying) {
       await controller!.pause();
+      if (mounted) setState(() => videoPlaying = false);
     } else {
       await controller!.play();
+      if (mounted) setState(() => videoPlaying = true);
     }
   }
 
   seek(double value) async {
     await controller!.seekTo(Duration(milliseconds: value.toInt()));
+  }
+}
+
+class TimePickerWidget extends StatefulWidget {
+  final PromptModel prompt;
+  final void Function(String) respond;
+  const TimePickerWidget(
+      {super.key, required this.prompt, required this.respond});
+
+  @override
+  State<TimePickerWidget> createState() => _TimePickerWidgetState();
+}
+
+class _TimePickerWidgetState extends State<TimePickerWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return OnboardingTimePicker(
+      time: widget.prompt.answer?.response?.firstOrNull,
+      subtitle: widget.prompt.subtitle ?? "",
+      onChanged: (value) => widget.respond(value),
+    );
   }
 }

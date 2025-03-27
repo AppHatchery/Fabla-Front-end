@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
+import 'dart:developer' as dev;
 
 /// this is a custom AppBar that is being used in the DiaryPageView
 /// the skip button has no functionality yet
@@ -34,7 +35,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         TextButton(
           onPressed: () {
-            print("Skip clicked!");
+            dev.log("Skip clicked!");
           },
           child: Text(
             "Skip",

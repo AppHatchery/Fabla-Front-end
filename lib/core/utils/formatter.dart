@@ -251,6 +251,7 @@ final Map<String, ResponseType> _responseTypeMap = {
   'image': ResponseType.mediaImage,
   'video': ResponseType.mediaVideo,
   'psychomotor': ResponseType.psychomotor,
+  'timePicker': ResponseType.timePicker
 };
 
 /// Function that converts a string representation of a response type to its corresponding enum value.
@@ -280,6 +281,7 @@ final Map<ResponseType, String> _responseStringMap = {
   ResponseType.mediaImage: 'image',
   ResponseType.mediaVideo: 'video',
   ResponseType.psychomotor: 'psychomotor',
+  ResponseType.timePicker: 'timePicker'
 };
 
 /// Function to convert ResponseType enum value to string
@@ -311,6 +313,12 @@ String optionTypeToString(OptionsType type) {
     case OptionsType.slider:
       return 'slider';
   }
+}
+
+/// Capitalizes the first letter of a given string.
+String capitalizeFirstLetter(String text) {
+  if (text.isEmpty) return text;
+  return text[0].toUpperCase() + text.substring(1);
 }
 
 /// Convert String to TimeOfDay

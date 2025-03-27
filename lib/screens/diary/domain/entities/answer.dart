@@ -9,7 +9,7 @@ class Answer {
   int id;
   @Property(type: PropertyType.date)
   DateTime date;
-  String? response;
+  List<String>? response;
   //List<Recording> recordings;
   @Backlink('answer')
   final recordings = ToMany<Recording>();
@@ -29,7 +29,7 @@ class Answer {
   ///
   Answer copyWith({
     DateTime? date,
-    String? response,
+    List<String>? response,
     int? id,
   }) {
     return Answer(

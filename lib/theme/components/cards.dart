@@ -755,7 +755,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
 
   void playerInit() async {
     final dir = await getApplicationDocumentsDirectory();
-    final path = p.join(dir.path, 'recordings', widget.recording.path);
+    final path = p.join(dir.path, widget.recording.path);
     audioPlayer = AudioPlayer()
       ..setSourceDeviceFile(path)
       ..setReleaseMode(ReleaseMode.stop)
@@ -833,7 +833,8 @@ class _NewAudioCardState extends State<NewAudioCard> {
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
       decoration: BoxDecoration(
-        color: CustomColors.grey,
+        color:
+            widget.isVisible == true ? CustomColors.grey : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         shape: BoxShape.rectangle,
       ),
@@ -939,7 +940,7 @@ class _NewAudioCardState extends State<NewAudioCard> {
 
   void playerInit() async {
     final dir = await getApplicationDocumentsDirectory();
-    final path = p.join(dir.path, 'recordings', widget.recording.path);
+    final path = p.join(dir.path, widget.recording.path);
     audioPlayer = AudioPlayer()
       ..setSourceDeviceFile(path)
       ..setReleaseMode(ReleaseMode.stop)
@@ -977,7 +978,8 @@ class TextAnswerCard extends StatefulWidget {
   final VoidCallback? delete;
   final String? callerWidget;
   final bool? isVisible;
-  final void Function(String)? edit;
+  final void Function(String, int)? edit;
+  final int index;
 
   const TextAnswerCard(
       {super.key,
@@ -985,6 +987,7 @@ class TextAnswerCard extends StatefulWidget {
       this.delete,
       this.callerWidget,
       this.edit,
+      required this.index,
       this.isVisible});
 
   @override
@@ -999,7 +1002,8 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
       decoration: BoxDecoration(
-        color: CustomColors.grey,
+        color:
+            widget.isVisible == true ? CustomColors.grey : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         shape: BoxShape.rectangle,
       ),
@@ -1014,7 +1018,7 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
             ? IconButton(
                 onPressed: () {
                   if (widget.edit != null) {
-                    widget.edit!("text");
+                    widget.edit!("text", widget.index);
                   }
                 },
                 icon: const Icon(Icons.edit),

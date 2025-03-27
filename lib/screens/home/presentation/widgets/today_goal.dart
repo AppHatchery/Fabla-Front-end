@@ -78,6 +78,15 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       goalsAvailable = false;
     }
 
+    for (final entry in data.keys) {
+      if (entry.goals.daily > 0) {
+        goalsAvailable = true;
+        break;
+      }
+
+      goalsAvailable = false;
+    }
+
     super.initState();
   }
 
@@ -97,60 +106,59 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
               Text("Today's Goal", style: CustomTypography().titleLarge()),
               const SizedBox(height: 16),
               Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  // height: 150,
-                  width: width,
-                  child: Stack(
-                    children: [
-                      Align(
-                        alignment: Alignment.center,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 5.0),
-                          child: GoalProgressIndicators(
-                            goals: data,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 5,
-                                height: 10,
-                                color: Colors.white,
-                              ),
-                            ],
-                          )),
-                      Positioned(
-                        bottom: 0,
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: Align(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    // height: 150,
+                    width: width,
+                    child: Stack(
+                      children: [
+                        Align(
                           alignment: Alignment.center,
                           child: Padding(
                             padding: const EdgeInsets.only(top: 5.0),
-                            child: SizedBox(
-                              height: 120,
-                              width: 180,
-                              child: RiveAnimation.asset(
-                                'assets/animations/ghosts.riv',
-                                onInit: _onInit,
-                                fit: BoxFit.cover,
-                              ),
+                            child: GoalProgressIndicators(
+                              goals: data,
                             ),
                           ),
                         ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
+                        Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 5,
+                                  height: 10,
+                                  color: Colors.white,
+                                ),
+                              ],
+                            )),
+                        Positioned(
+                          bottom: 0,
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 5.0),
+                              child: SizedBox(
+                                height: 120,
+                                width: 180,
+                                child: RiveAnimation.asset(
+                                  'assets/animations/ghosts.riv',
+                                  onInit: _onInit,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  )),
               const SizedBox(height: 16),
               SizedBox(width: width, child: entries(data))
             ],

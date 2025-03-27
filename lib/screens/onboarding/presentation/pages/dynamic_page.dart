@@ -79,7 +79,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
                     builder: (context) => const ActiveDatesPage(), settings: RouteSettings(name: "/ActiveDatesPage")));
           } else if (state is DynamicUploaded) {
             track(timer.stop(), "Finished");
-            moveOn(context);
+            moveOn(context, state.questionsLength);
           }
         },
         builder: (context, state) {
@@ -126,7 +126,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
     if (controller.page == length) {
       // Navigator.push(context,
       //     MaterialPageRoute(builder: (context) => const ActiveDatesPage()));
-      _cubit.upload();
+      _cubit.upload(length);
     } else {
       controller.nextPage(
           duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
@@ -197,7 +197,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
     );
   }
 
-  void moveOn(BuildContext context) async {
+  void moveOn(BuildContext context, int length) async {
     await PreferenceService()
         .setBoolPreference(key: 'onboarding_complete', value: true);
     if (context.mounted) {
@@ -205,10 +205,11 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
           .navigate(null, context: context, current: 'dynamic_onboarding');
 
       if (cameBack == true) {
-        _cubit.load();
-        //  final length = await _cubit.count();
-        // jump to last page
-        // controller.jumpToPage(length - 1); // cant go to the last page
+        if (length > 0) {
+          _cubit.load();
+        } else if (context.mounted) {
+          if (Navigator.canPop(context)) Navigator.pop(context);
+        }
       }
     }
   }

@@ -14,6 +14,7 @@ class Options {
   Duration? suggestedLength;
   Duration? maxLength;
   bool? displayTime;
+  bool? multipleAnswers;
   //WebView
   String? link;
   //Timer
@@ -35,6 +36,7 @@ class Options {
       this.suggestedLength,
       this.maxLength,
       this.displayTime,
+      this.multipleAnswers,
       this.link,
       this.timerLength,
       this.userInteraction,
@@ -63,6 +65,7 @@ class Options {
           ? formatStringToDuration(json['suggested_length'])
           : null,
       displayTime: json['display_time'],
+      multipleAnswers: json['multiple_answers'],
       link: json['link'],
       timerLength: json['timer_length'] != null &&
               (json['timer_length'] as String).isNotEmpty
@@ -92,6 +95,7 @@ class Options {
           ? formatDurationToString(suggestedLength!)
           : null,
       'display_time': displayTime,
+      'multiple_answers': multipleAnswers,
       'link': link,
       'timer_length':
           timerLength != null ? formatDurationToString(timerLength!) : null,

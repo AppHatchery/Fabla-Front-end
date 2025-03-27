@@ -1,15 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:audio_diaries_flutter/core/usecases/location.dart';
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'dart:developer' as dev;
 import 'secrets_handler.dart';
 
 /// Uploads audio files associated with a diary to an S3 storage and returns the result.
@@ -46,22 +47,26 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
 
   try {
     final promptEntryList = <PromptEntry>[];
-    final audioDataList = <AudioData>[];
-
-    int promptNumber = 0;
+    final files = <FileData>[];
 
     for (final prompt in diary.prompts) {
       if (prompt.answer == null) continue;
 
-      promptNumber++;
-
-      if (((prompt.responseType == ResponseType.audio ||
-                  prompt.responseType == ResponseType.textAudio) &&
-              prompt.answer!.recordings.isNotEmpty) ||
+      if ((prompt.responseType == ResponseType.textAudio &&
+              (prompt.answer?.recordings.isNotEmpty ?? false)) ||
+          prompt.responseType == ResponseType.audio ||
           prompt.responseType == ResponseType.image ||
-          prompt.responseType == ResponseType.video) {
-        _addAudioData(experiment.login, prompt, participantID, diary, dir,
-            promptNumber, audioDataList);
+          prompt.responseType == ResponseType.video ||
+          prompt.responseType == ResponseType.imageVideo) {
+        _addFileData(
+            experiment.login, prompt, participantID, diary, dir, files);
+
+        // If the prompt is textAudio and has a text response, add the text response
+        if (prompt.responseType == ResponseType.textAudio &&
+            (prompt.answer?.response?.isNotEmpty ?? false)) {
+          _addPromptEntry(prompt, participantID, experiment.login,
+              diary.id.toString(), promptEntryList);
+        }
       } else {
         _addPromptEntry(prompt, participantID, experiment.login,
             diary.id.toString(), promptEntryList);
@@ -76,66 +81,41 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
         diaryID: diary.id.toString());
     if (location != null) promptEntryList.add(location);
 
-    final uploaded = await awsUploadResponses(promptEntryList, audioDataList);
+    final uploaded = await awsUploadResponses(promptEntryList, files);
     return uploaded;
   } catch (e, stackTrace) {
-    debugPrint("Failed to upload data: $e");
-    debugPrint(stackTrace.toString());
+    dev.log("Failed to upload data: $e", name: "Upload");
+    dev.log(stackTrace.toString());
     return false;
   }
 }
 
-void _addAudioData(
+void _addFileData(
     String experimentCode,
     PromptModel prompt,
     String participantID,
     DiaryModel diary,
     Directory dir,
-    int promptNumber,
-    List<AudioData> audioDataList) {
-  final type = prompt.responseType;
+    List<FileData> files) {
+  final recordings = prompt.answer?.recordings;
+  final data = <FileData>[];
 
-  String localPath = '';
-  final formattedTime = DateFormat('HH-mm-ss').format(DateTime.now());
-  String filename = '';
-  String folder = '';
+  if (recordings != null) {
+    for (final record in recordings) {
+      final formattedTime = DateFormat('HH-mm-ss').format(DateTime.now());
+      String localPath = p.join(dir.path, record.path);
+      String filename =
+          "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}${p.extension(localPath)}";
+      String folder = '${capitalizeFirstLetter(record.type)}s';
 
-  // get the appropriate path and filename
-  switch (type) {
-    case ResponseType.audio:
-      localPath =
-          p.join(dir.path, 'recordings', prompt.answer?.recordings.first.path);
-      filename =
-          "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.aac";
-      folder = 'Audios';
-      break;
-    case ResponseType.textAudio:
-      localPath =
-          p.join(dir.path, 'recordings', prompt.answer?.recordings.first.path);
-      filename =
-          "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.aac";
-      folder = 'Audios';
-      break;
-    case ResponseType.image:
-      localPath = p.join(dir.path, 'images', prompt.answer?.response);
-      filename =
-          "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.jpg";
-      folder = 'Images';
-      break;
-    case ResponseType.video:
-      localPath = p.join(dir.path, 'videos', prompt.answer?.response);
-      filename =
-          "${participantID}_${formatSubmissionDate(diary.start)}_$formattedTime.mp4";
-      folder = 'Videos';
-      break;
-    default:
-      break;
+      final awsPath = "$experimentCode/$folder/$filename";
+      final fileData =
+          FileData(localDirectory: localPath, awsS3Directory: awsPath);
+      data.add(fileData);
+    }
   }
 
-  final awsPath = "$experimentCode/$folder/$filename";
-
-  audioDataList
-      .add(AudioData(localDirectory: localPath, awsS3Directory: awsPath));
+  files.addAll(data);
 }
 
 void _addPromptEntry(PromptModel prompt, String participantID,
@@ -147,8 +127,8 @@ void _addPromptEntry(PromptModel prompt, String participantID,
       questionTitle: prompt.question,
       diaryID: diaryID,
       promptID: prompt.id.toString(),
-      response: prompt.answer!.response!,
-      questionsType: AwsUtils.getResponseType(prompt.responseType.toString()),
+      response: prompt.answer?.response?.join(' | ') ?? "",
+      questionsType: responseTypeValue(prompt.responseType!),
       required: prompt.required,
     ),
   );
@@ -167,9 +147,6 @@ Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
   // Encode the list of items to JSON
   String jsonBody = json.encode(promptListItems);
 
-  // Set up the HTTP POST request
-  // var url = Uri.parse(
-  //     'https://r79428yn1l.execute-api.us-east-1.amazonaws.com/live/dynsendresponse'); // Replace with your API endpoint
   var url = Uri.parse(cred?.dynamo_url ?? "");
 
   var headers = {
@@ -181,18 +158,10 @@ Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
   try {
     var response = await http.post(url, headers: headers, body: jsonBody);
 
-    if (response.statusCode == 200) {
-      // Request successful
-      debugPrint('Dynamo DB: All items processed successfully');
-      return true; // Submission successful
-    } else {
-      // Request failed
-      debugPrint('Dynamo DB: Request failed with status: ${response.body}');
-      return false; // Submission failed
-    }
+    return response.statusCode == 200;
   } catch (e) {
     // An error occurred
-    debugPrint('Error sending request: $e');
+    dev.log('Error sending request: $e', name: 'Upload - Non-Audio Data');
     return false; // Submission failed due to error
   }
 }
@@ -245,15 +214,16 @@ Future<String?> getPresignedUrl(String apiUrl, String filename) async {
 
       // Extract the 'uploadURL' from the parsed 'body' JSON
       var uploadUrl = body['uploadURL'];
-      debugPrint("presigned URL is generated");
       return uploadUrl;
     } else {
-      debugPrint(
-          'Failed to get presigned URL: ${response.statusCode}, ${response.body}');
+      dev.log(
+          'Failed to get presigned URL: ${response.statusCode}, ${response.body}',
+          name: 'Upload - Get Presigned URL');
       return null;
     }
   } catch (e) {
-    debugPrint('Error getting presigned URL: $e');
+    dev.log('Error getting presigned URL: $e',
+        name: 'Upload - Get Presigned URL');
     return null;
   }
 }
@@ -264,7 +234,7 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
     var fileStream = file.openRead();
 
     var request = http.Request('PUT', Uri.parse(presignedUrl))
-      ..headers['Content-Type'] = 'audio/mpeg';
+      ..headers['Content-Type'] = extentionToContentType(p.extension(filePath));
 
     // Collect bytes from the file stream into a single list
     List<int> bytes = [];
@@ -277,44 +247,52 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
 
     var response = await http.Client().send(request);
 
-    if (response.statusCode == 200) {
-      debugPrint('S3 Storage: File uploaded successfully');
-      return true; // Return true if upload successful
-    } else {
-      debugPrint(
-          'S3 Storage: Failed to upload file. Status code: ${response.statusCode}');
-      return false; // Return false if upload failed
-    }
+    return response.statusCode == 200;
   } catch (e) {
-    debugPrint('S3 Storage: Error uploading file: $e');
+    dev.log('S3 Storage: Error uploading file: $e',
+        name: 'Upload - S3 Storage');
     return false; // Return false if an error occurred
   }
 }
 
-Future<bool> uploadAudios(List<AudioData> audioFileData) async {
+String extentionToContentType(String extension) {
+  final type = {
+    '.aac': 'audio/aac',
+    '.jpg': 'image/jpeg',
+    '.mp4': 'video/mp4',
+  };
+
+  return type[extension] ?? 'audio/mpeg';
+}
+
+Future<bool> uploadFiles(List<FileData> files) async {
   final cred = await SecureSave().read();
-  // var apiUrl =
-  //     'https://r79428yn1l.execute-api.us-east-1.amazonaws.com/live/s3upload';
-  var apiUrl = cred?.presigned_url ?? "";
-  var sent = false;
-  for (var data in audioFileData) {
-    var presignedUrl = await getPresignedUrl(apiUrl, data.awsS3Directory);
-    //print("PRESIGNED URL: " + presignedUrl!);
+
+  final apiUrl = cred?.presigned_url ?? "";
+  // List to store the results of each file upload
+  final results = <bool>[];
+  dev.log('Starting Files Upload - ${DateTime.now()}');
+  for (var file in files) {
+    var presignedUrl = await getPresignedUrl(apiUrl, file.awsS3Directory);
     if (presignedUrl != null) {
-      sent = await uploadFileToS3(presignedUrl, data.localDirectory);
+      final result = await uploadFileToS3(presignedUrl, file.localDirectory);
+      dev.log(
+          'File uploaded: $result | File: ${file.awsS3Directory} | Time: ${DateTime.now()}',
+          name: 'Upload - Upload Files');
+      results.add(result);
     }
   }
-  debugPrint("uploaded in array $sent");
-  return sent;
+  // Return true if all files were uploaded successfully
+  return results.every((element) => element);
 }
 
 //Upload Models
 
-class AudioData {
+class FileData {
   String localDirectory;
   String awsS3Directory;
   // Constructor
-  AudioData({required this.localDirectory, required this.awsS3Directory});
+  FileData({required this.localDirectory, required this.awsS3Directory});
 }
 
 ///Class representing audio entry in the dynamo db once an object is created
@@ -361,28 +339,14 @@ class PromptEntry {
   }
 }
 
-/// Utils functions Classes and objects for functionality
-
-class AwsUtils {
-  static getResponseType(String inputString) {
-    List<String> parts = inputString.split('.');
-    return parts.length > 1 ? parts[1] : inputString;
-  }
-}
-
 Future<bool> awsUploadResponses(
-    List<PromptEntry> promptEntryList, List<AudioData> audioData) async {
+    List<PromptEntry> promptEntryList, List<FileData> files) async {
   try {
-    if (audioData.isNotEmpty) {
-      var audioDataSent = await uploadAudios(audioData);
-      if (!audioDataSent) {
-        return false;
-      }
-    }
-    var nonAudioDataSent = await uploadNonAudioData(promptEntryList);
-    return nonAudioDataSent;
+    final filesResult = files.isNotEmpty ? await uploadFiles(files) : true;
+    final dataSent = await uploadNonAudioData(promptEntryList);
+    return filesResult && dataSent;
   } catch (e) {
-    debugPrint("EXCEPTION: $e");
+    dev.log("EXCEPTION: $e", name: "Upload - AWS Upload Responses");
     return false;
   }
 }

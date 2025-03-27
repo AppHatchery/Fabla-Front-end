@@ -194,7 +194,7 @@ class _LocationAccessState extends State<LocationAccess>
                               ),
                             ),
                             SizedBox(
-                              height: height * 0.65,
+                              height: height * 0.25,
                               width: width,
                               child: rive.RiveAnimation.asset(
                                 'assets/animations/onboarding/location.riv',
@@ -202,6 +202,11 @@ class _LocationAccessState extends State<LocationAccess>
                                 onInit: onInit,
                               ),
                             ),
+                            SizedBox(
+                              width: width,
+                              child: Image.asset(
+                                  'assets/images/phone_location.png'),
+                            )
                           ]),
                     ),
                   ),

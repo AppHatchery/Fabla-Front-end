@@ -2,12 +2,14 @@ import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/pages/diary_edit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/circle_transition_clipper.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
@@ -47,11 +49,10 @@ class DiarySummaryPage extends StatefulWidget {
 class _DiarySummaryPageState extends State<DiarySummaryPage>
     with WidgetsBindingObserver {
   late SummaryCubit summaryCubit;
-  int? expandedCardId;
-  bool isSliderEnabled = false;
-  Map<int, bool> sliderEnabledStates = {};
 
   final PageTimer timer = PageTimer();
+
+  late MaterialLocalizations localizations = MaterialLocalizations.of(context);
 
   @override
   void initState() {
@@ -95,70 +96,46 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   automaticallyImplyLeading: false,
                   backgroundColor: CustomColors.fillNormal,
                   scrolledUnderElevation: 0.0,
-                  leadingWidth: 100,
-                  leading: isEditable()
-                      ? GestureDetector(
-                          onTap: () {
-                            track(timer.stop(), "Back to Diary");
-                            returnToDiary();
+                  leading: IconButton(
+                    onPressed: () {
+                      scheduleSubmitDiaryNotification(widget.diary.id);
+                      track(timer.stop(), "Close");
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  const Hub(),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(-1.0,
+                                0.0); // Left to right for backward navigation
+                            const end = Offset.zero;
+                            const curve = Curves.easeInOut;
+
+                            var tween = Tween(begin: begin, end: end)
+                                .chain(CurveTween(curve: curve));
+                            var offsetAnimation = animation.drive(tween);
+
+                            return SlideTransition(
+                              position: offsetAnimation,
+                              child: child,
+                            );
                           },
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 16.0),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.edit_rounded,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  "Edit",
-                                  style: CustomTypography().bodyLarge(
-                                      color: CustomColors.textNormalContent),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : null,
-                  actions: [
-                    IconButton(
-                      onPressed: () {
-                        scheduleSubmitDiaryNotification(widget.diary.id);
-                        track(timer.stop(), "Close");
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder:
-                                (context, animation, secondaryAnimation) =>
-                                    const Hub(),
-                            transitionsBuilder: (context, animation,
-                                secondaryAnimation, child) {
-                              const begin = Offset(-1.0,
-                                  0.0); // Left to right for backward navigation
-                              const end = Offset.zero;
-                              const curve = Curves.easeInOut;
-
-                              var tween = Tween(begin: begin, end: end)
-                                  .chain(CurveTween(curve: curve));
-                              var offsetAnimation = animation.drive(tween);
-
-                              return SlideTransition(
-                                position: offsetAnimation,
-                                child: child,
-                              );
-                            },
-                            transitionDuration: const Duration(
-                                milliseconds: 200), // Adjust as needed
-                          ),
-                          (route) => false,
-                        );
-                      },
-                      icon: const Icon(CustomIcons.close),
-                      iconSize: 15.0,
-                    )
-                  ],
+                          transitionDuration: const Duration(
+                              milliseconds: 200), // Adjust as needed
+                        ),
+                        (route) => false,
+                      );
+                    },
+                    icon: const Icon(CustomIcons.close),
+                    iconSize: 15.0,
+                  ),
+                  title: Text(
+                    "Response Summary",
+                    style: CustomTypography()
+                        .headlineMedium(color: CustomColors.textNormalContent),
+                  ),
                   centerTitle: true,
                 ),
           body: state is SummaryInitial
@@ -249,15 +226,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 100.0),
           child: Column(
             children: [
-              Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  "Response Summary",
-                  style: CustomTypography()
-                      .headlineMedium(color: CustomColors.textNormalContent),
-                ),
-              ),
-              const SizedBox(height: 24),
               Expanded(
                   child: SingleChildScrollView(
                 child: ListView.builder(
@@ -280,7 +248,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                 const EdgeInsets.only(bottom: 34, top: 24, left: 16, right: 16),
             alignment: Alignment.bottomCenter,
             child: CustomFlatButton(
-              onClick: () => submitDiary(),
+              onClick: () => submitDiary(diary),
               text: "Submit My Response",
               color: CustomColors.productNormal,
               textColor: CustomColors.textWhite,
@@ -292,28 +260,44 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   }
 
   Widget buildPrompt(PromptModel prompt, int index) {
-    if (!sliderEnabledStates.containsKey(index)) {
-      sliderEnabledStates[index] = false;
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4.0),
-          ),
+              borderRadius: BorderRadius.circular(4.0),
+              color: CustomColors.fillWhite),
           child: Column(
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Text(
-                      "Q ${index + 1}. ${prompt.question}",
+                      "Q${index + 1}. ${prompt.question}",
+                      style: CustomTypography()
+                          .custom(fontSize: 18, fontWeight: FontWeight.w400),
                     ),
                   ),
+
+                  // Edit Button
+                  isEditable()
+                      ? GestureDetector(
+                          onTap: () => editResponse(prompt, index + 1),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(Icons.edit_note_sharp,
+                                  color: Color(0xFF4186F5), size: 24),
+                              Text(' Edit',
+                                  style: CustomTypography()
+                                      .button(color: Color(0xFF4186F5)))
+                            ],
+                          ),
+                        )
+                      : const SizedBox.shrink()
                 ],
               ),
               getResponseWidget(prompt),
@@ -361,63 +345,139 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           scaleMinText: prompt.option?.minLabel,
           scaleMaxText: prompt.option?.maxLabel,
           isSliderEnabled: false,
-          value: double.tryParse(prompt.answer!.response!) ?? 0.0,
+          value: double.tryParse(prompt.answer!.response!.first) ?? 0.0,
         );
       case ResponseType.multiple:
         return MultipleQuestionSummary(
-          answers: extractAnswers(prompt.answer!.response!),
+          answers: extractAnswers(prompt.answer!.response!.first),
         );
       case ResponseType.radio:
         return RadioQuestionSummary(
-          selectedOption: prompt.answer!.response!,
+          selectedOption: prompt.answer!.response!.first,
         );
       case ResponseType.audio || ResponseType.textAudio:
-        return prompt.answer != null && prompt.answer!.recordings.isEmpty
-            ? Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6.0),
-                child: TextAnswerCard(
-                  answer: prompt.answer!.response!,
-                  delete: () => deleteResponse(prompt, ''),
-                ),
-              )
-            : prompt.answer != null
+        return Column(
+          children: [
+            prompt.answer != null && prompt.answer!.response != null
                 ? ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: prompt.answer?.recordings.length,
+                    itemCount: prompt.answer!.response!.length,
                     itemBuilder: (context, index) {
                       return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6.0),
-                        child: NewAudioCard(
-                          recording: prompt.answer!.recordings[index],
-                          delete: () => deleteResponse(
-                              prompt, prompt.answer!.recordings[index].path),
-                          viewOnly: true,
-                          promptId: prompt.id,
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                        child: Column(
+                          children: [
+                            TextAnswerCard(
+                              answer: prompt.answer!.response![index],
+                              index: index,
+                              delete: () => deleteResponse(prompt, null),
+                            ),
+
+                            // Add a divider if there are multiple responses
+                            prompt.answer!.response!.length > 1 &&
+                                    index != prompt.answer!.response!.length - 1
+                                ? Padding(
+                                    padding: const EdgeInsets.only(top: 6.0),
+                                    child: const Divider(
+                                      height: 1,
+                                      thickness: 0.5,
+                                      indent: 12,
+                                      endIndent: 12,
+                                      color: CustomColors.greyLight,
+                                    ),
+                                  )
+                                : const SizedBox.shrink()
+                          ],
                         ),
                       );
                     })
-                : const SizedBox.shrink();
-      case ResponseType.text:
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0),
-          child: TextAnswerCard(
-            answer: prompt.answer!.response!,
-            delete: () => deleteResponse(prompt, ''),
-          ),
+                : const SizedBox.shrink(),
+            prompt.answer != null && prompt.answer!.recordings.isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: prompt.answer?.recordings.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6.0),
+                            child: Column(
+                              children: [
+                                NewAudioCard(
+                                  recording: prompt.answer!.recordings[index],
+                                  delete: () => deleteResponse(prompt,
+                                      prompt.answer!.recordings[index].path),
+                                  viewOnly: true,
+                                  promptId: prompt.id,
+                                ),
+
+                                // Add a divider if there are multiple responses
+                                prompt.answer!.recordings.length > 1 &&
+                                        index !=
+                                            prompt.answer!.recordings.length - 1
+                                    ? Padding(
+                                        padding:
+                                            const EdgeInsets.only(top: 6.0),
+                                        child: const Divider(
+                                          height: 1,
+                                          thickness: 0.5,
+                                          indent: 12,
+                                          endIndent: 12,
+                                          color: CustomColors.greyLight,
+                                        ),
+                                      )
+                                    : const SizedBox.shrink()
+                              ],
+                            ),
+                          );
+                        }),
+                  )
+                : const SizedBox.shrink()
+          ],
         );
+      case ResponseType.text:
+        return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: prompt.answer!.response!.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Column(
+                  children: [
+                    TextAnswerCard(
+                      answer: prompt.answer!.response![index],
+                      index: index,
+                      delete: () => deleteResponse(prompt, null),
+                    ),
+
+                    // Add a divider if there are multiple responses
+                    prompt.answer!.response!.length > 1 &&
+                            index != prompt.answer!.response!.length - 1
+                        ? Padding(
+                            padding: const EdgeInsets.only(top: 6.0),
+                            child: const Divider(
+                              height: 1,
+                              thickness: 0.5,
+                              indent: 12,
+                              endIndent: 12,
+                              color: CustomColors.greyLight,
+                            ),
+                          )
+                        : const SizedBox.shrink()
+                  ],
+                ),
+              );
+            });
       case ResponseType.webview:
         final width = MediaQuery.of(context).size.width;
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: Container(
             width: width,
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-            decoration: BoxDecoration(
-              color: CustomColors.grey,
-              borderRadius: BorderRadius.circular(12),
-              shape: BoxShape.rectangle,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Row(children: [
               Expanded(
                 child: Text("Response recorded externally",
@@ -429,24 +489,46 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           ),
         );
       case ResponseType.image:
-        return ImageViewer(name: prompt.answer!.response!);
       case ResponseType.video:
-        return VideoViewer(name: prompt.answer!.response!, delete: null);
+      case ResponseType.imageVideo:
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Preview(
+            recordings: prompt.answer?.recordings ?? [],
+            delete: (String path) {},
+            interactions: false,
+          ),
+        );
+
       case ResponseType.timer:
         final width = MediaQuery.of(context).size.width;
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: Container(
             width: width,
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-            decoration: BoxDecoration(
-              color: CustomColors.grey,
-              borderRadius: BorderRadius.circular(12),
-              shape: BoxShape.rectangle,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Row(children: [
               Expanded(
                 child: Text("Completed the timer ✅",
+                    style: CustomTypography().bodyMedium(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ),
+            ]),
+          ),
+        );
+      case ResponseType.timePicker:
+        final width = MediaQuery.of(context).size.width;
+        final time =
+            timeOfDayFromString(prompt.answer?.response?.firstOrNull ?? "");
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: Container(
+            width: width,
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Row(children: [
+              Expanded(
+                child: Text(localizations.formatTimeOfDay(time),
                     style: CustomTypography().bodyMedium(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
@@ -461,6 +543,23 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
   void loadDiary(BuildContext context) {
     summaryCubit.loadSummary(widget.diary);
+  }
+
+  void editResponse(PromptModel _prompt, int index) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditDiaryPage(
+          diary: widget.diary,
+          prompt: _prompt,
+          index: index,
+        ),
+      ),
+    );
+
+    if (result == true && mounted) {
+      loadDiary(context);
+    }
   }
 
   void recordResponse(BuildContext context, PromptModel prompt) {
@@ -487,18 +586,18 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                 hint: hint,
                 onSave: (value) {
                   summaryCubit.saveResponse(
-                      widget.diary, prompt, value.toString());
+                      widget.diary, prompt, value.toString(), 'audio');
                 },
               );
             }));
   }
 
-  void deleteResponse(PromptModel prompt, String path) {
+  void deleteResponse(PromptModel prompt, String? path) {
     summaryCubit.removeResponse(widget.diary, prompt, path);
   }
 
-  void submitDiary() {
-    summaryCubit.submitDiary(widget.diary);
+  void submitDiary(DiaryModel diary) {
+    summaryCubit.submitDiary(diary);
   }
 
   void pendoEvent() async {
@@ -548,7 +647,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => NewDiaryPage(
           diary: widget.diary,
-          index: null,
+          index:
+              null, // TODO: Add index of the prompt to edit & have a way to skip the other prompts back to the summary
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(-1.0, 0.0); // Start from left

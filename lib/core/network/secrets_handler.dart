@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'dart:developer' as dev;
 
 class SecureSave {
   final _storage = const FlutterSecureStorage();
@@ -19,7 +20,7 @@ class SecureSave {
       );
 
       if (response.statusCode == 200) {
-        print('Response body: ${response.body}');
+        dev.log('Response body: ${response.body}', name: 'Secrets Handler - Post Data');
         String jsonString = response.body;
         Map<String, dynamic> data = jsonDecode(jsonString);
         String authorization = data['message']['Authorization'];

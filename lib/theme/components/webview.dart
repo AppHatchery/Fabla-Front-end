@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class CustomWebViewWidget extends StatefulWidget {
@@ -20,12 +20,22 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   Timer? _checkTimer;
   bool surveyCompleted = false;
 
+  bool loading = false;
+
   @override
   void initState() {
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(NavigationDelegate(
+        onPageStarted: (url) {
+          setState(() {
+            loading = true;
+          });
+        },
         onPageFinished: (url) {
+          setState(() {
+            loading = false;
+          });
           _startPeriodicCheck();
         },
       ))
@@ -35,7 +45,14 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return WebViewWidget(controller: controller);
+    return loading
+        ? Center(
+            child: CircularProgressIndicator(
+            color: CustomColors.productNormalActive,
+            strokeCap: StrokeCap.round,
+            strokeWidth: 8,
+          ))
+        : WebViewWidget(controller: controller);
   }
 
   void _startPeriodicCheck() {

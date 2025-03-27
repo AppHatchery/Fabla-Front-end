@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
+import 'package:audio_diaries_flutter/core/utils/types.dart';
+import 'dart:developer' as dev;
 
 import '../../../../core/database/dao/answer_dao.dart';
 import '../../../../main.dart';
@@ -32,11 +32,6 @@ class AnswerRepository {
   /// ```
   Future<PromptModel> load(PromptModel prompt) async {
     final answers = dao.getAnswers(prompt.id);
-    answers.forEach((element) {
-      final prompt = element.prompt.target;
-      print("Prompt id: ${prompt?.id}| Prompt question: ${prompt?.question}");
-      print("Answer: ${element.response}");
-    });
 
     // Determine the updated prompt based on whether answers are available
     final updatedPrompt = answers.isEmpty
@@ -67,17 +62,17 @@ class AnswerRepository {
   Future<bool> saveResponse(
       {required PromptModel prompt,
       required dynamic response,
-      String? type}) async {
+      required String type}) async {
     final isUpdating = prompt.answer != null;
     late Answer answer;
 
-    if (type == 'audio') {
+    if (type == 'audio' || type == 'image' || type == 'video') {
       answer = isUpdating
           ? prompt.answer! // Use the existing answer for updating
           : Answer(id: 0, date: DateTime.now()); // Create a new answer
       // Create a new recording and associate it with the answer
       final recording =
-          Recording("Audio Diary", response, null, DateTime.now());
+          Recording(prompt.question, response, type, null, DateTime.now());
       recording.answer.target = answer;
       answer.recordings.add(recording);
     } else {
@@ -115,31 +110,39 @@ class AnswerRepository {
   /// ```dart
   /// await removeResponse(myPrompt, '/path/to/recording.wav');
   /// ```
-  Future<void> removeResponse(PromptModel prompt, String path) async {
-    final answer = prompt.answer;
+  Future<void> removeResponse(PromptModel prompt, String? path) async {
     try {
-      if (prompt.answer?.recordings.isEmpty ?? true) {
-        prompt.answer!.response = "";
-        if (prompt.answer != null) {
-          dao.updateResponse(answer!);
-        }
-      } else {
-        // Delete the recording file from the file system
-        final dir = await getApplicationDocumentsDirectory();
-        final _path = p.join(dir.path, 'recordings', path);
+      final answer = prompt.answer;
 
-        final file = File(_path);
-        await file.delete();
+      if (answer == null) return;
 
-        if (answer != null) {
-          // Remove the recording from the answer's recordings list
-          answer.recordings.removeWhere((recording) => recording.path == path);
+      final isMedia = [
+        ResponseType.textAudio,
+        ResponseType.audio,
+        ResponseType.image,
+        ResponseType.video,
+        ResponseType.imageVideo
+      ].contains(prompt.responseType);
 
-          dao.updateResponse(answer);
+      if (isMedia) {
+        if (path != null) {
+          _deleteFile(path);
+          answer.recordings.removeWhere((record) => record.path == path);
         }
       }
+
+      //Removing the response for text questions
+      answer.response = null;
+      dao.updateResponse(answer);
     } catch (e) {
-      print("Catch Error: $e");
+      dev.log("Catch Error: $e", name: 'Answer Repository - Remove Response');
+    }
+  }
+
+  _deleteFile(String path) async {
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
     }
   }
 

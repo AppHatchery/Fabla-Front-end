@@ -31,4 +31,10 @@ final class DynamicError extends DynamicState {
 
 final class DynamicUploading extends DynamicState {}
 
-final class DynamicUploaded extends DynamicState {}
+final class DynamicUploaded extends DynamicState {
+  final int questionsLength;
+  const DynamicUploaded(this.questionsLength);
+
+  @override
+  List<Object> get props => [questionsLength];
+}

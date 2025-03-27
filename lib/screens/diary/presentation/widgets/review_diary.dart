@@ -203,48 +203,78 @@ class _ReviewDiaryState extends State<ReviewDiary> {
           scaleMinText: prompt.option?.minLabel,
           scaleMaxText: prompt.option?.maxLabel,
           isSliderEnabled: false,
-          value: double.tryParse(prompt.answer?.response ?? '') ?? 0.0,
+          value: double.tryParse(prompt.answer?.response?.first ?? '') ?? 0.0,
         );
       case ResponseType.multiple:
         return MultipleQuestionSummary(
-          answers: extractAnswers(prompt.answer?.response),
+          answers: extractAnswers(prompt.answer?.response?.first),
         );
       case ResponseType.radio:
         return RadioQuestionSummary(
-          selectedOption: prompt.answer?.response,
+          selectedOption: prompt.answer?.response?.first,
         );
       case ResponseType.audio:
-        return prompt.answer!.recordings.isEmpty
-            ? Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6.0),
-                child: TextAnswerCard(
-                  isVisible: true,
-                  answer: prompt.answer!.response!,
-                  delete: () => deleteResponse(prompt, ''),
-                ),
-              )
-            : ListView.builder(
+      case ResponseType.textAudio:
+        return Column(
+          children: [
+            prompt.answer != null && prompt.answer!.response != null
+                ? ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: prompt.answer!.response!.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6.0),
+                        child: TextAnswerCard(
+                          isVisible: true,
+                          answer: prompt.answer!.response![index],
+                          index: index,
+                          edit: null,
+                          delete: () => deleteResponse(prompt, null),
+                        ),
+                      );
+                    })
+                : const SizedBox.shrink(),
+            prompt.answer != null
+                ? ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: prompt.answer!.recordings.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6.0),
+                        child: NewAudioCard(
+                          isVisible: true,
+                          recording: prompt.answer!.recordings[index],
+                          delete: () => deleteResponse(
+                              prompt, prompt.answer!.recordings[index].path),
+                          viewOnly: true,
+                          promptId: prompt.id,
+                        ),
+                      );
+                    })
+                : const SizedBox.shrink()
+          ],
+        );
+      case ResponseType.text:
+        return prompt.answer != null && prompt.answer!.response != null
+            ? ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: prompt.answer!.recordings.length,
+                itemCount: prompt.answer!.response!.length,
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6.0),
-                    child: NewAudioCard(
+                    child: TextAnswerCard(
                       isVisible: true,
-                      recording: prompt.answer!.recordings[index],
-                      delete: () => deleteResponse(
-                          prompt, prompt.answer!.recordings[index].path),
-                      viewOnly: true,
-                      promptId: prompt.id,
+                      answer: prompt.answer!.response![index],
+                      index: index,
+                      edit: null,
+                      delete: () => deleteResponse(prompt, null),
                     ),
                   );
-                });
-      case ResponseType.text:
-        return TextAnswerCard(
-            isVisible: true,
-            answer: prompt.answer!.response!,
-            delete: () => deleteResponse(prompt, ''));
+                })
+            : const SizedBox.shrink();
       case ResponseType.webview:
         final width = MediaQuery.of(context).size.width;
         return Padding(
@@ -268,15 +298,39 @@ class _ReviewDiaryState extends State<ReviewDiary> {
           ),
         );
       case ResponseType.image:
-        return ImageViewer(name: prompt.answer!.response!);
       case ResponseType.video:
-        return VideoViewer(name: prompt.answer!.response!, delete: null);
+      case ResponseType.imageVideo:
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Preview(
+            recordings: prompt.answer?.recordings ?? [],
+            delete: (String path) {},
+            interactions: false,
+          ),
+        );
+      case ResponseType.timer:
+        final width = MediaQuery.of(context).size.width;
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: Container(
+            width: width,
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Row(children: [
+              Expanded(
+                child: Text("Completed the timer ✅",
+                    style: CustomTypography().bodyMedium(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ),
+            ]),
+          ),
+        );
       default:
         return const SizedBox.shrink();
     }
   }
 
-  void deleteResponse(PromptModel prompt, String path) {
+  void deleteResponse(PromptModel prompt, String? path) {
     summaryCubit.removeResponse(widget.diary, prompt, path);
   }
 
