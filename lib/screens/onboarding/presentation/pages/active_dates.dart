@@ -32,7 +32,6 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
 
   final PageTimer timer = PageTimer();
 
-
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -86,36 +85,37 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                   ))
               : null,
         ),
+        bottomNavigationBar: Container(
+          height: 95,
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: CustomFlatButton(
+                onClick: () => navigateToNextPage(context), text: "Continue"),
+          ),
+        ),
         body: SafeArea(
           bottom: false,
-          child: LayoutBuilder(builder: (context, constraints) {
-            final constraintHeight = constraints.maxHeight;
-            return Container(
-              color: CustomColors.backgroundSecondary,
-              child: SingleChildScrollView(
-                child: SizedBox(
-                    height: constraintHeight,
-                    width: width,
-                    child: BlocConsumer<SetupCubit, SetupState>(
-                        builder: (context, state) {
-                          if (state is SetupInitial) {
-                            return initial();
-                          } else if (state is SetupLoading) {
-                            return loading();
-                          } else if (state is SetupLoaded) {
-                            final participant = state.participant;
-                            if (participant != null) {
-                              return loaded(height, width, participant);
-                            } else {
-                              return initial();
-                            }
-                          }
-                          return initial();
-                        },
-                        listener: (context, state) {})),
-              ),
-            );
-          }),
+          child: Container(
+            color: CustomColors.backgroundSecondary,
+            child: BlocConsumer<SetupCubit, SetupState>(
+                builder: (context, state) {
+                  if (state is SetupInitial) {
+                    return initial();
+                  } else if (state is SetupLoading) {
+                    return loading();
+                  } else if (state is SetupLoaded) {
+                    final participant = state.participant;
+                    if (participant != null) {
+                      return loaded(height, width, participant);
+                    } else {
+                      return initial();
+                    }
+                  }
+                  return initial();
+                },
+                listener: (context, state) {}),
+          ),
         ));
   }
 
@@ -130,77 +130,66 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
   Widget loaded(double height, double width, Participant participant) {
     return Container(
       color: CustomColors.fillWhite,
-      child: Column(
-        children: [
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) => SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: Container(
-                      color: CustomColors.backgroundSecondary,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Text(
-                              "All set ${participant.name}, here are your active dates",
-                              style: CustomTypography()
-                                  .headlineLarge(color: CustomColors.textWhite),
-                              // textScaleFactor: 3.0,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 60,
-                          ),
-                          SizedBox(
-                            height: height * 0.9,
-                            width: width,
-                            child: AvatarBackground(
-                                height: height,
-                                width: width,
-                                image: "",
-                                avatarType: "animation",
-                                animation:
-                                    "assets/animations/onboarding/active_dates.riv",
-                                scrollable: false,
-                                animationHeight: animationHeight,
-                                foregroundHeight: 0.6,
-                                onInit: onInit,
-                                onContinue: () => navigateToNextPage(context),
-                                children: [
-                                  Text(
-                                    "Study Plan",
-                                    style: CustomTypography().titleLarge(),
-                                  ),
-                                  const SizedBox(
-                                    height: 12,
-                                  ),
-                                  description(),
-                                  const SizedBox(
-                                    height: 12,
-                                  ),
-                                  const CustomCalender(),
-                                  const SizedBox(height: 6)
-                                ]),
-                          )
-                        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Container(
+                color: CustomColors.backgroundSecondary,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text(
+                        "All set ${participant.name}, here are your active dates",
+                        style: CustomTypography()
+                            .headlineLarge(color: CustomColors.textWhite),
+                        // textScaleFactor: 3.0,
                       ),
                     ),
-                  ),
+                    const SizedBox(
+                      height: 60,
+                    ),
+                    SizedBox(
+                      height: height * 0.8,
+                      width: width,
+                      child: AvatarBackground(
+                          height: height,
+                          width: width,
+                          image: "",
+                          avatarType: "animation",
+                          animation:
+                              "assets/animations/onboarding/active_dates.riv",
+                          scrollable: false,
+                          animationHeight: animationHeight,
+                          foregroundHeight: 0.6,
+                          onInit: onInit,
+                          onContinue: () => navigateToNextPage(context),
+                          children: [
+                            Text(
+                              "Study Plan",
+                              style: CustomTypography().titleLarge(),
+                            ),
+                            const SizedBox(
+                              height: 12,
+                            ),
+                            description(),
+                            const SizedBox(
+                              height: 12,
+                            ),
+                            const CustomCalender(),
+                            const SizedBox(height: 6)
+                          ]),
+                    )
+                  ],
                 ),
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: CustomFlatButton(
-                onClick: () => navigateToNextPage(context), text: "Continue"),
-          ),
-        ],
+        ),
       ),
     );
   }

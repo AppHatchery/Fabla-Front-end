@@ -284,6 +284,7 @@ class _DiaryCardState extends State<DiaryCard> {
       showModalBottomSheet(
           context: context,
           isScrollControlled: true,
+          routeSettings: RouteSettings(name: "/ReviewDiaryModal"),
           builder: (context) => Wrap(
                 children: [ReviewDiary(diary: widget.diary!)],
               ));

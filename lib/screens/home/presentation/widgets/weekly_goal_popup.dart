@@ -100,9 +100,9 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
     final possibleEntries =
         diaries.fold(0, (prev, diary) => prev + diary.entries);
 
-    final goal = study.goals.weekly > possibleEntries
-        ? possibleEntries
-        : study.goals.weekly;
+    final goal = possibleEntries > study.goals.weekly
+        ? study.goals.weekly
+        : possibleEntries;
 
     final lowerGoal = (0.7 * goal).round();
     final lowerValue = (lowerGoal / goal) * totalWidth;

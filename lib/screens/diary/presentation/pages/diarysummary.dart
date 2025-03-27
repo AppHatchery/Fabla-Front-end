@@ -570,6 +570,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         isDismissible: false,
         enableDrag: false,
         useSafeArea: true,
+        routeSettings: RouteSettings(name: "/RecordingModal"),
         builder: (context) => DraggableScrollableSheet(
             initialChildSize: 1,
             minChildSize: 1,

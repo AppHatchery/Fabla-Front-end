@@ -179,7 +179,7 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
       final result = await Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => SettingsOnboarding(questions: questions)));
+              builder: (context) => SettingsOnboarding(questions: questions), settings: RouteSettings(name: "/SettingsOnboarding")));
 
       if (result == true) {
         // Update

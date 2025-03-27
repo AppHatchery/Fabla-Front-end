@@ -78,7 +78,7 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                           Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const Hub()), (route) => false);
+                                  builder: (context) => const Hub(), settings: RouteSettings(name: "/Hub")), (route) => false);
                         },
                         text: "Return Home",
                         color: CustomColors.productNormal,

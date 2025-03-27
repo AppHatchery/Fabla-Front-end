@@ -1,3 +1,4 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/camera_preview.dart';
@@ -47,6 +48,7 @@ class _CameraAccessState extends State<CameraAccess>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      checkForPermission();
       timer.start();
     } else if (state == AppLifecycleState.paused) {
       int spent = timer.stop();
@@ -226,6 +228,13 @@ class _CameraAccessState extends State<CameraAccess>
   }
 
   navigateToNextPage(BuildContext context) async {
+    final results = await Permission.microphone.request();
+    if (mounted) {
+      setState(() {
+        permission = results.isGranted;
+      });
+    }
+
     if (permission) {
       if (requested) {
         await PreferenceService()
@@ -234,9 +243,9 @@ class _CameraAccessState extends State<CameraAccess>
           track(timer.stop(), "Finished");
           RouteService().navigate(null, context: context, current: 'camera');
         }
+      } else {
+        cameraInit();
       }
-    } else {
-      cameraInit();
     }
   }
 
@@ -278,16 +287,11 @@ class _CameraAccessState extends State<CameraAccess>
     });
   }
 
-  void openPermissionSettings() async {
-    bool opened = await openAppSettings();
+  void openPermissionSettings() async =>
+      await AppSettings.openAppSettings(type: AppSettingsType.settings);
 
-    if (opened) {
-      final results = await Permission.camera.request();
-      setState(() {
-        permission = results.isGranted;
-      });
-
-      if (permission) cameraInit();
-    }
+  checkForPermission() async {
+    final result = await Permission.camera.isGranted;
+    if (mounted) setState(() => permission = result);
   }
 }

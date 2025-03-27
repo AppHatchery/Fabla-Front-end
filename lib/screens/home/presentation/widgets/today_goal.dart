@@ -62,9 +62,20 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       final diaries = widget.diaries
           .where((diary) =>
               diary.studyID == study.studyId &&
-              diary.due.day == DateTime.now().day)
+              diary.start.day == DateTime.now().day)
           .toList();
-      data[study] = diaries;
+      if (diaries.isNotEmpty) {
+        data[study] = diaries;
+      }
+    }
+
+    for (final entry in data.keys) {
+      if (entry.goals.daily > 0) {
+        goalsAvailable = true;
+        break;
+      }
+
+      goalsAvailable = false;
     }
 
     for (final entry in data.keys) {
@@ -141,7 +152,42 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                           fit: BoxFit.cover,
                         ),
                       ),
-                    ),
+                      Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 5,
+                                height: 10,
+                                color: Colors.white,
+                              ),
+                            ],
+                          )),
+                      Positioned(
+                        bottom: 0,
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 5.0),
+                            child: SizedBox(
+                              height: 120,
+                              width: 180,
+                              child: RiveAnimation.asset(
+                                'assets/animations/ghosts.riv',
+                                onInit: _onInit,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
                   ),
                 )
               ],

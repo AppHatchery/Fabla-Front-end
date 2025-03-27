@@ -78,6 +78,7 @@ class _ListActiveTimesState extends State<ListActiveTimes> {
         isScrollControlled: true,
         enableDrag: false,
         context: context,
+        routeSettings: RouteSettings(name: "/TimePickerModal"),
         builder: (context) => LayoutBuilder(builder: (context, constraints) {
               return const SingleChildScrollView(
                 child: CustomTimePicker(date: null),
