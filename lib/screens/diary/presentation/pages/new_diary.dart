@@ -209,12 +209,15 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               child: Padding(
                 padding: const EdgeInsets.only(left: 8, right: 8, bottom: 12),
                 child: PageView(
+                  key: const PageStorageKey('diaryPageView'),
                   physics: const NeverScrollableScrollPhysics(),
                   controller: controller,
                   children: pages(),
-                  onPageChanged: (pageIdx) => controller.animateToPage(pageIdx,
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.fastEaseInToSlowEaseOut),
+                  onPageChanged: (pageIdx) {
+                    setState(() {
+                      currentPage = pageIdx;
+                    });
+                  },
                 ),
               ),
             ),
