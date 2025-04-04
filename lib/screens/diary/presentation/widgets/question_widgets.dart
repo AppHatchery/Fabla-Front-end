@@ -354,7 +354,8 @@ class _AudioTextCardState extends State<AudioTextCard> {
               const SizedBox(height: 12),
               (widget.prompt.answer != null &&
                       (widget.prompt.answer!.recordings.isNotEmpty ||
-                          widget.prompt.answer!.response != null))
+                          (widget.prompt.answer!.response != null &&
+                              widget.prompt.answer!.response!.isNotEmpty)))
                   ? MyResponse(
                       diary: widget.diary,
                       edit: widget.respond,
@@ -502,7 +503,7 @@ class _TextQuestionCardState extends State<TextQuestionCard> {
 }
 
 class FreeTextQuestionCard extends StatefulWidget {
-  final void Function(String, int) respond;
+  final void Function(String, int?) respond;
   final DiaryModel diary;
   final PromptModel prompt;
   const FreeTextQuestionCard(
@@ -542,7 +543,7 @@ class _FreeTextQuestionCardState extends State<FreeTextQuestionCard> {
     return !multipleAnswers && textPresent
         ? const SizedBox.shrink()
         : CustomTextAnswerButton(
-            onClick: () => widget.respond("text", 0),
+            onClick: () => widget.respond("text", null),
             text: textPresent ? "Type Another Answer" : "Type My Answer",
           );
   }
@@ -772,153 +773,180 @@ class _TimerWidgetState extends State<TimerWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: Column(
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              AnimatedBuilder(
-                  animation: _progressAnimation,
-                  builder: (context, child) {
-                    return SizedBox(
-                      width: 315,
-                      height: 315,
-                      child: CircularProgressIndicator(
-                        value: _progressAnimation.value,
-                        strokeWidth: 19,
-                        color: CustomColors.productNormalActive,
-                        backgroundColor: CustomColors.productLightBackground,
-                        strokeCap: StrokeCap.round,
-                      ),
-                    );
-                  }),
-              Positioned(
-                bottom: 0,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 46.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          complete
-                              ? timerDisplay()
-                              : inProgress && (timer != null && timer!.isActive)
-                                  ? timerDisplay()
-                                  : widget.userInteraction
-                                      ? editableControls()
-                                      : timerDisplay(),
-                        ],
-                      ),
-                      const SizedBox(height: 36),
-                      // Controls
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Restart
-                          InkWell(
-                            onTap: () => inProgress
-                                ? widget.playbackControls
-                                    ? restart()
-                                    : null
-                                : null,
-                            child: Container(
-                              height: 46,
-                              width: 46,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 8),
-                              decoration: ShapeDecoration(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  side: BorderSide(
-                                      width: 1,
-                                      color: inProgress
-                                          ? widget.playbackControls
-                                              ? CustomColors.warningActive
-                                              : CustomColors.fillDisabled
-                                          : CustomColors.fillDisabled),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 36.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+        child: Column(
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                LayoutBuilder(builder: (context, constraints) {
+                  final availableWidth = constraints.maxWidth;
+                  final availableHeight = constraints.maxHeight;
+      
+                  double width = 315;
+                  double height = 315;
+      
+                  if (availableWidth < 315) {
+                    width = availableWidth;
+                    height = width / 1;
+                  }
+      
+                  if (height > availableHeight) {
+                    height = availableHeight;
+                    width = height * 1;
+                  }
+      
+                  width = width.clamp(0.0, 315);
+                  height = height.clamp(0.0, 315);
+      
+                  return SizedBox(
+                    height: height,
+                    width: width,
+                    child: AnimatedBuilder(
+                        animation: _progressAnimation,
+                        builder: (context, child) {
+                          return CircularProgressIndicator(
+                            value: _progressAnimation.value,
+                            strokeWidth: 19,
+                            color: CustomColors.productNormalActive,
+                            backgroundColor: CustomColors.productLightBackground,
+                            strokeCap: StrokeCap.round,
+                          );
+                        }),
+                  );
+                }),
+                Positioned(
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            complete
+                                ? timerDisplay()
+                                : inProgress && (timer != null && timer!.isActive)
+                                    ? timerDisplay()
+                                    : widget.userInteraction
+                                        ? editableControls()
+                                        : timerDisplay(),
+                          ],
+                        ),
+                        const SizedBox(height: 36),
+                        // Controls
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Restart
+                            InkWell(
+                              onTap: () => inProgress
+                                  ? widget.playbackControls
+                                      ? restart()
+                                      : null
+                                  : null,
+                              child: Container(
+                                height: 46,
+                                width: 46,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 8),
+                                decoration: ShapeDecoration(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    side: BorderSide(
+                                        width: 1,
+                                        color: inProgress
+                                            ? widget.playbackControls
+                                                ? CustomColors.warningActive
+                                                : CustomColors.fillDisabled
+                                            : CustomColors.fillDisabled),
+                                  ),
                                 ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 24,
-                                    height: 24,
-                                    clipBehavior: Clip.antiAlias,
-                                    decoration: BoxDecoration(),
-                                    child: Icon(
-                                      Icons.refresh_rounded,
-                                      color: inProgress
-                                          ? widget.playbackControls
-                                              ? CustomColors.warningActive
-                                              : CustomColors.fillDisabled
-                                          : CustomColors.fillDisabled,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          // Play/Pause
-                          InkWell(
-                            onTap: () => start(),
-                            child: Container(
-                              height: 46,
-                              width: 46,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 8),
-                              decoration: ShapeDecoration(
-                                color: complete
-                                    ? CustomColors.productNormal
-                                    : widget.playbackControls
-                                        ? CustomColors.productNormal
-                                        : !inProgress
-                                            ? CustomColors.productNormal
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 24,
+                                      height: 24,
+                                      clipBehavior: Clip.antiAlias,
+                                      decoration: BoxDecoration(),
+                                      child: Icon(
+                                        Icons.refresh_rounded,
+                                        color: inProgress
+                                            ? widget.playbackControls
+                                                ? CustomColors.warningActive
+                                                : CustomColors.fillDisabled
                                             : CustomColors.fillDisabled,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    )
+                                  ],
                                 ),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 24,
-                                    height: 24,
-                                    clipBehavior: Clip.antiAlias,
-                                    decoration: BoxDecoration(),
-                                    child: Icon(
-                                      complete
-                                          ? Icons.stop
-                                          : timer?.isActive ?? false
-                                              ? Icons.pause_rounded
-                                              : Icons
-                                                  .play_arrow_rounded, //! Cant find resume icon
-                                      color: CustomColors.fillWhite,
-                                    ),
-                                  )
-                                ],
+                            ),
+                            const SizedBox(width: 16),
+                            // Play/Pause
+                            InkWell(
+                              onTap: () => start(),
+                              child: Container(
+                                height: 46,
+                                width: 46,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 8),
+                                decoration: ShapeDecoration(
+                                  color: complete
+                                      ? CustomColors.productNormal
+                                      : widget.playbackControls
+                                          ? CustomColors.productNormal
+                                          : !inProgress
+                                              ? CustomColors.productNormal
+                                              : CustomColors.fillDisabled,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 24,
+                                      height: 24,
+                                      clipBehavior: Clip.antiAlias,
+                                      decoration: BoxDecoration(),
+                                      child: Icon(
+                                        complete
+                                            ? Icons.stop
+                                            : timer?.isActive ?? false
+                                                ? Icons.pause_rounded
+                                                : Icons
+                                                    .play_arrow_rounded, //! Cant find resume icon
+                                        color: CustomColors.fillWhite,
+                                      ),
+                                    )
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
