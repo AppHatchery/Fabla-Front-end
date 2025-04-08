@@ -1,6 +1,7 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/main.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/notification_access.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/camera_preview.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -73,17 +74,17 @@ class _CameraAccessState extends State<CameraAccess>
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
-          leading: canGoBack
-              ? IconButton(
-                  onPressed: () =>
-                      {track(timer.stop(), "Back"), Navigator.pop(context)},
-                  icon: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: CustomColors.fillWhite,
-                    size: 32,
-                  ))
-              : null,
-          automaticallyImplyLeading: false,
+         leading: IconButton(
+          onPressed: () {
+            track(timer.stop(), "Back");
+            RouteService().navigateBackTo(context, const NotificationAccessPage());
+          },
+          icon: const Icon(
+            Icons.arrow_back_rounded,
+            color: CustomColors.fillWhite,
+            size: 32,
+          ),
+        ),
         ),
         body: LayoutBuilder(builder: (context, constraints) {
           return Padding(

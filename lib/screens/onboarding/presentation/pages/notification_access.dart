@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/participant_details.dart';
 import 'package:audio_diaries_flutter/services/battery_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -78,16 +79,17 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
       appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
         scrolledUnderElevation: 0.0,
-        leading: canGoBack
-            ? IconButton(
-                onPressed: () =>
-                    {track(timer.stop(), "Back"), Navigator.pop(context)},
-                icon: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: CustomColors.fillWhite,
-                  size: 32,
-                ))
-            : null,
+        leading: IconButton(
+          onPressed: () {
+            track(timer.stop(), "Back");
+             RouteService().navigateBackTo(context, const ParticipantDetailsPage());
+          },
+          icon: const Icon(
+            Icons.arrow_back_rounded,
+            color: CustomColors.fillWhite,
+            size: 32,
+          ),
+        ),
       ),
       body: Column(
         children: [

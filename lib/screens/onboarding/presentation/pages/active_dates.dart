@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/dynamic_page.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -72,18 +73,16 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
-          leading: canGoBack
-              ? IconButton(
-                  onPressed: () => {
-                        track(timer.stop(), "Back"),
-                        Navigator.pop(context, true)
-                      },
-                  icon: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: CustomColors.fillWhite,
-                    size: 32,
-                  ))
-              : null,
+          leading: IconButton(
+            onPressed: () {
+             RouteService().navigateBackTo(context, const DynamicOnBoardingHub());
+            },
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: CustomColors.fillWhite,
+              size: 32,
+            ),
+          ),
         ),
         bottomNavigationBar: Container(
           height: 95,
@@ -141,8 +140,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Text(
                         "All set ${participant.name}, here are your active dates",
                         style: CustomTypography()

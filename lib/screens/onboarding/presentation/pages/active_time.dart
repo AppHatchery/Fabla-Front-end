@@ -37,15 +37,13 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
-          leading: canGoBack
-              ? IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: CustomColors.fillWhite,
-                    size: 32,
-                  ))
-              : null,
+          leading: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: 32,
+              )),
         ),
         body: SafeArea(
           bottom: false,
@@ -139,7 +137,8 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => const NotificationAccessPage(), settings: RouteSettings(name: "/NotificationAccessPage")));
+              builder: (context) => const NotificationAccessPage(),
+              settings: RouteSettings(name: "/NotificationAccessPage")));
     }
   }
 }

@@ -85,16 +85,15 @@ class _MicAccessPageState extends State<MicAccessPage>
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
-          leading: canGoBack
-              ? IconButton(
-                  onPressed: () =>
-                      {track(timer.stop(), "Back"), Navigator.pop(context)},
-                  icon: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: CustomColors.fillWhite,
-                    size: 32,
-                  ))
-              : null,
+          leading: IconButton(
+            onPressed: () =>
+                {track(timer.stop(), "Back"), Navigator.pop(context)},
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: CustomColors.fillWhite,
+              size: 32,
+            ),
+          ),
         ),
         body: LayoutBuilder(builder: (context, constraints) {
           return Padding(

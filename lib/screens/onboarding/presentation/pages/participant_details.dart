@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welcome.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/avatar_background.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/participant_name.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -34,7 +35,6 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
   late StreamSubscription<bool> keyboardSubscription;
 
   final PageTimer timer = PageTimer();
-
 
   @override
   void initState() {
@@ -111,13 +111,16 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
           leading: IconButton(
-              onPressed: () =>
-                  {track(timer.stop(), "Back"), Navigator.pop(context)},
-              icon: const Icon(
-                Icons.arrow_back_rounded,
-                color: CustomColors.fillWhite,
-                size: 32,
-              )),
+            onPressed: () {
+              track(timer.stop(), "Back");
+              RouteService().navigateBackTo(context, const WelcomePage());
+            },
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: CustomColors.fillWhite,
+              size: 32,
+            ),
+          ),
         ),
         body: SafeArea(
           bottom: false,
@@ -171,7 +174,8 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 34),
+                        padding: const EdgeInsets.only(
+                            left: 16, right: 16, bottom: 34),
                         child: CustomFlatButton(
                             onClick: () =>
                                 {track(timer.stop(), "Finished"), saveName()},

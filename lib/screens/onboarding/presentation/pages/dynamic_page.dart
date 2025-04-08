@@ -7,6 +7,8 @@ import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dynamic/dynamic_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_dates.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/camera_access.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/notification_access.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/avatar_background.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/dynamic_widget.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/time_picker.dart';
@@ -76,7 +78,8 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
             Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const ActiveDatesPage(), settings: RouteSettings(name: "/ActiveDatesPage")));
+                    builder: (context) => const ActiveDatesPage(),
+                    settings: RouteSettings(name: "/ActiveDatesPage")));
           } else if (state is DynamicUploaded) {
             track(timer.stop(), "Finished");
             moveOn(context, state.questionsLength);
@@ -290,12 +293,15 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
         backgroundColor: CustomColors.backgroundSecondary,
         scrolledUnderElevation: 0.0,
         leading: IconButton(
-            onPressed: () => widget.onPrevious(),
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
-            )),
+          onPressed: () {
+            RouteService().navigateBackTo(context, const CameraAccess());
+          },
+          icon: const Icon(
+            Icons.arrow_back_rounded,
+            color: CustomColors.fillWhite,
+            size: 32,
+          ),
+        ),
       ),
       body: SafeArea(
           bottom: false,
@@ -601,15 +607,16 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
       appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
         scrolledUnderElevation: 0.0,
-        leading: canGoBack
-            ? IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: CustomColors.fillWhite,
-                  size: 32,
-                ))
-            : null,
+        leading: IconButton(
+          onPressed: () {
+            RouteService().navigateBackTo(context, const CameraAccess());
+          },
+          icon: const Icon(
+            Icons.arrow_back_rounded,
+            color: CustomColors.fillWhite,
+            size: 32,
+          ),
+        ),
       ),
       backgroundColor: CustomColors.backgroundSecondary,
       body: SafeArea(

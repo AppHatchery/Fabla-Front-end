@@ -21,24 +21,83 @@ import '../screens/onboarding/presentation/pages/notification_access.dart';
 class RouteService {
   // Main Flow for the onboarding process without any extra permissions
   final List<Map<String, String>> _flow = [
-    {'route': 'login', 'next': 'confirm', 'type': 'login'},
-    {'route': 'confirm', 'next': 'participant_login', 'type': 'info'},
-    {'route': 'participant_login', 'next': 'welcome', 'type': 'login'},
-    {'route': 'welcome', 'next': 'participant_details', 'type': 'info'},
+    {'route': 'login', 'next': 'confirm', 'previous': '', 'type': 'login'},
+    {
+      'route': 'confirm',
+      'next': 'participant_login',
+      'previous': 'login',
+      'type': 'info'
+    },
+    {
+      'route': 'participant_login',
+      'next': 'welcome',
+      'previous': 'confirm',
+      'type': 'login'
+    },
+    {
+      'route': 'welcome',
+      'next': 'participant_details',
+      'previous': 'participant_login',
+      'type': 'info'
+    },
     {
       'route': 'participant_details',
       'next': 'notification_access',
+      'previous': 'welcome',
       'type': 'data'
     },
     {
       'route': 'notification_access',
       'next': 'dynamic_onboarding',
+      'previous': 'participant_details',
       'type': 'permission'
     },
-    {'route': 'dynamic_onboarding', 'next': 'active_dates', 'type': 'data'},
-    {'route': 'active_dates', 'next': 'finish', 'type': 'info'},
-    {'route': 'finish', 'next': 'hub', 'type': 'info'},
+    {
+      'route': 'dynamic_onboarding',
+      'next': 'active_dates',
+      'previous': 'notification_access',
+      'type': 'data'
+    },
+    {
+      'route': 'active_dates',
+      'next': 'finish',
+      'previous': 'dynamic_onboarding',
+      'type': 'info'
+    },
+    {
+      'route': 'finish',
+      'next': 'hub',
+      'previous': 'active_dates',
+      'type': 'info'
+    },
   ];
+
+  // Navigate back
+
+  void navigateBackTo(BuildContext context, Widget targetPage) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => targetPage,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(-1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+
+          var tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
+      (route) => false,
+    );
+  }
 
   /// Determines the appropriate route based on the participant's status.
   ///
@@ -70,6 +129,13 @@ class RouteService {
           key: 'extra_permissions',
         ) ??
         [];
+
+// save current route and set it to the last route and retrieve it
+    final lastRoute =
+        await PreferenceService().getStringPreference(key: 'last_route');
+    if (lastRoute != null) {
+      return _getWidgetForRoute(lastRoute);
+    }
 
     // Fetch all preferences concurrently
     final preferences = await Future.wait([
@@ -170,8 +236,11 @@ class RouteService {
     switch (next) {
       case 'login':
         if (context.mounted) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const StudyLogin(), settings: RouteSettings(name: "/StudyLogin")));
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const StudyLogin(),
+                  settings: RouteSettings(name: "/StudyLogin")));
         }
         break;
       case 'confirm':
@@ -182,19 +251,26 @@ class RouteService {
               MaterialPageRoute(
                   builder: (context) => ConfirmJoiningPage(
                         experiment: experiment,
-                      ), settings: RouteSettings(name: "/ConfirmJoiningPage")));
+                      ),
+                  settings: RouteSettings(name: "/ConfirmJoiningPage")));
         }
         break;
       case 'participant_login':
         if (context.mounted) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const LoginPage(), settings: RouteSettings(name: "/LoginPage")));
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const LoginPage(),
+                  settings: RouteSettings(name: "/LoginPage")));
         }
         break;
       case 'welcome':
         if (context.mounted) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const WelcomePage(), settings: RouteSettings(name: "/WelcomePage")));
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const WelcomePage(),
+                  settings: RouteSettings(name: "/WelcomePage")));
         }
         break;
       case 'participant_details':
@@ -202,13 +278,17 @@ class RouteService {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const ParticipantDetailsPage(), settings: RouteSettings(name: "/ParticipantDetailsPage")));
+                  builder: (context) => const ParticipantDetailsPage(),
+                  settings: RouteSettings(name: "/ParticipantDetailsPage")));
         }
         break;
       case 'microphone':
         if (context.mounted) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const MicAccessPage(), settings: RouteSettings(name: "/MicAccessPage")));
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const MicAccessPage(),
+                  settings: RouteSettings(name: "/MicAccessPage")));
         }
         break;
       case 'notification_access':
@@ -216,7 +296,8 @@ class RouteService {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const NotificationAccessPage(), settings: RouteSettings(name: "/NotificationAccessPage")));
+                  builder: (context) => const NotificationAccessPage(),
+                  settings: RouteSettings(name: "/NotificationAccessPage")));
         }
         break;
       case 'dynamic_onboarding':
@@ -224,46 +305,93 @@ class RouteService {
           await Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const DynamicOnBoardingHub(), settings: RouteSettings(name: "/DynamicOnBoardingHub")));
+                  builder: (context) => const DynamicOnBoardingHub(),
+                  settings: RouteSettings(name: "/DynamicOnBoardingHub")));
         }
         break;
       case 'active_dates':
         if (context.mounted) {
-          return Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const ActiveDatesPage(), settings: RouteSettings(name: "/ActiveDatesPage")));
+          return Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const ActiveDatesPage(),
+                  settings: RouteSettings(name: "/ActiveDatesPage")));
         }
         break;
       case 'finish':
         if (context.mounted) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const FinishPage(), settings: RouteSettings(name: "/FinishPage")));
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const FinishPage(),
+                  settings: RouteSettings(name: "/FinishPage")));
         }
         break;
       case 'hub':
         if (context.mounted) {
           Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => const Hub(), settings: RouteSettings(name: "/Hub")),
+              MaterialPageRoute(
+                  builder: (context) => const Hub(),
+                  settings: RouteSettings(name: "/Hub")),
               (route) => false);
         }
 
         break;
       case 'camera':
         if (context.mounted) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const CameraAccess(), settings: RouteSettings(name: "/CameraAccess")));
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const CameraAccess(),
+                  settings: RouteSettings(name: "/CameraAccess")));
         }
         break;
       case 'location':
         if (context.mounted) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const LocationAccess(), settings: RouteSettings(name: "/LocationAccess")));
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const LocationAccess(),
+                  settings: RouteSettings(name: "/LocationAccess")));
         }
       default:
         if (context.mounted) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const StudyLogin(), settings: RouteSettings(name: "/StudyLogin")));
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const StudyLogin(),
+                  settings: RouteSettings(name: "/StudyLogin")));
         }
     }
+  }
+}
+
+Widget _getWidgetForRoute(String route) {
+  switch (route) {
+    case 'login':
+      return const StudyLogin();
+    case 'participant_login':
+      return const LoginPage();
+    case 'welcome':
+      return const WelcomePage();
+    case 'participant_details':
+      return const ParticipantDetailsPage();
+    case 'notification_access':
+      return const NotificationAccessPage();
+    case 'dynamic_onboarding':
+      return const DynamicOnBoardingHub();
+    case 'active_dates':
+      return const ActiveDatesPage();
+    case 'finish':
+      return const FinishPage();
+    case 'hub':
+      return const Hub();
+    case 'camera':
+      return const CameraAccess();
+    case 'location':
+      return const LocationAccess();
+    default:
+      return const StudyLogin();
   }
 }
