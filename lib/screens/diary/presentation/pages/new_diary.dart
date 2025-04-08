@@ -535,7 +535,7 @@ class _QuestionPageState extends State<QuestionPage>
     } else if (prompt.responseType == ResponseType.text) {
       responseWidget = FreeTextQuestionCard(
         diary: widget.diary,
-        respond: (String type, int index) =>
+        respond: (String type, int? index) =>
             recordResponse(prompt, type, index: index),
         prompt: prompt,
       );
@@ -701,10 +701,16 @@ class _QuestionPageState extends State<QuestionPage>
         isValidResponse = true;
         break;
       case ResponseType.audio:
+      case ResponseType.textAudio:
       case ResponseType.image:
       case ResponseType.video:
       case ResponseType.imageVideo:
-        isValidResponse = answer?.recordings.isNotEmpty ?? false;
+        if (prompt1.responseType == ResponseType.textAudio) {
+          isValidResponse = (answer?.recordings.isNotEmpty ?? false) ||
+              (answer?.response != null && answer!.response!.isNotEmpty);
+        } else {
+          isValidResponse = answer?.recordings.isNotEmpty ?? false;
+        }
         break;
       default:
         isValidResponse = answer?.response?.isNotEmpty ?? false;
