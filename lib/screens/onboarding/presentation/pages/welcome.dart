@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/login.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -83,10 +84,26 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
         scrolledUnderElevation: 0.0,
         leading: canGoBack
             ? IconButton(
-                onPressed: () {
-                  track(timer.stop(), "Back");
-                  RouteService().navigateBackTo(context, const LoginPage());
-                },
+                 onPressed: () async {
+              track(timer.stop(), "Back");
+              // Check if the user is resuming onboarding
+              final lastRoute = await PreferenceService()
+                  .getStringPreference(key: 'last_route');
+              if (lastRoute != null && lastRoute.isNotEmpty) {
+                // User is resuming onboarding, use navigateBackTo
+                RouteService()
+                    .navigateBackTo(context, const LoginPage());
+              } else {
+                // User is going through onboarding for the first time, use Navigator.pop
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                } else {
+                  // Fallback in case pop is not possible
+                  RouteService()
+                      .navigateBackTo(context, const LoginPage());
+                }
+              }
+            },
                 icon: const Icon(
                   Icons.arrow_back_rounded,
                   color: CustomColors.fillWhite,

@@ -8,7 +8,6 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dynamic/dynamic_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_dates.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/camera_access.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/notification_access.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/avatar_background.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/dynamic_widget.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/time_picker.dart';
@@ -293,8 +292,17 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
         backgroundColor: CustomColors.backgroundSecondary,
         scrolledUnderElevation: 0.0,
         leading: IconButton(
-          onPressed: () {
-            RouteService().navigateBackTo(context, const CameraAccess());
+          onPressed: () async {
+            // Check if the user is resuming onboarding
+            final lastRoute = await PreferenceService()
+                .getStringPreference(key: 'last_route');
+            if (lastRoute?.isNotEmpty ?? false) {
+              RouteService().navigateBackTo(context, const CameraAccess());
+            } else if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              RouteService().navigateBackTo(context, const CameraAccess());
+            }
           },
           icon: const Icon(
             Icons.arrow_back_rounded,
@@ -608,8 +616,17 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
         backgroundColor: CustomColors.backgroundSecondary,
         scrolledUnderElevation: 0.0,
         leading: IconButton(
-          onPressed: () {
-            RouteService().navigateBackTo(context, const CameraAccess());
+          onPressed: () async {
+            // Check if the user is resuming onboarding
+            final lastRoute = await PreferenceService()
+                .getStringPreference(key: 'last_route');
+            if (lastRoute?.isNotEmpty ?? false) {
+              RouteService().navigateBackTo(context, const CameraAccess());
+            } else if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              RouteService().navigateBackTo(context, const CameraAccess());
+            }
           },
           icon: const Icon(
             Icons.arrow_back_rounded,

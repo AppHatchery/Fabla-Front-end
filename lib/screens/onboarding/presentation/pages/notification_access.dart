@@ -80,10 +80,21 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
         backgroundColor: CustomColors.backgroundSecondary,
         scrolledUnderElevation: 0.0,
         leading: IconButton(
-          onPressed: () {
-            track(timer.stop(), "Back");
-             RouteService().navigateBackTo(context, const ParticipantDetailsPage());
-          },
+           onPressed: () async {
+              track(timer.stop(), "Back");
+              // Check if the user is resuming onboarding
+             final lastRoute = await PreferenceService()
+                  .getStringPreference(key: 'last_route');
+                if (lastRoute?.isNotEmpty ?? false) {
+                RouteService()
+                  .navigateBackTo(context, const ParticipantDetailsPage());
+                } else if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+                } else {
+                RouteService()
+                  .navigateBackTo(context, const ParticipantDetailsPage());
+                }
+            },
           icon: const Icon(
             Icons.arrow_back_rounded,
             color: CustomColors.fillWhite,

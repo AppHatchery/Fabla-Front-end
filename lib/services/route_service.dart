@@ -72,8 +72,7 @@ class RouteService {
     },
   ];
 
-  // Navigate back
-
+  // Navigate back method
   void navigateBackTo(BuildContext context, Widget targetPage) {
     Navigator.pushAndRemoveUntil(
       context,
@@ -130,7 +129,7 @@ class RouteService {
         ) ??
         [];
 
-// save current route and set it to the last route and retrieve it
+    // save current route and set it to the last route and retrieve it
     final lastRoute =
         await PreferenceService().getStringPreference(key: 'last_route');
     if (lastRoute != null) {
