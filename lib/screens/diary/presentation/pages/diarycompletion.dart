@@ -82,92 +82,90 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage> {
         studies.where((study) => diaryIds.contains(study.studyId)).toList();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 34.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(height: 48),
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: 150,
-                    width: width,
-                    child: Stack(
-                      children: [
-                        Align(
-                          alignment: Alignment.center,
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 5.0),
-                            child: avatarCircularProgress(
-                                studiesForTheDay, diariesForToday),
+            child: Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 150,
+                      width: width,
+                      child: Stack(
+                        children: [
+                          Align(
+                            alignment: Alignment.center,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 5.0),
+                              child: avatarCircularProgress(
+                                  studiesForTheDay, diariesForToday),
+                            ),
                           ),
-                        ),
-                        Positioned(
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 5,
-                                  height: 10,
-                                  color: Colors.white,
-                                ),
-                              ],
-                            )),
-                        GhostCompletionWidget(
-                            diaries: diariesForToday,
-                            studies: studiesForTheDay),
-                      ],
+                          Positioned(
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 5,
+                                    height: 10,
+                                    color: Colors.white,
+                                  ),
+                                ],
+                              )),
+                          GhostCompletionWidget(
+                              diaries: diariesForToday,
+                              studies: studiesForTheDay),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 24,
-                  ),
-                  Text(
-                    "Thanks for your response!",
-                    style: CustomTypography().headlineMedium(),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(
-                    height: 24,
-                  ),
-                  Text(
-                    "Your input is incredibly valuable for our study's progress. We can't wait to hear from you again soon!",
-                    style: CustomTypography().bodyLarge(),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(
-                    height: 24,
-                  ),
-                  CompleteCalendarWidget(
-                    diary: diary,
-                    diaries: diaries,
-                    studies: studies,
-                  )
-                ],
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    Text(
+                      "Thanks for your response!",
+                      style: CustomTypography().headlineMedium(),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    Text(
+                      "Your input is incredibly valuable for our study's progress. We can't wait to hear from you again soon!",
+                      style: CustomTypography().bodyLarge(),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    CompleteCalendarWidget(
+                      diary: diary,
+                      diaries: diaries,
+                      studies: studies,
+                    )
+                  ],
+                ),
               ),
             ),
           ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: CustomFlatButton(
-              onClick: () {
-                Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Hub(), settings: RouteSettings(name: "/Hub")),
-                    (route) => false);
-              },
-              text: "Return Home",
-              color: CustomColors.productNormal,
-              textColor: CustomColors.textWhite,
-            ),
+          CustomFlatButton(
+            onClick: () {
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Hub(), settings: RouteSettings(name: "/Hub")),
+                  (route) => false);
+            },
+            text: "Return Home",
+            color: CustomColors.productNormal,
+            textColor: CustomColors.textWhite,
           ),
         ],
       ),
