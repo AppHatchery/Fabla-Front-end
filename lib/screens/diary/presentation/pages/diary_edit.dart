@@ -58,6 +58,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
                 .headlineMedium(color: CustomColors.textNormalContent)),
       ),
       body: BlocConsumer<PromptCubit, PromptState>(
+         buildWhen: (previous, current) => current is PromptLoaded || current is PromptInitial,
           builder: (context, state) {
             if (state is PromptInitial) {
               return buildInitial();
