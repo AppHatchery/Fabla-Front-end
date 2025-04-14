@@ -438,6 +438,7 @@ class _QuestionPageState extends State<QuestionPage>
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: BlocConsumer<PromptCubit, PromptState>(
+        buildWhen: (previous, current) => current is PromptLoaded || current is PromptInitial,
         builder: (context, state) {
           if (state is PromptInitial) {
             return buildInitial();
