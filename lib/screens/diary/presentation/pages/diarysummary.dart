@@ -598,10 +598,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   }
 
   void submitDiary(DiaryModel diary) async {
-    final location = await checkForLocation();
-    if (location) {
-      summaryCubit.submitDiary(diary);
-    }
+    // Doesn't Matter the status of the permission
+    checkForLocation().then((value) => summaryCubit.submitDiary(diary));
   }
 
   Future<bool> checkForLocation() async {
