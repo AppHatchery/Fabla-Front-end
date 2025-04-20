@@ -62,4 +62,16 @@ class DynamicCubit extends Cubit<DynamicState> {
       debugPrint("Error uploading Onboarding Answers: $e");
     }
   }
+
+  Future<void> resetOnboarding() async {
+    // Reset onboarding preferences
+    await PreferenceService()
+        .setBoolPreference(key: 'onboarding_complete', value: false);
+    await PreferenceService()
+        .setStringPreference(key: "onboardingSurveyCompletedDate", value: "");
+    // Clear the database
+    setupRepository.clearStudies();
+    // Reload the onboarding questions
+    load();
+  }
 }

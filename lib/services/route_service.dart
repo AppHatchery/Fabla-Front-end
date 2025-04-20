@@ -98,6 +98,55 @@ class RouteService {
     );
   }
 
+  /// Navigates back to the previous screen in the flow
+  Future<void> navigateBack(BuildContext context, String currentRoute) async {
+    // Get the last route from preferences
+    final lastRoute =
+        await PreferenceService().getStringPreference(key: 'last_route');
+
+    // If there's a last route (app was closed and reopened), use the flow logic
+    if (lastRoute != null && lastRoute.isNotEmpty) {
+      // Find the current route in the flow
+      final currentIndex =
+          _flow.indexWhere((step) => step['route'] == currentRoute);
+      if (currentIndex == -1) return;
+
+      // Get the previous route
+      final previousRoute = _flow[currentIndex]['previous'];
+      if (previousRoute == null || previousRoute.isEmpty) return;
+
+      // Get the widget for the previous route
+      final previousWidget = _getWidgetForRoute(previousRoute);
+
+      // Save the previous route as the last route
+      await PreferenceService()
+          .setStringPreference(key: 'last_route', value: previousRoute);
+
+      // Navigate back
+      if (context.mounted) {
+        navigateBackTo(context, previousWidget);
+      }
+    } else {
+      // If no last route (first time through), use Navigator.pop
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      } else {
+        // Fallback to flow logic if can't pop
+        final currentIndex =
+            _flow.indexWhere((step) => step['route'] == currentRoute);
+        if (currentIndex == -1) return;
+
+        final previousRoute = _flow[currentIndex]['previous'];
+        if (previousRoute == null || previousRoute.isEmpty) return;
+
+        final previousWidget = _getWidgetForRoute(previousRoute);
+        if (context.mounted) {
+          navigateBackTo(context, previousWidget);
+        }
+      }
+    }
+  }
+
   /// Determines the appropriate route based on the participant's status.
   ///
   /// This function is responsible for determining the route that should be displayed

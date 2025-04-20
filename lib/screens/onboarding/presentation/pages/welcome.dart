@@ -84,26 +84,10 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
         scrolledUnderElevation: 0.0,
         leading: canGoBack
             ? IconButton(
-                 onPressed: () async {
-              track(timer.stop(), "Back");
-              // Check if the user is resuming onboarding
-              final lastRoute = await PreferenceService()
-                  .getStringPreference(key: 'last_route');
-              if (lastRoute != null && lastRoute.isNotEmpty) {
-                // User is resuming onboarding, use navigateBackTo
-                RouteService()
-                    .navigateBackTo(context, const LoginPage());
-              } else {
-                // User is going through onboarding for the first time, use Navigator.pop
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                } else {
-                  // Fallback in case pop is not possible
-                  RouteService()
-                      .navigateBackTo(context, const LoginPage());
-                }
-              }
-            },
+                onPressed: () async {
+                  track(timer.stop(), "Back");
+                  await RouteService().navigateBack(context, 'welcome');
+                },
                 icon: const Icon(
                   Icons.arrow_back_rounded,
                   color: CustomColors.fillWhite,

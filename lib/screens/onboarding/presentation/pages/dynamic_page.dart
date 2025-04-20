@@ -297,11 +297,11 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
             final lastRoute = await PreferenceService()
                 .getStringPreference(key: 'last_route');
             if (lastRoute?.isNotEmpty ?? false) {
-              RouteService().navigateBackTo(context, const CameraAccess());
+              await RouteService().navigateBack(context, 'dynamic_onboarding');
             } else if (Navigator.canPop(context)) {
               Navigator.pop(context);
             } else {
-              RouteService().navigateBackTo(context, const CameraAccess());
+              await RouteService().navigateBack(context, 'dynamic_onboarding');
             }
           },
           icon: const Icon(
@@ -621,11 +621,11 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
             final lastRoute = await PreferenceService()
                 .getStringPreference(key: 'last_route');
             if (lastRoute?.isNotEmpty ?? false) {
-              RouteService().navigateBackTo(context, const CameraAccess());
+              await RouteService().navigateBack(context, 'dynamic_onboarding');
             } else if (Navigator.canPop(context)) {
               Navigator.pop(context);
             } else {
-              RouteService().navigateBackTo(context, const CameraAccess());
+              await RouteService().navigateBack(context, 'dynamic_onboarding');
             }
           },
           icon: const Icon(

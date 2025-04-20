@@ -2,11 +2,9 @@ import 'dart:async';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welcome.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/avatar_background.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/participant_name.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
-import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
@@ -112,20 +110,9 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
           leading: IconButton(
-             onPressed: () async {
+            onPressed: () async {
               track(timer.stop(), "Back");
-              // Check if the user is resuming onboarding
-              final lastRoute = await PreferenceService()
-                  .getStringPreference(key: 'last_route');
-                if (lastRoute?.isNotEmpty ?? false) {
-                RouteService()
-                  .navigateBackTo(context, const WelcomePage());
-                } else if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-                } else {
-                RouteService()
-                  .navigateBackTo(context, const WelcomePage());
-                }
+              await RouteService().navigateBack(context, 'participant_details');
             },
             icon: const Icon(
               Icons.arrow_back_rounded,

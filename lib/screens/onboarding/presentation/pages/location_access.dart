@@ -74,8 +74,10 @@ class _LocationAccessState extends State<LocationAccess>
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
           leading: IconButton(
-            onPressed: () =>
-                {track(timer.stop(), "Back"), Navigator.pop(context)},
+            onPressed: () async {
+              track(timer.stop(), "Back");
+              await RouteService().navigateBack(context, 'location');
+            },
             icon: const Icon(
               Icons.arrow_back_rounded,
               color: CustomColors.fillWhite,

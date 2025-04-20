@@ -74,28 +74,17 @@ class _CameraAccessState extends State<CameraAccess>
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
-         leading: IconButton(
-           onPressed: () async {
+          leading: IconButton(
+            onPressed: () async {
               track(timer.stop(), "Back");
-              // Check if the user is resuming onboarding
-              final lastRoute = await PreferenceService()
-                  .getStringPreference(key: 'last_route');
-                if (lastRoute?.isNotEmpty ?? false) {
-                RouteService()
-                  .navigateBackTo(context, const NotificationAccessPage());
-                } else if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-                } else {
-                RouteService()
-                  .navigateBackTo(context, const NotificationAccessPage());
-                }
+              await RouteService().navigateBack(context, 'camera');
             },
-          icon: const Icon(
-            Icons.arrow_back_rounded,
-            color: CustomColors.fillWhite,
-            size: 32,
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: CustomColors.fillWhite,
+              size: 32,
+            ),
           ),
-        ),
         ),
         body: LayoutBuilder(builder: (context, constraints) {
           return Padding(
