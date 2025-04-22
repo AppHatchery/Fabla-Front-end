@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
+import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
@@ -239,7 +240,7 @@ class DiaryRepository {
     }
 
     // Sort all processed diaries
-    diaries.sort();
+    diaries.sort((a, b) => b.start.compareTo(a.start));
 
     // Retrieve tags for each diary
     for (var diary in diaries) {
@@ -250,15 +251,43 @@ class DiaryRepository {
     final Map<String, List<DiaryModel>> history = {};
 
     // Group diaries by formatted historical dates
-    for (var i = 0; i < diaries.length; i++) {
-      final diary = diaries[i];
-      final date = formatHistoryDate(diary.start);
+    for (final diary in diaries) {
+      String date = formatHistoryDate(diary.start);
+
+      // If diary is still open and is from any date before today, set it to today's list
+      if ((diary.status == DiaryStatus.ongoing ||
+              diary.status == DiaryStatus.idle) &&
+          (diary.start.isBefore(now) && diary.due.isAfter(now))) {
+        date = formatHistoryDate(now);
+      }
 
       history.update(
         date,
         (value) => value..add(diary),
         ifAbsent: () => [diary],
       );
+    }
+
+    // sort using priority sort
+    for (var entry in history.entries) {
+      entry.value.sort((a, b) {
+        // Determine priority category for each diary (0=high, 1=medium, 2=low)
+        final aPriority = getPriorityCategory(a, now);
+        final bPriority = getPriorityCategory(b, now);
+
+        // If different categories, sort by category
+        if (aPriority != bPriority) {
+          return aPriority - bPriority;
+        }
+
+        if (aPriority == 0) {
+          // High priority: sort by due date
+          return a.due.compareTo(b.due);
+        } else {
+          // Medium and low: sort by start date
+          return a.start.compareTo(b.start);
+        }
+      });
     }
 
     return history;

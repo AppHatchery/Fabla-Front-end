@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/incentives.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_goal.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal.dart';
@@ -125,23 +126,37 @@ class _HomePageState extends State<HomePage>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  GestureDetector(
-                    onTap: () => setState(() {
-                      if (isExpanded) {
-                        isExpanded = !isExpanded;
-                        _controller.reverse();
-                      } else {
-                        isExpanded = !isExpanded;
-                        _controller.forward();
-                        track();
-                      }
-                    }),
-                    child: WeeklyGoalWidget(
-                      isExpanded: isExpanded,
-                      studies: studies,
-                      diaries: weeksDiaries,
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() {
+                        if (isExpanded) {
+                          isExpanded = !isExpanded;
+                          _controller.reverse();
+                        } else {
+                          isExpanded = !isExpanded;
+                          _controller.forward();
+                          track();
+                        }
+                      }),
+                      child: WeeklyGoalWidget(
+                        isExpanded: isExpanded,
+                        studies: studies,
+                        diaries: weeksDiaries,
+                      ),
                     ),
                   ),
+
+                  // Incentive
+                  GestureDetector(
+                    onTap: () => showStudyIncentives(studies),
+                    child: Image.asset(
+                      "assets/images/icons/incentives.png",
+                      height: 24,
+                      width: 24,
+                    ),
+                  ),
+
+                  // Calendar
                   IconButton(
                       onPressed: () {
                         if (isExpanded) {
@@ -274,7 +289,7 @@ class _HomePageState extends State<HomePage>
       isScrollControlled: true,
       useSafeArea: true,
       enableDrag: false,
-       routeSettings: RouteSettings(name: "/HomeCalendar"),
+      routeSettings: RouteSettings(name: "/HomeCalendar"),
       builder: (context) => DraggableScrollableSheet(
           initialChildSize: 1,
           maxChildSize: 1,
@@ -284,6 +299,26 @@ class _HomePageState extends State<HomePage>
               studies: studies,
               refresh: (value) => refresh(value),
               getPageName: () => "calendar",
+            );
+          }),
+    );
+  }
+
+  void showStudyIncentives(List<StudyModel> studies) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      enableDrag: false,
+      routeSettings: RouteSettings(name: "/HomeIncentives"),
+      builder: (context) => DraggableScrollableSheet(
+          initialChildSize: 1,
+          maxChildSize: 1,
+          minChildSize: 1,
+          builder: (context, scrollController) {
+            return StudyIncentives(
+              studies: studies,
+              refresh: (value) => refresh(value),
             );
           }),
     );

@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:bloc/bloc.dart';
@@ -59,8 +60,8 @@ class HomeCubit extends Cubit<HomeState> {
                   element.status != DiaryStatus.missed))
           .toList();
 
-      updated.sort((a, b) => a.start.compareTo(b.start));
-      emit(HomeLoaded(updated, weekDiaries, diaries.isNotEmpty, studies,
+      final sortedDiaries = prioritySort(updated);
+      emit(HomeLoaded(sortedDiaries, weekDiaries, diaries.isNotEmpty, studies,
           entries, completedStudy));
     } catch (e) {
       debugPrint("Error loading home page: $e");
@@ -107,4 +108,3 @@ class HomeCubit extends Cubit<HomeState> {
     return last.isEmpty;
   }
 }
-

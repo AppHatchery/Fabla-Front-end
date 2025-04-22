@@ -26,7 +26,7 @@ class TodaysDiaryList extends StatelessWidget {
           textAlign: TextAlign.left,
         ),
         const SizedBox(
-          height: 12,
+          height: 24,
         ),
         diaries.isEmpty
             ? Padding(
