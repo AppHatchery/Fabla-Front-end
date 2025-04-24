@@ -1,7 +1,9 @@
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:location/location.dart' as l;
 import 'dart:developer' as dev;
 
 import '../../../data/diary.dart';
@@ -121,5 +123,21 @@ class SummaryCubit extends Cubit<SummaryState> {
       dev.log("Error submitting diary: $e", name: "SummaryCubit - submitDiary");
       emit(const SubmitError());
     }
+  }
+
+  Future<bool?> checkForLocationPermission() async {
+    final extraPermissions = await PreferenceService().getStringListPreference(
+          key: 'extra_permissions',
+        ) ??
+        [];
+
+    if (extraPermissions.contains('location')) {
+      // Check if the location permission is granted
+      l.Location location = l.Location();
+      final granted = await location.hasPermission();
+      return granted == l.PermissionStatus.granted;
+    }
+
+    return null;
   }
 }
