@@ -33,6 +33,13 @@ class NotificationManager {
             .map((e) => DateTime.parse(e.content!.payload!['date']!))
             .toSet(); // Convert to a Set for faster lookup
 
+    //track what is scheduled
+    await PendoService.track("ScheduledNotifications", {
+      "status": "scheduled",
+      "page": "home",
+      "scheduled_count": scheduledNotifications.length,
+    });
+
     // Get all diaries that are not complete or submitted and due in the future
     final diaries = diaryRepository
         .getAllDiaries()
@@ -46,6 +53,8 @@ class NotificationManager {
     if (scheduledNotifications.length < threshold) {
       final int notificationsToSchedule =
           threshold - scheduledNotifications.length;
+      dev.log(
+          'Scheduled Notifications Count: ${scheduledNotifications.length}');
       dev.log('Notifications to schedule: $notificationsToSchedule');
 
       int scheduledCount = 0;
@@ -88,8 +97,10 @@ class NotificationManager {
               "page": "home",
               "notification_type": "reminder",
               "notification_id": id,
-              "scheduled_time":
-                  "${notification.date.hour}:${notification.date.minute}",
+              "content":
+                  "Title: ${notification.title}, Body: ${notification.body}",
+              "scheduled_time": notification.date.toIso8601String(),
+              "scheduled_count": scheduledCount
             });
 
             dev.log(
@@ -118,6 +129,9 @@ class NotificationManager {
   /// It schedules notifications for diaries that are due and have not been scheduled
   /// It schedules notifications for the limit set at [threshold]
   void scheduleLimit() async {
+    // clear all notifications
+    await NotificationService.cancelAllNotifications();
+
     final diaries = diaryRepository.getAllDiaries();
     int scheduledCount = 0;
 
@@ -128,6 +142,10 @@ class NotificationManager {
 
       for (final notification in diaryNotifications) {
         if (scheduledCount >= threshold) break;
+
+        // Skip if notification is not valid/able to fire
+        final isValidNotification = notification.date.isAfter(DateTime.now());
+        if (!isValidNotification) continue;
 
         final int id = Random().nextInt(100000);
 
@@ -150,8 +168,10 @@ class NotificationManager {
           "page": "onboarding",
           "notification_type": "reminder",
           "notification_id": id,
-          "scheduled_time":
-              "${notification.date.hour}:${notification.date.minute}",
+          "content":
+              "Diary: ${diary.name}, Title: ${notification.title}, Body: ${notification.body}",
+          "scheduled_time": notification.date.toIso8601String(),
+          "scheduled_count": scheduledCount,
         });
 
         scheduledCount++;

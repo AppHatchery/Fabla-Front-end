@@ -217,6 +217,10 @@ class _HubState extends State<Hub>
     tabController = TabController(length: pages.length, vsync: this);
     startPendo();
     _makeNavBars();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationManager()
+          .scheduleAdditional(); // Ensure that this also trigger when the app has just started
+    });
     super.initState();
   }
 
