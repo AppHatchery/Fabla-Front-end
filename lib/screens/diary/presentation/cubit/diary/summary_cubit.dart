@@ -113,6 +113,7 @@ class SummaryCubit extends Cubit<SummaryState> {
       emit(const SubmitLoading());
       final result = await _summaryRepository.submitDiary(diary);
       if (result) {
+        _summaryRepository.calculateEarnedIncentives(diary);
         emit(const SummarySubmitted());
       } else {
         emit(const SubmitError());
