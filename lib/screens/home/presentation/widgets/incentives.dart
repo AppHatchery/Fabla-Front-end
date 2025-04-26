@@ -501,7 +501,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                     style: CustomTypography()
                         .bodyMedium(color: CustomColors.textNormalContent)),
               ),
-              Text("0/$bonusEntriesRequired",
+              Text("$completed/$bonusEntriesRequired",
                   style: CustomTypography()
                       .bodyMedium(color: CustomColors.textNormalContent)),
             ],
@@ -522,7 +522,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                     style: CustomTypography()
                         .bodyMedium(color: CustomColors.textNormalContent)),
               ),
-              Text("0/$totalEntriesRequired",
+              Text("$completed/$totalEntriesRequired",
                   style: CustomTypography()
                       .bodyMedium(color: CustomColors.textNormalContent)),
             ],
