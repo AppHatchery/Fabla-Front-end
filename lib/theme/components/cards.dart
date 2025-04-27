@@ -285,6 +285,126 @@ class DiaryCardTag extends StatelessWidget {
   }
 }
 
+class DiaryCardSmall extends StatefulWidget {
+  final DiaryModel diary;
+  const DiaryCardSmall({super.key, required this.diary});
+
+  @override
+  State<DiaryCardSmall> createState() => _DiaryCardSmallState();
+}
+
+class _DiaryCardSmallState extends State<DiaryCardSmall> {
+  DateTime now = DateTime.now();
+  late bool closed;
+  String? study;
+  Color color = CustomColors.productNormal;
+
+  @override
+  void initState() {
+    getStudyName();
+    super.initState();
+  }
+
+  void getStudyName() async {
+    final repository = DiaryRepository();
+    final _study = await repository.getStudy(widget.diary.studyID);
+    print("${widget.diary.name} - ${widget.diary.status}");
+    if (mounted) {
+      setState(() {
+        study = _study?.name ?? '';
+        color = _study!.color!;
+      });
+    }
+  }
+
+  bool isClosed() {
+    now = DateTime.now();
+    // remainingTime = widget.diary!.due.difference(now);
+    final diary = widget.diary;
+
+    if (diary.status == DiaryStatus.submitted) return false;
+
+    return (diary.due.isBefore(now) && diary.status != DiaryStatus.complete) ||
+        diary.start.isAfter(now);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    closed = isClosed();
+    return GestureDetector(
+      onTap: () => closed ? null : navigateToDiary(context),
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: ShapeDecoration(
+            color: CustomColors.fillWhite,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: BorderSide(
+                    color: CustomColors.productBorderNormal, width: 1))),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            icon(),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: Row(
+                  children: [
+                    Text(
+                      widget.diary.name,
+                      style: CustomTypography().titleSmall(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            widget.diary.status == DiaryStatus.submitted
+                ? Icon(Icons.check_circle_rounded,
+                    color: CustomColors.darkGreen)
+                : const SizedBox.shrink(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget icon() {
+    return Image.asset(
+      determineDiaryIcon(widget.diary),
+      height: 24,
+      width: 24,
+      color: color,
+    );
+  }
+
+  void navigateToDiary(BuildContext context) async {
+    if (widget.diary.status == DiaryStatus.complete) {
+      Navigator.pushNamed(context, '/DiarySummaryPage',
+          arguments: widget.diary);
+    } else if (widget.diary.status == DiaryStatus.submitted ||
+        widget.diary.status == DiaryStatus.missed ||
+        widget.diary.start.isAfter(DateTime.now())) {
+      PendoService.track("ViewOldDiary", {
+        "study_day": "${widget.diary.id}",
+        "diary_day_viewed": "${DateTime.now()}"
+      });
+      showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          routeSettings: RouteSettings(name: "/ReviewDiaryModal"),
+          builder: (context) => Wrap(
+                children: [ReviewDiary(diary: widget.diary)],
+              ));
+    } else {
+      final repository = DiaryRepository();
+      final index = await repository.getIndexOfLastAnsweredPrompt(widget.diary);
+      final results = await Navigator.of(context).pushNamed("/NewDiaryPage",
+          arguments: {'diary': widget.diary, 'index': index});
+      if (results == true) {}
+    }
+  }
+}
+
 /// Audio Diary Card
 ///
 /// Requires a [file] to be passed in.

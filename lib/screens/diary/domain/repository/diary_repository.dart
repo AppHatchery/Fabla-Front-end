@@ -324,8 +324,12 @@ class DiaryRepository {
   /// A list of Diary objects, each representing a diary entry retrieved from the data source matching the criteria.
   ///
   List<DiaryModel> getDailyDiaries(DateTime due) {
-    final diaries = _getDailyDiary(due);
-    return diaries.map((e) => DiaryModel.fromEntity(e)).toList();
+    final diaries = getAllDiariesWithMultipleEntries();
+    return diaries
+        .where((diary) =>
+            DateTime(diary.due.year, diary.due.month, diary.due.day) ==
+            DateTime(due.year, due.month, due.day))
+        .toList();
   }
 
   /// Retrieves a list of diary models within a specified date range.

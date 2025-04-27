@@ -266,10 +266,6 @@ class _StudyIncentiveState extends State<StudyIncentive> {
         diariesToAchieveBonus <= 2 &&
         remainingDiaries >= diariesToAchieveBonus;
 
-    if (hasAchievedBonus) {
-      bonusAchieved(widget.study.name);
-    }
-
     setState(() {
       this.bonusEntriesRequired = bonusEntriesRequired;
       totalEntriesRequired = totalDiaries;
@@ -278,13 +274,6 @@ class _StudyIncentiveState extends State<StudyIncentive> {
       this.acquired = acquired;
       closeToBonus = isCloseToBonus;
       entriesRequiredForBonus = diariesToAchieveBonus;
-    });
-  }
-
-  void bonusAchieved(String study) async {
-    await PendoService.track("BonusAchieved", {
-      "study_name": study,
-      "bonus_achieved": true,
     });
   }
 
