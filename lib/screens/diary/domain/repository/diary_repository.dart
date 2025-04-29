@@ -146,6 +146,7 @@ class DiaryRepository {
               id: diary.id,
               studyID: diary.studyID,
               currentEntry: i,
+              activeDays: diary.activeDays,
               status: entryCount != i ? DiaryStatus.submitted : null);
 
           //check if diary is answered

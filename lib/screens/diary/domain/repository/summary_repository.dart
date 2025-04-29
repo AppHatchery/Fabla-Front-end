@@ -47,7 +47,10 @@ class SummaryRepository {
         }
       }
       final newDiary = diary.copyWith(
-          id: diary.id, studyID: diary.studyID, prompts: cleanPrompts);
+          id: diary.id,
+          studyID: diary.studyID,
+          prompts: cleanPrompts,
+          activeDays: diary.activeDays);
       return newDiary;
     } catch (e) {
       dev.log("Error loading summary: $e",
@@ -129,12 +132,14 @@ class SummaryRepository {
               id: diary.id,
               studyID: diary.studyID,
               status: DiaryStatus.submitted,
+              activeDays: diary.activeDays,
               currentEntry: diary.currentEntry + 1);
         } else {
           newDiary = diary.copyWith(
               id: diary.id,
               studyID: diary.studyID,
               status: DiaryStatus.idle,
+              activeDays: diary.activeDays,
               currentEntry: diary.currentEntry + 1);
         }
 

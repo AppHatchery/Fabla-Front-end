@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -39,11 +40,12 @@ class _StudyCalendarState extends State<StudyCalendar> {
   late DateTime focusedDay;
   late DateTime today;
   late DateTime selectedDate;
-  late List<DiaryModel> diaries;
+  late List<DiaryModel> diaries; // Diaries for today
   late bool isBeforeToday;
-  late List<DiaryModel> diaryList;
+  late List<DiaryModel> diaryList; // All the diaries
   final DiaryRepository repository = DiaryRepository();
   Map<DateTime, List<String>>? events = {};
+  Set<DateTime> activeDates = {};
 
   ScrollController? controller;
   late rive.StateMachineController _controller;
@@ -60,17 +62,10 @@ class _StudyCalendarState extends State<StudyCalendar> {
     controller = ScrollController();
     focusedDay = today;
     selectedDate = today;
-    diaries = fetchDiaries(today);
     diaryList = _getAllDiaries();
-
-    for (DiaryModel diary in diaryList) {
-      final date =
-          DateTime(diary.start.year, diary.start.month, diary.start.day);
-      events!.putIfAbsent(date, () => []);
-      if (events![date]!.isEmpty) {
-        events![date]!.add(diary.start.toString());
-      }
-    }
+    diaries = fetchDiaries(today);
+    events = getCalendarEvents(diaryList);
+    getActiveDates(diaryList);
 
     track();
     super.initState();
@@ -162,13 +157,6 @@ class _StudyCalendarState extends State<StudyCalendar> {
         "Study Calendar", {"viewed_at": now.toIso8601String()});
   }
 
-  changeWords() {
-    days?.text = "100 days active - You’re doing";
-    cheer?.text = " Amazing";
-
-    encouragement?.text = "! You have completed all the goals!";
-  }
-
   Widget header() {
     final width = MediaQuery.of(context).size.width;
     return SizedBox(
@@ -208,10 +196,12 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   void determineAnimationWords() {
-    days?.text = Intl.plural(diaries.length,
-        zero: "You have no tasks for today",
-        one: "You have one task for today",
-        other: "You have ${diaries.length} tasks for today");
+    days?.text = Intl.plural(activeDates.length,
+        other:
+            "${activeDates.length} days active - You're doing GREAT! Keep working towards the goals",
+        one: "1 day active - You're doing GOOD! Keep working towards the goals",
+        zero:
+            "No days logged yet - Make sure to look out for your upcoming diaries");
     cheer?.text = "";
     encouragement?.text = "";
   }
@@ -471,12 +461,18 @@ class _StudyCalendarState extends State<StudyCalendar> {
     return list;
   }
 
+  getActiveDates(List<DiaryModel> diaries) {
+    // get dates of submitted diaries
+    for (final diary in diaries) {
+      if (diary.status == DiaryStatus.submitted) {
+        activeDates.add(diary.start);
+      }
+    }
+  }
+
   //Retrieving entries for a specific date (Called From StudyCalendar)
   List<DiaryModel> fetchDiaries(DateTime date) {
-    setState(() {
-      diaryList = repository.getDailyDiaries(date);
-    });
-    return diaryList;
+    return filterTodaysDiaries(date, diaryList);
   }
 }
 

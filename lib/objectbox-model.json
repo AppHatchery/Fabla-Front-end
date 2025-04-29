@@ -37,7 +37,7 @@
     },
     {
       "id": "2:2718562603036521648",
-      "lastPropertyId": "11:2953292468504398457",
+      "lastPropertyId": "12:5939914576974872814",
       "name": "Diary",
       "properties": [
         {
@@ -95,6 +95,11 @@
           "id": "11:2953292468504398457",
           "name": "notifications",
           "type": 9
+        },
+        {
+          "id": "12:5939914576974872814",
+          "name": "activeDays",
+          "type": 27
         }
       ],
       "relations": []
