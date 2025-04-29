@@ -78,19 +78,19 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: CustomColors.backgroundSecondary,
-        scrolledUnderElevation: 0.0,
-        leading: canGoBack
-            ? IconButton(
-                onPressed: () =>
-                    {track(timer.stop(), "Back"), Navigator.pop(context)},
-                icon: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: CustomColors.fillWhite,
-                  size: 32,
-                ))
-            : null,
-      ),
+          backgroundColor: CustomColors.backgroundSecondary,
+          scrolledUnderElevation: 0.0,
+          leading: IconButton(
+              onPressed: () => {
+                    track(timer.stop(), "Back"),
+                    RouteService()
+                        .navigateBack(context: context, current: 'welcome')
+                  },
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: 32,
+              ))),
       backgroundColor: CustomColors.backgroundSecondary,
       body: LayoutBuilder(
         builder: (context, constraints) {

@@ -78,16 +78,17 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
       appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
         scrolledUnderElevation: 0.0,
-        leading: canGoBack
-            ? IconButton(
-                onPressed: () =>
-                    {track(timer.stop(), "Back"), Navigator.pop(context)},
-                icon: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: CustomColors.fillWhite,
-                  size: 32,
-                ))
-            : null,
+        leading: IconButton(
+            onPressed: () => {
+                  track(timer.stop(), "Back"),
+                  RouteService().navigateBack(
+                      context: context, current: 'notification_access')
+                },
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: CustomColors.fillWhite,
+              size: 32,
+            )),
       ),
       body: Column(
         children: [
