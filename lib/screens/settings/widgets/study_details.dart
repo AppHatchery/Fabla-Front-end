@@ -67,6 +67,11 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                       style: CustomTypography()
                           .bodyMedium(color: CustomColors.textTertiaryContent),
                     ),
+                    Text(
+                      "Version: ${experiment.version}",
+                      style: CustomTypography()
+                          .bodyMedium(color: CustomColors.textTertiaryContent),
+                    ),
                     const SizedBox(height: 12),
                     CustomOutlineButton(
                       onClick: () => viewStudyDetails(),
@@ -158,7 +163,9 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => StudyLogin(), settings: RouteSettings(name: "/StudyLogin")),
+            MaterialPageRoute(
+                builder: (context) => StudyLogin(),
+                settings: RouteSettings(name: "/StudyLogin")),
             (route) => false);
       }
     }

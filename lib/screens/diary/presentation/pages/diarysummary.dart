@@ -229,12 +229,15 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             children: [
               Expanded(
                   child: SingleChildScrollView(
-                child: ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: diary.prompts.length,
-                    itemBuilder: (context, index) =>
-                        buildPrompt(diary.prompts[index], index)),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: diary.prompts.length,
+                      itemBuilder: (context, index) =>
+                          buildPrompt(diary.prompts[index], index)),
+                ),
               )),
             ],
           ),
@@ -340,22 +343,29 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   Widget getResponseWidget(PromptModel prompt) {
     switch (prompt.responseType) {
       case ResponseType.slider:
-        return SliderQuestionCard(
-          scaleMin: prompt.option!.minValue!,
-          scaleMax: prompt.option!.maxValue!,
-          scaleMinText: prompt.option?.minLabel,
-          scaleMaxText: prompt.option?.maxLabel,
-          isSliderEnabled: false,
-          value: double.tryParse(prompt.answer!.response!.first) ?? 0.0,
-        );
+        return prompt.answer != null
+            ? SliderQuestionCard(
+                scaleMin: prompt.option!.minValue!,
+                scaleMax: prompt.option!.maxValue!,
+                scaleMinText: prompt.option?.minLabel,
+                scaleMaxText: prompt.option?.maxLabel,
+                isSliderEnabled: false,
+                value: double.tryParse(prompt.answer?.response?.first ?? "") ??
+                    0.0,
+              )
+            : const SizedBox.shrink();
       case ResponseType.multiple:
-        return MultipleQuestionSummary(
-          answers: extractAnswers(prompt.answer!.response!.first),
-        );
+        return prompt.answer != null
+            ? MultipleQuestionSummary(
+                answers: extractAnswers(prompt.answer?.response?.first ?? ""),
+              )
+            : const SizedBox.shrink();
       case ResponseType.radio:
-        return RadioQuestionSummary(
-          selectedOption: prompt.answer!.response!.first,
-        );
+        return prompt.answer != null
+            ? RadioQuestionSummary(
+                selectedOption: prompt.answer?.response?.first,
+              )
+            : const SizedBox.shrink();
       case ResponseType.audio || ResponseType.textAudio:
         return Column(
           children: [
@@ -442,101 +452,111 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         return ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: prompt.answer!.response!.length,
+            itemCount: prompt.answer?.response?.length,
             itemBuilder: (context, index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                child: Column(
-                  children: [
-                    TextAnswerCard(
-                      answer: prompt.answer!.response![index],
-                      index: index,
-                      delete: () => deleteResponse(prompt, null),
-                    ),
+              return prompt.answer != null
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      child: Column(
+                        children: [
+                          TextAnswerCard(
+                            answer: prompt.answer!.response![index],
+                            index: index,
+                            delete: () => deleteResponse(prompt, null),
+                          ),
 
-                    // Add a divider if there are multiple responses
-                    prompt.answer!.response!.length > 1 &&
-                            index != prompt.answer!.response!.length - 1
-                        ? Padding(
-                            padding: const EdgeInsets.only(top: 6.0),
-                            child: const Divider(
-                              height: 1,
-                              thickness: 0.5,
-                              indent: 12,
-                              endIndent: 12,
-                              color: CustomColors.greyLight,
-                            ),
-                          )
-                        : const SizedBox.shrink()
-                  ],
-                ),
-              );
+                          // Add a divider if there are multiple responses
+                          prompt.answer!.response!.length > 1 &&
+                                  index != prompt.answer!.response!.length - 1
+                              ? Padding(
+                                  padding: const EdgeInsets.only(top: 6.0),
+                                  child: const Divider(
+                                    height: 1,
+                                    thickness: 0.5,
+                                    indent: 12,
+                                    endIndent: 12,
+                                    color: CustomColors.greyLight,
+                                  ),
+                                )
+                              : const SizedBox.shrink()
+                        ],
+                      ),
+                    )
+                  : null;
             });
       case ResponseType.webview:
         final width = MediaQuery.of(context).size.width;
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
-          child: Container(
-            width: width,
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Row(children: [
-              Expanded(
-                child: Text("Response recorded externally",
-                    style: CustomTypography().bodyMedium(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-              ),
-            ]),
-          ),
-        );
+        return prompt.answer != null
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Container(
+                  width: width,
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Row(children: [
+                    Expanded(
+                      child: Text("Response recorded externally",
+                          style: CustomTypography().bodyMedium(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                  ]),
+                ),
+              )
+            : const SizedBox.shrink();
       case ResponseType.image:
       case ResponseType.video:
       case ResponseType.imageVideo:
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Preview(
-            recordings: prompt.answer?.recordings ?? [],
-            delete: (String path) {},
-            interactions: false,
-          ),
-        );
+        return prompt.answer != null
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Preview(
+                  recordings: prompt.answer?.recordings ?? [],
+                  delete: (String path) {},
+                  interactions: false,
+                ),
+              )
+            : const SizedBox.shrink();
 
       case ResponseType.timer:
         final width = MediaQuery.of(context).size.width;
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
-          child: Container(
-            width: width,
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Row(children: [
-              Expanded(
-                child: Text("Completed the timer ✅",
-                    style: CustomTypography().bodyMedium(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-              ),
-            ]),
-          ),
-        );
+        return prompt.answer != null
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Container(
+                  width: width,
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Row(children: [
+                    Expanded(
+                      child: Text("Completed the timer ✅",
+                          style: CustomTypography().bodyMedium(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                  ]),
+                ),
+              )
+            : const SizedBox.shrink();
       case ResponseType.timePicker:
         final width = MediaQuery.of(context).size.width;
         final time =
             timeOfDayFromString(prompt.answer?.response?.firstOrNull ?? "");
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
-          child: Container(
-            width: width,
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Row(children: [
-              Expanded(
-                child: Text(localizations.formatTimeOfDay(time),
-                    style: CustomTypography().bodyMedium(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-              ),
-            ]),
-          ),
-        );
+        return prompt.answer != null
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Container(
+                  width: width,
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Row(children: [
+                    Expanded(
+                      child: Text(localizations.formatTimeOfDay(time),
+                          style: CustomTypography().bodyMedium(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                  ]),
+                ),
+              )
+            : const SizedBox.shrink();
       default:
         return const SizedBox.shrink();
     }
