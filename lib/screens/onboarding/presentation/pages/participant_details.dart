@@ -35,7 +35,6 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
 
   final PageTimer timer = PageTimer();
 
-
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -151,7 +150,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 16.0),
                                           child: Text(
-                                            "Enter a nickname for the study.",
+                                            "Enter your preferred name",
                                             style: CustomTypography()
                                                 .headlineLarge(
                                                     color:
@@ -171,7 +170,8 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 34),
+                        padding: const EdgeInsets.only(
+                            left: 16, right: 16, bottom: 34),
                         child: CustomFlatButton(
                             onClick: () =>
                                 {track(timer.stop(), "Finished"), saveName()},
