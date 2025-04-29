@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
+import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -71,9 +72,9 @@ class DiaryRepository {
     return _diaryDAO.getDiary(start, due);
   }
 
-  List<Diary> _getDiaryEntities(DateTime day) {
-    return _diaryDAO.getDiaries(day);
-  }
+  // List<Diary> _getDiaryEntities(DateTime day) {
+  //   return _diaryDAO.getDiaries(day);
+  // }
 
   /// Retrieves a list of DiaryENtity objects from the data source based on a specified due date.
   /// This function attempts to obtain a list of DiaryEntity instances by calling the `_diaryDAO.getDailyDiary(due)` method, using the provided due date as a search criterion.
@@ -84,9 +85,9 @@ class DiaryRepository {
   /// Returns:
   /// A list of Diary objects, each representing a diary entry retrieved from the data source.
   ///
-  List<Diary> _getDailyDiary(DateTime due) {
-    return _diaryDAO.getDailyDiary(due);
-  }
+  // List<Diary> _getDailyDiary(DateTime due) {
+  //   return _diaryDAO.getDailyDiary(due);
+  // }
 
   /// Retrieves a diary entity from the data access object (DAO) by its ID.
   ///
@@ -438,8 +439,35 @@ class DiaryRepository {
   }
 
   List<DiaryModel> getDiaries(DateTime day) {
-    final diaries = _getDiaryEntities(day);
-    return diaries.map((e) => DiaryModel.fromEntity(e)).toList();
+    final now = DateTime.now();
+    final nextDay = day.add(const Duration(days: 1));
+    // Retrieve all diaries from the DAO
+    final diaries = _diaryDAO.getAllDiaries();
+    // Filter diaries based on their start dates falling within the specified range
+    final filtered = diaries.where((element) {
+      if (element.activeDays?.isNotEmpty ?? false) {
+        // Calculate date range between start and end
+        final start = normalizeDate(element.start);
+        final end = normalizeDate(element.end);
+        final daysDifference = end.difference(start).inDays;
+
+        // Find all active dates for this diary
+        for (int i = 0; i <= daysDifference; i++) {
+          final currentDate = start.add(Duration(days: i));
+          if (element.activeDays!.contains(currentDate.weekday) &&
+              currentDate == normalizeDate(day) &&
+              end.isAfter(now)) {
+            return true;
+          }
+        }
+      }
+
+      return (element.start.isAfter(day) ||
+              element.start.isAtSameMomentAs(day)) &&
+          element.start.isBefore(nextDay) &&
+          element.due.isAfter(now);
+    }).toList();
+    return filtered.map((e) => DiaryModel.fromEntity(e)).toList();
   }
 
   // retrieves the protocol from the protocol entity

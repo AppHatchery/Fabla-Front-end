@@ -5,7 +5,6 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../../../../core/utils/statuses.dart';
 import '../../../../diary/data/diary.dart';
 import '../../../../diary/domain/repository/diary_repository.dart';
 
@@ -51,13 +50,11 @@ class HomeCubit extends Cubit<HomeState> {
       final studies = await repository.getStudies(ids);
 
       final updated = diaries
-          .map((diary) =>
-              diary.copyWith(id: diary.id, studyID: diary.studyID, tags: null))
-          .toList()
-          .where((element) =>
-              element.due.isAfter(DateTime.now()) &&
-              (element.status != DiaryStatus.submitted &&
-                  element.status != DiaryStatus.missed))
+          .map((diary) => diary.copyWith(
+              id: diary.id,
+              studyID: diary.studyID,
+              tags: null,
+              activeDays: diary.activeDays))
           .toList();
 
       final sortedDiaries = prioritySort(updated);
