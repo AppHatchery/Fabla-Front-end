@@ -25,6 +25,7 @@ class Diary {
   @Transient()
   DiaryStatus? status;
   String notifications;
+  List<int>? activeDays;
 
   @Backlink('diary')
   final prompts = ToMany<Prompt>();
@@ -50,7 +51,8 @@ class Diary {
       required this.end,
       required this.deadline,
       required this.notifications,
-      this.status});
+      this.status,
+      required this.activeDays});
 
   /// Ensures the consistency of DiaryStatus enumeration indices.
   /// This private method verifies that the indices of the DiaryStatus enum values correspond to their expected numerical values.
@@ -91,6 +93,7 @@ class Diary {
       status: model.status,
       notifications:
           json.encode(model.notifications.map((e) => e.toJson()).toList()),
+      activeDays: model.activeDays
     );
   }
 }
