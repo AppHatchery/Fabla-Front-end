@@ -73,16 +73,17 @@ class _LocationAccessState extends State<LocationAccess>
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
-          leading: canGoBack
-              ? IconButton(
-                  onPressed: () =>
-                      {track(timer.stop(), "Back"), Navigator.pop(context)},
-                  icon: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: CustomColors.fillWhite,
-                    size: 32,
-                  ))
-              : null,
+          leading: IconButton(
+              onPressed: () => {
+                    track(timer.stop(), "Back"),
+                    RouteService()
+                        .navigateBack(context: context, current: 'location')
+                  },
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: 32,
+              )),
           automaticallyImplyLeading: false,
         ),
         body: LayoutBuilder(builder: (context, constraints) {
