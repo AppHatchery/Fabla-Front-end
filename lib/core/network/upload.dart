@@ -48,6 +48,8 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
   try {
     final promptEntryList = <PromptEntry>[];
     final files = <FileData>[];
+    final references =
+        <PromptEntry>[]; // for referencing the audio files in Dynamo
 
     for (final prompt in diary.prompts) {
       if (prompt.answer == null) continue;
@@ -58,8 +60,8 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
           prompt.responseType == ResponseType.image ||
           prompt.responseType == ResponseType.video ||
           prompt.responseType == ResponseType.imageVideo) {
-        _addFileData(
-            experiment.login, prompt, participantID, diary, dir, files);
+        _addFileData(experiment.login, prompt, participantID, diary, dir, files,
+            references);
 
         // If the prompt is textAudio and has a text response, add the text response
         if (prompt.responseType == ResponseType.textAudio &&
@@ -81,6 +83,9 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
         diaryID: diary.id.toString());
     if (location != null) promptEntryList.add(location);
 
+    promptEntryList.addAll(
+        references); // Adding the references to the list going to Dynamo
+
     final uploaded = await awsUploadResponses(promptEntryList, files);
     return uploaded;
   } catch (e, stackTrace) {
@@ -91,12 +96,14 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
 }
 
 void _addFileData(
-    String experimentCode,
-    PromptModel prompt,
-    String participantID,
-    DiaryModel diary,
-    Directory dir,
-    List<FileData> files) {
+  String experimentCode,
+  PromptModel prompt,
+  String participantID,
+  DiaryModel diary,
+  Directory dir,
+  List<FileData> files,
+  List<PromptEntry> references,
+) {
   final recordings = prompt.answer?.recordings;
   final data = <FileData>[];
 
@@ -112,6 +119,23 @@ void _addFileData(
       final fileData =
           FileData(localDirectory: localPath, awsS3Directory: awsPath);
       data.add(fileData);
+
+      // Adding references for audio question for transcription
+      if (record.type == 'audio') {
+        references.add(
+          PromptEntry(
+              participantID: participantID,
+              experimentCode: experimentCode,
+              questionTitle: prompt.question,
+              diaryID: diary.id.toString(),
+              promptID: prompt.id.toString(),
+              response: "",
+              questionsType: responseTypeValue(prompt.responseType!),
+              required: prompt.required,
+              reference:
+                  "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}"),
+        );
+      }
     }
   }
 
@@ -306,16 +330,21 @@ class PromptEntry {
   String response;
   String questionsType; // Corrected parameter name
   bool required;
+  String transcript;
+  String reference;
 
-  PromptEntry(
-      {required this.participantID,
-      required this.experimentCode,
-      required this.questionTitle,
-      required this.diaryID,
-      required this.promptID,
-      required this.response,
-      required this.questionsType, // Corrected parameter name
-      required this.required});
+  PromptEntry({
+    required this.participantID,
+    required this.experimentCode,
+    required this.questionTitle,
+    required this.diaryID,
+    required this.promptID,
+    required this.response,
+    required this.questionsType, // Corrected parameter name
+    required this.required,
+    this.transcript = "",
+    this.reference = "",
+  });
 
   static List<Map<String, dynamic>> promptListToMap(
       List<PromptEntry> promptEntryList) {
@@ -330,7 +359,9 @@ class PromptEntry {
         "PromptID": entry.promptID,
         "Response": entry.response,
         "QuestionsType": entry.questionsType,
-        "Required": entry.required.toString() // Convert bool to string
+        "Required": entry.required.toString(), // Convert bool to string
+        "Transcript": entry.transcript,
+        "Reference": entry.reference
       };
       items.add(map);
     }

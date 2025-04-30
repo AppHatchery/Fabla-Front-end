@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -56,7 +57,6 @@ DateTime stringDateOnlyToDateTime(String date) {
   int year = int.parse(dateParts[0]);
   int month = int.parse(dateParts[1]);
   int day = int.parse(dateParts[2]);
-  
 
   // Create a new DateTime object with just the date components
   // Time will be set to 00:00:00
@@ -105,6 +105,11 @@ String formatDurationToHHMM(DateTime date) {
   return DateFormat('HH:mm').format(date);
 }
 
+/// Format the date to a [String] of hours and minutes
+String formatDurationToHHMMPP(DateTime date) {
+  return DateFormat('HH:mm a').format(date);
+}
+
 Duration formatStringToDuration(String time) {
   List<String> parts =
       time.split(":"); // Split the string into minutes and seconds
@@ -142,6 +147,48 @@ String formatDurationToString(Duration duration) {
   String secondsStr = seconds.toString().padLeft(2, '0');
 
   return '$hoursStr:$minutesStr:$secondsStr';
+}
+
+String formatDiaryCardDue(DateTime due, DateTime start, DiaryStatus status) {
+  final now = DateTime.now();
+  final difference = due.difference(now).inHours;
+
+  final dateFormat = DateFormat("MMM d',' y");
+  if (status == DiaryStatus.submitted) {
+    return "Submitted";
+  } else if (start.isAfter(now)) {
+    return "Opens at: ${formatDurationToHHMMPP(start)}";
+  } else if (now.isAfter(due) && difference < -24) {
+    return "Closed on: ${dateFormat.format(due)}";
+  } else if (now.isAfter(due)) {
+    return "Closed at: ${formatDurationToHHMMPP(due)}";
+  } else if (difference > 24) {
+    return "Due on: ${dateFormat.format(due)}";
+  } else {
+    return "Due at: ${formatDurationToHHMMPP(due)}";
+  }
+}
+// First element is Background
+// Second element is Text Color
+List<Color> formatDiaryCardDueColors(
+    DateTime due, DateTime start, DiaryStatus status) {
+  final now = DateTime.now();
+  final difference = due.difference(now).inHours;
+
+  // when the diary is due in 2 hr display the due time label in red
+  // when the diary is due today but due time is more than 2h from now, display this label in yellow
+  // when the diary is not due today, display the due time label with a transparent background
+  if (status == DiaryStatus.submitted) {
+    return [CustomColors.darkGreen, CustomColors.textWhite];
+  } else if (start.isAfter(now) || now.isAfter(due)) {
+    return [CustomColors.fillDisabled, CustomColors.midGrey];
+  } else if (difference > 24) {
+    return [Colors.transparent, CustomColors.ashGrey];
+  } else if (difference > 2) {
+    return [CustomColors.tangerine, CustomColors.textWhite];
+  } else {
+    return [CustomColors.warningActive, CustomColors.textWhite];
+  }
 }
 
 /// Formats a given date into a human-readable history date string.
@@ -319,6 +366,14 @@ String optionTypeToString(OptionsType type) {
 String capitalizeFirstLetter(String text) {
   if (text.isEmpty) return text;
   return text[0].toUpperCase() + text.substring(1);
+}
+
+String formatMoney(double amount, {String? currency}) {
+  final formatter = NumberFormat.currency(
+    decimalDigits: 2,
+    symbol: currency ?? '',
+  );
+  return formatter.format(amount);
 }
 
 /// Convert String to TimeOfDay
