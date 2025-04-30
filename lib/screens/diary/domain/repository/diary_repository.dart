@@ -456,7 +456,8 @@ class DiaryRepository {
           final currentDate = start.add(Duration(days: i));
           if (element.activeDays!.contains(currentDate.weekday) &&
               currentDate == normalizeDate(day) &&
-              end.isAfter(now)) {
+              end.isAfter(now) &&
+              element.status != DiaryStatus.submitted) {
             return true;
           }
         }
@@ -465,7 +466,8 @@ class DiaryRepository {
       return (element.start.isAfter(day) ||
               element.start.isAtSameMomentAs(day)) &&
           element.start.isBefore(nextDay) &&
-          element.due.isAfter(now);
+          element.due.isAfter(now) &&
+          element.status != DiaryStatus.submitted;
     }).toList();
     return filtered.map((e) => DiaryModel.fromEntity(e)).toList();
   }
