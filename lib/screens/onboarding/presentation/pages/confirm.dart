@@ -157,8 +157,11 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
               ),
 
               CustomFlatButton(
-                onClick: () =>
-                    {track(timer.stop(), "Back"), Navigator.pop(context)},
+                onClick: () => {
+                  track(timer.stop(), "Back"),
+                  RouteService()
+                      .navigateBack(context: context, current: 'confirm')
+                },
                 text: "This isn’t right - take me back",
                 color: CustomColors.fillWhite,
                 textColor: CustomColors.productNormalActive,

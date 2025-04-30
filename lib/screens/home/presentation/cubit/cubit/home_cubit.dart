@@ -1,10 +1,10 @@
+import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../../../../core/utils/statuses.dart';
 import '../../../../diary/data/diary.dart';
 import '../../../../diary/domain/repository/diary_repository.dart';
 
@@ -50,17 +50,15 @@ class HomeCubit extends Cubit<HomeState> {
       final studies = await repository.getStudies(ids);
 
       final updated = diaries
-          .map((diary) =>
-              diary.copyWith(id: diary.id, studyID: diary.studyID, tags: null))
-          .toList()
-          .where((element) =>
-              element.due.isAfter(DateTime.now()) &&
-              (element.status != DiaryStatus.submitted &&
-                  element.status != DiaryStatus.missed))
+          .map((diary) => diary.copyWith(
+              id: diary.id,
+              studyID: diary.studyID,
+              tags: null,
+              activeDays: diary.activeDays))
           .toList();
 
-      updated.sort((a, b) => a.start.compareTo(b.start));
-      emit(HomeLoaded(updated, weekDiaries, diaries.isNotEmpty, studies,
+      final sortedDiaries = prioritySort(updated);
+      emit(HomeLoaded(sortedDiaries, weekDiaries, diaries.isNotEmpty, studies,
           entries, completedStudy));
     } catch (e) {
       debugPrint("Error loading home page: $e");
@@ -107,4 +105,3 @@ class HomeCubit extends Cubit<HomeState> {
     return last.isEmpty;
   }
 }
-

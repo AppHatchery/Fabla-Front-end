@@ -76,7 +76,8 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
             Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const ActiveDatesPage(), settings: RouteSettings(name: "/ActiveDatesPage")));
+                    builder: (context) => const ActiveDatesPage(),
+                    settings: RouteSettings(name: "/ActiveDatesPage")));
           } else if (state is DynamicUploaded) {
             track(timer.stop(), "Finished");
             moveOn(context, state.questionsLength);
@@ -136,7 +137,8 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
   void previousPage() {
     if (controller.page == 0) {
       track(timer.stop(), "Back");
-      Navigator.pop(context);
+      RouteService()
+          .navigateBack(context: context, current: 'dynamic_onboarding');
     } else {
       controller.previousPage(
           duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);

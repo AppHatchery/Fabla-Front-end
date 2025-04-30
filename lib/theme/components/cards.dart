@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
@@ -16,7 +17,6 @@ import 'package:path/path.dart' as p;
 import '../../core/utils/formatter.dart';
 import '../../core/utils/statuses.dart';
 import '../../screens/diary/data/diary.dart';
-import '../../screens/diary/data/tag.dart';
 import '../custom_icons.dart';
 import '../resources/strings.dart';
 
@@ -40,11 +40,9 @@ class DiaryCard extends StatefulWidget {
 
 class _DiaryCardState extends State<DiaryCard> {
   DateTime now = DateTime.now();
-  late Duration remainingTime;
   late bool closed;
   String? study;
   Color color = CustomColors.productNormal;
-  Timer? timer;
 
   @override
   void initState() {
@@ -55,36 +53,23 @@ class _DiaryCardState extends State<DiaryCard> {
   void getStudyName() async {
     final repository = DiaryRepository();
     final _study = await repository.getStudy(widget.diary!.studyID);
-    setState(() {
-      study = _study?.name ?? '';
-      color = _study!.color!;
-    });
-  }
-
-  void _startTimer() {
-    if (!closed && timer == null) {
-      timer = Timer.periodic(const Duration(seconds: 1), (t) {
-        if (mounted) {
-          setState(() {
-            remainingTime = widget.diary!.due.difference(DateTime.now());
-            if (remainingTime.isNegative) {
-              if (widget.diary!.status != DiaryStatus.complete) closed = true;
-              t.cancel();
-              timer = null;
-            }
-          });
-        }
+    if (mounted) {
+      setState(() {
+        study = _study?.name ?? '';
+        color = _study!.color!;
       });
     }
   }
 
   bool isClosed() {
     now = DateTime.now();
-    remainingTime = widget.diary!.due.difference(now);
+    // remainingTime = widget.diary!.due.difference(now);
     final diary = widget.diary!;
+
+    if (diary.status == DiaryStatus.submitted) return false;
+
     return (diary.due.isBefore(now) && diary.status != DiaryStatus.complete) ||
-        diary.start.isAfter(now) ||
-        diary.status == DiaryStatus.submitted;
+        diary.start.isAfter(now);
   }
 
   bool isDiaryCompleteAndOverdue() {
@@ -92,181 +77,70 @@ class _DiaryCardState extends State<DiaryCard> {
         widget.diary!.due.isBefore(now);
   }
 
+  bool isDiaryOpen() {
+    return (widget.diary!.status == DiaryStatus.ongoing ||
+            widget.diary!.status == DiaryStatus.complete ||
+            widget.diary!.status == DiaryStatus.submitted ||
+            widget.diary!.status == DiaryStatus.missed ||
+            (widget.diary!.status == DiaryStatus.idle &&
+                widget.diary!.start.isBefore(now))) &&
+        widget.getPageName() == "history_list";
+  }
+
   @override
   void dispose() {
-    timer?.cancel();
-    timer = null;
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     closed = isClosed();
-    _startTimer();
-    return Stack(
-      children: [
-        Container(
-          height: 100,
-          decoration: BoxDecoration(
-            color: CustomColors.amber,
-            borderRadius: BorderRadius.circular(10),
-            shape: BoxShape.rectangle,
-          ),
-          margin: const EdgeInsets.only(left: 3, right: 3),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(CupertinoIcons.clock,
-                    color: CustomColors.fillWhite, size: 20),
-                const SizedBox(width: 4),
-                Text(
-                  "This task will expire in ${formatDuration(remainingTime.inMilliseconds)}",
-                  style: CustomTypography().body(color: Colors.white),
-                )
-              ],
+    return GestureDetector(
+      onTap: () => closed ? null : navigateToDiary(context),
+      child: Container(
+        decoration: BoxDecoration(
+          color: CustomColors.fillWhite,
+          borderRadius: BorderRadius.circular(10),
+          border: Border(
+              left: BorderSide(
+            color: closed ? CustomColors.ashGrey : color,
+            width: 4,
+          )),
+          boxShadow: const [
+            BoxShadow(
+              color: CustomColors.productBorderNormal,
+              blurRadius: 4,
+              spreadRadius: 1,
+              offset: Offset(0, 1),
             ),
-          ),
+          ],
+          shape: BoxShape.rectangle,
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: CustomColors.fillWhite,
-            borderRadius: BorderRadius.circular(10),
-            border: Border(
-                left: BorderSide(
-              color: color,
-              width: 4,
-            )),
-            boxShadow: const [
-              BoxShadow(
-                color: CustomColors.productBorderNormal,
-                blurRadius: 4,
-                spreadRadius: 1,
-                offset: Offset(0, 1),
+        margin: EdgeInsets.only(
+          left: 3,
+          right: 3,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 16, 16, 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              icon(),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: body(),
+                ),
               ),
+              !closed
+                  ? Icon(widget.diary!.status == DiaryStatus.submitted
+                      ? Icons.remove_red_eye_outlined
+                      : Icons.keyboard_arrow_right_rounded)
+                  : const SizedBox.shrink(),
             ],
-            shape: BoxShape.rectangle,
-          ),
-          margin: EdgeInsets.only(
-              left: 3,
-              right: 3,
-              top: closed || isDiaryCompleteAndOverdue() ? 0 : 30),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.restart_alt_outlined,
-                        color: color,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        study ?? "",
-                        style: CustomTypography()
-                            .bodyMedium(weight: FontWeight.w500),
-                      ),
-                      const SizedBox(
-                        width: 12,
-                      ),
-                      widget.diary?.tags != null &&
-                              widget.diary!.tags!.isNotEmpty
-                          ? Flexible(
-                              fit: FlexFit.loose,
-                              child: TagPill(tag: widget.diary!.tags!.first))
-                          : const SizedBox.shrink(),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.diary!.name,
-                        style: CustomTypography().titleSmall(),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        "About 5 minutes to complete",
-                        style: CustomTypography().bodyMedium(
-                            color: CustomColors.textSecondaryContent),
-                      )
-                    ],
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Divider(
-                    color: CustomColors.productBorderNormal,
-                    thickness: 1,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: GestureDetector(
-                    onTap:
-                        closed && widget.diary!.status != DiaryStatus.submitted
-                            ? () {}
-                            : () => navigateToDiary(context),
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: widget.diary!.status == DiaryStatus.submitted
-                              ? CustomColors.fillWhite
-                              : closed
-                                  ? CustomColors.fillDisabled
-                                  : CustomColors.productNormal,
-                          borderRadius: BorderRadius.circular(100),
-                          border: Border.all(
-                              color: closed &&
-                                      widget.diary!.status !=
-                                          DiaryStatus.submitted
-                                  ? CustomColors.fillDisabled
-                                  : CustomColors.productNormal,
-                              width: 2)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
-                        child: Text(
-                          closed &&
-                                  widget.diary!.status != DiaryStatus.submitted
-                              ? widget.diary!.start.isAfter(now)
-                                  ? "Opens at ${formatDurationToHHMM(widget.diary!.start)}"
-                                  : "Closed at ${formatDurationToHHMM(widget.diary!.due)}"
-                              : switch (widget.diary!.status) {
-                                  DiaryStatus.complete => "Continue",
-                                  DiaryStatus.idle => "Start",
-                                  DiaryStatus.ongoing => "Continue",
-                                  DiaryStatus.submitted => "View",
-                                  DiaryStatus.missed => "View",
-                                },
-                          style: CustomTypography().button(
-                            color: widget.diary!.status == DiaryStatus.submitted
-                                ? CustomColors.productNormal
-                                : closed
-                                    ? CustomColors.textDisabled
-                                    : CustomColors.textWhite,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-              ],
-            ),
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -300,108 +174,187 @@ class _DiaryCardState extends State<DiaryCard> {
       }
     }
   }
+
+  Widget icon() {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: ShapeDecoration(
+        color: closed ? CustomColors.fillDisabled : color.withAlpha(90),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      child: Image.asset(
+        determineDiaryIcon(widget.diary!),
+        height: 24,
+        width: 24,
+        color: closed ? CustomColors.midGrey : color,
+      ),
+    );
+  }
+
+  Widget body() {
+    final colors = formatDiaryCardDueColors(
+        widget.diary!.due, widget.diary!.start, widget.diary!.status);
+
+    final wording = formatDiaryCardDue(
+        widget.diary!.due, widget.diary!.start, widget.diary!.status);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 8,
+      children: [
+        Text(
+          widget.diary?.name ?? "",
+          style: CustomTypography().titleSmall(),
+        ),
+        isDiaryOpen()
+            ? DiaryCardTag(status: widget.diary!.status)
+            : Container(
+                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: ShapeDecoration(
+                  color: colors[0],
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4)),
+                ),
+                child: Text(
+                  wording,
+                  style: CustomTypography().titleRegular(color: colors[1]),
+                ),
+              )
+      ],
+    );
+  }
 }
 
-/// Used in [DiaryCard]
-class TagPill extends StatelessWidget {
-  final Tag tag;
-
-  const TagPill({
-    super.key,
-    required this.tag,
-  });
+class DiaryCardTag extends StatelessWidget {
+  final DiaryStatus status;
+  const DiaryCardTag({super.key, required this.status});
 
   @override
   Widget build(BuildContext context) {
-    late Color iconColor;
-    switch (tag.text) {
-      case "Done":
-        iconColor = CustomColors.darkGreen;
-        break;
-      case "Missed":
-        iconColor = CustomColors.warningActive;
-        break;
-      case "Awaiting Submission":
-        iconColor = CustomColors.orangeDark;
-        break;
-      case "Ongoing":
-        iconColor = CustomColors.productNormal;
-        break;
-      case "Ready to Start":
-        iconColor = CustomColors.yellowDark;
-        break;
-      case "13 Questions":
-        iconColor = CustomColors.yellowLight;
-        break;
-      case "12 Minutes":
-        iconColor = const Color(0xFFEEEEFC);
-        break;
-      default:
-        iconColor = CustomColors.productNormal;
-        break;
-    }
+    String text = "";
+    IconData? icon;
+    Color color = CustomColors.productNormal;
 
-    late Color foreground;
-    switch (tag.text) {
-      case "13 Questions":
-        foreground = CustomColors.yellowDark;
-        break;
-      case "12 Minutes":
-        foreground = const Color(0xFF0147A0);
-        break;
-      default:
-        foreground = Colors.black;
-        break;
-    }
-
-    late IconData icon;
-    switch (tag.text) {
-      case "13 Questions":
-        icon = CupertinoIcons.question_circle;
-        break;
-      case "12 Minutes":
-        icon = Icons.access_time_rounded;
-        break;
-      case "Done":
-        icon = Icons.done_rounded;
-        break;
-      case "Missed":
-        icon = Icons.block_rounded;
-        break;
-      case "Awaiting Submission":
+    switch (status) {
+      case DiaryStatus.complete:
+        text = "Awaiting Submission";
         icon = CupertinoIcons.cloud_upload;
+        color = CustomColors.orangeDark;
         break;
-      case "Ongoing":
+      case DiaryStatus.submitted:
+        text = "Submitted";
+        icon = Icons.done_rounded;
+        color = CustomColors.darkGreen;
+        break;
+      case DiaryStatus.missed:
+        text = "Missed";
+        icon = Icons.block_rounded;
+        color = CustomColors.warningActive;
+        break;
+      case DiaryStatus.ongoing:
+        text = "Ongoing";
         icon = Icons.rotate_right_outlined;
-        break;
-      case "Ready to Start":
-        icon = CupertinoIcons.chevron_right_circle;
+        color = CustomColors.productNormal;
         break;
       default:
-        icon = Icons.access_time_rounded;
+        text = "Ready to Start";
+        icon = CupertinoIcons.chevron_right_circle;
+        color = CustomColors.yellowDark;
         break;
     }
 
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          color: color,
+          size: 20,
+        ),
+        const SizedBox(
+          width: 5,
+        ),
+        Flexible(
+          child: Text(text,
+              style: CustomTypography().bodyMedium(
+                  color: CustomColors.textNormalContent,
+                  weight: FontWeight.w400)),
+        ),
+      ],
+    );
+  }
+}
+
+class DiaryCardSmall extends StatefulWidget {
+  final DiaryModel diary;
+  const DiaryCardSmall({super.key, required this.diary});
+
+  @override
+  State<DiaryCardSmall> createState() => _DiaryCardSmallState();
+}
+
+class _DiaryCardSmallState extends State<DiaryCardSmall> {
+  String? study;
+  Color color = CustomColors.productNormal;
+
+  @override
+  void initState() {
+    getStudyName();
+    super.initState();
+  }
+
+  void getStudyName() async {
+    final repository = DiaryRepository();
+    final _study = await repository.getStudy(widget.diary.studyID);
+    if (mounted) {
+      setState(() {
+        study = _study?.name ?? '';
+        color = _study?.color ?? color;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+      padding: EdgeInsets.all(16),
+      decoration: ShapeDecoration(
+          color: CustomColors.fillWhite,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: BorderSide(
+                  color: CustomColors.productBorderNormal, width: 1))),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: iconColor,
-            size: 20,
+          icon(),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Row(
+                children: [
+                  Text(
+                    widget.diary.name,
+                    style: CustomTypography().titleSmall(),
+                  ),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(
-            width: 5,
-          ),
-          Flexible(
-            child: Text(tag.text,
-                style: CustomTypography()
-                    .bodyMedium(color: foreground, weight: FontWeight.w500)),
-          ),
+          widget.diary.status == DiaryStatus.submitted
+              ? Icon(Icons.check_circle_rounded, color: CustomColors.darkGreen)
+              : const SizedBox.shrink(),
         ],
       ),
+    );
+  }
+
+  Widget icon() {
+    return Image.asset(
+      determineDiaryIcon(widget.diary),
+      height: 24,
+      width: 24,
+      color: color,
     );
   }
 }

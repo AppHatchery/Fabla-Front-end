@@ -1,8 +1,10 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
+import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'dart:developer' as dev;
 
 import '../../../../core/usecases/notifications.dart';
@@ -45,7 +47,10 @@ class SummaryRepository {
         }
       }
       final newDiary = diary.copyWith(
-          id: diary.id, studyID: diary.studyID, prompts: cleanPrompts);
+          id: diary.id,
+          studyID: diary.studyID,
+          prompts: cleanPrompts,
+          activeDays: diary.activeDays);
       return newDiary;
     } catch (e) {
       dev.log("Error loading summary: $e",
@@ -127,12 +132,14 @@ class SummaryRepository {
               id: diary.id,
               studyID: diary.studyID,
               status: DiaryStatus.submitted,
+              activeDays: diary.activeDays,
               currentEntry: diary.currentEntry + 1);
         } else {
           newDiary = diary.copyWith(
               id: diary.id,
               studyID: diary.studyID,
               status: DiaryStatus.idle,
+              activeDays: diary.activeDays,
               currentEntry: diary.currentEntry + 1);
         }
 
@@ -154,5 +161,49 @@ class SummaryRepository {
           name: "SummaryRepository - submitDiary");
       return false;
     }
+  }
+
+  /// Asynchronous method to calculate earned incentives for a specific study per submission.
+  /// This function calculates the total amount earned based on the completion status of all diaries
+  /// within the same study as the provided diary. It determines if the user has achieved the bonus
+  /// incentive by checking if the completion rate exceeds the study's bonus threshold percentage.
+  ///
+  /// Parameters:
+  /// - [diary]: The DiaryModel instance used to identify the study and related diaries.
+  ///
+  Future<void> calculateEarnedIncentives(DiaryModel diary) async {
+    final studyDiaries = diaryRepository
+        .getAllDiariesWithMultipleEntries()
+        .where((d) => d.studyID == diary.studyID)
+        .toList();
+
+    final study = diaryRepository
+        .getAllStudies()
+        .firstWhere((study) => study.studyId == diary.studyID);
+
+    double earned = 0;
+    bool bonusAchieved = false;
+
+    // Count completed diaries
+    int completedCount = 0;
+    for (var d in studyDiaries) {
+      if (d.status == DiaryStatus.submitted) {
+        completedCount++;
+        earned += study.incentive.amount;
+      }
+    }
+
+    // Check if bonus threshold is met
+    double completionRate = completedCount / studyDiaries.length;
+    if (completionRate * 100 >= study.incentive.threshold) {
+      earned += study.incentive.bonus;
+      bonusAchieved = true;
+    }
+
+    return await PendoService.track('Incentives', {
+      'Earned': formatMoney(earned, currency: study.incentive.currency),
+      'BonusAchieve': bonusAchieved,
+      'Study': study.name
+    });
   }
 }

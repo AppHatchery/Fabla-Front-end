@@ -22,6 +22,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:location/location.dart' as l;
 // import 'package:just_audio/just_audio.dart';
 
 import '../../../../theme/components/buttons.dart';
@@ -616,8 +617,21 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     summaryCubit.removeResponse(widget.diary, prompt, path);
   }
 
-  void submitDiary(DiaryModel diary) {
-    summaryCubit.submitDiary(diary);
+  void submitDiary(DiaryModel diary) async {
+    // Doesn't Matter the status of the permission
+    checkForLocation().then((value) => summaryCubit.submitDiary(diary));
+  }
+
+  Future<bool> checkForLocation() async {
+    final permission = await summaryCubit.checkForLocationPermission();
+
+    if (permission == null) return true; // Experiment doesn't need location
+    if (permission) return true;
+
+    // Permission not granted, request it
+    final location = l.Location();
+    final result = await location.requestPermission();
+    return result == l.PermissionStatus.granted;
   }
 
   void pendoEvent() async {

@@ -20,21 +20,22 @@ class DiaryModel implements Comparable<DiaryModel> {
   final int currentEntry;
   final List<PromptModel> prompts;
   final List<Notification> notifications;
+  final List<int>? activeDays;
 
-  DiaryModel({
-    required this.id,
-    required this.studyID,
-    required this.name,
-    required this.prompts,
-    required this.tags,
-    required this.status,
-    required this.due,
-    required this.start,
-    required this.entries,
-    required this.currentEntry,
-    required this.end,
-    required this.notifications,
-  });
+  DiaryModel(
+      {required this.id,
+      required this.studyID,
+      required this.name,
+      required this.prompts,
+      required this.tags,
+      required this.status,
+      required this.due,
+      required this.start,
+      required this.entries,
+      required this.currentEntry,
+      required this.end,
+      required this.notifications,
+      required this.activeDays});
 
   /// Factory constructor that creates a Diary object from a DiaryEntity.
   /// This function generates a Diary instance using data from a provided DiaryEntity object.
@@ -49,22 +50,22 @@ class DiaryModel implements Comparable<DiaryModel> {
     final _prompts =
         entity.prompts.map((prompt) => PromptModel.fromEntity(prompt)).toList();
     return DiaryModel(
-      id: entity.id,
-      studyID: entity.studyID,
-      name: entity.name,
-      prompts: _prompts,
-      tags: null,
-      status: entity.status ?? DiaryStatus.idle,
-      due: entity.due,
-      start: entity.start,
-      entries: entity.entries,
-      currentEntry: entity.currentEntry,
-      end: entity.end,
-      notifications: json
-          .decode(entity.notifications)
-          .map<Notification>((e) => Notification.fromEntity(e))
-          .toList(),
-    );
+        id: entity.id,
+        studyID: entity.studyID,
+        name: entity.name,
+        prompts: _prompts,
+        tags: null,
+        status: entity.status ?? DiaryStatus.idle,
+        due: entity.due,
+        start: entity.start,
+        entries: entity.entries,
+        currentEntry: entity.currentEntry,
+        end: entity.end,
+        notifications: json
+            .decode(entity.notifications)
+            .map<Notification>((e) => Notification.fromEntity(e))
+            .toList(),
+        activeDays: entity.activeDays);
   }
 
   factory DiaryModel.fromJson(Map<String, dynamic> json, int studyID) {
@@ -83,10 +84,11 @@ class DiaryModel implements Comparable<DiaryModel> {
       currentEntry: 0,
       end: DateTime.parse(json['end_time']).toLocal(),
       notifications: (json['notifications'] as List?)
-              ?.map((e) => Notification.fromJson(
-                  e, DateTime.parse(json['start_time'])))
+              ?.map((e) =>
+                  Notification.fromJson(e, DateTime.parse(json['start_time'])))
               .toList() ??
           [],
+      activeDays: (json['active_days'])?.cast<int>(),
     );
   }
 
@@ -100,21 +102,22 @@ class DiaryModel implements Comparable<DiaryModel> {
       DateTime? due,
       int? currentEntry,
       DateTime? start,
-      List<Notification>? notifications}) {
+      List<Notification>? notifications,
+      List<int>? activeDays}) {
     return DiaryModel(
-      id: id,
-      studyID: studyID,
-      name: name ?? this.name,
-      prompts: prompts ?? this.prompts,
-      tags: tags ?? this.tags,
-      status: status ?? this.status,
-      due: due ?? this.due,
-      start: start ?? this.start,
-      entries: entries,
-      currentEntry: currentEntry ?? this.currentEntry,
-      end: end,
-      notifications: notifications ?? this.notifications,
-    );
+        id: id,
+        studyID: studyID,
+        name: name ?? this.name,
+        prompts: prompts ?? this.prompts,
+        tags: tags ?? this.tags,
+        status: status ?? this.status,
+        due: due ?? this.due,
+        start: start ?? this.start,
+        entries: entries,
+        currentEntry: currentEntry ?? this.currentEntry,
+        end: due ?? end,
+        notifications: notifications ?? this.notifications,
+        activeDays: activeDays);
   }
 
   /// Compares this DiaryModel object with another DiaryModel object.
