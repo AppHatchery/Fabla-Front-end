@@ -785,23 +785,23 @@ class _TimerWidgetState extends State<TimerWidget>
                 LayoutBuilder(builder: (context, constraints) {
                   final availableWidth = constraints.maxWidth;
                   final availableHeight = constraints.maxHeight;
-      
+
                   double width = 315;
                   double height = 315;
-      
+
                   if (availableWidth < 315) {
                     width = availableWidth;
                     height = width / 1;
                   }
-      
+
                   if (height > availableHeight) {
                     height = availableHeight;
                     width = height * 1;
                   }
-      
+
                   width = width.clamp(0.0, 315);
                   height = height.clamp(0.0, 315);
-      
+
                   return SizedBox(
                     height: height,
                     width: width,
@@ -812,7 +812,8 @@ class _TimerWidgetState extends State<TimerWidget>
                             value: _progressAnimation.value,
                             strokeWidth: 19,
                             color: CustomColors.productNormalActive,
-                            backgroundColor: CustomColors.productLightBackground,
+                            backgroundColor:
+                                CustomColors.productLightBackground,
                             strokeCap: StrokeCap.round,
                           );
                         }),
@@ -833,7 +834,8 @@ class _TimerWidgetState extends State<TimerWidget>
                           children: [
                             complete
                                 ? timerDisplay()
-                                : inProgress && (timer != null && timer!.isActive)
+                                : inProgress &&
+                                        (timer != null && timer!.isActive)
                                     ? timerDisplay()
                                     : widget.userInteraction
                                         ? editableControls()
@@ -1316,8 +1318,13 @@ class _TimerWidgetState extends State<TimerWidget>
             assetAudioPath: 'assets/audio/bowl.wav',
             loopAudio: true,
             vibrate: true,
-            volumeSettings: VolumeSettings.fade(
-                fadeDuration: const Duration(milliseconds: 500), volume: 1.0),
+            volumeSettings: VolumeSettings.staircaseFade(
+                fadeSteps: List.generate(10, (index) {
+                  return VolumeFadeStep(const Duration(seconds: 3),
+                      0.1 + (index * 0.1) // This creates values from 0.1 to 1.0
+                      );
+                }),
+                volume: 1.0),
             warningNotificationOnKill: Platform.isIOS,
             androidFullScreenIntent: false,
             notificationSettings: const NotificationSettings(

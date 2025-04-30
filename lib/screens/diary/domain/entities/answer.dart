@@ -35,7 +35,7 @@ class Answer {
     return Answer(
       id: id ?? this.id,
       date: date ?? this.date,
-      response: response ?? this.response,
+      response: response,
     );
   }
 }

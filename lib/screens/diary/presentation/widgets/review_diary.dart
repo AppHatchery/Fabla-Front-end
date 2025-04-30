@@ -278,51 +278,58 @@ class _ReviewDiaryState extends State<ReviewDiary> {
         final width = MediaQuery.of(context).size.width;
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 6.0),
-          child: Container(
-            width: width,
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-            decoration: BoxDecoration(
-              color: CustomColors.grey,
-              borderRadius: BorderRadius.circular(12),
-              shape: BoxShape.rectangle,
-            ),
-            child: Row(children: [
-              Expanded(
-                child: Text("Response recorded externally",
-                    style: CustomTypography().bodyMedium(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-              ),
-            ]),
-          ),
+          child: prompt.answer != null
+              ? Container(
+                  width: width,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: CustomColors.grey,
+                    borderRadius: BorderRadius.circular(12),
+                    shape: BoxShape.rectangle,
+                  ),
+                  child: Row(children: [
+                    Expanded(
+                      child: Text("Response recorded externally",
+                          style: CustomTypography().bodyMedium(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                  ]),
+                )
+              : const SizedBox.shrink(),
         );
       case ResponseType.image:
       case ResponseType.video:
       case ResponseType.imageVideo:
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Preview(
-            recordings: prompt.answer?.recordings ?? [],
-            delete: (String path) {},
-            interactions: false,
-          ),
+          child: prompt.answer != null
+              ? Preview(
+                  recordings: prompt.answer?.recordings ?? [],
+                  delete: (String path) {},
+                  interactions: false,
+                )
+              : const SizedBox.shrink(),
         );
       case ResponseType.timer:
         final width = MediaQuery.of(context).size.width;
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0),
-          child: Container(
-            width: width,
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Row(children: [
-              Expanded(
-                child: Text("Completed the timer ✅",
-                    style: CustomTypography().bodyMedium(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-              ),
-            ]),
-          ),
+          child: prompt.answer != null
+              ? Container(
+                  width: width,
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Row(children: [
+                    Expanded(
+                      child: Text("Completed the timer ✅",
+                          style: CustomTypography().bodyMedium(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                  ]),
+                )
+              : const SizedBox.shrink(),
         );
       default:
         return const SizedBox.shrink();

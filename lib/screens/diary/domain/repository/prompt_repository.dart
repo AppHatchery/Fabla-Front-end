@@ -80,9 +80,13 @@ class PromptRepository {
     // If the index is provided, update the response at the specified index
     //! Slider | Multiple | Radio | Timer | Webview : Their index is always 0 because they can only have one response
     //! Audio | Image | Video : Their index is always null because they are being saved as a recording
-    final responses = answer?.response ?? [];
+    dynamic responses = answer?.response ?? [];
     if (index != null && index >= 0 && index < responses.length) {
-      responses[index] = response;
+      if (response != null) {
+        responses[index] = response;
+      } else {
+        responses = null;
+      }
     } else if (!isMediaResponse) {
       responses.add(response);
     }

@@ -438,7 +438,8 @@ class _QuestionPageState extends State<QuestionPage>
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: BlocConsumer<PromptCubit, PromptState>(
-        buildWhen: (previous, current) => current is PromptLoaded || current is PromptInitial,
+        buildWhen: (previous, current) =>
+            current is PromptLoaded || current is PromptInitial,
         builder: (context, state) {
           if (state is PromptInitial) {
             return buildInitial();
@@ -509,8 +510,8 @@ class _QuestionPageState extends State<QuestionPage>
         selected: selected,
         onChanged: (value) {
           final response = value.join("/ ");
-          save(prompt, response, 'other', 0);
-          if (value.isNotEmpty) {
+          save(prompt, response.isEmpty ? null : response, 'other', 0);
+          if (response.isNotEmpty) {
             widget.answerAdded(true);
           } else {
             widget.answerAdded(false);
@@ -696,6 +697,11 @@ class _QuestionPageState extends State<QuestionPage>
   void checkForResponse(PromptModel prompt1) {
     bool isValidResponse = false;
     final answer = prompt1.answer;
+
+    if (!prompt1.required) {
+      widget.answerAdded(true);
+      return;
+    }
 
     switch (prompt1.responseType) {
       case ResponseType.instruction:

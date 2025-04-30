@@ -8,6 +8,7 @@ class ExperimentModel {
   final String name;
   final String duration;
   final String description;
+  final String version;
 
   ExperimentModel(
       {required this.id,
@@ -16,7 +17,8 @@ class ExperimentModel {
       required this.organization,
       required this.name,
       required this.duration,
-      required this.description});
+      required this.description,
+      required this.version});
 
   factory ExperimentModel.fromJson(Map<String, dynamic> json) {
     return ExperimentModel(
@@ -27,6 +29,7 @@ class ExperimentModel {
       name: json['name'] ?? '',
       duration: json['duration'] ?? '',
       description: json['description'] ?? '',
+      version: json['version'] ?? '',
     );
   }
 
@@ -39,6 +42,7 @@ class ExperimentModel {
       name: entity.name,
       duration: entity.duration,
       description: entity.description,
+      version: entity.version,
     );
   }
 }
