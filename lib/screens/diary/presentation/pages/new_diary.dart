@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/pages/pvt_test.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/audio_quiestions_widget.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -105,8 +106,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => DiarySummaryPage(diary: widget.diary),
-                settings: RouteSettings(name: "/DiarySummaryPage")));
+                 builder: (context) => PvtTestPage(diary: widget.diary),
+                settings: RouteSettings(name: "/PvtTestPage")));
+
       }
     }
   }

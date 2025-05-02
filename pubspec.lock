@@ -1081,10 +1081,10 @@ packages:
     dependency: "direct main"
     description:
       name: pendo_sdk
-      sha256: "55d519d87e7eb3c55466b14365b7122b4a97c570807779c17b9becce3cb30a06"
+      sha256: "9caa479faebf209118e45feaaff7c0e2e6f834998abf9723685abb0539dc9677"
       url: "https://pub.dev"
     source: hosted
-    version: "3.6.1"
+    version: "3.6.2"
   permission_handler:
     dependency: "direct main"
     description:
