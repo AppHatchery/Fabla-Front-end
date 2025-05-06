@@ -463,10 +463,10 @@ class DiaryRepository {
         }
       }
 
-      return (element.start.isAfter(day) ||
-              element.start.isAtSameMomentAs(day)) &&
-          element.start.isBefore(nextDay) &&
-          element.due.isAfter(now) &&
+      return (((element.start.isAfter(day) ||
+                      element.start.isAtSameMomentAs(day)) &&
+                  element.start.isBefore(nextDay)) ||
+              (element.due.isAfter(now) && element.due.isBefore(nextDay))) &&
           element.status != DiaryStatus.submitted;
     }).toList();
     return filtered.map((e) => DiaryModel.fromEntity(e)).toList();

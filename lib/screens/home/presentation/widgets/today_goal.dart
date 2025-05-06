@@ -65,24 +65,21 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     final end = start.add(const Duration(days: 1));
 
     for (var study in widget.studies) {
+      if (study.goals.daily == 0) {
+        continue;
+      }
+
       final diaries = widget.diaries
           .where((diary) =>
               diary.studyID == study.studyId &&
-              (diary.start.isBefore(end) && diary.start.isAfter(start) ||
-                  diary.start.isAtSameMomentAs(start)))
+              (((diary.start.isAfter(start) ||
+                          diary.start.isAtSameMomentAs(start)) &&
+                      diary.start.isBefore(end)) ||
+                  (diary.due.isAfter(start) && diary.due.isBefore(end))))
           .toList();
       if (diaries.isNotEmpty) {
         data[study] = diaries;
       }
-    }
-
-    for (final entry in data.keys) {
-      if (entry.goals.daily > 0) {
-        goalsAvailable = true;
-        break;
-      }
-
-      goalsAvailable = false;
     }
 
     for (final entry in data.keys) {
@@ -182,6 +179,10 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       final entry = entriesList[i];
       final study = entry.key;
       final diaries = entry.value;
+
+      if (study.goals.daily == 0) {
+        continue;
+      }
 
       final completedCount = diaries
           .where((diary) => diary.status == DiaryStatus.submitted)
