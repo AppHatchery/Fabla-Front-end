@@ -37,7 +37,7 @@
     },
     {
       "id": "2:2718562603036521648",
-      "lastPropertyId": "11:2953292468504398457",
+      "lastPropertyId": "12:5939914576974872814",
       "name": "Diary",
       "properties": [
         {
@@ -95,13 +95,18 @@
           "id": "11:2953292468504398457",
           "name": "notifications",
           "type": 9
+        },
+        {
+          "id": "12:5939914576974872814",
+          "name": "activeDays",
+          "type": 27
         }
       ],
       "relations": []
     },
     {
       "id": "3:2102395644300957026",
-      "lastPropertyId": "7:5724173273923276127",
+      "lastPropertyId": "8:6838657705324870840",
       "name": "Experiment",
       "properties": [
         {
@@ -138,6 +143,11 @@
         {
           "id": "7:5724173273923276127",
           "name": "description",
+          "type": 9
+        },
+        {
+          "id": "8:6838657705324870840",
+          "name": "version",
           "type": 9
         }
       ],

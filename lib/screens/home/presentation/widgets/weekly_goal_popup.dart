@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
@@ -68,6 +69,9 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                 children: data.entries.isNotEmpty
                     ? data.entries.toList().asMap().entries.map((e) {
                         final value = e.value;
+                        if (value.key.goals.weekly == 0) {
+                          return const SizedBox();
+                        }
                         return goalWidget(
                             width,
                             totalWidth,
@@ -112,16 +116,19 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
     final progress = (currentEntries / goal) * totalWidth;
     final progressWidth = (progress > totalWidth) ? totalWidth : progress;
 
+    final icon = determineDiaryIcon(diaries.first);
+
     return Column(
       children: [
         //TAG
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Icon(
-              Icons.restart_alt_outlined,
+            Image.asset(
+              icon,
               color: color,
-              size: 20,
+              height: 20,
+              width: 20,
             ),
             const SizedBox(width: 6),
             Text(

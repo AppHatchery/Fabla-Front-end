@@ -1,7 +1,7 @@
+import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
-import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -10,9 +10,14 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:popover/popover.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:rive/rive.dart' as rive;
+
+extension _TextExtension on rive.Artboard {
+  rive.TextValueRun? textRun(String name) => component<rive.TextValueRun>(name);
+}
 
 class StudyCalendar extends StatefulWidget {
   final List<StudyModel> studies;
@@ -35,19 +40,19 @@ class _StudyCalendarState extends State<StudyCalendar> {
   late DateTime focusedDay;
   late DateTime today;
   late DateTime selectedDate;
-  late List<DiaryModel> diaries;
+  late List<DiaryModel> diaries; // Diaries for today
   late bool isBeforeToday;
-  late List<DiaryModel> diaryList;
-  late List<StudyModel> studies;
+  late List<DiaryModel> diaryList; // All the diaries
   final DiaryRepository repository = DiaryRepository();
   Map<DateTime, List<String>>? events = {};
-  int activeDays = 0;
+  Set<DateTime> activeDates = {};
 
   ScrollController? controller;
+  late rive.StateMachineController _controller;
 
-  //Incentive
-  double acquired = 0.0;
-  double total = 0.0;
+  rive.TextValueRun? days;
+  rive.TextValueRun? cheer;
+  rive.TextValueRun? encouragement;
 
   @override
   void initState() {
@@ -57,21 +62,10 @@ class _StudyCalendarState extends State<StudyCalendar> {
     controller = ScrollController();
     focusedDay = today;
     selectedDate = today;
-    activeDays = repository.countSubmittedDays();
-    diaries = fetchDiaries(today);
     diaryList = _getAllDiaries();
-    studies = _getStudies();
-
-    for (DiaryModel diary in diaryList) {
-      final date =
-          DateTime(diary.start.year, diary.start.month, diary.start.day);
-      events!.putIfAbsent(date, () => []);
-      if (events![date]!.isEmpty) {
-        events![date]!.add(diary.start.toString());
-      }
-    }
-
-    calculateIncentives();
+    diaries = fetchDiaries(today);
+    events = getCalendarEvents(diaryList);
+    getActiveDates(diaryList);
 
     track();
     super.initState();
@@ -80,6 +74,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
   @override
   void dispose() {
     controller?.dispose();
+    _controller.dispose();
     pageController = null;
     pageController?.dispose();
     super.dispose();
@@ -98,7 +93,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
         child: Column(
           children: [
             Container(
-              color: CustomColors.yellowTertiary,
+              color: CustomColors.productLightBackground,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -112,7 +107,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                               onPressed: () => Navigator.pop(context),
                               icon: const Icon(
                                 CupertinoIcons.clear,
-                                color: CustomColors.yellowDark,
+                                color: CustomColors.productNormalActive,
                                 size: 20,
                               )),
                         ),
@@ -120,9 +115,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          "Study Progress",
-                          style: CustomTypography()
-                              .titleLarge(color: CustomColors.yellowDark),
+                          "Study Calendar",
+                          style: CustomTypography().titleLarge(
+                              color: CustomColors.productNormalActive),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -135,9 +130,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 24),
-                    child: header(widget.studies.isNotEmpty
-                        ? widget.studies.first.incentive
-                        : null),
+                    child: header(),
                   ),
                 ],
               ),
@@ -147,14 +140,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               color: CustomColors.fillNormal,
               child: Column(
+                spacing: 24,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  calendar(),
-                  const SizedBox(height: 12),
-                  body(widget.studies.isNotEmpty
-                      ? widget.studies.first.incentive
-                      : null),
-                ],
+                children: [calendar(), entries()],
               ),
             )
           ],
@@ -169,37 +157,68 @@ class _StudyCalendarState extends State<StudyCalendar> {
         "Study Calendar", {"viewed_at": now.toIso8601String()});
   }
 
-  Widget header(Incentive? incentive) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          incentive != null
-              ? '${incentive.currency}${acquired.toStringAsFixed(2)}'
-              : activeDays.toString(),
-          style: CustomTypography().headlineLargeCustom(
-              color: CustomColors.yellowDark, fontSize: 64.sp),
-        ),
-        Text(
-          incentive != null ? "Current Incentive" : 'Days active',
-          style: CustomTypography().titleSmall(color: CustomColors.yellowDark),
-        ),
-      ],
+  Widget header() {
+    final width = MediaQuery.of(context).size.width;
+    return SizedBox(
+      width: width,
+      height: 150,
+      child: rive.RiveAnimation.asset(
+        'assets/animations/ghosts-calendar.riv',
+        onInit: _onInit,
+        fit: BoxFit.contain,
+      ),
     );
   }
 
-  Widget body(Incentive? incentive) {
-    return incentive != null ? compensation() : entries();
+  void _onInit(rive.Artboard art) {
+    var ctrl = rive.StateMachineController.fromArtboard(art, "Ghosts");
+
+    ctrl?.isActive = false;
+    if (ctrl != null) {
+      art.addController(ctrl);
+      final _days = art.textRun('Days');
+      final _cheer = art.textRun('Cheer');
+      final _encouragement = art.textRun('Encouragement');
+      setState(() {
+        _controller = ctrl;
+        days = _days;
+        cheer = _cheer;
+        encouragement = _encouragement;
+      });
+
+      final arrival = _controller.findSMI('First arrival');
+      if (arrival != null && mounted) {
+        arrival.value = true;
+      }
+
+      determineAnimationWords();
+    }
+  }
+
+  void determineAnimationWords() {
+    days?.text = Intl.plural(activeDates.length,
+        other:
+            "${activeDates.length} days active - You're doing GREAT! Keep working towards the goals",
+        one: "1 day active - You're doing GOOD! Keep working towards the goals",
+        zero:
+            "No days logged yet - Make sure to look out for your upcoming diaries");
+    cheer?.text = "";
+    encouragement?.text = "";
   }
 
   Widget calendar() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Study Calendar",
-          style: CustomTypography().titleLarge(),
-          textAlign: TextAlign.left,
+        Row(
+          spacing: 6,
+          children: [
+            Text(
+              "Study Calendar",
+              style: CustomTypography().titleLarge(),
+            ),
+            HelpButton()
+          ],
         ),
         const SizedBox(height: 12),
         Container(
@@ -215,6 +234,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
             focusedDay: focusedDay,
             currentDay: today,
             availableGestures: AvailableGestures.horizontalSwipe,
+            rowHeight: 54,
             headerStyle: const HeaderStyle(
                 titleCentered: false,
                 formatButtonVisible: false,
@@ -224,7 +244,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
               outsideTextStyle: CustomTypography()
                   .bodyLarge(color: CustomColors.textTertiaryContent),
               todayDecoration: const BoxDecoration(
-                  color: CustomColors.productNormal, shape: BoxShape.circle),
+                  color: CustomColors.productNormalActive,
+                  shape: BoxShape.circle),
             ),
             startingDayOfWeek: StartingDayOfWeek.monday,
             daysOfWeekHeight: 45,
@@ -294,8 +315,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
                 );
               },
               defaultBuilder: (context, day, focusedDay) {
-                final color =
-                    selectedDate == day ? CustomColors.productNormal : null;
+                final color = selectedDate == day
+                    ? CustomColors.productNormalActive
+                    : null;
 
                 final textColor = selectedDate == day
                     ? CustomColors.textWhite
@@ -317,13 +339,13 @@ class _StudyCalendarState extends State<StudyCalendar> {
               },
               todayBuilder: (context, date, time) {
                 final color = (today == selectedDate || date == selectedDate)
-                    ? CustomColors.productNormal
+                    ? CustomColors.productNormalActive
                     : CustomColors.productLightBackground;
 
                 final textColor =
                     (today == selectedDate || date == selectedDate)
                         ? CustomColors.textWhite
-                        : CustomColors.textTertiaryContent;
+                        : CustomColors.productNormal;
                 return Center(
                   child: Container(
                     width: 33,
@@ -341,8 +363,12 @@ class _StudyCalendarState extends State<StudyCalendar> {
               },
               singleMarkerBuilder: (context, date, event) {
                 isBeforeToday = date.isBefore(today);
+                final isDiaryOnEventSubmitted = _diaryOnEventSubmitted(date);
+
                 final color = isBeforeToday
-                    ? CustomColors.textTertiaryContent
+                    ? isDiaryOnEventSubmitted
+                        ? CustomColors.productLightPrimaryActive
+                        : CustomColors.productBorderNormal
                     : CustomColors.productNormalActive;
                 return Container(
                   width: 7.0,
@@ -360,26 +386,38 @@ class _StudyCalendarState extends State<StudyCalendar> {
     );
   }
 
-  _onDaySelected(DateTime selectedDay, DateTime focusedDate) {
-    if (selectedDay.isAfter(DateTime.now()) ||
-        DateUtils.isSameDay(DateTime.now(), selectedDay)) {
-      setState(() {
-        //reloading diaries bases on new selected date
+  bool _diaryOnEventSubmitted(DateTime date) {
+    final diaries = diaryList.where((diary) {
+      return DateTime(
+        diary.due.year,
+        diary.due.month,
+        diary.due.day,
+      ).isAtSameMomentAs(DateTime(date.year, date.month, date.day));
+    }).toList();
 
-        focusedDay = selectedDay;
-        selectedDate = selectedDay;
-        diaries = fetchDiaries(selectedDate);
-      });
-    }
+    //check if any of the diaries were submitted
+    return diaries.any((diary) {
+      return diary.status == DiaryStatus.submitted;
+    });
+  }
+
+  _onDaySelected(DateTime selectedDay, DateTime focusedDate) {
+    setState(() {
+      //reloading diaries bases on new selected date
+
+      focusedDay = selectedDay;
+      selectedDate = selectedDay;
+      diaries = fetchDiaries(selectedDate);
+    });
   }
 
   Widget entries() {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
           DateUtils.isSameDay(DateTime.now(), selectedDate)
-              ? "Entries Due Today ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)}  "
-              : "Entries Due ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)} ",
-          style: CustomTypography().titleSmall()),
+              ? "Tasks Available Today"
+              : "Tasks Due ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)} ",
+          style: CustomTypography().titleLarge()),
       const SizedBox(height: 4),
 
       //Scrollable widget to display all entries due on selected date
@@ -391,16 +429,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
               itemBuilder: (context, index) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10.0),
-                  child: DiaryCard(
+                  child: DiaryCardSmall(
                     diary: diaries[index],
-                    refresh: (value) {
-                      if (value) {
-                        setState(() {
-                          widget.refresh(value);
-                        });
-                      }
-                    },
-                    getPageName: widget.getPageName,
                   ),
                 );
               },
@@ -431,263 +461,43 @@ class _StudyCalendarState extends State<StudyCalendar> {
     return list;
   }
 
-  List<StudyModel> _getStudies() {
-    return repository.getAllStudies();
+  getActiveDates(List<DiaryModel> diaries) {
+    // get dates of submitted diaries
+    for (final diary in diaries) {
+      if (diary.status == DiaryStatus.submitted) {
+        activeDates.add(diary.start);
+      }
+    }
   }
 
   //Retrieving entries for a specific date (Called From StudyCalendar)
   List<DiaryModel> fetchDiaries(DateTime date) {
-    setState(() {
-      diaryList = repository.getDailyDiaries(date);
-    });
-    return diaryList;
-  }
-
-  //Incentive Calculation
-  Widget compensation() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Compensation Details",
-          style: CustomTypography().titleLarge(),
-          textAlign: TextAlign.left,
-        ),
-        const SizedBox(height: 6),
-        totalIncentive(),
-        const SizedBox(height: 12),
-        Text(
-          "Current Progress",
-          style: CustomTypography().titleLarge(),
-          textAlign: TextAlign.left,
-        ),
-        const SizedBox(height: 6),
-        CurrentIncentive(
-          acquired: acquired,
-          total: total,
-          currency: widget.studies.first.incentive.currency,
-          diaries: diaryList,
-        )
-      ],
-    );
-  }
-
-  Widget incentive(Incentive inc) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Amount
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text("Per Diary (Total = 20)",
-                style: CustomTypography().titleSmall()),
-            Text("${inc.currency}${inc.amount} per Daily Dairy",
-                style: CustomTypography().titleSmall()),
-          ],
-        ),
-
-        const SizedBox(
-          height: 6,
-        ),
-
-        //Bonus
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text("Dairy Bonus", style: CustomTypography().titleSmall()),
-            Text("${inc.currency}${inc.bonus}",
-                style: CustomTypography().titleSmall()),
-          ],
-        ),
-        const SizedBox(
-          height: 6,
-        ),
-      ],
-    );
-  }
-
-  Widget totalIncentive() {
-    return Container(
-      decoration: BoxDecoration(
-        color: CustomColors.fillWhite,
-        borderRadius: BorderRadius.circular(12),
-        shape: BoxShape.rectangle,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text("Total Incentive Available",
-              style: CustomTypography().titleSmall()),
-          Text("${widget.studies.first.incentive.currency}${total.toStringAsFixed(2)}",
-              style: CustomTypography().titleSmall()),
-        ],
-      ),
-    );
-  }
-
-  void calculateIncentives() {
-    double _acquired = 0.0;
-    double _total = 0.0;
-
-    // Create a map for quick lookup of studies by studyId
-    Map<int, StudyModel> studyMap = {
-      for (var study in studies) study.studyId: study
-    };
-
-    // Calculate completed diaries and total incentives
-    for (final diary in diaryList) {
-      final study = studyMap[diary.studyID]!;
-      final incentiveAmount = study.incentive.amount;
-      _total += incentiveAmount;
-      if (diary.status == DiaryStatus.submitted) {
-        _acquired += incentiveAmount;
-      }
-    }
-
-    // Add bonuses and map studies to diaries in one loop
-    Map<StudyModel, List<DiaryModel>> data = {
-      for (var study in widget.studies) study: []
-    };
-
-    for (final diary in diaries) {
-      final study = studyMap[diary.studyID]!;
-      data[study]?.add(diary);
-    }
-
-    // Add bonuses if completed diaries surpass the threshold
-    for (var entry in data.entries) {
-      final study = entry.key;
-      final diaries = entry.value;
-
-      // Add bonus to total
-      _total += study.incentive.bonus;
-
-      // Check if completed diaries have surpassed the threshold percentage
-      final threshold = study.incentive.threshold;
-      final totalDiaries = diaries.length;
-      final completedDiaries = diaries
-          .where((diary) => diary.status == DiaryStatus.submitted)
-          .length;
-      final percentage = (completedDiaries / totalDiaries) * 100;
-
-      if (percentage >= threshold) {
-        _acquired += study.incentive.bonus;
-        bonusAchieved();
-      }
-    }
-
-    setState(() {
-      total = _total;
-      acquired = _acquired;
-    });
-  }
-
-  void bonusAchieved() async {
-    await PendoService.track("BonusAchieved", null);
+    return filterTodaysDiaries(date, diaryList);
   }
 }
 
-class CurrentIncentive extends StatefulWidget {
-  final double acquired;
-  final double total;
-  final String currency;
-  final List<DiaryModel> diaries;
-  const CurrentIncentive(
-      {super.key,
-      required this.acquired,
-      required this.currency,
-      required this.total,
-      required this.diaries});
-
-  @override
-  State<CurrentIncentive> createState() => _CurrentIncentiveState();
-}
-
-class _CurrentIncentiveState extends State<CurrentIncentive> {
-  bool expanded = false;
-  int completed = 0;
-  int remaining = 0;
-
-  double value = 0;
-
-  @override
-  void initState() {
-    completed = widget.diaries
-        .where((element) => element.status == DiaryStatus.submitted)
-        .length;
-    remaining = widget.diaries.length - completed;
-    value = widget.acquired / widget.total;
-    super.initState();
-  }
+class HelpButton extends StatelessWidget {
+  const HelpButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: CustomColors.fillWhite,
-        borderRadius: BorderRadius.circular(12),
-        shape: BoxShape.rectangle,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Earned Incentive: ${widget.currency}${widget.acquired.toStringAsFixed(2)}",
-                  style: CustomTypography().titleSmall()),
-              IconButton(
-                  onPressed: () {
-                    setState(() {
-                      expanded = !expanded;
-                    });
-                  },
-                  icon: Icon(
-                    expanded
-                        ? CupertinoIcons.chevron_up
-                        : CupertinoIcons.chevron_down,
-                    size: 20,
-                    color: CustomColors.textNormalContent,
-                  ))
-            ],
-          ),
-          const SizedBox(height: 12),
-          LinearProgressIndicator(
-            color: CustomColors.productNormal,
-            backgroundColor: CustomColors.productLightBackground,
-            value: value.isNaN ? 0 : value,
-            minHeight: 12,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          Visibility(
-            visible: expanded,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 12),
-                const Divider(
-                  height: 1,
-                  color: CustomColors.grey,
+    return IconButton(
+        iconSize: 20,
+        color: CustomColors.productNormalActive,
+        onPressed: () => showPopover(
+            context: context,
+            bodyBuilder: (context) => Container(
+                  padding: EdgeInsets.all(16),
+                  child: Text(
+                    "Active: You have completed at least 1 task on a due day. Due day: A day that you have tasks due.",
+                    style: CustomTypography().titleRegular(),
+                  ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  "You've completed $completed entries.",
-                  style: CustomTypography()
-                      .bodyMedium(color: CustomColors.textNormalContent),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  "There are $remaining more entries to complete",
-                  style: CustomTypography()
-                      .bodyMedium(color: CustomColors.textNormalContent),
-                )
-              ],
-            ),
-          )
-        ],
-      ),
-    );
+            direction: PopoverDirection.top,
+            constraints: BoxConstraints(maxWidth: 220),
+            arrowHeight: 0,
+            arrowWidth: 0,
+            barrierColor: Colors.transparent),
+        icon: Icon(Icons.help_outline_rounded));
   }
 }

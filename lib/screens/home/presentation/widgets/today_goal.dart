@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
@@ -8,7 +9,7 @@ import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
-import 'package:rive/rive.dart';
+import 'package:rive/rive.dart' as rive;
 
 class TodayGoalWidget extends StatefulWidget {
   final int dailyGoal;
@@ -33,10 +34,10 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   Map<StudyModel, List<DiaryModel>> data = {};
   bool goalsAvailable = true;
 
-  late StateMachineController _controller;
+  late rive.StateMachineController _controller;
 
-  void _onInit(Artboard art) {
-    var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
+  void _onInit(rive.Artboard art) {
+    var ctrl = rive.StateMachineController.fromArtboard(art, "Ghosts");
 
     ctrl?.isActive = false;
     if (ctrl != null) {
@@ -58,24 +59,27 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       if (widget.isHomeTipClosed.value) determineAnimation();
     });
     // create map of study to diaries
+
+    final start = DateTime(
+        DateTime.now().year, DateTime.now().month, DateTime.now().day, 4, 0, 0);
+    final end = start.add(const Duration(days: 1));
+
     for (var study in widget.studies) {
+      if (study.goals.daily == 0) {
+        continue;
+      }
+
       final diaries = widget.diaries
           .where((diary) =>
               diary.studyID == study.studyId &&
-              diary.start.day == DateTime.now().day)
+              (((diary.start.isAfter(start) ||
+                          diary.start.isAtSameMomentAs(start)) &&
+                      diary.start.isBefore(end)) ||
+                  (diary.due.isAfter(start) && diary.due.isBefore(end))))
           .toList();
       if (diaries.isNotEmpty) {
         data[study] = diaries;
       }
-    }
-
-    for (final entry in data.keys) {
-      if (entry.goals.daily > 0) {
-        goalsAvailable = true;
-        break;
-      }
-
-      goalsAvailable = false;
     }
 
     for (final entry in data.keys) {
@@ -147,7 +151,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                               child: SizedBox(
                                 height: 120,
                                 width: 180,
-                                child: RiveAnimation.asset(
+                                child: rive.RiveAnimation.asset(
                                   'assets/animations/ghosts.riv',
                                   onInit: _onInit,
                                   fit: BoxFit.cover,
@@ -176,6 +180,10 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       final study = entry.key;
       final diaries = entry.value;
 
+      if (study.goals.daily == 0) {
+        continue;
+      }
+
       final completedCount = diaries
           .where((diary) => diary.status == DiaryStatus.submitted)
           .length;
@@ -184,13 +192,16 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
           "${data.length > 1 && i != data.length - 1 ? ' | ' : ''}";
       var color = study.color ?? CustomColors.productNormal;
 
+      final icon = determineDiaryIcon(diaries.first);
+
       entryWidgets.add(Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.restart_alt_outlined,
+          Image.asset(
+            icon,
             color: color,
-            size: 20,
+            height: 20,
+            width: 20,
           ),
           const SizedBox(width: 6),
           Text(

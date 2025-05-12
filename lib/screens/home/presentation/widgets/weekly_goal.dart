@@ -123,6 +123,10 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
     int totalCurrentEntries = 0;
 
     for (var study in widget.studies) {
+      if (study.goals.weekly == 0) {
+        continue;
+      }
+
       final diaries =
           widget.diaries.where((diary) => diary.studyID == study.studyId);
       data[study] = diaries.toList();

@@ -29,6 +29,8 @@ class EditDiaryPage extends StatefulWidget {
 class _EditDiaryPageState extends State<EditDiaryPage> {
   late PromptCubit promptCubit;
 
+  bool proceed = true;
+
   // Functions to run before moving to the next page
   List<Function> preFunctions = [];
 
@@ -50,7 +52,8 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
       appBar: AppBar(
         backgroundColor: CustomColors.fillNormal,
         leading: IconButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () =>
+                proceed ? Navigator.pop(context) : showSnackError(),
             icon: Icon(Icons.close_rounded)),
         centerTitle: true,
         title: Text('Edit Response',
@@ -58,6 +61,8 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
                 .headlineMedium(color: CustomColors.textNormalContent)),
       ),
       body: BlocConsumer<PromptCubit, PromptState>(
+          buildWhen: (previous, current) =>
+              current is PromptLoaded || current is PromptInitial,
           builder: (context, state) {
             if (state is PromptInitial) {
               return buildInitial();
@@ -69,7 +74,11 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
               return buildInitial();
             }
           },
-          listener: (context, state) {}),
+          listener: (context, state) {
+            if (state is PromptLoaded) {
+              canUserProceed(state.prompt);
+            }
+          }),
     );
   }
 
@@ -86,6 +95,38 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
       height: 900,
       width: double.infinity,
     );
+  }
+
+  void canUserProceed(PromptModel prompt) {
+    bool isValidResponse = false;
+    final answer = prompt.answer;
+
+    if (!prompt.required) {
+      setState(() => proceed = true);
+      return;
+    }
+
+    switch (prompt.responseType) {
+      case ResponseType.instruction:
+        isValidResponse = true;
+        break;
+      case ResponseType.audio:
+      case ResponseType.textAudio:
+      case ResponseType.image:
+      case ResponseType.video:
+      case ResponseType.imageVideo:
+        if (prompt.responseType == ResponseType.textAudio) {
+          isValidResponse = (answer?.recordings.isNotEmpty ?? false) ||
+              (answer?.response != null && answer!.response!.isNotEmpty);
+        } else {
+          isValidResponse = answer?.recordings.isNotEmpty ?? false;
+        }
+        break;
+      default:
+        isValidResponse = answer?.response?.isNotEmpty ?? false;
+    }
+
+    setState(() => proceed = isValidResponse);
   }
 
   Widget buildPrompt(PromptModel prompt) {
@@ -157,7 +198,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 30),
           child: CustomFlatButton(
-            isDisabled: false,
+            isDisabled: !proceed,
             onClick: () => back(),
             text: "Back To Summary",
           ),
@@ -330,5 +371,30 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
     }
 
     Navigator.pop(context, true);
+  }
+
+  void showSnackError() {
+    final snackBar = SnackBar(
+      content: Row(
+        spacing: 4,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.error_outline,
+            color: CustomColors.warningActive,
+          ),
+          Text(
+            "Answer missing. Please answer the question",
+            style: CustomTypography().bodyMedium(
+                color: CustomColors.warningActive, weight: FontWeight.w600),
+          ),
+        ],
+      ),
+      backgroundColor: CustomColors.warningFill,
+      duration: const Duration(seconds: 2),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }

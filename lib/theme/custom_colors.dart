@@ -53,6 +53,7 @@ class CustomColors {
   static const Color yellowDark = Color(0xFFFE9600);
   static const Color yellowTertiary = Color(0xFFFFEACC);
   static const Color amber = Color(0xFFFEB954);
+  static const Color tangerine = Color(0xFFF59241);
 
   //Orange
   static const Color orangeLight = Color(0xFFFFF1EA);
@@ -70,6 +71,8 @@ class CustomColors {
   static const Color greyDarker = Color(0xFFD7D7D7);
   static const Color grey = Color(0xFFF3F3F3);
   static const Color greyTrack = Color(0xFFD9D9D9);
+  static const Color midGrey = Color(0xFF818181);
+  static const Color ashGrey = Color(0xFF6B6B6B);
 
   //Green
   static const Color darkGreen = Color(0xFF2EA642);

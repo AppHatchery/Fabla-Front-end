@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -37,15 +38,7 @@ class _CustomCalenderState extends State<CustomCalender> {
     selectedDate = today;
     diaries = fetchDiaries(today);
     diaryList = _getAllDiaries();
-
-    for (DiaryModel diary in diaryList) {
-      final date =
-          DateTime(diary.start.year, diary.start.month, diary.start.day);
-      events!.putIfAbsent(date, () => []);
-      if (events![date]!.isEmpty) {
-        events![date]!.add(diary.start.toString());
-      }
-    }
+    events = getCalendarEvents(diaryList);
     super.initState();
   }
 
@@ -61,11 +54,11 @@ class _CustomCalenderState extends State<CustomCalender> {
         },
         child: Container(
           decoration: BoxDecoration(
-            color: CustomColors.fillWhite,
-            borderRadius: BorderRadius.circular(12),
-            shape: BoxShape.rectangle,
-            border: Border.all(color: CustomColors.productBorderNormal, width: 2)
-          ),
+              color: CustomColors.fillWhite,
+              borderRadius: BorderRadius.circular(12),
+              shape: BoxShape.rectangle,
+              border: Border.all(
+                  color: CustomColors.productBorderNormal, width: 2)),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
           child: TableCalendar(
             firstDay: DateTime.utc(2010, 10, 16),

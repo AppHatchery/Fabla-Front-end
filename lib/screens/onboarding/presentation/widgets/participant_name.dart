@@ -14,15 +14,13 @@ class ParticipantName extends StatefulWidget {
 }
 
 class _ParticipantNameState extends State<ParticipantName> {
-  
-
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Nickname",
+          "Your Preferred Name",
           style: CustomTypography().titleLarge(),
         ),
         const SizedBox(
@@ -30,14 +28,17 @@ class _ParticipantNameState extends State<ParticipantName> {
         ),
         CustomTextField(
           controller: widget.controller,
-          hint: "Enter a nickname",
+          hint: "Enter your preferred name",
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           filled: true,
           borderRadius: BorderRadius.circular(11),
           borderWidth: 2,
           suffix: IconButton(
             onPressed: () => widget.controller.clear(),
-            icon: const Icon(CustomIcons.cancel, size: 20,),
+            icon: const Icon(
+              CustomIcons.cancel,
+              size: 20,
+            ),
             color: CustomColors.productBorderNormal,
           ),
         )
