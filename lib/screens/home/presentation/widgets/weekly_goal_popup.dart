@@ -69,6 +69,9 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                 children: data.entries.isNotEmpty
                     ? data.entries.toList().asMap().entries.map((e) {
                         final value = e.value;
+                        if (value.key.goals.weekly == 0) {
+                          return const SizedBox();
+                        }
                         return goalWidget(
                             width,
                             totalWidth,

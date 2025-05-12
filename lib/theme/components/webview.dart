@@ -67,30 +67,63 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   void detectSurveyFinish() async {
     final String javaScript = '''
     (function() {
-      function detectPhrases() {
-        const targetPhrases = [
-          "We thank you for your time spent taking this survey",
-          "Your response has been recorded",
-          "Thank you for taking the survey",
-        ];
+    const nextButtonSelectors = [
+        'button:contains("Next")', 
+        'input[type="button"][value*="Next"]',
+        'input[type="submit"][value*="Next"]',
+        'a:contains("Next")',
+        '.next-button',
+        '#nextButton',
+        '[aria-label*="next"]',
+        '[aria-label*="Next"]',
         
-        const pageContent = document.body.textContent || "";
+        // Qualtrics
+        '.NextButton',
+        '#NextButton',
         
-        const foundPhrases = targetPhrases.filter(phrase => {
-          const regex = new RegExp('\\\\b' + phrase + '\\\\b', 'i');
-          return regex.test(pageContent);
-        });
+        // SurveyMonkey
+        '.btn-next',
+        '.next',
         
-        if (foundPhrases.length > 0) {
-          return true;
-        } else {
-          return false;
+        // Google Forms
+        '.freebirdFormviewerViewNavigationNextButton',
+        
+        // Generic
+        '[id*="next"]',
+        '[class*="next"]',
+        '[name*="next"]',
+        
+        'button, input[type="button"], input[type="submit"], a.button'
+    ];
+
+    for (let selector of nextButtonSelectors) {
+        try {
+            const elements = document.querySelectorAll(selector);
+            for (let el of elements) {
+                const tag = el.tagName.toLowerCase();
+                if (!['button', 'input', 'a'].includes(tag)) continue;
+
+                const elementText = el.innerText || el.value || el.textContent || '';
+                const ariaLabel = el.getAttribute('aria-label') || '';
+                const isVisible = el.offsetParent !== null &&
+                                  getComputedStyle(el).display !== 'none' &&
+                                  getComputedStyle(el).visibility !== 'hidden';
+
+                if (isVisible && (
+                    elementText.toLowerCase().includes('next') ||
+                    ariaLabel.toLowerCase().includes('next')
+                )) {
+                    // Found a visible "Next" button
+                    return false;
+                }
+            }
+        } catch (e) {
         }
-      }
-      
-      // Execute the function and return the result
-      return detectPhrases();
-    })();
+    }
+
+    // No "Next" button found
+    return true;
+})();
     ''';
 
     final data = await controller.runJavaScriptReturningResult(javaScript);

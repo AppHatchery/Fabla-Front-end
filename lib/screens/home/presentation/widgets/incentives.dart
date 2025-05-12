@@ -171,6 +171,11 @@ class _StudyIncentivesState extends State<StudyIncentives> {
                 shrinkWrap: true,
                 physics: const ClampingScrollPhysics(),
                 itemBuilder: (context, index) {
+                  if (widget.studies[index].incentive.amount == 0 &&
+                      widget.studies[index].incentive.bonus == 0) {
+                    return const SizedBox.shrink();
+                  }
+
                   final diaries = diaryList
                       .where((diary) =>
                           diary.studyID == widget.studies[index].studyId)

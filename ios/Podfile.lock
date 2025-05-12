@@ -89,7 +89,7 @@ PODS:
     - GoogleUtilities/Reachability (~> 8.0)
     - GoogleUtilities/UserDefaults (~> 8.0)
     - nanopb (~> 3.30910.0)
-  - FirebaseRemoteConfigInterop (11.9.0)
+  - FirebaseRemoteConfigInterop (11.12.0)
   - FirebaseSessions (11.8.0):
     - FirebaseCore (~> 11.8.0)
     - FirebaseCoreExtension (~> 11.8.0)
@@ -137,31 +137,31 @@ PODS:
   - GoogleDataTransport (10.1.0):
     - nanopb (~> 3.30910.0)
     - PromisesObjC (~> 2.4)
-  - GoogleUtilities/AppDelegateSwizzler (8.0.2):
+  - GoogleUtilities/AppDelegateSwizzler (8.1.0):
     - GoogleUtilities/Environment
     - GoogleUtilities/Logger
     - GoogleUtilities/Network
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Environment (8.0.2):
+  - GoogleUtilities/Environment (8.1.0):
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Logger (8.0.2):
+  - GoogleUtilities/Logger (8.1.0):
     - GoogleUtilities/Environment
     - GoogleUtilities/Privacy
-  - GoogleUtilities/MethodSwizzler (8.0.2):
+  - GoogleUtilities/MethodSwizzler (8.1.0):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Network (8.0.2):
+  - GoogleUtilities/Network (8.1.0):
     - GoogleUtilities/Logger
     - "GoogleUtilities/NSData+zlib"
     - GoogleUtilities/Privacy
     - GoogleUtilities/Reachability
-  - "GoogleUtilities/NSData+zlib (8.0.2)":
+  - "GoogleUtilities/NSData+zlib (8.1.0)":
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Privacy (8.0.2)
-  - GoogleUtilities/Reachability (8.0.2):
+  - GoogleUtilities/Privacy (8.1.0)
+  - GoogleUtilities/Reachability (8.1.0):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
-  - GoogleUtilities/UserDefaults (8.0.2):
+  - GoogleUtilities/UserDefaults (8.1.0):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
   - IosAwnCore (0.10.0)
@@ -181,10 +181,10 @@ PODS:
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - Pendo (3.6.1.9043)
-  - pendo_sdk (3.6.0):
+  - Pendo (3.7.0.9334)
+  - pendo_sdk (3.7.0):
     - Flutter
-    - Pendo (~> 3.6.1)
+    - Pendo (~> 3.7.0)
   - permission_handler_apple (9.3.0):
     - Flutter
   - PromisesObjC (2.4.0)
@@ -196,6 +196,8 @@ PODS:
     - Flutter
     - FlutterMacOS
   - url_launcher_ios (0.0.1):
+    - Flutter
+  - video_compress (0.3.0):
     - Flutter
   - video_player_avfoundation (0.0.1):
     - Flutter
@@ -233,6 +235,7 @@ DEPENDENCIES:
   - rive_common (from `.symlinks/plugins/rive_common/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
+  - video_compress (from `.symlinks/plugins/video_compress/ios`)
   - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/darwin`)
   - wakelock_plus (from `.symlinks/plugins/wakelock_plus/ios`)
   - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/darwin`)
@@ -313,6 +316,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
+  video_compress:
+    :path: ".symlinks/plugins/video_compress/ios"
   video_player_avfoundation:
     :path: ".symlinks/plugins/video_player_avfoundation/darwin"
   wakelock_plus:
@@ -339,7 +344,7 @@ SPEC CHECKSUMS:
   FirebaseCrashlytics: a1102c035f18d5dd94a5969ee439c526d0c9e313
   FirebaseInstallations: 6c963bd2a86aca0481eef4f48f5a4df783ae5917
   FirebaseMessaging: 487b634ccdf6f7b7ff180fdcb2a9935490f764e8
-  FirebaseRemoteConfigInterop: 710954a00e956c5fe5144a8e46164f0361389203
+  FirebaseRemoteConfigInterop: 82b81fd06ee550cbeff40004e2c106daedf73e38
   FirebaseSessions: c4d40a97f88f9eaff2834d61b4fea0a522d62123
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_fgbg: 31c0d1140a131daea2d342121808f6aa0dcd879d
@@ -351,7 +356,7 @@ SPEC CHECKSUMS:
   flutter_sound_core: 68fa54fa26446f73eee9c15344c1c018cfc9e98d
   GoogleAppMeasurement: fc0817122bd4d4189164f85374e06773b9561896
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
-  GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d
+  GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   IosAwnCore: 653786a911089012092ce831f2945cd339855a89
   location: d5cf8598915965547c3f36761ae9cc4f4e87d22e
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
@@ -359,18 +364,19 @@ SPEC CHECKSUMS:
   objectbox_flutter_libs: 2f30755c12b0fe104d75445c3ba879e3072eda54
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
-  Pendo: 6ccfb23f0e9b25ce8bd4c93d771fb0a06b4c919e
-  pendo_sdk: 68dadc99d5ec3cdc6fcbfb574bb492f7367605ea
+  Pendo: 2b91ddffc68128e128c54586e19f5c6bd68ac262
+  pendo_sdk: 249337d87123b2db7fd59bd784387d676765dfb6
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   rive_common: 4743dbfd2911c99066547a3c6454681e0fa907df
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
+  video_compress: fce97e4fb1dfd88175aa07d2ffc8a2f297f87fbe
   video_player_avfoundation: 7c6c11d8470e1675df7397027218274b6d2360b3
   wakelock_plus: 373cfe59b235a6dd5837d0fb88791d2f13a90d56
   webview_flutter_wkwebview: a4af96a051138e28e29f60101d094683b9f82188
 
-PODFILE CHECKSUM: 9a1ad1ef0a0ecd7f06a63217daf0d0b6b3f1c0fc
+PODFILE CHECKSUM: c3f27a97eaaa1ab0ceb9e11359a3770b399d95e8
 
-COCOAPODS: 1.13.0
+COCOAPODS: 1.16.2
