@@ -48,6 +48,7 @@ class HomeCubit extends Cubit<HomeState> {
 
       final ids = weekDiaries.map((e) => e.studyID).toSet().toList();
       final studies = await repository.getStudies(ids);
+      final allStudies = await repository.getAllStudiesWithColor();
 
       final updated = diaries
           .map((diary) => diary.copyWith(
@@ -58,8 +59,15 @@ class HomeCubit extends Cubit<HomeState> {
           .toList();
 
       final sortedDiaries = prioritySort(updated);
-      emit(HomeLoaded(sortedDiaries, weekDiaries, diaries.isNotEmpty, studies,
-          entries, completedStudy));
+      emit(HomeLoaded(
+        sortedDiaries,
+        weekDiaries,
+        diaries.isNotEmpty,
+        studies,
+        allStudies,
+        entries,
+        completedStudy,
+      ));
     } catch (e) {
       debugPrint("Error loading home page: $e");
       emit(const HomeError("Something went wrong"));

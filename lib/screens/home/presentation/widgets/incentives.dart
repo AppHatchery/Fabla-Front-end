@@ -491,7 +491,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                 color: color,
               ),
               Expanded(
-                child: Text("Bonus Threshold",
+                child: Text("Get Your Bonus",
                     style: CustomTypography()
                         .bodyMedium(color: CustomColors.textNormalContent)),
               ),
@@ -619,7 +619,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                       children: [
                         Expanded(
                             child: Text(
-                                "Bonus When You Complete $bonusEntriesRequired/$totalEntriesRequired",
+                                "Bonus When You Complete $bonusEntriesRequired Entries",
                                 style: CustomTypography().bodyMedium())),
                         Text(
                             formatMoney(widget.study.incentive.bonus,

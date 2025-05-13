@@ -416,7 +416,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
       Text(
           DateUtils.isSameDay(DateTime.now(), selectedDate)
               ? "Tasks Available Today"
-              : "Tasks Due ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)} ",
+              : "Tasks Available on ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)} ",
           style: CustomTypography().titleLarge()),
       const SizedBox(height: 4),
 
@@ -431,6 +431,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   padding: const EdgeInsets.symmetric(vertical: 10.0),
                   child: DiaryCardSmall(
                     diary: diaries[index],
+                    study: widget.studies.firstWhere(
+                        (study) => study.studyId == diaries[index].studyID),
                   ),
                 );
               },
