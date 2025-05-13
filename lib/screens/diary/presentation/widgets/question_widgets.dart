@@ -2093,7 +2093,7 @@ class TimePickerWidget extends StatefulWidget {
 class _TimePickerWidgetState extends State<TimePickerWidget> {
   @override
   Widget build(BuildContext context) {
-    return OnboardingTimePicker(
+    return TimeElapsedPicker(
       time: widget.prompt.answer?.response?.firstOrNull,
       subtitle: widget.prompt.subtitle ?? "",
       onChanged: (value) => widget.respond(value),

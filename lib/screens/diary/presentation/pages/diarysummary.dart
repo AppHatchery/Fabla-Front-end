@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
-import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -538,9 +537,13 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             : const SizedBox.shrink();
       case ResponseType.timePicker:
         final width = MediaQuery.of(context).size.width;
-        final time =
-            timeOfDayFromString(prompt.answer?.response?.firstOrNull ?? "");
-        return prompt.answer != null
+        final answer = prompt.answer?.response?.firstOrNull;
+        final elapsed = answer != null
+            ? Duration(
+                hours: int.parse(answer.split(":")[0]),
+                minutes: int.parse(answer.split(":")[1]))
+            : null;
+        return elapsed != null
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12.0),
                 child: Container(
@@ -548,7 +551,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   child: Row(children: [
                     Expanded(
-                      child: Text(localizations.formatTimeOfDay(time),
+                      child: Text(
+                          "${elapsed.inHours.toString().padLeft(2, '0')} h ${elapsed.inMinutes.remainder(60).toString().padLeft(2, '0')} min",
                           style: CustomTypography().bodyMedium(),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
