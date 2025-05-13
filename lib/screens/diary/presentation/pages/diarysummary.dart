@@ -185,7 +185,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   Route _completionRoute() {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>
-          DiaryCompletionPage(diary: widget.diary),
+          const DiaryCompletionPage(),
       transitionDuration: const Duration(milliseconds: 1200),
       reverseTransitionDuration: const Duration(milliseconds: 1200),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
