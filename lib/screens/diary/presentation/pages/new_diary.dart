@@ -616,9 +616,11 @@ class _QuestionPageState extends State<QuestionPage>
             bottomSheetController: _bottomSheetController,
           )
         : prompt.responseType == ResponseType.instruction
-            ? SizedBox(
-                child: CustomFormatterText(text: prompt.question),
-              )
+            ? SingleChildScrollView(
+              child: SizedBox(
+                  child: CustomFormatterText(text: prompt.question),
+                ),
+            )
             : Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 14),

@@ -66,6 +66,16 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
   }
 
   @override
+  void didUpdateWidget(covariant SliderQuestionCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value != oldWidget.value && widget.value != _value) {
+      setState(() {
+        _value = widget.value ?? 0;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,

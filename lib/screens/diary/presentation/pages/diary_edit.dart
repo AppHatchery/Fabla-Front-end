@@ -122,6 +122,15 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
           isValidResponse = answer?.recordings.isNotEmpty ?? false;
         }
         break;
+      case ResponseType.multiple:
+        // turn to list of strings
+        final selected = answer?.response != null
+            ? answer?.response!.first.split("/ ")
+            : <String>[];
+        // remove empty strings
+        selected?.removeWhere((element) => element.isEmpty);
+        isValidResponse = selected?.isNotEmpty ?? false;
+        break;
       default:
         isValidResponse = answer?.response?.isNotEmpty ?? false;
     }
@@ -265,7 +274,8 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
           scaleMax: prompt.option!.maxValue!,
           scaleMinText: prompt.option!.minLabel,
           scaleMaxText: prompt.option!.maxLabel,
-          onSliderValueChanged: (value) => save(prompt, value, 'other', 0),
+          onSliderValueChanged: (value) =>
+              save(prompt, value.toString(), 'other', 0),
           isSliderEnabled: true,
         );
       case ResponseType.webview:
