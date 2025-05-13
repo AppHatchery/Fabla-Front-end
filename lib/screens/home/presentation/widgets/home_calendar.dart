@@ -389,9 +389,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
   bool _diaryOnEventSubmitted(DateTime date) {
     final diaries = diaryList.where((diary) {
       return DateTime(
-        diary.due.year,
-        diary.due.month,
-        diary.due.day,
+        diary.start.year,
+        diary.start.month,
+        diary.start.day,
       ).isAtSameMomentAs(DateTime(date.year, date.month, date.day));
     }).toList();
 
