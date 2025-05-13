@@ -34,6 +34,20 @@ class AudioPlayerProvider with ChangeNotifier {
     });
   }
 
+  Future<void> initializeAudio(String filePath) async {
+    if (_currentFilePath != filePath) {
+      await stop();
+      _currentFilePath = filePath;
+      await _audioPlayer.setSourceDeviceFile(filePath);
+    
+      final duration = await _audioPlayer.getDuration();
+      if (duration != null) {
+        _maxDuration = duration.inMilliseconds.toDouble();
+        notifyListeners();
+      }
+    }
+  }
+
   Future<void> playFile(String filePath) async {
     if (_currentFilePath != filePath) {
       await stop();

@@ -400,6 +400,15 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
   @override
   void initState() {
     super.initState();
+    _initializeAudio();
+  }
+
+  Future<void> _initializeAudio() async {
+    final audioProvider =
+        Provider.of<AudioPlayerProvider>(context, listen: false);
+    final dir = await getApplicationDocumentsDirectory();
+    final path = p.join(dir.path, widget.recording.path);
+    await audioProvider.initializeAudio(path);
   }
 
   @override
@@ -661,6 +670,20 @@ class NewAudioCard extends StatefulWidget {
 }
 
 class _NewAudioCardState extends State<NewAudioCard> {
+  @override
+  void initState() {
+    super.initState();
+    _initializeAudio();
+  }
+
+  Future<void> _initializeAudio() async {
+    final audioProvider =
+        Provider.of<AudioPlayerProvider>(context, listen: false);
+    final dir = await getApplicationDocumentsDirectory();
+    final path = p.join(dir.path, widget.recording.path);
+    await audioProvider.initializeAudio(path);
+  }
+
   @override
   Widget build(BuildContext context) {
     final audioProvider = Provider.of<AudioPlayerProvider>(context);
