@@ -2,18 +2,18 @@ import 'dart:async';
 
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/providers/audio_player_provider.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-
+import 'package:provider/provider.dart';
 import '../../core/utils/formatter.dart';
 import '../../core/utils/statuses.dart';
 import '../../screens/diary/data/diary.dart';
@@ -397,27 +397,14 @@ class AudioDiaryCard extends StatefulWidget {
 }
 
 class _AudioDiaryCardState extends State<AudioDiaryCard> {
-  //Audio Player
-  late AudioPlayer audioPlayer;
-  bool isPlaying = false;
-  double currentSliderPosition = 0;
-  double maxSliderPosition = 0;
-  Duration maxDuration = Duration.zero;
-
   @override
   void initState() {
-    playerInit();
     super.initState();
   }
 
   @override
-  void dispose() {
-    audioPlayer.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final audioProvider = Provider.of<AudioPlayerProvider>(context);
     final width = MediaQuery.of(context).size.width;
     if (widget.isExpanded) {
       PendoService.track("AudioOpen", {
@@ -454,12 +441,10 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                     visible: widget.isExpanded,
                     child: Column(
                       children: [
-                        // transcript(),
-                        /// Remove sized if transcript is available
                         const SizedBox(
                           height: 18,
                         ),
-                        slider(width),
+                        slider(width, audioProvider),
                       ],
                     )),
                 Visibility(
@@ -471,7 +456,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                     height: 12,
                   ),
                 ),
-                controls(),
+                controls(audioProvider),
               ],
             ),
           ),
@@ -514,35 +499,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
     );
   }
 
-  Widget transcript() {
-    return Row(
-      children: [
-        Expanded(
-            child: Text(Strings.lorem,
-                overflow: TextOverflow.ellipsis,
-                style: CustomTypography()
-                    .caption(color: CustomColors.textSecondaryContent))),
-        Expanded(
-            child: SizedBox(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              const IconButton(
-                onPressed: null,
-                icon: Icon(Icons.edit_note_rounded),
-                color: CustomColors.textSecondaryContent,
-              ),
-              Text("view full transcript",
-                  style: CustomTypography()
-                      .caption(color: CustomColors.textSecondaryContent))
-            ],
-          ),
-        )),
-      ],
-    );
-  }
-
-  Widget slider(double width) {
+  Widget slider(double width, AudioPlayerProvider audioProvider) {
     return Column(
       children: [
         SizedBox(
@@ -557,23 +514,23 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                       const RoundSliderThumbShape(enabledThumbRadius: 5),
                   overlayShape: SliderComponentShape.noOverlay),
               child: Slider(
-                value: currentSliderPosition,
-                max: maxSliderPosition,
-                onChanged: (val) => seek(val),
+                value: audioProvider.currentPosition,
+                max: audioProvider.maxDuration,
+                onChanged: (val) => audioProvider.seek(val),
               ),
             )),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(formatDuration(currentSliderPosition.toInt())),
-            Text(formatDuration(maxDuration.inMilliseconds.toInt()))
+            Text(formatDuration(audioProvider.currentPosition.toInt())),
+            Text(formatDuration(audioProvider.maxDuration.toInt()))
           ],
         )
       ],
     );
   }
 
-  Widget controls() {
+  Widget controls(AudioPlayerProvider audioProvider) {
     return Visibility(
       visible: widget.isExpanded,
       replacement: Row(
@@ -581,7 +538,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
         children: [
           Text(formatDateShort(widget.recording.date),
               style: CustomTypography().bodyMedium()),
-          Text(formatDuration(maxDuration.inMilliseconds.toInt()),
+          Text(formatDuration(audioProvider.maxDuration.toInt()),
               style: CustomTypography().bodyMedium())
         ],
       ),
@@ -596,7 +553,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                   children: [
                     IconButton(
                       onPressed: () {
-                        rewind();
+                        audioProvider.rewind();
                         PendoService.track("AudioControl", {
                           "action": "backward",
                           "study_date": "${DateTime.now()}",
@@ -614,9 +571,13 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                           "study_date": "${DateTime.now()}",
                           "prompt_number": "${widget.promptId + 1}"
                         });
-                        play();
+                        if (audioProvider.isPlaying) {
+                          audioProvider.pause();
+                        } else {
+                          _playAudio(audioProvider);
+                        }
                       },
-                      icon: Icon(isPlaying
+                      icon: Icon(audioProvider.isPlaying
                           ? CupertinoIcons.pause_fill
                           : CupertinoIcons.play_arrow_solid),
                       color: Colors.black,
@@ -629,7 +590,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                           "study_date": "${DateTime.now()}",
                           "prompt_number": "${widget.promptId + 1}"
                         });
-                        forward();
+                        audioProvider.forward();
                       },
                       icon: const Icon(CupertinoIcons.goforward_15),
                       color: Colors.black,
@@ -662,39 +623,10 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
     );
   }
 
-  Future<void> play() async =>
-      isPlaying ? await audioPlayer.pause() : await audioPlayer.resume();
-
-  Future<void> seek(double value) async {
-    currentSliderPosition = value;
-    await audioPlayer.seek(Duration(milliseconds: value.toInt()));
-    if (!isPlaying) {
-      await audioPlayer.resume();
-    }
-  }
-
-  Future<void> rewind() async {
-    final int currentPositionMillis = currentSliderPosition.toInt();
-    int reduce = 15000;
-
-    if (currentPositionMillis - reduce < 0) {
-      reduce = currentSliderPosition.toInt();
-    }
-
-    int position = currentPositionMillis - reduce;
-    await audioPlayer.seek(Duration(milliseconds: position));
-  }
-
-  Future<void> forward() async {
-    final int currentPositionMillis = currentSliderPosition.toInt();
-    int increase = 15000;
-
-    if (currentPositionMillis + increase > maxSliderPosition.toInt()) {
-      increase = maxSliderPosition.toInt() - currentPositionMillis;
-    }
-
-    int position = currentSliderPosition.toInt() + increase;
-    await audioPlayer.seek(Duration(milliseconds: position));
+  Future<void> _playAudio(AudioPlayerProvider audioProvider) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final path = p.join(dir.path, widget.recording.path);
+    await audioProvider.playFile(path);
   }
 
   Future<void> delete() async {
@@ -704,38 +636,6 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
     if (results == true) {
       widget.delete!();
     }
-  }
-
-  void playerInit() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final path = p.join(dir.path, widget.recording.path);
-    audioPlayer = AudioPlayer()
-      ..setSourceDeviceFile(path)
-      ..setReleaseMode(ReleaseMode.stop)
-      ..setPlayerMode(PlayerMode.mediaPlayer);
-
-    audioPlayer.onPositionChanged.listen((event) {
-      if (mounted) {
-        setState(() {
-          currentSliderPosition = event.inMilliseconds.toDouble();
-        });
-      }
-    });
-    audioPlayer.onPlayerStateChanged.listen((event) {
-      if (mounted) {
-        setState(() {
-          isPlaying = event == PlayerState.playing;
-        });
-      }
-    });
-    audioPlayer.onDurationChanged.listen((event) {
-      if (mounted) {
-        setState(() {
-          maxDuration = event;
-          maxSliderPosition = event.inMilliseconds.toDouble();
-        });
-      }
-    });
   }
 }
 
@@ -761,26 +661,9 @@ class NewAudioCard extends StatefulWidget {
 }
 
 class _NewAudioCardState extends State<NewAudioCard> {
-  late AudioPlayer audioPlayer;
-  bool isPlaying = false;
-  double currentSliderPosition = 0;
-  double maxSliderPosition = 0;
-  Duration maxDuration = Duration.zero;
-
-  @override
-  void initState() {
-    playerInit();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    audioPlayer.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final audioProvider = Provider.of<AudioPlayerProvider>(context);
     final width = MediaQuery.of(context).size.width;
     return Container(
       width: width,
@@ -802,8 +685,14 @@ class _NewAudioCardState extends State<NewAudioCard> {
                 color: CustomColors.productNormalActive,
               ),
               child: IconButton(
-                onPressed: () => play(),
-                icon: Icon(isPlaying
+                onPressed: () {
+                  if (audioProvider.isPlaying) {
+                    audioProvider.pause();
+                  } else {
+                    _playAudio(audioProvider);
+                  }
+                },
+                icon: Icon(audioProvider.isPlaying
                     ? CupertinoIcons.pause_fill
                     : CupertinoIcons.play_arrow_solid),
                 color: CustomColors.fillWhite,
@@ -811,13 +700,13 @@ class _NewAudioCardState extends State<NewAudioCard> {
               )),
           const SizedBox(width: 3),
           Expanded(
-            child: slider(),
+            child: slider(audioProvider),
           ),
           Row(
             children: [
-              Text(formatDuration(currentSliderPosition.toInt())),
+              Text(formatDuration(audioProvider.currentPosition.toInt())),
               const Text(" / "),
-              Text(formatDuration(maxDuration.inMilliseconds.toInt()))
+              Text(formatDuration(audioProvider.maxDuration.toInt()))
             ],
           ),
           widget.isVisible ?? false
@@ -840,15 +729,10 @@ class _NewAudioCardState extends State<NewAudioCard> {
     );
   }
 
-  Future<void> play() async =>
-      isPlaying ? await audioPlayer.pause() : await audioPlayer.resume();
-
-  Future<void> seek(double value) async {
-    currentSliderPosition = value;
-    await audioPlayer.seek(Duration(milliseconds: value.toInt()));
-    if (!isPlaying) {
-      await audioPlayer.resume();
-    }
+  Future<void> _playAudio(AudioPlayerProvider audioProvider) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final path = p.join(dir.path, widget.recording.path);
+    await audioProvider.playFile(path);
   }
 
   Future<void> delete() async {
@@ -869,7 +753,7 @@ class _NewAudioCardState extends State<NewAudioCard> {
     }
   }
 
-  Widget slider() {
+  Widget slider(AudioPlayerProvider audioProvider) {
     return Column(
       children: [
         SizedBox(
@@ -882,45 +766,13 @@ class _NewAudioCardState extends State<NewAudioCard> {
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
               overlayShape: SliderComponentShape.noOverlay),
           child: Slider(
-            value: currentSliderPosition,
-            max: maxSliderPosition,
-            onChanged: (val) => seek(val),
+            value: audioProvider.currentPosition,
+            max: audioProvider.maxDuration,
+            onChanged: (val) => audioProvider.seek(val),
           ),
         )),
       ],
     );
-  }
-
-  void playerInit() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final path = p.join(dir.path, widget.recording.path);
-    audioPlayer = AudioPlayer()
-      ..setSourceDeviceFile(path)
-      ..setReleaseMode(ReleaseMode.stop)
-      ..setPlayerMode(PlayerMode.mediaPlayer);
-
-    audioPlayer.onPositionChanged.listen((event) {
-      if (mounted) {
-        setState(() {
-          currentSliderPosition = event.inMilliseconds.toDouble();
-        });
-      }
-    });
-    audioPlayer.onPlayerStateChanged.listen((event) {
-      if (mounted) {
-        setState(() {
-          isPlaying = event == PlayerState.playing;
-        });
-      }
-    });
-    audioPlayer.onDurationChanged.listen((event) {
-      if (mounted) {
-        setState(() {
-          maxDuration = event;
-          maxSliderPosition = event.inMilliseconds.toDouble();
-        });
-      }
-    });
   }
 }
 

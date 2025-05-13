@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/providers/audio_navigation_observer.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/providers/providers.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/completion/completion_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_cubit.dart';
@@ -34,6 +36,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pendo_sdk/pendo_sdk.dart';
 import 'dart:io' show Platform;
+import 'package:provider/provider.dart';
 
 import 'core/database/object_box.dart';
 import 'firebase_options.dart';
@@ -117,7 +120,9 @@ class _MyAppState extends State<MyApp> {
         minTextAdapt: true,
         designSize: Size(width, height),
         builder: (context, child) {
-          return MultiBlocProvider(
+          return MultiProvider(
+            providers: providers,
+            child: MultiBlocProvider(
               providers: [
                 BlocProvider<HomeCubit>(
                   create: (context) => HomeCubit(),
@@ -146,7 +151,10 @@ class _MyAppState extends State<MyApp> {
                       useMaterial3: true),
                   home: child,
                   debugShowCheckedModeBanner: false,
-                  navigatorObservers: [PendoNavigationObserver()],
+                  navigatorObservers: [
+                    PendoNavigationObserver(),
+                    AudioNavigationObserver(),
+                  ],
                   onGenerateRoute: (settings) {
                     switch (settings.name) {
                       case "/NewDiaryPage":
@@ -182,7 +190,9 @@ class _MyAppState extends State<MyApp> {
                     }
                   },
                 ),
-              ));
+              ),
+            ),
+          );
         },
         child: _route);
   }

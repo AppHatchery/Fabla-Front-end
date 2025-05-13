@@ -1081,10 +1081,10 @@ packages:
     dependency: "direct main"
     description:
       name: pendo_sdk
-      sha256: "55d519d87e7eb3c55466b14365b7122b4a97c570807779c17b9becce3cb30a06"
+      sha256: "08cda812e736aa24ee49316b27b2033e3ed8ea0d3b2b8cbf294c5d5b8488bb77"
       url: "https://pub.dev"
     source: hosted
-    version: "3.6.1"
+    version: "3.7.0"
   permission_handler:
     dependency: "direct main"
     description:
@@ -1173,6 +1173,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.1"
+  popover:
+    dependency: "direct main"
+    description:
+      name: popover
+      sha256: "0606f3e10f92fc0459f5c52fd917738c29e7552323b28694d50c2d3312d0e1a2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.1"
   posix:
     dependency: transitive
     description:
@@ -1182,7 +1190,7 @@ packages:
     source: hosted
     version: "6.0.1"
   provider:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: provider
       sha256: c8a055ee5ce3fd98d6fc872478b03823ffdb448699c6ebdbbc71d59b596fd48c
