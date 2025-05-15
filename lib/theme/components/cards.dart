@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -287,33 +288,14 @@ class DiaryCardTag extends StatelessWidget {
 
 class DiaryCardSmall extends StatefulWidget {
   final DiaryModel diary;
-  const DiaryCardSmall({super.key, required this.diary});
+  final StudyModel study;
+  const DiaryCardSmall({super.key, required this.diary, required this.study});
 
   @override
   State<DiaryCardSmall> createState() => _DiaryCardSmallState();
 }
 
 class _DiaryCardSmallState extends State<DiaryCardSmall> {
-  String? study;
-  Color color = CustomColors.productNormal;
-
-  @override
-  void initState() {
-    getStudyName();
-    super.initState();
-  }
-
-  void getStudyName() async {
-    final repository = DiaryRepository();
-    final _study = await repository.getStudy(widget.diary.studyID);
-    if (mounted) {
-      setState(() {
-        study = _study?.name ?? '';
-        color = _study?.color ?? color;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -354,7 +336,7 @@ class _DiaryCardSmallState extends State<DiaryCardSmall> {
       determineDiaryIcon(widget.diary),
       height: 24,
       width: 24,
-      color: color,
+      color: widget.study.color,
     );
   }
 }

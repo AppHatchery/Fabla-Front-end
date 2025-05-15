@@ -89,6 +89,7 @@ class _HomePageState extends State<HomePage>
                     state.weeksDiaries,
                     state.available,
                     state.studies,
+                    state.allStudies,
                     state.entries,
                     state.finished);
               } else {
@@ -112,8 +113,14 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget loadedHome(List<DiaryModel> diaries, List<DiaryModel> weeksDiaries,
-      bool available, List<StudyModel> studies, int entries, bool finished) {
+  Widget loadedHome(
+      List<DiaryModel> diaries,
+      List<DiaryModel> weeksDiaries,
+      bool available,
+      List<StudyModel> studies,
+      List<StudyModel> allStudies,
+      int entries,
+      bool finished) {
     return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -148,7 +155,7 @@ class _HomePageState extends State<HomePage>
 
                   // Incentive
                   GestureDetector(
-                    onTap: () => showStudyIncentives(studies),
+                    onTap: () => showStudyIncentives(allStudies),
                     child: Image.asset(
                       "assets/images/icons/incentives.png",
                       height: 24,
@@ -163,11 +170,11 @@ class _HomePageState extends State<HomePage>
                           setState(() {
                             isExpanded = false;
                             _controller.reverse();
-                            _controller.addStatusListener(
-                                (status) => _dismissAndShow(status, studies));
+                            _controller.addStatusListener((status) =>
+                                _dismissAndShow(status, allStudies));
                           });
                         } else {
-                          showStudyCalendar(studies);
+                          showStudyCalendar(allStudies);
                         }
                       },
                       icon: const Icon(

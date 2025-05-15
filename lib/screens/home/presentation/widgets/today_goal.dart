@@ -32,7 +32,7 @@ class TodayGoalWidget extends StatefulWidget {
 
 class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   Map<StudyModel, List<DiaryModel>> data = {};
-  bool goalsAvailable = true;
+  bool goalsAvailable = false;
 
   late rive.StateMachineController _controller;
 
@@ -82,13 +82,13 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       }
     }
 
-    for (final entry in data.keys) {
-      if (entry.goals.daily > 0) {
-        goalsAvailable = true;
-        break;
+    if (data.keys.isNotEmpty) {
+      for (final entry in data.keys) {
+        if (entry.goals.daily > 0) {
+          goalsAvailable = true;
+          break;
+        }
       }
-
-      goalsAvailable = false;
     }
 
     super.initState();
@@ -103,20 +103,22 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return goalsAvailable
-        ? Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Today's Goal", style: CustomTypography().titleLarge()),
-              const SizedBox(height: 16),
-              Align(
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    // height: 150,
-                    width: width,
-                    child: Stack(
-                      children: [
-                        Align(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 16,
+      children: [
+        goalsAvailable
+            ? Text("Today's Goal", style: CustomTypography().titleLarge())
+            : const SizedBox.shrink(),
+        Align(
+            alignment: Alignment.center,
+            child: SizedBox(
+              height: !goalsAvailable ? 120 : null,
+              width: width,
+              child: Stack(
+                children: [
+                  goalsAvailable
+                      ? Align(
                           alignment: Alignment.center,
                           child: Padding(
                             padding: const EdgeInsets.only(top: 5.0),
@@ -124,56 +126,72 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                               goals: data,
                             ),
                           ),
-                        ),
-                        Positioned(
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 5,
-                                  height: 10,
-                                  color: Colors.white,
-                                ),
-                              ],
-                            )),
-                        Positioned(
-                          bottom: 0,
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 5.0),
-                              child: SizedBox(
-                                height: 120,
-                                width: 180,
-                                child: rive.RiveAnimation.asset(
-                                  'assets/animations/ghosts.riv',
-                                  onInit: _onInit,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          ),
                         )
-                      ],
+                      : const SizedBox.shrink(),
+                  Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 5,
+                            height: 10,
+                            color: Colors.white,
+                          ),
+                        ],
+                      )),
+                  Positioned(
+                    bottom: 0,
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 5.0),
+                        child: SizedBox(
+                          height: 120,
+                          width: 180,
+                          child: rive.RiveAnimation.asset(
+                            'assets/animations/ghosts.riv',
+                            onInit: _onInit,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
                     ),
-                  )),
-              const SizedBox(height: 16),
-              SizedBox(width: width, child: entries(data))
-            ],
-          )
-        : const SizedBox.shrink();
+                  )
+                ],
+              ),
+            )),
+        SizedBox(width: width, child: entries(data))
+      ],
+    );
   }
 
   Widget entries(Map<StudyModel, List<DiaryModel>> data) {
     List<Widget> entryWidgets = [];
 
     final entriesList = data.entries.toList();
+
+    if (entriesList.isEmpty) {
+      return Row(
+          spacing: 6,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.check_circle_rounded,
+              color: CustomColors.darkGreen,
+              size: 20,
+            ),
+            Text(
+              "There’s no daily goal today",
+              style: CustomTypography().bodyMedium(),
+            ),
+          ]);
+    }
 
     for (int i = 0; i < entriesList.length; i++) {
       final entry = entriesList[i];
@@ -239,6 +257,15 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
           const Duration(seconds: 30), () => determineAnimation());
     }
 
+    if (!goalsAvailable) {
+      final animation = _controller.findSMI('Searching_2');
+
+      if (animation != null && mounted) {
+        animation.value = true;
+      }
+      return;
+    }
+
     final diariesForToday = widget.diaries
         .where((diary) => diary.due.day == DateTime.now().day)
         .toList();
@@ -266,7 +293,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       return;
     }
 
-    // //Show Blinking + Blowing the horn if the daily goal is achieved
+    //Show Blinking + Blowing the horn if the daily goal is achieved
     if (totalEntries == totalGoal) {
       final blowing = _controller.findSMI('Blinking + Blowing the horn');
 
@@ -276,7 +303,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       return;
     }
 
-    // //Show Achieving the goal if the weekly goal is achieved
+    //Show Achieving the goal if the weekly goal is achieved
     if (totalEntries == weeklyGoal) {
       final achieving = _controller.findSMI('Achieving the goal ');
 
@@ -286,7 +313,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       return;
     }
 
-    // //Show Beyond the goal if the weekly goal is exceeded
+    //Show Beyond the goal if the weekly goal is exceeded
     if (totalEntries > weeklyGoal) {
       final beyond = _controller.findSMI('Beyond the goal ');
 
@@ -296,7 +323,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       return;
     }
 
-    // //Show Searching 3 if there is an entry or more
+    //Show Searching 3 if there is an entry or more
     if (totalEntries > 0) {
       final searchingThree = _controller.findSMI('Searching_3');
       if (searchingThree != null && mounted) {

@@ -464,9 +464,14 @@ class DiaryRepository {
       }
 
       return (((element.start.isAfter(day) ||
-                      element.start.isAtSameMomentAs(day)) &&
-                  element.start.isBefore(nextDay)) ||
-              (element.due.isAfter(now) && element.due.isBefore(nextDay))) &&
+                      element.start.isAtSameMomentAs(
+                          day)) && // If the start date is at 04:00 or after
+                  element.start.isBefore(nextDay) &&
+                  element.due.isAfter(
+                      now)) || // If the start date is before 04:00 the next day and is still active
+              (element.due.isAfter(now) &&
+                  element.due.isBefore(
+                      nextDay))) && // If the due date is before 04:00 the next day
           element.status != DiaryStatus.submitted;
     }).toList();
     return filtered.map((e) => DiaryModel.fromEntity(e)).toList();
@@ -528,6 +533,17 @@ class DiaryRepository {
   // For calendar use only!!!! - No color is being passed
   List<StudyModel> getAllStudies() {
     return _getAllStudies().map((e) => StudyModel.fromEntity(e)).toList();
+  }
+
+  Future<List<StudyModel>> getAllStudiesWithColor() async {
+    final studies =
+        _getAllStudies().map((e) => StudyModel.fromEntity(e)).toList();
+    final updated = <StudyModel>[];
+    for (final study in studies) {
+      final color = await getColorFromSharedPreferences(study.name);
+      updated.add(study.copyWith(color: color));
+    }
+    return updated;
   }
 
   /// Retrieves the total number of diary entries within a specified date range.

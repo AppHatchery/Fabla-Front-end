@@ -389,9 +389,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
   bool _diaryOnEventSubmitted(DateTime date) {
     final diaries = diaryList.where((diary) {
       return DateTime(
-        diary.due.year,
-        diary.due.month,
-        diary.due.day,
+        diary.start.year,
+        diary.start.month,
+        diary.start.day,
       ).isAtSameMomentAs(DateTime(date.year, date.month, date.day));
     }).toList();
 
@@ -416,7 +416,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
       Text(
           DateUtils.isSameDay(DateTime.now(), selectedDate)
               ? "Tasks Available Today"
-              : "Tasks Due ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)} ",
+              : "Tasks Available on ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)} ",
           style: CustomTypography().titleLarge()),
       const SizedBox(height: 4),
 
@@ -431,6 +431,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   padding: const EdgeInsets.symmetric(vertical: 10.0),
                   child: DiaryCardSmall(
                     diary: diaries[index],
+                    study: widget.studies.firstWhere(
+                        (study) => study.studyId == diaries[index].studyID),
                   ),
                 );
               },

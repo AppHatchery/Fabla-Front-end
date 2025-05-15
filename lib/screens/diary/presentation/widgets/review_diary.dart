@@ -331,6 +331,32 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                 )
               : const SizedBox.shrink(),
         );
+      case ResponseType.timePicker:
+        final width = MediaQuery.of(context).size.width;
+        final answer = prompt.answer?.response?.firstOrNull;
+        final elapsed = answer != null
+            ? Duration(
+                hours: int.parse(answer.split(":")[0]),
+                minutes: int.parse(answer.split(":")[1]))
+            : null;
+        return elapsed != null
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Container(
+                  width: width,
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Row(children: [
+                    Expanded(
+                      child: Text(
+                          "${elapsed.inHours.toString().padLeft(2, '0')} h ${elapsed.inMinutes.remainder(60).toString().padLeft(2, '0')} min",
+                          style: CustomTypography().bodyMedium(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                  ]),
+                ),
+              )
+            : const SizedBox.shrink();
       default:
         return const SizedBox.shrink();
     }
