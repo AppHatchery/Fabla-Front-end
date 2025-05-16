@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/login_repository.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -27,18 +28,25 @@ class LoginCubit extends Cubit<LoginState> {
     try {
       final result = await repository.verify(code);
       if (result) {
+        try {
+          final setupRepository = SetupRepository();
+          final experiment = setupRepository.getExperiment();
+          await PendoService.start(code, experiment.login);
+        } catch (e) {
+          debugPrint('Pendo session handling error: $e');
+        }
         emit(const LoginSuccess());
       } else {
         PendoService.track("Participant Login", {
           "participant_id": code,
           "status": "error",
         });
-        emit(const LoginError("Oops! We do not have this ID in the participant list. Please check your email and try again."));
+        emit(const LoginError(
+            "Oops! We do not have this ID in the participant list. Please check your email and try again."));
       }
     } catch (e) {
       debugPrint(e.toString());
       emit(const LoginError("Something went wrong"));
     }
   }
-
 }
