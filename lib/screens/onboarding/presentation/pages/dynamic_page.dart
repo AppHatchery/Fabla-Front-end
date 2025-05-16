@@ -636,7 +636,7 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                                   padding: const EdgeInsets.only(
                                       left: 16.0, right: 16.0),
                                   child: Text(
-                                    "Hooray $name! Now a couple of extra questions to customize this study for you",
+                                    "Welcome $name! Now a couple of extra questions to customize this study for you",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
                                   ),

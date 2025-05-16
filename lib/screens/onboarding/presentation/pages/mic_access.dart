@@ -117,7 +117,7 @@ class _MicAccessPageState extends State<MicAccessPage>
                                 children: [
                                   Text(
                                     permission
-                                        ? "Let's test your microphone, \"say something\""
+                                        ? "Let's test your microphone, say something"
                                         : "Great, next enable microphone access",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),

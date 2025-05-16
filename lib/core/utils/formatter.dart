@@ -107,7 +107,7 @@ String formatDurationToHHMM(DateTime date) {
 
 /// Format the date to a [String] of hours and minutes
 String formatDurationToHHMMPP(DateTime date) {
-  return DateFormat('HH:mm a').format(date);
+  return DateFormat('hh:mm a').format(date);
 }
 
 Duration formatStringToDuration(String time) {
@@ -163,11 +163,12 @@ String formatDiaryCardDue(DateTime due, DateTime start, DiaryStatus status) {
   } else if (now.isAfter(due)) {
     return "Closed at: ${formatDurationToHHMMPP(due)}";
   } else if (difference > 24) {
-    return "Due on: ${dateFormat.format(due)}";
+    return "Available until: ${dateFormat.format(due)}";
   } else {
-    return "Due at: ${formatDurationToHHMMPP(due)}";
+    return "Available until: ${formatDurationToHHMMPP(due)}";
   }
 }
+
 // First element is Background
 // Second element is Text Color
 List<Color> formatDiaryCardDueColors(

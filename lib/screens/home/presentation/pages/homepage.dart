@@ -154,14 +154,7 @@ class _HomePageState extends State<HomePage>
                   ),
 
                   // Incentive
-                  GestureDetector(
-                    onTap: () => showStudyIncentives(allStudies),
-                    child: Image.asset(
-                      "assets/images/icons/incentives.png",
-                      height: 24,
-                      width: 24,
-                    ),
-                  ),
+                  incentives(allStudies),
 
                   // Calendar
                   IconButton(
@@ -257,6 +250,25 @@ class _HomePageState extends State<HomePage>
             ],
           ),
         ));
+  }
+
+  Widget incentives(List<StudyModel> allStudies) {
+    // no incentives
+    final available = allStudies.fold<double>(
+        0,
+        (prev, study) =>
+            prev + (study.incentive.amount + study.incentive.bonus));
+
+    return available <= 0
+        ? const SizedBox.shrink()
+        : GestureDetector(
+            onTap: () => showStudyIncentives(allStudies),
+            child: Image.asset(
+              "assets/images/icons/incentives.png",
+              height: 24,
+              width: 24,
+            ),
+          );
   }
 
   void fetchData(BuildContext context) async {
