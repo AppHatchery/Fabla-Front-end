@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/incentives.dart';
@@ -7,6 +8,7 @@ import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_go
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal_popup.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -36,7 +38,8 @@ class _HomePageState extends State<HomePage>
 
   bool isExpanded = false;
   ValueNotifier<bool> isHomeTipClosed = ValueNotifier(true);
-
+  late ExperimentModel experiment;
+  final repository = SetupRepository();
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -46,6 +49,7 @@ class _HomePageState extends State<HomePage>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
+    experiment = repository.getExperiment();
     show4AmTip();
     trackLoad();
     super.initState();
@@ -337,35 +341,24 @@ class _HomePageState extends State<HomePage>
             true;
     if (mounted && show) {
       isHomeTipClosed.value = true;
-      Future.delayed(const Duration(milliseconds: 500), () async {
-        // showModalBottomSheet(
-        //     context: context,
-        //     isScrollControlled: true,
-        //     builder: (context) => const Wrap(
-        //           children: [
-        //             QuickTipPopUp(
-        //               title: "Quick Tips to Get You Started",
-        //               image: 'assets/images/idea.png',
-        //               messageOne: "Separate Logs for Each Encounter",
-        //               descriptionOne:
-        //                   "Please log each encounter separately to capture every detail",
-        //               messageTwo: "Don't be limited to your daily goals!",
-        //               descriptionTwo:
-        //                   "You are encouraged to log as many encounters as you can: More entries, more insights!",
-        //               iconOne: "assets/images/arrow_split.png",
-        //               iconTwo: "assets/images/record_voice_over.png",
-        //             )
-        //           ],
-        //         )).whenComplete(() async {
-        //   setState(() {
-        //     isHomeTipClosed.value = true;
-        //   });
-        // });
-        await PendoService.track("HomePopUp", null);
-        setState(() {
-          isHomeTipClosed.value = true;
-        });
-      });
+      final login = experiment.login;
+      final service = PreferenceService();
+      final pendoID = await service.getStringPreference(key: 'pendo-ID');
+
+      if (pendoID == null) {
+        final anonymousID =
+            "$login-anonymous-${DateTime.now().millisecondsSinceEpoch}";
+        await service.setStringPreference(key: 'pendo-ID', value: anonymousID);
+        await PendoService.start(anonymousID, login);
+      } else {
+        await PendoService.start(pendoID, login);
+      }
+
+      await PendoService.track("HomePopUp", null);
     }
+
+    setState(() {
+      isHomeTipClosed.value = true;
+    });
   }
 }
