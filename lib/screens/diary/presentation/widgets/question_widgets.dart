@@ -385,17 +385,29 @@ class _AudioTextCardState extends State<AudioTextCard> {
     return !multipleAnswers && (length > 0 || textPresent)
         ? const SizedBox.shrink()
         : Column(
+          spacing: 12,
             children: [
               CustomRecordButton(
                 onClick: () => widget.respond("audio", null),
                 text: length > 0 ? "Record Another Answer" : "Record My Answer",
               ),
               widget.prompt.responseType == ResponseType.textAudio
-                  ? CustomTextAnswerButton(
-                      onClick: () => widget.respond("text", null),
-                      text: textPresent
-                          ? "Type Another Answer"
-                          : "Type My Answer",
+                  ? Column(
+                    spacing: 4,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "If you would prefer to type, click below.",
+                          style: CustomTypography().bodyLight(
+                              color: CustomColors.textTertiaryContent),
+                        ),
+                        CustomTextAnswerButton(
+                          onClick: () => widget.respond("text", null),
+                          text: textPresent
+                              ? "Type Another Answer"
+                              : "Type My Answer",
+                        ),
+                      ],
                     )
                   : const SizedBox.shrink(),
             ],
@@ -624,10 +636,10 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
             widget.prompt.answer?.response?.isEmpty ?? true
                 ? CustomFlatButton(
                     onClick: () => showModal(),
-                    text: "Enter Survey",
+                    text: "Tap here to respond",
                   )
                 : Text(
-                    "✅ Your survey responses have been collected.",
+                    "✅ Thank you, please click 'Next' to continue.",
                     style: CustomTypography()
                         .bodyLarge(color: CustomColors.textTertiaryContent),
                   ),
