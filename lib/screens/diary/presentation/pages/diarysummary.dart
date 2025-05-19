@@ -8,6 +8,7 @@ import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/providers/audio_player_provider.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/diary_edit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
@@ -23,6 +24,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:location/location.dart' as l;
+import 'package:provider/provider.dart';
 // import 'package:just_audio/just_audio.dart';
 
 import '../../../../theme/components/buttons.dart';
@@ -155,6 +157,13 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         );
       },
       listener: (context, state) async {
+        // Stop audio playback if playing when user presses submit
+        // or if the submission is loading
+        if (state is SubmitLoading) {
+          final audioProvider =
+              Provider.of<AudioPlayerProvider>(context, listen: false);
+          await audioProvider.handleSubmission();
+        }
         if (state is SummarySubmitted) {
           pendoEvent();
           track(timer.stop(), "Submitted");
@@ -618,6 +627,11 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   }
 
   void submitDiary(DiaryModel diary) async {
+    // Stop audio playback if playing
+    final audioProvider =
+        Provider.of<AudioPlayerProvider>(context, listen: false);
+    await audioProvider.handleSubmission();
+
     // Doesn't Matter the status of the permission
     checkForLocation().then((value) => summaryCubit.submitDiary(diary));
   }

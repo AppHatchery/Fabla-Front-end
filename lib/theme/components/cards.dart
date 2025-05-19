@@ -396,6 +396,7 @@ class AudioDiaryCard extends StatefulWidget {
   State<AudioDiaryCard> createState() => _AudioDiaryCardState();
 }
 
+// The AudioDiaryCard widget uses the AudioPlayerProvider to manage audio playback
 class _AudioDiaryCardState extends State<AudioDiaryCard> {
   @override
   void initState() {
@@ -403,6 +404,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
     _initializeAudio();
   }
 
+// Initializes audio when the card is created
   Future<void> _initializeAudio() async {
     final audioProvider =
         Provider.of<AudioPlayerProvider>(context, listen: false);
@@ -631,7 +633,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
       ),
     );
   }
-
+// Plays audio using the provider
   Future<void> _playAudio(AudioPlayerProvider audioProvider) async {
     final dir = await getApplicationDocumentsDirectory();
     final path = p.join(dir.path, widget.recording.path);
