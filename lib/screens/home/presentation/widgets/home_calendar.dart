@@ -415,8 +415,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
           DateUtils.isSameDay(DateTime.now(), selectedDate)
-              ? "Tasks Available Today"
-              : "Tasks Available on ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)} ",
+              ? "Entries Available Today"
+              : "Entries Available on ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)} ",
           style: CustomTypography().titleLarge()),
       const SizedBox(height: 4),
 
@@ -491,7 +491,7 @@ class HelpButton extends StatelessWidget {
             bodyBuilder: (context) => Container(
                   padding: EdgeInsets.all(16),
                   child: Text(
-                    "Active: You have completed at least 1 task on a due day. Due day: A day that you have tasks due.",
+                    "Active: You have completed at least 1 entry during a day.",
                     style: CustomTypography().titleRegular(),
                   ),
                 ),

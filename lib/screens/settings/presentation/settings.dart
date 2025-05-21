@@ -298,7 +298,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                                     color: CustomColors.textNormalContent),
                               ),
                               Text(
-                                'We will keep you in the loop on your tasks and provide reminders for completion.',
+                                'We will keep you in the loop on your entries and provide reminders for completion.',
                                 style: CustomTypography().bodyMedium(
                                     color: CustomColors.textTertiaryContent),
                               ),
