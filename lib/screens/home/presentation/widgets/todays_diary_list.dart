@@ -30,20 +30,29 @@ class TodaysDiaryList extends StatelessWidget {
         ),
         diaries.isEmpty
             ? Padding(
-              padding: const EdgeInsets.only(top: 26.0),
-              child: const DayComplete(),
-            )
+                padding: const EdgeInsets.only(top: 26.0),
+                child: const DayComplete(),
+              )
             : ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: diaries.length,
                 itemBuilder: (context, index) {
+                  // Count how many diaries from the same study appear before this one
+                  int studyIndex = 1;
+                  for (int i = 0; i < index; i++) {
+                    if (diaries[i].studyID == diaries[index].studyID) {
+                      studyIndex++;
+                    }
+                  }
+
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: DiaryCard(
                       diary: diaries[index],
                       refresh: (value) => refresh(value),
                       getPageName: getPageName,
+                      studyIndex: studyIndex,
                     ),
                   );
                 },

@@ -28,12 +28,15 @@ class DiaryCard extends StatefulWidget {
   final DiaryModel? diary;
   final ValueChanged<bool> refresh;
   final String Function() getPageName;
+  final int studyIndex;
 
-  const DiaryCard(
-      {super.key,
-      required this.diary,
-      required this.refresh,
-      required this.getPageName});
+  const DiaryCard({
+    super.key,
+    required this.diary,
+    required this.refresh,
+    required this.getPageName,
+    this.studyIndex = 1,
+  });
 
   @override
   State<DiaryCard> createState() => _DiaryCardState();
@@ -203,7 +206,7 @@ class _DiaryCardState extends State<DiaryCard> {
       spacing: 8,
       children: [
         Text(
-          widget.diary?.name ?? "",
+          "${study ?? ''} #${widget.studyIndex}",
           style: CustomTypography().titleSmall(),
         ),
         isDiaryOpen()
@@ -660,7 +663,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
     int reduce = 15000;
 
     if (currentPositionMillis - reduce < 0) {
-      reduce = currentSliderPosition.toInt();
+      reduce = currentPositionMillis;
     }
 
     int position = currentPositionMillis - reduce;
@@ -675,7 +678,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
       increase = maxSliderPosition.toInt() - currentPositionMillis;
     }
 
-    int position = currentSliderPosition.toInt() + increase;
+    int position = currentPositionMillis + increase;
     await audioPlayer.seek(Duration(milliseconds: position));
   }
 
