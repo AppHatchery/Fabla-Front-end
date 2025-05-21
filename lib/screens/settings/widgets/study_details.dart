@@ -2,7 +2,6 @@ import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/study_login.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
-import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -126,18 +125,10 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
   }
 
   Future<void> pendoTrack(String login) async {
-    final service = PreferenceService();
-    final pendoID = await service.getStringPreference(key: 'pendo-ID');
+    final setupRepository = SetupRepository();
+    final pendoID = setupRepository.getParticipant()!.studyCode;
 
-    if (pendoID == null) {
-      final anonymousID =
-          "$login-anonymous-${DateTime.now().millisecondsSinceEpoch}";
-      await service.setStringPreference(key: 'pendo-ID', value: anonymousID);
-      await PendoService.start(anonymousID, login);
-    } else {
-      await PendoService.start(pendoID, login);
-    }
-
+    await PendoService.start(pendoID, login);
     await PendoService.track("StudyDetails", null);
   }
 
