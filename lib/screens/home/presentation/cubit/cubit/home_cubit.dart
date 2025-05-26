@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
+import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:bloc/bloc.dart';
@@ -76,6 +77,11 @@ class HomeCubit extends Cubit<HomeState> {
 
   Future<String> getParticipantName() async =>
       setupRepository.getParticipant()!.name;
+
+  Future<String> getParticipantCode() async =>
+      setupRepository.getParticipant()!.studyCode;
+
+  ExperimentModel getExperiment() => setupRepository.getExperiment();
 
   Future<List<DiaryModel>> getAllDiaries() async => repository.getAllDiaries();
 

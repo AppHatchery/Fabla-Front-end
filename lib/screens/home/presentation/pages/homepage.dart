@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
@@ -8,9 +6,7 @@ import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_go
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal_popup.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
-import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +35,7 @@ class _HomePageState extends State<HomePage>
   bool isExpanded = false;
   ValueNotifier<bool> isHomeTipClosed = ValueNotifier(true);
   late ExperimentModel experiment;
-  final repository = SetupRepository();
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -49,7 +45,7 @@ class _HomePageState extends State<HomePage>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    experiment = repository.getExperiment();
+    experiment = homeCubit.getExperiment();
     show4AmTip();
     trackLoad();
     super.initState();
@@ -348,24 +344,11 @@ class _HomePageState extends State<HomePage>
   }
 
   void show4AmTip() async {
-    final show =
-        await PreferenceService().getBoolPreference(key: 'show_home_tip') ??
-            true;
-    if (mounted && show) {
-      isHomeTipClosed.value = true;
+    if (mounted) {
       final login = experiment.login;
-      final service = PreferenceService();
-      final pendoID = await service.getStringPreference(key: 'pendo-ID');
+      final pendoID = await homeCubit.getParticipantCode();
 
-      if (pendoID == null) {
-        final anonymousID =
-            "$login-anonymous-${DateTime.now().millisecondsSinceEpoch}";
-        await service.setStringPreference(key: 'pendo-ID', value: anonymousID);
-        await PendoService.start(anonymousID, login);
-      } else {
-        await PendoService.start(pendoID, login);
-      }
-
+      await PendoService.start(pendoID, login);
       await PendoService.track("HomePopUp", null);
     }
 

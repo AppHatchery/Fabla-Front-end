@@ -121,21 +121,21 @@ void _addFileData(
       data.add(fileData);
 
       // Adding references for audio question for transcription
-      if (record.type == 'audio') {
-        references.add(
-          PromptEntry(
-              participantID: participantID,
-              experimentCode: experimentCode,
-              questionTitle: prompt.question,
-              diaryID: diary.id.toString(),
-              promptID: prompt.id.toString(),
-              response: "",
-              questionsType: responseTypeValue(prompt.responseType!),
-              required: prompt.required,
-              reference:
-                  "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}"),
-        );
-      }
+      // if (record.type == 'audio') {
+      references.add(
+        PromptEntry(
+            participantID: participantID,
+            experimentCode: experimentCode,
+            questionTitle: prompt.question,
+            diaryID: diary.id.toString(),
+            promptID: prompt.id.toString(),
+            response: "",
+            questionsType: responseTypeValue(prompt.responseType!),
+            required: prompt.required,
+            reference:
+                "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}"),
+      );
+      // }
     }
   }
 

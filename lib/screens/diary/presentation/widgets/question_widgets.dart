@@ -385,7 +385,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
     return !multipleAnswers && (length > 0 || textPresent)
         ? const SizedBox.shrink()
         : Column(
-          spacing: 12,
+            spacing: 12,
             children: [
               CustomRecordButton(
                 onClick: () => widget.respond("audio", null),
@@ -393,7 +393,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
               ),
               widget.prompt.responseType == ResponseType.textAudio
                   ? Column(
-                    spacing: 4,
+                      spacing: 4,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
@@ -639,7 +639,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                     text: "Tap here to respond",
                   )
                 : Text(
-                    "✅ Thank you, please click 'Next' to continue.",
+                    "✅ Thank you, please click 'Continue' to proceed.",
                     style: CustomTypography()
                         .bodyLarge(color: CustomColors.textTertiaryContent),
                   ),

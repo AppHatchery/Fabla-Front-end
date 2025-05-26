@@ -68,7 +68,7 @@ class EndStateWidget extends StatelessWidget {
             height: 6,
           ),
           Text(
-            "No tasks - the study reaches its conclusion. Thank you for being a part of this journey!",
+            "No entries - the study reaches its conclusion. Thank you for being a part of this journey!",
             style: CustomTypography()
                 .bodyMedium(color: CustomColors.textTertiaryContent),
             textAlign: TextAlign.center,
@@ -106,7 +106,7 @@ class DayComplete extends StatelessWidget {
             height: 6,
           ),
           Text(
-            "Check your study calendar to see when your next tasks are due",
+            "Check your study calendar to see when your next entries are available",
             style: CustomTypography()
                 .bodyMedium(color: CustomColors.textTertiaryContent),
             textAlign: TextAlign.center,

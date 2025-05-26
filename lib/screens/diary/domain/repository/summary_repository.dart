@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
+import 'package:audio_diaries_flutter/core/usecases/incentives.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
@@ -152,6 +153,8 @@ class SummaryRepository {
         } else if (diary.currentEntry + 1 < study!.goals.daily) {
           dailyGoalNotification(diary.id);
         }
+
+        calculateEarnedIncentivesForAWS(participantID: participant.studyCode);
         return true;
       } else {
         return false;

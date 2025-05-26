@@ -24,7 +24,7 @@ class AudioQuestionsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String questionTip = "";
+    String questionTip = prompt.subtitle ?? "";
     double height = MediaQuery.of(context).size.height;
     double textScale = MediaQuery.of(context).textScaler.scale(1);
 
