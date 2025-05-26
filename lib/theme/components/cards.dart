@@ -206,7 +206,7 @@ class _DiaryCardState extends State<DiaryCard> {
       spacing: 8,
       children: [
         Text(
-          "${study ?? ''} #${widget.studyIndex}",
+          "#${widget.studyIndex}  ${study ?? ''}",
           style: CustomTypography().titleSmall(),
         ),
         isDiaryOpen()
@@ -292,7 +292,8 @@ class DiaryCardTag extends StatelessWidget {
 class DiaryCardSmall extends StatefulWidget {
   final DiaryModel diary;
   final StudyModel study;
-  const DiaryCardSmall({super.key, required this.diary, required this.study});
+  final int studyIndex;
+  const DiaryCardSmall({super.key, required this.diary, required this.study, required this.studyIndex});
 
   @override
   State<DiaryCardSmall> createState() => _DiaryCardSmallState();
@@ -319,7 +320,7 @@ class _DiaryCardSmallState extends State<DiaryCardSmall> {
               child: Row(
                 children: [
                   Text(
-                    widget.diary.name,
+                    "#${widget.studyIndex}  ${widget.study.name}",
                     style: CustomTypography().titleSmall(),
                   ),
                 ],

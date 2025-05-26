@@ -433,6 +433,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                     diary: diaries[index],
                     study: widget.studies.firstWhere(
                         (study) => study.studyId == diaries[index].studyID),
+                    studyIndex: index + 1,
                   ),
                 );
               },
