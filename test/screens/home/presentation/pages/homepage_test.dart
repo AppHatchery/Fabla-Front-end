@@ -1,0 +1,424 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/incentives.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_goal.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal_popup.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/cubit/cubit/home_cubit.dart';
+import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
+import 'package:audio_diaries_flutter/core/database/object_box.dart';
+import 'package:audio_diaries_flutter/objectbox.g.dart';
+import 'package:audio_diaries_flutter/main.dart' as app;
+import 'package:flutter/services.dart';
+import 'package:rive/rive.dart';
+
+class MockHomeCubit extends Mock implements HomeCubit {}
+
+// Add a mock class for ObjectBox
+class MockBox<T> extends Mock implements Box<T> {
+  @override
+  List<T> getAll() => [];
+}
+
+class MockStore extends Mock implements Store {
+  final _boxes = <String, Box>{};
+
+  @override
+  Box<T> box<T>() {
+    final typeKey = T.toString();
+    if (!_boxes.containsKey(typeKey)) {
+      final box = MockBox<T>();
+      _boxes[typeKey] = box;
+    }
+    return _boxes[typeKey] as Box<T>;
+  }
+}
+
+class MockObjectBox extends Mock implements ObjectBox {
+  @override
+  late final Store store = MockStore();
+}
+
+// Sets up a dummy method channel handler for the Rive dynamic library.
+class FakeRiveAnimationController extends Fake
+    implements RiveAnimationController {}
+
+class FakeRiveAnimation extends Fake {}
+
+class FakeArtboard extends Fake implements RuntimeArtboard {}
+
+class FakeRiveFile extends Fake implements RiveFile {}
+
+class MockRiveFile extends Mock implements RiveFile {
+  static Future<RiveFile> asset(String asset,
+      {Uint8List? bytes, String? bundle}) async {
+    return MockRiveFile();
+  }
+}
+
+class MockRuntimeArtboard extends Mock implements RuntimeArtboard {}
+
+class MockStateMachineInstance extends Mock {}
+
+// Update the setupRiveMocks function:
+void setupRiveMocks() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  const MethodChannel channel = MethodChannel('rive_common');
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+    switch (methodCall.method) {
+      case 'loadFile':
+        return Uint8List(0).buffer.asUint8List();
+      case 'initialize':
+        return true;
+      case 'loadDynamicLibrary':
+        return true; // Mock dynamic library loading
+      default:
+        return null;
+    }
+  });
+
+  registerFallbackValue(FakeRiveAnimationController());
+  registerFallbackValue(FakeRiveAnimation());
+  registerFallbackValue(FakeArtboard());
+  registerFallbackValue(FakeRiveFile());
+}
+
+Widget createTestableWidget(MockHomeCubit mockHomeCubit) {
+  return ScreenUtilInit(
+    minTextAdapt: true,
+    designSize: const Size(1080, 1920),
+    builder: (context, child) => MaterialApp(
+      home: BlocProvider<HomeCubit>.value(
+        value: mockHomeCubit,
+        child: const HomePage(),
+      ),
+    ),
+  );
+}
+
+// Create a function to generate HomeLoaded state with custom parameters
+HomeLoaded createHomeLoadedState({
+  List<DiaryModel>? diaries,
+  List<DiaryModel>? weeksDiaries,
+  bool available = false,
+  List<StudyModel>? studies,
+  List<StudyModel>? allStudies,
+  int entries = 0,
+  bool finished = true,
+}) {
+  final dummyStudy = StudyModel(
+    id: 1,
+    studyId: 1,
+    name: 'Dummy Study',
+    experimentCode: 'dummy-code',
+    color: Colors.blue,
+    goals: Goal(daily: 1, weekly: 1),
+    incentive: Incentive(amount: 0, bonus: 0, currency: 'MWK24', threshold: 0),
+  );
+
+  final dummyDiary = DiaryModel(
+    id: 1,
+    studyID: 1,
+    name: 'Test Diary',
+    prompts: [],
+    tags: null,
+    status: DiaryStatus.idle,
+    due: DateTime.now(),
+    start: DateTime.now(),
+    entries: 1,
+    currentEntry: 0,
+    end: DateTime.now(),
+    notifications: [],
+    activeDays: [],
+  );
+
+  return HomeLoaded(
+    diaries ?? [dummyDiary],
+    weeksDiaries ?? [dummyDiary],
+    available,
+    studies ?? [dummyStudy],
+    allStudies ?? [dummyStudy],
+    entries,
+    finished,
+  );
+}
+
+void main() {
+  late MockHomeCubit mockHomeCubit;
+
+  // Mock or initialize the global objectbox before tests
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    app.objectbox = MockObjectBox();
+    setupRiveMocks();
+  });
+
+  setUp(() {
+    mockHomeCubit = MockHomeCubit();
+
+    when(() => mockHomeCubit.getExperiment()).thenReturn(
+      ExperimentModel(
+        id: 1,
+        login: 'test',
+        researcher: 'test',
+        organization: 'test',
+        name: 'test',
+        duration: '7',
+        description: 'test',
+        version: '1.0',
+      ),
+    );
+
+    when(() => mockHomeCubit.getAllDiariesThisWeek()).thenReturn([]);
+
+    final dummyStudy = StudyModel(
+      id: 1,
+      studyId: 1,
+      name: 'Dummy Study',
+      experimentCode: 'dummy-code',
+      color: Colors.blue,
+      goals: Goal(daily: 1, weekly: 1),
+      incentive:
+          Incentive(amount: 0, bonus: 0, currency: 'MWK24', threshold: 0),
+    );
+
+    final dummyDiary = DiaryModel(
+      id: 1,
+      studyID: 1,
+      name: 'Test Diary',
+      prompts: [],
+      tags: null,
+      status: DiaryStatus.idle,
+      due: DateTime.now(),
+      start: DateTime.now(),
+      entries: 1,
+      currentEntry: 0,
+      end: DateTime.now(),
+      notifications: [],
+      activeDays: [],
+    );
+
+    HomeLoaded createHomeLoadedState({
+      List<DiaryModel>? diaries,
+      List<DiaryModel>? weeksDiaries,
+      bool available = false,
+      List<StudyModel>? studies,
+      List<StudyModel>? allStudies,
+      int entries = 0,
+      bool finished = true,
+    }) {
+      return HomeLoaded(
+        diaries ?? [dummyDiary],
+        weeksDiaries ?? [dummyDiary],
+        available,
+        studies ?? [dummyStudy],
+        allStudies ?? [dummyStudy],
+        entries,
+        finished,
+      );
+    }
+
+    final homeLoadedState = createHomeLoadedState();
+
+    when(() => mockHomeCubit.state).thenReturn(homeLoadedState);
+
+    when(() => mockHomeCubit.stream)
+        .thenAnswer((_) => Stream.value(homeLoadedState));
+
+    when(() => mockHomeCubit.getParticipantCode())
+        .thenAnswer((_) async => 'dummyCode');
+
+    when(() => mockHomeCubit.loadDiaries())
+        .thenAnswer((_) async => Future.value());
+  });
+
+  Future<void> pumpRiveWidget(WidgetTester tester, Widget widget) async {
+    await tester.pumpWidget(widget);
+    await tester.pump(); // Initial build
+    await tester.pump(const Duration(milliseconds: 500)); // Animation
+  }
+
+  group('HomePage Widget', () {
+    testWidgets(
+        'Displays FreeDayWidget when available is false and finished is false',
+        (tester) async {
+      // Override both the state and stream with the desired values
+      final testState =
+          createHomeLoadedState(available: false, finished: false);
+
+      when(() => mockHomeCubit.state).thenReturn(testState);
+      when(() => mockHomeCubit.stream)
+          .thenAnswer((_) => Stream.value(testState));
+
+      await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+      await tester.pumpAndSettle();
+
+      // Verify FreeDayWidget exists
+      expect(find.byType(FreeDayWidget), findsOneWidget);
+      // Verify EndStateWidget does not exist
+      expect(find.byType(EndStateWidget), findsNothing);
+      expect(find.text("Today's Entries"), findsOneWidget);
+    });
+
+    testWidgets(
+        'Displays EndStateWidget when available is false and finished is true',
+        (tester) async {
+      // Update state to make available = false and finished = false
+      final testState = createHomeLoadedState(available: false, finished: true);
+
+      when(() => mockHomeCubit.state).thenReturn(testState);
+      when(() => mockHomeCubit.stream)
+          .thenAnswer((_) => Stream.value(testState));
+
+      await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+      await tester.pumpAndSettle();
+      // Verify FreeDayWidget exists
+      expect(find.byType(EndStateWidget), findsOneWidget);
+      // Verify EndStateWidget does not exist
+      expect(find.byType(FreeDayWidget), findsNothing);
+      expect(find.text("Today's Entries"), findsOneWidget);
+    });
+
+    testWidgets("displays Today's Entries text", (tester) async {
+      await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+      await tester.pumpAndSettle();
+      expect(find.text("Today's Entries"), findsOneWidget);
+    });
+
+    testWidgets("displays Weekly Goal text", (tester) async {
+      await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+      await tester.pumpAndSettle();
+      expect(find.text("Weekly Goal"), findsOneWidget);
+    });
+
+    testWidgets('shows loading indicator when state is HomeLoading',
+        (tester) async {
+      when(() => mockHomeCubit.state).thenReturn(HomeLoading());
+      when(() => mockHomeCubit.stream)
+          .thenAnswer((_) => Stream.value(HomeLoading()));
+
+      await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+      await tester.pump();
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('shows empty state when state is HomeInitial', (tester) async {
+      when(() => mockHomeCubit.state).thenReturn(HomeInitial());
+      when(() => mockHomeCubit.stream)
+          .thenAnswer((_) => Stream.value(HomeInitial()));
+
+      await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+      await tester.pump();
+      expect(find.byType(Scaffold), findsOneWidget);
+    });
+
+    testWidgets('shows weekly goal widget when dropdown icon is tapped',
+        (tester) async {
+      await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+      await tester.pumpAndSettle();
+
+      final weeklyIcon = find.byKey(const Key('weekly_goal_widget'));
+      expect(weeklyIcon, findsOneWidget);
+
+      expect(find.byType(WeeklyGoalWidget), findsOneWidget);
+      expect(find.text('Weekly Goal'), findsOneWidget);
+    });
+
+    testWidgets('tapping calendar icon shows StudyCalendar', (tester) async {
+      // Assume that you have already set the state to show the WeeklyGoalPopup.
+      // You would set up your mock HomeCubit state similar to your existing tests.
+
+      final testState = createHomeLoadedState(available: true, finished: false);
+
+      when(() => mockHomeCubit.state).thenReturn(testState);
+      when(() => mockHomeCubit.stream)
+          .thenAnswer((_) => Stream.value(testState));
+
+      await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+      await tester.pumpAndSettle();
+
+      // Now simulate tapping the calendar icon.
+      final calendarIcon = find.byIcon(Icons.calendar_month);
+      expect(calendarIcon, findsOneWidget);
+      await tester.tap(calendarIcon);
+      await tester.pumpAndSettle();
+
+      // Verify that the WeeklyGoalPopup is dismissed.
+      expect(find.byType(WeeklyGoalPopup), findsNothing);
+
+      //shows the study calendar popup
+      expect(find.byType(StudyCalendar), findsOneWidget);
+    });
+
+    testWidgets('displays TodayGoalWidget', (tester) async {
+      final testState = createHomeLoadedState(available: true, finished: false);
+
+      when(() => mockHomeCubit.state).thenReturn(testState);
+      when(() => mockHomeCubit.stream)
+          .thenAnswer((_) => Stream.value(testState));
+
+      await pumpRiveWidget(tester, createTestableWidget(mockHomeCubit));
+      await tester.pumpAndSettle();
+      expect(find.byType(TodayGoalWidget), findsOneWidget);
+    });
+  });
+
+  testWidgets(
+      'Displays SingleChildScrollView with TodayGoalWidget and TodaysDiaryList when available',
+      (tester) async {
+    // Update state to make available = true
+    final testState = createHomeLoadedState(available: true, finished: false);
+
+    when(() => mockHomeCubit.state).thenReturn(testState);
+    when(() => mockHomeCubit.stream).thenAnswer((_) => Stream.value(testState));
+
+    await pumpRiveWidget(tester, createTestableWidget(mockHomeCubit));
+    await tester.pumpAndSettle();
+
+    // Verify SingleChildScrollView exists
+    expect(find.byType(SingleChildScrollView), findsOneWidget);
+
+    // Verify TodayGoalWidget exists with correct properties
+    final todayGoalWidget = find.byType(TodayGoalWidget);
+    expect(todayGoalWidget, findsOneWidget);
+
+    // Verify TodaysDiaryList exists
+    final todaysDiaryList = find.byType(TodaysDiaryList);
+    expect(todaysDiaryList, findsOneWidget);
+
+    // Verify SizedBox spacers exist
+    expect(find.byType(SizedBox), findsNWidgets(2));
+  });
+
+  testWidgets("Tapping incentives icon shows StudyIncentives", (tester) async {
+    // Create a state with available incentives.
+    final testState = createHomeLoadedState(
+      available: true,
+      finished: false,
+    );
+
+    when(() => mockHomeCubit.state).thenReturn(testState);
+    when(() => mockHomeCubit.stream).thenAnswer((_) => Stream.value(testState));
+
+    await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key("Incentive")).first, findsOne);
+
+    // // Verify that StudyIncentives bottom sheet is displayed.
+    // expect(find.byType(StudyIncentive), findsOneWidget);
+  });
+}

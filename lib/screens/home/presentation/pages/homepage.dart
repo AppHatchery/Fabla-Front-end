@@ -134,6 +134,7 @@ class _HomePageState extends State<HomePage>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
+                    key: const Key("weekly_goal_widget"),
                     child: GestureDetector(
                       onTap: () => setState(() {
                         if (isExpanded) {
@@ -262,6 +263,7 @@ class _HomePageState extends State<HomePage>
     return available <= 0
         ? const SizedBox.shrink()
         : GestureDetector(
+          key: const Key("Incentive"),
             onTap: () => showStudyIncentives(allStudies),
             child: Image.asset(
               "assets/images/icons/incentives.png",
