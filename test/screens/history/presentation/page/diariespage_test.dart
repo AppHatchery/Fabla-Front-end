@@ -129,7 +129,7 @@ void main() {
     when(() => mockDiaryHistoryCubit.loadPastDiaries())
         .thenAnswer((_) async {});
   });
-  testWidgets('DiariesPage displays correct app bar and diary list cards',
+  testWidgets('DiariesPage displays correct app bar, diary list cards and navigates to diary details',
       (WidgetTester tester) async {
 
     // This test checks if the DiariesPage displays the correct app bar title
