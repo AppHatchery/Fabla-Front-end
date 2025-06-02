@@ -76,6 +76,7 @@ class _ActiveRemindersState extends State<ActiveReminders> {
           height: 12,
         ),
         CustomElevatedButton(
+          key: Key("add-reminder-time-button"),
           onClick: widget.isEnabled ? () => pickDate() : null,
           text: "Add a Reminder Time",
           textColor: widget.isEnabled
