@@ -30,8 +30,6 @@ jobs:
       - name: install the database
         run: dart run build_runner build
 
-      - name: 
-
       - name: Run tests and generate report
         run: 
           flutter test test/
