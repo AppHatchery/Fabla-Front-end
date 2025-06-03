@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -410,6 +411,7 @@ class _QuestionPageState extends State<QuestionPage>
     promptModel = widget.prompt;
     promptCubit = BlocProvider.of<PromptCubit>(context);
     loadPrompt();
+    diaryStart(diaryID: widget.diary.id.toString());
     super.initState();
   }
 
@@ -617,10 +619,10 @@ class _QuestionPageState extends State<QuestionPage>
           )
         : prompt.responseType == ResponseType.instruction
             ? SingleChildScrollView(
-              child: SizedBox(
+                child: SizedBox(
                   child: CustomFormatterText(text: prompt.question),
                 ),
-            )
+              )
             : Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
