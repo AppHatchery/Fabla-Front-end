@@ -17,7 +17,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:audio_diaries_flutter/core/database/object_box.dart';
 import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/main.dart' as app;
-import 'package:provider/provider.dart';
 
 //mock class for the test
 class MockSettingsCubit extends Mock implements SettingsCubit {
@@ -98,7 +97,7 @@ Widget createTestableWidget(
           providers: [
             BlocProvider<SettingsCubit>.value(value: mockSettingsCubit),
             BlocProvider<HubCubit>.value(value: mockHubCubit),
-            Provider<SetupRepository>.value(value: mockRepository),
+            RepositoryProvider<SetupRepository>.value(value: mockRepository),
           ],
           child: const Settings(),
         ),
