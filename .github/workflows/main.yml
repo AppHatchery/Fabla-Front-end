@@ -14,10 +14,12 @@ jobs:
   tests:
     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v3
+    steps: 
+      - name: Clone repository
+        uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v2
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.x'
           channel: 'stable'
@@ -41,7 +43,7 @@ jobs:
 
       - name: Upload test results
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: |
