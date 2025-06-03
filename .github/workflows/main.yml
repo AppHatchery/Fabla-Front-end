@@ -30,16 +30,18 @@ jobs:
       - name: Install junitreport
         run: dart pub global activate junitreport
 
+      - name: Ensure directories exist
+        run: |
+          mkdir -p build/reports
+          mkdir -p test/failures
+          touch build/reports/.keep
+          touch test/failures/.keep
+
       - name: Run tests and generate report
         run: |
-          flutter test --machine > test_output.json
+          flutter test test/ --machine > test_output.json
           dart pub global run junitreport:tojunit --input test_output.json --output build/reports/junit.xml
-        timeout-minutes: 10
-
-      - name: Ensure test report directories exist
-        run: |
-          mkdir -p build/reports/
-          mkdir -p test/failures/
+        timeout-minutes: 10      
 
       - name: Upload test results
         if: failure()
