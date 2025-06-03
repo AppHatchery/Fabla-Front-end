@@ -1,0 +1,38 @@
+name: Flutter Test on Push/PR (main, Dev)
+
+on:
+  push:
+    branches:
+      - main
+      - Dev
+  pull_request:
+    branches:
+      - main
+      - Dev
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps: 
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: install the database
+        run: dart run build_runner build
+
+      - name: 
+
+      - name: Run tests and generate report
+        run: 
+          flutter test test/
+        timeout-minutes: 10
