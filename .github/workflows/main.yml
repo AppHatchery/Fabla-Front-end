@@ -26,18 +26,8 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
-
-      - name: Install junitreport
-        run: dart pub global activate junitreport
-
-      - name: Ensure directories exist
-        run: |
-          mkdir -p build/reports
-          mkdir -p test/failures
-          touch build/reports/.keep
-          touch test/failures/.keep
-
+  
       - name: Run tests and generate report
         run: 
-          flutter test test/ --verbose
+          flutter test test/
         timeout-minutes: 10
