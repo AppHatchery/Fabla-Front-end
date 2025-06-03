@@ -496,4 +496,5 @@ void main() {
   //   // // Verify that StudyIncentives bottom sheet is displayed.
   //   // expect(find.byType(StudyIncentive), findsOneWidget);
   // });
+  });
 }
