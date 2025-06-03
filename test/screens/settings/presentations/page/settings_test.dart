@@ -84,7 +84,7 @@ class MockBox<T> extends Mock implements Box<T> {
 }
 
 Widget createTestableWidget(
-    MockSettingsCubit mockSettingsCubit, MockSetupRepository mockRepository) {
+  MockSettingsCubit mockSettingsCubit, MockSetupRepository mockRepository) {
   final mockHubCubit = MockHubCubit();
 
   return ScreenUtilInit(
