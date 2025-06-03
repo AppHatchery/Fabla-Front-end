@@ -16,6 +16,24 @@ import 'package:mocktail/mocktail.dart';
 import 'package:audio_diaries_flutter/core/database/object_box.dart';
 import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/main.dart' as app;
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/empty_state.dart';
+
+// Create a dummy diary for testing
+final dummyDiary = DiaryModel(
+  id: 1,
+  studyID: 1,
+  name: 'Test Diary',
+  prompts: [],
+  tags: null,
+  status: DiaryStatus.idle,
+  due: DateTime.now(),
+  start: DateTime.now(),
+  entries: 1,
+  currentEntry: 0,
+  end: DateTime.now(),
+  notifications: [],
+  activeDays: [],
+);
 
 class MockDiaryCubit extends Mock implements DiaryCubit {}
 
@@ -129,9 +147,9 @@ void main() {
     when(() => mockDiaryHistoryCubit.loadPastDiaries())
         .thenAnswer((_) async {});
   });
-  testWidgets('DiariesPage displays correct app bar, diary list cards and navigates to diary details',
+  testWidgets(
+      'DiariesPage displays correct app bar, diary list cards and navigates to diary details',
       (WidgetTester tester) async {
-
     // This test checks if the DiariesPage displays the correct app bar title
     // and if the diary list cards are rendered correctly.
     await tester.pumpWidget(
@@ -181,5 +199,202 @@ void main() {
     await tester.pumpAndSettle();
     // Check if the diary details page is pushed
     expect(find.text('Test Diary'), findsOneWidget);
+  });
+
+  testWidgets('DiariesPage shows loading indicator when in loading state',
+      (WidgetTester tester) async {
+    when(() => mockDiaryHistoryCubit.state)
+        .thenReturn(const DiaryHistoryLoading());
+    when(() => mockDiaryHistoryCubit.stream)
+        .thenAnswer((_) => Stream.value(const DiaryHistoryLoading()));
+
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        minTextAdapt: true,
+        designSize: const Size(1080, 1920),
+        builder: (context, child) => MaterialApp(
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<DiaryCubit>.value(value: mockDiaryCubit),
+              BlocProvider<DiaryHistoryCubit>.value(
+                  value: mockDiaryHistoryCubit),
+            ],
+            child: const DiariesPage(),
+          ),
+        ),
+      ),
+    );
+
+    // Need to pump twice to allow the state to propagate
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('DiariesPage shows empty state when no diaries are available',
+      (WidgetTester tester) async {
+    when(() => mockDiaryHistoryCubit.state)
+        .thenReturn(const DiaryHistoryLoaded({}));
+    when(() => mockDiaryHistoryCubit.stream)
+        .thenAnswer((_) => Stream.value(const DiaryHistoryLoaded({})));
+
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        minTextAdapt: true,
+        designSize: const Size(1080, 1920),
+        builder: (context, child) => MaterialApp(
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<DiaryCubit>.value(value: mockDiaryCubit),
+              BlocProvider<DiaryHistoryCubit>.value(
+                  value: mockDiaryHistoryCubit),
+            ],
+            child: const DiariesPage(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(BeforeStartWidget), findsOneWidget);
+  });
+
+  testWidgets('DiariesPage refreshes when pull to refresh is triggered',
+      (WidgetTester tester) async {
+    final groupedDiaries = {
+      'Today': [dummyDiary]
+    };
+
+    when(() => mockDiaryHistoryCubit.state)
+        .thenReturn(DiaryHistoryLoaded(groupedDiaries));
+    when(() => mockDiaryHistoryCubit.stream)
+        .thenAnswer((_) => Stream.value(DiaryHistoryLoaded(groupedDiaries)));
+    when(() => mockDiaryHistoryCubit.loadPastDiaries())
+        .thenAnswer((_) async {});
+
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        minTextAdapt: true,
+        designSize: const Size(1080, 1920),
+        builder: (context, child) => MaterialApp(
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<DiaryCubit>.value(value: mockDiaryCubit),
+              BlocProvider<DiaryHistoryCubit>.value(
+                  value: mockDiaryHistoryCubit),
+            ],
+            child: const DiariesPage(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump();
+
+    // Find the DiaryList widget which should contain the RefreshIndicator
+    final diaryList = find.byType(DiaryList);
+    expect(diaryList, findsOneWidget);
+
+    // Trigger pull to refresh on the DiaryList
+    await tester.drag(diaryList, const Offset(0, 300));
+    await tester.pumpAndSettle();
+
+    // Verify that loadPastDiaries was called
+    verify(() => mockDiaryHistoryCubit.loadPastDiaries()).called(1);
+  });
+
+  testWidgets('DiariesPage displays correct diary information in cards',
+      (WidgetTester tester) async {
+    final groupedDiaries = {
+      'Today': [dummyDiary]
+    };
+
+    when(() => mockDiaryHistoryCubit.state)
+        .thenReturn(DiaryHistoryLoaded(groupedDiaries));
+    when(() => mockDiaryHistoryCubit.stream)
+        .thenAnswer((_) => Stream.value(DiaryHistoryLoaded(groupedDiaries)));
+
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        minTextAdapt: true,
+        designSize: const Size(1080, 1920),
+        builder: (context, child) => MaterialApp(
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<DiaryCubit>.value(value: mockDiaryCubit),
+              BlocProvider<DiaryHistoryCubit>.value(
+                  value: mockDiaryHistoryCubit),
+            ],
+            child: const DiariesPage(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump();
+
+    // Verify diary card displays correct information
+    expect(find.text('Test Diary'), findsOneWidget);
+    expect(find.text('Today'), findsOneWidget);
+  });
+
+  testWidgets('DiariesPage handles multiple diary groups correctly',
+      (WidgetTester tester) async {
+    final groupedDiaries = {
+      'Today': [dummyDiary],
+      'Yesterday': [
+        DiaryModel(
+          id: 2,
+          studyID: 1,
+          name: 'Yesterday Diary',
+          prompts: [],
+          tags: null,
+          status: DiaryStatus.idle,
+          due: DateTime.now().subtract(const Duration(days: 1)),
+          start: DateTime.now().subtract(const Duration(days: 1)),
+          entries: 1,
+          currentEntry: 0,
+          end: DateTime.now().subtract(const Duration(days: 1)),
+          notifications: [],
+          activeDays: [],
+        )
+      ]
+    };
+
+    when(() => mockDiaryHistoryCubit.state)
+        .thenReturn(DiaryHistoryLoaded(groupedDiaries));
+    when(() => mockDiaryHistoryCubit.stream)
+        .thenAnswer((_) => Stream.value(DiaryHistoryLoaded(groupedDiaries)));
+
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        minTextAdapt: true,
+        designSize: const Size(1080, 1920),
+        builder: (context, child) => MaterialApp(
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<DiaryCubit>.value(value: mockDiaryCubit),
+              BlocProvider<DiaryHistoryCubit>.value(
+                  value: mockDiaryHistoryCubit),
+            ],
+            child: const DiariesPage(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump();
+
+    // Verify both groups are displayed
+    expect(find.text('Today'), findsOneWidget);
+    expect(find.text('Yesterday'), findsOneWidget);
+    expect(find.text('Test Diary'), findsOneWidget);
+    expect(find.text('Yesterday Diary'), findsOneWidget);
   });
 }
