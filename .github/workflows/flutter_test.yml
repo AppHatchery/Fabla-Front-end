@@ -1,0 +1,31 @@
+name: Flutter Test
+
+on:
+  push:
+    branches: [ "main", "Dev" ]
+  pull_request:
+    branches: [ "main", "Dev" ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Run tests
+        run: flutter test test/ --verbose
+        timeout-minutes: 10
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: |
+            build/reports/
+            test/failures/
+          retention-days: 7
