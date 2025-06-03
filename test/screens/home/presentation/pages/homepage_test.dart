@@ -406,95 +406,215 @@ void main() {
       expect(find.text('Weekly Goal'), findsOneWidget);
     });
 
+    testWidgets('shows error state when state is HomeError', (tester) async {
+      when(() => mockHomeCubit.state).thenReturn(const HomeError('Test error'));
+      when(() => mockHomeCubit.stream)
+          .thenAnswer((_) => Stream.value(const HomeError('Test error')));
 
-    //fixme: rive animation mockup is not working, there is a github issue for this from 2024 April.
+      await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+      await tester.pump();
+      expect(find.byType(Scaffold), findsOneWidget);
+    });
 
-  //   testWidgets('tapping calendar icon shows StudyCalendar', (tester) async {
-  //     // Assume that you have already set the state to show the WeeklyGoalPopup.
-  //     // You would set up your mock HomeCubit state similar to your existing tests.
+    testWidgets('shows calendar icon in app bar', (tester) async {
+      await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+      await tester.pumpAndSettle();
 
-  //     final testState = createHomeLoadedState(available: true, finished: false);
+      expect(find.byIcon(Icons.calendar_month), findsOneWidget);
+    });
 
-  //     when(() => mockHomeCubit.state).thenReturn(testState);
-  //     when(() => mockHomeCubit.stream)
-  //         .thenAnswer((_) => Stream.value(testState));
+    testWidgets('hides TodayGoalWidget when available is false',
+        (tester) async {
+      final testState = createHomeLoadedState(
+        available: false,
+        finished: false,
+      );
 
-  //     await tester.pumpWidget(createTestableWidget(mockHomeCubit));
-  //     await tester.pumpAndSettle();
+      when(() => mockHomeCubit.state).thenReturn(testState);
+      when(() => mockHomeCubit.stream)
+          .thenAnswer((_) => Stream.value(testState));
 
-  //     // Now simulate tapping the calendar icon.
-  //     final calendarIcon = find.byIcon(Icons.calendar_month);
-  //     expect(calendarIcon, findsOneWidget);
-  //     await tester.tap(calendarIcon);
-  //     await tester.pumpAndSettle();
+      await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+      await tester.pumpAndSettle();
 
-  //     // Verify that the WeeklyGoalPopup is dismissed.
-  //     expect(find.byType(WeeklyGoalPopup), findsNothing);
+      expect(find.byType(TodayGoalWidget), findsNothing);
+    });
 
-  //     //shows the study calendar popup
-  //     expect(find.byType(StudyCalendar), findsOneWidget);
-  //   });
+    
+ //fixme: rive animation mockup is not working, there is a github issue for this from 2024 April.
+    // testWidgets('shows incentives icon when studies have incentives',
+    //     (tester) async {
+    //   final testState = createHomeLoadedState(
+    //     available: true,
+    //     finished: false,
+    //     allStudies: [
+    //       StudyModel(
+    //         id: 1,
+    //         studyId: 1,
+    //         name: 'Test Study',
+    //         experimentCode: 'test-code',
+    //         color: Colors.blue,
+    //         goals: Goal(daily: 1, weekly: 1),
+    //         incentive: Incentive(
+    //             amount: 100, bonus: 50, currency: 'MWK24', threshold: 5),
+    //       ),
+    //     ],
+    //   );
 
-  //   testWidgets('displays TodayGoalWidget', (tester) async {
-  //     final testState = createHomeLoadedState(available: true, finished: false);
+    //   when(() => mockHomeCubit.state).thenReturn(testState);
+    //   when(() => mockHomeCubit.stream)
+    //       .thenAnswer((_) => Stream.value(testState));
 
-  //     when(() => mockHomeCubit.state).thenReturn(testState);
-  //     when(() => mockHomeCubit.stream)
-  //         .thenAnswer((_) => Stream.value(testState));
+    //   await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+    //   await tester.pumpAndSettle();
 
-  //     await tester.pumpWidget(createTestableWidget(mockHomeCubit));
-  //     await tester.pump();
-  //     await tester.pump(const Duration(milliseconds: 500));
-  //     await tester.pumpAndSettle();
+    //   expect(find.byKey(const Key('Incentive')), findsOneWidget);
+    // });
 
-  //     expect(find.byType(TodayGoalWidget), findsOneWidget);
-  //   });
-  // });
+    // testWidgets('hides incentives icon when studies have no incentives',
+    //     (tester) async {
+    //   final testState = createHomeLoadedState(
+    //     available: true,
+    //     finished: false,
+    //     allStudies: [
+    //       StudyModel(
+    //         id: 1,
+    //         studyId: 1,
+    //         name: 'Test Study',
+    //         experimentCode: 'test-code',
+    //         color: Colors.blue,
+    //         goals: Goal(daily: 1, weekly: 1),
+    //         incentive:
+    //             Incentive(amount: 0, bonus: 0, currency: 'MWK24', threshold: 0),
+    //       ),
+    //     ],
+    //   );
 
-  // testWidgets(
-  //     'Displays SingleChildScrollView with TodayGoalWidget and TodaysDiaryList when available',
-  //     (tester) async {
-  //   // Update state to make available = true
-  //   final testState = createHomeLoadedState(available: true, finished: false);
+    //   when(() => mockHomeCubit.state).thenReturn(testState);
+    //   when(() => mockHomeCubit.stream)
+    //       .thenAnswer((_) => Stream.value(testState));
 
-  //   when(() => mockHomeCubit.state).thenReturn(testState);
-  //   when(() => mockHomeCubit.stream).thenAnswer((_) => Stream.value(testState));
+    //   await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+    //   await tester.pumpAndSettle();
 
-  //   await tester.pumpWidget(createTestableWidget(mockHomeCubit));
-  //   await tester.pumpAndSettle();
+    //   expect(find.byKey(const Key('Incentive')), findsNothing);
+    // });
 
-  //   // Verify SingleChildScrollView exists
-  //   expect(find.byType(SingleChildScrollView), findsOneWidget);
+    // testWidgets('shows TodaysDiaryList when diaries are available',
+    //     (tester) async {
+    //   final testState = createHomeLoadedState(
+    //     available: true,
+    //     finished: false,
+    //     diaries: [
+    //       DiaryModel(
+    //         id: 1,
+    //         studyID: 1,
+    //         name: 'Test Diary',
+    //         prompts: [],
+    //         tags: null,
+    //         status: DiaryStatus.idle,
+    //         due: DateTime.now(),
+    //         start: DateTime.now(),
+    //         entries: 1,
+    //         currentEntry: 0,
+    //         end: DateTime.now(),
+    //         notifications: [],
+    //         activeDays: [],
+    //       ),
+    //     ],
+    //   );
 
-  //   // Verify TodayGoalWidget exists with correct properties
-  //   final todayGoalWidget = find.byType(TodayGoalWidget);
-  //   expect(todayGoalWidget, findsOneWidget);
+    //   when(() => mockHomeCubit.state).thenReturn(testState);
+    //   when(() => mockHomeCubit.stream)
+    //       .thenAnswer((_) => Stream.value(testState));
 
-  //   // Verify TodaysDiaryList exists
-  //   final todaysDiaryList = find.byType(TodaysDiaryList);
-  //   expect(todaysDiaryList, findsOneWidget);
+    //   await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+    //   await tester.pumpAndSettle();
 
-  //   // Verify SizedBox spacers exist
-  //   expect(find.byType(SizedBox), findsNWidgets(2));
-  // });
+    //   expect(find.byType(TodaysDiaryList), findsOneWidget);
+    // });
 
-  // testWidgets("Tapping incentives icon shows StudyIncentives", (tester) async {
-  //   // Create a state with available incentives.
-  //   final testState = createHomeLoadedState(
-  //     available: true,
-  //     finished: false,
-  //   );
+    // testWidgets('shows DayComplete widget when no diaries are available',
+    //     (tester) async {
+    //   final testState = createHomeLoadedState(
+    //     available: true,
+    //     finished: false,
+    //     diaries: [],
+    //   );
 
-  //   when(() => mockHomeCubit.state).thenReturn(testState);
-  //   when(() => mockHomeCubit.stream).thenAnswer((_) => Stream.value(testState));
+    //   when(() => mockHomeCubit.state).thenReturn(testState);
+    //   when(() => mockHomeCubit.stream)
+    //       .thenAnswer((_) => Stream.value(testState));
 
-  //   await tester.pumpWidget(createTestableWidget(mockHomeCubit));
-  //   await tester.pumpAndSettle();
+    //   await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+    //   await tester.pumpAndSettle();
 
-  //   expect(find.byKey(const Key("Incentive")).first, findsOne);
+    //   expect(find.byType(DayComplete), findsOneWidget);
+    // });
 
-  //   // // Verify that StudyIncentives bottom sheet is displayed.
-  //   // expect(find.byType(StudyIncentive), findsOneWidget);
-  // });
+    // testWidgets('shows TodayGoalWidget when available is true', (tester) async {
+    //   final testState = createHomeLoadedState(
+    //     available: true,
+    //     finished: false,
+    //   );
+
+    //   when(() => mockHomeCubit.state).thenReturn(testState);
+    //   when(() => mockHomeCubit.stream)
+    //       .thenAnswer((_) => Stream.value(testState));
+
+    //   await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+    //   await tester.pumpAndSettle();
+
+    //   expect(find.byType(TodayGoalWidget), findsOneWidget);
+    // });
+
+    // testWidgets('shows WeeklyGoalPopup when weekly goal is tapped',
+    //     (tester) async {
+    //   final testState = createHomeLoadedState(
+    //     available: true,
+    //     finished: false,
+    //   );
+
+    //   when(() => mockHomeCubit.state).thenReturn(testState);
+    //   when(() => mockHomeCubit.stream)
+    //       .thenAnswer((_) => Stream.value(testState));
+
+    //   await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+    //   await tester.pumpAndSettle();
+
+    //   final weeklyGoalWidget = find.byKey(const Key('weekly_goal_widget'));
+    //   await tester.tap(weeklyGoalWidget);
+    //   await tester.pumpAndSettle();
+
+    //   expect(find.byType(WeeklyGoalPopup), findsOneWidget);
+    // });
+
+    // testWidgets('dismisses WeeklyGoalPopup when tapping outside',
+    //     (tester) async {
+    //   final testState = createHomeLoadedState(
+    //     available: true,
+    //     finished: false,
+    //   );
+
+    //   when(() => mockHomeCubit.state).thenReturn(testState);
+    //   when(() => mockHomeCubit.stream)
+    //       .thenAnswer((_) => Stream.value(testState));
+
+    //   await tester.pumpWidget(createTestableWidget(mockHomeCubit));
+    //   await tester.pumpAndSettle();
+
+    //   // First tap to show popup
+    //   final weeklyGoalWidget = find.byKey(const Key('weekly_goal_widget'));
+    //   await tester.tap(weeklyGoalWidget);
+    //   await tester.pumpAndSettle();
+
+    //   expect(find.byType(WeeklyGoalPopup), findsOneWidget);
+
+    //   // Tap outside to dismiss
+    //   await tester.tap(find.byType(Scaffold));
+    //   await tester.pumpAndSettle();
+
+    //   expect(find.byType(WeeklyGoalPopup), findsNothing);
+    // });
   });
 }
