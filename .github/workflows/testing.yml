@@ -1,4 +1,4 @@
-name: Flutter Test on Push/PR (main, Dev)
+name: Flutter unit and widget tests.
 
 on:
   push:
