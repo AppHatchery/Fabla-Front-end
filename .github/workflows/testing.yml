@@ -38,5 +38,5 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Run tests and generate report
-        run: flutter test test/
+        run: flutter test test/ --verbose
         timeout-minutes: 10
