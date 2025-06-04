@@ -1,4 +1,4 @@
-name: Flutter unit and widget tests.
+name: Flutter Test on Push/PR (main, Dev)
 
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
           echo "const pendoKey = 'f2Si3o_N8wW4dtP3469-ru9eZnJpw8z7S8DsLbTGfQ';" >> lib/core/secrets/keys.dart
 
       - name: install the database
-        run: dart run build_runner build
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Run tests and generate report
         run: flutter test test/
