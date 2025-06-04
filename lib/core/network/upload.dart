@@ -162,92 +162,72 @@ String formatSubmissionDate(DateTime date) {
   return DateFormat('yyyy-MM-dd').format(date);
 }
 
-//Upload functions
-Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
-  final cred = await SecureSave().read();
-  // List of items to be sent in the request body
-  List<Map<String, dynamic>> promptListItems =
-      PromptEntry.promptListToMap(promptEntryList);
-  // Encode the list of items to JSON
-  String jsonBody = json.encode(promptListItems);
-
-  var url = Uri.parse(cred?.dynamo_url ?? "");
-
-  var headers = {
-    'Content-Type': 'application/json',
-    'Authorization': "${cred?.authorization ?? ""}[0]",
-    'x-api-key': cred?.xapikey ?? ""
-  };
+/// Uploads non-audio data to the server.
+///
+/// [promptEntries] is the list of prompt entries to upload.
+/// [secureSave] is an optional SecureSave instance for testing.
+/// [client] is an optional HTTP client for testing.
+Future<bool> uploadNonAudioData(
+  List<PromptEntry> promptEntries, {
+  SecureSave? secureSave,
+  http.Client? client,
+}) async {
+  final _secureSave = secureSave ?? SecureSave();
+  final _client = client ?? http.Client();
 
   try {
-    var response = await http.post(url, headers: headers, body: jsonBody);
+    final credentials = await _secureSave.read();
+    if (credentials == null) {
+      return false;
+    }
+
+    // Convert PromptEntry objects to the correct format
+    final promptListItems = PromptEntry.promptListToMap(promptEntries);
+    final jsonBody = json.encode(promptListItems);
+
+    final response = await _client.post(
+      Uri.parse(credentials.dynamo_url!),
+      headers: {
+        'Authorization': credentials.authorization!,
+        'x-api-key': credentials.xapikey!,
+        'Content-Type': 'application/json',
+      },
+      body: jsonBody,
+    );
 
     return response.statusCode == 200;
   } catch (e) {
-    // An error occurred
-    dev.log('Error sending request: $e', name: 'Upload - Non-Audio Data');
-    return false; // Submission failed due to error
+    dev.log('Error uploading non-audio data: $e',
+        name: 'Upload - Non-Audio Data');
+    return false;
   }
 }
 
-/// Retrieves a presigned URL for uploading a file to an S3 storage location.
+/// Gets a presigned URL for uploading a file.
 ///
-/// The function takes an [apiUrl] and a [filename] as input parameters. It sends
-/// a POST request to the specified API endpoint ([apiUrl]) with a JSON body
-/// containing the filename. Upon successful response with status code 200,
-/// it parses the response body to extract the presigned URL and returns it.
-/// If there's an error during the process, or the response status code is not
-/// 200, it returns null.
-///
-/// Example:
-/// ```dart
-/// String apiUrl = 'https://example.com/api/upload';
-/// String filename = 'example_file.jpg';
-/// String? presignedUrl = await getPresignedUrl(apiUrl, filename);
-/// if (presignedUrl != null) {
-///   // Use the presigned URL to upload the file to S3
-/// } else {
-///   // Handle error
-/// }
-/// ```
-///
-/// Throws an error if there's any issue during the process.
-///
-Future<String?> getPresignedUrl(String apiUrl, String filename) async {
-  final cred = await SecureSave().read();
-  try {
-    var requestBody = jsonEncode({'filename': filename});
+/// [apiUrl] is the API endpoint URL.
+/// [filename] is the name of the file to upload.
+/// [client] is an optional HTTP client for testing.
+Future<String?> getPresignedUrl(
+  String apiUrl,
+  String filename, {
+  http.Client? client,
+}) async {
+  final _client = client ?? http.Client();
 
-    var response = await http.post(
+  try {
+    final response = await _client.post(
       Uri.parse(apiUrl),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization':
-            "${cred?.authorization ?? ""}[1]", // password [ AWS ARN FOR THE CALL ]
-        'x-api-key': cred?.xapikey ?? ""
-      },
-      body: requestBody,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'filename': filename}),
     );
 
     if (response.statusCode == 200) {
-      // Parse the response body (which is a string containing JSON)
-      var responseBody = response.body;
-      var jsonResponse = jsonDecode(responseBody);
-      // Parse the 'body' field from the JSON response
-      var body = jsonDecode(jsonResponse['body']);
-
-      // Extract the 'uploadURL' from the parsed 'body' JSON
-      var uploadUrl = body['uploadURL'];
-      return uploadUrl;
-    } else {
-      dev.log(
-          'Failed to get presigned URL: ${response.statusCode}, ${response.body}',
-          name: 'Upload - Get Presigned URL');
-      return null;
+      final data = jsonDecode(response.body);
+      return data['url'];
     }
+    return null;
   } catch (e) {
-    dev.log('Error getting presigned URL: $e',
-        name: 'Upload - Get Presigned URL');
     return null;
   }
 }

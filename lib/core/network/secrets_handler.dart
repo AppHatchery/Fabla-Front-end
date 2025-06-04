@@ -5,10 +5,31 @@ import 'package:http/http.dart' as http;
 import 'dart:developer' as dev;
 
 class SecureSave {
-  final _storage = const FlutterSecureStorage();
+  // Dependencies are stored as final fields to ensure immutability
+  final FlutterSecureStorage _storage;
+  final http.Client _client;
+
+  /// Creates a new instance of SecureSave.
+  ///
+  /// This constructor uses dependency injection to allow for better testability:
+  /// - [storage]: Optional FlutterSecureStorage instance. If not provided, creates a new instance.
+  /// - [client]: Optional HTTP client. If not provided, creates a new instance.
+  ///
+  /// This pattern allows us to:
+  /// 1. Mock dependencies in tests without modifying the actual storage or making real HTTP calls
+  /// 2. Maintain backward compatibility for production code (no changes needed in existing usage)
+  /// 3. Control the behavior of dependencies in tests (e.g., simulate network errors)
+  SecureSave({
+    FlutterSecureStorage? storage,
+    http.Client? client,
+  })  : _storage = storage ?? const FlutterSecureStorage(),
+        _client = client ?? http.Client();
+
   Future<String> postData(String st) async {
     try {
-      var response = await http.post(
+      // Using the injected _client instead of http.post directly
+      // This allows us to mock the HTTP client in tests
+      var response = await _client.post(
         Uri.parse(
             'https://3z44ix42wc77473ramwyoqr6ji0fswhn.lambda-url.us-east-1.on.aws/api/getdata'),
         headers: {
@@ -20,7 +41,8 @@ class SecureSave {
       );
 
       if (response.statusCode == 200) {
-        dev.log('Response body: ${response.body}', name: 'Secrets Handler - Post Data');
+        dev.log('Response body: ${response.body}',
+            name: 'Secrets Handler - Post Data');
         String jsonString = response.body;
         Map<String, dynamic> data = jsonDecode(jsonString);
         String authorization = data['message']['Authorization'];
@@ -65,12 +87,15 @@ class CredentialsModel {
   String? xapikey;
   // ignore: non_constant_identifier_names
   String? dynamo_url;
-    // ignore: non_constant_identifier_names
+  // ignore: non_constant_identifier_names
   String? presigned_url;
 
   CredentialsModel(
       // ignore: non_constant_identifier_names
-      {this.authorization, this.xapikey, this.dynamo_url, this.presigned_url});
+      {this.authorization,
+      this.xapikey,
+      this.dynamo_url,
+      this.presigned_url});
   CredentialsModel.fromJson(Map<String, dynamic> json) {
     authorization = json['authorization'];
     xapikey = json['x-api-key'];

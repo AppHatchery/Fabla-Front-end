@@ -19,6 +19,17 @@ import '../screens/onboarding/presentation/pages/mic_access.dart';
 import '../screens/onboarding/presentation/pages/notification_access.dart';
 
 class RouteService {
+  //refactor RouteService to accept PreferenceService and SetupRepository
+  // via its constructor. which makes the class more testable.
+  final PreferenceService _preferenceService;
+  final SetupRepository _setupRepository;
+
+  RouteService({
+    PreferenceService? preferenceService,
+    SetupRepository? setupRepository,
+  })  : _preferenceService = preferenceService ?? PreferenceService(),
+        _setupRepository = setupRepository ?? SetupRepository();
+
   // Main Flow for the onboarding process without any extra permissions
   final List<Map<String, String>> _flow = [
     {'route': 'login', 'next': 'confirm', 'type': 'login', 'previous': ''},
@@ -95,23 +106,23 @@ class RouteService {
   /// }
   /// ```
   Future<Widget> getRoute() async {
-    await PreferenceService().setBoolPreference(key: 'cold_start', value: true);
+    await _preferenceService.setBoolPreference(key: 'cold_start', value: true);
 
     // Get additional permissions if available
-    final extraPermissions = await PreferenceService().getStringListPreference(
+    final extraPermissions = await _preferenceService.getStringListPreference(
           key: 'extra_permissions',
         ) ??
         [];
 
     // Fetch all preferences concurrently
     final preferences = await Future.wait([
-      PreferenceService().getBoolPreference(key: 'setup'),
-      PreferenceService().getBoolPreference(key: 'notification_requested'),
-      PreferenceService().getBoolPreference(key: 'active_dates_seen'),
-      PreferenceService().getBoolPreference(key: 'microphone'),
-      PreferenceService().getBoolPreference(key: 'location'),
-      PreferenceService().getBoolPreference(key: 'camera'),
-      PreferenceService().getBoolPreference(key: 'onboarding_complete'),
+      _preferenceService.getBoolPreference(key: 'setup'),
+      _preferenceService.getBoolPreference(key: 'notification_requested'),
+      _preferenceService.getBoolPreference(key: 'active_dates_seen'),
+      _preferenceService.getBoolPreference(key: 'microphone'),
+      _preferenceService.getBoolPreference(key: 'location'),
+      _preferenceService.getBoolPreference(key: 'camera'),
+      _preferenceService.getBoolPreference(key: 'onboarding_complete'),
     ]);
 
     final setup = preferences[0] ?? false;
@@ -127,8 +138,7 @@ class RouteService {
         extraPermissions.contains('camera') ? (preferences[5] ?? false) : true;
     final onboardingComplete = preferences[6] ?? false;
 
-    final setupRepository = SetupRepository();
-    final participant = setupRepository.getParticipant();
+    final participant = _setupRepository.getParticipant();
 
     if (setup) {
       return const Hub();
@@ -162,7 +172,7 @@ class RouteService {
 
   Future<dynamic> navigate(dynamic arguments,
       {required BuildContext context, required String current}) async {
-    final extraPermissions = await PreferenceService().getStringListPreference(
+    final extraPermissions = await _preferenceService.getStringListPreference(
           key: 'extra_permissions',
         ) ??
         [];
@@ -337,8 +347,8 @@ class RouteService {
     // If the app has routes present
     if (context.mounted && Navigator.canPop(context)) {
       if (current == "active_dates") {
-        final repository = SetupRepository();
-        final onboardingQuestions = await repository.getOnBoardingQuestions();
+        final onboardingQuestions =
+            await _setupRepository.getOnBoardingQuestions();
 
         if (context.mounted) {
           if (onboardingQuestions.isNotEmpty) {
@@ -356,7 +366,7 @@ class RouteService {
       if (context.mounted) return Navigator.pop(context);
     }
 
-    final extraPermissions = await PreferenceService().getStringListPreference(
+    final extraPermissions = await _preferenceService.getStringListPreference(
           key: 'extra_permissions',
         ) ??
         [];
@@ -403,8 +413,7 @@ class RouteService {
         }
         break;
       case 'confirm':
-        final repository = SetupRepository();
-        final experiment = repository.getExperiment();
+        final experiment = _setupRepository.getExperiment();
 
         if (context.mounted) {
           _navigatorTransitionBack(
@@ -438,8 +447,8 @@ class RouteService {
         }
         break;
       case 'dynamic_onboarding':
-        final repository = SetupRepository();
-        final onboardingQuestions = await repository.getOnBoardingQuestions();
+        final onboardingQuestions =
+            await _setupRepository.getOnBoardingQuestions();
 
         // If the onboarding has any question then proceed to that page
         if (onboardingQuestions.isNotEmpty) {

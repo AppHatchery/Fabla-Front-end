@@ -4,18 +4,20 @@ import 'dart:developer' as dev;
 class BatteryService {
   static const channel =
       MethodChannel('edu.emory.audio_diaries_flutter/battery');
-  static const requestEvent = EventChannel('edu.emory.audio_diaries_flutter/batteryRequest');
+  static const requestEvent =
+      EventChannel('edu.emory.audio_diaries_flutter/batteryRequest');
 
   /// Method to check if the battery optimization is disabled.
   ///
   /// Returns:
   /// The method returns a boolean value indicating if the battery optimization is disabled.
+  /// Returns false if the platform returns null or encounters an error.
   ///
   Future<bool> isBatteryOptimizationDisabled() async {
     try {
-      final bool isDisabled =
+      final result =
           await channel.invokeMethod('isBatteryOptimizationDisabled');
-      return isDisabled;
+      return result as bool? ?? false;
     } on PlatformException catch (e) {
       dev.log(e.message.toString(),
           name: "Battery Service - isBatteryOptimizationDisabled");

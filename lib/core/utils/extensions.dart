@@ -18,10 +18,13 @@ extension PromptModelComparison on PromptModel {
         responseType == other.responseType;
 
     // Compare options if they exist
+    // Changed from using toString() to directly comparing the type field
+    // This ensures proper comparison of option types (e.g., radio vs slider)
+    // and fixes the issue where different option types were incorrectly considered equal
     final sameOptions = (option == null && other.option == null) ||
         (option != null &&
             other.option != null &&
-            option!.toString() == other.option!.toString());
+            option!.type == other.option!.type);
 
     return sameBasics && sameOptions;
   }

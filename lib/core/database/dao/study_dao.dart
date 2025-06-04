@@ -7,8 +7,42 @@ class StudyDAO {
 
   StudyDAO({required this.box});
 
+  /// Retrieves a study with the specified ID from the database.
+  ///
+  /// This method first filters all studies to find those matching the given studyId,
+  /// then returns the first matching study if found, or null if no study exists.
+  ///
+  /// The implementation uses a two-step process to safely handle the case where
+  /// no study is found, avoiding the "Bad state: No element" exception that would
+  /// occur with a direct .first call on an empty iterable.
+  ///
+  /// Parameters:
+  /// - [id]: The studyId to search for
+  ///
+  /// Returns:
+  /// - A Study object if found, null otherwise
+  ///
+  /// Example:
+  /// ```dart
+  /// final study = studyDAO.getStudy(123);
+  /// if (study != null) {
+  ///   // Use the study
+  /// } else {
+  ///   // Handle case where study doesn't exist
+  /// }
+  /// ```
+  ///
+  /// Note: This implementation was updated to handle the case where no study is found
+  /// by returning null instead of throwing a "Bad state: No element" exception. This
+  /// matches the expected behavior in tests and provides a better way to handle
+  /// missing studies.
+  /// original implementation:
+  /// Study? getStudy(int id) {
+  /// return box.getAll().where((element) => element.studyId == id).first;
+  /// }
   Study? getStudy(int id) {
-    return box.getAll().where((element) => element.studyId == id).first;
+    final studies = box.getAll().where((element) => element.studyId == id);
+    return studies.isEmpty ? null : studies.first;
   }
 
   List<Study> getStudies() {

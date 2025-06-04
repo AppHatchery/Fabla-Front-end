@@ -3,10 +3,21 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup
 
 import 'dart:developer' as dev;
 
-final DiaryRepository _diaryRepository = DiaryRepository();
-final SetupRepository _setupRepository = SetupRepository();
+// Default instances for production use
+final DiaryRepository _defaultDiaryRepository = DiaryRepository();
+final SetupRepository _defaultSetupRepository = SetupRepository();
 
 class ExperimentManager {
+  final DiaryRepository _diaryRepository;
+  final SetupRepository _setupRepository;
+
+  // Constructor with optional parameters for dependency injection
+  ExperimentManager({
+    DiaryRepository? diaryRepository,
+    SetupRepository? setupRepository,
+  })  : _diaryRepository = diaryRepository ?? _defaultDiaryRepository,
+        _setupRepository = setupRepository ?? _defaultSetupRepository;
+
   /// Update Experiment
   Future<bool> update() async {
     try {

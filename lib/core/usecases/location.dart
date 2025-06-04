@@ -2,7 +2,8 @@ import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:location/location.dart';
 
-final Location location = Location();
+// Default instance for production use
+final Location _defaultLocation = Location();
 
 /// Appends the current location to the diary entry.
 /// This function appends the current location to the diary entry by retrieving the location data
@@ -17,23 +18,32 @@ final Location location = Location();
 /// - [participantID]: The ID of the participant.
 /// - [promptLength]: The length of the prompt.
 /// - [diaryID]: The ID of the diary entry.
+/// - [location]: Optional Location instance for testing.
+/// - [preferenceService]: Optional PreferenceService instance for testing.
 ///
 /// Returns:
 /// A `PromptEntry` object containing the current location information, or `null` if the location permissions are not granted.
-Future<PromptEntry?> appendLocation(
-    {required String experimentCode,
-    required String participantID,
-    required int promptLength,
-    required String diaryID}) async {
-  final extraPermissions = await PreferenceService().getStringListPreference(
-        key: 'extra_permissions',
-      ) ??
-      [];
+Future<PromptEntry?> appendLocation({
+  required String experimentCode,
+  required String participantID,
+  required int promptLength,
+  required String diaryID,
+  Location? location,
+  PreferenceService? preferenceService,
+}) async {
+  final locationInstance = location ?? _defaultLocation;
+  final preferenceServiceInstance = preferenceService ?? PreferenceService();
+
+  final extraPermissions =
+      await preferenceServiceInstance.getStringListPreference(
+            key: 'extra_permissions',
+          ) ??
+          [];
 
   if (extraPermissions.contains('location')) {
-    final permission = await location.hasPermission();
+    final permission = await locationInstance.hasPermission();
     if (permission == PermissionStatus.granted) {
-      final data = await location.getLocation();
+      final data = await locationInstance.getLocation();
 
       final response = PromptEntry(
           participantID: participantID,
@@ -45,7 +55,7 @@ Future<PromptEntry?> appendLocation(
           questionsType: "location",
           required: true);
       return response;
-    }else{
+    } else {
       final response = PromptEntry(
           participantID: participantID,
           experimentCode: experimentCode,

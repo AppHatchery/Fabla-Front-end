@@ -4,6 +4,10 @@ class PageTimer {
   Timer? _timer;
   int _time = 0;
 
+  // Added for testing purposes
+  Timer? get timer => _timer;
+  int get time => _time;
+
   void start() async {
     _timer ??= Timer.periodic(const Duration(seconds: 1), (value) {
       _time++;

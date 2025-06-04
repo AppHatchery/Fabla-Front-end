@@ -5,15 +5,38 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
+/// Controller for handling Firebase Cloud Messaging and local notifications.
+///
+/// This class manages:
+/// - Firebase Cloud Messaging initialization and message handling
+/// - Local notification setup and display
+/// - Notification permissions
+/// - Token management
+///
+/// For testing purposes, this class accepts a [FirebaseMessaging] instance
+/// to allow dependency injection and mocking.
 class NotificationsController {
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
+  /// The Firebase Messaging instance used for FCM operations.
+  /// This is injected for testing purposes, defaulting to [FirebaseMessaging.instance]
+  /// in production.
+  final FirebaseMessaging _messaging;
+
+  /// Creates a new [NotificationsController].
+  ///
+  /// [messaging] is optional and defaults to [FirebaseMessaging.instance].
+  /// This allows for dependency injection during testing.
+  NotificationsController({FirebaseMessaging? messaging})
+      : _messaging = messaging ?? FirebaseMessaging.instance;
+
   Future<void> initialize() async {
-    await FirebaseMessaging.instance.getInitialMessage();
-   // await requestPermission();
+    await _messaging.getInitialMessage();
+    // await requestPermission();
     await setupNotificationPlugin();
     //await getToken();
 
+    // Note: onMessage is a static stream, so we can't use the instance
     FirebaseMessaging.onMessage.listen((RemoteMessage event) {
       messageHandler(event);
     });
@@ -25,11 +48,13 @@ class NotificationsController {
 
     if (notification != null && androidNotification != null) {
       String? imagePath;
-      StyleInformation notificationStyle = const DefaultStyleInformation(true, true);
+      StyleInformation notificationStyle =
+          const DefaultStyleInformation(true, true);
 
       if (androidNotification.imageUrl != null &&
           androidNotification.imageUrl!.isNotEmpty) {
-        imagePath = await _downloadAndSaveFile(androidNotification.imageUrl!, 'bigPicture');
+        imagePath = await _downloadAndSaveFile(
+            androidNotification.imageUrl!, 'bigPicture');
 
         notificationStyle = BigPictureStyleInformation(
           FilePathAndroidBitmap(imagePath),
@@ -48,10 +73,12 @@ class NotificationsController {
           android: AndroidNotificationDetails(
             'high_importance_channel', // Channel ID
             'High Importance Notifications', // Channel Name
-            channelDescription: 'This channel is used for important notifications.',
+            channelDescription:
+                'This channel is used for important notifications.',
             importance: Importance.max,
             styleInformation: notificationStyle,
-            largeIcon: imagePath != null ? FilePathAndroidBitmap(imagePath) : null,
+            largeIcon:
+                imagePath != null ? FilePathAndroidBitmap(imagePath) : null,
           ),
         ),
       );
@@ -59,9 +86,7 @@ class NotificationsController {
   }
 
   Future<void> requestPermission() async {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-    NotificationSettings settings = await messaging.requestPermission(
+    NotificationSettings settings = await _messaging.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
@@ -72,7 +97,7 @@ class NotificationsController {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      messaging.setForegroundNotificationPresentationOptions(
+      _messaging.setForegroundNotificationPresentationOptions(
         alert: true,
         badge: true,
         sound: true,
@@ -81,7 +106,7 @@ class NotificationsController {
   }
 
   Future<void> getToken() async {
-    final token = await FirebaseMessaging.instance.getToken();
+    final token = await _messaging.getToken();
     log("Firebase Token: $token");
   }
 
