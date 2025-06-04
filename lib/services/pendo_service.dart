@@ -2,10 +2,61 @@ import 'package:audio_diaries_flutter/core/secrets/keys.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:pendo_sdk/pendo_sdk.dart';
 import 'dart:developer' as dev;
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 const String _testID = "Test";
 
+// Define the wrapper interface/class
+abstract class IPendoPlugin {
+  Future<void> setup(String pendoKey);
+  Future<void> startSession(String visitorId, String accountId,
+      Map<String, dynamic>? visitorData, Map<String, dynamic>? accountData);
+  Future<void> endSession();
+  Future<void> track(String eventName, Map<String, dynamic>? properties);
+}
+
+// Real implementation of the wrapper
+class PendoPluginWrapper implements IPendoPlugin {
+  @override
+  Future<void> setup(String pendoKey) {
+    return PendoFlutterPlugin.setup(pendoKey);
+  }
+
+  @override
+  Future<void> startSession(String visitorId, String accountId,
+      Map<String, dynamic>? visitorData, Map<String, dynamic>? accountData) {
+    return PendoFlutterPlugin.startSession(
+        visitorId, accountId, visitorData, accountData);
+  }
+
+  @override
+  Future<void> endSession() {
+    return PendoFlutterPlugin.endSession();
+  }
+
+  @override
+  Future<void> track(String eventName, Map<String, dynamic>? properties) {
+    return PendoFlutterPlugin.track(eventName, properties);
+  }
+}
+
 class PendoService {
+  // Allow injecting a mock for testing
+  // ignore: prefer_final_fields
+  static IPendoPlugin _plugin = PendoPluginWrapper();
+
+  /// FOR TESTING PURPOSES ONLY. Allows injecting a mock plugin.
+  @visibleForTesting
+  static void setPluginForTesting(IPendoPlugin mockPlugin) {
+    _plugin = mockPlugin;
+  }
+
+  /// Resets the plugin to the default implementation.
+  @visibleForTesting
+  static void resetPlugin() {
+    _plugin = PendoPluginWrapper();
+  }
+
   /// Initializes the Pendo Flutter plugin with the given Pendo key.
   ///
   /// This function sets up Pendo by invoking the `PendoFlutterPlugin.setup`
@@ -16,7 +67,7 @@ class PendoService {
 
   static Future<void> init() async {
     try {
-      await PendoFlutterPlugin.setup(pendoKey);
+      await _plugin.setup(pendoKey);
     } catch (e) {
       dev.log('Error initializing Pendo: $e', name: 'Pendo Service - Init');
     }
@@ -38,10 +89,9 @@ class PendoService {
   static Future<void> start(String code, String experiment) async {
     try {
       if (foundation.kDebugMode) {
-        await PendoFlutterPlugin.startSession(code, _testID, null, null);
+        await _plugin.startSession(code, _testID, null, null);
       } else {
-        await PendoFlutterPlugin.startSession(
-            code, 'Exp-$experiment', null, null);
+        await _plugin.startSession(code, 'Exp-$experiment', null, null);
       }
     } catch (e) {
       dev.log('Error starting Pendo session: $e', name: 'Pendo Service - Init');
@@ -59,7 +109,7 @@ class PendoService {
   ///   - A Future<void> representing the asynchronous session termination process.
   static Future<void> stop() async {
     try {
-      await PendoFlutterPlugin.endSession();
+      await _plugin.endSession();
     } catch (e) {
       dev.log('Error stopping Pendo session: $e', name: 'Pendo Service - Init');
     }
@@ -80,7 +130,7 @@ class PendoService {
   ///   - A Future<void> representing the asynchronous event tracking process.
   static Future<void> track(String event, Map<String, dynamic>? data) async {
     try {
-      await PendoFlutterPlugin.track(event, data);
+      await _plugin.track(event, data);
     } catch (e) {
       dev.log('Error tracking Pendo event: $e', name: 'Pendo Service - Init');
     }

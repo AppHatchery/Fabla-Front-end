@@ -61,6 +61,12 @@ List<DiaryModel> filterTodaysDiaries(
           return true;
         }
       }
+      // If diary has activeDays but none match the target date, return false
+      // The addition of the return false; statement after the loop. This ensures that:
+      // If a diary has activeDays and one of them matches the target date → return true
+      // If a diary has activeDays but none match the target date → return false
+      // If a diary has no activeDays → fall back to checking if the start date matches
+      return false;
     }
     return normalizeDate(diary.start) == normalizeDate(date);
   }).toList();

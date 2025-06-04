@@ -86,6 +86,10 @@ class _FakeExperimentModel_3 extends _i1.SmartFake
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockPreferenceService extends _i1.Mock implements _i6.PreferenceService {
+  MockPreferenceService() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   _i7.Future<String?> getStringPreference({required String? key}) =>
       (super.noSuchMethod(
@@ -95,7 +99,6 @@ class MockPreferenceService extends _i1.Mock implements _i6.PreferenceService {
           {#key: key},
         ),
         returnValue: _i7.Future<String?>.value(),
-        returnValueForMissingStub: _i7.Future<String?>.value(),
       ) as _i7.Future<String?>);
 
   @override
@@ -113,7 +116,6 @@ class MockPreferenceService extends _i1.Mock implements _i6.PreferenceService {
           },
         ),
         returnValue: _i7.Future<bool>.value(false),
-        returnValueForMissingStub: _i7.Future<bool>.value(false),
       ) as _i7.Future<bool>);
 
   @override
@@ -125,7 +127,6 @@ class MockPreferenceService extends _i1.Mock implements _i6.PreferenceService {
           {#key: key},
         ),
         returnValue: _i7.Future<bool?>.value(),
-        returnValueForMissingStub: _i7.Future<bool?>.value(),
       ) as _i7.Future<bool?>);
 
   @override
@@ -143,7 +144,6 @@ class MockPreferenceService extends _i1.Mock implements _i6.PreferenceService {
           },
         ),
         returnValue: _i7.Future<bool>.value(false),
-        returnValueForMissingStub: _i7.Future<bool>.value(false),
       ) as _i7.Future<bool>);
 
   @override
@@ -155,7 +155,6 @@ class MockPreferenceService extends _i1.Mock implements _i6.PreferenceService {
           {#key: key},
         ),
         returnValue: _i7.Future<int?>.value(),
-        returnValueForMissingStub: _i7.Future<int?>.value(),
       ) as _i7.Future<int?>);
 
   @override
@@ -173,7 +172,6 @@ class MockPreferenceService extends _i1.Mock implements _i6.PreferenceService {
           },
         ),
         returnValue: _i7.Future<bool>.value(false),
-        returnValueForMissingStub: _i7.Future<bool>.value(false),
       ) as _i7.Future<bool>);
 
   @override
@@ -185,7 +183,6 @@ class MockPreferenceService extends _i1.Mock implements _i6.PreferenceService {
           {#key: key},
         ),
         returnValue: _i7.Future<double?>.value(),
-        returnValueForMissingStub: _i7.Future<double?>.value(),
       ) as _i7.Future<double?>);
 
   @override
@@ -203,7 +200,6 @@ class MockPreferenceService extends _i1.Mock implements _i6.PreferenceService {
           },
         ),
         returnValue: _i7.Future<bool>.value(false),
-        returnValueForMissingStub: _i7.Future<bool>.value(false),
       ) as _i7.Future<bool>);
 
   @override
@@ -215,7 +211,6 @@ class MockPreferenceService extends _i1.Mock implements _i6.PreferenceService {
           {#key: key},
         ),
         returnValue: _i7.Future<List<String>?>.value(),
-        returnValueForMissingStub: _i7.Future<List<String>?>.value(),
       ) as _i7.Future<List<String>?>);
 
   @override
@@ -233,7 +228,6 @@ class MockPreferenceService extends _i1.Mock implements _i6.PreferenceService {
           },
         ),
         returnValue: _i7.Future<bool>.value(false),
-        returnValueForMissingStub: _i7.Future<bool>.value(false),
       ) as _i7.Future<bool>);
 
   @override
@@ -245,7 +239,6 @@ class MockPreferenceService extends _i1.Mock implements _i6.PreferenceService {
           {#key: key},
         ),
         returnValue: _i7.Future<bool>.value(false),
-        returnValueForMissingStub: _i7.Future<bool>.value(false),
       ) as _i7.Future<bool>);
 
   @override
@@ -255,7 +248,6 @@ class MockPreferenceService extends _i1.Mock implements _i6.PreferenceService {
           [],
         ),
         returnValue: _i7.Future<bool>.value(false),
-        returnValueForMissingStub: _i7.Future<bool>.value(false),
       ) as _i7.Future<bool>);
 }
 
@@ -263,14 +255,14 @@ class MockPreferenceService extends _i1.Mock implements _i6.PreferenceService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
+  MockSetupRepository() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   _i2.DiaryRepository get diaryRepository => (super.noSuchMethod(
         Invocation.getter(#diaryRepository),
         returnValue: _FakeDiaryRepository_0(
-          this,
-          Invocation.getter(#diaryRepository),
-        ),
-        returnValueForMissingStub: _FakeDiaryRepository_0(
           this,
           Invocation.getter(#diaryRepository),
         ),
@@ -283,20 +275,12 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
           this,
           Invocation.getter(#promptRepository),
         ),
-        returnValueForMissingStub: _FakePromptRepository_1(
-          this,
-          Invocation.getter(#promptRepository),
-        ),
       ) as _i3.PromptRepository);
 
   @override
   _i4.AnswerRepository get answerRepository => (super.noSuchMethod(
         Invocation.getter(#answerRepository),
         returnValue: _FakeAnswerRepository_2(
-          this,
-          Invocation.getter(#answerRepository),
-        ),
-        returnValueForMissingStub: _FakeAnswerRepository_2(
           this,
           Invocation.getter(#answerRepository),
         ),
@@ -344,7 +328,6 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
           ],
         ),
         returnValue: <_i9.DiaryModel>[],
-        returnValueForMissingStub: <_i9.DiaryModel>[],
       ) as List<_i9.DiaryModel>);
 
   @override
@@ -360,24 +343,14 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
             [],
           ),
         ),
-        returnValueForMissingStub: _FakeExperimentModel_3(
-          this,
-          Invocation.method(
-            #getExperiment,
-            [],
-          ),
-        ),
       ) as _i5.ExperimentModel);
 
   @override
   dynamic setColorForStudy(List<_i10.StudyModel>? studies) =>
-      super.noSuchMethod(
-        Invocation.method(
-          #setColorForStudy,
-          [studies],
-        ),
-        returnValueForMissingStub: null,
-      );
+      super.noSuchMethod(Invocation.method(
+        #setColorForStudy,
+        [studies],
+      ));
 
   @override
   void createNotifications({String? page}) => super.noSuchMethod(
@@ -397,8 +370,6 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
           [],
         ),
         returnValue: _i7.Future<List<_i11.Questions>>.value(<_i11.Questions>[]),
-        returnValueForMissingStub:
-            _i7.Future<List<_i11.Questions>>.value(<_i11.Questions>[]),
       ) as _i7.Future<List<_i11.Questions>>);
 
   @override
@@ -409,7 +380,6 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
           [json],
         ),
         returnValue: _i7.Future<dynamic>.value(),
-        returnValueForMissingStub: _i7.Future<dynamic>.value(),
       ) as _i7.Future<dynamic>);
 
   @override
@@ -438,7 +408,6 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
           [],
         ),
         returnValue: _i7.Future<bool>.value(false),
-        returnValueForMissingStub: _i7.Future<bool>.value(false),
       ) as _i7.Future<bool>);
 
   @override
@@ -457,7 +426,6 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
           [],
         ),
         returnValue: _i7.Future<bool>.value(false),
-        returnValueForMissingStub: _i7.Future<bool>.value(false),
       ) as _i7.Future<bool>);
 
   @override
@@ -474,6 +442,10 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockNavigatorObserver extends _i1.Mock implements _i13.NavigatorObserver {
+  MockNavigatorObserver() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   void didPush(
     _i13.Route<dynamic>? route,

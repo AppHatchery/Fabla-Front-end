@@ -1,10 +1,13 @@
 import '../../../objectbox.g.dart';
 import '../../../screens/diary/domain/entities/diary_entity.dart';
+import './diary_query_helper.dart';
 
 class DiaryDAO {
   final Box<Diary> box;
+  final DiaryQueryHelper queryHelper;
 
-  DiaryDAO({required this.box});
+  DiaryDAO({required this.box, DiaryQueryHelper? queryHelper})
+      : this.queryHelper = queryHelper ?? ObjectBoxDiaryQueryHelper();
 
   /// Retrieves and returns a list of all DiaryEntity objects stored in the database.
   /// This function provides access to the complete collection of diary entries.
@@ -77,9 +80,13 @@ class DiaryDAO {
     DateTime startOfDay = DateTime(due.year, due.month, due.day);
     // Get the start of the next day (to use for comparison)
     DateTime startOfNextDay = startOfDay.add(const Duration(days: 1));
+
+    // Use the queryHelper to create the conditions foe testing
+    final condition =
+        queryHelper.createDailyRangeCondition(startOfDay, startOfNextDay);
+
     final query = box
-        .query(Diary_.start.greaterOrEqual(startOfDay.millisecondsSinceEpoch) &
-            Diary_.start.lessThan(startOfNextDay.millisecondsSinceEpoch))
+        .query(condition) // Use the condition from the helper
         .build();
 
     final diaries = query.find();

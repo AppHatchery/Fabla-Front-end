@@ -1,40 +1,86 @@
 import 'package:audio_diaries_flutter/core/secrets/keys.dart'; // Import for pendoKey
+// PendoService will now bring IPendoPlugin, PendoPluginWrapper
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
-import 'package:flutter/foundation.dart'; // Import for kDebugMode, no prefix needed for direct use/assignment in test
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart'; // Import for kDebugMode
+import 'package:flutter/services.dart'; // For MethodCall and PlatformException
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pendo_sdk/pendo_sdk.dart'; // Import for PendoFlutterPlugin if needed for types
+// PendoFlutterPlugin import is no longer needed for direct mocking here
+// import 'package:pendo_sdk/pendo_sdk.dart';
+
+// Mock implementation for IPendoPlugin
+class MockPendoPlugin implements IPendoPlugin {
+  final List<MethodCall> log;
+  Object? errorToThrow; // To simulate errors for specific tests
+
+  MockPendoPlugin(this.log);
+
+  @override
+  Future<void> setup(String pendoKey) async {
+    if (errorToThrow != null &&
+        errorToThrow is PlatformException &&
+        (errorToThrow as PlatformException).message!.contains('setup')) {
+      throw errorToThrow!;
+    }
+    log.add(MethodCall('setup', {'pendoKey': pendoKey}));
+    return Future.value();
+  }
+
+  @override
+  Future<void> startSession(
+      String visitorId,
+      String accountId,
+      Map<String, dynamic>? visitorData,
+      Map<String, dynamic>? accountData) async {
+    log.add(MethodCall('startSession', {
+      'visitorId': visitorId,
+      'accountId': accountId,
+      'visitorData': visitorData,
+      'accountData': accountData,
+    }));
+    return Future.value();
+  }
+
+  @override
+  Future<void> endSession() async {
+    log.add(const MethodCall('endSession'));
+    return Future.value();
+  }
+
+  @override
+  Future<void> track(String eventName, Map<String, dynamic>? properties) async {
+    log.add(MethodCall('track', {
+      'eventName': eventName,
+      'properties': properties,
+    }));
+    return Future.value();
+  }
+
+  void simulateSetupError(PlatformException exception) {
+    errorToThrow = exception;
+  }
+
+  void clearError() {
+    errorToThrow = null;
+  }
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  // Define the method channel name used by PendoFlutterPlugin
-  // Updated assumption for the channel name.
-  const MethodChannel channel = MethodChannel('pendo_flutter_plugin');
-
   // Store method calls for verification
-  final List<MethodCall> log = <MethodCall>[];
+  late List<MethodCall> log;
+  late MockPendoPlugin mockPendoPlugin;
 
   setUp(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-      log.add(methodCall);
-      switch (methodCall.method) {
-        case 'setup':
-        case 'startSession':
-        case 'endSession':
-        case 'track':
-          return null;
-        default:
-          return null;
-      }
-    });
-    log.clear();
+    log = <MethodCall>[];
+    mockPendoPlugin = MockPendoPlugin(log);
+    PendoService.setPluginForTesting(mockPendoPlugin);
   });
 
   tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, null);
+    // Reset the plugin to its default implementation after each test
+    PendoService.resetPlugin();
+    mockPendoPlugin.clearError(); // Clear any simulated errors
   });
 
   group('PendoService Tests', () {
@@ -47,18 +93,13 @@ void main() {
     });
 
     group('start method', () {
-      // Test kDebugMode = true path (default in tests)
-      // The PendoService reads kDebugMode directly, which is true in test environments.
       test('should call startSession with visitorId and _testID in debug mode',
           () async {
-        // Verify that kDebugMode is indeed true in the test environment as expected.
-        // This assertion helps confirm the test premise.
         expect(kDebugMode, isTrue,
             reason: "Tests should run with kDebugMode = true by default.");
 
         const testVisitorId = 'debugUser';
-        const testAccountId =
-            'debugExp'; // This will be used to form 'Exp-debugExp' if kDebugMode was false
+        const testAccountId = 'debugExp';
         await PendoService.start(testVisitorId, testAccountId);
 
         expect(log, <Matcher>[
@@ -74,10 +115,17 @@ void main() {
       // Note: Testing the kDebugMode == false path for PendoService.start()
       // would require refactoring PendoService to make the debug status check injectable
       // or allow overriding it for tests, as kDebugMode is a compile-time constant.
+      // This remains true, but the PendoService logic itself can be tested.
     });
 
     test('stop should call endSession', () async {
       await PendoService.stop();
+      // The arguments for endSession in the original MethodChannel mock were null.
+      // If MockPendoPlugin.endSession adds MethodCall('endSession', arguments: null), this is fine.
+      // If it adds MethodCall('endSession') which implies null arguments for isMethodCall, that's also fine.
+      // Let's ensure MockPendoPlugin.endSession adds `const MethodCall('endSession')`
+      // and isMethodCall handles arguments: null correctly.
+      // The `isMethodCall` matcher with `arguments: null` works correctly when no arguments are passed to MethodCall.
       expect(log, <Matcher>[isMethodCall('endSession', arguments: null)]);
     });
 
@@ -110,20 +158,29 @@ void main() {
 
     test('init should handle errors from plugin setup (does not rethrow)',
         () async {
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-        if (methodCall.method == 'setup') {
-          throw PlatformException(code: 'ERROR', message: 'Pendo setup failed');
-        }
-        return null;
-      });
+      final platformException =
+          PlatformException(code: 'ERROR', message: 'Pendo setup failed');
+      mockPendoPlugin.simulateSetupError(platformException);
+
+      // Clear the log before the call, as setup might add to it before throwing
+      // if the error simulation logic in mock isn't perfect.
+      // However, a well-behaved mock should throw before logging.
+      // Our mockPendoPlugin.setup is designed to throw before logging if errorToThrow is set for 'setup'.
+      // log.clear(); // Not strictly necessary if mock behaves as intended.
+
       await PendoService
           .init(); // PendoService catches and logs, does not rethrow.
-      // We primarily ensure the test doesn't crash due to an unhandled exception by PendoService.
+
+      // Expect that the setup method in the mock was attempted and threw.
+      // The log should be empty because if an error is thrown in mockPendoPlugin.setup,
+      // it won't add the MethodCall to the log.
       expect(log.isEmpty, isTrue,
           reason:
-              "Setup method call should have failed and not been logged normally.");
-      // Further assertion could involve checking log output if a log interceptor was used.
+              "Setup method call in mock should have thrown and not been logged.");
+
+      // To be more robust, we could also check that PendoService logged the error,
+      // but that would require a log-capturing mechanism for dev.log, which is outside
+      // the scope of this specific plugin interaction test.
     });
   });
 }

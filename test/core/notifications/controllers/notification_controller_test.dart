@@ -5,7 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
-import 'package:path_provider/path_provider.dart';
+// import 'package:path_provider/path_provider.dart'; // Commented out as getApplicationDocumentsDirectory is globally mocked via channel
 import 'package:flutter/services.dart';
 import '../../../firebase_mock.dart';
 
@@ -16,7 +16,9 @@ class MockFlutterLocalNotificationsPlugin extends Mock
 
 class MockHttpClient extends Mock implements http.Client {}
 
-class MockDirectory extends Mock implements Directory {}
+class MockDirectory extends Mock
+    implements
+        Directory {} // May not be needed if channel mock handles path correctly
 
 class MockFile extends Mock implements File {}
 
@@ -52,17 +54,23 @@ void main() {
     registerFallbackValue(NotificationDetails(
       android: AndroidNotificationDetails('channelId', 'channelName'),
     ));
+    registerFallbackValue(FileMode.write);
   });
 
   setUp(() {
     mockFirebaseMessaging = MockFirebaseMessaging();
     mockLocalNotifications = MockFlutterLocalNotificationsPlugin();
     mockHttpClient = MockHttpClient();
-    mockDirectory = MockDirectory();
+    mockDirectory =
+        MockDirectory(); // Keep for now, though its direct use might change
     mockFile = MockFile();
 
-    controller = NotificationsController(messaging: mockFirebaseMessaging);
-    controller.flutterLocalNotificationsPlugin = mockLocalNotifications;
+    controller = NotificationsController(
+      messaging: mockFirebaseMessaging,
+      localNotifications: mockLocalNotifications,
+      client: mockHttpClient,
+    );
+    // controller.flutterLocalNotificationsPlugin = mockLocalNotifications; // Removed this line
   });
 
   group('NotificationsController Tests', () {
@@ -90,6 +98,7 @@ void main() {
       const imageUrl = 'https://example.com/image.jpg';
       const title = 'Test Title';
       const body = 'Test Body';
+      const expectedImagePath = '/test/path/bigPicture';
 
       final message = RemoteMessage(
         notification: RemoteNotification(
@@ -99,22 +108,67 @@ void main() {
         ),
       );
 
-      when(() => getApplicationDocumentsDirectory())
-          .thenAnswer((_) async => mockDirectory);
-      when(() => mockDirectory.path).thenReturn('/test/path');
-      when(() => mockFile.writeAsBytes(any()))
-          .thenAnswer((_) async => mockFile);
-      when(() => mockFile.path).thenReturn('/test/path/image.jpg');
+      // Mock for http.get call
+      when(() => mockHttpClient.get(Uri.parse(imageUrl))).thenAnswer(
+          (_) async => http.Response('fake_image_bytes', 200,
+              headers: {'content-type': 'image/jpeg'}));
+
+      // Configure mockFile instance
+      when(() => mockFile.path).thenReturn(expectedImagePath);
+      when(() => mockFile.writeAsBytes(
+            any(that: isA<List<int>>()),
+            mode: any(named: 'mode', that: isA<FileMode>()),
+            flush: any(named: 'flush', that: isA<bool>()),
+          )).thenAnswer((_) async => mockFile);
+
       when(() => mockLocalNotifications.show(any(), any(), any(), any()))
           .thenAnswer((_) async => {});
 
-      await controller.messageHandler(message);
+      // Use IOOverrides to intercept File creation
+      await IOOverrides.runZoned(() async {
+        await controller.messageHandler(message);
+      }, createFile: (String path) {
+        if (path == expectedImagePath) {
+          return mockFile;
+        }
+        // Throw an error for any unexpected file creation attempts
+        throw StateError(
+            'Unexpected attempt to create/access file at $path during this test.');
+      });
+
+      verify(() => mockHttpClient.get(Uri.parse(imageUrl))).called(1);
+
+      // Verify that writeAsBytes was called on the mockFile
+      verify(() => mockFile.writeAsBytes(
+            any(that: isA<List<int>>()),
+            mode: FileMode.write, // Assuming default mode
+            flush: false, // Assuming default flush
+          )).called(1);
 
       verify(() => mockLocalNotifications.show(
-            any(),
+            any(), // notification ID
             title,
             body,
-            any(),
+            any(that: predicate<NotificationDetails>((details) {
+              final androidDetails = details.android!;
+              // Check largeIcon
+              expect(androidDetails.largeIcon, isA<FilePathAndroidBitmap>());
+              expect((androidDetails.largeIcon as FilePathAndroidBitmap).data,
+                  expectedImagePath);
+              // Check styleInformation (BigPictureStyle)
+              expect(androidDetails.styleInformation,
+                  isA<BigPictureStyleInformation>());
+              final styleInfo =
+                  androidDetails.styleInformation as BigPictureStyleInformation;
+              expect(styleInfo.bigPicture, isA<FilePathAndroidBitmap>());
+              expect((styleInfo.bigPicture as FilePathAndroidBitmap).data,
+                  expectedImagePath);
+              expect(styleInfo.contentTitle, '<b>$title</b>');
+              expect(styleInfo.htmlFormatContentTitle, isTrue);
+              expect(styleInfo.summaryText, body);
+              expect(styleInfo.htmlFormatSummaryText, isTrue);
+              return true;
+            })),
           )).called(1);
     });
 

@@ -13,22 +13,28 @@ import 'package:path_provider/path_provider.dart';
 /// - Notification permissions
 /// - Token management
 ///
-/// For testing purposes, this class accepts a [FirebaseMessaging] instance
+/// For testing purposes, this class accepts a [FirebaseMessaging] instance,
+/// [FlutterLocalNotificationsPlugin] instance, and [http.Client] instance
 /// to allow dependency injection and mocking.
 class NotificationsController {
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
-
-  /// The Firebase Messaging instance used for FCM operations.
-  /// This is injected for testing purposes, defaulting to [FirebaseMessaging.instance]
-  /// in production.
   final FirebaseMessaging _messaging;
+  final http.Client _httpClient;
 
   /// Creates a new [NotificationsController].
   ///
   /// [messaging] is optional and defaults to [FirebaseMessaging.instance].
+  /// [localNotifications] is optional and defaults to a new [FlutterLocalNotificationsPlugin] instance.
+  /// [client] is optional and defaults to a new [http.Client] instance.
   /// This allows for dependency injection during testing.
-  NotificationsController({FirebaseMessaging? messaging})
-      : _messaging = messaging ?? FirebaseMessaging.instance;
+  NotificationsController({
+    FirebaseMessaging? messaging,
+    FlutterLocalNotificationsPlugin? localNotifications,
+    http.Client? client,
+  })  : _messaging = messaging ?? FirebaseMessaging.instance,
+        flutterLocalNotificationsPlugin =
+            localNotifications ?? FlutterLocalNotificationsPlugin(),
+        _httpClient = client ?? http.Client();
 
   Future<void> initialize() async {
     await _messaging.getInitialMessage();
@@ -111,7 +117,7 @@ class NotificationsController {
   }
 
   Future<void> setupNotificationPlugin() async {
-    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    // flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin(); // Removed this line
 
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -139,7 +145,8 @@ class NotificationsController {
   Future<String> _downloadAndSaveFile(String url, String fileName) async {
     final Directory directory = await getApplicationDocumentsDirectory();
     final String filePath = '${directory.path}/$fileName';
-    final http.Response response = await http.get(Uri.parse(url));
+    final http.Response response =
+        await _httpClient.get(Uri.parse(url)); // Use injected client
     final File file = File(filePath);
     await file.writeAsBytes(response.bodyBytes);
     return filePath;

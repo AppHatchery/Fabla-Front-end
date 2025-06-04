@@ -15,6 +15,7 @@
 // -----------------------------------------------------------------------------
 
 import 'package:audio_diaries_flutter/core/database/dao/diary_dao.dart';
+import 'package:audio_diaries_flutter/core/database/dao/diary_query_helper.dart';
 import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart'
     as entity;
@@ -48,20 +49,23 @@ class MockCondition extends Mock implements Condition<entity.Diary> {
 class FakeCondition extends Fake implements Condition<entity.Diary> {}
 
 // Mock for Diary_ class
-class MockDiary_ extends Mock {
-  final MockQueryDateProperty _startProperty = MockQueryDateProperty();
+// class MockDiary_ extends Mock { // This class might become unused
+//   final MockQueryDateProperty _startProperty = MockQueryDateProperty();
+//
+//   QueryDateProperty<entity.Diary> get start => _startProperty;
+// }
 
-  QueryDateProperty<entity.Diary> get start => _startProperty;
-}
+class MockDiaryQueryHelper extends Mock implements DiaryQueryHelper {}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late DiaryDAO diaryDAO;
   late MockDiaryBox mockDiaryBox;
   late MockDiaryQueryBuilder mockDiaryQueryBuilder;
   late MockDiaryQuery mockDiaryQuery;
-  late MockDiary_ mockDiary_;
+  late MockDiaryQueryHelper mockQueryHelper;
 
-  // Helper function to create a test diary with all required parameters
   entity.Diary createTestDiary({
     int id = 1,
     int studyID = 1,
@@ -91,17 +95,15 @@ void main() {
     );
   }
 
-  setUpAll(() {
-    registerFallbackValue(createTestDiary());
-    registerFallbackValue(FakeCondition());
-  });
+  registerFallbackValue(createTestDiary());
+  registerFallbackValue(FakeCondition());
 
   setUp(() {
     mockDiaryBox = MockDiaryBox();
     mockDiaryQueryBuilder = MockDiaryQueryBuilder();
     mockDiaryQuery = MockDiaryQuery();
-    mockDiary_ = MockDiary_();
-    diaryDAO = DiaryDAO(box: mockDiaryBox);
+    mockQueryHelper = MockDiaryQueryHelper();
+    diaryDAO = DiaryDAO(box: mockDiaryBox, queryHelper: mockQueryHelper);
   });
 
   group('DiaryDAO', () {
@@ -157,20 +159,25 @@ void main() {
     test('getDailyDiary returns diaries for a specific day', () {
       final day = DateTime(2023, 10, 1);
       final expectedDiaries = [createTestDiary(due: day)];
+      final fakeCondition = FakeCondition();
 
-      // Mock the query conditions
-      when(() => mockDiaryBox.query(any())).thenReturn(mockDiaryQueryBuilder);
+      when(() => mockQueryHelper.createDailyRangeCondition(any(), any()))
+          .thenReturn(fakeCondition);
+
+      when(() => mockDiaryBox.query(fakeCondition))
+          .thenReturn(mockDiaryQueryBuilder);
       when(() => mockDiaryQueryBuilder.build()).thenReturn(mockDiaryQuery);
       when(() => mockDiaryQuery.find()).thenReturn(expectedDiaries);
       when(() => mockDiaryQuery.close()).thenReturn(null);
 
-      // Mock the Diary_.start property
-      when(() => Diary_.start).thenReturn(mockDiary_._startProperty);
-
       final result = diaryDAO.getDailyDiary(day);
 
       expect(result, expectedDiaries);
-      verify(() => mockDiaryBox.query(any())).called(1);
+      verify(() => mockQueryHelper.createDailyRangeCondition(
+            DateTime(day.year, day.month, day.day),
+            DateTime(day.year, day.month, day.day).add(const Duration(days: 1)),
+          )).called(1);
+      verify(() => mockDiaryBox.query(fakeCondition)).called(1);
       verify(() => mockDiaryQueryBuilder.build()).called(1);
       verify(() => mockDiaryQuery.find()).called(1);
       verify(() => mockDiaryQuery.close()).called(1);
