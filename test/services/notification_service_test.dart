@@ -1,7 +1,5 @@
 import 'package:audio_diaries_flutter/services/notification_service.dart';
-import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';

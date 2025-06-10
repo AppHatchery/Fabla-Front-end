@@ -11,8 +11,15 @@ import '../../../data/diary.dart';
 part 'summary_state.dart';
 
 class SummaryCubit extends Cubit<SummaryState> {
-  SummaryCubit() : super(const SummaryInitial());
-  final SummaryRepository _summaryRepository = SummaryRepository();
+  // SummaryRepository is injected into the cubit
+  // This allows for easier testing and dependency injection
+  // To avoid tightly coupling the cubit to the repository
+
+  final SummaryRepository _summaryRepository;
+
+  SummaryCubit({SummaryRepository? summaryRepository})
+      : _summaryRepository = summaryRepository ?? SummaryRepository(),
+        super(const SummaryInitial());
 
   /// Initiates the loading of summary information for a Diary.
   /// This method triggers the loading of summary details for the provided Diary.

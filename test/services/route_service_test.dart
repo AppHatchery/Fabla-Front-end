@@ -1,15 +1,11 @@
 import 'package:audio_diaries_flutter/main.dart';
-import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_dates.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/camera_access.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/confirm.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/dynamic_page.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/finish.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/location_access.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/login.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/participant_details.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/study_login.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welcome.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/mic_access.dart';
