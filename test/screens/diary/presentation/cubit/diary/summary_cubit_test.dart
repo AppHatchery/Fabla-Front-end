@@ -22,7 +22,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Mocks for ObjectBox and its components
+// Mocks for ObjectBox and its component
 class MockObjectBox extends Mock implements ObjectBox {}
 
 class MockStore extends Mock implements Store {
