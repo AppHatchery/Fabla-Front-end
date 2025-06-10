@@ -1,14 +1,10 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/network/secrets_handler.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
-import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-import 'package:flutter/widgets.dart';
 
 class MockHttpClient extends Mock implements http.Client {}
 
