@@ -3,12 +3,12 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
+
 import 'package:mockito/mockito.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 // Generate mocks for dependencies
-@GenerateMocks([SetupRepository])
+
 void main() {
   group('SetupCubit', () {
     late TestableSetupCubit setupCubit;
