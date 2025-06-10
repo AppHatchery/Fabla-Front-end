@@ -137,3 +137,31 @@ The Widgets layer is responsible for rendering the UI components for a screen.
 
 #### Services
 This layer contains the services that the application uses. for example, the notification service.
+
+## Tests
+
+### Widget Test
+To run widget UI tests run the command 
+```
+flutter test test/
+```
+### Unit Test
+To run the Unit tests run the command
+```
+flutter test test/
+```
+
+### Integration Test
+to run the integration tests on android follow the steps below
+1. install the app
+```
+flutter run
+```
+2. run the bash script grant_permission.sh to pre grant permission to the app
+```
+./grant_permission.sh
+```
+3. run the test command
+```
+flutter test integration_test/app_test.dart
+```
