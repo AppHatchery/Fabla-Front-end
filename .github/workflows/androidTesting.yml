@@ -1,0 +1,42 @@
+name: Flutter Android Testing
+
+on:
+  push:
+    branches:
+      - main
+      - Dev
+  pull_request:
+    branches:
+      - main
+      - Dev
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps: 
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Create dummy keys.dart for CI
+        run: |
+          mkdir -p lib/core/secrets
+          echo "// Dummy API keys for CI" > lib/core/secrets/keys.dart
+          echo "const apiKey = 'b1e89a1d-cc56-42d8-9f4d-3fd72c1b5681';" >> lib/core/secrets/keys.dart
+          echo "const pendoKey = 'f2Si3o_N8wW4dtP3469-ru9eZnJpw8z7S8DsLbTGfQ';" >> lib/core/secrets/keys.dart
+
+      - name: install the database
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Run tests and generate report
+        run: flutter test test/
+        timeout-minutes: 10
