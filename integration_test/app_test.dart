@@ -1,14 +1,12 @@
 import 'package:audio_diaries_flutter/core/database/object_box.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
-import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
-import 'package:audio_diaries_flutter/screens/home/data/study.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_goal.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welcome.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/verification_code.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:audio_diaries_flutter/main.dart' as app;
@@ -171,30 +169,65 @@ void main() {
       await tester.tap(find.byType(CustomFlatButton));
       await tester.pump(const Duration(seconds: 2));
     });
-  });
-  testWidgets('Home flow Test', (tester) async {
-    // Use the helper to build the app
-    await pumpAppWithRoute(tester);
-    await tester.pump();
 
-    //today's goal widget
-    expect(find.byType(TodayGoalWidget), findsOneWidget);
-    expect(find.text('Today\'s Goal'), findsOneWidget);
-    expect(find.byKey(const Key('displayText')), findsNWidgets(3));
+    testWidgets('Home flow Test', (tester) async {
+      await pumpAppWithRoute(tester);
+      await tester.pump();
 
-    //Weekly Goal
-    expect(find.byType(WeeklyGoalWidget), findsOneWidget);
-    expect(find.text('Weekly Goal'), findsOneWidget);
-    expect(find.byKey(const Key('weekly_goal_icon')), findsOneWidget);
+//today's goal widget
+      expect(find.byType(TodayGoalWidget), findsOneWidget);
+      expect(find.text('Today\'s Goal'), findsOneWidget);
+      expect(find.byKey(const Key('displayText')), findsNWidgets(3));
 
-    await tester.tap(find.byType(WeeklyGoalWidget));
-    await tester.pump(const Duration(seconds: 2));
+//Weekly Goal
+      expect(find.byType(WeeklyGoalWidget), findsOneWidget);
+      expect(find.text('Weekly Goal'), findsOneWidget);
+      expect(find.byKey(const Key('weekly_goal_icon')), findsOneWidget);
 
-    expect(find.text('Weekly Goal'), findsOneWidget);
-    expect(find.byKey(const Key('weekly_goal_icon')), findsOneWidget);
-    expect(find.byKey(const Key('weekly_goal_text')), findsNWidgets(3));
+      await tester.tap(find.byKey(const Key('weekly_goal_widget')));
+      await tester.pump(const Duration(seconds: 2));
 
-    await tester.tap(find.byType(WeeklyGoalWidget));
-    await tester.pump(const Duration(seconds: 2));
+      expect(find.text('Weekly Goal'), findsOneWidget);
+      expect(find.byKey(const Key('weekly_goal_icon')), findsOneWidget);
+      expect(find.byKey(const Key('weekly_goal_text')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('weekly_goal_widget')));
+      await tester.pump(const Duration(seconds: 2));
+
+//study calendar
+      //finds the icon button
+      expect(find.byType(IconButton), findsOneWidget);
+      //tap the icon button
+      await tester.tap(find.byType(IconButton));
+      //wait for the calendar to appear
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump(const Duration(seconds: 2));
+      //tap the back button
+      await tester.tap(find.byType(IconButton).at(1));
+      //wait for the calendar to disappear
+      await tester.pump(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 2));
+
+//Incentive pop up
+      //looks for the incentive icon
+      expect(find.byKey(const Key('Incentive')), findsOneWidget);
+      //tap the incentive icon
+      await tester.tap(find.byKey(const Key('Incentive')));
+      //wait for the pop up to appear
+      await tester.pump(const Duration(seconds: 2));
+      //tap the back button
+      await tester.tap(find.byType(IconButton).at(1));
+      await tester.pump(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 2));
+
+//Diary list
+      //check for today's entries list
+      expect(find.byType(TodaysDiaryList), findsOneWidget);
+      expect(find.text("Today's Entries"), findsOne);
+
+      //clicks the first entry
+      await tester.tap(find.byType(TodaysDiaryList).at(1));
+      await tester.pump(const Duration(seconds: 2));
+    });
   });
 }
