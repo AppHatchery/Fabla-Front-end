@@ -163,7 +163,8 @@ dev_dependencies:
   integration_test:
     sdk: flutter
 ``` 
-To run the integration tests on Android, follow the steps below
+To run the integration tests on Android, follow the steps below:
+
 1. Install the app on your emulator or physical device
 ```
 flutter run
@@ -172,9 +173,16 @@ flutter run
 ```
 crtl + c
 ```
-Then typing `y` to terminate.
+  Then typing `y` to terminate.
 
-3. Create the grant_permission.sh script in your root folder, which has the following code
+3. Add the adb path to your environment variables. The `adb.exe` can be found in:
+  On Windows:
+    `AppData/android/sdk/platform-tools`
+  on mac, it can be found where your Android SDK is located
+    `Android/sdk/platform-tools`
+   Add these paths to your environment variable, then run `adb --version` to check if it can be seen by your machine.
+
+5. Create the grant_permission.sh script in your root folder, which has the following code
 ```
 #!/bin/bash
 
@@ -193,15 +201,15 @@ adb shell pm grant "$PACKAGE_NAME" android.permission.ACCESS_FINE_LOCATION
 echo "Permissions granted for $PACKAGE_NAME"
 
 ```
-4. Make grant_permission executable before running it by running this command
+5. Make grant_permission executable before running it by running this command
 ```
 chmod +x grant_permission.sh
 ```
-5. Run the bash script grant_permission.sh in the terminal to pre-grant permission to the app
+6. Run the bash script grant_permission.sh in the terminal to pre-grant permission to the app
 ```
 ./grant_permission.sh
 ```
-6. Run the integration test command
+7. Run the integration test command
 ```
 flutter test integration_test/app_test.dart
 ```
