@@ -1938,7 +1938,7 @@ class _VideoPreviewState extends State<VideoPreview> {
 }
 
 class BottomUpdateModal extends StatefulWidget {
-  final ValueNotifier<bool> completeNotifier;
+  final ValueNotifier<bool?> completeNotifier;
   const BottomUpdateModal({super.key, required this.completeNotifier});
 
   @override
@@ -1961,59 +1961,70 @@ class _BottomUpdateModalState extends State<BottomUpdateModal> {
           valueListenable: widget.completeNotifier,
           builder: (context, complete, _) {
             return Column(
+              spacing: 24,
               children: [
-                const SizedBox(
-                  height: 26,
-                ),
-                Text(
-                  "Updating Experiment \nContent",
-                  style: CustomTypography().headlineMedium(),
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(
-                  height: 24,
+                Padding(
+                  padding: const EdgeInsets.only(top: 24.0),
+                  child: Text(
+                    complete == null
+                        ? "Updating Experiment \nContent"
+                        : complete
+                            ? "Experiment Content \nUpdated"
+                            : "Content Update \nFailed",
+                    style: CustomTypography().headlineMedium(),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
 
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 50),
                   child: Text(
-                    complete
-                        ? "Content Update Complete!"
-                        : "Hang tight! We're updating the experiment content. This won’t take long!",
+                    complete == null
+                        ? "Hang tight! We're updating the experiment content. This won’t take long!"
+                        : complete
+                            ? "Content Update Complete!"
+                            : "Please check your internet connection and try again.",
                     style: CustomTypography().bodyMedium(),
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(
-                  height: 36,
-                ),
+
                 // Progress
 
                 SizedBox(
-                    height: 30,
-                    width: 30,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      transitionBuilder:
-                          (Widget child, Animation<double> animation) {
-                        return FadeTransition(opacity: animation, child: child);
-                      },
-                      child: !complete
-                          ? CircularProgressIndicator(
-                              key: ValueKey(1), // Unique key for transition
-                              color: CustomColors.productNormal,
-                              strokeCap: StrokeCap.round,
-                            )
-                          : Center(
-                              child: Icon(
-                                Icons.check_circle_rounded,
-                                key: ValueKey(2), // Unique key for transition
-                                color: CustomColors.darkGreen,
-                                size: 32,
+                  height: 30,
+                  width: 30,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                      return FadeTransition(opacity: animation, child: child);
+                    },
+                    child: complete == null
+                        ? CircularProgressIndicator(
+                            key: ValueKey(1), // Unique key for transition
+                            color: CustomColors.productNormal,
+                            strokeCap: StrokeCap.round,
+                          )
+                        : complete
+                            ? Center(
+                                child: Icon(
+                                  Icons.check_circle_rounded,
+                                  key: ValueKey(2), // Unique key for transition
+                                  color: CustomColors.darkGreen,
+                                  size: 32,
+                                ),
+                              )
+                            : Center(
+                                child: Icon(
+                                  Icons.cancel_rounded,
+                                  key: ValueKey(3), // Unique key for transition
+                                  color: CustomColors.warningActive,
+                                  size: 32,
+                                ),
                               ),
-                            ),
-                    )),
+                  ),
+                ),
               ],
             );
           }),

@@ -199,7 +199,7 @@ class _HubState extends State<Hub>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   // used to refresh the page for updating
   Key key = UniqueKey();
-  final ValueNotifier<bool> completeNotifier = ValueNotifier(false);
+  final ValueNotifier<bool?> completeNotifier = ValueNotifier(null);
 
   late HubCubit cubit;
   late TabController tabController;
@@ -249,7 +249,7 @@ class _HubState extends State<Hub>
           if (state is HubUpdating) {
             showUpdateDialog();
           } else if (state is HubUpdated) {
-            completeUpdate();
+            completeUpdate(state.complete);
           }
         },
         builder: (context, state) {
@@ -325,9 +325,9 @@ class _HubState extends State<Hub>
     ]);
   }
 
-  void completeUpdate() {
+  void completeUpdate(bool completed) {
     if (mounted) {
-      setState(() => completeNotifier.value = true);
+      setState(() => completeNotifier.value = completed);
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
           Navigator.pop(context);
@@ -343,7 +343,7 @@ class _HubState extends State<Hub>
   showUpdateDialog() {
     if (mounted) {
       setState(() {
-        completeNotifier.value = false;
+        completeNotifier.value = null;
       });
     }
     showModalBottomSheet(

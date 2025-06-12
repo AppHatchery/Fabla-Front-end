@@ -8,15 +8,11 @@ class HubCubit extends Cubit<HubState> {
   HubCubit() : super(const HubInitial());
 
   update() async {
-    final update = await ExperimentManager().update();
-    if (!update) {
-      return;
-    }
     emit(HubUpdating());
     final done = await ExperimentManager().update();
-    if (done) emit(HubUpdated());
 
-    // TODO: Add Error Handling
-    emit(HubInitial());
+    emit(HubUpdated(done));
+
+    emit(const HubInitial());
   }
 }
