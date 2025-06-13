@@ -186,6 +186,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
             ),
           ),
           IconButton(
+            key: Key("edit_icon_button"),
               onPressed: () => edit(question, index),
               icon: Icon(
                 Icons.edit_outlined,

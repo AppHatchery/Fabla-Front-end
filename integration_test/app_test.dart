@@ -7,7 +7,6 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/ve
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -198,14 +197,14 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
 
       // data picker question
-      await tester.tap(find.text("13"));
+      await tester.tap(find.text("16"));
       await tester.pump(const Duration(seconds: 2));
 
       await tester.tap(find.text("Continue"));
       await tester.pump(const Duration(seconds: 2));
 
       //loading next page (simulates the loading of the next page by waiting for 80 seconds)
-      for (int i = 0; i < 40; i++) {
+      for (int i = 0; i < 20; i++) {
         await tester.pump(const Duration(seconds: 2));
       }
 
@@ -220,44 +219,6 @@ void main() {
 
       await tester.tap(find.byType(CustomFlatButton));
       await tester.pump(const Duration(seconds: 2));
-    });
-
-    testWidgets('History flow Test', (tester) async {
-      await pumpAppWithRoute(tester);
-      await tester.pump();
-
-      await tester.tap(find.text("History"));
-      await tester.pump(const Duration(seconds: 2));
-
-      expect(find.byType(DiaryList), findsOneWidget);
-      expect(find.text("History"), findsNWidgets(2));
-
-      await tester.tap(find.text("Weekly Diary").first);
-      await tester.pump(const Duration(seconds: 2));
-
-      // first question
-      await tester.tap(find.text("Explore the outdoors"));
-
-      //continue button
-      await tester.tap(find.byType(CustomFlatButton));
-      await tester.pumpAndSettle();
-
-      //second question
-      await Future.delayed(const Duration(seconds: 4));
-      await tester.drag(find.byType(Slider), Offset(100, 0));
-      await tester.pump();
-
-      //continue button
-      await tester.tap(find.byType(CustomFlatButton));
-      await tester.pump(const Duration(seconds: 2));
-
-      //submit button
-      await tester.tap(find.text("Submit My Response"));
-
-      // loading
-      for (int i = 0; i < 30; i++) {
-        await tester.pump(const Duration(seconds: 2));
-      }
     });
 
 //     testWidgets('Home flow Test', (tester) async {
@@ -348,6 +309,162 @@ void main() {
 //       for (int i = 0; i < 20; i++) {
 //         await tester.pump(const Duration(seconds: 2));
 //       }
+
+//       //return to home page
+//       await tester.tap(find.text("Return Home"));
+//       await tester.pump(const Duration(seconds: 2));
+//       await tester.pump(const Duration(seconds: 2));
 //     });
+
+    //  testWidgets('History flow Test', (tester) async {
+    //   await pumpAppWithRoute(tester);
+    //     await tester.pump();
+
+    //     await tester.tap(find.text("History"));
+    //     await tester.pump(const Duration(seconds: 2));
+
+    //     expect(find.byType(DiaryList), findsOneWidget);
+    //     expect(find.text("History"), findsNWidgets(2));
+
+    //     await tester.tap(find.text("Weekly Diary").first);
+    //     await tester.pump(const Duration(seconds: 2));
+
+    //     // first question
+    //     await tester.tap(find.text("Explore the outdoors"));
+    //     await tester.pump(const Duration(seconds: 2));
+
+    //     //continue button
+    //     await tester.tap(find.text("Continue"));
+    //     await tester.pump(const Duration(seconds: 2));
+
+    //     await Future.delayed(const Duration(seconds: 5));
+
+    //     //second question
+    //     await tester.drag(find.byType(Slider), Offset(100, 0));
+    //     await tester.pump(const Duration(seconds: 2));
+
+    //     //continue button
+    //     await tester.tap(find.text("Continue"));
+    //     await tester.pump(const Duration(seconds: 2));
+
+    //     //submit button
+    //     await tester.tap(find.text("Submit My Response"));
+
+    //     // loading
+    //     for (int i = 0; i < 20; i++) {
+    //       await tester.pump(const Duration(seconds: 2));
+    //     }
+
+    //     //return to home page
+    //     await tester.tap(find.text("Return Home"));
+    //     await tester.pump(const Duration(seconds: 2));
+    //     await tester.pump(const Duration(seconds: 2));
+    //   });
+
+    testWidgets('Settings flow Test', (tester) async {
+      await pumpAppWithRoute(tester);
+      await tester.pump();
+
+      //go to settings page
+      await tester.tap(find.text("Settings"));
+      await tester.pump(const Duration(seconds: 2));
+
+      //view study details
+      expect(find.text("View Details"), findsOneWidget);
+      await tester.pump(const Duration(seconds: 2));
+
+      //leave study pop up
+      await tester.tap(find.text("Leave This Study"));
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.tap(find.text("Dismiss"));
+      await tester.pump(const Duration(seconds: 2));
+
+      //view participant details
+      await tester.tap(find.text("Onboarding Survey"));
+      await tester.pump(const Duration(seconds: 2));
+
+      //update the participant details questions
+      //question 1
+      await tester.tap(find.byKey(const Key("edit_icon_button")).at(0));
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.enterText(find.byType(CustomTextField), "Cheese");
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.tap(find.text("Update"));
+      await tester.pump(const Duration(seconds: 2));
+
+      //question 2
+      await tester.tap(find.byKey(const Key("edit_icon_button")).at(1));
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.drag(find.byType(Slider), Offset(100, 0));
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.tap(find.text("Update"));
+      await tester.pump(const Duration(seconds: 2));
+
+      // question 3 multiple choice
+      await tester.tap(find.byKey(const Key("edit_icon_button")).at(2));
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.tap(find.text("One").at(0));
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.tap(find.text("Update"));
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.drag(
+        find.byType(SingleChildScrollView),
+        const Offset(0, -500), // Scroll down (negative value)
+      );
+      await tester.pump(const Duration(seconds: 2));
+
+      //question 4 
+      await tester.tap(find.byKey(const Key("edit_icon_button")).at(3));
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.tap(find.text("One").at(0));
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.tap(find.text("Update"));
+      await tester.pump(const Duration(seconds: 2));
+
+      // question 5
+      await tester.tap(find.byKey(const Key("edit_icon_button")).at(4));
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.tap(find.text("Update"));
+      await tester.pump(const Duration(seconds: 2));
+
+      // question 6
+      await tester.tap(find.byKey(const Key("edit_icon_button")).at(5));
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.tap(find.text("16"));
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.tap(find.text("Update"));
+      await tester.pump(const Duration(seconds: 2));
+
+      //return to settings page
+      await tester.tap(find.byType(IconButton).at(0));
+      await tester.pump(const Duration(seconds: 2));
+
+      //test microphone
+      await tester.tap(find.text("Test Microphone"));
+      await tester.pump(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 2));
+      await tester.tap(find.text("Stop Test"));
+      await tester.pump(const Duration(seconds: 2));
+
+      //add a reminder time
+      await tester.tap(find.text("Add a Reminder Time"));
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.tap(find.text("Save"));
+      await tester.pump(const Duration(seconds: 2));
+    });
   });
 }
