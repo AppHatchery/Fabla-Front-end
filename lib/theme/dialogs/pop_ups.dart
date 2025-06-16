@@ -1170,6 +1170,7 @@ class ExitPopUp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
+      backgroundColor: CustomColors.fillWhite,
       contentPadding: const EdgeInsets.all(0),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
@@ -1208,10 +1209,11 @@ class ExitPopUp extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, false),
-                      text: "Dismiss",
-                      color: CustomColors.greyLight,
-                      borderColor: CustomColors.greyLight,
+                      onClick: () => Navigator.pop(context, true),
+                      text: "Exit",
+                      textColor: CustomColors.warningActive,
+                      color: CustomColors.fillWhite,
+                      borderColor: CustomColors.warningActive,
                     ),
                   ),
                   const SizedBox(
@@ -1219,10 +1221,10 @@ class ExitPopUp extends StatelessWidget {
                   ),
                   Expanded(
                     child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, true),
-                      text: "Exit",
-                      color: CustomColors.warningActive,
-                      borderColor: CustomColors.warningActive,
+                      onClick: () => Navigator.pop(context, false),
+                      text: "Dismiss",
+                      color: CustomColors.productNormal,
+                      borderColor: CustomColors.productNormal,
                     ),
                   ),
                 ],

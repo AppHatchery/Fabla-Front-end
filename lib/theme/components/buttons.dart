@@ -206,6 +206,8 @@ class CustomFlatButton extends StatelessWidget {
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
+            splashColor: borderColor.withAlpha(50),
+            highlightColor: borderColor.withAlpha(50),
             onTap: isDisabled
                 ? null
                 : () => {
