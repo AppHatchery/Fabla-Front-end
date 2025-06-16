@@ -148,7 +148,7 @@ void main() {
 
 // location access page
       expect(find.byType(Text), findsNWidgets(2));
-      await tester.tap(find.byType(CustomFlatButton));
+      await tester.tap(find.byType(CustomFlatButton).at(0));
       await tester.pump(const Duration(seconds: 2));
 
 // Dynamic onboarding page
@@ -197,6 +197,7 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
 
       // data picker question
+      //change the date to a future date in case the current date is in the past
       await tester.tap(find.text("16"));
       await tester.pump(const Duration(seconds: 2));
 
@@ -441,7 +442,7 @@ void main() {
       // question 6
       await tester.tap(find.byKey(const Key("edit_icon_button")).at(5));
       await tester.pump(const Duration(seconds: 2));
-
+      //change the date to a future date in case the current date is in the past
       await tester.tap(find.text("16"));
       await tester.pump(const Duration(seconds: 2));
 
@@ -449,10 +450,11 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
 
       //return to settings page
-      await tester.tap(find.byType(IconButton).at(0));
+      final backButton = find.byKey(const Key("back_button"));
+      await tester.tap(backButton);
       await tester.pump(const Duration(seconds: 2));
 
-      //test microphone
+      // test microphone
       await tester.tap(find.text("Test Microphone"));
       await tester.pump(const Duration(seconds: 2));
       await Future.delayed(const Duration(seconds: 2));
@@ -463,7 +465,7 @@ void main() {
       await tester.tap(find.text("Add a Reminder Time"));
       await tester.pump(const Duration(seconds: 2));
 
-      await tester.tap(find.text("Save"));
+      await tester.tap(find.text("SAVE"));
       await tester.pump(const Duration(seconds: 2));
     });
   });

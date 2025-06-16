@@ -57,6 +57,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
           ),
           centerTitle: true,
           leading: IconButton(
+            key: Key("back_button"),
               onPressed: () => Navigator.pop(context, updated),
               icon: Icon(
                 Icons.arrow_back_rounded,
