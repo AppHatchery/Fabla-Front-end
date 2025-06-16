@@ -55,6 +55,7 @@ class _OnboardingTimePickerState extends State<OnboardingTimePicker> {
           Row(
             children: [
               IconButton(
+                  key: const Key("time_picker_icon_button"),
                   onPressed: () => pickTime(time),
                   icon: const Icon(
                     Icons.edit_outlined,
