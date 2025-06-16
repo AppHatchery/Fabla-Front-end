@@ -21,9 +21,6 @@ import 'package:firebase_core/firebase_core.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
 
   setUpAll(() async {
     // Initialize the global objectbox instance
@@ -34,18 +31,20 @@ void main() {
     await Alarm.init();
     await NotificationService.init();
     await PendoService.init();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   });
 
-  // Add this to clean up after each test
+  // uncomment this block to clean up (delete all data) after each test
   // tearDown(() async {
   //   // Clear all boxes/tables
   //   app.objectbox.store.box<DiaryModel>().removeAll();
   //   app.objectbox.store.box<StudyModel>().removeAll();
   //   app.objectbox.store.box<ExperimentModel>().removeAll();
-  //   // Add any other boxes you need to clear
   // });
 
-  // clean up once after all tests
+  // clean up(delete all data) once after all tests
   tearDownAll(() async {
     // Clear all data
     app.objectbox.store.close();
@@ -69,7 +68,7 @@ void main() {
       await Future.delayed(const Duration(seconds: 2));
 
       expect(find.byType(CustomFlatButton), findsOneWidget);
-      await tester.tap(find.byType(CustomFlatButton));
+      await tester.tap(find.byType(CustomFlatButton).at(0));
       await tester.pumpAndSettle();
 
 // study Information page
@@ -87,7 +86,7 @@ void main() {
       await tester.enterText(find.byType(VerificationCodeTextField), '54');
       await Future.delayed(const Duration(seconds: 2));
 
-      await tester.tap(find.byType(CustomFlatButton));
+      await tester.tap(find.byType(CustomFlatButton).at(0));
       await tester.pump(const Duration(seconds: 2));
 
 // Welcome page
@@ -137,13 +136,13 @@ void main() {
       expect(find.byType(CustomFlatButton), findsOneWidget);
 
       //actions
-      await tester.tap(find.byType(CustomFlatButton));
+      await tester.tap(find.byType(CustomFlatButton).at(0));
       await tester.pump(const Duration(seconds: 2));
 
       await Future.delayed(const Duration(seconds: 2));
       await tester.pump(const Duration(seconds: 2));
 
-      await tester.tap(find.byType(CustomFlatButton));
+      await tester.tap(find.byType(CustomFlatButton).at(0));
       await tester.pump(const Duration(seconds: 2));
 
 // location access page
@@ -222,145 +221,145 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
     });
 
-//     testWidgets('Home flow Test', (tester) async {
-//       await pumpAppWithRoute(tester);
-//       await tester.pump();
+    testWidgets('Home flow Test', (tester) async {
+      await pumpAppWithRoute(tester);
+      await tester.pump();
 
-// //today's goal widget
-//       expect(find.byType(TodayGoalWidget), findsOneWidget);
-//       expect(find.text('Today\'s Goal'), findsOneWidget);
-//       expect(find.byKey(const Key('displayText')), findsNWidgets(3));
+//today's goal widget
+      expect(find.byType(TodayGoalWidget), findsOneWidget);
+      expect(find.text('Today\'s Goal'), findsOneWidget);
+      expect(find.byKey(const Key('displayText')), findsNWidgets(3));
 
-// //Weekly Goal
-//       expect(find.byType(WeeklyGoalWidget), findsOneWidget);
-//       expect(find.text('Weekly Goal'), findsOneWidget);
-//       expect(find.byKey(const Key('weekly_goal_icon')), findsOneWidget);
+//Weekly Goal
+      expect(find.byType(WeeklyGoalWidget), findsOneWidget);
+      expect(find.text('Weekly Goal'), findsOneWidget);
+      expect(find.byKey(const Key('weekly_goal_icon')), findsOneWidget);
 
-//       await tester.tap(find.byKey(const Key('weekly_goal_widget')));
-//       await tester.pump(const Duration(seconds: 2));
+      await tester.tap(find.byKey(const Key('weekly_goal_widget')));
+      await tester.pump(const Duration(seconds: 2));
 
-//       expect(find.text('Weekly Goal'), findsOneWidget);
-//       expect(find.byKey(const Key('weekly_goal_icon')), findsOneWidget);
-//       expect(find.byKey(const Key('weekly_goal_text')), findsOneWidget);
+      expect(find.text('Weekly Goal'), findsOneWidget);
+      expect(find.byKey(const Key('weekly_goal_icon')), findsOneWidget);
+      expect(find.byKey(const Key('weekly_goal_text')), findsOneWidget);
 
-//       await tester.tap(find.byKey(const Key('weekly_goal_widget')));
-//       await tester.pump(const Duration(seconds: 2));
+      await tester.tap(find.byKey(const Key('weekly_goal_widget')));
+      await tester.pump(const Duration(seconds: 2));
 
-// //study calendar
-//       //finds the icon button
-//       expect(find.byType(IconButton), findsOneWidget);
-//       //tap the icon button
-//       await tester.tap(find.byType(IconButton));
-//       //wait for the calendar to appear
-//       await tester.pump(const Duration(seconds: 2));
-//       await tester.pump(const Duration(seconds: 2));
-//       //tap the back button
-//       await tester.tap(find.byType(IconButton).at(1));
-//       //wait for the calendar to disappear
-//       await tester.pump(const Duration(seconds: 2));
-//       await Future.delayed(const Duration(seconds: 2));
+//study calendar
+      //finds the icon button
+      expect(find.byType(IconButton), findsOneWidget);
+      //tap the icon button
+      await tester.tap(find.byType(IconButton));
+      //wait for the calendar to appear
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump(const Duration(seconds: 2));
+      //tap the back button
+      await tester.tap(find.byType(IconButton).at(1));
+      //wait for the calendar to disappear
+      await tester.pump(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 2));
 
-// //Incentive pop up
-//       //looks for the incentive icon
-//       expect(find.byKey(const Key('Incentive')), findsOneWidget);
-//       //tap the incentive icon
-//       await tester.tap(find.byKey(const Key('Incentive')));
-//       //wait for the pop up to appear
-//       await tester.pump(const Duration(seconds: 2));
-//       //tap the back button
-//       await tester.tap(find.byType(IconButton).at(1));
-//       await tester.pump(const Duration(seconds: 2));
-//       await Future.delayed(const Duration(seconds: 2));
+//Incentive pop up
+      //looks for the incentive icon
+      expect(find.byKey(const Key('Incentive')), findsOneWidget);
+      //tap the incentive icon
+      await tester.tap(find.byKey(const Key('Incentive')));
+      //wait for the pop up to appear
+      await tester.pump(const Duration(seconds: 2));
+      //tap the back button
+      await tester.tap(find.byType(IconButton).at(1));
+      await tester.pump(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 2));
 
-// //Diary list
-//       //check for today's entries list
-//       expect(find.byType(TodaysDiaryList), findsOneWidget);
-//       expect(find.text("Today's Entries"), findsOne);
+//Diary list
+      //check for today's entries list
+      expect(find.byType(TodaysDiaryList), findsOneWidget);
+      expect(find.text("Today's Entries"), findsOne);
 
-//       //clicks the first entry
-//       await tester.tap(find.byType(DiaryCard).first);
-//       await tester.pump(const Duration(seconds: 2));
-//       await Future.delayed(const Duration(seconds: 5));
+      //clicks the first entry
+      await tester.tap(find.byType(DiaryCard).first);
+      await tester.pump(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 5));
 
-//       //answer the prompt
-//       await tester.tap(find.text("Explore the outdoors"));
-//       await tester.pump();
-//       await tester.tap(find.byType(CustomFlatButton));
-//       await tester.pump(const Duration(seconds: 2));
-//       await Future.delayed(const Duration(seconds: 5));
+      //answer the prompt
+      await tester.tap(find.text("Explore the outdoors"));
+      await tester.pump();
+      await tester.tap(find.byType(CustomFlatButton));
+      await tester.pump(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 5));
 
-//       await tester.tap(find.text("Take a Picture"));
-//       await tester.pump(const Duration(seconds: 2));
+      await tester.tap(find.text("Take a Picture"));
+      await tester.pump(const Duration(seconds: 2));
 
-//       //tap the camera button
-//       await tester.tap(find.byKey(const Key("capture")));
-//       await tester.pump(const Duration(seconds: 2));
+      //tap the camera button
+      await tester.tap(find.byKey(const Key("capture")));
+      await tester.pump(const Duration(seconds: 2));
 
-//       //tap the ticked button
-//       await tester.tap(find.byKey(const Key("save")));
-//       await tester.pump(const Duration(seconds: 2));
+      //tap the ticked button
+      await tester.tap(find.byKey(const Key("save")));
+      await tester.pump(const Duration(seconds: 2));
 
-//       //submit the response
-//       await tester.tap(find.byType(CustomFlatButton));
-//       await tester.pump(const Duration(seconds: 2));
-//       await Future.delayed(const Duration(seconds: 2));
+      //submit the response
+      await tester.tap(find.byType(CustomFlatButton));
+      await tester.pump(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 2));
 
-//       //answer the prompt
-//       await tester.tap(find.text("Submit My Response"));
-//       for (int i = 0; i < 20; i++) {
-//         await tester.pump(const Duration(seconds: 2));
-//       }
+      //answer the prompt
+      await tester.tap(find.text("Submit My Response"));
+      for (int i = 0; i < 20; i++) {
+        await tester.pump(const Duration(seconds: 2));
+      }
 
-//       //return to home page
-//       await tester.tap(find.text("Return Home"));
-//       await tester.pump(const Duration(seconds: 2));
-//       await tester.pump(const Duration(seconds: 2));
-//     });
+      //return to home page
+      await tester.tap(find.text("Return Home"));
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump(const Duration(seconds: 2));
+    });
 
-    //  testWidgets('History flow Test', (tester) async {
-    //   await pumpAppWithRoute(tester);
-    //     await tester.pump();
+    testWidgets('History flow Test', (tester) async {
+      await pumpAppWithRoute(tester);
+      await tester.pump();
 
-    //     await tester.tap(find.text("History"));
-    //     await tester.pump(const Duration(seconds: 2));
+      await tester.tap(find.text("History"));
+      await tester.pump(const Duration(seconds: 2));
 
-    //     expect(find.byType(DiaryList), findsOneWidget);
-    //     expect(find.text("History"), findsNWidgets(2));
+      expect(find.byType(DiaryList), findsOneWidget);
+      expect(find.text("History"), findsNWidgets(2));
 
-    //     await tester.tap(find.text("Weekly Diary").first);
-    //     await tester.pump(const Duration(seconds: 2));
+      await tester.tap(find.text("Weekly Diary").first);
+      await tester.pump(const Duration(seconds: 2));
 
-    //     // first question
-    //     await tester.tap(find.text("Explore the outdoors"));
-    //     await tester.pump(const Duration(seconds: 2));
+      // first question
+      await tester.tap(find.text("Explore the outdoors"));
+      await tester.pump(const Duration(seconds: 2));
 
-    //     //continue button
-    //     await tester.tap(find.text("Continue"));
-    //     await tester.pump(const Duration(seconds: 2));
+      //continue button
+      await tester.tap(find.text("Continue"));
+      await tester.pump(const Duration(seconds: 2));
 
-    //     await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 5));
 
-    //     //second question
-    //     await tester.drag(find.byType(Slider), Offset(100, 0));
-    //     await tester.pump(const Duration(seconds: 2));
+      //second question
+      await tester.drag(find.byType(Slider), Offset(100, 0));
+      await tester.pump(const Duration(seconds: 2));
 
-    //     //continue button
-    //     await tester.tap(find.text("Continue"));
-    //     await tester.pump(const Duration(seconds: 2));
+      //continue button
+      await tester.tap(find.text("Continue"));
+      await tester.pump(const Duration(seconds: 2));
 
-    //     //submit button
-    //     await tester.tap(find.text("Submit My Response"));
+      //submit button
+      await tester.tap(find.text("Submit My Response"));
 
-    //     // loading
-    //     for (int i = 0; i < 20; i++) {
-    //       await tester.pump(const Duration(seconds: 2));
-    //     }
+      // loading
+      for (int i = 0; i < 20; i++) {
+        await tester.pump(const Duration(seconds: 2));
+      }
 
-    //     //return to home page
-    //     await tester.tap(find.text("Return Home"));
-    //     await tester.pump(const Duration(seconds: 2));
-    //     await tester.pump(const Duration(seconds: 2));
-    //   });
+      //return to home page
+      await tester.tap(find.text("Return Home"));
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump(const Duration(seconds: 2));
+    });
 
     testWidgets('Settings flow Test', (tester) async {
       await pumpAppWithRoute(tester);
@@ -422,7 +421,7 @@ void main() {
       );
       await tester.pump(const Duration(seconds: 2));
 
-      //question 4 
+      //question 4
       await tester.tap(find.byKey(const Key("edit_icon_button")).at(3));
       await tester.pump(const Duration(seconds: 2));
 
