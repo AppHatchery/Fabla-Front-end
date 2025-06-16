@@ -196,8 +196,8 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
 
       // data picker question
-      //change the date to a future date in case the current date is in the past
-      await tester.tap(find.text("16"));
+      final date = DateTime.now().day.toString();
+      await tester.tap(find.text(date));
       await tester.pump(const Duration(seconds: 2));
 
       await tester.tap(find.text("Continue"));
@@ -441,8 +441,9 @@ void main() {
       // question 6
       await tester.tap(find.byKey(const Key("edit_icon_button")).at(5));
       await tester.pump(const Duration(seconds: 2));
-      //change the date to a future date in case the current date is in the past
-      await tester.tap(find.text("16"));
+
+      final date = DateTime.now().day.toString();
+      await tester.tap(find.text(date));
       await tester.pump(const Duration(seconds: 2));
 
       await tester.tap(find.text("Update"));
