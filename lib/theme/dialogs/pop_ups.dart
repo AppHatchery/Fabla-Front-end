@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -1278,6 +1279,83 @@ class _UpdatePopUpState extends State<UpdatePopUp> {
             ),
           ),
         )
+      ],
+    );
+  }
+}
+
+/// Pop up for when the user tries to go back to the previous page from the diary completion page.
+class PreviousPagePopUp extends StatelessWidget {
+  const PreviousPagePopUp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      contentPadding: const EdgeInsets.all(0),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Colors.grey, width: 1)),
+      surfaceTintColor: CustomColors.fillWhite,
+      children: [
+        Container(
+          constraints: const BoxConstraints.tightFor(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Title
+              Text(
+                "Warning",
+                style: CustomTypography().headlineMedium(),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(
+                height: 24,
+              ),
+
+              // Message
+              Text(
+                "You are not allowed to go back to the previous page",
+                style: CustomTypography().bodyLarge(),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(
+                height: 24,
+              ),
+
+              // Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomFlatButton(
+                      onClick: () => Navigator.pop(context, false),
+                      text: "Dismiss",
+                      color: CustomColors.greyLight,
+                      borderColor: CustomColors.greyLight,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 18,
+                  ),
+                  Expanded(
+                    child: CustomFlatButton(
+                      onClick: () => Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const Hub(),
+                          settings: RouteSettings(name: "/Hub")),
+                      (route) => false),
+                      text: "Go to Home",
+                      color: CustomColors.warningActive,
+                      borderColor: CustomColors.warningActive,
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
       ],
     );
   }
