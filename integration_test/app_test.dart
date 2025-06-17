@@ -57,6 +57,7 @@ void main() {
   }
 
   group('End to End Test', () {
+    //Note: each tests is ran one after the other and in order, so if one test fails the next one will fail as well and so on..
     testWidgets('Onboarding flow Test', (tester) async {
       // Use the helper to build the app
       await pumpAppWithRoute(tester);
@@ -136,18 +137,19 @@ void main() {
       expect(find.byType(CustomFlatButton), findsOneWidget);
 
       //actions
-      await tester.tap(find.byType(CustomFlatButton).at(0));
+      await tester.tap(find.text("Continue"));
       await tester.pump(const Duration(seconds: 2));
 
       await Future.delayed(const Duration(seconds: 2));
       await tester.pump(const Duration(seconds: 2));
 
-      await tester.tap(find.byType(CustomFlatButton).at(0));
+      await tester.tap(find.text("Continue"));
       await tester.pump(const Duration(seconds: 2));
 
 // location access page
+      await tester.pump(const Duration(seconds: 2));
       expect(find.byType(Text), findsNWidgets(2));
-      await tester.tap(find.byType(CustomFlatButton).at(0));
+      await tester.tap(find.text('Continue'));
       await tester.pump(const Duration(seconds: 2));
 
 // Dynamic onboarding page
