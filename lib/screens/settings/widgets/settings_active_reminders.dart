@@ -139,6 +139,10 @@ class _ActiveRemindersState extends State<ActiveReminders> {
     });
 
     // Schedule Notifications
-    NotificationManager().scheduleUserReminders();
+    if (widget.times.isEmpty) {
+      NotificationManager().removeUserReminders();
+    } else {
+      NotificationManager().scheduleUserReminders();
+    }
   }
 }

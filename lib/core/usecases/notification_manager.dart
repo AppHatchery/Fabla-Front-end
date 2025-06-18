@@ -283,4 +283,19 @@ class NotificationManager {
       scheduledCount++;
     }
   }
+
+  void removeUserReminders() async {
+    final scheduledNotifications =
+        (await NotificationService.getScheduledNotifications())
+            .where((e) =>
+                e.content?.payload?['date'] != null &&
+                e.content?.payload?['type'] == 'reminder')
+            .toList();
+
+    for (final notification in scheduledNotifications) {
+      if (notification.content?.id != null) {
+        await NotificationService.cancelNotification(notification.content!.id!);
+      }
+    }
+  }
 }
