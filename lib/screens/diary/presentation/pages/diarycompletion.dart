@@ -40,10 +40,12 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage>
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        showDialog(
-          context: context,
-          builder: (context) => const PreviousPagePopUp(),
-        );
+        Navigator.pushAndRemoveUntil(
+          context, 
+          MaterialPageRoute(
+            builder: (context) => const Hub(),
+            settings: RouteSettings(name: "/Hub")),
+            (route) => false);
       },
       child: Scaffold(
         backgroundColor: CustomColors.fillWhite,
