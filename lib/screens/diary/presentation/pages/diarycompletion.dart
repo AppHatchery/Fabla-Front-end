@@ -99,10 +99,10 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage>
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(
-                                    height: 70,
+                                    height: 60,
                                   ),
                                   SizedBox(
-                                    height: 300,
+                                    height: 355,
                                     width: width,
                                     child: const GhostCompletionWidget(),
                                   ),
