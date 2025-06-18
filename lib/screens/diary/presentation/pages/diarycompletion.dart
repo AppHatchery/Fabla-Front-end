@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/ghost_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
@@ -36,7 +37,17 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        Navigator.pushAndRemoveUntil(
+          context, 
+          MaterialPageRoute(
+            builder: (context) => const Hub(),
+            settings: RouteSettings(name: "/Hub")),
+            (route) => false);
+      },
+      child: Scaffold(
         backgroundColor: CustomColors.fillWhite,
         body: SafeArea(
           child: Padding(
@@ -131,6 +142,8 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage>
               ],
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
