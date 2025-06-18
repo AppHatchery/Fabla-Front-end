@@ -1,4 +1,4 @@
-import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
+import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:flutter/material.dart';
 
 import '../../../services/pendo_service.dart';
@@ -141,7 +141,7 @@ class _ActiveRemindersState extends State<ActiveReminders> {
       "reminders": widget.times.toString(),
     });
 
-    // Update Notifications
-    reScheduleAllNotifications();
+    // Schedule Notifications
+    NotificationManager().scheduleUserReminders();
   }
 }
