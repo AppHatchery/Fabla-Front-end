@@ -220,6 +220,7 @@ class _HubState extends State<Hub>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       NotificationManager()
           .scheduleAdditional(); // Ensure that this also trigger when the app has just started
+      NotificationManager().scheduleUserReminders(); // Schedule user reminders
     });
     super.initState();
   }
