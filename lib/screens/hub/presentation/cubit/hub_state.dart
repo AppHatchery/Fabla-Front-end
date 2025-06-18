@@ -16,5 +16,9 @@ class HubUpdating extends HubState {
 }
 
 class HubUpdated extends HubState {
-  const HubUpdated();
+  final bool complete;
+  const HubUpdated(this.complete);
+
+  @override
+  List<Object> get props => [complete];
 }

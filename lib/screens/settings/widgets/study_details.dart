@@ -153,7 +153,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
         builder: (context) => ExitPopUp(
               title: "Are you sure you want to leave this study?",
               subheader:
-                  "This action will be final and all your data will be lost",
+                  "This action will be final and all your data stored on this device will be lost. To have your data removed from the study, please contact the research team.",
             ));
 
     if (results == true && mounted) {

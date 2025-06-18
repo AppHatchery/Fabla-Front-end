@@ -477,6 +477,72 @@ class DiaryRepository {
     return filtered.map((e) => DiaryModel.fromEntity(e)).toList();
   }
 
+  /// Retrieves a list of DiaryModel objects representing every diary entry.
+  /// This function fetches all diaries from the data access object (DAO),
+  /// filters them to exclude those with statuses of missed or submitted,
+  /// and then processes weekly diaries to create entries for each active day.
+  /// For each active day in a weekly diary, it creates a new DiaryModel object
+  /// with the appropriate start and due dates.
+  /// Finally, it sorts the resulting list of DiaryModel objects by their start dates.
+  /// 
+  /// Returns:
+  /// A list of DiaryModel objects representing every diary entry,
+  /// 
+  List<DiaryModel> getEveryDiary() {
+    final all = _getAllDiariesEntities();
+
+    // Remove missed and submitted diaries
+    final filtered = all
+        .where((diary) =>
+            diary.status != DiaryStatus.missed &&
+            diary.status != DiaryStatus.submitted)
+        .map((e) => DiaryModel.fromEntity(e))
+        .toList();
+
+    // For weekly diaries add diaries to each of the active days
+    for (final diary in filtered) {
+      if (diary.activeDays != null && diary.activeDays!.isNotEmpty) {
+        final start = normalizeDate(diary.start);
+        final end = normalizeDate(diary.end);
+        final daysDifference = end.difference(start).inDays;
+
+        for (int i = 0; i <= daysDifference; i++) {
+          final currentDate = start.add(Duration(days: i));
+          if (diary.activeDays!.contains(currentDate.weekday)) {
+            // Add a copy of the diary for each active day
+            final newDiary = diary.copyWith(
+              id: diary.id,
+              studyID: diary.studyID,
+              start: DateTime(
+                currentDate.year,
+                currentDate.month,
+                currentDate.day,
+                diary.start.hour,
+                diary.start.minute,
+              ),
+              due: DateTime(
+                currentDate.year,
+                currentDate.month,
+                currentDate.day,
+                diary.due.hour,
+                diary.due.minute,
+              ),
+            );
+            filtered.add(newDiary);
+          }
+        }
+
+        // Remove the original diary if it was a weekly diary
+        filtered.remove(diary);
+      }
+    }
+
+    // Sort the diaries by start date
+    filtered.sort((a, b) => a.start.compareTo(b.start));
+
+    return filtered;
+  }
+
   // retrieves the protocol from the protocol entity
   // This function attempts to obtain a ProtocolEntity instance using the `_getProtocolEntity()` method,
   // and if a matching ProtocolEntity is found, it is transformed into a Protocol object using the `Protocol.fromEntity()` factory constructor.
