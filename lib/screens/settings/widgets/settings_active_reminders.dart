@@ -1,4 +1,4 @@
-import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
+import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:flutter/material.dart';
 
 import '../../../services/pendo_service.dart';
@@ -76,14 +76,11 @@ class _ActiveRemindersState extends State<ActiveReminders> {
           height: 12,
         ),
         CustomElevatedButton(
-          onClick: widget.isEnabled ? () => pickDate() : null,
+          onClick: () => pickDate(),
           text: "Add a Reminder Time",
-          textColor: widget.isEnabled
-              ? CustomColors.productNormalActive
-              : CustomColors.textTertiaryContent,
-          color: widget.isEnabled
-              ? CustomColors.fillWhite
-              : CustomColors.fillDisabled,
+          isDisabled: widget.times.isNotEmpty,
+          textColor: CustomColors.productNormalActive,
+          color: CustomColors.fillWhite,
           border: Border.all(color: CustomColors.productBorderNormal, width: 2),
         ),
       ],
@@ -141,7 +138,11 @@ class _ActiveRemindersState extends State<ActiveReminders> {
       "reminders": widget.times.toString(),
     });
 
-    // Update Notifications
-    reScheduleAllNotifications();
+    // Schedule Notifications
+    if (widget.times.isEmpty) {
+      NotificationManager().removeUserReminders();
+    } else {
+      NotificationManager().scheduleUserReminders();
+    }
   }
 }

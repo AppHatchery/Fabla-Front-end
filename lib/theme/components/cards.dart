@@ -45,9 +45,12 @@ class _DiaryCardState extends State<DiaryCard> {
   String? study;
   Color color = CustomColors.productNormal;
 
+  Timer? _refreshTimer;
+
   @override
   void initState() {
     getStudyName();
+    _refreshDiary();
     super.initState();
   }
 
@@ -88,8 +91,41 @@ class _DiaryCardState extends State<DiaryCard> {
         widget.getPageName() == "history_list";
   }
 
+  // Function to refresh the diary card
+  void _refreshDiary() {
+    final now = DateTime.now();
+    final start = widget.diary!.start;
+    final due = widget.diary!.due;
+
+    DateTime? time;
+
+    if (start.isAfter(now)) {
+      // Schedule refresh at start time
+      time = start;
+    } else if (due.isAfter(now)) {
+      // Schedule refresh at due time
+      time = due;
+    }
+
+    if (time != null) {
+      final duration = time.difference(now);
+
+      _refreshTimer = Timer(duration, () {
+        if (mounted) {
+          // This will trigger a rebuild
+          setState(() {
+            closed = isClosed();
+          });
+          // Schedule next refresh if needed
+          _refreshDiary();
+        }
+      });
+    }
+  }
+
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     super.dispose();
   }
 

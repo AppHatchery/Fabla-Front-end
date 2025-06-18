@@ -144,11 +144,16 @@ class SetupRepository {
   ///
   /// This function does not return any data but updates the local database directly.
   ///
+  /// Parameters:
+  /// - [partialCleanDB]: If true, the database will be partially cleared by removing diaries
+  ///  from the current date until the last diary, while keeping all old data. If false,
+  /// the database will be completely cleared before adding new studies and diaries.
+  ///
   /// Example usage:
   /// ```dart
   /// await getStudies(); // Fetch and update studies and diaries in the local database.
   /// ```
-  Future<void> getStudies() async {
+  Future<bool> getStudies({bool partialCleanDB = false}) async {
     // Retrieve the current experiment from the local database
     final entity = _experimentDAO.getExperiment();
     final experiment = ExperimentModel.fromEntity(entity!);
@@ -161,60 +166,91 @@ class SetupRepository {
       'participant_id': participant!.studyCode,
     });
 
-    //load from assets
-    // final response = await rootBundle.loadString('assets/protocol.json');
-
     if (response != null) {
-      final data = await json.decode(response)['data'];
+      try {
+        final data = await json.decode(response)['data'];
 
-      // Parse the studies from the response
-      final studiesFromJson = data['studies'] as List;
-      final studies = <StudyModel>[];
-      final diaries = <DiaryModel>[];
+        // Parse the studies from the response
+        final studiesFromJson = data['studies'] as List;
+        final studies = <StudyModel>[];
+        final diaries = <DiaryModel>[];
 
-      // Convert each study and its associated diaries to their respective models
-      for (final study in studiesFromJson) {
-        final studyModel = StudyModel.fromJson(study, experiment.login);
-        studies.add(studyModel);
+        // Convert each study and its associated diaries to their respective models
+        for (final study in studiesFromJson) {
+          final studyModel = StudyModel.fromJson(study, experiment.login);
+          studies.add(studyModel);
 
-        final diariesJson = study['diaries'] as List;
-        for (final json in diariesJson) {
-          final diary = DiaryModel.fromJson(json, studyModel.studyId);
-          dev.log("Diary start: ${diary.start} | end: ${diary.due}",
-              name: "Get Studies");
-          diaries.add(diary);
+          final diariesJson = study['diaries'] as List;
+          for (final json in diariesJson) {
+            final diary = DiaryModel.fromJson(json, studyModel.studyId);
+            dev.log(
+                "Diary ${diary.name} - Diary start: ${diary.start} | end: ${diary.due}",
+                name: "Get Studies");
+            diaries.add(diary);
+          }
         }
+
+        // Fetch all diaries from the local database
+        // Filter out duplicates from the new diaries
+        // For fresh installs it will be empty and result in all diaries being fetched
+        final all = diaryRepository.getAllDiaries();
+        final filtered =
+            all.isEmpty ? diaries : filterDuplicateDiaries(diaries, all);
+
+        dev.log(
+            "Filtered: ${filtered.length} diaries - Remaining: ${all.length} - FROM JSON: ${diaries.length}",
+            name: "Get Studies");
+
+        // If no diaries are found, return true
+        if (filtered.isEmpty) {
+          dev.log("No diaries found in the response", name: "Get Studies");
+          return true;
+        }
+
+        // Convert diaries to entities and map prompts to their models
+        final entities = filtered.map((model) {
+          final prompts =
+              model.prompts.map((prompt) => Prompt.fromModel(prompt)).toList();
+          final entity = Diary.fromModel(model);
+          entity.prompts.addAll(prompts);
+          return entity;
+        }).toList();
+
+        // Convert studies to entities
+        final studyEntities =
+            studies.map((model) => Study.fromModel(model)).toList();
+        setColorForStudy(studies);
+
+        // if partialCleanDB is true, clear the database partially
+        // by removing diaries from now till last diary
+        if (partialCleanDB) {
+          // Partially clear the database not to lose the old data
+          // Get rid of all the data from now till last while keeping all the old data
+          final now = DateTime.now();
+          final DiaryRepository repository = DiaryRepository();
+          repository.removeDiariesFrom(now);
+          _studyDAO.deleteAllStudies();
+        } else {
+          clearStudies();
+        }
+
+        // Update the local database with the fetched studies and diaries
+        dev.log(
+            "Studies: ${studyEntities.length} | Entities: ${entities.length}",
+            name: "Get Studies");
+        diaryRepository.addDiaries(entities);
+        _studyDAO.addStudies(studyEntities);
+
+        // Schedule notifications for the diaries
+        NotificationManager().scheduleLimit();
+        return true;
+      } catch (e) {
+        dev.log("Error parsing studies or diaries: $e", name: "Get Studies");
+        return false;
       }
-
-      // Fetch all diaries from the local database
-      // Filter out duplicates from the new diaries
-      // For fresh installs it will be empty and result in all diaries being fetched
-      final all = diaryRepository.getAllDiaries();
-      final filtered =
-          all.isEmpty ? diaries : filterDuplicateDiaries(diaries, all);
-
-      // Convert diaries to entities and map prompts to their models
-      final entities = filtered.map((model) {
-        final prompts =
-            model.prompts.map((prompt) => Prompt.fromModel(prompt)).toList();
-        final entity = Diary.fromModel(model);
-        entity.prompts.addAll(prompts);
-        return entity;
-      }).toList();
-
-      // Convert studies to entities
-      final studyEntities =
-          studies.map((model) => Study.fromModel(model)).toList();
-      setColorForStudy(studies);
-
-      // Update the local database with the fetched studies and diaries
-      dev.log("Studies: $studyEntities", name: "Get Studies");
-      diaryRepository.addDiaries(entities);
-      _studyDAO.addStudies(studyEntities);
-
-      // Schedule notifications for the diaries
-      NotificationManager().scheduleLimit();
     }
+
+    return false;
   }
 
   // Function to filter out duplicates from the new diaries
@@ -464,9 +500,14 @@ class SetupRepository {
   /// using the associated questions DAO (Data Access Object). It then converts
   /// the questions to a `JSON` object and sends the data to the remote source.
   ///
+  /// Parameters:
+  /// - [partialCleanDB]: If true, the database will be partially cleared by removing diaries
+  ///  from the current date until the last diary, while keeping all old data. If false,
+  /// the database will be completely cleared before adding new studies and diaries.
+  ///
   /// Returns:
   /// - A `Future` that resolves to a `bool` value indicating the success of the operation.
-  Future<bool> uploadOnBoardingQuestions() async {
+  Future<bool> uploadOnBoardingQuestions({bool partialCleanDB = false}) async {
     final List<Questions> onboardingQuestions = _questionsDAO
         .getAllQuestions()
         .map((e) => Questions.fromEntity(e))
@@ -531,10 +572,8 @@ class SetupRepository {
     });
 
     if (result) {
-      // Clean the database first
-      clearStudies();
-      await getStudies();
-      return true;
+      final res = await getStudies(partialCleanDB: partialCleanDB);
+      return res;
     }
 
     return false;
@@ -602,9 +641,5 @@ class SetupRepository {
     } catch (e) {
       return false;
     }
-  }
-
-  void deleteAllStudies() {
-    _studyDAO.deleteAllStudies();
   }
 }
