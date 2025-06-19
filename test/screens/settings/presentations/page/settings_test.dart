@@ -268,7 +268,7 @@ void main() {
     expect(remindersFinder, findsOneWidget);
 
     final addReminderTimeButtonFinder =
-        find.byKey(Key("add-reminder-time-button"));
+        find.text("Add a Reminder Time");
     expect(addReminderTimeButtonFinder, findsOneWidget);
   });
 }
