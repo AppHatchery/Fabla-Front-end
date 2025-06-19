@@ -142,6 +142,7 @@ This layer contains the services that the application uses — for example, the 
 using GitHub Actions to run automatic tests when commits or Pull Requests happen to the main or dev branch. There is a workflow file in the `.github/workflows` folder, which is in `.yml` format. This file will run all tests found in the test folder at the root of the repository.
 
 ## Tests
+I'd like you to please refer to the [Testing](https://docs.flutter.dev/testing/overview) documentation on the Flutter website for more information on testing
 To run local tests on your machine, you can run the following:
 
 ### Widget Test
