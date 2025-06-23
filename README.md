@@ -205,15 +205,11 @@ adb shell pm grant "$PACKAGE_NAME" android.permission.ACCESS_FINE_LOCATION
 echo "Permissions granted for $PACKAGE_NAME"
 
 ```
-5. Make grant_permission executable before running it by running this command
-```
-chmod +x grant_permission.sh
-```
-6. Run the bash script grant_permission.sh in the terminal to pre-grant permission to the app
+5. Run the bash script grant_permission.sh in the terminal to pre-grant permission to the app
 ```
 ./grant_permission.sh
 ```
-7. Run the integration test command
+6. Run the integration test command
 ```
 flutter test integration_test/app_test.dart
 ```
