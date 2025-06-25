@@ -50,6 +50,8 @@ class NotificationManager {
             ![DiaryStatus.complete, DiaryStatus.submitted]
                 .contains(diary.status))
         .toList();
+      // sort diaries by start date
+    diaries.sort((a, b) => a.start.compareTo(b.start));
 
     // Check if the number of scheduled notifications is below the threshold
     if (scheduledNotifications.length < threshold) {
@@ -86,7 +88,7 @@ class NotificationManager {
               id: id,
               title: notification.title,
               body: notification.body,
-              date: notification.date,
+              date: notification.date.toUtc(),
               payload: {
                 'id': id.toString(),
                 'date': notification.date.toString(),
@@ -136,6 +138,9 @@ class NotificationManager {
 
     final diaries = diaryRepository.getAllDiaries();
     int scheduledCount = 0;
+
+    //sort diaries by start date
+    diaries.sort((a, b) => a.start.compareTo(b.start));
 
     for (final diary in diaries) {
       if (scheduledCount >= threshold) break;
