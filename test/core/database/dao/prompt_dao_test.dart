@@ -74,15 +74,15 @@ void main() {
       final result = promptDAO.getPrompt(1);
 
       // ───── Assert ─────
-      expect(result?.id, expectedPrompt.id);
-      expect(result?.questionNumber, expectedPrompt.questionNumber);
-      expect(result?.question, expectedPrompt.question);
-      expect(result?.responseType, expectedPrompt.responseType);
-      expect(result?.option, expectedPrompt.option);
-      expect(result?.subtitle, expectedPrompt.subtitle);
-      expect(result?.required, expectedPrompt.required);
-      expect(result?.multipleAnswer, expectedPrompt.multipleAnswer);
-      expect(result?.diary.target?.id, expectedPrompt.diary.target?.id);
+      expect(result.id, expectedPrompt.id);
+      expect(result.questionNumber, expectedPrompt.questionNumber);
+      expect(result.question, expectedPrompt.question);
+      expect(result.responseType, expectedPrompt.responseType);
+      expect(result.option, expectedPrompt.option);
+      expect(result.subtitle, expectedPrompt.subtitle);
+      expect(result.required, expectedPrompt.required);
+      expect(result.multipleAnswer, expectedPrompt.multipleAnswer);
+      expect(result.diary.target?.id, expectedPrompt.diary.target?.id);
 
       verify(() => mockBox.query()).called(1);
       verify(() => mockQueryBuilder.build()).called(1);

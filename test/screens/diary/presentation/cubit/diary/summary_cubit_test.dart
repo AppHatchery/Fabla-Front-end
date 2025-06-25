@@ -67,7 +67,6 @@ class MockToMany<T> extends Mock implements ToMany<T> {
   @override
   int get length => 0; // Return 0 for empty list
 
-  @override
   T? elementAtOrNull(int index) => null; // Return null for empty list
 }
 

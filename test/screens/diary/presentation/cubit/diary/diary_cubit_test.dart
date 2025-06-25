@@ -1,7 +1,5 @@
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/tag.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_cubit.dart';
 import 'package:bloc_test/bloc_test.dart';
@@ -43,27 +41,6 @@ class MockProtocolBox extends Mock implements Box<ProtocolEntity> {}
 class MockStudyBox extends Mock implements Box<Study> {}
 
 // Helper function to mimic the Cubit's _getTags logic for test expectations
-List<Tag> _getExpectedTags(
-    DiaryStatus status, DateTime startTime, DateTime referenceDate) {
-  List<Tag> tags = [];
-  if (status == DiaryStatus.submitted) {
-    tags.add(const Tag(text: "Done", type: TagType.time));
-  } else if (status == DiaryStatus.missed) {
-    tags.add(const Tag(text: "Missed", type: TagType.time));
-  } else if (status == DiaryStatus.complete) {
-    tags.add(const Tag(text: "Awaiting Submission", type: TagType.time));
-  } else if (status == DiaryStatus.ongoing) {
-    tags.add(const Tag(text: "Ongoing", type: TagType.time));
-  } else if (status == DiaryStatus.idle && startTime.isAfter(referenceDate)) {
-    tags.addAll([
-      const Tag(text: "13 Questions", type: TagType.questions),
-      const Tag(text: "12 Minutes", type: TagType.time)
-    ]);
-  } else if (status == DiaryStatus.idle) {
-    tags.add(const Tag(text: "Ready to Start", type: TagType.time));
-  }
-  return tags;
-}
 
 void main() {
   late MockDiaryRepository mockDiaryRepository;

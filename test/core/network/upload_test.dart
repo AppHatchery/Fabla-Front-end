@@ -19,15 +19,11 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late MockHttpClient mockHttpClient;
-  late MockSetupRepository mockSetupRepository;
   late MockSecureSave mockSecureSave;
-  late MockDirectory mockDirectory;
 
   setUp(() {
     mockHttpClient = MockHttpClient();
-    mockSetupRepository = MockSetupRepository();
     mockSecureSave = MockSecureSave();
-    mockDirectory = MockDirectory();
 
     // Register fallback values for any() matcher
     registerFallbackValue(Uri.parse('https://example.com'));

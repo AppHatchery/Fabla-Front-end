@@ -18,7 +18,7 @@ class MockHttpClient extends Mock implements http.Client {}
 
 class MockDirectory extends Mock
     implements
-        Directory {} // May not be needed if channel mock handles path correctly
+        Directory {} 
 
 class MockFile extends Mock implements File {}
 
@@ -27,7 +27,6 @@ void main() {
   late MockFirebaseMessaging mockFirebaseMessaging;
   late MockFlutterLocalNotificationsPlugin mockLocalNotifications;
   late MockHttpClient mockHttpClient;
-  late MockDirectory mockDirectory;
   late MockFile mockFile;
 
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -61,8 +60,7 @@ void main() {
     mockFirebaseMessaging = MockFirebaseMessaging();
     mockLocalNotifications = MockFlutterLocalNotificationsPlugin();
     mockHttpClient = MockHttpClient();
-    mockDirectory =
-        MockDirectory(); // Keep for now, though its direct use might change
+
     mockFile = MockFile();
 
     controller = NotificationsController(
@@ -70,7 +68,7 @@ void main() {
       localNotifications: mockLocalNotifications,
       client: mockHttpClient,
     );
-    // controller.flutterLocalNotificationsPlugin = mockLocalNotifications; // Removed this line
+    
   });
 
   group('NotificationsController Tests', () {
