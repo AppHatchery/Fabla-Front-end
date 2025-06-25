@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/location.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
@@ -82,6 +83,14 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
         promptLength: diary.prompts.length,
         diaryID: diary.id.toString());
     if (location != null) promptEntryList.add(location);
+
+    // Submitting the completion time for this diary
+    final completionTime = await submitDiaryCompletionTime(
+        experimentCode: experiment.login,
+        participantID: participantID,
+        promptLength: diary.prompts.length,
+        diaryID: diary.id.toString());
+    promptEntryList.addAll(completionTime);
 
     promptEntryList.addAll(
         references); // Adding the references to the list going to Dynamo

@@ -135,6 +135,7 @@ class _HomePageState extends State<HomePage>
                 children: [
                   Expanded(
                     child: GestureDetector(
+                      key: const Key("weekly_goal_widget"),
                       onTap: () => setState(() {
                         if (isExpanded) {
                           isExpanded = !isExpanded;
@@ -262,6 +263,7 @@ class _HomePageState extends State<HomePage>
     return available <= 0
         ? const SizedBox.shrink()
         : GestureDetector(
+            key: const Key("Incentive"),
             onTap: () => showStudyIncentives(allStudies),
             child: Image.asset(
               "assets/images/icons/incentives.png",

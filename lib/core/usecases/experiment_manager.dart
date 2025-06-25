@@ -1,11 +1,9 @@
-import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 
 import 'dart:developer' as dev;
 
 // Default instances for production use
-final DiaryRepository _defaultDiaryRepository = DiaryRepository();
-final SetupRepository _defaultSetupRepository = SetupRepository();
+final SetupRepository _setupRepository = SetupRepository();
 
 class ExperimentManager {
   final DiaryRepository _diaryRepository;
@@ -21,15 +19,8 @@ class ExperimentManager {
   /// Update Experiment
   Future<bool> update() async {
     try {
-      // Get rid of all the data from now till last while keeping all the old data
-      final now = DateTime.now();
-
-      final result = _diaryRepository.removeDiariesFrom(now);
-      _setupRepository.deleteAllStudies();
-      dev.log("Removed diaries: $result");
-
       // get new content
-      final done = await _setupRepository.uploadOnBoardingQuestions();
+      final done = await _setupRepository.uploadOnBoardingQuestions(partialCleanDB: true);
 
       return done;
     } catch (e) {

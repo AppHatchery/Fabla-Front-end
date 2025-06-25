@@ -6,6 +6,8 @@ import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:flutter/material.dart' show TimeOfDay;
 
 /// NotificationManager class is responsible for scheduling notifications
 
@@ -198,4 +200,102 @@ class NotificationManager {
   }
 
   //TODO: Implement 1. daily goal notifications 2. continue notifications 3. submit diary notifications
+
+  /// Only schedule 7 user reminders and only on days that have diaries
+  /// The payload will contain the date of the reminder and type of reminder
+  void scheduleUserReminders() async {
+    // Get user's preferred reminder times from saved preferences
+    final timesFromString = await PreferenceService()
+        .getStringListPreference(key: 'reminder_times');
+    final times = timesFromString
+            ?.map((e) => TimeOfDay.fromDateTime(DateTime.parse(e)))
+            .toList() ??
+        [];
+    if (times.isEmpty) {
+      dev.log('No reminder times set by user, skipping scheduling reminders.');
+      return;
+    }
+
+    final limit = 7;
+    final now = DateTime.now();
+    final scheduledNotifications =
+        (await NotificationService.getScheduledNotifications())
+            .where((e) =>
+                e.content?.payload?['date'] != null &&
+                e.content?.payload?['type'] == 'reminder')
+            .map((e) => DateTime.parse(e.content!.payload!['date']!))
+            .toSet();
+
+    if (scheduledNotifications.length >= limit) {
+      dev.log(
+          'User reminders already scheduled: ${scheduledNotifications.length}');
+      return;
+    }
+
+    final int notificationsToSchedule = limit - scheduledNotifications.length;
+
+    // Get all diaries and filter only those due in the future
+    final diaries = diaryRepository.getEveryDiary();
+    final filteredDiaries = diaries
+        .where((diary) => diary.due.isAfter(now))
+        .map((d) => DateTime(d.due.year, d.due.month, d.due.day))
+        .toSet();
+
+    times.sort((a, b) =>
+        (a.hour + a.minute / 60.0).compareTo(b.hour + b.minute / 60.0));
+
+    int scheduledCount = 0;
+    int dayOffset = 0;
+
+    // Look ahead up to 30 days to find valid dates with diaries
+    while (scheduledCount < notificationsToSchedule && dayOffset < 30) {
+      final reminderDate =
+          DateTime(now.year, now.month, now.day).add(Duration(days: dayOffset));
+      dayOffset++; // Always move to next day
+
+      if (!filteredDiaries.contains(reminderDate)) continue;
+      if (scheduledNotifications.contains(reminderDate)) continue;
+
+      final scheduledDateTime = DateTime(
+        reminderDate.year,
+        reminderDate.month,
+        reminderDate.day,
+        times.first.hour,
+        times.first.minute,
+      );
+
+      if (scheduledDateTime.isBefore(now)) continue; // Skip past dates
+
+      final id = Random().nextInt(100000);
+      await NotificationService.createNotification(
+        id: id,
+        title: 'Daily Reminder',
+        body: 'Time to check your Fabla entries!',
+        date: scheduledDateTime,
+        payload: {
+          'id': id.toString(),
+          'date': reminderDate.toIso8601String(),
+          'type': 'reminder',
+        },
+      );
+      dev.log('Scheduled user reminder - id: $id, date: $scheduledDateTime');
+
+      scheduledCount++;
+    }
+  }
+
+  void removeUserReminders() async {
+    final scheduledNotifications =
+        (await NotificationService.getScheduledNotifications())
+            .where((e) =>
+                e.content?.payload?['date'] != null &&
+                e.content?.payload?['type'] == 'reminder')
+            .toList();
+
+    for (final notification in scheduledNotifications) {
+      if (notification.content?.id != null) {
+        await NotificationService.cancelNotification(notification.content!.id!);
+      }
+    }
+  }
 }

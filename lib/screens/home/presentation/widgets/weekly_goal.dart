@@ -49,6 +49,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
             const SizedBox(width: 6),
             GestureDetector(
               child: Icon(
+                key: const Key('weekly_goal_icon'),
                 widget.isExpanded
                     ? Icons.keyboard_arrow_up_rounded
                     : Icons.keyboard_arrow_down_rounded,
@@ -106,6 +107,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: Text(
+                key: const Key('weekly_goal_text'),
                 "$currentEntries/$weeklyGoal",
                 style: CustomTypography().caption(color: color),
               ),
