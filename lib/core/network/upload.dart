@@ -172,8 +172,19 @@ String formatSubmissionDate(DateTime date) {
 }
 
 //Upload functions
-Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
-  final cred = await SecureSave().read();
+// Modified to support dependency injection for better testability
+// Added optional parameters for SecureSave and http.Client
+// Default values maintain backward compatibility
+Future<bool> uploadNonAudioData(
+  List<PromptEntry> promptEntryList, {
+  SecureSave? secureSave,
+  http.Client? client,
+}) async {
+  // Use injected dependencies or create default instances
+  final secureStorage = secureSave ?? SecureSave();
+  final httpClient = client ?? http.Client();
+
+  final cred = await secureStorage.read();
   // List of items to be sent in the request body
   List<Map<String, dynamic>> promptListItems =
       PromptEntry.promptListToMap(promptEntryList);
@@ -189,7 +200,8 @@ Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
   };
 
   try {
-    var response = await http.post(url, headers: headers, body: jsonBody);
+    // Updated to use injected http client instead of static http.post
+    var response = await httpClient.post(url, headers: headers, body: jsonBody);
 
     return response.statusCode == 200;
   } catch (e) {
@@ -208,6 +220,10 @@ Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
 /// If there's an error during the process, or the response status code is not
 /// 200, it returns null.
 ///
+/// Modified to support dependency injection for better testability.
+/// Added optional parameters for SecureSave and http.Client.
+/// Default values maintain backward compatibility.
+///
 /// Example:
 /// ```dart
 /// String apiUrl = 'https://example.com/api/upload';
@@ -222,12 +238,22 @@ Future<bool> uploadNonAudioData(List<PromptEntry> promptEntryList) async {
 ///
 /// Throws an error if there's any issue during the process.
 ///
-Future<String?> getPresignedUrl(String apiUrl, String filename) async {
-  final cred = await SecureSave().read();
+Future<String?> getPresignedUrl(
+  String apiUrl,
+  String filename, {
+  SecureSave? secureSave,
+  http.Client? client,
+}) async {
+  // Use injected dependencies or create default instances
+  final secureStorage = secureSave ?? SecureSave();
+  final httpClient = client ?? http.Client();
+
+  final cred = await secureStorage.read();
   try {
     var requestBody = jsonEncode({'filename': filename});
 
-    var response = await http.post(
+    // Updated to use injected http client instead of static http.post
+    var response = await httpClient.post(
       Uri.parse(apiUrl),
       headers: {
         'Content-Type': 'application/json',
