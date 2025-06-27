@@ -163,7 +163,7 @@ class NotificationManager {
           id: id,
           title: notification.title,
           body: notification.body,
-          date: notification.date,
+          date: notification.date.toUtc(),
           payload: {
             'id': id.toString(),
             'date': notification.date.toString(),
@@ -276,7 +276,7 @@ class NotificationManager {
         id: id,
         title: 'Daily Reminder',
         body: 'Time to check your Fabla entries!',
-        date: scheduledDateTime,
+        date: scheduledDateTime.toUtc(),
         payload: {
           'id': id.toString(),
           'date': reminderDate.toIso8601String(),
