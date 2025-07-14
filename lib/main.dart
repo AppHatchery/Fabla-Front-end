@@ -24,6 +24,7 @@ import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:camera/camera.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
@@ -36,6 +37,7 @@ import 'package:pendo_sdk/pendo_sdk.dart';
 import 'dart:io' show Platform;
 
 import 'core/database/object_box.dart';
+import 'core/services/remote_config_service.dart';
 import 'firebase_options.dart';
 import 'screens/diary/data/diary.dart';
 import 'screens/diary/presentation/pages/diaries.dart';
@@ -217,12 +219,37 @@ class _HubState extends State<Hub>
     tabController = TabController(length: pages.length, vsync: this);
     startPendo();
     _makeNavBars();
+
+    // Set analytics and notifications after build
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      NotificationManager()
-          .scheduleAdditional(); // Ensure that this also trigger when the app has just started
-      NotificationManager().scheduleUserReminders(); // Schedule user reminders
+      NotificationManager().scheduleAdditional();
+      NotificationManager().scheduleUserReminders();
+      _setFirebaseUserProps();
     });
+
     super.initState();
+  }
+
+  Future<void> _setFirebaseUserProps() async {
+    /**
+     * Initialize Firebase Analytics and set user properties.
+     * then run remote config service on app start.
+     */
+    // Get experiment login code from repository to set user properties
+    final repository = SetupRepository();
+    final experiment = repository.getExperiment();
+
+    final loginCode = experiment.login ?? 'unknown';
+
+    // Set the study ID as a Firebase Analytics user property
+    await FirebaseAnalytics.instance.setUserProperty(
+      //user property name same as experiment code
+      name: loginCode,
+      value: loginCode,
+    );
+
+    // Initialize Remote Config service
+    await RemoteConfigService().initialize();
   }
 
   @override
@@ -251,6 +278,8 @@ class _HubState extends State<Hub>
             showUpdateDialog();
           } else if (state is HubUpdated) {
             completeUpdate(state.complete);
+            //reload diaries after update
+            context.read<DiaryCubit>().loadDiaries();
           }
         },
         builder: (context, state) {
