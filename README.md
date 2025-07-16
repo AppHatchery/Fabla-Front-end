@@ -213,3 +213,4 @@ echo "Permissions granted for $PACKAGE_NAME"
 ```
 flutter test integration_test/app_test.dart
 ```
+_Note: the test may fail due to the tester missing the button, just rerun it_
