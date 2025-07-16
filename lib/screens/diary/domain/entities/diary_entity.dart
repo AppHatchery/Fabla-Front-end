@@ -26,6 +26,7 @@ class Diary {
   DiaryStatus? status;
   String notifications;
   List<int>? activeDays;
+  List<String>? submissions;
 
   @Backlink('diary')
   final prompts = ToMany<Prompt>();
@@ -52,7 +53,8 @@ class Diary {
       required this.deadline,
       required this.notifications,
       this.status,
-      required this.activeDays});
+      required this.activeDays,
+      required this.submissions});
 
   /// Ensures the consistency of DiaryStatus enumeration indices.
   /// This private method verifies that the indices of the DiaryStatus enum values correspond to their expected numerical values.
@@ -81,20 +83,22 @@ class Diary {
   ///
   factory Diary.fromModel(DiaryModel model) {
     return Diary(
-      id: model.id,
-      studyID: model.studyID,
-      name: model.name,
-      due: model.due,
-      start: model.start,
-      end: model.end,
-      entries: model.entries,
-      currentEntry: model.currentEntry,
-      deadline: model.due.toString(),
-      status: model.status,
-      notifications:
-          json.encode(model.notifications.map((e) => e.toJson()).toList()),
-      activeDays: model.activeDays
-    );
+        id: model.id,
+        studyID: model.studyID,
+        name: model.name,
+        due: model.due,
+        start: model.start,
+        end: model.end,
+        entries: model.entries,
+        currentEntry: model.currentEntry,
+        deadline: model.due.toString(),
+        status: model.status,
+        notifications:
+            json.encode(model.notifications.map((e) => e.toJson()).toList()),
+        activeDays: model.activeDays,
+        submissions: model.submissions
+            ?.map((submission) => submission.toString())
+            .toList());
   }
 }
 

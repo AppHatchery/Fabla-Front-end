@@ -21,6 +21,7 @@ class DiaryModel implements Comparable<DiaryModel> {
   final List<PromptModel> prompts;
   final List<Notification> notifications;
   final List<int>? activeDays;
+  final List<DateTime>? submissions;
 
   DiaryModel(
       {required this.id,
@@ -35,7 +36,8 @@ class DiaryModel implements Comparable<DiaryModel> {
       required this.currentEntry,
       required this.end,
       required this.notifications,
-      required this.activeDays});
+      required this.activeDays,
+      required this.submissions});
 
   /// Factory constructor that creates a Diary object from a DiaryEntity.
   /// This function generates a Diary instance using data from a provided DiaryEntity object.
@@ -65,34 +67,37 @@ class DiaryModel implements Comparable<DiaryModel> {
             .decode(entity.notifications)
             .map<Notification>((e) => Notification.fromEntity(e))
             .toList(),
-        activeDays: entity.activeDays);
+        activeDays: entity.activeDays,
+        submissions: entity.submissions
+            ?.map((submission) => DateTime.parse(submission))
+            .toList());
   }
 
   factory DiaryModel.fromJson(Map<String, dynamic> json, int studyID) {
     return DiaryModel(
-      id: 0,
-      studyID: studyID,
-      name: json['name'],
-      prompts: (json['questions'] as List)
-          .map((prompt) => PromptModel.fromJson(prompt))
-          .toList(),
-      tags: null,
-      status: DiaryStatus.idle,
-      due: DateTime.parse(json['end_time']).toLocal(),
-      start: DateTime.parse(json['start_time']).toLocal(),
-      entries: json['entries'],
-      currentEntry: 0,
-      end: DateTime.parse(json['end_time']).toLocal(),
-      notifications: (json['notifications'] as List?)
-              ?.map((e) =>
-                  Notification.fromJson(e, DateTime.parse(json['start_time'])))
-              .toList() ??
-          [],
-      activeDays: (json['active_days'] as List<dynamic>?)?.map((e) {
-        final day = e as int;
-        return day == 0 ? 7 : day;
-      }).toList(),
-    );
+        id: 0,
+        studyID: studyID,
+        name: json['name'],
+        prompts: (json['questions'] as List)
+            .map((prompt) => PromptModel.fromJson(prompt))
+            .toList(),
+        tags: null,
+        status: DiaryStatus.idle,
+        due: DateTime.parse(json['end_time']).toLocal(),
+        start: DateTime.parse(json['start_time']).toLocal(),
+        entries: json['entries'],
+        currentEntry: 0,
+        end: DateTime.parse(json['end_time']).toLocal(),
+        notifications: (json['notifications'] as List?)
+                ?.map((e) => Notification.fromJson(
+                    e, DateTime.parse(json['start_time'])))
+                .toList() ??
+            [],
+        activeDays: (json['active_days'] as List<dynamic>?)?.map((e) {
+          final day = e as int;
+          return day == 0 ? 7 : day;
+        }).toList(),
+        submissions: null);
   }
 
   DiaryModel copyWith(
@@ -106,7 +111,8 @@ class DiaryModel implements Comparable<DiaryModel> {
       int? currentEntry,
       DateTime? start,
       List<Notification>? notifications,
-      List<int>? activeDays}) {
+      List<int>? activeDays,
+      List<DateTime>? submissions}) {
     return DiaryModel(
         id: id,
         studyID: studyID,
@@ -120,7 +126,8 @@ class DiaryModel implements Comparable<DiaryModel> {
         currentEntry: currentEntry ?? this.currentEntry,
         end: due ?? end,
         notifications: notifications ?? this.notifications,
-        activeDays: activeDays);
+        activeDays: activeDays,
+        submissions: submissions);
   }
 
   /// Compares this DiaryModel object with another DiaryModel object.

@@ -32,7 +32,7 @@ class DiaryCubit extends Cubit<DiaryState> {
       final diary = repository.getDiary(start, due);
       if (diary != null) {
         final updated =
-            diary.copyWith(id: diary.id, studyID: diary.studyID,tags: _getTags(diary));
+            diary.copyWith(id: diary.id, studyID: diary.studyID,tags: _getTags(diary), submissions: diary.submissions);
         emit(DiaryLoaded([updated], startDate));
       } else {
         emit(DiaryLoaded(const [], startDate));

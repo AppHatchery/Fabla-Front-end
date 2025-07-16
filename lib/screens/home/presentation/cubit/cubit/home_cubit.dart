@@ -30,7 +30,9 @@ class HomeCubit extends Cubit<HomeState> {
   ///
   Future<void> loadDiaries() async {
     final today = DateTime.now();
-    final start = DateTime(today.year, today.month, today.day, 4, 0, 0);
+    final start = today.hour < 4
+        ? DateTime(today.year, today.month, today.day - 1, 4)
+        : DateTime(today.year, today.month, today.day, 4);
     // final due = DateTime(today.year, today.month, today.day, 3, 59, 59);
 
     final monday = DateTime(today.year, today.month, today.day, 4, 0, 0)
@@ -56,7 +58,8 @@ class HomeCubit extends Cubit<HomeState> {
               id: diary.id,
               studyID: diary.studyID,
               tags: null,
-              activeDays: diary.activeDays))
+              activeDays: diary.activeDays,
+              submissions: diary.submissions))
           .toList();
 
       final sortedDiaries = prioritySort(updated);

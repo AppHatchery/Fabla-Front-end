@@ -148,7 +148,8 @@ class DiaryRepository {
               studyID: diary.studyID,
               currentEntry: i,
               activeDays: diary.activeDays,
-              status: entryCount != i ? DiaryStatus.submitted : null);
+              status: entryCount != i ? DiaryStatus.submitted : null,
+              submissions: diary.submissions);
 
           //check if diary is answered
           final prompt =
@@ -227,7 +228,8 @@ class DiaryRepository {
               id: diary.id,
               studyID: diary.studyID,
               currentEntry: i,
-              status: entryCount != i ? DiaryStatus.submitted : null);
+              status: entryCount != i ? DiaryStatus.submitted : null,
+              submissions: diary.submissions);
 
           //check if diary is answered
           final prompt =
@@ -259,9 +261,22 @@ class DiaryRepository {
       // If diary is still open and is from any date before today, set it to today's list
       if ((diary.status == DiaryStatus.ongoing ||
               diary.status == DiaryStatus.idle) &&
-          (diary.start.isBefore(now) && diary.due.isAfter(now))) {
+          (diary.start.isBefore(now) && diary.due.isAfter(now)) &&
+          (diary.activeDays != null &&
+              diary.activeDays!.contains(now.weekday))) {
         date = formatHistoryDate(now);
       }
+
+      // If diary is a weekly diary and is past, set it to the end date
+      if (diary.activeDays != null && diary.due.isBefore(now)) {
+        date = formatHistoryDate(diary.end);
+      }
+
+      if (diary.status == DiaryStatus.submitted &&
+          (diary.submissions != null && diary.submissions!.isNotEmpty)) {
+        date = formatHistoryDate(diary.submissions![diary.currentEntry]);
+      }
+
 
       history.update(
         date,
@@ -347,24 +362,24 @@ class DiaryRepository {
   /// Returns:
   /// A list of DiaryModel objects representing diaries within the specified date range.
   List<DiaryModel> getRangeDiaries(DateTime start, DateTime end) {
+    final now = DateTime.now();
+
     // Retrieve all diaries from the DAO
     final diaries = _diaryDAO.getAllDiaries();
 
-    // Filter diaries based on their start dates falling within the specified range
+    // Filter diaries that overlap with the window
     final filtered = diaries.where((element) {
-      return (element.start.isAfter(start) ||
-              element.start.isAtSameMomentAs(start)) &&
-          element.start.isBefore(end);
+      final overlapsWindow =
+          element.start.isBefore(end) && element.due.isAfter(start);
+      return overlapsWindow;
     }).toList();
 
     final List<DiaryModel> _diaries =
         filtered.map((e) => DiaryModel.fromEntity(e)).toList();
 
     final List<DiaryModel> updated = [];
-    final DateTime now = DateTime.now();
     final promptRepository = PromptRepository();
 
-    // Process filtered diaries
     for (var diary in _diaries) {
       final entryCount = diary.currentEntry;
 
@@ -381,9 +396,9 @@ class DiaryRepository {
               id: diary.id,
               studyID: diary.studyID,
               currentEntry: i,
-              status: entryCount != i ? DiaryStatus.submitted : null);
+              status: entryCount != i ? DiaryStatus.submitted : null,
+              submissions: diary.submissions);
 
-          //check if diary is answered
           final prompt =
               promptRepository.load(newDiary, newDiary.prompts.first.id);
 
@@ -395,7 +410,6 @@ class DiaryRepository {
       }
     }
 
-    // Map filtered diaries to DiaryModel objects and return them
     return updated;
   }
 
@@ -440,40 +454,30 @@ class DiaryRepository {
 
   List<DiaryModel> getDiaries(DateTime day) {
     final now = DateTime.now();
-    final nextDay = day.add(const Duration(days: 1));
-    // Retrieve all diaries from the DAO
+    final windowStart = day;
+    final windowEnd = windowStart
+        .add(const Duration(days: 1))
+        .subtract(const Duration(milliseconds: 1));
+
     final diaries = _diaryDAO.getAllDiaries();
-    // Filter diaries based on their start dates falling within the specified range
+
     final filtered = diaries.where((element) {
-      if (element.activeDays?.isNotEmpty ?? false) {
-        // Calculate date range between start and end
-        final start = normalizeDate(element.start);
-        final end = normalizeDate(element.end);
-        final daysDifference = end.difference(start).inDays;
+      final overlapsWindow =
+          element.start.isBefore(windowEnd) && element.due.isAfter(windowStart);
+      if (!overlapsWindow) return false;
+      if (element.status == DiaryStatus.submitted) return false;
+      if (element.due.isBefore(now)) return false;
 
-        // Find all active dates for this diary
-        for (int i = 0; i <= daysDifference; i++) {
-          final currentDate = start.add(Duration(days: i));
-          if (element.activeDays!.contains(currentDate.weekday) &&
-              currentDate == normalizeDate(day) &&
-              end.isAfter(now) &&
-              element.status != DiaryStatus.submitted) {
-            return true;
-          }
-        }
+      if (element.activeDays == null) {
+        // No active days: only valid if it starts inside the window
+        return element.start.isBefore(windowEnd) &&
+            element.due.isAfter(windowStart);
+      } else {
+        // Has active days: valid if app day (windowStart) is active
+        return element.activeDays!.contains(windowStart.weekday);
       }
-
-      return (((element.start.isAfter(day) ||
-                      element.start.isAtSameMomentAs(
-                          day)) && // If the start date is at 04:00 or after
-                  element.start.isBefore(nextDay) &&
-                  element.due.isAfter(
-                      now)) || // If the start date is before 04:00 the next day and is still active
-              (element.due.isAfter(now) &&
-                  element.due.isBefore(
-                      nextDay))) && // If the due date is before 04:00 the next day
-          element.status != DiaryStatus.submitted;
     }).toList();
+
     return filtered.map((e) => DiaryModel.fromEntity(e)).toList();
   }
 
@@ -484,10 +488,10 @@ class DiaryRepository {
   /// For each active day in a weekly diary, it creates a new DiaryModel object
   /// with the appropriate start and due dates.
   /// Finally, it sorts the resulting list of DiaryModel objects by their start dates.
-  /// 
+  ///
   /// Returns:
   /// A list of DiaryModel objects representing every diary entry,
-  /// 
+  ///
   List<DiaryModel> getEveryDiary() {
     final all = _getAllDiariesEntities();
 
@@ -511,23 +515,23 @@ class DiaryRepository {
           if (diary.activeDays!.contains(currentDate.weekday)) {
             // Add a copy of the diary for each active day
             final newDiary = diary.copyWith(
-              id: diary.id,
-              studyID: diary.studyID,
-              start: DateTime(
-                currentDate.year,
-                currentDate.month,
-                currentDate.day,
-                diary.start.hour,
-                diary.start.minute,
-              ),
-              due: DateTime(
-                currentDate.year,
-                currentDate.month,
-                currentDate.day,
-                diary.due.hour,
-                diary.due.minute,
-              ),
-            );
+                id: diary.id,
+                studyID: diary.studyID,
+                start: DateTime(
+                  currentDate.year,
+                  currentDate.month,
+                  currentDate.day,
+                  diary.start.hour,
+                  diary.start.minute,
+                ),
+                due: DateTime(
+                  currentDate.year,
+                  currentDate.month,
+                  currentDate.day,
+                  diary.due.hour,
+                  diary.due.minute,
+                ),
+                submissions: diary.submissions);
             filtered.add(newDiary);
           }
         }

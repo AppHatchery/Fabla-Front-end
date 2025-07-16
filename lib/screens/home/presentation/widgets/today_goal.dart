@@ -60,23 +60,39 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     });
     // create map of study to diaries
 
-    final start = DateTime(
-        DateTime.now().year, DateTime.now().month, DateTime.now().day, 4, 0, 0);
-    final end = start.add(const Duration(days: 1));
+    final now = DateTime.now();
+    final windowStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      4,
+    );
+    final windowEnd = windowStart
+        .add(const Duration(days: 1))
+        .subtract(const Duration(milliseconds: 1));
 
     for (var study in widget.studies) {
       if (study.goals.daily == 0) {
         continue;
       }
 
-      final diaries = widget.diaries
-          .where((diary) =>
-              diary.studyID == study.studyId &&
-              (((diary.start.isAfter(start) ||
-                          diary.start.isAtSameMomentAs(start)) &&
-                      diary.start.isBefore(end)) ||
-                  (diary.due.isAfter(start) && diary.due.isBefore(end))))
-          .toList();
+      final diaries = widget.diaries.where((diary) {
+        if (diary.studyID != study.studyId) return false;
+        if (diary.status == DiaryStatus.submitted) return false;
+        if (diary.due.isBefore(now)) return false;
+
+        final overlapsWindow =
+            diary.start.isBefore(windowEnd) && diary.due.isAfter(windowStart);
+
+        if (!overlapsWindow) return false;
+
+        if (diary.activeDays == null) {
+          return true; // overlap is enough
+        } else {
+          return diary.activeDays!.contains(windowStart.weekday);
+        }
+      }).toList();
+
       if (diaries.isNotEmpty) {
         data[study] = diaries;
       }
@@ -202,9 +218,20 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         continue;
       }
 
-      final completedCount = diaries
-          .where((diary) => diary.status == DiaryStatus.submitted)
-          .length;
+      diaries.forEach((d) {
+        print("${d.name} - submissions: ${d.submissions}");
+      });
+      final completedCount = diaries.where((diary) {
+        final submissions = diary.submissions;
+
+        if (submissions == null) return false;
+
+        //check if submissions belongs to the app's date 4 to 3
+        return true;
+      }).length;
+      // final completedCount = diaries
+      //     .where((diary) => diary.status == DiaryStatus.submitted)
+      //     .length;
 
       final displayText = "${study.name}: $completedCount/${study.goals.daily}"
           "${data.length > 1 && i != data.length - 1 ? ' | ' : ''}";
