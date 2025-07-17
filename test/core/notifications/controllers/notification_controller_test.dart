@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter/services.dart';
 import '../../../firebase_mock.dart';
+import '../../../dummy_data.dart';
 
 class MockFirebaseMessaging extends Mock implements FirebaseMessaging {}
 
@@ -44,7 +45,7 @@ void main() {
     const MethodChannel('dexterous.com/flutter_local_notifications')
         .setMockMethodCallHandler((MethodCall methodCall) async => null);
 
-    registerFallbackValue(Uri.parse('https://example.com'));
+    registerFallbackValue(Uri.parse(TestValues.testUrl));
     registerFallbackValue(
         const AndroidInitializationSettings('@mipmap/ic_launcher'));
     registerFallbackValue(const InitializationSettings(
@@ -91,10 +92,10 @@ void main() {
     });
 
     test('messageHandler shows notification with image', () async {
-      const imageUrl = 'https://example.com/image.jpg';
-      const title = 'Test Title';
-      const body = 'Test Body';
-      const expectedImagePath = '/test/path/bigPicture';
+      var imageUrl = TestValues.testImagePath;
+      const title = TestValues.testName;
+      const body = TestValues.testResponse;
+      var expectedImagePath = TestValues.testImagePath;
 
       final message = RemoteMessage(
         notification: RemoteNotification(

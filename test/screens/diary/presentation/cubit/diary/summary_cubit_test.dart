@@ -1,9 +1,5 @@
 import 'package:audio_diaries_flutter/core/database/object_box.dart';
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/objectbox.g.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/answer.dart'
     as entities;
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
@@ -21,6 +17,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../../../dummy_data.dart';
 
 // Mocks for ObjectBox and its component
 class MockObjectBox extends Mock implements ObjectBox {}
@@ -85,31 +83,9 @@ void main() {
     response: ['test response'], // Proper List<String> format
   );
 
-  final testPromptModel1 = PromptModel(
-    id: 1,
-    questionNumber: 1,
-    question: 'How are you feeling today?',
-    responseType: ResponseType.text,
-    answer: testAnswer, // Use the properly formatted answer
-    required: true,
-    multipleAnswer: false,
-  );
+  final testPromptModel1 = createTestPromptModel();
 
-  final testDiary = DiaryModel(
-    id: 1,
-    studyID: 1,
-    name: 'Test Diary',
-    status: DiaryStatus.ongoing,
-    start: DateTime(2023, 1, 1, 9),
-    due: DateTime(2023, 1, 1, 11),
-    prompts: [testPromptModel1],
-    activeDays: const [1, 2, 3, 4, 5, 6, 7],
-    tags: const [],
-    entries: 1,
-    currentEntry: 0,
-    end: DateTime(2023, 1, 1, 11),
-    notifications: const [],
-  );
+  final testDiary = createTestDiaryModel();
 
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();

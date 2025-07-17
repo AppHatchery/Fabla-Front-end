@@ -13,6 +13,8 @@ import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../dummy_data.dart';
+
 // Mock classes
 class MockDiaryBox extends Mock implements Box<entity.Diary> {}
 
@@ -21,35 +23,6 @@ void main() {
 
   late DiaryDAO diaryDAO;
   late MockDiaryBox mockDiaryBox;
-
-  entity.Diary createTestDiary({
-    int id = 1,
-    int studyID = 1,
-    String name = 'Test Diary',
-    DateTime? due,
-    DateTime? start,
-    int entries = 1,
-    int currentEntry = 0,
-    DateTime? end,
-    String deadline = '2024-12-31',
-    String notifications = '[]',
-    List<int> activeDays = const [1, 2, 3],
-  }) {
-    final now = DateTime.now();
-    return entity.Diary(
-      id: id,
-      studyID: studyID,
-      name: name,
-      due: due ?? now,
-      start: start ?? now,
-      entries: entries,
-      currentEntry: currentEntry,
-      end: end ?? now.add(const Duration(days: 7)),
-      deadline: deadline,
-      notifications: notifications,
-      activeDays: activeDays,
-    );
-  }
 
   registerFallbackValue(createTestDiary());
 

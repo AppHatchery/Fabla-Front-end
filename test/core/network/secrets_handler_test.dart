@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
 
+import '../../dummy_data.dart';
+
 class MockHttpClient extends Mock implements http.Client {}
 
 class MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
@@ -26,23 +28,14 @@ void main() {
     );
 
     // Register fallback values for any() matcher
-    registerFallbackValue(Uri.parse('https://example.com'));
+    registerFallbackValue(Uri.parse(TestValues.testUrl));
   });
 
   group('SecureSave Tests', () {
     test('postData successfully retrieves and saves credentials', () async {
       // ───── Arrange ─────
-      const studyCode = 'TEST123';
-      const responseBody = '''
-      {
-        "message": {
-          "Authorization": "test-auth",
-          "x-api-key": "test-api-key",
-          "dynamo_url": "test-dynamo-url",
-          "presigned_url": "test-presigned-url"
-        }
-      }
-      ''';
+      const studyCode = TestValues.testStudyCode;
+      final responseBody = createTestCredentialsApiResponse();
 
       when(() => mockHttpClient.post(
             any(),
@@ -73,12 +66,16 @@ void main() {
 
     test('postData throws encoded error on non-200 response', () async {
       // ───── Arrange ─────
-      const studyCode = 'TEST123';
+      const studyCode = TestValues.testStudyCode;
+      final errorResponse = createTestCredentialsApiResponse();
       when(() => mockHttpClient.post(
             any(),
             headers: any(named: 'headers'),
             body: any(named: 'body'),
-          )).thenAnswer((_) async => http.Response('Error', 400));
+          )).thenAnswer((_) async => http.Response(
+            errorResponse, // ✅ Use centralized
+            TestValues.testStatusError, // ✅ Use centralized
+          ));
 
       // ───── Act & Assert ─────
       expect(() => secureSave.postData(studyCode), throwsA(isA<String>()));
@@ -91,7 +88,7 @@ void main() {
 
     test('postData throws encoded error on network error', () async {
       // ───── Arrange ─────
-      const studyCode = 'TEST123';
+      const studyCode = TestValues.testStudyCode;
       when(() => mockHttpClient.post(
             any(),
             headers: any(named: 'headers'),
@@ -122,14 +119,7 @@ void main() {
 
     test('read returns CredentialsModel when credentials exist', () async {
       // ───── Arrange ─────
-      const storedCredentials = '''
-      {
-        "authorization": "test-auth",
-        "x-api-key": "test-api-key",
-        "dynamo_url": "test-dynamo-url",
-        "presigned_url": "test-presigned-url"
-      }
-      ''';
+      final storedCredentials = createTestStoredCredentialsJson();
       when(() => mockStorage.read(key: 'credentials'))
           .thenAnswer((_) async => storedCredentials);
 
@@ -138,21 +128,16 @@ void main() {
 
       // ───── Assert ─────
       expect(result, isA<CredentialsModel>());
-      expect(result?.authorization, 'test-auth');
-      expect(result?.xapikey, 'test-api-key');
-      expect(result?.dynamo_url, 'test-dynamo-url');
-      expect(result?.presigned_url, 'test-presigned-url');
+      expect(result?.authorization, TestValues.testAuth);
+      expect(result?.xapikey, TestValues.testApiKey);
+      expect(result?.dynamo_url, TestValues.testDynamoUrl);
+      expect(result?.presigned_url, TestValues.testPresignedUrl);
       verify(() => mockStorage.read(key: 'credentials')).called(1);
     });
 
     test('save stores credentials correctly', () async {
       // ───── Arrange ─────
-      final credentials = CredentialsModel(
-        authorization: 'test-auth',
-        xapikey: 'test-api-key',
-        dynamo_url: 'test-dynamo-url',
-        presigned_url: 'test-presigned-url',
-      );
+      final credentials = createTestCredentials();
 
       when(() => mockStorage.write(
             key: any(named: 'key'),

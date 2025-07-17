@@ -4,27 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:objectbox/objectbox.dart';
 
+import '../../../dummy_data.dart';
+
 void main() {
   // The DAO under test and its dependencies
   late ProtocolDAO protocolDAO;
   late MockProtocolBox mockBox;
-
-  // Helper function to create a test protocol
-  ProtocolEntity createTestProtocol({
-    int id = 1,
-    int version = 1,
-    int weeklyGoal = 5,
-    int dailyGoal = 1,
-    List<String> diaryBlueprints = const ['blueprint1', 'blueprint2'],
-  }) {
-    return ProtocolEntity(
-      id: id,
-      version: version,
-      weeklyGoal: weeklyGoal,
-      dailyGoal: dailyGoal,
-      diaryBlueprints: diaryBlueprints,
-    );
-  }
 
   setUp(() {
     mockBox = MockProtocolBox();

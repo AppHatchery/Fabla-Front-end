@@ -1,9 +1,6 @@
 // test/screens/diary/presentation/cubit/completion/completion_cubit_test.dart
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/completion/completion_cubit.dart';
-import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
-import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +11,8 @@ import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
+
+import '../../../../../dummy_data.dart';
 
 class MockObjectBox extends Mock implements ObjectBox {
   @override
@@ -46,47 +45,19 @@ void main() {
 
     setUpAll(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
-
-      // Initialize mock ObjectBox to avoid the global objectbox dependency
       final mockObjectBox = MockObjectBox();
       main_app.objectbox = mockObjectBox;
     });
 
-    // Test data
-    final testDate = DateTime(2023, 10, 15);
-
-    final testDiary = DiaryModel(
-      id: 1,
-      studyID: 1,
-      name: 'Test Diary',
+    final testDiary = createTestDiaryModel(
       status: DiaryStatus.complete,
-      start: testDate.subtract(const Duration(hours: 2)),
-      due: testDate.add(const Duration(hours: 2)),
-      end: testDate.add(const Duration(hours: 2)),
-      prompts: [],
-      activeDays: const [1, 2, 3, 4, 5, 6, 7],
-      tags: const [],
-      entries: 1,
-      currentEntry: 0,
-      notifications: const [],
     );
 
-    final testGoal = Goal(daily: 3, weekly: 21);
-    final testIncentive = Incentive(
-      amount: 10.0,
-      bonus: 5.0,
-      currency: '\$',
-      threshold: 80,
-    );
+    final testGoal = createTestGoal();
+    final testIncentive = createTestIncentive();
 
-    final testStudy = StudyModel(
-      id: 1,
-      studyId: 1,
-      name: 'Test Study 1',
-      experimentCode: 'EXP001',
-      color: Colors.blue,
-      goals: testGoal,
-      incentive: testIncentive,
+    final testStudy = createTestStudyModel(
+      name: TestValues.testStudyNameNumbered,
     );
 
     setUp(() {
@@ -102,13 +73,7 @@ void main() {
     });
 
     group('completeDiary behavior', () {
-      // Note: These tests use integration-style testing where we accept that
-      // the repository will fail due to ObjectBox mocking limitations.
-      // This still provides value by testing cubit instantiation, method calls,
-      // error handling, and state transitions.
-
       test('completeDiary method executes without throwing', () {
-        // Test that the method can be called without throwing exceptions
         expect(
           () => completionCubit.completeDiary(testDiary),
           returnsNormally,
@@ -121,60 +86,30 @@ void main() {
         act: (cubit) => cubit.completeDiary(testDiary),
         expect: () => [
           const CompletionLoading(),
-          // Repository fails due to ObjectBox mocking limitations
           isA<CompletionError>(),
         ],
         wait: const Duration(milliseconds: 100),
         verify: (cubit) {
-          // Verify the error message contains the expected ObjectBox query error
           final state = cubit.state;
           expect(state, isA<CompletionError>());
           final errorState = state as CompletionError;
-          expect(errorState.message, contains('QueryBuilder'));
+          expect(
+              errorState.message, contains(TestValues.testQueryBuilderError));
         },
       );
 
       test('handles different diary types', () {
-        // Create different diary instances to test various scenarios
-        final diary1 = DiaryModel(
-          id: 2,
-          studyID: 1,
-          name: 'Ongoing Diary',
-          status: DiaryStatus.ongoing,
-          start: DateTime.now().subtract(const Duration(hours: 1)),
-          due: DateTime.now().add(const Duration(hours: 1)),
-          end: DateTime.now().add(const Duration(hours: 1)),
-          prompts: [],
-          activeDays: const [1, 2, 3, 4, 5],
-          tags: const [],
-          entries: 1,
-          currentEntry: 0,
-          notifications: const [],
-        );
-
-        final diary2 = DiaryModel(
-          id: 3,
-          studyID: 2,
-          name: 'Submitted Diary',
-          status: DiaryStatus.submitted,
-          start: DateTime.now().subtract(const Duration(days: 1)),
-          due: DateTime.now().subtract(const Duration(hours: 1)),
-          end: DateTime.now().subtract(const Duration(hours: 1)),
-          prompts: [],
-          activeDays: const [6, 7],
-          tags: const [],
-          entries: 2,
-          currentEntry: 1,
-          notifications: const [],
-        );
+        final diaryVariations = createTestDiaryVariations();
+        final ongoingDiary = diaryVariations['ongoing']!;
+        final submittedDiary = diaryVariations['submitted']!;
 
         expect(
-          () => completionCubit.completeDiary(diary1),
+          () => completionCubit.completeDiary(ongoingDiary),
           returnsNormally,
         );
 
         expect(
-          () => completionCubit.completeDiary(diary2),
+          () => completionCubit.completeDiary(submittedDiary),
           returnsNormally,
         );
       });
@@ -208,16 +143,16 @@ void main() {
       });
 
       test('CompletionError state properties', () {
-        const errorMessage = 'Test error message';
-        const state = CompletionError(message: errorMessage);
-        expect(state.props, [errorMessage]);
-        expect(state.message, errorMessage);
+        const state = CompletionError(message: TestValues.testCompletionError);
+        expect(state.props, [TestValues.testCompletionError]);
+        expect(state.message, TestValues.testCompletionError);
       });
 
       test('different states are not equal', () {
         const initialState = CompletionInitial();
         const loadingState = CompletionLoading();
-        const errorState = CompletionError(message: 'Error');
+        const errorState =
+            CompletionError(message: TestValues.testCompletionError);
         final loadedState = CompletionLoaded(
           diary: testDiary,
           diaries: [],
@@ -231,8 +166,8 @@ void main() {
       });
 
       test('same states with same data are equal', () {
-        const error1 = CompletionError(message: 'Error');
-        const error2 = CompletionError(message: 'Error');
+        const error1 = CompletionError(message: TestValues.testCompletionError);
+        const error2 = CompletionError(message: TestValues.testCompletionError);
         expect(error1, equals(error2));
 
         final loaded1 = CompletionLoaded(
@@ -255,29 +190,16 @@ void main() {
         build: () => completionCubit,
         act: (cubit) {
           cubit.completeDiary(testDiary);
-          // Add delay between calls
           Future.delayed(const Duration(milliseconds: 10), () {
-            final secondDiary = DiaryModel(
+            final secondDiary = createTestDiaryModel(
               id: 2,
-              studyID: 1,
-              name: 'Second Diary',
               status: DiaryStatus.complete,
-              start: testDate,
-              due: testDate.add(const Duration(hours: 2)),
-              end: testDate.add(const Duration(hours: 2)),
-              prompts: [],
-              activeDays: const [1, 2, 3, 4, 5, 6, 7],
-              tags: const [],
-              entries: 1,
-              currentEntry: 0,
-              notifications: const [],
             );
             cubit.completeDiary(secondDiary);
           });
         },
         expect: () => [
           const CompletionLoading(),
-          // Both calls will fail due to ObjectBox mocking, which is expected
           isA<CompletionError>(),
           const CompletionLoading(),
           isA<CompletionError>(),
@@ -286,23 +208,9 @@ void main() {
       );
 
       test('handles rapid successive calls gracefully', () {
-        // Test that multiple rapid calls don't cause issues
-        for (int i = 0; i < 3; i++) {
-          final diary = DiaryModel(
-            id: i,
-            studyID: 1,
-            name: 'Test Diary $i',
-            status: DiaryStatus.complete,
-            start: testDate,
-            due: testDate.add(const Duration(hours: 2)),
-            end: testDate.add(const Duration(hours: 2)),
-            prompts: [],
-            activeDays: const [1, 2, 3, 4, 5, 6, 7],
-            tags: const [],
-            entries: 1,
-            currentEntry: 0,
-            notifications: const [],
-          );
+        final testDiaries = createTestDiariesSequence(3);
+
+        for (final diary in testDiaries) {
           expect(
             () => completionCubit.completeDiary(diary),
             returnsNormally,
@@ -315,7 +223,7 @@ void main() {
       test('diary model has correct properties', () {
         expect(testDiary.id, 1);
         expect(testDiary.studyID, 1);
-        expect(testDiary.name, 'Test Diary');
+        expect(testDiary.name, TestValues.testName);
         expect(testDiary.status, DiaryStatus.complete);
         expect(testDiary.entries, 1);
         expect(testDiary.currentEntry, 0);
@@ -325,43 +233,34 @@ void main() {
       test('study model has correct properties', () {
         expect(testStudy.id, 1);
         expect(testStudy.studyId, 1);
-        expect(testStudy.name, 'Test Study 1');
-        expect(testStudy.experimentCode, 'EXP001');
-        expect(testStudy.color, Colors.blue);
-        expect(testStudy.goals, testGoal);
-        expect(testStudy.incentive, testIncentive);
+        expect(testStudy.name, TestValues.testStudyNameNumbered);
+        expect(testStudy.experimentCode, TestValues.testStudyExperimentCode);
+        expect(testStudy.color, const Color.fromARGB(255, 68, 97, 228));
+        expect(testStudy.goals.daily, testGoal.daily);
+        expect(testStudy.goals.weekly, testGoal.weekly);
+        expect(testStudy.incentive.amount, testIncentive.amount);
+        expect(testStudy.incentive.bonus, testIncentive.bonus);
+        expect(testStudy.incentive.currency, testIncentive.currency);
+        expect(testStudy.incentive.threshold, testIncentive.threshold);
       });
 
       test('goal model has correct properties', () {
-        expect(testGoal.daily, 3);
-        expect(testGoal.weekly, 21);
+        expect(testGoal.daily, TestValues.testGoalDaily);
+        expect(testGoal.weekly, TestValues.testGoalWeekly);
       });
 
       test('incentive model has correct properties', () {
-        expect(testIncentive.amount, 10.0);
-        expect(testIncentive.bonus, 5.0);
-        expect(testIncentive.currency, '\$');
-        expect(testIncentive.threshold, 80);
+        expect(testIncentive.amount, TestValues.testIncentiveAmount);
+        expect(testIncentive.bonus, TestValues.testIncentiveBonus);
+        expect(testIncentive.currency, TestValues.testIncentiveCurrency);
+        expect(testIncentive.threshold, TestValues.testIncentiveThreshold);
       });
     });
 
     group('edge cases', () {
       test('handles diary with empty lists', () {
-        final emptyDiary = DiaryModel(
-          id: 99,
-          studyID: 1,
-          name: 'Empty Diary',
-          status: DiaryStatus.idle,
-          start: testDate,
-          due: testDate.add(const Duration(hours: 2)),
-          end: testDate.add(const Duration(hours: 2)),
-          prompts: [], // empty
-          activeDays: [], // empty
-          tags: [], // empty
-          entries: 0, // zero
-          currentEntry: 0,
-          notifications: [], // empty
-        );
+        final diaryVariations = createTestDiaryVariations();
+        final emptyDiary = diaryVariations['empty']!;
 
         expect(
           () => completionCubit.completeDiary(emptyDiary),
@@ -370,26 +269,24 @@ void main() {
       });
 
       test('handles diary with null active days', () {
-        final nullActiveDiary = DiaryModel(
-          id: 100,
-          studyID: 1,
-          name: 'Null Active Days Diary',
-          status: DiaryStatus.idle,
-          start: testDate,
-          due: testDate.add(const Duration(hours: 2)),
-          end: testDate.add(const Duration(hours: 2)),
-          prompts: [],
-          activeDays: null, // null
-          tags: null, // null
-          entries: 1,
-          currentEntry: 0,
-          notifications: [],
-        );
+        final diaryVariations = createTestDiaryVariations();
+        final nullActiveDiary = diaryVariations['nullActive']!;
 
         expect(
           () => completionCubit.completeDiary(nullActiveDiary),
           returnsNormally,
         );
+      });
+
+      test('handles different diary statuses', () {
+        final diaryVariations = createTestDiaryVariations();
+
+        for (final variation in diaryVariations.values) {
+          expect(
+            () => completionCubit.completeDiary(variation),
+            returnsNormally,
+          );
+        }
       });
     });
   });

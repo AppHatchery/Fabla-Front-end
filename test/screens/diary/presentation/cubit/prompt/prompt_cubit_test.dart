@@ -1,7 +1,5 @@
 // test/screens/diary/presentation/cubit/prompt/prompt_cubit_test.dart
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'package:bloc_test/bloc_test.dart';
@@ -11,6 +9,8 @@ import 'package:audio_diaries_flutter/main.dart' as main_app;
 import 'package:audio_diaries_flutter/core/database/object_box.dart';
 import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
+
+import '../../../../../dummy_data.dart';
 
 class MockObjectBox extends Mock implements ObjectBox {
   @override
@@ -42,40 +42,12 @@ void main() {
     });
 
     // Test data
-    final testDiary = DiaryModel(
-      id: 1,
-      studyID: 1,
-      name: 'Test Diary',
-      status: DiaryStatus.ongoing,
-      start: DateTime.now(),
-      due: DateTime.now().add(const Duration(hours: 2)),
-      prompts: [],
-      activeDays: const [1, 2, 3, 4, 5, 6, 7],
-      tags: const [],
-      entries: 1,
-      currentEntry: 0,
-      end: DateTime.now().add(const Duration(hours: 2)),
-      notifications: const [],
-    );
+    final testDiary = createTestDiaryModel();
 
-    final testPrompt = PromptModel(
-      id: 1,
-      questionNumber: 1,
-      question: 'How are you feeling today?',
-      responseType: ResponseType.text,
-      required: true,
-      multipleAnswer: false,
-    );
+    final testPrompt = createTestPromptModel();
 
 
-    final testAudioPrompt = PromptModel(
-      id: 2,
-      questionNumber: 2,
-      question: 'Tell me about your day',
-      responseType: ResponseType.audio,
-      required: true,
-      multipleAnswer: false,
-    );
+    final testAudioPrompt = createTestPromptModel();
 
     setUp(() {
       promptCubit = PromptCubit();

@@ -4,25 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:objectbox/objectbox.dart';
 
+import '../../../dummy_data.dart';
+
 void main() {
   // The DAO under test and its dependencies
   late ParticipantDAO participantDAO;
   late MockParticipantBox mockBox;
   late MockParticipantQueryBuilder mockQueryBuilder;
   late MockParticipantQuery mockQuery;
-
-  // Helper function to create a test participant
-  Participant createTestParticipant({
-    int id = 1,
-    String name = 'Test Participant',
-    String studyCode = 'TEST123',
-  }) {
-    return Participant(
-      id: id,
-      name: name,
-      studyCode: studyCode,
-    );
-  }
 
   setUp(() {
     mockBox = MockParticipantBox();

@@ -26,6 +26,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart' hide Answer;
 import 'package:objectbox/objectbox.dart';
 
+import '../../../dummy_data.dart';
+
 void main() {
   // The DAO under test and all of its dependencies.  They are re-initialised
   // in `setUp` so each individual test starts from a clean state.
@@ -60,7 +62,7 @@ void main() {
       // ───── Arrange ─────
       // Stub the entire query chain `box.query() -> build() -> find()` so that
       // it ultimately yields a predefined list of entities.
-      final expectedAnswers = [entity.Answer(id: 1, date: DateTime.now())];
+      final expectedAnswers = [createTestAnswer(id: 1)];
 
       when(() => mockBox.query()).thenReturn(mockQueryBuilder);
       when(() => mockQueryBuilder.build()).thenReturn(mockQuery);
@@ -80,7 +82,7 @@ void main() {
 
     test('addResponse persists a new answer via box.put', () {
       // Arrange:  A brand-new answer + a stubbed return value for `put()`.
-      final answer = entity.Answer(id: 2, date: DateTime.now());
+      final answer = createTestAnswer(id: 2);
       when(() => mockBox.put(answer)).thenReturn(answer.id);
 
       // Act: Call the method under test.
@@ -92,7 +94,7 @@ void main() {
 
     test('updateResponse overwrites an existing answer via box.put', () {
       // Arrange
-      final answer = entity.Answer(id: 3, date: DateTime.now());
+      final answer = createTestAnswer(id: 3);
       when(() => mockBox.put(answer)).thenReturn(answer.id);
 
       // Act

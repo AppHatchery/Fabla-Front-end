@@ -4,29 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:objectbox/objectbox.dart';
 
+import '../../../dummy_data.dart';
+
 void main() {
   // The DAO under test and its dependencies
   late StudyDAO studyDAO;
   late MockStudyBox mockBox;
 
-  // Helper function to create a test study
-  Study createTestStudy({
-    int id = 1,
-    int studyId = 101,
-    String name = 'Test Study',
-    String experimentCode = 'TEST001',
-    String goals = '{"goal1": "Test Goal 1", "goal2": "Test Goal 2"}',
-    String incentive = '{"amount": 100, "currency": "USD"}',
-  }) {
-    return Study(
-      id: id,
-      studyId: studyId,
-      name: name,
-      experimentCode: experimentCode,
-      goals: goals,
-      incentive: incentive,
-    );
-  }
 
   setUp(() {
     mockBox = MockStudyBox();

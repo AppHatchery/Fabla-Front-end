@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
 import 'dart:io';
 
+import '../../dummy_data.dart';
+
 class MockHttpClient extends Mock implements http.Client {}
 
 class MockSetupRepository extends Mock implements SetupRepository {}
@@ -24,33 +26,14 @@ void main() {
   setUp(() {
     mockHttpClient = MockHttpClient();
     mockSecureSave = MockSecureSave();
-
-    // Register fallback values for any() matcher
-    registerFallbackValue(Uri.parse('https://example.com'));
+    registerFallbackValue(Uri.parse(TestValues.testUrl));
   });
 
   group('Upload Tests', () {
     test('uploadNonAudioData successfully uploads data', () async {
       // ───── Arrange ─────
-      final credentials = CredentialsModel(
-        authorization: 'test-auth',
-        xapikey: 'test-api-key',
-        dynamo_url: 'test-dynamo-url',
-        presigned_url: 'test-presigned-url',
-      );
-
-      final promptEntries = [
-        PromptEntry(
-          participantID: 'test-participant',
-          experimentCode: 'test-experiment',
-          questionTitle: 'Test Question',
-          diaryID: '1',
-          promptID: '1',
-          response: 'Test Response',
-          questionsType: 'text',
-          required: true,
-        ),
-      ];
+      final credentials = createTestCredentials();
+      final promptEntries = createTestPromptEntries(1);
 
       when(() => mockSecureSave.read()).thenAnswer((_) async => credentials);
       when(() => mockHttpClient.post(
@@ -77,25 +60,8 @@ void main() {
 
     test('uploadNonAudioData returns false on failed upload', () async {
       // ───── Arrange ─────
-      final credentials = CredentialsModel(
-        authorization: 'test-auth',
-        xapikey: 'test-api-key',
-        dynamo_url: 'test-dynamo-url',
-        presigned_url: 'test-presigned-url',
-      );
-
-      final promptEntries = [
-        PromptEntry(
-          participantID: 'test-participant',
-          experimentCode: 'test-experiment',
-          questionTitle: 'Test Question',
-          diaryID: '1',
-          promptID: '1',
-          response: 'Test Response',
-          questionsType: 'text',
-          required: true,
-        ),
-      ];
+      final credentials = createTestCredentials();
+      final promptEntries = createTestPromptEntries(2);
 
       when(() => mockSecureSave.read()).thenAnswer((_) async => credentials);
       when(() => mockHttpClient.post(
@@ -122,25 +88,8 @@ void main() {
 
     test('uploadNonAudioData returns false on network error', () async {
       // ───── Arrange ─────
-      final credentials = CredentialsModel(
-        authorization: 'test-auth',
-        xapikey: 'test-api-key',
-        dynamo_url: 'test-dynamo-url',
-        presigned_url: 'test-presigned-url',
-      );
-
-      final promptEntries = [
-        PromptEntry(
-          participantID: 'test-participant',
-          experimentCode: 'test-experiment',
-          questionTitle: 'Test Question',
-          diaryID: '1',
-          promptID: '1',
-          response: 'Test Response',
-          questionsType: 'text',
-          required: true,
-        ),
-      ];
+      final credentials = createTestCredentials();
+      final promptEntries = createTestPromptEntries(3);
 
       when(() => mockSecureSave.read()).thenAnswer((_) async => credentials);
       when(() => mockHttpClient.post(
@@ -167,16 +116,11 @@ void main() {
 
     test('getPresignedUrl returns URL on successful request', () async {
       // ───── Arrange ─────
-      const apiUrl = 'https://example.com';
+      const apiUrl = TestValues.testUrl;
       const filename = 'test.txt';
       const expectedUrl = 'https://presigned-url.com/test.txt';
 
-      final credentials = CredentialsModel(
-        authorization: 'test-auth',
-        xapikey: 'test-api-key',
-        dynamo_url: 'test-dynamo-url',
-        presigned_url: 'test-presigned-url',
-      );
+      final credentials = createTestCredentials();
 
       when(() => mockSecureSave.read()).thenAnswer((_) async => credentials);
       when(() => mockHttpClient.post(
@@ -206,15 +150,10 @@ void main() {
 
     test('getPresignedUrl returns null on failed request', () async {
       // ───── Arrange ─────
-      const apiUrl = 'https://example.com';
+      const apiUrl = TestValues.testUrl;
       const filename = 'test.txt';
 
-      final credentials = CredentialsModel(
-        authorization: 'test-auth',
-        xapikey: 'test-api-key',
-        dynamo_url: 'test-dynamo-url',
-        presigned_url: 'test-presigned-url',
-      );
+      final credentials = createTestCredentials();
 
       when(() => mockSecureSave.read()).thenAnswer((_) async => credentials);
       when(() => mockHttpClient.post(
@@ -242,15 +181,10 @@ void main() {
 
     test('getPresignedUrl returns null on network error', () async {
       // ───── Arrange ─────
-      const apiUrl = 'https://example.com';
+      const apiUrl = TestValues.testUrl;
       const filename = 'test.txt';
 
-      final credentials = CredentialsModel(
-        authorization: 'test-auth',
-        xapikey: 'test-api-key',
-        dynamo_url: 'test-dynamo-url',
-        presigned_url: 'test-presigned-url',
-      );
+      final credentials = createTestCredentials();
 
       when(() => mockSecureSave.read()).thenAnswer((_) async => credentials);
       when(() => mockHttpClient.post(

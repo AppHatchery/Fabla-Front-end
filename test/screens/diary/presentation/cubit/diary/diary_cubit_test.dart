@@ -1,5 +1,4 @@
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_cubit.dart';
 import 'package:bloc_test/bloc_test.dart';
@@ -12,6 +11,8 @@ import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
+
+import '../../../../../dummy_data.dart';
 
 class MockDiaryRepository extends Mock implements DiaryRepository {}
 
@@ -45,20 +46,8 @@ class MockStudyBox extends Mock implements Box<Study> {}
 void main() {
   late MockDiaryRepository mockDiaryRepository;
 
-  final baseDiaryModel = DiaryModel(
-    id: 1,
-    studyID: 1,
-    name: 'Test Diary',
+  final baseDiaryModel = createTestDiaryModel(
     status: DiaryStatus.idle,
-    start: DateTime(2023, 1, 1, 10),
-    due: DateTime(2023, 1, 1, 12),
-    prompts: const [],
-    activeDays: const [1, 2, 3, 4, 5, 6, 7],
-    tags: const [],
-    entries: 0,
-    currentEntry: 0,
-    end: DateTime(2023, 1, 1, 12),
-    notifications: const [],
   );
 
   final mockNowMorning = DateTime(2023, 1, 1, 10);

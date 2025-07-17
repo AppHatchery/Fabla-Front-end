@@ -4,43 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:objectbox/objectbox.dart';
 
+import '../../../dummy_data.dart';
+
 void main() {
   // The DAO under test and its dependencies
   late QuestionsDAO questionsDAO;
   late MockQuestionsBox mockBox;
   late MockQuestionsQueryBuilder mockQueryBuilder;
   late MockQuestionsQuery mockQuery;
-
-  // Helper function to create a test question
-  QuestionsEntity createTestQuestion({
-    int id = 1,
-    String title = 'Test Question',
-    String? subtitle = 'Test Subtitle',
-    String? options,
-    String type = 'text',
-    int? min,
-    int? max,
-    int? defaultValue,
-    String? minLabel,
-    String? maxLabel,
-    String variable = 'test_variable',
-    String? answer,
-  }) {
-    return QuestionsEntity(
-      id: id,
-      title: title,
-      subtitle: subtitle,
-      options: options,
-      type: type,
-      min: min,
-      max: max,
-      defaultValue: defaultValue,
-      minLabel: minLabel,
-      maxLabel: maxLabel,
-      variable: variable,
-      answer: answer,
-    );
-  }
 
   setUp(() {
     mockBox = MockQuestionsBox();
