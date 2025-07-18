@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import '../../dummy_data.dart';
 
 void main() {
   late PageTimer pageTimer;
@@ -16,7 +17,7 @@ void main() {
     test('start should increment time approximately every second', () async {
       pageTimer.start();
       // Wait a bit longer to account for CI timing variations
-      await Future.delayed(const Duration(milliseconds: 2100));
+      await Future.delayed(const Duration(milliseconds: TestValues.testTimerDuration));
       final time = pageTimer.stop();
       // Allow for timing variations in CI environments
       // Timer should be at least 1 second but might be 2 or slightly more

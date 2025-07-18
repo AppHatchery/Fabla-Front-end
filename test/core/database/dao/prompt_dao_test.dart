@@ -1,10 +1,10 @@
 import 'package:audio_diaries_flutter/core/database/dao/prompt_dao.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
-import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
-import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:objectbox/objectbox.dart';
+
+import '../../../dummy_data.dart';
 
 void main() {
   // The DAO under test and its dependencies
@@ -12,45 +12,6 @@ void main() {
   late MockPromptBox mockBox;
   late MockPromptQueryBuilder mockQueryBuilder;
   late MockPromptQuery mockQuery;
-
-  // Helper function to create a test prompt
-  Prompt createTestPrompt({
-    int id = 1,
-    int questionNumber = 1,
-    String question = 'Test Question',
-    ResponseType? responseType,
-    String? option,
-    String? subtitle,
-    bool required = true,
-    bool? multipleAnswer,
-    int diaryId = 1,
-  }) {
-    final prompt = Prompt(
-      id: id,
-      questionNumber: questionNumber,
-      question: question,
-      responseType: responseType,
-      option: option,
-      subtitle: subtitle,
-      required: required,
-      multipleAnswer: multipleAnswer,
-    );
-    // Mock the diary target relationship
-    prompt.diary.target = Diary(
-      id: diaryId,
-      studyID: 1,
-      name: 'Test Diary',
-      due: DateTime.now(),
-      start: DateTime.now(),
-      entries: 1,
-      currentEntry: 0,
-      end: DateTime.now().add(const Duration(days: 7)),
-      deadline: '2024-12-31',
-      notifications: '[]',
-      activeDays: [1, 2, 3],
-    );
-    return prompt;
-  }
 
   setUp(() {
     mockBox = MockPromptBox();

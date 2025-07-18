@@ -4,6 +4,8 @@ import 'package:location/location.dart';
 import 'package:audio_diaries_flutter/core/usecases/location.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 
+import '../../dummy_data.dart';
+
 class MockLocation extends Mock implements Location {}
 
 class MockPreferenceService extends Mock implements PreferenceService {}
@@ -18,10 +20,10 @@ void main() {
   });
 
   group('appendLocation', () {
-    const testExperimentCode = 'test_experiment';
-    const testParticipantID = 'test_participant';
+    final testExperimentCode = TestValues.testExperimentCode;
+    final testParticipantID = TestValues.testParticipantId;
     const testPromptLength = 5;
-    const testDiaryID = 'test_diary';
+    final testDiaryID = '${TestValues.testName.toLowerCase().replaceAll(' ', '_')}_diary';
 
     test('should return location data when permissions are granted', () async {
       // Arrange
@@ -31,8 +33,8 @@ void main() {
           .thenAnswer((_) async => PermissionStatus.granted);
       when(() => mockLocation.getLocation())
           .thenAnswer((_) async => LocationData.fromMap({
-                'latitude': 37.7749,
-                'longitude': -122.4194,
+                'latitude': TestValues.testLatitude,
+                'longitude': TestValues.testLongitude,
               }));
 
       // Act

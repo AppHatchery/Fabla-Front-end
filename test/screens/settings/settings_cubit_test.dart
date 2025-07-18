@@ -10,6 +10,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../dummy_data.dart';
 import 'settings_cubit_test.mocks.dart';
 
 // Generate mocks for dependencies
@@ -39,34 +40,8 @@ void main() {
 
     group('load', () {
       final mockQuestions = [
-        const Questions(
-          id: 1,
-          title: 'Test Question 1',
-          subtitle: 'Test subtitle',
-          options: null,
-          type: 'text',
-          min: null,
-          max: null,
-          defaultValue: null,
-          minLabel: null,
-          maxLabel: null,
-          variable: 'test_var_1',
-          answer: 'Test Answer 1',
-        ),
-        const Questions(
-          id: 2,
-          title: 'Test Question 2',
-          subtitle: null,
-          options: null,
-          type: 'number',
-          min: 1,
-          max: 10,
-          defaultValue: 5,
-          minLabel: 'Low',
-          maxLabel: 'High',
-          variable: 'test_var_2',
-          answer: '7',
-        ),
+        createTestQuestionsModel(),
+        createTestQuestionsModel(),
       ];
 
       blocTest<TestableSettingsCubit, SettingsState>(
@@ -218,20 +193,7 @@ void main() {
     });
 
     group('save', () {
-      const testQuestion = Questions(
-        id: 1,
-        title: 'Test Question',
-        subtitle: 'Test subtitle',
-        options: null,
-        type: 'text',
-        min: null,
-        max: null,
-        defaultValue: null,
-        minLabel: null,
-        maxLabel: null,
-        variable: 'test_var',
-        answer: null,
-      );
+      final testQuestion = createTestQuestionsModel();
       const testAnswer = 'Test Answer';
 
       blocTest<TestableSettingsCubit, SettingsState>(
@@ -350,34 +312,8 @@ void main() {
 
     group('reload', () {
       final mockQuestions = [
-        const Questions(
-          id: 1,
-          title: 'Reloaded Question 1',
-          subtitle: 'Reloaded subtitle',
-          options: null,
-          type: 'text',
-          min: null,
-          max: null,
-          defaultValue: null,
-          minLabel: null,
-          maxLabel: null,
-          variable: 'reload_var_1',
-          answer: 'Reloaded Answer 1',
-        ),
-        const Questions(
-          id: 2,
-          title: 'Reloaded Question 2',
-          subtitle: null,
-          options: null,
-          type: 'select',
-          min: null,
-          max: null,
-          defaultValue: null,
-          minLabel: null,
-          maxLabel: null,
-          variable: 'reload_var_2',
-          answer: 'Option A',
-        ),
+        createTestQuestionsModel(),
+        createTestQuestionsModel(),
       ];
 
       test('returns fresh questions from repository', () async {
@@ -448,29 +384,16 @@ void main() {
       });
 
       test('SettingsLoaded instances with same data are equal', () {
-        const questions = [
-          Questions(
-            id: 1,
-            title: 'Test',
-            subtitle: null,
-            options: null,
-            type: 'text',
-            min: null,
-            max: null,
-            defaultValue: null,
-            minLabel: null,
-            maxLabel: null,
-            variable: 'test',
-            answer: null,
-          ),
+        final questions = [
+          createTestQuestionsModel(),
         ];
-        const completedDate = '2023-12-25';
+        final completedDate = '2023-12-25';
 
-        const state1 = SettingsLoaded(
+        final state1 = SettingsLoaded(
           onboardingQuestion: questions,
           completedDate: completedDate,
         );
-        const state2 = SettingsLoaded(
+        final state2 = SettingsLoaded(
           onboardingQuestion: questions,
           completedDate: completedDate,
         );
@@ -479,16 +402,16 @@ void main() {
       });
 
       test('SettingsError instances with same message are equal', () {
-        const state1 = SettingsError('Test error');
-        const state2 = SettingsError('Test error');
+        final state1 = SettingsError('Test error');
+        final state2 = SettingsError('Test error');
         expect(state1, equals(state2));
       });
 
       test('different state types are not equal', () {
         final initial = SettingsInitial();
         final loading = SettingsLoading();
-        const error = SettingsError('Test error');
-        const loaded =
+        final error = SettingsError('Test error');
+        final loaded =
             SettingsLoaded(onboardingQuestion: [], completedDate: '2023-12-25');
 
         expect(initial, isNot(equals(loading)));

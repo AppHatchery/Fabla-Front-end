@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
 import 'package:bloc_test/bloc_test.dart';
@@ -6,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mockito/mockito.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../dummy_data.dart';
 
 // Generate mocks for dependencies
 
@@ -30,10 +31,7 @@ void main() {
     });
 
     group('load', () {
-      final mockParticipant = Participant(
-        name: 'John Doe',
-        studyCode: 'STUDY123',
-      );
+      final mockParticipant = createTestParticipant();
 
       blocTest<TestableSetupCubit, SetupState>(
         'emits [SetupLoading, SetupLoaded] when load succeeds',
@@ -94,10 +92,7 @@ void main() {
       blocTest<TestableSetupCubit, SetupState>(
         'loads participant with empty name',
         build: () {
-          final emptyNameParticipant = Participant(
-            name: '',
-            studyCode: 'STUDY456',
-          );
+          final emptyNameParticipant = createTestParticipant();
           when(mockSetupRepository.getParticipant())
               .thenReturn(emptyNameParticipant);
           return TestableSetupCubit(
@@ -189,10 +184,7 @@ void main() {
       });
 
       test('SetupLoaded instances with same participant are equal', () {
-        final participant = Participant(
-          name: 'Test User',
-          studyCode: 'TEST123',
-        );
+        final participant = createTestParticipant();
 
         final state1 = SetupLoaded(participant);
         final state2 = SetupLoaded(participant);
@@ -271,10 +263,7 @@ void main() {
       blocTest<TestableSetupCubit, SetupState>(
         'load then update participant workflow',
         build: () {
-          final participant = Participant(
-            name: 'Initial Name',
-            studyCode: 'TEST123',
-          );
+          final participant = createTestParticipant();
 
           when(mockSetupRepository.getParticipant()).thenReturn(participant);
           when(mockSetupRepository.updateParticipant('Updated Name'))
@@ -305,10 +294,7 @@ void main() {
       blocTest<TestableSetupCubit, SetupState>(
         'multiple load calls',
         build: () {
-          final participant = Participant(
-            name: 'Test User',
-            studyCode: 'TEST123',
-          );
+          final participant = createTestParticipant();
 
           when(mockSetupRepository.getParticipant()).thenReturn(participant);
 

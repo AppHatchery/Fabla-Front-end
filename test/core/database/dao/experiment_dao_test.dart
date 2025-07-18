@@ -4,33 +4,12 @@ import 'package:audio_diaries_flutter/screens/home/domain/entities/experiment.da
 import 'package:mocktail/mocktail.dart';
 import 'package:objectbox/objectbox.dart';
 
+import '../../../dummy_data.dart';
+
 void main() {
   // The DAO under test and its dependencies. These are re-initialized in `setUp`.
   late ExperimentDAO experimentDAO;
   late MockExperimentBox mockBox;
-
-  // Helper function to create a test experiment with all required parameters
-  Experiment createTestExperiment({
-    int id = 1,
-    String name = 'Test Experiment',
-    String login = 'test_login',
-    String researcher = 'test_researcher',
-    String organization = 'test_org',
-    String duration = '7 days',
-    String description = 'Test description',
-    String version = '1.0.0',
-  }) {
-    return Experiment(
-      id: id,
-      name: name,
-      login: login,
-      researcher: researcher,
-      organization: organization,
-      duration: duration,
-      description: description,
-      version: version,
-    );
-  }
 
   // Runs **before each** individual test to ensure isolation.
   setUp(() {

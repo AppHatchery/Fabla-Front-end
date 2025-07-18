@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../dummy_data.dart';
+
 // Using manually created mocks below instead of generated ones
 void main() {
   group('DynamicCubit', () {
@@ -28,23 +30,9 @@ void main() {
       dynamicCubit.close();
     });
 
-
     group('save', () {
-      const testQuestion = Questions(
-        id: 1,
-        title: 'Test Question',
-        subtitle: 'Test subtitle',
-        options: null,
-        type: 'text',
-        min: null,
-        max: null,
-        defaultValue: null,
-        minLabel: null,
-        maxLabel: null,
-        variable: 'test_var',
-        answer: null,
-      );
-      const testAnswer = 'Test Answer';
+      final testQuestion = createTestQuestionsModel();
+      final testAnswer = 'Test Answer';
 
       test('saves question and answer successfully', () {
         final testCubit = TestableDynamicCubit(
@@ -52,7 +40,6 @@ void main() {
           preferenceService: mockPreferenceService,
         );
 
-        // This should not throw an exception
         expect(() => testCubit.save(testQuestion, testAnswer), returnsNormally);
 
         testCubit.close();
@@ -64,7 +51,6 @@ void main() {
           preferenceService: mockPreferenceService,
         );
 
-        // Should not throw an exception (caught internally)
         expect(() => testCubit.save(testQuestion, testAnswer), returnsNormally);
 
         testCubit.close();
@@ -85,25 +71,12 @@ void main() {
       });
 
       test('DynamicLoaded instances with same questions are equal', () {
-        const questions = [
-          Questions(
-            id: 1,
-            title: 'Test',
-            subtitle: null,
-            options: null,
-            type: 'text',
-            min: null,
-            max: null,
-            defaultValue: null,
-            minLabel: null,
-            maxLabel: null,
-            variable: 'test',
-            answer: null,
-          ),
+        final questions = [
+          createTestQuestionsModel(),
         ];
 
-        const state1 = DynamicLoaded(questions: questions);
-        const state2 = DynamicLoaded(questions: questions);
+        final state1 = DynamicLoaded(questions: questions);
+        final state2 = DynamicLoaded(questions: questions);
 
         expect(state1, equals(state2));
       });

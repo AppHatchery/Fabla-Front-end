@@ -1,16 +1,11 @@
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
-import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
-import 'package:audio_diaries_flutter/screens/home/data/study.dart';
-import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/cubit/cubit/home_cubit.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:bloc_test/bloc_test.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+
+import '../../dummy_data.dart';
 
 // Mock classes
 class MockDiaryRepository extends Mock implements DiaryRepository {}
@@ -24,91 +19,19 @@ void main() {
     late HomeCubit homeCubit; // Using the REAL HomeCubit
 
     // Test data
-    final testParticipant = Participant(
-      id: 1,
-      name: 'Test User',
-      studyCode: 'TEST123',
-    );
+    final testParticipant = createTestParticipant();
 
-    final testExperiment = ExperimentModel(
-      id: 1,
-      login: 'test_login',
-      researcher: 'Dr. Test',
-      organization: 'Test University',
-      name: 'Test Experiment',
-      duration: '30 days',
-      description: 'A test experiment for unit testing',
-      version: '1.0.0',
-    );
+    final testExperiment = createTestExperimentModel();
 
-    final testGoal = Goal(
-      daily: 3,
-      weekly: 21,
-    );
+    final testStudy = createTestStudyModel();
 
-    final testIncentive = Incentive(
-      amount: 10.0,
-      bonus: 5.0,
-      currency: '\$',
-      threshold: 80,
-    );
+    final testDiary = createTestDiaryModel();
 
-    final testStudy = StudyModel(
-      id: 1,
-      studyId: 1,
-      name: 'Test Study',
-      experimentCode: 'EXP001',
-      color: Colors.blue,
-      goals: testGoal,
-      incentive: testIncentive,
+    final testDiaryPast = createTestDiaryModel(
+      due: DateTime.now().subtract(const Duration(days: 2)),
     );
-
-    final testDiary = DiaryModel(
-      id: 1,
-      studyID: 1,
-      name: 'Test Diary',
-      status: DiaryStatus.ongoing,
-      start: DateTime.now().subtract(const Duration(hours: 1)),
-      due: DateTime.now().add(const Duration(hours: 1)),
-      prompts: [],
-      activeDays: const [1, 2, 3, 4, 5, 6, 7],
-      tags: const [],
-      entries: 1,
-      currentEntry: 0,
-      end: DateTime.now().add(const Duration(hours: 2)),
-      notifications: const [],
-    );
-
-    final testDiaryPast = DiaryModel(
-      id: 2,
-      studyID: 1,
-      name: 'Past Diary',
-      status: DiaryStatus.submitted,
-      start: DateTime.now().subtract(const Duration(days: 2)),
-      due: DateTime.now().subtract(const Duration(days: 1)),
-      prompts: [],
-      activeDays: const [1, 2, 3, 4, 5, 6, 7],
-      tags: const [],
-      entries: 1,
-      currentEntry: 0,
-      end: DateTime.now().subtract(const Duration(days: 1)),
-      notifications: const [],
-    );
-
-    final testDiaryFuture = DiaryModel(
-      id: 3,
-      studyID: 1,
-      name: 'Future Diary',
-      status: DiaryStatus.idle,
-      start: DateTime.now().add(const Duration(days: 1)),
+    final testDiaryFuture = createTestDiaryModel(
       due: DateTime.now().add(const Duration(days: 2)),
-      prompts: [],
-      activeDays: const [1, 2, 3, 4, 5, 6, 7],
-      tags: const [],
-      entries: 1,
-      currentEntry: 0,
-      end: DateTime.now().add(const Duration(days: 2)),
-      notifications: const [],
     );
 
     setUp(() {
