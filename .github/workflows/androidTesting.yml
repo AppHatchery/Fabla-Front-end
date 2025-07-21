@@ -1,10 +1,6 @@
-name: Flutter Android Testing
+name: Unit and Widget Tests
 
 on:
-  push:
-    branches:
-      - main
-      - Dev
   pull_request:
     branches:
       - main
@@ -27,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Create dummy keys.dart for CI
+      - name: Create DUMMY KEYS.dart for CI
         run: |
           mkdir -p lib/core/secrets
           echo "// Dummy API keys for CI" > lib/core/secrets/keys.dart
