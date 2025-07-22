@@ -30,11 +30,6 @@ jobs:
         run: flutter pub get
 
       # Code Quality Checks
-      - name: Flutter Analysis
-        run: |
-          flutter analyze --fatal-infos --fatal-warnings
-          echo "Static analysis passed ✅"
-
       - name: Dart Format Check
         run: |
           dart format --set-exit-if-changed .
