@@ -139,7 +139,8 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => const NotificationAccessPage(), settings: RouteSettings(name: "/NotificationAccessPage")));
+              builder: (context) => const NotificationAccessPage(),
+              settings: RouteSettings(name: "/NotificationAccessPage")));
     }
   }
 }

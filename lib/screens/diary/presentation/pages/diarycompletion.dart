@@ -39,10 +39,10 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage>
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         Navigator.pushAndRemoveUntil(
-          context, 
-          MaterialPageRoute(
-            builder: (context) => const Hub(),
-            settings: RouteSettings(name: "/Hub")),
+            context,
+            MaterialPageRoute(
+                builder: (context) => const Hub(),
+                settings: RouteSettings(name: "/Hub")),
             (route) => false);
       },
       child: Scaffold(

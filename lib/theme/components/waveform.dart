@@ -15,7 +15,7 @@ import '../custom_colors.dart';
 /// using the onProgress event of the recorder. The waveform values are updated in response to
 /// the audio recording progress, and only the specified maximum number of visible values
 /// are displayed on the screen at a time.
-/// 
+///
 /// The onErase ValueNotifier is used to clear the waveform when the user erases the recording.
 ///
 /// Example usage:

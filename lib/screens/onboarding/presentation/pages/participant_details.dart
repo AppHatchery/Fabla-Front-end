@@ -110,8 +110,11 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
           leading: IconButton(
-              onPressed: () =>
-                  {track(timer.stop(), "Back"), RouteService().navigateBack( context: context, current: 'participant_details')},
+              onPressed: () => {
+                    track(timer.stop(), "Back"),
+                    RouteService().navigateBack(
+                        context: context, current: 'participant_details')
+                  },
               icon: const Icon(
                 Icons.arrow_back_rounded,
                 color: CustomColors.fillWhite,

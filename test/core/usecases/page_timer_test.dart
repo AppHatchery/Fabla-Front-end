@@ -17,7 +17,8 @@ void main() {
     test('start should increment time approximately every second', () async {
       pageTimer.start();
       // Wait a bit longer to account for CI timing variations
-      await Future.delayed(const Duration(milliseconds: TestValues.testTimerDuration));
+      await Future.delayed(
+          const Duration(milliseconds: TestValues.testTimerDuration));
       final time = pageTimer.stop();
       // Allow for timing variations in CI environments
       // Timer should be at least 1 second but might be 2 or slightly more

@@ -484,10 +484,10 @@ class DiaryRepository {
   /// For each active day in a weekly diary, it creates a new DiaryModel object
   /// with the appropriate start and due dates.
   /// Finally, it sorts the resulting list of DiaryModel objects by their start dates.
-  /// 
+  ///
   /// Returns:
   /// A list of DiaryModel objects representing every diary entry,
-  /// 
+  ///
   List<DiaryModel> getEveryDiary() {
     final all = _getAllDiariesEntities();
 

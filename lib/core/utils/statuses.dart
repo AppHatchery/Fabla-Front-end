@@ -1,10 +1,4 @@
-enum DiaryStatus {
-  idle,
-  ongoing,
-  complete,
-  submitted,
-  missed
-}
+enum DiaryStatus { idle, ongoing, complete, submitted, missed }
 
 enum RecorderState {
   isStopped,

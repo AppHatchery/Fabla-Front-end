@@ -61,8 +61,11 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
           leading: IconButton(
-            onPressed: () =>
-                {track(timer.stop(), "Back"), RouteService().navigateBack( context: context, current: 'participant_login')},
+            onPressed: () => {
+              track(timer.stop(), "Back"),
+              RouteService()
+                  .navigateBack(context: context, current: 'participant_login')
+            },
             icon: const Icon(Icons.arrow_back_rounded),
             color: CustomColors.textWhite,
           )),
@@ -89,8 +92,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
               }, listener: (context, state) {
                 if (state is LoginSuccess) {
                   error = false;
-                  RouteService()
-                      .navigate(null, context: context, current: 'participant_login');
+                  RouteService().navigate(null,
+                      context: context, current: 'participant_login');
                 } else if (state is LoginError) {
                   setState(() {
                     error = true;

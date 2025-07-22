@@ -115,7 +115,8 @@ class PromptCubit extends Cubit<PromptState> {
   Future<void> removeResponse(
       {required DiaryModel diary,
       required PromptModel prompt,
-      required String? path, int? index}) async {
+      required String? path,
+      int? index}) async {
     try {
       _repository
           .removeResponse(Diary.fromModel(diary), prompt, path, index: index)
