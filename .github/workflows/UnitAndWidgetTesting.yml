@@ -30,10 +30,11 @@ jobs:
         run: flutter pub get
 
       # Code Quality Checks
-      - name: Dart Format Check
-        run: |
-          dart format --set-exit-if-changed .
-          echo "Code formatting is correct ✅"
+      - name: Format Dart files (fix in place)
+        run: dart format .
+
+      - name: Check formatting (fail if incorrect)
+        run: dart format --set-exit-if-changed .
 
       - name: Security Analysis
         run: |
