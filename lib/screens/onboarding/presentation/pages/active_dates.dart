@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -31,6 +32,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
   double animationHeight = 0;
 
   final PageTimer timer = PageTimer();
+  TextScaler? scaler; // Get the size of the text scaler
 
   @override
   void initState() {
@@ -40,6 +42,9 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
       canGoBack = true;
     }
     setupCubit = BlocProvider.of<SetupCubit>(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      scaler = await fontScaler(context);
+    });
     load();
     super.initState();
   }
@@ -222,8 +227,11 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
   }
 
   track(int spent, String status) async {
-    await PendoService.track(
-        "Active Dates", {"time_on_page": spent, "status": status});
+    await PendoService.track("Active Dates", {
+      "time_on_page": spent,
+      "status": status,
+      "Font Scaler": "$scaler"
+    });
   }
 
   void load() {

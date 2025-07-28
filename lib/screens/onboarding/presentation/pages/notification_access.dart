@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:app_settings/app_settings.dart';
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/services/battery_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -36,6 +37,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   late rive.StateMachineController _controller;
 
   final PageTimer timer = PageTimer();
+  TextScaler? scaler; // Get the size of the text scaler
 
   @override
   void initState() {
@@ -45,6 +47,9 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
       canGoBack = true;
     }
     checkBattery();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      scaler = await fontScaler(context);
+    });
     super.initState();
   }
 
@@ -303,8 +308,8 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   }
 
   track(int spent, String status) async {
-    await PendoService.track(
-        "Notification Access", {"time_on_page": spent, "status": status});
+    await PendoService.track("Notification Access",
+        {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
   checkBattery() async {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
@@ -32,6 +33,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
     with WidgetsBindingObserver {
   final PageController controller = PageController();
   final PageTimer timer = PageTimer();
+  TextScaler? scaler; // Get the size of the text scaler
 
   late DynamicCubit _cubit;
 
@@ -40,7 +42,9 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
     WidgetsBinding.instance.addObserver(this);
     timer.start();
     _cubit = BlocProvider.of<DynamicCubit>(context);
-
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      scaler = await fontScaler(context);
+    });
     _cubit.load();
     super.initState();
   }
@@ -119,8 +123,11 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
   }
 
   track(int spent, String status) async {
-    await PendoService.track(
-        "Dynamic Onboarding", {"time_on_page": spent, "status": status});
+    await PendoService.track("Dynamic Onboarding", {
+      "time_on_page": spent,
+      "status": status,
+      "Font Scaler": "$scaler"
+    });
   }
 
   void nextPage(int length) {

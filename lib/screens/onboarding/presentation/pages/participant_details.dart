@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
@@ -34,6 +35,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
   late StreamSubscription<bool> keyboardSubscription;
 
   final PageTimer timer = PageTimer();
+  TextScaler? scaler; // Get the size of the text scaler
 
   @override
   void initState() {
@@ -50,6 +52,9 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
       } else {
         lookDown?.value = false;
       }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      scaler = await fontScaler(context);
     });
     super.initState();
   }
@@ -110,8 +115,11 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
           leading: IconButton(
-              onPressed: () =>
-                  {track(timer.stop(), "Back"), RouteService().navigateBack( context: context, current: 'participant_details')},
+              onPressed: () => {
+                    track(timer.stop(), "Back"),
+                    RouteService().navigateBack(
+                        context: context, current: 'participant_details')
+                  },
               icon: const Icon(
                 Icons.arrow_back_rounded,
                 color: CustomColors.fillWhite,
@@ -258,7 +266,10 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
   }
 
   track(int spent, String status) async {
-    await PendoService.track(
-        "Participant Details", {"time_on_page": spent, "status": status});
+    await PendoService.track("Participant Details", {
+      "time_on_page": spent,
+      "status": status,
+      "Font Scaler": "$scaler"
+    });
   }
 }

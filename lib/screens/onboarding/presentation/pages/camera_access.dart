@@ -1,4 +1,5 @@
 import 'package:app_settings/app_settings.dart';
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/camera_preview.dart';
@@ -30,6 +31,7 @@ class _CameraAccessState extends State<CameraAccess>
   late CameraController controller;
 
   final PageTimer timer = PageTimer();
+  TextScaler? scaler; // Get the size of the text scaler
 
   @override
   initState() {
@@ -42,6 +44,9 @@ class _CameraAccessState extends State<CameraAccess>
       cameras[0],
       ResolutionPreset.max,
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      scaler = await fontScaler(context);
+    });
     super.initState();
   }
 
@@ -251,8 +256,11 @@ class _CameraAccessState extends State<CameraAccess>
   }
 
   track(int spent, String status) async {
-    await PendoService.track(
-        "Camera Access", {"time_on_page": spent, "status": status});
+    await PendoService.track("Camera Access", {
+      "time_on_page": spent,
+      "status": status,
+      "Font Scaler": "$scaler"
+    });
   }
 
   cameraInit() async {
