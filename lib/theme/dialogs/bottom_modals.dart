@@ -2309,3 +2309,383 @@ class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
             ));
   }
 }
+
+class BottomTimerModal extends StatefulWidget {
+  final Duration initialDuration;
+  final VoidCallback? onClose;
+  final VoidCallback? onComplete;
+  final Function(Duration)? onTimeUpdate; // Callback to update parent
+  final void Function(bool isPaused, bool isStopped, Duration remaining) onPauseStateChanged;
+
+  const BottomTimerModal({
+    Key? key,
+    required this.initialDuration,
+    this.onClose,
+    this.onComplete,
+    this.onTimeUpdate,
+    required this.onPauseStateChanged,
+  }) : super(key: key);
+
+  @override
+  State<BottomTimerModal> createState() => _BottomTimerModalState();
+}
+
+class _BottomTimerModalState extends State<BottomTimerModal> {
+  late Duration remaining;
+  Timer? _timer;
+  bool isRunning = true;
+  bool showTimeUpOverlay = false;
+
+  // NEW: Track expanded/collapsed state
+  bool _isCollapsed = false;
+  late double _containerHeight = 0;
+
+  // Add animation controller
+  r.StateMachineController? _controller;
+
+  void _onInit(r.Artboard art) {
+    var ctrl = r.StateMachineController.fromArtboard(art, "floats_in");
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      _controller = ctrl;
+
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (!mounted) return;
+
+        final input = _controller?.findSMI('Searching_1') as r.SMIBool?;
+        if (input != null) {
+          input.value = true;
+        }
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    remaining = widget.initialDuration;
+    // Use post-frame callback to safely access MediaQuery
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _containerHeight = MediaQuery.of(context).size.height * 0.85;
+        });
+      }
+    });
+    startTimer();
+  }
+
+  @override
+  void dispose() {
+    if (isRunning) {
+      widget.onClose?.call();
+    }
+    _timer?.cancel();
+    _controller?.dispose();
+    super.dispose();
+  }
+
+    void onTimerComplete() {
+      setState(() {
+        isRunning = false;
+
+        // Show the overlay when timer completes
+        showTimeUpOverlay = true;
+        //the full screen of the modal shows
+        _isCollapsed = false;
+        // Set container height to full screen height
+        _containerHeight = MediaQuery.of(context).size.height * 0.85;
+      });
+      widget.onComplete?.call();
+    }
+
+    void startTimer() {
+      _timer?.cancel();
+      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        setState(() {
+          if (remaining.inSeconds > 0) {
+            remaining = remaining - const Duration(seconds: 1);
+            widget.onTimeUpdate?.call(remaining);
+          } else {
+            timer.cancel();
+            onTimerComplete();
+          }
+        });
+      });
+    }
+
+  void pauseTimer() {
+    setState(() => isRunning = false);
+    _timer?.cancel();
+    showTimeUpOverlay = false;
+    // Notify parent about pause with current remaining time
+    widget.onPauseStateChanged(true, false, remaining);
+  }
+  void stopAlarm() {
+    setState(() => isRunning = false);
+    _timer?.cancel();
+    showTimeUpOverlay = false;
+    // Notify parent about pause with current remaining time
+    widget.onPauseStateChanged(false, false, remaining);
+  }
+
+  void resumeTimer() {
+    if (isRunning) return;
+    setState(() => isRunning = true);
+    widget.onPauseStateChanged(false, false, remaining);
+    startTimer();
+  }
+
+  void restartTimer() {
+    setState(() {
+      remaining = widget.initialDuration;
+      isRunning = true;
+    });
+    widget.onTimeUpdate?.call(remaining);
+    showTimeUpOverlay = false; // Hide the overlay when restarting
+    startTimer();
+  }
+
+  String formatDuration(Duration d) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final m = twoDigits(d.inMinutes.remainder(60));
+    final s = twoDigits(d.inSeconds.remainder(60));
+    return "$m:$s";
+  }
+
+  void toggleHeight() {
+    setState(() {
+      _isCollapsed = !_isCollapsed;
+      final screenHeight = MediaQuery.of(context).size.height;
+      _containerHeight =
+          _isCollapsed ? screenHeight * 0.15 : screenHeight * 0.85;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      width: width,
+      height: _containerHeight,
+      decoration: const BoxDecoration(
+        color: Color(0xFF4186F5),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      child: SizedBox.expand(
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // Collapse button (top-right)
+              Positioned(
+                top: 16,
+                right: 8,
+                child: IconButton(
+                  icon: Icon(
+                    _isCollapsed
+                        ? CupertinoIcons.chevron_up
+                        : CupertinoIcons.chevron_down,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                  onPressed: toggleHeight,
+                ),
+              ),
+
+              // Timer at top center
+              Positioned(
+                top: 64,
+                left: 0,
+                right: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/icons/timer.png',
+                      height: 44,
+                      width: 44,
+                      color: CustomColors.textWhite,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      formatDuration(remaining),
+                      style: const TextStyle(
+                        color: CustomColors.textWhite,
+                        fontSize: 44,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Animation
+              if (!_isCollapsed)
+                Center(
+                  child: IgnorePointer(
+                    child: SizedBox(
+                      height: 300,
+                      width: 300,
+                      child: r.RiveAnimation.asset(
+                        'assets/animations/onboarding/floats_in.riv',
+                        fit: BoxFit.contain,
+                        onInit: _onInit,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Controls at bottom
+              if (!_isCollapsed)
+                Positioned(
+                  bottom: 150,
+                  left: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 55,
+                        width: 90,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: CustomColors.fillWhite, width: 1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.refresh_rounded,
+                              color: Colors.white, size: 36),
+                          onPressed: restartTimer,
+                          tooltip: 'Restart',
+                        ),
+                      ),
+                      const SizedBox(width: 32),
+                      Container(
+                        height: 55,
+                        width: 90,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: CustomColors.fillWhite, width: 1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            isRunning
+                                ? Icons.pause_rounded
+                                : Icons.play_arrow_rounded,
+                            color: Colors.white,
+                            size: 36,
+                          ),
+                          onPressed: () {
+                            isRunning ? pauseTimer() : resumeTimer();
+                          },
+                          tooltip: isRunning ? 'Pause' : 'Resume',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              //overlay for time's up
+              if (showTimeUpOverlay)
+                Container(
+                  color:Colors.black.withOpacity(0.5),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                CupertinoIcons.bell_fill,
+                                color: CustomColors.fillWhite,
+                                size: 48,
+                                ),
+                              const SizedBox(width: 8),
+                              Text(
+                                "Time's Up!",
+                                style: CustomTypography().headlineLarge(
+                                  color: CustomColors.textWhite,
+                                ),
+                              ),
+                            ]
+                          ),
+                          const SizedBox(height: 30),
+                          //stop alarm button
+                          SizedBox(
+                            height: 55,
+                            width: 140,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: CustomColors.productNormal,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 18),
+                              ),
+                              onPressed: () {
+                                stopAlarm();
+                              },
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    CupertinoIcons.stop_fill,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "Stop",
+                                    style: CustomTypography().button(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          Container(
+                            height: 55,
+                            width: 140,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: CustomColors.fillWhite, width: 1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: InkWell(
+                              onTap: restartTimer,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                 const Icon(Icons.refresh_rounded,
+                                        color: Colors.white, size: 24),
+                                  Text(
+                                    "Restart",
+                                    style: CustomTypography().titleSmall(
+                                      color: CustomColors.textWhite,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                    )
+                  )
+                )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

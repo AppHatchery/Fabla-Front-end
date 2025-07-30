@@ -26,6 +26,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
 import 'my_responses.dart';
@@ -691,31 +692,26 @@ class TimerWidget extends StatefulWidget {
 
 class _TimerWidgetState extends State<TimerWidget>
     with TickerProviderStateMixin, WidgetsBindingObserver {
+  // --- State Variables ---
   late Duration duration;
   late Duration remaining;
-  Timer? timer;
+
   bool inProgress = false;
   bool complete = false;
   bool hasError = false;
 
-  double progress = 0.0;
-
   AudioPlayer? player;
-
-  late AnimationController _progressController;
-  late Animation<double> _progressAnimation;
-
-  // Icon Shake animation
   late AnimationController _shakeController;
 
-  // Text Controllers
   late TextEditingController minuteController;
   late TextEditingController secondsController;
-  late OverlayEntry? _overlayEntry;
-  double keyboardHeight = 0;
+
+  int pickerMinutes = 1;
+  int pickerSeconds = 0;
 
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addObserver(this);
     duration = widget.time;
     remaining = widget.time;
@@ -724,75 +720,53 @@ class _TimerWidgetState extends State<TimerWidget>
         TextEditingController(text: formatDurationMMOnly(duration));
     secondsController =
         TextEditingController(text: formatDurationSSOnly(duration));
-    _overlayEntry = null;
 
-    _progressController = AnimationController(
-      vsync: this,
-      duration: duration,
-    );
-
-    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _progressController, curve: Curves.linear),
-    );
+    pickerMinutes = duration.inMinutes;
+    pickerSeconds = duration.inSeconds.remainder(60);
 
     _shakeController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     )..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          _shakeController.repeat();
-        }
-      });
-    super.initState();
+      if (status == AnimationStatus.completed) {
+        _shakeController.repeat();
+      }
+    });
   }
 
   @override
   void dispose() {
-    timer?.cancel();
-    _progressController.dispose();
-    _shakeController.dispose();
-    hideOverlay();
-    player?.dispose();
     WidgetsBinding.instance.removeObserver(this);
+    player?.dispose();
+    _shakeController.dispose();
     super.dispose();
   }
 
-  @override
-  void didChangeMetrics() {
-    if (mounted) {
-      final size = View.of(context).viewInsets.bottom;
-      if (size > 0) {
-        showOverlay(context);
-      } else {
-        hideOverlay();
-      }
-
-      setState(() {
-        keyboardHeight = size;
-      });
-    }
-    super.didChangeMetrics();
+  // --- Timer Control Methods ---
+  void _onTimerComplete() {
+    setState(() {
+      inProgress = false;
+      complete = true;
+    });
+    _shakeController.forward();
+    widget.respond("timer");
   }
 
-  showOverlay(BuildContext context) {
-    if (_overlayEntry != null) return;
-    OverlayState overlayState = Overlay.of(context);
-    _overlayEntry = OverlayEntry(
-        builder: (context) => Positioned(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 0,
-            right: 0,
-            child: const CustomKeyboardOverlay()));
-    overlayState.insert(_overlayEntry!);
+  void _onTimerClose() async {
+    setState(() {
+      inProgress = false;
+    });
+    // Stop alarm when modal is closed manually
+     stopAlarm();
   }
 
-  hideOverlay() {
-    if (_overlayEntry != null) {
-      _overlayEntry?.remove();
-      _overlayEntry = null;
-    }
+  void _onTimeUpdate(Duration newRemaining) {
+    setState(() {
+      remaining = newRemaining;
+    });
   }
 
+  // --- UI Methods ---
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -800,527 +774,227 @@ class _TimerWidgetState extends State<TimerWidget>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                LayoutBuilder(builder: (context, constraints) {
-                  final availableWidth = constraints.maxWidth;
-                  final availableHeight = constraints.maxHeight;
-
-                  double width = 315;
-                  double height = 315;
-
-                  if (availableWidth < 315) {
-                    width = availableWidth;
-                    height = width / 1;
-                  }
-
-                  if (height > availableHeight) {
-                    height = availableHeight;
-                    width = height * 1;
-                  }
-
-                  width = width.clamp(0.0, 315);
-                  height = height.clamp(0.0, 315);
-
-                  return SizedBox(
-                    height: height,
-                    width: width,
-                    child: AnimatedBuilder(
-                        animation: _progressAnimation,
-                        builder: (context, child) {
-                          return CircularProgressIndicator(
-                            value: _progressAnimation.value,
-                            strokeWidth: 19,
-                            color: CustomColors.productNormalActive,
-                            backgroundColor:
-                                CustomColors.productLightBackground,
-                            strokeCap: StrokeCap.round,
-                          );
-                        }),
-                  );
-                }),
-                Positioned(
-                  top: 0,
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            complete
-                                ? timerDisplay()
-                                : inProgress &&
-                                        (timer != null && timer!.isActive)
-                                    ? timerDisplay()
-                                    : widget.userInteraction
-                                        ? editableControls()
-                                        : timerDisplay(),
-                          ],
-                        ),
-                        const SizedBox(height: 36),
-                        // Controls
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Restart
-                            InkWell(
-                              onTap: () => inProgress
-                                  ? widget.playbackControls
-                                      ? restart()
-                                      : null
-                                  : null,
-                              child: Container(
-                                height: 46,
-                                width: 46,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 8),
-                                decoration: ShapeDecoration(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    side: BorderSide(
-                                        width: 1,
-                                        color: inProgress
-                                            ? widget.playbackControls
-                                                ? CustomColors.warningActive
-                                                : CustomColors.fillDisabled
-                                            : CustomColors.fillDisabled),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 24,
-                                      height: 24,
-                                      clipBehavior: Clip.antiAlias,
-                                      decoration: BoxDecoration(),
-                                      child: Icon(
-                                        Icons.refresh_rounded,
-                                        color: inProgress
-                                            ? widget.playbackControls
-                                                ? CustomColors.warningActive
-                                                : CustomColors.fillDisabled
-                                            : CustomColors.fillDisabled,
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            // Play/Pause
-                            InkWell(
-                              onTap: () => start(),
-                              child: Container(
-                                height: 46,
-                                width: 46,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 8),
-                                decoration: ShapeDecoration(
-                                  color: complete
-                                      ? CustomColors.productNormal
-                                      : widget.playbackControls
-                                          ? CustomColors.productNormal
-                                          : !inProgress
-                                              ? CustomColors.productNormal
-                                              : CustomColors.fillDisabled,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 24,
-                                      height: 24,
-                                      clipBehavior: Clip.antiAlias,
-                                      decoration: BoxDecoration(),
-                                      child: Icon(
-                                        complete
-                                            ? Icons.stop
-                                            : timer?.isActive ?? false
-                                                ? Icons.pause_rounded
-                                                : Icons
-                                                    .play_arrow_rounded, //! Cant find resume icon
-                                        color: CustomColors.fillWhite,
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+            if (!complete) ...[
+              // The initial view is now just the editable controls
+              editableControls(),
+              const SizedBox(height: 24),
+              // --- Action Buttons ---
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CustomColors.productNormal,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                  ),
+                  onPressed: inProgress ? null : _startAndShowModal,
+                  child: Text(
+                    "Start Timer Now",
+                    style: CustomTypography().button(color: Colors.white),
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side:
+                    BorderSide(color: CustomColors.productNormal, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      complete = true;
+                      inProgress = false;
+                    });
+                    widget.respond('Complete');
+                  },
+                  child: Text(
+                    "I Have Completed The Task",
+                    style: CustomTypography()
+                        .button(color: CustomColors.productNormal),
+                  ),
+                ),
+              ),
+            ],
+            // --- Completion State ---
+            if (complete) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      "🎉 Good job! You have completed the task!",
+                      style: CustomTypography()
+                          .titleLarge(color: CustomColors.textNormalContent),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 50),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CustomColors.productNormal,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      inProgress = true;
+                      complete = false;
+                      remaining = duration;
+                    });
+                    _startAndShowModal();
+                  },
+                  child: Text(
+                    "Start Timer Now",
+                    style: CustomTypography().button(color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget timerDisplay() {
-    return GestureDetector(
-      onTap: widget.playbackControls
-          ? () {
-              pause();
-            }
-          : complete
-              ? stop
-              : null,
-      child: Container(
-        constraints: BoxConstraints(minWidth: 140),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-            gradient: complete
-                ? LinearGradient(
-                    begin: Alignment(0.88, 0.48),
-                    end: Alignment(-0.88, -0.48),
-                    colors: [Color(0xFF4186F5), Color(0xFF8DAFFF)],
-                  )
-                : null,
-            color: !complete ? CustomColors.productLightBackground : null,
-            borderRadius: BorderRadius.circular(8)),
-        child: complete
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedBuilder(
-                    animation: _shakeController,
-                    builder: (context, child) {
-                      return Transform.rotate(
-                        angle: sin(_shakeController.value * pi * 2) * 0.1,
-                        child: Icon(
-                          Icons.notifications_active,
-                          color: CustomColors.fillWhite,
-                          size: 36,
-                        ),
-                      );
-                    },
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10.0),
-                    child: Text(
-                      "Time's Up!",
-                      style: CustomTypography()
-                          .custom(color: CustomColors.textWhite, fontSize: 24),
-                    ),
-                  ),
-                ],
-              )
-            : Center(
-                child: Text(
-                  formatDurationtoHHMMSS(remaining),
-                  style: CustomTypography().custom(
-                      color: CustomColors.productNormalActive, fontSize: 36),
-                ),
-              ),
+  Widget editableControls() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      decoration: BoxDecoration(
+          color: CustomColors.fillWhite,
+          borderRadius: BorderRadius.circular(20),
+          border:
+          Border.all(color: CustomColors.productBorderNormal, width: 2)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            "${pickerMinutes.toString().padLeft(1, '0')} min ${pickerSeconds.toString().padLeft(2, '0')} sec",
+            style: CustomTypography()
+                .titleMedium(color: CustomColors.textNormalContent),
+          ),
+          IconButton(
+              onPressed: inProgress ? null : showMinuteSecondPicker,
+              icon: const Icon(
+                Icons.edit_outlined,
+                color: CustomColors.productNormal,
+                size: 24,
+              )),
+        ],
       ),
     );
   }
 
-  Widget editableControls() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Minus
-        Padding(
-          padding: const EdgeInsets.only(right: 6.0),
-          child: IconButton(
-            onPressed: () => subtract(),
-            icon: Icon(Icons.remove),
-            iconSize: 40,
-            color: CustomColors.productNormal,
-          ),
-        ),
-
-        // Mins
-        Container(
-          constraints: BoxConstraints(
-              minWidth: 65, minHeight: 55, maxWidth: 65, maxHeight: 55),
-          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
-          decoration: ShapeDecoration(
-              color: hasError
-                  ? CustomColors.warningFill
-                  : CustomColors.fillDisabled,
-              shape: RoundedRectangleBorder(
-                  side: hasError
-                      ? BorderSide(color: CustomColors.warningActive)
-                      : BorderSide.none,
-                  borderRadius: BorderRadius.circular(6))),
-          child: Center(
-            child: TextField(
-              controller: minuteController,
-              keyboardType: TextInputType.number,
-              minLines: 1,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  focusColor: CustomColors.productNormal,
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero),
-              cursorColor: CustomColors.productNormal,
-              cursorHeight: 30,
-              inputFormatters: [LengthLimitingTextInputFormatter(2)],
-              style: CustomTypography().custom(
-                  color: hasError
-                      ? CustomColors.warningActive
-                      : CustomColors.productNormal,
-                  fontSize: 30),
-              onChanged: (value) {
-                if (value.isNotEmpty && mounted) {
-                  setState(() {
-                    duration = Duration(
-                        minutes: int.parse(value),
-                        seconds: secondsController.text.isNotEmpty
-                            ? int.parse(secondsController.text)
-                            : 0);
-                    remaining = duration;
-                    _progressController.duration = duration;
-                    hasError = false;
-                  });
-                }
-              },
-            ),
-          ),
-        ),
-
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Text(
-            ":",
-            style: CustomTypography()
-                .headlineMedium(color: CustomColors.productNormal),
-          ),
-        ),
-        // Secs
-        Container(
-          constraints: BoxConstraints(
-              minWidth: 65, minHeight: 55, maxWidth: 65, maxHeight: 55),
-          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
-          decoration: ShapeDecoration(
-              color: hasError
-                  ? CustomColors.warningFill
-                  : CustomColors.fillDisabled,
-              shape: RoundedRectangleBorder(
-                  side: hasError
-                      ? BorderSide(color: CustomColors.warningActive)
-                      : BorderSide.none,
-                  borderRadius: BorderRadius.circular(6))),
-          child: Center(
-            child: TextField(
-              controller: secondsController,
-              keyboardType: TextInputType.number,
-              minLines: 1,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  focusColor: CustomColors.productNormal,
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero),
-              cursorColor: CustomColors.productNormal,
-              cursorHeight: 30,
-              inputFormatters: [LengthLimitingTextInputFormatter(2)],
-              style: CustomTypography().custom(
-                  color: hasError
-                      ? CustomColors.warningActive
-                      : CustomColors.productNormal,
-                  fontSize: 30),
-              onChanged: (value) {
-                if (value.isNotEmpty && mounted) {
-                  setState(() {
-                    duration = Duration(
-                        seconds: int.parse(value),
-                        minutes: minuteController.text.isNotEmpty
-                            ? int.parse(minuteController.text)
-                            : 0);
-                    remaining = duration;
-                    _progressController.duration = duration;
-                    hasError = false;
-                  });
-                }
-              },
-            ),
-          ),
-        ),
-
-        // Plus
-        Padding(
-          padding: const EdgeInsets.only(left: 6.0),
-          child: IconButton(
-            onPressed: () => add(),
-            icon: Icon(Icons.add),
-            iconSize: 40,
-            color: CustomColors.productNormal,
-          ),
-        ),
-      ],
-    );
-  }
-
-  void add() {
-    if (mounted) {
-      setState(() {
-        duration = remaining + Duration(seconds: 30);
-        remaining = duration;
-        _progressController.duration = duration;
-        minuteController.text = formatDurationMMOnly(remaining);
-        secondsController.text = formatDurationSSOnly(remaining);
-        hasError = false;
-      });
-    }
-  }
-
-  void subtract() {
-    if (mounted) {
-      final isNegative =
-          (remaining - Duration(seconds: 30)).inMilliseconds.isNegative;
-      if (!isNegative) {
-        setState(() {
-          duration = remaining - Duration(seconds: 30);
-          remaining = duration;
-          _progressController.duration = duration;
-          minuteController.text = formatDurationMMOnly(remaining);
-          secondsController.text = formatDurationSSOnly(remaining);
-          hasError = false;
-        });
-      } else {
-        setState(() {
-          duration = Duration.zero;
-          remaining = duration;
-          _progressController.duration = duration;
-          minuteController.text = formatDurationMMOnly(remaining);
-          secondsController.text = formatDurationSSOnly(remaining);
-          hasError = false;
-        });
-      }
-    }
-  }
-
-  void start() async {
+  /// This method starts the timer and shows the modal once.
+  void _startAndShowModal() async {
+    // Check permissions first
     final permission = await seekPermission();
-
-    // Play sound at the start
-    if (!inProgress) startSound();
-
     if (!permission) {
       return;
     }
 
-    // Stopping if complete
-    if (complete) {
-      stop();
-      return;
-    }
+    setState(() {
+      inProgress = true;
+      complete = false;
+      remaining = duration; // Reset remaining time to the full duration
+    });
 
-    if (!widget.playbackControls && inProgress) {
-      return;
-    }
-    // Pausing the timer
-    if (timer?.isActive ?? false) {
-      pause();
-    } else {
-      if (duration.inMilliseconds <= 0) {
-        if (mounted) setState(() => hasError = true);
-        return;
-      }
-
-      if (mounted) {
-        setState(() {
-          inProgress = true;
-          complete = false;
-        });
-      }
-
-      timer?.cancel();
-
-      // Calculate the progress value based on remaining time
-      final progress =
-          1.0 - (remaining.inMilliseconds / duration.inMilliseconds);
-
-      // Start the animation from current position
-      _progressController.forward(from: progress);
-
-      timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted) {
-          setState(() {
-            if (remaining.inSeconds > 0) {
-              remaining -= const Duration(seconds: 1);
-            } else {
-              timer?.cancel();
-              widget.respond("Complete");
-              complete = true;
-              _shakeController.forward();
-            }
-          });
-        }
-      });
-
-      setAlarm(remaining);
-      widget.addToPreFunction(() => stopAlarm());
-    }
-  }
-
-  void pause() {
-    if (player != null && player!.state == PlayerState.playing) {
-      player?.stop();
-    }
-
-    _progressController.stop();
-    timer?.cancel();
-    if (mounted) {
-      setState(() {
-        timer = null;
-        minuteController.text = formatDurationMMOnly(remaining);
-        secondsController.text = formatDurationSSOnly(remaining);
-      });
-    }
-
+    // Ensure the alarm is cancelled after firing
     stopAlarm();
+
+    //start the sound
+    startSound();
+
+    //set the alarm
+     setAlarm(duration);
+
+    // Show the bottom modal ONCE
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: true,
+      builder: (context) {
+        return BottomTimerModal(
+          initialDuration: duration,
+          onComplete: _onTimerComplete,
+          onClose: _onTimerClose,
+          onTimeUpdate: _onTimeUpdate,
+          onPauseStateChanged: handleAlarmPauseResume,
+        );
+      },
+    );
   }
 
-  void stop({bool? restarting}) {
-    if (player != null && player!.state == PlayerState.playing) {
-      player?.stop();
-    }
-
-    timer?.cancel();
-    timer = null;
-    _progressController.reset();
-
-    final _duration = restarting ?? false ? duration : widget.time;
-    if (mounted) {
+  void handleAlarmPauseResume(bool isPaused, bool isStopped, Duration remaining) async {
+    if (isPaused) {
+      // If pausing, stop the alarm and update state
       setState(() {
-        duration = _duration;
-        remaining = _duration;
-        progress = 0.0;
-        complete = false;
         inProgress = false;
+      });
+      stopAlarm();
+    } else {
+      // If resuming, reschedule alarm with remaining time and update state
+      setState(() {
+        inProgress = true;
+      });
+      setAlarm(remaining);
+    }
+    if(isStopped){
+      stopAlarm();
+      _shakeController.stop();
+    }
+  }
+
+  void showMinuteSecondPicker() async {
+    final result = await showModalBottomSheet<Duration>(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        int tempMinutes = pickerMinutes;
+        int tempSeconds = pickerSeconds;
+        return CustomMinuteSecondPicker();
+      },
+    );
+    if (result != null) {
+      setState(() {
+        duration = result;
+        remaining = result;
+        pickerMinutes = result.inMinutes;
+        pickerSeconds = result.inSeconds.remainder(60);
+        minuteController.text = formatDurationMMOnly(result);
+        secondsController.text = formatDurationSSOnly(result);
+        hasError = false;
         _shakeController.stop();
       });
       stopAlarm();
     }
   }
 
-  void restart() {
-    stop(restarting: true);
-    start();
+  String formatDurationSSOnly(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return twoDigitSeconds;
   }
 
   void stopAlarm() async {
@@ -1328,8 +1002,6 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   void setAlarm(Duration time) async {
-    // Ensure the alarm is cancelled after firing
-    stopAlarm();
 
     final alarmID = Random().nextInt(1000);
     final _time = DateTime.now().add(time);
@@ -1450,7 +1122,7 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
             const SizedBox(height: 32),
             widget.prompt.answer?.recordings.isNotEmpty ?? false
                 ? SizedBox(
-                    child: Preview(
+                    child: MediaPreview(
                       recordings: widget.prompt.answer!.recordings,
                       delete: (path) => delete(path),
                     ),
@@ -1500,21 +1172,21 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
   }
 }
 
-class Preview extends StatefulWidget {
+class MediaPreview extends StatefulWidget {
   final List<Recording> recordings;
   final Function(String path) delete;
   final bool interactions;
-  const Preview(
+  const MediaPreview(
       {super.key,
       required this.recordings,
       required this.delete,
       this.interactions = true});
 
   @override
-  State<Preview> createState() => _PreviewState();
+  State<MediaPreview> createState() => _MediaPreviewState();
 }
 
-class _PreviewState extends State<Preview> {
+class _MediaPreviewState extends State<MediaPreview> {
   final children = <Widget>[];
 
   @override
@@ -1524,7 +1196,7 @@ class _PreviewState extends State<Preview> {
   }
 
   @override
-  void didUpdateWidget(covariant Preview oldWidget) {
+  void didUpdateWidget(covariant MediaPreview oldWidget) {
     if (oldWidget.recordings != widget.recordings) {
       children.clear();
       getData();
