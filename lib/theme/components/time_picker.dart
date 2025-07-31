@@ -466,38 +466,38 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 200,
-                    child: ListWheelScrollView.useDelegate(
-                      controller: minutesController,
-                      onSelectedItemChanged: (value) {
-                        setState(() {
-                          minutes = value;
-                        });
+                SizedBox(
+                  height: 200,
+                  width: 100,
+                  child: ListWheelScrollView.useDelegate(
+                    controller: minutesController,
+                    onSelectedItemChanged: (value) {
+                      setState(() {
+                        minutes = value;
+                      });
+                    },
+                    physics: const FixedExtentScrollPhysics(),
+                    perspective: 0.01,
+                    diameterRatio: 1,
+                    itemExtent: 50,
+                    overAndUnderCenterOpacity: 0.3,
+                    squeeze: 2,
+                    childDelegate: ListWheelChildBuilderDelegate(
+                      builder: (context, index) {
+                        return Minutes(mins: index);
                       },
-                      physics: const FixedExtentScrollPhysics(),
-                      perspective: 0.01,
-                      diameterRatio: 1,
-                      itemExtent: 50,
-                      overAndUnderCenterOpacity: 0.3,
-                      squeeze: 2,
-                      childDelegate: ListWheelChildBuilderDelegate(
-                        builder: (context, index) {
-                          return Minutes(mins: index);
-                        },
-                        childCount: 60,
-                      ),
+                      childCount: 60,
                     ),
                   ),
                 ),
-                Text("Mins",
+                Text("mins",
                     style: CustomTypography()
                         .titleMedium(color: Colors.black)),
 
-                Expanded(
-                  child: SizedBox(
+
+               SizedBox(
                     height: 200,
+                    width: 100,
                     child: ListWheelScrollView.useDelegate(
                       controller: secondsController,
                       onSelectedItemChanged: (value) {
@@ -519,10 +519,11 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                       ),
                     ),
                   ),
-                ),
-                Text("Sec",
+                Text("sec",
                     style: CustomTypography()
-                        .titleMedium(color: Colors.black)),
+                        .titleMedium(color: Colors.black),
+
+                ),
               ],
             ),
             const SizedBox(height: 20),

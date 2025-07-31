@@ -692,7 +692,6 @@ class TimerWidget extends StatefulWidget {
 
 class _TimerWidgetState extends State<TimerWidget>
     with TickerProviderStateMixin, WidgetsBindingObserver {
-  // --- State Variables ---
   late Duration duration;
   late Duration remaining;
 
@@ -727,11 +726,7 @@ class _TimerWidgetState extends State<TimerWidget>
     _shakeController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
-    )..addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        _shakeController.repeat();
-      }
-    });
+    );
   }
 
   @override
@@ -739,6 +734,7 @@ class _TimerWidgetState extends State<TimerWidget>
     WidgetsBinding.instance.removeObserver(this);
     player?.dispose();
     _shakeController.dispose();
+    stopAlarm(); // Ensure cleanup on dispose
     super.dispose();
   }
 
@@ -748,16 +744,22 @@ class _TimerWidgetState extends State<TimerWidget>
       inProgress = false;
       complete = true;
     });
-    _shakeController.forward();
+    // Start shaking animation and set it to repeat
+    _shakeController.forward().then((_) {
+      _shakeController.repeat();
+    });
     widget.respond("timer");
   }
 
   void _onTimerClose() async {
     setState(() {
       inProgress = false;
+      complete = false; // Reset complete state when modal closes
     });
-    // Stop alarm when modal is closed manually
-     stopAlarm();
+    // Stop shaking and reset animation
+    _shakeController.stop();
+    _shakeController.reset();
+    await stopAlarm(); // Stop alarm when modal is closed manually
   }
 
   void _onTimeUpdate(Duration newRemaining) {
@@ -785,7 +787,9 @@ class _TimerWidgetState extends State<TimerWidget>
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: CustomColors.productNormal,
+                    backgroundColor: inProgress
+                        ? Colors.grey // Grey when disabled
+                        : CustomColors.productNormal,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -794,7 +798,9 @@ class _TimerWidgetState extends State<TimerWidget>
                   onPressed: inProgress ? null : _startAndShowModal,
                   child: Text(
                     "Start Timer Now",
-                    style: CustomTypography().button(color: Colors.white),
+                    style: CustomTypography().button(
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -803,14 +809,18 @@ class _TimerWidgetState extends State<TimerWidget>
                 width: double.infinity,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    side:
-                    BorderSide(color: CustomColors.productNormal, width: 2),
+                    side: BorderSide(
+                      color: inProgress ? Colors.grey : CustomColors.productNormal,
+                      width: 2,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 18),
                   ),
-                  onPressed: () {
+                  onPressed: inProgress
+                      ? null
+                      : () {
                     setState(() {
                       complete = true;
                       inProgress = false;
@@ -819,8 +829,9 @@ class _TimerWidgetState extends State<TimerWidget>
                   },
                   child: Text(
                     "I Have Completed The Task",
-                    style: CustomTypography()
-                        .button(color: CustomColors.productNormal),
+                    style: CustomTypography().button(
+                      color: inProgress ? Colors.grey : CustomColors.productNormal,
+                    ),
                   ),
                 ),
               ),
@@ -853,6 +864,11 @@ class _TimerWidgetState extends State<TimerWidget>
                     padding: const EdgeInsets.symmetric(vertical: 18),
                   ),
                   onPressed: () {
+                    // Stop any ongoing animation and sound
+                    _shakeController.stop();
+                    _shakeController.reset();
+                    stopAlarm();
+
                     setState(() {
                       inProgress = true;
                       complete = false;
@@ -890,7 +906,7 @@ class _TimerWidgetState extends State<TimerWidget>
                 .titleMedium(color: CustomColors.textNormalContent),
           ),
           IconButton(
-              onPressed: inProgress ? null : showMinuteSecondPicker,
+              onPressed: showMinuteSecondPicker,
               icon: const Icon(
                 Icons.edit_outlined,
                 color: CustomColors.productNormal,
@@ -915,14 +931,14 @@ class _TimerWidgetState extends State<TimerWidget>
       remaining = duration; // Reset remaining time to the full duration
     });
 
-    // Ensure the alarm is cancelled after firing
-    stopAlarm();
+    // Ensure any previous alarms/sounds are cancelled
+    await stopAlarm();
 
-    //start the sound
-    startSound();
+    // Start the sound when timer begins
+    await startSound();
 
-    //set the alarm
-     setAlarm(duration);
+    // Set the alarm for when timer completes
+    await setAlarm(duration);
 
     // Show the bottom modal ONCE
     showModalBottomSheet(
@@ -937,28 +953,46 @@ class _TimerWidgetState extends State<TimerWidget>
           onClose: _onTimerClose,
           onTimeUpdate: _onTimeUpdate,
           onPauseStateChanged: handleAlarmPauseResume,
+          stopAlarmCallback: stopAlarm,
+          stopShakeCallback: () {
+            _shakeController.stop();
+            _shakeController.reset();
+          },
         );
       },
     );
+
+    // This runs after the modal is dismissed
+    if (mounted && !inProgress) {
+      setState(() {
+        inProgress = false;
+      });
+    }
   }
 
-  void handleAlarmPauseResume(bool isPaused, bool isStopped, Duration remaining) async {
-    if (isPaused) {
+  void handleAlarmPauseResume(
+      bool isPaused, bool isStopped, Duration remaining) async {
+    if (isStopped) {
+      // Complete stop - stop everything
+      await stopAlarm();
+      _shakeController.stop();
+      _shakeController.reset();
+      setState(() {
+        inProgress = false;
+        complete = false;
+      });
+    } else if (isPaused) {
       // If pausing, stop the alarm and update state
       setState(() {
         inProgress = false;
       });
-      stopAlarm();
+      await stopAlarm();
     } else {
       // If resuming, reschedule alarm with remaining time and update state
       setState(() {
         inProgress = true;
       });
-      setAlarm(remaining);
-    }
-    if(isStopped){
-      stopAlarm();
-      _shakeController.stop();
+      await setAlarm(remaining);
     }
   }
 
@@ -971,8 +1005,6 @@ class _TimerWidgetState extends State<TimerWidget>
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        int tempMinutes = pickerMinutes;
-        int tempSeconds = pickerSeconds;
         return CustomMinuteSecondPicker();
       },
     );
@@ -986,9 +1018,16 @@ class _TimerWidgetState extends State<TimerWidget>
         secondsController.text = formatDurationSSOnly(result);
         hasError = false;
         _shakeController.stop();
+        _shakeController.reset();
       });
-      stopAlarm();
+      await stopAlarm();
     }
+  }
+
+  String formatDurationMMOnly(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    return twoDigitMinutes;
   }
 
   String formatDurationSSOnly(Duration duration) {
@@ -997,12 +1036,16 @@ class _TimerWidgetState extends State<TimerWidget>
     return twoDigitSeconds;
   }
 
-  void stopAlarm() async {
+  Future<void> stopAlarm() async {
+    // Stop all alarms
     await Alarm.stopAll();
+    // Also stop any playing audio
+    await player?.stop();
+    await player?.dispose();
+    player = null;
   }
 
-  void setAlarm(Duration time) async {
-
+  Future<void> setAlarm(Duration time) async {
     final alarmID = Random().nextInt(1000);
     final _time = DateTime.now().add(time);
     await Alarm.set(
@@ -1016,7 +1059,7 @@ class _TimerWidgetState extends State<TimerWidget>
                 fadeSteps: List.generate(10, (index) {
                   return VolumeFadeStep(const Duration(seconds: 3),
                       0.1 + (index * 0.1) // This creates values from 0.1 to 1.0
-                      );
+                  );
                 }),
                 volume: 1.0),
             warningNotificationOnKill: Platform.isIOS,
@@ -1028,9 +1071,13 @@ class _TimerWidgetState extends State<TimerWidget>
             )));
   }
 
-  void startSound() async {
+  Future<void> startSound() async {
+    // Dispose of any existing player first
+    await player?.stop();
+    await player?.dispose();
+
     player = AudioPlayer();
-    await player?.play(AssetSource('audio/bowl.wav'), volume: 1);
+    await player?.play(AssetSource('audio/bowl.wav'), volume: 1.0);
   }
 
   /// Get special permission for the alarm

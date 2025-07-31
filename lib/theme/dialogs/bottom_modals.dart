@@ -2317,6 +2317,10 @@ class BottomTimerModal extends StatefulWidget {
   final Function(Duration)? onTimeUpdate; // Callback to update parent
   final void Function(bool isPaused, bool isStopped, Duration remaining) onPauseStateChanged;
 
+  //Direct callback functions for better control
+  final Future<void> Function() stopAlarmCallback;
+  final VoidCallback stopShakeCallback;
+
   const BottomTimerModal({
     Key? key,
     required this.initialDuration,
@@ -2324,6 +2328,8 @@ class BottomTimerModal extends StatefulWidget {
     this.onComplete,
     this.onTimeUpdate,
     required this.onPauseStateChanged,
+    required this.stopAlarmCallback,
+    required this.stopShakeCallback,
   }) : super(key: key);
 
   @override
@@ -2336,11 +2342,11 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   bool isRunning = true;
   bool showTimeUpOverlay = false;
 
-  // NEW: Track expanded/collapsed state
+  //Track expanded/collapsed state
   bool _isCollapsed = false;
   late double _containerHeight = 0;
 
-  // Add animation controller
+  //Add animation controller
   r.StateMachineController? _controller;
 
   void _onInit(r.Artboard art) {
@@ -2378,7 +2384,9 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
 
   @override
   void dispose() {
-    if (isRunning) {
+    if (isRunning && !showTimeUpOverlay) {
+      widget.onClose?.call();
+    } else if (!isRunning && !showTimeUpOverlay) {
       widget.onClose?.call();
     }
     _timer?.cancel();
@@ -2386,34 +2394,36 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     super.dispose();
   }
 
-    void onTimerComplete() {
+
+  void onTimerComplete() {
+    setState(() {
+      isRunning = false;
+      // Show the overlay when timer completes
+      showTimeUpOverlay = true;
+      //the full screen of the modal shows
+      _isCollapsed = false;
+      // Set container height to full screen height
+      _containerHeight = MediaQuery.of(context).size.height * 0.85;
+    });
+    widget.onComplete?.call();
+  }
+
+  void startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+
       setState(() {
-        isRunning = false;
-
-        // Show the overlay when timer completes
-        showTimeUpOverlay = true;
-        //the full screen of the modal shows
-        _isCollapsed = false;
-        // Set container height to full screen height
-        _containerHeight = MediaQuery.of(context).size.height * 0.85;
+        if (remaining.inSeconds > 0 && isRunning) {
+          remaining = remaining - const Duration(seconds: 1);
+          widget.onTimeUpdate?.call(remaining);
+        } else if (remaining.inSeconds <= 0) {
+          timer.cancel();
+          onTimerComplete();
+        }
       });
-      widget.onComplete?.call();
-    }
-
-    void startTimer() {
-      _timer?.cancel();
-      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        setState(() {
-          if (remaining.inSeconds > 0) {
-            remaining = remaining - const Duration(seconds: 1);
-            widget.onTimeUpdate?.call(remaining);
-          } else {
-            timer.cancel();
-            onTimerComplete();
-          }
-        });
-      });
-    }
+    });
+  }
 
   void pauseTimer() {
     setState(() => isRunning = false);
@@ -2422,12 +2432,22 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     // Notify parent about pause with current remaining time
     widget.onPauseStateChanged(true, false, remaining);
   }
-  void stopAlarm() {
-    setState(() => isRunning = false);
+
+  Future<void> stopAlarmAndAnimation() async {
+    setState(() {
+      isRunning = false;
+      showTimeUpOverlay = false;
+    });
     _timer?.cancel();
-    showTimeUpOverlay = false;
-    // Notify parent about pause with current remaining time
-    widget.onPauseStateChanged(false, false, remaining);
+
+    // Use the direct callbacks for immediate effect
+    await widget.stopAlarmCallback();
+    widget.stopShakeCallback();
+
+    // Notify parent that everything should stop
+    widget.onPauseStateChanged(false, true, remaining);
+
+
   }
 
   void resumeTimer() {
@@ -2438,12 +2458,17 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   }
 
   void restartTimer() {
+    widget.stopAlarmCallback();
+    widget.stopShakeCallback();
+
     setState(() {
       remaining = widget.initialDuration;
       isRunning = true;
+      showTimeUpOverlay = false; // Hide the overlay when restarting
     });
     widget.onTimeUpdate?.call(remaining);
-    showTimeUpOverlay = false; // Hide the overlay when restarting
+
+
     startTimer();
   }
 
@@ -2459,7 +2484,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       _isCollapsed = !_isCollapsed;
       final screenHeight = MediaQuery.of(context).size.height;
       _containerHeight =
-          _isCollapsed ? screenHeight * 0.15 : screenHeight * 0.85;
+      _isCollapsed ? screenHeight * 0.15 : screenHeight * 0.85;
     });
   }
 
@@ -2597,90 +2622,92 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
               //overlay for time's up
               if (showTimeUpOverlay)
                 Container(
-                  color:Colors.black.withOpacity(0.5),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                CupertinoIcons.bell_fill,
-                                color: CustomColors.fillWhite,
-                                size: 48,
-                                ),
-                              const SizedBox(width: 8),
-                              Text(
-                                "Time's Up!",
-                                style: CustomTypography().headlineLarge(
-                                  color: CustomColors.textWhite,
-                                ),
-                              ),
-                            ]
-                          ),
-                          const SizedBox(height: 30),
-                          //stop alarm button
-                          SizedBox(
-                            height: 55,
-                            width: 140,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: CustomColors.productNormal,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding: const EdgeInsets.symmetric(vertical: 18),
-                              ),
-                              onPressed: () {
-                                stopAlarm();
-                              },
-                              child: Row(
+                    color: Colors.black.withOpacity(0.5),
+                    child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
-                                    CupertinoIcons.stop_fill,
-                                    color: Colors.white,
-                                    size: 24,
+                                    CupertinoIcons.bell_fill,
+                                    color: CustomColors.fillWhite,
+                                    size: 48,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    "Stop",
-                                    style: CustomTypography().button(color: Colors.white),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 30),
-                          Container(
-                            height: 55,
-                            width: 140,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: CustomColors.fillWhite, width: 1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: InkWell(
-                              onTap: restartTimer,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                 const Icon(Icons.refresh_rounded,
-                                        color: Colors.white, size: 24),
-                                  Text(
-                                    "Restart",
-                                    style: CustomTypography().titleSmall(
+                                    "Time's Up!",
+                                    style: CustomTypography().headlineLarge(
                                       color: CustomColors.textWhite,
                                     ),
                                   ),
-                                ],
+                                ]
+                            ),
+                            const SizedBox(height: 30),
+                            //stop alarm button - FIXED
+                            SizedBox(
+                              height: 55,
+                              width: 140,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: CustomColors.productNormal,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 18),
+                                ),
+                                onPressed: () async {
+                                  // FIXED: Call the corrected method
+                                  await stopAlarmAndAnimation();
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      CupertinoIcons.stop_fill,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Stop",
+                                      style: CustomTypography().button(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 30),
+                            Container(
+                              height: 55,
+                              width: 140,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                    color: CustomColors.fillWhite, width: 1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: InkWell(
+                                onTap: restartTimer,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.refresh_rounded,
+                                        color: Colors.white, size: 24),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Restart",
+                                      style: CustomTypography().titleSmall(
+                                        color: CustomColors.textWhite,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
                     )
-                  )
                 )
             ],
           ),
