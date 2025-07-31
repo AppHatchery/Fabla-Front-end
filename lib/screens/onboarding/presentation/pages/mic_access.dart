@@ -29,7 +29,6 @@ class _MicAccessPageState extends State<MicAccessPage>
   late FlutterSoundRecorder recorder;
   bool permission = false;
   bool requested = false;
-  bool canGoBack = false;
 
   //Animations
   late StateMachineController _controller;
@@ -47,9 +46,6 @@ class _MicAccessPageState extends State<MicAccessPage>
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     timer.start();
-    if (Navigator.of(context).canPop()) {
-      canGoBack = true;
-    }
     recorder = FlutterSoundRecorder();
     recorderInit();
     WidgetsBinding.instance.addPostFrameCallback((_) async {

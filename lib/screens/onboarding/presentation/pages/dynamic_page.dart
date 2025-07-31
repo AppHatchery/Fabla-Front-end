@@ -123,11 +123,8 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
   }
 
   track(int spent, String status) async {
-    await PendoService.track("Dynamic Onboarding", {
-      "time_on_page": spent,
-      "status": status,
-      "Font Scaler": "$scaler"
-    });
+    await PendoService.track("Dynamic Onboarding",
+        {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
   void nextPage(int length) {
@@ -319,42 +316,24 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
                       child: GestureDetector(
                         onTap: () => FocusScope.of(context).unfocus(),
                         child: LayoutBuilder(builder: (context, constraint) {
-                          return SingleChildScrollView(
-                            child: Container(
-                              height: constraint.maxHeight,
-                              color: CustomColors.backgroundSecondary,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                          return Container(
+                            color: CustomColors.backgroundSecondary,
+                            height: constraint.maxHeight,
+                            width: width,
+                            child: AvatarBackground(
+                                height: constraint.maxHeight,
+                                width: width,
+                                foregroundHeight: foregroundHeight,
+                                image: "",
+                                avatarType: "animation",
+                                animation: animationURL,
+                                animationHeight: animationHeight,
+                                onContinue: () {},
+                                onInit: onInit,
                                 children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0),
-                                    child: Text(
-                                      widget.question.title,
-                                      style: CustomTypography().headlineLarge(
-                                          color: CustomColors.textWhite),
-                                    ),
-                                  ),
-                                  // const Expanded(child: SizedBox()),
-                                  Flexible(
-                                    child: AvatarBackground(
-                                        height: constraint.maxHeight,
-                                        width: width,
-                                        foregroundHeight: foregroundHeight,
-                                        image: "",
-                                        avatarType: "animation",
-                                        animation: animationURL,
-                                        animationHeight: animationHeight,
-                                        onContinue: () {},
-                                        onInit: onInit,
-                                        children: [
-                                          getWidget(widget.question,
-                                              index: widget.index)
-                                        ]),
-                                  ),
-                                ],
-                              ),
-                            ),
+                                  getWidget(widget.question,
+                                      index: widget.index)
+                                ]),
                           );
                         }),
                       ),
@@ -446,7 +425,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
         {
           'stateMachineName': 'Animation_12',
           'animationURL': 'assets/animations/onboarding/floats_in.riv',
-          'foregroundHeight': 0.55,
+          'foregroundHeight': 0.75,
           'loop': true
         },
         {
@@ -483,22 +462,31 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   }
 
   Widget getWidget(Questions question, {int? index}) {
+    final children = <Widget>[];
+
+    children.add(
+      Text(
+        question.title,
+        style: CustomTypography().titleLarge(),
+      ),
+    );
+
     if (question.type == 'time') {
-      return OnboardingTimePicker(
+      children.add(OnboardingTimePicker(
         time: question.answer,
-        subtitle: question.subtitle ?? '',
+        subtitle: question.title,
         onChanged: (String time) {
           setState(() {
             answer = '$time:00'; // TODO Find better way of adding seconds
           });
         },
-      );
+      ));
     } else if (question.type == 'text') {
-      return OnBoardingTextField(
-          subtitle: question.subtitle ?? '', controller: textEditingController);
+      children.add(OnBoardingTextField(
+          subtitle: null, controller: textEditingController));
     } else if (question.type == 'radio') {
-      return OnBoardingRadioOptions(
-        subtitle: question.subtitle ?? '',
+      children.add(OnBoardingRadioOptions(
+        subtitle: null,
         options: question.options!,
         value: answer,
         onChanged: (String? value) {
@@ -506,7 +494,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
             answer = value;
           });
         },
-      );
+      ));
     } else if (question.type == 'multiple') {
       final selected = question.answer != null
           ? json
@@ -516,8 +504,8 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
               .map<String>((element) => element.toString())
               .toList()
           : <String>[];
-      return OnBoardingMultipleOption(
-        subtitle: question.subtitle ?? '',
+      children.add(OnBoardingMultipleOption(
+        subtitle: null,
         options: question.options!,
         selected: selected,
         onChanged: (value) {
@@ -525,11 +513,11 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
             answer = value;
           });
         },
-      );
+      ));
     } else if (question.type == 'slider') {
       final value =
           question.answer != null ? double.parse(question.answer!) : null;
-      return OnBoardingSlider(
+      children.add(OnBoardingSlider(
           scaleMinText: question.minLabel ?? "",
           scaleMaxText: question.maxLabel ?? "",
           scaleMin: question.min!,
@@ -540,29 +528,22 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
             setState(() {
               answer = value.toString();
             });
-          });
+          }));
     } else if (question.type == 'date') {
       final _date = answer != null ? stringDateOnlyToDateTime(answer!) : null;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            question.subtitle ?? "",
-            style: CustomTypography().titleLarge(),
-          ),
-          const SizedBox(
-            height: 12,
-          ),
-          CustomDatePicker(
-              date: _date,
-              onSelect: (date) => setState(() {
-                    answer = formatDateOnly(date);
-                  })),
-        ],
-      );
-    } else {
-      return const SizedBox.shrink();
+      children.add(CustomDatePicker(
+          date: _date,
+          onSelect: (date) => setState(() {
+                answer = formatDateOnly(date);
+              })));
     }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      spacing: 12,
+      children: children,
+    );
   }
 
   void saveAnswer() {}
@@ -582,7 +563,6 @@ class DynamicWelcome extends StatefulWidget {
 class _DynamicWelcomeState extends State<DynamicWelcome> {
   final SetupRepository _repository = SetupRepository();
   late String name;
-  bool canGoBack = false;
 
   late StateMachineController _controller;
 
@@ -590,9 +570,6 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
   void initState() {
     setState(() {
       name = _repository.getParticipant()!.name;
-      if (Navigator.of(context).canPop()) {
-        canGoBack = true;
-      }
     });
     super.initState();
   }
@@ -610,15 +587,16 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
       appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
         scrolledUnderElevation: 0.0,
-        leading: canGoBack
-            ? IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: CustomColors.fillWhite,
-                  size: 32,
-                ))
-            : null,
+        leading: IconButton(
+            onPressed: () => {
+                  RouteService().navigateBack(
+                      context: context, current: 'dynamic_onboarding')
+                },
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: CustomColors.fillWhite,
+              size: 32,
+            )),
       ),
       backgroundColor: CustomColors.backgroundSecondary,
       body: SafeArea(

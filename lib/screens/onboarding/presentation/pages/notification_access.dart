@@ -28,7 +28,6 @@ class NotificationAccessPage extends StatefulWidget {
 
 class _NotificationAccessPageState extends State<NotificationAccessPage>
     with WidgetsBindingObserver {
-  bool canGoBack = false;
   bool batteryOptimization = false;
   bool requested = false;
   bool? granted;
@@ -43,9 +42,6 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     timer.start();
-    if (Navigator.of(context).canPop()) {
-      canGoBack = true;
-    }
     checkBattery();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       scaler = await fontScaler(context);

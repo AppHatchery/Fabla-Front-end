@@ -26,7 +26,6 @@ class _CameraAccessState extends State<CameraAccess>
     with WidgetsBindingObserver {
   bool permission = false;
   bool requested = false;
-  bool canGoBack = false;
 
   late CameraController controller;
 
@@ -37,9 +36,6 @@ class _CameraAccessState extends State<CameraAccess>
   initState() {
     WidgetsBinding.instance.addObserver(this);
     timer.start();
-    if (Navigator.of(context).canPop()) {
-      canGoBack = true;
-    }
     controller = CameraController(
       cameras[0],
       ResolutionPreset.max,
@@ -256,11 +252,8 @@ class _CameraAccessState extends State<CameraAccess>
   }
 
   track(int spent, String status) async {
-    await PendoService.track("Camera Access", {
-      "time_on_page": spent,
-      "status": status,
-      "Font Scaler": "$scaler"
-    });
+    await PendoService.track("Camera Access",
+        {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
   cameraInit() async {

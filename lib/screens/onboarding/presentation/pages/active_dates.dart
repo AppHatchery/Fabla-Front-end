@@ -25,7 +25,6 @@ class ActiveDatesPage extends StatefulWidget {
 class _ActiveDatesPageState extends State<ActiveDatesPage>
     with WidgetsBindingObserver {
   late SetupCubit setupCubit;
-  bool canGoBack = false;
 
   //Animations
   late StateMachineController _controller;
@@ -38,9 +37,6 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     timer.start();
-    if (Navigator.of(context).canPop()) {
-      canGoBack = true;
-    }
     setupCubit = BlocProvider.of<SetupCubit>(context);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       scaler = await fontScaler(context);
@@ -72,6 +68,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
+
     return Scaffold(
         backgroundColor: CustomColors.fillWhite,
         appBar: AppBar(
@@ -88,15 +85,6 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                 color: CustomColors.fillWhite,
                 size: 32,
               )),
-        ),
-        bottomNavigationBar: Container(
-          height: 95,
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: CustomFlatButton(
-                onClick: () => navigateToNextPage(context), text: "Continue"),
-          ),
         ),
         body: SafeArea(
           bottom: false,
@@ -132,66 +120,70 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
   }
 
   Widget loaded(double height, double width, Participant participant) {
-    return Container(
-      color: CustomColors.fillWhite,
-      child: LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: IntrinsicHeight(
-              child: Container(
-                color: CustomColors.backgroundSecondary,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text(
-                        "All set ${participant.name}, here are your active dates",
-                        style: CustomTypography()
-                            .headlineLarge(color: CustomColors.textWhite),
-                        // textScaleFactor: 3.0,
+    return LayoutBuilder(
+      builder: (context, constraints) => Container(
+        color: CustomColors.fillWhite,
+        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+        child: Column(
+          children: [
+            Expanded(
+              child: LayoutBuilder(builder: (context, constraint) {
+                return Container(
+                  color: CustomColors.backgroundSecondary,
+                  height: constraint.maxHeight,
+                  width: width,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        height: constraint.maxHeight,
+                        width: width,
+                        child: AvatarBackground(
+                            height: height,
+                            width: width,
+                            image: "",
+                            avatarType: "animation",
+                            animation:
+                                "assets/animations/onboarding/active_dates.riv",
+                            scrollable: false,
+                            animationHeight: animationHeight,
+                            foregroundHeight: 0.6,
+                            onInit: onInit,
+                            onContinue: () => navigateToNextPage(context),
+                            children: [
+                              Text(
+                                "Study Plan",
+                                style: CustomTypography().titleLarge(),
+                              ),
+                              const SizedBox(
+                                height: 12,
+                              ),
+                              Text(
+                                "All set ${participant.name}, here are your active dates",
+                                style: CustomTypography().titleMedium(
+                                    color: CustomColors.textNormalContent),
+                              ),
+                              const SizedBox(
+                                height: 12,
+                              ),
+                              description(),
+                              const SizedBox(
+                                height: 12,
+                              ),
+                              const CustomCalender(),
+                            ]),
                       ),
-                    ),
-                    const SizedBox(
-                      height: 60,
-                    ),
-                    SizedBox(
-                      height: height * 0.8,
-                      width: width,
-                      child: AvatarBackground(
-                          height: height,
-                          width: width,
-                          image: "",
-                          avatarType: "animation",
-                          animation:
-                              "assets/animations/onboarding/active_dates.riv",
-                          scrollable: false,
-                          animationHeight: animationHeight,
-                          foregroundHeight: 0.6,
-                          onInit: onInit,
-                          onContinue: () => navigateToNextPage(context),
-                          children: [
-                            Text(
-                              "Study Plan",
-                              style: CustomTypography().titleLarge(),
-                            ),
-                            const SizedBox(
-                              height: 12,
-                            ),
-                            description(),
-                            const SizedBox(
-                              height: 12,
-                            ),
-                            const CustomCalender(),
-                            const SizedBox(height: 6)
-                          ]),
-                    )
-                  ],
-                ),
-              ),
+                    ],
+                  ),
+                );
+              }),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: CustomFlatButton(
+                  onClick: () => navigateToNextPage(context), text: "Continue"),
+            )
+          ],
         ),
       ),
     );
@@ -227,11 +219,8 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
   }
 
   track(int spent, String status) async {
-    await PendoService.track("Active Dates", {
-      "time_on_page": spent,
-      "status": status,
-      "Font Scaler": "$scaler"
-    });
+    await PendoService.track("Active Dates",
+        {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
   void load() {
