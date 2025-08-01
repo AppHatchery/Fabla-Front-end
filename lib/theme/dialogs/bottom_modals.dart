@@ -2316,6 +2316,7 @@ class BottomTimerModal extends StatefulWidget {
   final VoidCallback? onComplete;
   final Function(Duration)? onTimeUpdate; // Callback to update parent
   final void Function(bool isPaused, bool isStopped, Duration remaining) onPauseStateChanged;
+  final bool startPaused;
 
   //Direct callback functions for better control
   final Future<void> Function() stopAlarmCallback;
@@ -2330,6 +2331,7 @@ class BottomTimerModal extends StatefulWidget {
     required this.onPauseStateChanged,
     required this.stopAlarmCallback,
     required this.stopShakeCallback,
+    this.startPaused = false,
   }) : super(key: key);
 
   @override
@@ -2339,7 +2341,7 @@ class BottomTimerModal extends StatefulWidget {
 class _BottomTimerModalState extends State<BottomTimerModal> {
   late Duration remaining;
   Timer? _timer;
-  bool isRunning = true;
+  late bool isRunning;
   bool showTimeUpOverlay = false;
 
   //Track expanded/collapsed state
@@ -2371,6 +2373,10 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   void initState() {
     super.initState();
     remaining = widget.initialDuration;
+
+    //Set the initial running state based on widget parameter
+    isRunning = !widget.startPaused;
+
     // Use post-frame callback to safely access MediaQuery
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -2379,7 +2385,9 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
         });
       }
     });
-    startTimer();
+    if(isRunning){
+      startTimer();
+    }
   }
 
   @override

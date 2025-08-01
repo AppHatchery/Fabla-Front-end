@@ -923,7 +923,7 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   /// This method starts the timer and shows the modal once.
-  void _startAndShowModal() async {
+  void _startAndShowModal({ bool startPaused = false}) async {
     // Check permissions first
     final permission = await seekPermission();
     if (!permission) {
@@ -931,19 +931,23 @@ class _TimerWidgetState extends State<TimerWidget>
     }
 
     setState(() {
-      inProgress = true;
+      // if starting paused, `inProgress` will be false, but pause is true`
+      inProgress = !startPaused;
+      paused = startPaused;
       complete = false;
       remaining = duration; // Reset remaining time to the full duration
     });
 
-    // Ensure any previous alarms/sounds are cancelled
-    await stopAlarm();
+    if(!startPaused){
+      // Ensure any previous alarms/sounds are cancelled
+      await stopAlarm();
 
-    // Start the sound when timer begins
-    await startSound();
+      // Start the sound when timer begins
+      await startSound();
 
-    // Set the alarm for when timer completes
-    await setAlarm(duration);
+      // Set the alarm for when timer completes
+      await setAlarm(duration);
+    }
 
     // Show the bottom modal ONCE
     if (_controller == null) {
@@ -951,6 +955,7 @@ class _TimerWidgetState extends State<TimerWidget>
             (context) {
           return BottomTimerModal(
             initialDuration: duration,
+            startPaused: startPaused,
             onComplete: _onTimerComplete,
             onClose: _onTimerClose,
             onTimeUpdate: _onTimeUpdate,
@@ -970,6 +975,7 @@ class _TimerWidgetState extends State<TimerWidget>
         setState(() {
           showPersistentSheet = false;
           inProgress = false;
+          paused = false; //Reset paused state on close
         });
       });
     }
@@ -1004,6 +1010,11 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   void showMinuteSecondPicker() async {
+
+    //Capture the state before showing the picker
+    final bool wasPaused = paused;
+    final bool wasNeverStarted = !inProgress && !paused;
+
     // Show the time picker modal.
     final result = await showModalBottomSheet<Duration>(
       context: context,
@@ -1019,29 +1030,44 @@ class _TimerWidgetState extends State<TimerWidget>
     );
 
     // Check if the user saved a new time and the widget is still on screen.
-    if (result != null && mounted && paused) {
-      // If a timer modal is already open (in a paused state), close it first.
-      if (_controller != null) {
-        // The `close()` method starts the dismissal animation.
-        _controller?.close();
+    if (result != null && mounted) {
 
-        // We must wait for the sheet to be fully dismissed before creating a new one.
-        // The `closed` future lets us do this safely. The `.then()` callback attached
-        // in `_startAndShowModal` will handle resetting `_controller` to null.
-        await _controller?.closed;
+      //timer was not running.
+      if(wasNeverStarted){
+        setState(() {
+          duration = result;
+          pickerMinutes = result.inMinutes;
+          pickerSeconds = result.inSeconds.remainder(60);
+        });
+        await stopAlarm();
+        _startAndShowModal(startPaused: false);
       }
+      // timer was paused. replace the modal and keep it paused
+      if(wasPaused){
+        if(_controller != null){
+          _controller?.close();
+          await _controller?.closed;
+        }
+        setState(() {
+          duration = result;
+          pickerMinutes = result.inMinutes;
+          pickerSeconds = result.inSeconds.remainder(60);
+        });
+        _startAndShowModal(startPaused: true);
+      }
+    // Timer was running, update the duration and reset the remaining time
+      if(!wasNeverStarted && !wasPaused){
+        setState(() {
+          duration = result;
+          remaining = result;
+          pickerMinutes = result.inMinutes;
+          pickerSeconds = result.inSeconds.remainder(60);
+        });
 
-      // Now that any old modal is gone, update the state with the new duration.
-      setState(() {
-        duration = result;
-        // Update the display text in the editable controls as well.
-        pickerMinutes = result.inMinutes;
-        pickerSeconds = result.inSeconds.remainder(60);
-      });
-
-      // immediately start the timer with the new duration.
-      // This method handles all the necessary state changes and shows the new modal.
-      _startAndShowModal();
+        // If the timer was running, we need to stop the current alarm and set a new one
+        await stopAlarm();
+        await setAlarm(duration);
+      }
     }
   }
 
