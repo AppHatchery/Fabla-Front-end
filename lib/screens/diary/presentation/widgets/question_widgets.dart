@@ -696,11 +696,15 @@ class _TimerWidgetState extends State<TimerWidget>
   late Duration remaining;
 
   bool inProgress = false;
+  bool paused = false;
   bool complete = false;
   bool hasError = false;
 
   AudioPlayer? player;
   late AnimationController _shakeController;
+
+  PersistentBottomSheetController? _controller;
+  bool showPersistentSheet = false;
 
   late TextEditingController minuteController;
   late TextEditingController secondsController;
@@ -752,10 +756,8 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   void _onTimerClose() async {
-    setState(() {
-      inProgress = false;
-      complete = false; // Reset complete state when modal closes
-    });
+    inProgress = false;
+    complete = false; // Reset complete state when modal closes
     // Stop shaking and reset animation
     _shakeController.stop();
     _shakeController.reset();
@@ -781,13 +783,13 @@ class _TimerWidgetState extends State<TimerWidget>
             if (!complete) ...[
               // The initial view is now just the editable controls
               editableControls(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 36),
               // --- Action Buttons ---
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: inProgress
+                    backgroundColor:   (inProgress || paused)
                         ? Colors.grey // Grey when disabled
                         : CustomColors.productNormal,
                     shape: RoundedRectangleBorder(
@@ -795,7 +797,7 @@ class _TimerWidgetState extends State<TimerWidget>
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 18),
                   ),
-                  onPressed: inProgress ? null : _startAndShowModal,
+                  onPressed:   (inProgress || paused) ? null : _startAndShowModal,
                   child: Text(
                     "Start Timer Now",
                     style: CustomTypography().button(
@@ -804,13 +806,14 @@ class _TimerWidgetState extends State<TimerWidget>
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(
-                      color: inProgress ? Colors.grey : CustomColors.productNormal,
+                      color:
+                      (inProgress || paused) ? Colors.grey : CustomColors.productNormal,
                       width: 2,
                     ),
                     shape: RoundedRectangleBorder(
@@ -818,19 +821,21 @@ class _TimerWidgetState extends State<TimerWidget>
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 18),
                   ),
-                  onPressed: inProgress
+                  onPressed: (inProgress || paused)
                       ? null
                       : () {
-                    setState(() {
-                      complete = true;
-                      inProgress = false;
-                    });
-                    widget.respond('Complete');
-                  },
+                          setState(() {
+                            complete = true;
+                            inProgress = false;
+                            paused = false;
+                          });
+                          widget.respond('Complete');
+                        },
                   child: Text(
                     "I Have Completed The Task",
                     style: CustomTypography().button(
-                      color: inProgress ? Colors.grey : CustomColors.productNormal,
+                      color:
+                      (inProgress || paused) ? Colors.grey : CustomColors.productNormal,
                     ),
                   ),
                 ),
@@ -891,12 +896,12 @@ class _TimerWidgetState extends State<TimerWidget>
 
   Widget editableControls() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 12.0),
       decoration: BoxDecoration(
           color: CustomColors.fillWhite,
           borderRadius: BorderRadius.circular(20),
           border:
-          Border.all(color: CustomColors.productBorderNormal, width: 2)),
+              Border.all(color: CustomColors.productBorderNormal, width: 2)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -941,31 +946,31 @@ class _TimerWidgetState extends State<TimerWidget>
     await setAlarm(duration);
 
     // Show the bottom modal ONCE
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      isDismissible: true,
-      builder: (context) {
-        return BottomTimerModal(
-          initialDuration: duration,
-          onComplete: _onTimerComplete,
-          onClose: _onTimerClose,
-          onTimeUpdate: _onTimeUpdate,
-          onPauseStateChanged: handleAlarmPauseResume,
-          stopAlarmCallback: stopAlarm,
-          stopShakeCallback: () {
-            _shakeController.stop();
-            _shakeController.reset();
-          },
-        );
-      },
-    );
+    if (_controller == null) {
+      _controller = Scaffold.of(context).showBottomSheet(
+            (context) {
+          return BottomTimerModal(
+            initialDuration: duration,
+            onComplete: _onTimerComplete,
+            onClose: _onTimerClose,
+            onTimeUpdate: _onTimeUpdate,
+            onPauseStateChanged: handleAlarmPauseResume,
+            stopAlarmCallback: stopAlarm,
+            stopShakeCallback: () {
+              _shakeController.stop();
+              _shakeController.reset();
+            },
+          );
+        },
+        backgroundColor: Colors.transparent,
+      );
 
-    // This runs after the modal is dismissed
-    if (mounted && !inProgress) {
-      setState(() {
-        inProgress = false;
+      _controller!.closed.then((_) {
+        _controller = null;
+        setState(() {
+          showPersistentSheet = false;
+          inProgress = false;
+        });
       });
     }
   }
@@ -985,18 +990,21 @@ class _TimerWidgetState extends State<TimerWidget>
       // If pausing, stop the alarm and update state
       setState(() {
         inProgress = false;
+        paused = true;
       });
       await stopAlarm();
     } else {
       // If resuming, reschedule alarm with remaining time and update state
       setState(() {
         inProgress = true;
+        paused = false;
       });
       await setAlarm(remaining);
     }
   }
 
   void showMinuteSecondPicker() async {
+    // Show the time picker modal.
     final result = await showModalBottomSheet<Duration>(
       context: context,
       backgroundColor: Colors.white,
@@ -1005,22 +1013,35 @@ class _TimerWidgetState extends State<TimerWidget>
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        return CustomMinuteSecondPicker();
+        // Pass the current duration so the picker starts at the right value.
+        return CustomMinuteSecondPicker(duration: duration);
       },
     );
-    if (result != null) {
+
+    // Check if the user saved a new time and the widget is still on screen.
+    if (result != null && mounted && paused) {
+      // If a timer modal is already open (in a paused state), close it first.
+      if (_controller != null) {
+        // The `close()` method starts the dismissal animation.
+        _controller?.close();
+
+        // We must wait for the sheet to be fully dismissed before creating a new one.
+        // The `closed` future lets us do this safely. The `.then()` callback attached
+        // in `_startAndShowModal` will handle resetting `_controller` to null.
+        await _controller?.closed;
+      }
+
+      // Now that any old modal is gone, update the state with the new duration.
       setState(() {
         duration = result;
-        remaining = result;
+        // Update the display text in the editable controls as well.
         pickerMinutes = result.inMinutes;
         pickerSeconds = result.inSeconds.remainder(60);
-        minuteController.text = formatDurationMMOnly(result);
-        secondsController.text = formatDurationSSOnly(result);
-        hasError = false;
-        _shakeController.stop();
-        _shakeController.reset();
       });
-      await stopAlarm();
+
+      // immediately start the timer with the new duration.
+      // This method handles all the necessary state changes and shows the new modal.
+      _startAndShowModal();
     }
   }
 
@@ -1059,7 +1080,7 @@ class _TimerWidgetState extends State<TimerWidget>
                 fadeSteps: List.generate(10, (index) {
                   return VolumeFadeStep(const Duration(seconds: 3),
                       0.1 + (index * 0.1) // This creates values from 0.1 to 1.0
-                  );
+                      );
                 }),
                 volume: 1.0),
             warningNotificationOnKill: Platform.isIOS,

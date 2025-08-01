@@ -2504,148 +2504,157 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
           topRight: Radius.circular(20),
         ),
       ),
-      child: SizedBox.expand(
-        child: SafeArea(
-          child: Stack(
-            children: [
-              // Collapse button (top-right)
-              Positioned(
-                top: 16,
-                right: 8,
-                child: IconButton(
-                  icon: Icon(
-                    _isCollapsed
-                        ? CupertinoIcons.chevron_up
-                        : CupertinoIcons.chevron_down,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                  onPressed: toggleHeight,
-                ),
-              ),
-
-              // Timer at top center
-              Positioned(
-                top: 64,
-                left: 0,
-                right: 0,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/images/icons/timer.png',
-                      height: 44,
-                      width: 44,
-                      color: CustomColors.textWhite,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      formatDuration(remaining),
-                      style: const TextStyle(
-                        color: CustomColors.textWhite,
-                        fontSize: 44,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Animation
-              if (!_isCollapsed)
-                Center(
-                  child: IgnorePointer(
-                    child: SizedBox(
-                      height: 300,
-                      width: 300,
-                      child: r.RiveAnimation.asset(
-                        'assets/animations/onboarding/floats_in.riv',
-                        fit: BoxFit.contain,
-                        onInit: _onInit,
-                      ),
-                    ),
-                  ),
-                ),
-
-              // Controls at bottom
-              if (!_isCollapsed)
+      clipBehavior: Clip.antiAlias, // Prevents overflow
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Collapse button
                 Positioned(
-                  bottom: 150,
+                  top: 16,
+                  right: 8,
+                  child: IconButton(
+                    icon: Icon(
+                      _isCollapsed
+                          ? CupertinoIcons.chevron_up
+                          : CupertinoIcons.chevron_down,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                    onPressed: toggleHeight,
+                  ),
+                ),
+
+                // Timer display
+                Positioned(
+                  top: 64,
                   left: 0,
                   right: 0,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        height: 55,
-                        width: 90,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              color: CustomColors.fillWhite, width: 1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.refresh_rounded,
-                              color: Colors.white, size: 36),
-                          onPressed: restartTimer,
-                          tooltip: 'Restart',
-                        ),
+                      Image.asset(
+                        'assets/images/icons/timer.png',
+                        height: 44,
+                        width: 44,
+                        color: CustomColors.textWhite,
                       ),
-                      const SizedBox(width: 32),
-                      Container(
-                        height: 55,
-                        width: 90,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              color: CustomColors.fillWhite, width: 1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: IconButton(
-                          icon: Icon(
-                            isRunning
-                                ? Icons.pause_rounded
-                                : Icons.play_arrow_rounded,
-                            color: Colors.white,
-                            size: 36,
-                          ),
-                          onPressed: () {
-                            isRunning ? pauseTimer() : resumeTimer();
-                          },
-                          tooltip: isRunning ? 'Pause' : 'Resume',
+                      const SizedBox(width: 8),
+                      Text(
+                        formatDuration(remaining),
+                        style: const TextStyle(
+                          color: CustomColors.textWhite,
+                          fontSize: 44,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2,
                         ),
                       ),
                     ],
                   ),
                 ),
 
-              //overlay for time's up
-              if (showTimeUpOverlay)
-                Container(
-                    color: Colors.black.withOpacity(0.5),
-                    child: Center(
+                // Rive animation
+                if (!_isCollapsed)
+                  Positioned.fill(
+                    top: 140,
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: IgnorePointer(
+                        child: SizedBox(
+                          height: 300,
+                          width: 300,
+                          child: r.RiveAnimation.asset(
+                            'assets/animations/onboarding/floats_in.riv',
+                            fit: BoxFit.contain,
+                            onInit: _onInit,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Timer controls
+                if (!_isCollapsed)
+                  Positioned(
+                    bottom: 150,
+                    left: 0,
+                    right: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Restart
+                        Container(
+                          height: 55,
+                          width: 90,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                                color: CustomColors.fillWhite, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.refresh_rounded,
+                                color: Colors.white, size: 36),
+                            onPressed: restartTimer,
+                            tooltip: 'Restart',
+                          ),
+                        ),
+                        const SizedBox(width: 32),
+                        // Pause/Play
+                        Container(
+                          height: 55,
+                          width: 90,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                                color: CustomColors.fillWhite, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              isRunning
+                                  ? Icons.pause_rounded
+                                  : Icons.play_arrow_rounded,
+                              color: Colors.white,
+                              size: 36,
+                            ),
+                            onPressed: () {
+                              isRunning ? pauseTimer() : resumeTimer();
+                            },
+                            tooltip: isRunning ? 'Pause' : 'Resume',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Overlay when timer is done
+                if (showTimeUpOverlay)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.5),
+                      child: Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    CupertinoIcons.bell_fill,
-                                    color: CustomColors.fillWhite,
-                                    size: 48,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.bell_fill,
+                                  color: CustomColors.fillWhite,
+                                  size: 48,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Time's Up!",
+                                  style: CustomTypography().headlineLarge(
+                                    color: CustomColors.textWhite,
                                   ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    "Time's Up!",
-                                    style: CustomTypography().headlineLarge(
-                                      color: CustomColors.textWhite,
-                                    ),
-                                  ),
-                                ]
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 30),
-                            //stop alarm button - FIXED
                             SizedBox(
                               height: 55,
                               width: 140,
@@ -2655,12 +2664,10 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  padding: const EdgeInsets.symmetric(vertical: 18),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 18),
                                 ),
-                                onPressed: () async {
-                                  // FIXED: Call the corrected method
-                                  await stopAlarmAndAnimation();
-                                },
+                                onPressed: stopAlarmAndAnimation,
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -2672,7 +2679,8 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
                                     const SizedBox(width: 8),
                                     Text(
                                       "Stop",
-                                      style: CustomTypography().button(color: Colors.white),
+                                      style: CustomTypography()
+                                          .button(color: Colors.white),
                                     ),
                                   ],
                                 ),
@@ -2706,11 +2714,13 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
                               ),
                             ),
                           ],
-                        )
-                    )
-                )
-            ],
-          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );
