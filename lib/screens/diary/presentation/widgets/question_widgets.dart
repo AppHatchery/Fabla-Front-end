@@ -807,6 +807,8 @@ class _TimerWidgetState extends State<TimerWidget>
 
   void _pauseResumeTimer() => paused ? _resumeTimer() : _pauseTimer();
 
+  void _playBlack() => widget.playbackControls ? _pauseResumeTimer() : null;
+
   void _onTimerComplete() {
     setState(() {
       inProgress = false;
@@ -824,7 +826,7 @@ class _TimerWidgetState extends State<TimerWidget>
       paused = false;
       complete = false;
       showTimeUpOverlay = false;
-      showPersistentSheet = true;
+      showPersistentSheet = false;
     });
     _shakeController.reset();
     stopAlarm();
@@ -865,11 +867,11 @@ class _TimerWidgetState extends State<TimerWidget>
                 _onTimerClose();
               },
               onRestart: () {
-                _restartTimer();
+                widget.playbackControls ? _restartTimer() : null;
                 _refreshModal();
               },
               onPauseResume: () {
-                _pauseResumeTimer();
+                _playBlack();
                 _refreshModal();
               },
               onStop: () {
@@ -1051,9 +1053,12 @@ class _TimerWidgetState extends State<TimerWidget>
             "$pickerMinutes min ${pickerSeconds.toString().padLeft(2, '0')} sec",
             style: CustomTypography().titleMedium(color: CustomColors.textNormalContent),
           ),
+
           IconButton(
-            onPressed: _showMinuteSecondPicker,
-            icon: const Icon(Icons.edit_outlined, color: CustomColors.productNormal),
+            onPressed: widget.userInteraction ? _showMinuteSecondPicker : null,
+            icon: widget.userInteraction
+                ? const Icon(Icons.edit_outlined, color: CustomColors.productNormal)
+                : const SizedBox.shrink(),
           ),
         ],
       ),
