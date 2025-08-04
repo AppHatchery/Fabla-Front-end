@@ -388,7 +388,143 @@ class _CustomTimeElapsedPickerState extends State<CustomTimeElapsedPicker> {
   }
 }
 
+// class _CustomTimeElapsedPickerState extends State<CustomTimeElapsedPicker> {
+//   late Duration duration;
+//   late FixedExtentScrollController hoursController;
+//   late FixedExtentScrollController minutesController;
 
+//   @override
+//   void initState() {
+//     duration = widget.duration ?? const Duration(hours: 0, minutes: 0);
+//     hoursController = FixedExtentScrollController(
+//       initialItem: duration.inHours,
+//     );
+//     minutesController = FixedExtentScrollController(
+//       initialItem: duration.inMinutes.remainder(60),
+//     );
+//     super.initState();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final width = MediaQuery.of(context).size.width;
+//     return SizedBox(
+//       width: width,
+//       child: Padding(
+//         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Row(
+//               children: [
+//                 const Expanded(flex: 1, child: SizedBox()),
+//                 Expanded(
+//                     flex: 5,
+//                     child: Text(
+//                       widget.title,
+//                       style: CustomTypography().titleLarge(),
+//                       textAlign: TextAlign.center,
+//                     )),
+//                 Expanded(
+//                   flex: 1,
+//                   child: Container(
+//                       alignment: Alignment.centerRight,
+//                       child: IconButton(
+//                           onPressed: () => Navigator.pop(context),
+//                           icon: const Icon(
+//                             Icons.close,
+//                             color: CustomColors.textNormalContent,
+//                           ))),
+//                 )
+//               ],
+//             ),
+//             const SizedBox(
+//               height: 32,
+//             ),
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.center,
+//               children: [
+//                 SizedBox(
+//                   height: 200,
+//                   width: width / 2,
+//                   child: Center(
+//                     child: Row(
+//                       children: [
+//                         Text("Hours:",
+//                             style: CustomTypography().titleMedium(
+//                                 color: CustomColors.textTertiaryContent)),
+//                         Expanded(
+//                           child: SizedBox(
+//                             child: ListWheelScrollView.useDelegate(
+//                               controller: hoursController,
+//                               onSelectedItemChanged: (value) => setState(() {
+//                                 duration = Duration(
+//                                     hours: value,
+//                                     minutes: duration.inMinutes.remainder(60));
+//                               }),
+//                               physics: const FixedExtentScrollPhysics(),
+//                               perspective: 0.01,
+//                               diameterRatio: 1,
+//                               itemExtent: 50,
+//                               overAndUnderCenterOpacity: 0.3,
+//                               squeeze: 2,
+//                               childDelegate: ListWheelChildBuilderDelegate(
+//                                 builder: (context, index) {
+//                                   return Hours(hour: index);
+//                                 },
+//                                 childCount: 24,
+//                               ),
+//                             ),
+//                           ),
+//                         ),
+//                         Text("Mins:",
+//                             style: CustomTypography().titleMedium(
+//                                 color: CustomColors.textTertiaryContent)),
+//                         Expanded(
+//                           child: SizedBox(
+//                             height: 200,
+//                             width: 80,
+//                             child: ListWheelScrollView.useDelegate(
+//                               controller: minutesController,
+//                               onSelectedItemChanged: (value) => setState(() {
+//                                 duration = Duration(
+//                                     hours: duration.inHours, minutes: value);
+//                               }),
+//                               physics: const FixedExtentScrollPhysics(),
+//                               perspective: 0.01,
+//                               diameterRatio: 1,
+//                               itemExtent: 50,
+//                               overAndUnderCenterOpacity: 0.3,
+//                               squeeze: 2,
+//                               childDelegate: ListWheelChildBuilderDelegate(
+//                                 builder: (context, index) {
+//                                   return Minutes(mins: index);
+//                                 },
+//                                 childCount: 60,
+//                               ),
+//                             ),
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//             const SizedBox(
+//               height: 24,
+//             ),
+//             CustomElevatedButton(onClick: () => save(), text: "SAVE"),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   void save() {
+//     Navigator.pop(context, duration);
+//   }
+// }
 
 class CustomMinuteSecondPicker extends StatefulWidget {
   final String title;
@@ -491,38 +627,34 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                   ),
                 ),
                 Text("mins",
-                    style: CustomTypography()
-                        .titleMedium(color: Colors.black)),
-
-
-               SizedBox(
-                    height: 200,
-                    width: 100,
-                    child: ListWheelScrollView.useDelegate(
-                      controller: secondsController,
-                      onSelectedItemChanged: (value) {
-                        setState(() {
-                          seconds = value;
-                        });
+                    style: CustomTypography().titleMedium(color: Colors.black)),
+                SizedBox(
+                  height: 200,
+                  width: 100,
+                  child: ListWheelScrollView.useDelegate(
+                    controller: secondsController,
+                    onSelectedItemChanged: (value) {
+                      setState(() {
+                        seconds = value;
+                      });
+                    },
+                    physics: const FixedExtentScrollPhysics(),
+                    perspective: 0.01,
+                    diameterRatio: 1,
+                    itemExtent: 50,
+                    overAndUnderCenterOpacity: 0.3,
+                    squeeze: 2,
+                    childDelegate: ListWheelChildBuilderDelegate(
+                      builder: (context, index) {
+                        return Minutes(mins: index);
                       },
-                      physics: const FixedExtentScrollPhysics(),
-                      perspective: 0.01,
-                      diameterRatio: 1,
-                      itemExtent: 50,
-                      overAndUnderCenterOpacity: 0.3,
-                      squeeze: 2,
-                      childDelegate: ListWheelChildBuilderDelegate(
-                        builder: (context, index) {
-                          return Minutes(mins: index);
-                        },
-                        childCount: 60,
-                      ),
+                      childCount: 60,
                     ),
                   ),
-                Text("sec",
-                    style: CustomTypography()
-                        .titleMedium(color: Colors.black),
-
+                ),
+                Text(
+                  "sec",
+                  style: CustomTypography().titleMedium(color: Colors.black),
                 ),
               ],
             ),
