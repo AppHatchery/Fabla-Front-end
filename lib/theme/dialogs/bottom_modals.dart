@@ -2321,7 +2321,7 @@ class BottomTimerModal extends StatefulWidget {
   final VoidCallback onStop;
 
   const BottomTimerModal({
-    Key? key,
+    super.key,
     required this.remaining,
     required this.isRunning,
     required this.isPaused,
@@ -2330,7 +2330,7 @@ class BottomTimerModal extends StatefulWidget {
     required this.onRestart,
     required this.onPauseResume,
     required this.onStop,
-  }) : super(key: key);
+  });
 
   @override
   State<BottomTimerModal> createState() => _BottomTimerModalState();
@@ -2362,27 +2362,20 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     // Handle overlay visibility when showTimeUpOverlay changes
     if (widget.showTimeUpOverlay != oldWidget.showTimeUpOverlay) {
       if (widget.showTimeUpOverlay) {
-        if (_isCollapsed) {
-          // Expand first, then show overlay
-          setState(() {
-            _isCollapsed = false;
-            _containerHeight = MediaQuery.of(context).size.height * 0.85;
-            _overlayVisible = false;
-          });
+        // Always expand when time is up and show overlay
+        setState(() {
+          _isCollapsed = false;
+          _containerHeight = MediaQuery.of(context).size.height * 0.85;
+        });
 
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (mounted && widget.showTimeUpOverlay) {
-              setState(() {
-                _overlayVisible = true;
-              });
-            }
-          });
-        } else {
-          // Show overlay immediately
-          setState(() {
-            _overlayVisible = true;
-          });
-        }
+        // Show overlay with a small delay to ensure container is expanded
+        Future.delayed(const Duration(milliseconds: 150), () {
+          if (mounted && widget.showTimeUpOverlay) {
+            setState(() {
+              _overlayVisible = true;
+            });
+          }
+        });
       } else {
         setState(() {
           _overlayVisible = false;
@@ -2409,6 +2402,9 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   }
 
   void _toggleHeight() {
+    // Don't allow collapsing when time is up
+    if (widget.showTimeUpOverlay) return;
+
     setState(() {
       _isCollapsed = !_isCollapsed;
       final screenHeight = MediaQuery.of(context).size.height;
@@ -2427,33 +2423,35 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      width: width,
-      height: _containerHeight,
-      decoration: const BoxDecoration(
-        color: Color(0xFF4186F5),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+    return SingleChildScrollView(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        width: width,
+        height: _containerHeight,
+        decoration: const BoxDecoration(
+          color: Color(0xFF4186F5),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
         ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                _buildCollapseButton(),
-                _buildTimerDisplay(),
-                if (!_isCollapsed) _buildRiveAnimation(),
-                if (!_isCollapsed) _buildTimerControls(),
-                if (widget.showTimeUpOverlay && _overlayVisible) _buildTimeUpOverlay(),
-              ],
-            );
-          },
+        clipBehavior: Clip.antiAlias,
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  _buildCollapseButton(),
+                  _buildTimerDisplay(),
+                  if (!_isCollapsed) _buildRiveAnimation(),
+                  if (!_isCollapsed) _buildTimerControls(),
+                  if (widget.showTimeUpOverlay && _overlayVisible) _buildTimeUpOverlay(),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -2572,7 +2570,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   Widget _buildTimeUpOverlay() {
     return Positioned.fill(
       child: Container(
-        color: Colors.black.withOpacity(0.5),
+        color: Colors.black.withOpacity(0.7),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -2596,14 +2594,24 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
               _buildOverlayButton(
                 icon: CupertinoIcons.stop_fill,
                 text: "Stop",
-                onPressed: widget.onStop,
+                onPressed: () {
+                  setState(() {
+                    _overlayVisible = false;
+                  });
+                  widget.onStop();
+                },
                 backgroundColor: CustomColors.productNormal,
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
               _buildOverlayButton(
                 icon: Icons.refresh_rounded,
                 text: "Restart",
-                onPressed: widget.onRestart,
+                onPressed: () {
+                  setState(() {
+                    _overlayVisible = false;
+                  });
+                  widget.onRestart();
+                },
                 backgroundColor: Colors.transparent,
                 hasBorder: true,
               ),
@@ -2627,11 +2635,12 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       child: hasBorder
           ? Container(
         decoration: BoxDecoration(
-          border: Border.all(color: CustomColors.fillWhite, width: 1),
+          border: Border.all(color: CustomColors.fillWhite, width: 2),
           borderRadius: BorderRadius.circular(12),
         ),
         child: InkWell(
           onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

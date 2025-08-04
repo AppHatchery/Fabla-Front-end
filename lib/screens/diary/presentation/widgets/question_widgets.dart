@@ -694,50 +694,44 @@ class TimerWidget extends StatefulWidget {
 
 class _TimerWidgetState extends State<TimerWidget>
     with TickerProviderStateMixin, WidgetsBindingObserver {
-  // Core timer state
+  // Timer state
   late Duration duration;
   late Duration remaining;
   Timer? _timer;
 
-  // Timer states
   bool inProgress = false;
   bool paused = false;
   bool complete = false;
-  bool hasError = false;
   bool showTimeUpOverlay = false;
 
-  // Audio and animation
   AudioPlayer? player;
   late AnimationController _shakeController;
 
-  // Modal state
-  PersistentBottomSheetController? _controller;
-  bool showPersistentSheet = false;
-
-  // UI controllers
   late TextEditingController minuteController;
   late TextEditingController secondsController;
   int pickerMinutes = 1;
   int pickerSeconds = 0;
 
+  PersistentBottomSheetController? _controller;
+  bool showPersistentSheet = false;
+  void Function()? _updateModalCallback;
+  int? currentAlarmId; // Track current alarm ID
+
+  // === Constants ===
+  final verticalButtonPadding = const EdgeInsets.symmetric(vertical: 18.0);
+  final buttonShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(12));
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _initializeTimer();
-    _initializeControllers();
-  }
-
-  void _initializeTimer() {
     duration = widget.time;
     remaining = widget.time;
     pickerMinutes = duration.inMinutes;
     pickerSeconds = duration.inSeconds.remainder(60);
-  }
 
-  void _initializeControllers() {
-    minuteController = TextEditingController(text: _formatDurationMMOnly(duration));
-    secondsController = TextEditingController(text: _formatDurationSSOnly(duration));
+    minuteController = TextEditingController(text: duration.mm);
+    secondsController = TextEditingController(text: duration.ss);
 
     _shakeController = AnimationController(
       duration: const Duration(milliseconds: 500),
@@ -748,29 +742,23 @@ class _TimerWidgetState extends State<TimerWidget>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _cleanup();
-    super.dispose();
-  }
-
-  void _cleanup() {
     _timer?.cancel();
     player?.dispose();
     _shakeController.dispose();
     stopAlarm();
+    super.dispose();
   }
-
-  // === TIMER CORE LOGIC ===
 
   void _startTimer() {
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
-
       setState(() {
         if (remaining.inSeconds > 0 && inProgress && !paused) {
-          remaining = remaining - const Duration(seconds: 1);
+          remaining -= const Duration(seconds: 1);
+          _refreshModal();
         } else if (remaining.inSeconds <= 0) {
-          timer.cancel();
+          _timer?.cancel();
           _onTimerComplete();
         }
       });
@@ -778,38 +766,30 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   void _pauseTimer() {
-    setState(() {
-      inProgress = false;
-      paused = true;
-      showTimeUpOverlay = false;
-    });
-    _timer?.cancel();
+    setState(() => paused = true);
     stopAlarm();
+    _timer?.cancel();
   }
 
   void _resumeTimer() {
-    if (inProgress) return;
-    setState(() {
-      inProgress = true;
-      paused = false;
-    });
+    setState(() => paused = false);
+    // Set alarm for remaining time when resuming
     setAlarm(remaining);
     _startTimer();
   }
 
   void _restartTimer() {
     stopAlarm();
-    _shakeController.stop();
     _shakeController.reset();
-
     setState(() {
       remaining = duration;
       inProgress = true;
       paused = false;
-      showTimeUpOverlay = false;
       complete = false;
+      showTimeUpOverlay = false;
     });
-
+    // Play sound and set alarm for restart
+    _startSound();
     setAlarm(duration);
     _startTimer();
   }
@@ -822,17 +802,10 @@ class _TimerWidgetState extends State<TimerWidget>
     });
     _timer?.cancel();
     stopAlarm();
-    _shakeController.stop();
     _shakeController.reset();
   }
 
-  void _pauseResumeTimer() {
-    if (inProgress && !paused) {
-      _pauseTimer();
-    } else {
-      _resumeTimer();
-    }
-  }
+  void _pauseResumeTimer() => paused ? _resumeTimer() : _pauseTimer();
 
   void _onTimerComplete() {
     setState(() {
@@ -840,13 +813,9 @@ class _TimerWidgetState extends State<TimerWidget>
       complete = true;
       showTimeUpOverlay = true;
     });
-
-    // Start shaking animation
-    _shakeController.forward().then((_) {
-      _shakeController.repeat();
-    });
-
+    _shakeController.forward().then((_) => _shakeController.repeat());
     widget.respond("timer");
+    _refreshModal();
   }
 
   void _onTimerClose() {
@@ -855,67 +824,80 @@ class _TimerWidgetState extends State<TimerWidget>
       paused = false;
       complete = false;
       showTimeUpOverlay = false;
+      showPersistentSheet = true;
     });
-
-    _shakeController.stop();
     _shakeController.reset();
     stopAlarm();
   }
 
-  // === MODAL MANAGEMENT ===
-
-  void _startAndShowModal({bool startPaused = false}) async {
-    final permission = await _seekPermission();
-    if (!permission) return;
+  Future<void> _startAndShowModal({bool startPaused = false}) async {
+    if (!await _seekPermission()) return;
 
     setState(() {
-      inProgress = !startPaused;
+      inProgress = true;
       paused = startPaused;
       complete = false;
       remaining = duration;
+      showTimeUpOverlay = false;
+      showPersistentSheet = true;
     });
 
     if (!startPaused) {
-      await stopAlarm();
       await _startSound();
       await setAlarm(duration);
     }
 
-    if (_controller == null) {
+    _startSound();
+    _startTimer();
+
+    if (showPersistentSheet) {
       _controller = Scaffold.of(context).showBottomSheet(
-            (context) => BottomTimerModal(
-          remaining: remaining,
-          isRunning: inProgress,
-          isPaused: paused,
-          showTimeUpOverlay: showTimeUpOverlay,
-          onClose: _onTimerClose,
-          onRestart: _restartTimer,
-          onPauseResume: _pauseResumeTimer,
-          onStop: _stopTimer,
+            (context) => StatefulBuilder(
+          builder: (context, setModalState) {
+            _updateModalCallback = () => setModalState(() {});
+            return BottomTimerModal(
+              remaining: remaining,
+              isRunning: inProgress && !paused,
+              isPaused: paused,
+              showTimeUpOverlay: showTimeUpOverlay,
+              onClose: () {
+                _controller?.close();
+                _onTimerClose();
+              },
+              onRestart: () {
+                _restartTimer();
+                _refreshModal();
+              },
+              onPauseResume: () {
+                _pauseResumeTimer();
+                _refreshModal();
+              },
+              onStop: () {
+                _stopTimer();
+                stopAlarm();
+                _controller?.close();
+                _onTimerClose();
+              },
+            );
+          },
         ),
         backgroundColor: Colors.transparent,
+        elevation: 0,
       );
 
+      showPersistentSheet = true;
+
       _controller!.closed.then((_) {
-        _controller = null;
-        setState(() {
-          showPersistentSheet = false;
-        });
+        _updateModalCallback = null;
+        showPersistentSheet = false;
         _onTimerClose();
       });
     }
-
-    if (!startPaused) {
-      _startTimer();
-    }
   }
 
-  // === TIME PICKER ===
+  void _refreshModal() => _updateModalCallback?.call();
 
   void _showMinuteSecondPicker() async {
-    final bool wasPaused = paused;
-    final bool wasNeverStarted = !inProgress && !paused;
-
     final result = await showModalBottomSheet<Duration>(
       context: context,
       backgroundColor: Colors.white,
@@ -927,23 +909,21 @@ class _TimerWidgetState extends State<TimerWidget>
     );
 
     if (result != null && mounted) {
-      if (wasNeverStarted) {
-        _updateDuration(result);
-        await stopAlarm();
-      } else if (wasPaused) {
-        if (_controller != null) {
-          _controller?.close();
-          await _controller?.closed;
-        }
-        _updateDuration(result);
-        await stopAlarm();
-        await setAlarm(duration);
-        _startAndShowModal(startPaused: true);
-      } else {
-        _updateDuration(result);
+      _updateDuration(result);
+
+      // If timer is running, update it with new duration
+      if (inProgress) {
         remaining = result;
-        await stopAlarm();
-        await setAlarm(duration);
+        stopAlarm(); // Stop current alarm
+
+        if (!paused) {
+          // If running, set new alarm immediately
+          stopAlarm();
+          setAlarm(remaining);
+        }
+        // If paused, alarm will be set when resumed
+      } else {
+        remaining = result;
       }
     }
   }
@@ -954,34 +934,36 @@ class _TimerWidgetState extends State<TimerWidget>
       pickerMinutes = newDuration.inMinutes;
       pickerSeconds = newDuration.inSeconds.remainder(60);
     });
+    _refreshModal();
   }
 
-  // === AUDIO & ALARM METHODS ===
+  // === Audio/Alarm ===
 
   Future<void> stopAlarm() async {
     await Alarm.stopAll();
-    await player?.stop();
-    await player?.dispose();
-    player = null;
+    if (player != null) {
+      await player?.stop();
+      final tempPlayer = player;
+      player = null; // Set to null first to prevent double disposal
+      await tempPlayer?.dispose();
+    }
   }
 
   Future<void> setAlarm(Duration time) async {
-    final alarmID = Random().nextInt(1000);
-    final _time = DateTime.now().add(time);
+    // Stop current alarm first
+    await stopAlarm();
+
+    currentAlarmId = Random().nextInt(1000);
+    final alarmTime = DateTime.now().add(time);
     await Alarm.set(
       alarmSettings: AlarmSettings(
-        id: alarmID,
-        dateTime: _time,
+        id: currentAlarmId!,
+        dateTime: alarmTime,
         assetAudioPath: 'assets/audio/bowl.wav',
         loopAudio: true,
         vibrate: true,
         volumeSettings: VolumeSettings.staircaseFade(
-          fadeSteps: List.generate(10, (index) {
-            return VolumeFadeStep(
-              const Duration(seconds: 3),
-              0.1 + (index * 0.1),
-            );
-          }),
+          fadeSteps: List.generate(10, (i) => VolumeFadeStep(Duration(seconds: 3), 0.1 + (i * 0.1))),
           volume: 1.0,
         ),
         warningNotificationOnKill: Platform.isIOS,
@@ -996,33 +978,24 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   Future<void> _startSound() async {
-    await player?.stop();
-    await player?.dispose();
+    player?.dispose();
     player = AudioPlayer();
-    await player?.play(AssetSource('audio/bowl.wav'), volume: 1.0);
+    await player!.play(AssetSource('audio/bowl.wav'), volume: 1.0);
   }
 
   Future<bool> _seekPermission() async {
     if (Platform.isIOS) return true;
     final status = await Permission.scheduleExactAlarm.status;
-    if (status.isDenied) {
-      final result = await Permission.scheduleExactAlarm.request();
-      return result.isGranted;
-    }
-    return status.isGranted;
+    return status.isGranted || (await Permission.scheduleExactAlarm.request()).isGranted;
   }
 
-  // === FORMATTING UTILITIES ===
+  // === UI ===
 
-  String _formatDurationMMOnly(Duration duration) {
-    return duration.inMinutes.remainder(60).toString().padLeft(2, "0");
-  }
-
-  String _formatDurationSSOnly(Duration duration) {
-    return duration.inSeconds.remainder(60).toString().padLeft(2, "0");
-  }
-
-  // === UI BUILD METHODS ===
+  ButtonStyle buttonStyle(Color color) => ElevatedButton.styleFrom(
+    backgroundColor: color,
+    shape: buttonShape,
+    padding: verticalButtonPadding,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -1053,45 +1026,13 @@ class _TimerWidgetState extends State<TimerWidget>
 
   List<Widget> _buildCompletionView() {
     return [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Text(
-              "🎉 Good job! You have completed the task!",
-              style: CustomTypography().titleLarge(color: CustomColors.textNormalContent),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
+      Text(
+        "🎉 Good job! You have completed the task!",
+        style: CustomTypography().titleLarge(color: CustomColors.textNormalContent),
+        textAlign: TextAlign.center,
       ),
       const SizedBox(height: 50),
-      SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: CustomColors.productNormal,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            padding: const EdgeInsets.symmetric(vertical: 18),
-          ),
-          onPressed: () {
-            _shakeController.stop();
-            _shakeController.reset();
-            stopAlarm();
-            setState(() {
-              inProgress = true;
-              complete = false;
-              remaining = duration;
-            });
-            _startAndShowModal();
-          },
-          child: Text(
-            "Start Timer Now",
-            style: CustomTypography().button(color: Colors.white),
-          ),
-        ),
-      ),
+      _buildStartButton(isCompletion: true),
     ];
   }
 
@@ -1107,32 +1048,38 @@ class _TimerWidgetState extends State<TimerWidget>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            "${pickerMinutes.toString().padLeft(1, '0')} min ${pickerSeconds.toString().padLeft(2, '0')} sec",
+            "$pickerMinutes min ${pickerSeconds.toString().padLeft(2, '0')} sec",
             style: CustomTypography().titleMedium(color: CustomColors.textNormalContent),
           ),
           IconButton(
             onPressed: _showMinuteSecondPicker,
-            icon: const Icon(
-              Icons.edit_outlined,
-              color: CustomColors.productNormal,
-              size: 24,
-            ),
+            icon: const Icon(Icons.edit_outlined, color: CustomColors.productNormal),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStartButton() {
+  Widget _buildStartButton({bool isCompletion = false}) {
+    final isDisabled = inProgress || paused;
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: (inProgress || paused) ? Colors.grey : CustomColors.productNormal,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          padding: const EdgeInsets.symmetric(vertical: 18),
-        ),
-        onPressed: (inProgress || paused) ? null : _startAndShowModal,
+        style: buttonStyle(isDisabled ? Colors.grey : CustomColors.productNormal),
+        onPressed: isDisabled
+            ? null
+            : () {
+          if (isCompletion) {
+            _shakeController.reset();
+            stopAlarm();
+            setState(() {
+              inProgress = true;
+              complete = false;
+              remaining = duration;
+            });
+          }
+          _startAndShowModal();
+        },
         child: Text(
           "Start Timer Now",
           style: CustomTypography().button(color: Colors.white),
@@ -1142,18 +1089,16 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   Widget _buildCompleteButton() {
+    final isDisabled = inProgress || paused;
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
-          side: BorderSide(
-            color: (inProgress || paused) ? Colors.grey : CustomColors.productNormal,
-            width: 2,
-          ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          padding: const EdgeInsets.symmetric(vertical: 18),
+          side: BorderSide(color: isDisabled ? Colors.grey : CustomColors.productNormal, width: 2),
+          shape: buttonShape,
+          padding: verticalButtonPadding,
         ),
-        onPressed: (inProgress || paused)
+        onPressed: isDisabled
             ? null
             : () {
           setState(() {
@@ -1161,18 +1106,22 @@ class _TimerWidgetState extends State<TimerWidget>
             inProgress = false;
             paused = false;
           });
-          widget.respond('Complete');
+          widget.respond("Complete");
         },
         child: Text(
           "I Have Completed The Task",
-          style: CustomTypography().button(
-            color: (inProgress || paused) ? Colors.grey : CustomColors.productNormal,
-          ),
+          style: CustomTypography().button(color: isDisabled ? Colors.grey : CustomColors.productNormal),
         ),
       ),
     );
   }
 }
+// Duration extensions for formatting
+extension DurationFormatting on Duration {
+  String get mm => inMinutes.remainder(60).toString().padLeft(2, "0");
+  String get ss => inSeconds.remainder(60).toString().padLeft(2, "0");
+}
+
 class VisualResponseWidget extends StatefulWidget {
   final void Function(String answer, [String? type]) respond;
   final DiaryModel diary;
