@@ -1040,7 +1040,8 @@ class _TimerWidgetState extends State<TimerWidget>
         textAlign: TextAlign.center,
       ),
       const SizedBox(height: 50),
-      _buildStartButton(isCompletion: true),
+      //commenting this button until better clarity
+      // widget.playbackControls ? _buildStartButton(isCompletion: false) : const SizedBox.shrink(),
     ];
   }
 
