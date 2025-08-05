@@ -779,8 +779,6 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   void _restartTimer() {
-    stopAlarm();
-    _shakeController.reset();
     setState(() {
       remaining = duration;
       inProgress = true;
@@ -788,10 +786,18 @@ class _TimerWidgetState extends State<TimerWidget>
       complete = false;
       showTimeUpOverlay = false;
     });
-    // Play sound and set alarm for restart
-    _startSound();
-    setAlarm(duration);
-    _startTimer();
+
+    // Cancel existing timer if any
+    _timer?.cancel();
+
+    // Reset and handle audio/alarms
+    Future.microtask(() async {
+      await stopAlarm();
+      _shakeController.reset();
+      await _startSound();
+      await setAlarm(duration);
+      _startTimer();
+    });
   }
 
   void _stopTimer() {
