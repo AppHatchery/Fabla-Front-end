@@ -2408,7 +2408,8 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     setState(() {
       _isCollapsed = !_isCollapsed;
       final screenHeight = MediaQuery.of(context).size.height;
-      _containerHeight = _isCollapsed ? screenHeight * 0.15 : screenHeight * 0.85;
+      _containerHeight =
+          _isCollapsed ? screenHeight * 0.15 : screenHeight * 0.85;
     });
   }
 
@@ -2422,38 +2423,62 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isExpanded = _containerHeight >= screenHeight * 0.85;
 
-    return SingleChildScrollView(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        width: width,
-        height: _containerHeight,
-        decoration: const BoxDecoration(
-          color: Color(0xFF4186F5),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+    return Stack(
+      children: [
+        // Background overlay that covers the whole screen when modal is expanded
+        if (isExpanded)
+          Positioned.fill(
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 300),
+              opacity: isExpanded ? 1.0 : 0.0,
+              child: Container(
+                color: Colors.black.withOpacity(0.5),
+              ),
+            ),
+          ),
+        // Timer modal
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: SingleChildScrollView(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              width: width,
+              height: _containerHeight,
+              decoration: const BoxDecoration(
+                color: Color(0xFF4186F5),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        _buildCollapseButton(),
+                        _buildTimerDisplay(),
+                        if (!_isCollapsed) _buildRiveAnimation(),
+                        if (!_isCollapsed) _buildTimerControls(),
+                        if (widget.showTimeUpOverlay && _overlayVisible)
+                          _buildTimeUpOverlay(),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
           ),
         ),
-        clipBehavior: Clip.antiAlias,
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  _buildCollapseButton(),
-                  _buildTimerDisplay(),
-                  if (!_isCollapsed) _buildRiveAnimation(),
-                  if (!_isCollapsed) _buildTimerControls(),
-                  if (widget.showTimeUpOverlay && _overlayVisible) _buildTimeUpOverlay(),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
+      ],
     );
   }
 
@@ -2463,7 +2488,9 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       right: 8,
       child: IconButton(
         icon: Icon(
-          _isCollapsed ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down,
+          _isCollapsed
+              ? CupertinoIcons.chevron_up
+              : CupertinoIcons.chevron_down,
           color: Colors.white,
           size: 28,
         ),
@@ -2540,7 +2567,8 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
                 ? Icons.pause_rounded
                 : Icons.play_arrow_rounded,
             onPressed: widget.onPauseResume,
-            tooltip: (widget.isRunning && !widget.isPaused) ? 'Pause' : 'Resume',
+            tooltip:
+                (widget.isRunning && !widget.isPaused) ? 'Pause' : 'Resume',
           ),
         ],
       ),
@@ -2586,7 +2614,8 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
                   const SizedBox(width: 8),
                   Text(
                     "Time's Up!",
-                    style: CustomTypography().headlineLarge(color: CustomColors.textWhite),
+                    style: CustomTypography()
+                        .headlineLarge(color: CustomColors.textWhite),
                   ),
                 ],
               ),
@@ -2634,42 +2663,45 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       width: 140,
       child: hasBorder
           ? Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: CustomColors.fillWhite, width: 2),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: Colors.white, size: 24),
-              const SizedBox(width: 8),
-              Text(
-                text,
-                style: CustomTypography().titleSmall(color: CustomColors.textWhite),
+              decoration: BoxDecoration(
+                border: Border.all(color: CustomColors.fillWhite, width: 2),
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
-          ),
-        ),
-      )
+              child: InkWell(
+                onTap: onPressed,
+                borderRadius: BorderRadius.circular(12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, color: Colors.white, size: 24),
+                    const SizedBox(width: 8),
+                    Text(
+                      text,
+                      style: CustomTypography()
+                          .titleSmall(color: CustomColors.textWhite),
+                    ),
+                  ],
+                ),
+              ),
+            )
           : ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          padding: const EdgeInsets.symmetric(vertical: 18),
-        ),
-        onPressed: onPressed,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white, size: 24),
-            const SizedBox(width: 8),
-            Text(text, style: CustomTypography().button(color: Colors.white)),
-          ],
-        ),
-      ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: backgroundColor,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 18),
+              ),
+              onPressed: onPressed,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: Colors.white, size: 24),
+                  const SizedBox(width: 8),
+                  Text(text,
+                      style: CustomTypography().button(color: Colors.white)),
+                ],
+              ),
+            ),
     );
   }
 }
