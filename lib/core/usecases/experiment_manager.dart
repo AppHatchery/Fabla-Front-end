@@ -8,8 +8,11 @@ class ExperimentManager {
   /// Update Experiment
   Future<bool> update() async {
     try {
+      //remove any notifications before running the update
+      await _setupRepository.cleanupBeforeUpdate();
       // get new content
-      final done = await _setupRepository.uploadOnBoardingQuestions(partialCleanDB: true);
+      final done = await _setupRepository.uploadOnBoardingQuestions(
+          partialCleanDB: true);
 
       return done;
     } catch (e) {

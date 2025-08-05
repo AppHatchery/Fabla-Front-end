@@ -88,39 +88,40 @@ class DiaryModel implements Comparable<DiaryModel> {
                   Notification.fromJson(e, DateTime.parse(json['start_time'])))
               .toList() ??
           [],
-      activeDays: (json['active_days'] as List<dynamic>?)?.map((e) {
-        final day = e as int;
-        return day == 0 ? 7 : day;
-      }).toList(),
+      activeDays: (json['active_days'])?.cast<int>(),
     );
   }
 
-  DiaryModel copyWith(
-      {required int id,
-      required int studyID,
-      String? name,
-      List<PromptModel>? prompts,
-      List<Tag>? tags,
-      DiaryStatus? status,
-      DateTime? due,
-      int? currentEntry,
-      DateTime? start,
-      List<Notification>? notifications,
-      List<int>? activeDays}) {
+  DiaryModel copyWith({
+    int? id,
+    int? studyID,
+    String? name,
+    List<PromptModel>? prompts,
+    List<Tag>? tags,
+    DiaryStatus? status,
+    DateTime? due,
+    DateTime? start,
+    DateTime? end,
+    int? entries,
+    int? currentEntry,
+    List<Notification>? notifications,
+    List<int>? activeDays,
+  }) {
     return DiaryModel(
-        id: id,
-        studyID: studyID,
-        name: name ?? this.name,
-        prompts: prompts ?? this.prompts,
-        tags: tags ?? this.tags,
-        status: status ?? this.status,
-        due: due ?? this.due,
-        start: start ?? this.start,
-        entries: entries,
-        currentEntry: currentEntry ?? this.currentEntry,
-        end: due ?? end,
-        notifications: notifications ?? this.notifications,
-        activeDays: activeDays);
+      id: id ?? this.id,
+      studyID: studyID ?? this.studyID,
+      name: name ?? this.name,
+      prompts: prompts ?? this.prompts,
+      tags: tags ?? this.tags,
+      status: status ?? this.status,
+      due: due ?? this.due,
+      start: start ?? this.start,
+      entries: entries ?? this.entries,
+      currentEntry: currentEntry ?? this.currentEntry,
+      end: end ?? this.end,
+      notifications: notifications ?? this.notifications,
+      activeDays: activeDays ?? this.activeDays,
+    );
   }
 
   /// Compares this DiaryModel object with another DiaryModel object.

@@ -1450,7 +1450,7 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
             const SizedBox(height: 32),
             widget.prompt.answer?.recordings.isNotEmpty ?? false
                 ? SizedBox(
-                    child: Preview(
+                    child: MediaPreview(
                       recordings: widget.prompt.answer!.recordings,
                       delete: (path) => delete(path),
                     ),
@@ -1500,21 +1500,22 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
   }
 }
 
-class Preview extends StatefulWidget {
+class MediaPreview extends StatefulWidget {
   final List<Recording> recordings;
   final Function(String path) delete;
   final bool interactions;
-  const Preview(
+  const MediaPreview(
       {super.key,
       required this.recordings,
       required this.delete,
       this.interactions = true});
 
   @override
-  State<Preview> createState() => _PreviewState();
+  State<MediaPreview> createState() => _MediaPreviewState();
 }
 
-class _PreviewState extends State<Preview> {
+
+class _MediaPreviewState extends State<MediaPreview> {
   final children = <Widget>[];
 
   @override
@@ -1524,7 +1525,7 @@ class _PreviewState extends State<Preview> {
   }
 
   @override
-  void didUpdateWidget(covariant Preview oldWidget) {
+  void didUpdateWidget(covariant MediaPreview oldWidget) {
     if (oldWidget.recordings != widget.recordings) {
       children.clear();
       getData();
