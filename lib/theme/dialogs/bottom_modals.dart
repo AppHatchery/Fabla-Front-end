@@ -2597,10 +2597,9 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   }
 
   Widget _buildRiveAnimation() {
-    return Positioned.fill(
-      top: 140,
+    return Center(
       child: Align(
-        alignment: Alignment.topCenter,
+        alignment: Alignment.center,
         child: IgnorePointer(
           child: SizedBox(
             height: MediaQuery.of(context).size.height,
