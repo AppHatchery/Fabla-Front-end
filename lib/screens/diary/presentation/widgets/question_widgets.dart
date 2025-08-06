@@ -1022,10 +1022,25 @@ class _TimerWidgetState extends State<TimerWidget>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (!complete) ..._buildInitialView(),
-            if (complete) ..._buildCompletionView(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  "Time Length",
+                  style: CustomTypography().titleLarge(color: CustomColors.textNormalContent.withOpacity(.86)),
+                  textAlign: TextAlign.start,
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (!complete) ..._buildInitialView(),
+                if (complete) ..._buildCompletionView(),
+              ],
+            ),
           ],
         ),
       ),
@@ -1068,13 +1083,13 @@ class _TimerWidgetState extends State<TimerWidget>
         children: [
           Text(
             "$pickerMinutes min ${pickerSeconds.toString().padLeft(2, '0')} sec",
-            style: CustomTypography().titleMedium(color: CustomColors.textNormalContent),
+            style: CustomTypography().titleMedium(color: CustomColors.textNormalContent.withOpacity(0.64)),
           ),
 
           IconButton(
             onPressed: widget.userInteraction ? _showMinuteSecondPicker : null,
             icon: widget.userInteraction
-                ? const Icon(Icons.edit_outlined, color: CustomColors.productNormal)
+                ? const Icon(Icons.edit_outlined, color: CustomColors.productNormal,)
                 : const SizedBox.shrink(),
           ),
         ],

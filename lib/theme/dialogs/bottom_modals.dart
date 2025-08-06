@@ -2342,8 +2342,11 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   double animationHeight = 0;
   r.StateMachineController? _controller;
 
-  OverlayEntry? _overlayEntry;
-  bool _overlayInserted = false;
+  OverlayEntry? _modalOverlayEntry;
+  OverlayEntry? _timeUpOverlayEntry;
+  bool _modalOverlayInserted = false;
+  bool _timeUpOverlayInserted = false;
+  OverlayState? _overlayState;
 
   @override
   void initState() {
@@ -2351,11 +2354,16 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final screenHeight = MediaQuery.of(context).size.height;
+        // Cache the overlay state
+        _overlayState = Overlay.of(context);
         setState(() {
           _containerHeight = screenHeight * 0.85;
         });
+        // Initially show modal overlay since we start expanded
+        // _insertModalOverlay();
+
         if (widget.showTimeUpOverlay) {
-          _insertFullScreenOverlay();
+          _insertTimeUpOverlay();
         }
       }
     });
@@ -2371,19 +2379,20 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
           _containerHeight = MediaQuery.of(context).size.height * 0.85;
         });
         Future.delayed(const Duration(milliseconds: 200), () {
-          if (mounted && !_isCollapsed) {
-            _insertFullScreenOverlay();
+          if (mounted) {
+            _insertTimeUpOverlay();
           }
         });
       } else {
-        _removeFullScreenOverlay();
+        _removeTimeUpOverlay();
       }
     }
   }
 
   @override
   void dispose() {
-    _removeFullScreenOverlay();
+    // Clean up overlays synchronously without accessing context
+    _removeAllOverlaysSync();
     _controller?.dispose();
     super.dispose();
   }
@@ -2404,56 +2413,102 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     setState(() {
       _isCollapsed = !_isCollapsed;
       final screenHeight = MediaQuery.of(context).size.height;
-      _containerHeight = _isCollapsed
-          ? screenHeight * 0.15
-          : screenHeight * 0.85;
+      _containerHeight =
+      _isCollapsed ? screenHeight * 0.15 : screenHeight * 0.85;
     });
 
+    // Manage modal overlay based on collapse state
     if (_isCollapsed) {
-      _removeFullScreenOverlay();
+      _removeModalOverlay();
     }
-    else if (widget.showTimeUpOverlay) {
-      _insertFullScreenOverlay();
-    }
+      // else {
+    //   _insertModalOverlay();
+    // }
+
+    // Time up overlay should remain if it's active, regardless of collapse state
+    // This is handled by didUpdateWidget
   }
 
-  void _insertFullScreenOverlay() {
-    if (_overlayInserted) return;
+  // void _insertModalOverlay() {
+  //   if (_modalOverlayInserted || _timeUpOverlayInserted || !mounted || _overlayState == null) return;
+  //
+  //   _modalOverlayEntry = OverlayEntry(
+  //     builder: (context) => Positioned.fill(
+  //       child: GestureDetector(
+  //         onTap: () {
+  //           // Collapse modal when overlay is tapped
+  //           if (mounted) {
+  //             setState(() {
+  //               _isCollapsed = true;
+  //               _containerHeight = MediaQuery.of(context).size.height * 0.15;
+  //             });
+  //             _removeModalOverlay();
+  //           }
+  //         },
+  //         child: Material(
+  //           color: Colors.black.withOpacity(0.5),
+  //           child: Container(), // Empty container to catch taps
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  //
+  //   _overlayState!.insert(_modalOverlayEntry!);
+  //   _modalOverlayInserted = true;
+  // }
 
-    _overlayEntry = OverlayEntry(
+  void _insertTimeUpOverlay() {
+    // Remove modal overlay first if it exists
+    _removeModalOverlay();
+
+    if (_timeUpOverlayInserted || !mounted || _overlayState == null) return;
+
+    _timeUpOverlayEntry = OverlayEntry(
       builder: (context) => Positioned.fill(
         child: Material(
-          color: Colors.black.withOpacity(0.7),
-          child: Center(child:_buildOverlayContent()),
+          color: Colors.black.withOpacity(0.8),
+          child: Center(child: _buildTimeUpOverlayContent()),
         ),
       ),
     );
 
-    Overlay.of(context).insert(_overlayEntry!);
-    _overlayInserted = true;
+    _overlayState!.insert(_timeUpOverlayEntry!);
+    _timeUpOverlayInserted = true;
   }
 
-  void _insertModalOverlay(){
-      if (_overlayInserted) return;
-
-      _overlayEntry = OverlayEntry(
-        builder: (context) => Positioned.fill(
-          child: Material(
-            color: Colors.black.withOpacity(0.7),
-            child: Center(child:_buildOverlayContent()),
-          ),
-        ),
-      );
-
-      Overlay.of(context).insert(_overlayEntry!);
-      _overlayInserted = true;
+  void _removeModalOverlay() {
+    if (_modalOverlayInserted && _modalOverlayEntry != null) {
+      _modalOverlayEntry?.remove();
+      _modalOverlayEntry = null;
+      _modalOverlayInserted = false;
+    }
   }
 
-  void _removeFullScreenOverlay() {
-    if (_overlayInserted && _overlayEntry != null) {
-      _overlayEntry?.remove();
-      _overlayEntry = null;
-      _overlayInserted = false;
+  void _removeTimeUpOverlay() {
+    if (_timeUpOverlayInserted && _timeUpOverlayEntry != null) {
+      _timeUpOverlayEntry?.remove();
+      _timeUpOverlayEntry = null;
+      _timeUpOverlayInserted = false;
+    }
+
+    // Restore modal overlay if modal is expanded
+    // if (!_isCollapsed && !_modalOverlayInserted && mounted) {
+    //   _insertModalOverlay();
+    // }
+  }
+
+  void _removeAllOverlaysSync() {
+    // Synchronous cleanup without context access
+    if (_modalOverlayInserted && _modalOverlayEntry != null) {
+      _modalOverlayEntry?.remove();
+      _modalOverlayEntry = null;
+      _modalOverlayInserted = false;
+    }
+
+    if (_timeUpOverlayInserted && _timeUpOverlayEntry != null) {
+      _timeUpOverlayEntry?.remove();
+      _timeUpOverlayEntry = null;
+      _timeUpOverlayInserted = false;
     }
   }
 
@@ -2466,42 +2521,32 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
+    return _mainArea();
+  }
 
-    return Stack(
-      children: [
-        SingleChildScrollView(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            width: width,
-            height: _containerHeight,
-            decoration: const BoxDecoration(
-              color: Color(0xFF4186F5),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      _buildCollapseButton(),
-                      _buildTimerDisplay(),
-                      if (!_isCollapsed) _buildRiveAnimation(),
-                      if (!_isCollapsed) _buildTimerControls(),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
+  Widget _mainArea() {
+    final width = MediaQuery.of(context).size.width;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      width: width,
+      height: _containerHeight,
+      decoration: const BoxDecoration(
+        color: Color(0xFF4186F5),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
         ),
-      ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          _buildCollapseButton(),
+          _buildTimerDisplay(),
+          if (!_isCollapsed) _buildRiveAnimation(),
+          if (!_isCollapsed) _buildTimerControls(),
+        ],
+      ),
     );
   }
 
@@ -2618,7 +2663,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     );
   }
 
-  Widget _buildOverlayContent() {
+  Widget _buildTimeUpOverlayContent() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -2643,8 +2688,13 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
           icon: CupertinoIcons.stop_fill,
           text: "Stop",
           onPressed: () {
-            _removeFullScreenOverlay();
-            widget.onStop();
+            _removeTimeUpOverlay();
+            // Use a post frame callback to ensure overlay is removed before calling onStop
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                widget.onStop();
+              }
+            });
           },
           backgroundColor: CustomColors.productNormal,
         ),
@@ -2653,8 +2703,13 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
           icon: Icons.refresh_rounded,
           text: "Restart",
           onPressed: () {
-            _removeFullScreenOverlay();
-            widget.onRestart();
+            _removeTimeUpOverlay();
+            // Use a post frame callback to ensure overlay is removed before calling onRestart
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                widget.onRestart();
+              }
+            });
           },
           backgroundColor: Colors.transparent,
           hasBorder: true,
