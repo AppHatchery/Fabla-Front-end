@@ -719,7 +719,8 @@ class _TimerWidgetState extends State<TimerWidget>
 
   // === Constants ===
   final verticalButtonPadding = const EdgeInsets.symmetric(vertical: 18.0);
-  final buttonShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(12));
+  final buttonShape =
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12));
 
   @override
   void initState() {
@@ -903,7 +904,11 @@ class _TimerWidgetState extends State<TimerWidget>
     }
   }
 
-  void _refreshModal() => _updateModalCallback?.call();
+  void _refreshModal() {
+    if (showPersistentSheet && _updateModalCallback != null) {
+      _updateModalCallback?.call();
+    }
+  }
 
   void _showMinuteSecondPicker() async {
     final result = await showModalBottomSheet<Duration>(
@@ -920,7 +925,7 @@ class _TimerWidgetState extends State<TimerWidget>
       _updateDuration(result);
 
       // If timer is running, update it with new duration
-      if (inProgress) {
+      if (inProgress && mounted) {
         remaining = result;
         stopAlarm(); // Stop current alarm
 
@@ -937,12 +942,17 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   void _updateDuration(Duration newDuration) {
+    if (!mounted) return;
+
     setState(() {
       duration = newDuration;
       pickerMinutes = newDuration.inMinutes;
       pickerSeconds = newDuration.inSeconds.remainder(60);
     });
-    _refreshModal();
+    // Only refresh modal if it's still active
+    if (showPersistentSheet && _updateModalCallback != null) {
+      _refreshModal();
+    }
   }
 
   // === Audio/Alarm ===
