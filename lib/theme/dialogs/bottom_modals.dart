@@ -2339,18 +2339,24 @@ class BottomTimerModal extends StatefulWidget {
 class _BottomTimerModalState extends State<BottomTimerModal> {
   bool _isCollapsed = false;
   double _containerHeight = 0;
-  bool _overlayVisible = false;
   double animationHeight = 0;
   r.StateMachineController? _controller;
+
+  OverlayEntry? _overlayEntry;
+  bool _overlayInserted = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        final screenHeight = MediaQuery.of(context).size.height;
         setState(() {
-          _containerHeight = MediaQuery.of(context).size.height * 0.85;
+          _containerHeight = screenHeight * 0.85;
         });
+        if (widget.showTimeUpOverlay) {
+          _insertFullScreenOverlay();
+        }
       }
     });
   }
@@ -2358,34 +2364,26 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   @override
   void didUpdateWidget(BottomTimerModal oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    // Handle overlay visibility when showTimeUpOverlay changes
     if (widget.showTimeUpOverlay != oldWidget.showTimeUpOverlay) {
       if (widget.showTimeUpOverlay) {
-        // Always expand when time is up and show overlay
         setState(() {
           _isCollapsed = false;
           _containerHeight = MediaQuery.of(context).size.height * 0.85;
         });
-
-        // Show overlay with a small delay to ensure container is expanded
-        Future.delayed(const Duration(milliseconds: 150), () {
-          if (mounted && widget.showTimeUpOverlay) {
-            setState(() {
-              _overlayVisible = true;
-            });
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (mounted && !_isCollapsed) {
+            _insertFullScreenOverlay();
           }
         });
       } else {
-        setState(() {
-          _overlayVisible = false;
-        });
+        _removeFullScreenOverlay();
       }
     }
   }
 
   @override
   void dispose() {
+    _removeFullScreenOverlay();
     _controller?.dispose();
     super.dispose();
   }
@@ -2399,18 +2397,64 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     setState(() {
       animationHeight = art.height;
     });
+    dev.log("Rive animation initialized with height: $animationHeight");
   }
 
   void _toggleHeight() {
-    // Don't allow collapsing when time is up
-    if (widget.showTimeUpOverlay) return;
-
     setState(() {
       _isCollapsed = !_isCollapsed;
       final screenHeight = MediaQuery.of(context).size.height;
-      _containerHeight =
-          _isCollapsed ? screenHeight * 0.15 : screenHeight * 0.85;
+      _containerHeight = _isCollapsed
+          ? screenHeight * 0.15
+          : screenHeight * 0.85;
     });
+
+    if (_isCollapsed) {
+      _removeFullScreenOverlay();
+    }
+    else if (widget.showTimeUpOverlay) {
+      _insertFullScreenOverlay();
+    }
+  }
+
+  void _insertFullScreenOverlay() {
+    if (_overlayInserted) return;
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned.fill(
+        child: Material(
+          color: Colors.black.withOpacity(0.7),
+          child: Center(child:_buildOverlayContent()),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+    _overlayInserted = true;
+  }
+
+  void _insertModalOverlay(){
+      if (_overlayInserted) return;
+
+      _overlayEntry = OverlayEntry(
+        builder: (context) => Positioned.fill(
+          child: Material(
+            color: Colors.black.withOpacity(0.7),
+            child: Center(child:_buildOverlayContent()),
+          ),
+        ),
+      );
+
+      Overlay.of(context).insert(_overlayEntry!);
+      _overlayInserted = true;
+  }
+
+  void _removeFullScreenOverlay() {
+    if (_overlayInserted && _overlayEntry != null) {
+      _overlayEntry?.remove();
+      _overlayEntry = null;
+      _overlayInserted = false;
+    }
   }
 
   String _formatDuration(Duration d) {
@@ -2423,57 +2467,36 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isExpanded = _containerHeight >= screenHeight * 0.85;
 
     return Stack(
       children: [
-        // Background overlay that covers the whole screen when modal is expanded
-        if (isExpanded)
-          Positioned.fill(
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 300),
-              opacity: isExpanded ? 1.0 : 0.0,
-              child: Container(
-                color: Colors.black.withOpacity(0.5),
+        SingleChildScrollView(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            width: width,
+            height: _containerHeight,
+            decoration: const BoxDecoration(
+              color: Color(0xFF4186F5),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
             ),
-          ),
-        // Timer modal
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: SingleChildScrollView(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              width: width,
-              height: _containerHeight,
-              decoration: const BoxDecoration(
-                color: Color(0xFF4186F5),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: SafeArea(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        _buildCollapseButton(),
-                        _buildTimerDisplay(),
-                        if (!_isCollapsed) _buildRiveAnimation(),
-                        if (!_isCollapsed) _buildTimerControls(),
-                        if (widget.showTimeUpOverlay && _overlayVisible)
-                          _buildTimeUpOverlay(),
-                      ],
-                    );
-                  },
-                ),
+            clipBehavior: Clip.antiAlias,
+            child: SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      _buildCollapseButton(),
+                      _buildTimerDisplay(),
+                      if (!_isCollapsed) _buildRiveAnimation(),
+                      if (!_isCollapsed) _buildTimerControls(),
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -2535,8 +2558,8 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
         alignment: Alignment.topCenter,
         child: IgnorePointer(
           child: SizedBox(
-            height: MediaQuery.of(context).size.height * 1,
-            width: MediaQuery.of(context).size.width * 1,
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
             child: r.RiveAnimation.asset(
               'assets/animations/onboarding/floats_in.riv',
               fit: BoxFit.contain,
@@ -2568,7 +2591,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
                 : Icons.play_arrow_rounded,
             onPressed: widget.onPauseResume,
             tooltip:
-                (widget.isRunning && !widget.isPaused) ? 'Pause' : 'Resume',
+            (widget.isRunning && !widget.isPaused) ? 'Pause' : 'Resume',
           ),
         ],
       ),
@@ -2595,59 +2618,48 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     );
   }
 
-  Widget _buildTimeUpOverlay() {
-    return Positioned.fill(
-      child: Container(
-        color: Colors.black.withOpacity(0.7),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    CupertinoIcons.bell_fill,
-                    color: CustomColors.fillWhite,
-                    size: 48,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "Time's Up!",
-                    style: CustomTypography()
-                        .headlineLarge(color: CustomColors.textWhite),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 30),
-              _buildOverlayButton(
-                icon: CupertinoIcons.stop_fill,
-                text: "Stop",
-                onPressed: () {
-                  setState(() {
-                    _overlayVisible = false;
-                  });
-                  widget.onStop();
-                },
-                backgroundColor: CustomColors.productNormal,
-              ),
-              const SizedBox(height: 20),
-              _buildOverlayButton(
-                icon: Icons.refresh_rounded,
-                text: "Restart",
-                onPressed: () {
-                  setState(() {
-                    _overlayVisible = false;
-                  });
-                  widget.onRestart();
-                },
-                backgroundColor: Colors.transparent,
-                hasBorder: true,
-              ),
-            ],
-          ),
+  Widget _buildOverlayContent() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.bell_fill,
+              color: CustomColors.fillWhite,
+              size: 48,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              "Time's Up!",
+              style: CustomTypography()
+                  .headlineLarge(color: CustomColors.textWhite),
+            ),
+          ],
         ),
-      ),
+        const SizedBox(height: 30),
+        _buildOverlayButton(
+          icon: CupertinoIcons.stop_fill,
+          text: "Stop",
+          onPressed: () {
+            _removeFullScreenOverlay();
+            widget.onStop();
+          },
+          backgroundColor: CustomColors.productNormal,
+        ),
+        const SizedBox(height: 20),
+        _buildOverlayButton(
+          icon: Icons.refresh_rounded,
+          text: "Restart",
+          onPressed: () {
+            _removeFullScreenOverlay();
+            widget.onRestart();
+          },
+          backgroundColor: Colors.transparent,
+          hasBorder: true,
+        ),
+      ],
     );
   }
 
@@ -2663,45 +2675,45 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       width: 140,
       child: hasBorder
           ? Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: CustomColors.fillWhite, width: 2),
-                borderRadius: BorderRadius.circular(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: CustomColors.fillWhite, width: 2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 24),
+              const SizedBox(width: 8),
+              Text(
+                text,
+                style: CustomTypography()
+                    .titleSmall(color: CustomColors.textWhite),
               ),
-              child: InkWell(
-                onTap: onPressed,
-                borderRadius: BorderRadius.circular(12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(icon, color: Colors.white, size: 24),
-                    const SizedBox(width: 8),
-                    Text(
-                      text,
-                      style: CustomTypography()
-                          .titleSmall(color: CustomColors.textWhite),
-                    ),
-                  ],
-                ),
-              ),
-            )
+            ],
+          ),
+        ),
+      )
           : ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: backgroundColor,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 18),
-              ),
-              onPressed: onPressed,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, color: Colors.white, size: 24),
-                  const SizedBox(width: 8),
-                  Text(text,
-                      style: CustomTypography().button(color: Colors.white)),
-                ],
-              ),
-            ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)),
+          padding: const EdgeInsets.symmetric(vertical: 18),
+        ),
+        onPressed: onPressed,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(width: 8),
+            Text(text,
+                style: CustomTypography().button(color: Colors.white)),
+          ],
+        ),
+      ),
     );
   }
 }
