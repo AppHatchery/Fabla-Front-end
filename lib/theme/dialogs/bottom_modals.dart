@@ -2342,6 +2342,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   double animationHeight = 0;
   r.StateMachineController? _controller;
 
+  bool _showModalUnderlay = true; // Controls the underlay visibility
   OverlayEntry? _modalOverlayEntry;
   OverlayEntry? _timeUpOverlayEntry;
   bool _modalOverlayInserted = false;
@@ -2357,6 +2358,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
         _overlayState = Overlay.of(context);
         setState(() {
           _containerHeight = screenHeight * 0.85;
+          _showModalUnderlay = !_isCollapsed; // Show underlay when expanded
         });
         // Initially show modal overlay since we start expanded
         _insertModalOverlay();
@@ -2411,13 +2413,20 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     setState(() {
       _isCollapsed = !_isCollapsed;
       final screenHeight = MediaQuery.of(context).size.height;
-      _containerHeight = _isCollapsed ? screenHeight * 0.15 : screenHeight * 0.85;
+      _containerHeight =
+          _isCollapsed ? screenHeight * 0.15 : screenHeight * 0.85;
+
+      // Update underlay visibility based on collapse state
+      _showModalUnderlay = !_isCollapsed;
     });
 
+    // Remove and re-insert overlay with new positioning when expanding
     if (_isCollapsed) {
       _removeModalOverlay();
     } else {
+      // Remove first to avoid double insertion
       _removeModalOverlay();
+      // Small delay to ensure removal completes
       Future.delayed(const Duration(milliseconds: 50), () {
         if (mounted) {
           _insertModalOverlay();
@@ -2427,32 +2436,28 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   }
 
   void _insertModalOverlay() {
-    if (_modalOverlayInserted || _timeUpOverlayInserted || !mounted || _overlayState == null) return;
+    if (_modalOverlayInserted ||
+        _timeUpOverlayInserted ||
+        !mounted ||
+        _overlayState == null) return;
 
     _modalOverlayEntry = OverlayEntry(
       builder: (context) {
-        final screenHeight = MediaQuery.of(context).size.height;
-        final modalTop = screenHeight - _containerHeight;
+        final modalTop = MediaQuery.of(context).size.height * 0.15;
 
-        return Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          height: modalTop > 0 ? modalTop : 0,
-          child: GestureDetector(
-            onTap: () {
-              if (mounted) {
-                setState(() {
-                  _isCollapsed = true;
-                  _containerHeight = MediaQuery.of(context).size.height * 0.15;
-                });
-                _removeModalOverlay();
-              }
-            },
-            child: Container(
-              color: Colors.black.withOpacity(0.5),
-            ),
-          ),
+        return Stack(
+          children: [
+            // Main overlay area
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: modalTop,
+              child: Container(
+                color: Colors.black.withOpacity(0.5),
+              ),
+              ),
+          ],
         );
       },
     );
@@ -2460,7 +2465,6 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     _overlayState!.insert(_modalOverlayEntry!);
     _modalOverlayInserted = true;
   }
-
 
   void _insertTimeUpOverlay() {
     // Remove modal overlay first if it exists
@@ -2525,7 +2529,31 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
 
   @override
   Widget build(BuildContext context) {
-    return _mainArea();
+    return Stack(
+      children: [
+        // Underlay - appears behind the modal when expanded
+        if (_showModalUnderlay && !widget.showTimeUpOverlay)
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                // Collapse modal when underlay is tapped
+                if (mounted) {
+                  setState(() {
+                    _isCollapsed = true;
+                    _containerHeight = MediaQuery.of(context).size.height * 0.15;
+                    _showModalUnderlay = false;
+                  });
+                }
+              },
+              child: Container(
+                color: Colors.black.withOpacity(0.5), // Semi-transparent underlay
+              ),
+            ),
+          ),
+        // The modal content - appears on top of the underlay
+        _mainArea(),
+      ],
+    );
   }
 
   Widget _mainArea() {
@@ -2573,7 +2601,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
 
   Widget _buildTimerDisplay() {
     return Positioned(
-      top: 64,
+      top: 20,
       left: 0,
       right: 0,
       child: Row(
@@ -2639,7 +2667,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
                 : Icons.play_arrow_rounded,
             onPressed: widget.onPauseResume,
             tooltip:
-            (widget.isRunning && !widget.isPaused) ? 'Pause' : 'Resume',
+                (widget.isRunning && !widget.isPaused) ? 'Pause' : 'Resume',
           ),
         ],
       ),
@@ -2733,45 +2761,45 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       width: 140,
       child: hasBorder
           ? Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: CustomColors.fillWhite, width: 2),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: Colors.white, size: 24),
-              const SizedBox(width: 8),
-              Text(
-                text,
-                style: CustomTypography()
-                    .titleSmall(color: CustomColors.textWhite),
+              decoration: BoxDecoration(
+                border: Border.all(color: CustomColors.fillWhite, width: 2),
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
-          ),
-        ),
-      )
+              child: InkWell(
+                onTap: onPressed,
+                borderRadius: BorderRadius.circular(12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, color: Colors.white, size: 24),
+                    const SizedBox(width: 8),
+                    Text(
+                      text,
+                      style: CustomTypography()
+                          .titleSmall(color: CustomColors.textWhite),
+                    ),
+                  ],
+                ),
+              ),
+            )
           : ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
-          padding: const EdgeInsets.symmetric(vertical: 18),
-        ),
-        onPressed: onPressed,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white, size: 24),
-            const SizedBox(width: 8),
-            Text(text,
-                style: CustomTypography().button(color: Colors.white)),
-          ],
-        ),
-      ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: backgroundColor,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 18),
+              ),
+              onPressed: onPressed,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: Colors.white, size: 24),
+                  const SizedBox(width: 8),
+                  Text(text,
+                      style: CustomTypography().button(color: Colors.white)),
+                ],
+              ),
+            ),
     );
   }
 }
