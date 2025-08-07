@@ -2354,13 +2354,12 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final screenHeight = MediaQuery.of(context).size.height;
-        // Cache the overlay state
         _overlayState = Overlay.of(context);
         setState(() {
           _containerHeight = screenHeight * 0.85;
         });
         // Initially show modal overlay since we start expanded
-        // _insertModalOverlay();
+        _insertModalOverlay();
 
         if (widget.showTimeUpOverlay) {
           _insertTimeUpOverlay();
@@ -2391,7 +2390,6 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
 
   @override
   void dispose() {
-    // Clean up overlays synchronously without accessing context
     _removeAllOverlaysSync();
     _controller?.dispose();
     super.dispose();
@@ -2413,49 +2411,56 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     setState(() {
       _isCollapsed = !_isCollapsed;
       final screenHeight = MediaQuery.of(context).size.height;
-      _containerHeight =
-      _isCollapsed ? screenHeight * 0.15 : screenHeight * 0.85;
+      _containerHeight = _isCollapsed ? screenHeight * 0.15 : screenHeight * 0.85;
     });
 
-    // Manage modal overlay based on collapse state
     if (_isCollapsed) {
       _removeModalOverlay();
+    } else {
+      _removeModalOverlay();
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (mounted) {
+          _insertModalOverlay();
+        }
+      });
     }
-      // else {
-    //   _insertModalOverlay();
-    // }
-
-    // Time up overlay should remain if it's active, regardless of collapse state
-    // This is handled by didUpdateWidget
   }
 
-  // void _insertModalOverlay() {
-  //   if (_modalOverlayInserted || _timeUpOverlayInserted || !mounted || _overlayState == null) return;
-  //
-  //   _modalOverlayEntry = OverlayEntry(
-  //     builder: (context) => Positioned.fill(
-  //       child: GestureDetector(
-  //         onTap: () {
-  //           // Collapse modal when overlay is tapped
-  //           if (mounted) {
-  //             setState(() {
-  //               _isCollapsed = true;
-  //               _containerHeight = MediaQuery.of(context).size.height * 0.15;
-  //             });
-  //             _removeModalOverlay();
-  //           }
-  //         },
-  //         child: Material(
-  //           color: Colors.black.withOpacity(0.5),
-  //           child: Container(), // Empty container to catch taps
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  //
-  //   _overlayState!.insert(_modalOverlayEntry!);
-  //   _modalOverlayInserted = true;
-  // }
+  void _insertModalOverlay() {
+    if (_modalOverlayInserted || _timeUpOverlayInserted || !mounted || _overlayState == null) return;
+
+    _modalOverlayEntry = OverlayEntry(
+      builder: (context) {
+        final screenHeight = MediaQuery.of(context).size.height;
+        final modalTop = screenHeight - _containerHeight;
+
+        return Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: modalTop > 0 ? modalTop : 0,
+          child: GestureDetector(
+            onTap: () {
+              if (mounted) {
+                setState(() {
+                  _isCollapsed = true;
+                  _containerHeight = MediaQuery.of(context).size.height * 0.15;
+                });
+                _removeModalOverlay();
+              }
+            },
+            child: Container(
+              color: Colors.black.withOpacity(0.5),
+            ),
+          ),
+        );
+      },
+    );
+
+    _overlayState!.insert(_modalOverlayEntry!);
+    _modalOverlayInserted = true;
+  }
+
 
   void _insertTimeUpOverlay() {
     // Remove modal overlay first if it exists
@@ -2492,13 +2497,12 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     }
 
     // Restore modal overlay if modal is expanded
-    // if (!_isCollapsed && !_modalOverlayInserted && mounted) {
-    //   _insertModalOverlay();
-    // }
+    if (!_isCollapsed && !_modalOverlayInserted && mounted) {
+      _insertModalOverlay();
+    }
   }
 
   void _removeAllOverlaysSync() {
-    // Synchronous cleanup without context access
     if (_modalOverlayInserted && _modalOverlayEntry != null) {
       _modalOverlayEntry?.remove();
       _modalOverlayEntry = null;
