@@ -1081,9 +1081,11 @@ class _TimerWidgetState extends State<TimerWidget>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            "$pickerMinutes min ${pickerSeconds.toString().padLeft(2, '0')} sec",
-            style: CustomTypography().titleMedium(color: CustomColors.textNormalContent.withOpacity(0.64)),
+          Expanded(
+            child: Text(
+              "$pickerMinutes min ${pickerSeconds.toString().padLeft(2, '0')} sec",
+              style: CustomTypography().titleMedium(color: CustomColors.textNormalContent.withOpacity(0.64)),
+            ),
           ),
 
           IconButton(
@@ -1145,9 +1147,12 @@ class _TimerWidgetState extends State<TimerWidget>
           });
           widget.respond("Complete");
         },
-        child: Text(
-          "I Have Completed The Task",
-          style: CustomTypography().button(color: isDisabled ? Colors.grey : CustomColors.productNormal),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            " I Have Completed The Task",
+            style: CustomTypography().button(color: isDisabled ? Colors.grey : CustomColors.productNormal),
+          ),
         ),
       ),
     );
