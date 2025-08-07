@@ -2309,3 +2309,465 @@ class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
             ));
   }
 }
+
+class BottomTimerModal extends StatefulWidget {
+  final Duration remaining;
+  final bool isRunning;
+  final bool isPaused;
+  final bool showTimeUpOverlay;
+  final VoidCallback onClose;
+  final VoidCallback onRestart;
+  final VoidCallback onPauseResume;
+  final VoidCallback onStop;
+
+  const BottomTimerModal({
+    super.key,
+    required this.remaining,
+    required this.isRunning,
+    required this.isPaused,
+    required this.showTimeUpOverlay,
+    required this.onClose,
+    required this.onRestart,
+    required this.onPauseResume,
+    required this.onStop,
+  });
+
+  @override
+  State<BottomTimerModal> createState() => _BottomTimerModalState();
+}
+
+class _BottomTimerModalState extends State<BottomTimerModal> {
+  bool _isCollapsed = false;
+  double _containerHeight = 0;
+  double animationHeight = 0;
+  r.StateMachineController? _controller;
+
+  OverlayEntry? _modalOverlayEntry;
+  OverlayEntry? _timeUpOverlayEntry;
+  bool _modalOverlayInserted = false;
+  bool _timeUpOverlayInserted = false;
+  OverlayState? _overlayState;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final screenHeight = MediaQuery.of(context).size.height;
+        // Cache the overlay state
+        _overlayState = Overlay.of(context);
+        setState(() {
+          _containerHeight = screenHeight * 0.85;
+        });
+        // Initially show modal overlay since we start expanded
+        // _insertModalOverlay();
+
+        if (widget.showTimeUpOverlay) {
+          _insertTimeUpOverlay();
+        }
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(BottomTimerModal oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.showTimeUpOverlay != oldWidget.showTimeUpOverlay) {
+      if (widget.showTimeUpOverlay) {
+        setState(() {
+          _isCollapsed = false;
+          _containerHeight = MediaQuery.of(context).size.height * 0.85;
+        });
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (mounted) {
+            _insertTimeUpOverlay();
+          }
+        });
+      } else {
+        _removeTimeUpOverlay();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    // Clean up overlays synchronously without accessing context
+    _removeAllOverlaysSync();
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  void _onRiveInit(r.Artboard art) {
+    var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
+    if (ctrl != null) {
+      art.addController(ctrl);
+      _controller = ctrl;
+    }
+    setState(() {
+      animationHeight = art.height;
+    });
+    dev.log("Rive animation initialized with height: $animationHeight");
+  }
+
+  void _toggleHeight() {
+    setState(() {
+      _isCollapsed = !_isCollapsed;
+      final screenHeight = MediaQuery.of(context).size.height;
+      _containerHeight =
+      _isCollapsed ? screenHeight * 0.15 : screenHeight * 0.85;
+    });
+
+    // Manage modal overlay based on collapse state
+    if (_isCollapsed) {
+      _removeModalOverlay();
+    }
+      // else {
+    //   _insertModalOverlay();
+    // }
+
+    // Time up overlay should remain if it's active, regardless of collapse state
+    // This is handled by didUpdateWidget
+  }
+
+  // void _insertModalOverlay() {
+  //   if (_modalOverlayInserted || _timeUpOverlayInserted || !mounted || _overlayState == null) return;
+  //
+  //   _modalOverlayEntry = OverlayEntry(
+  //     builder: (context) => Positioned.fill(
+  //       child: GestureDetector(
+  //         onTap: () {
+  //           // Collapse modal when overlay is tapped
+  //           if (mounted) {
+  //             setState(() {
+  //               _isCollapsed = true;
+  //               _containerHeight = MediaQuery.of(context).size.height * 0.15;
+  //             });
+  //             _removeModalOverlay();
+  //           }
+  //         },
+  //         child: Material(
+  //           color: Colors.black.withOpacity(0.5),
+  //           child: Container(), // Empty container to catch taps
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  //
+  //   _overlayState!.insert(_modalOverlayEntry!);
+  //   _modalOverlayInserted = true;
+  // }
+
+  void _insertTimeUpOverlay() {
+    // Remove modal overlay first if it exists
+    _removeModalOverlay();
+
+    if (_timeUpOverlayInserted || !mounted || _overlayState == null) return;
+
+    _timeUpOverlayEntry = OverlayEntry(
+      builder: (context) => Positioned.fill(
+        child: Material(
+          color: Colors.black.withOpacity(0.8),
+          child: Center(child: _buildTimeUpOverlayContent()),
+        ),
+      ),
+    );
+
+    _overlayState!.insert(_timeUpOverlayEntry!);
+    _timeUpOverlayInserted = true;
+  }
+
+  void _removeModalOverlay() {
+    if (_modalOverlayInserted && _modalOverlayEntry != null) {
+      _modalOverlayEntry?.remove();
+      _modalOverlayEntry = null;
+      _modalOverlayInserted = false;
+    }
+  }
+
+  void _removeTimeUpOverlay() {
+    if (_timeUpOverlayInserted && _timeUpOverlayEntry != null) {
+      _timeUpOverlayEntry?.remove();
+      _timeUpOverlayEntry = null;
+      _timeUpOverlayInserted = false;
+    }
+
+    // Restore modal overlay if modal is expanded
+    // if (!_isCollapsed && !_modalOverlayInserted && mounted) {
+    //   _insertModalOverlay();
+    // }
+  }
+
+  void _removeAllOverlaysSync() {
+    // Synchronous cleanup without context access
+    if (_modalOverlayInserted && _modalOverlayEntry != null) {
+      _modalOverlayEntry?.remove();
+      _modalOverlayEntry = null;
+      _modalOverlayInserted = false;
+    }
+
+    if (_timeUpOverlayInserted && _timeUpOverlayEntry != null) {
+      _timeUpOverlayEntry?.remove();
+      _timeUpOverlayEntry = null;
+      _timeUpOverlayInserted = false;
+    }
+  }
+
+  String _formatDuration(Duration d) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final m = twoDigits(d.inMinutes.remainder(60));
+    final s = twoDigits(d.inSeconds.remainder(60));
+    return "$m:$s";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _mainArea();
+  }
+
+  Widget _mainArea() {
+    final width = MediaQuery.of(context).size.width;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      width: width,
+      height: _containerHeight,
+      decoration: const BoxDecoration(
+        color: Color(0xFF4186F5),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          _buildCollapseButton(),
+          _buildTimerDisplay(),
+          if (!_isCollapsed) _buildRiveAnimation(),
+          if (!_isCollapsed) _buildTimerControls(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCollapseButton() {
+    return Positioned(
+      top: 16,
+      right: 8,
+      child: IconButton(
+        icon: Icon(
+          _isCollapsed
+              ? CupertinoIcons.chevron_up
+              : CupertinoIcons.chevron_down,
+          color: Colors.white,
+          size: 28,
+        ),
+        onPressed: _toggleHeight,
+      ),
+    );
+  }
+
+  Widget _buildTimerDisplay() {
+    return Positioned(
+      top: 64,
+      left: 0,
+      right: 0,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/images/icons/timer.png',
+            height: 44,
+            width: 44,
+            color: CustomColors.textWhite,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            _formatDuration(widget.remaining),
+            style: const TextStyle(
+              color: CustomColors.textWhite,
+              fontSize: 44,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRiveAnimation() {
+    return Center(
+      child: Align(
+        alignment: Alignment.center,
+        child: IgnorePointer(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
+            child: r.RiveAnimation.asset(
+              'assets/animations/onboarding/floats_in.riv',
+              fit: BoxFit.contain,
+              onInit: _onRiveInit,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimerControls() {
+    return Positioned(
+      bottom: 150,
+      left: 0,
+      right: 0,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildControlButton(
+            icon: Icons.refresh_rounded,
+            onPressed: widget.onRestart,
+            tooltip: 'Restart',
+          ),
+          const SizedBox(width: 32),
+          _buildControlButton(
+            icon: (widget.isRunning && !widget.isPaused)
+                ? Icons.pause_rounded
+                : Icons.play_arrow_rounded,
+            onPressed: widget.onPauseResume,
+            tooltip:
+            (widget.isRunning && !widget.isPaused) ? 'Pause' : 'Resume',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildControlButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+    required String tooltip,
+  }) {
+    return Container(
+      height: 55,
+      width: 90,
+      decoration: BoxDecoration(
+        border: Border.all(color: CustomColors.fillWhite, width: 1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: Colors.white, size: 36),
+        onPressed: onPressed,
+        tooltip: tooltip,
+      ),
+    );
+  }
+
+  Widget _buildTimeUpOverlayContent() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.bell_fill,
+              color: CustomColors.fillWhite,
+              size: 48,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              "Time's Up!",
+              style: CustomTypography()
+                  .headlineLarge(color: CustomColors.textWhite),
+            ),
+          ],
+        ),
+        const SizedBox(height: 30),
+        _buildOverlayButton(
+          icon: CupertinoIcons.stop_fill,
+          text: "Stop",
+          onPressed: () {
+            _removeTimeUpOverlay();
+            // Use a post frame callback to ensure overlay is removed before calling onStop
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                widget.onStop();
+              }
+            });
+          },
+          backgroundColor: CustomColors.productNormal,
+        ),
+        const SizedBox(height: 20),
+        _buildOverlayButton(
+          icon: Icons.refresh_rounded,
+          text: "Restart",
+          onPressed: () {
+            _removeTimeUpOverlay();
+            // Use a post frame callback to ensure overlay is removed before calling onRestart
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                widget.onRestart();
+              }
+            });
+          },
+          backgroundColor: Colors.transparent,
+          hasBorder: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOverlayButton({
+    required IconData icon,
+    required String text,
+    required VoidCallback onPressed,
+    required Color backgroundColor,
+    bool hasBorder = false,
+  }) {
+    return SizedBox(
+      height: 55,
+      width: 140,
+      child: hasBorder
+          ? Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: CustomColors.fillWhite, width: 2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 24),
+              const SizedBox(width: 8),
+              Text(
+                text,
+                style: CustomTypography()
+                    .titleSmall(color: CustomColors.textWhite),
+              ),
+            ],
+          ),
+        ),
+      )
+          : ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)),
+          padding: const EdgeInsets.symmetric(vertical: 18),
+        ),
+        onPressed: onPressed,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(width: 8),
+            Text(text,
+                style: CustomTypography().button(color: Colors.white)),
+          ],
+        ),
+      ),
+    );
+  }
+}

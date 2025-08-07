@@ -305,7 +305,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: prompt.answer != null
-              ? Preview(
+              ? MediaPreview(
                   recordings: prompt.answer?.recordings ?? [],
                   delete: (String path) {},
                   interactions: false,
