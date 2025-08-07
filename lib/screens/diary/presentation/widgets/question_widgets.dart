@@ -860,6 +860,7 @@ class _TimerWidgetState extends State<TimerWidget>
     _startTimer();
 
     if (showPersistentSheet) {
+      if (!mounted) return;
       _controller = Scaffold.of(context).showBottomSheet(
             (context) => StatefulBuilder(
           builder: (context, setModalState) {
