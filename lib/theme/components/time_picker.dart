@@ -604,7 +604,7 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
               children: [
                 SizedBox(
                   height: 200,
-                  width: 100,
+                  width: 50,
                   child: ListWheelScrollView.useDelegate(
                     controller: minutesController,
                     onSelectedItemChanged: (value) {
@@ -614,7 +614,7 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                     },
                     physics: const FixedExtentScrollPhysics(),
                     perspective: 0.01,
-                    diameterRatio: 1,
+                    diameterRatio: 2,
                     itemExtent: 50,
                     overAndUnderCenterOpacity: 0.3,
                     squeeze: 2,
@@ -627,10 +627,16 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                   ),
                 ),
                 Text("mins",
-                    style: CustomTypography().titleMedium(color: Colors.black)),
+                    style: CustomTypography().custom(
+                        color: CustomColors.textNormalContent,
+                        fontSize: 22.172,
+                        fontWeight: FontWeight.w400
+                    )
+                ),
+                SizedBox(width: 20),
                 SizedBox(
                   height: 200,
-                  width: 100,
+                  width: 50,
                   child: ListWheelScrollView.useDelegate(
                     controller: secondsController,
                     onSelectedItemChanged: (value) {
@@ -640,7 +646,7 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                     },
                     physics: const FixedExtentScrollPhysics(),
                     perspective: 0.01,
-                    diameterRatio: 1,
+                    diameterRatio: 2,
                     itemExtent: 50,
                     overAndUnderCenterOpacity: 0.3,
                     squeeze: 2,
@@ -654,7 +660,11 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                 ),
                 Text(
                   "sec",
-                  style: CustomTypography().titleMedium(color: Colors.black),
+                    style: CustomTypography().custom(
+                        color: CustomColors.textNormalContent,
+                        fontSize: 22.172,
+                        fontWeight: FontWeight.w400
+                    )
                 ),
               ],
             ),

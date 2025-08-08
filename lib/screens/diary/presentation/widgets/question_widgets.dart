@@ -1031,8 +1031,10 @@ class _TimerWidgetState extends State<TimerWidget>
               children: [
                 Text(
                   "Time Length",
-                  style: CustomTypography().titleLarge(
-                      color: CustomColors.textNormalContent.withOpacity(.86)),
+                  style: CustomTypography().custom(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF383838)),
                   textAlign: TextAlign.start,
                 ),
               ],

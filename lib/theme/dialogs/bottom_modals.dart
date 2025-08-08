@@ -2521,6 +2521,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     // Restore modal overlay if modal is expanded
     if (!_isCollapsed && !_modalOverlayInserted && mounted) {
       _insertModalOverlay();
+      _showModalUnderlay = true;
     }
   }
 
@@ -2696,9 +2697,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
           CustomOutlineButton(
               backgroundColor: Colors.transparent,
               color: CustomColors.productLightBackground,
-              onClick: () {
-                widget.onRestart;
-              },
+              onClick: widget.onRestart,
               children: Wrap(
                 children: [
                   Icon(Icons.refresh_rounded,
