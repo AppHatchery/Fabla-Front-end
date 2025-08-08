@@ -2552,24 +2552,8 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
         // Underlay - appears behind the modal when expanded
         if (_showModalUnderlay && !widget.showTimeUpOverlay)
           Positioned.fill(
-            child: GestureDetector(
-              onTap: () {
-                // Collapse modal when underlay is tapped
-                if (mounted) {
-                  setState(() {
-                    _isCollapsed = true;
-                    _containerHeight =
-                        MediaQuery.of(context).size.height * 0.15;
-                    _showModalUnderlay = false;
-                    _showExpandedContent =
-                        false; // Hide content when collapsing
-                  });
-                }
-              },
-              child: Container(
-                color:
-                    Colors.black.withOpacity(0.5), // Semi-transparent underlay
-              ),
+            child: Container(
+              color: Colors.black.withOpacity(0.5), // Semi-transparent underlay
             ),
           ),
         // The modal content - appears on top of the underlay
