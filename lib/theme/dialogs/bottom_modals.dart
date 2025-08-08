@@ -2436,14 +2436,14 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       // Remove first to avoid double insertion
       _removeModalOverlay();
       // Small delay to ensure removal completes
-      Future.delayed(const Duration(milliseconds: 50), () {
+      Future.delayed(const Duration(milliseconds: 320), () {
         if (mounted) {
           _insertModalOverlay();
         }
       });
 
       // Show expanded content after container animation completes (300ms + small buffer)
-      Future.delayed(const Duration(milliseconds: 300), () {
+      Future.delayed(const Duration(milliseconds: 350), () {
         if (mounted && !_isCollapsed) {
           setState(() {
             _showExpandedContent = true;
@@ -2697,7 +2697,9 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
           CustomOutlineButton(
               backgroundColor: Colors.transparent,
               color: CustomColors.productLightBackground,
-              onClick: widget.onRestart,
+              onClick: () {
+                widget.onRestart;
+              },
               children: Wrap(
                 children: [
                   Icon(Icons.refresh_rounded,
@@ -2758,7 +2760,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
           child: CustomIconButtonWithTextButton(
             onClick: () {
               _removeTimeUpOverlay();
-              // Use a post frame callback to ensure overlay is removed before calling onStop
+              // Post frame callback to ensure overlay is removed before calling onStop
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) {
                   widget.onStop();
@@ -2778,7 +2780,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
             child: CustomOutlineButton(
               onClick: () {
                 _removeTimeUpOverlay();
-                // Use a post frame callback to ensure overlay is removed before calling onRestart
+                // Post frame callback to ensure overlay is removed before calling onRestart
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted) {
                     widget.onRestart();
