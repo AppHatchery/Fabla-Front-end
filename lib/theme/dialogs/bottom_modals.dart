@@ -2443,7 +2443,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       });
 
       // Show expanded content after container animation completes (300ms + small buffer)
-      Future.delayed(const Duration(milliseconds: 350), () {
+      Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted && !_isCollapsed) {
           setState(() {
             _showExpandedContent = true;
