@@ -34,6 +34,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
 
   //Animations
   late rive.StateMachineController _controller;
+  rive.SMITrigger? showTip;
 
   final PageTimer timer = PageTimer();
   TextScaler? scaler; // Get the size of the text scaler
@@ -105,7 +106,9 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                       child: Column(
                         children: [
                           Text(
-                            "Turn on notifications for timely reminders!",
+                            granted != null && granted == true
+                                ? "Make sure you have sound on to catch these alerts on time"
+                                : "Turn on notifications for timely reminders!",
                             style: CustomTypography()
                                 .headlineLarge(color: CustomColors.textWhite),
                           ),
@@ -279,6 +282,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
         _controller = ctrl;
         art.addController(_controller);
         ctrl.isActive = true;
+        showTip = _controller.getTriggerInput('tip');
       });
     }
   }
@@ -288,7 +292,9 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
 
     await PendoService.track("NotificationAccess", {"state": results.name});
     if (mounted) setState(() => granted = results.isGranted);
-
+    if (granted != null && granted == true) {
+      showTip?.fire();
+    }
     checkBattery();
     if (requested) {
       await PreferenceService()
