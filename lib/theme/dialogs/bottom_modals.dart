@@ -2342,6 +2342,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   double _containerHeight = 0;
   double animationHeight = 0;
   r.StateMachineController? _controller;
+  bool _showExpandedContent = true; // content visibility
 
   bool _showModalUnderlay = true; // Controls the underlay visibility
   OverlayEntry? _modalOverlayEntry;
@@ -2379,6 +2380,8 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
         setState(() {
           _isCollapsed = false;
           _containerHeight = MediaQuery.of(context).size.height * 0.85;
+          _showExpandedContent =
+              true; // Show content when time up overlay appears
         });
         Future.delayed(const Duration(milliseconds: 100), () {
           if (mounted) {
@@ -2419,6 +2422,11 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
 
       // Update underlay visibility based on collapse state
       _showModalUnderlay = !_isCollapsed;
+
+      // Hide content immediately when collapsing
+      if (_isCollapsed) {
+        _showExpandedContent = false;
+      }
     });
 
     // Remove and re-insert overlay with new positioning when expanding
@@ -2431,6 +2439,15 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       Future.delayed(const Duration(milliseconds: 50), () {
         if (mounted) {
           _insertModalOverlay();
+        }
+      });
+
+      // Show expanded content after container animation completes (300ms + small buffer)
+      Future.delayed(const Duration(milliseconds: 350), () {
+        if (mounted && !_isCollapsed) {
+          setState(() {
+            _showExpandedContent = true;
+          });
         }
       });
     }
@@ -2544,6 +2561,8 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
                     _containerHeight =
                         MediaQuery.of(context).size.height * 0.15;
                     _showModalUnderlay = false;
+                    _showExpandedContent =
+                        false; // Hide content when collapsing
                   });
                 }
               },
@@ -2578,13 +2597,15 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
         children: [
           _buildCollapseButton(),
           //timer display when the modal is not collapsed
-          if(!_isCollapsed) _buildTimerDisplay(),
+          if (!_isCollapsed && _showExpandedContent) _buildTimerDisplay(),
           //timer display when the modal is collapsed
           if (_isCollapsed) _buildTimerCollapseDisplay(),
           // Rive animation when the modal is not collapsed
-          SizedBox(height: 81,),
-          if (!_isCollapsed) _buildRiveAnimation(),
-          if (!_isCollapsed) _buildTimerControls(),
+          SizedBox(
+            height: 81,
+          ),
+          if (!_isCollapsed && _showExpandedContent) _buildRiveAnimation(),
+          if (!_isCollapsed && _showExpandedContent) _buildTimerControls(),
         ],
       ),
     );
@@ -2615,7 +2636,8 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(CupertinoIcons.timer, color: CustomColors.textWhite, size: 48.sp),
+          Icon(CupertinoIcons.timer,
+              color: CustomColors.textWhite, size: 48.sp),
           const SizedBox(width: 4),
           Text(
             _formatDuration(widget.remaining),
@@ -2638,7 +2660,8 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(CupertinoIcons.timer, color: CustomColors.textWhite, size: 48.sp),
+          Icon(CupertinoIcons.timer,
+              color: CustomColors.textWhite, size: 48.sp),
           const SizedBox(width: 4),
           Text(
             _formatDuration(widget.remaining),
@@ -2655,23 +2678,24 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
 
   Widget _buildRiveAnimation() {
     return Positioned(
-      top:257,
-      bottom:154.37,
+      top: 257,
+      bottom: 154.37,
       right: 50,
       child: IgnorePointer(
         child: SizedBox(
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
-         child: Transform(
-           transform: Matrix4.translationValues(5, -animationHeight / 5, 0)
-             ..scale(-1.7, 1.7), // Scale up by 1.5x and flip horizontally with negative x
-           alignment: Alignment.center,
-           child: r.RiveAnimation.asset(
-             'assets/animations/onboarding/floats_in.riv',
-             fit: BoxFit.contain,
-             onInit: _onRiveInit,
-           ),
-         ),
+          child: Transform(
+            transform: Matrix4.translationValues(5, -animationHeight / 5, 0)
+              ..scale(-1.7,
+                  1.7), // Scale up by 1.5x and flip horizontally with negative x
+            alignment: Alignment.center,
+            child: r.RiveAnimation.asset(
+              'assets/animations/onboarding/floats_in.riv',
+              fit: BoxFit.contain,
+              onInit: _onRiveInit,
+            ),
+          ),
         ),
       ),
     );
@@ -2686,18 +2710,17 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CustomOutlineButton(
-            backgroundColor: Colors.transparent,
-            color: CustomColors.productLightBackground,
-            onClick: () { widget.onRestart; },
-            children: Wrap(
-              children: [
-                Icon(Icons.refresh_rounded,
-                size: 35,
-                color: CustomColors.fillWhite),
-              ],
-            )
-
-          ),
+              backgroundColor: Colors.transparent,
+              color: CustomColors.productLightBackground,
+              onClick: () {
+                widget.onRestart;
+              },
+              children: Wrap(
+                children: [
+                  Icon(Icons.refresh_rounded,
+                      size: 35, color: CustomColors.fillWhite),
+                ],
+              )),
           const SizedBox(width: 37),
           CustomOutlineButton(
             backgroundColor: Colors.transparent,
@@ -2722,14 +2745,11 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     );
   }
 
-
   Widget _buildTimeUpOverlayContent() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(
-          height:150
-        ),
+        SizedBox(height: 150),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -2741,12 +2761,10 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
             const SizedBox(width: 8),
             Text(
               "Time's Up!",
-              style: CustomTypography()
-                  .custom(
+              style: CustomTypography().custom(
                   color: CustomColors.textWhite,
                   fontWeight: FontWeight.w400,
-                fontSize: 48
-              ),
+                  fontSize: 48),
             ),
           ],
         ),
@@ -2765,8 +2783,8 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
               });
             },
             color: CustomColors.productNormal,
-            text: "Stop", icon: CupertinoIcons.stop_fill,
-
+            text: "Stop",
+            icon: CupertinoIcons.stop_fill,
           ),
         ),
         const SizedBox(height: 48),
@@ -2777,7 +2795,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
             child: CustomOutlineButton(
               onClick: () {
                 _removeTimeUpOverlay();
-            // Use a post frame callback to ensure overlay is removed before calling onRestart
+                // Use a post frame callback to ensure overlay is removed before calling onRestart
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted) {
                     widget.onRestart();
@@ -2796,8 +2814,8 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
                     ),
                     const SizedBox(width: 8),
                     Text("Repeat",
-                        style: CustomTypography().button(
-                            color: CustomColors.fillWhite)),
+                        style: CustomTypography()
+                            .button(color: CustomColors.fillWhite)),
                   ],
                 ),
               ]),
