@@ -703,6 +703,8 @@ class _TimerWidgetState extends State<TimerWidget>
   bool paused = false;
   bool complete = false;
   bool showTimeUpOverlay = false;
+  bool showCompletionText =
+      false; // Add this to control completion text visibility
 
   AudioPlayer? player;
   late AnimationController _shakeController;
@@ -786,6 +788,7 @@ class _TimerWidgetState extends State<TimerWidget>
       paused = false;
       complete = false;
       showTimeUpOverlay = false;
+      showCompletionText = false; // Reset completion text visibility
     });
 
     // Cancel existing timer if any
@@ -821,10 +824,20 @@ class _TimerWidgetState extends State<TimerWidget>
       inProgress = false;
       complete = true;
       showTimeUpOverlay = true;
+      showCompletionText = false; // Don't show completion text immediately
     });
     _shakeController.forward().then((_) => _shakeController.repeat());
     widget.respond("timer");
     _refreshModal();
+
+    // Delay showing the completion text until after modal animations are done
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted && complete) {
+        setState(() {
+          showCompletionText = true;
+        });
+      }
+    });
   }
 
   void _onTimerClose() {
@@ -834,6 +847,7 @@ class _TimerWidgetState extends State<TimerWidget>
       complete = false;
       showTimeUpOverlay = false;
       showPersistentSheet = false;
+      showCompletionText = false; // Reset completion text visibility
     });
     _shakeController.reset();
     stopAlarm();
@@ -849,6 +863,7 @@ class _TimerWidgetState extends State<TimerWidget>
       remaining = duration;
       showTimeUpOverlay = false;
       showPersistentSheet = true;
+      showCompletionText = false; // Reset completion text visibility
     });
 
     if (!startPaused) {
@@ -1044,7 +1059,7 @@ class _TimerWidgetState extends State<TimerWidget>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (!complete) ..._buildInitialView(),
-                if (complete) ..._buildCompletionView(),
+                if (complete && showCompletionText) ..._buildCompletionView(),
               ],
             ),
           ],
@@ -1113,7 +1128,9 @@ class _TimerWidgetState extends State<TimerWidget>
     final isDisabled = inProgress || paused;
     return Stack(children: [
       CustomElevatedButton(
-        color: (isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal),
+        color: (isDisabled
+            ? CustomColors.fillDisabled
+            : CustomColors.productNormal),
         onClick: isDisabled
             ? null
             : () {
@@ -1140,17 +1157,20 @@ class _TimerWidgetState extends State<TimerWidget>
       height: 48,
       child: CustomOutlineButton(
         onClick: isDisabled
-            ? (){}
+            ? () {}
             : () {
                 setState(() {
                   complete = true;
                   inProgress = false;
                   paused = false;
+                  showCompletionText =
+                      true; // Show completion text immediately for manual completion
                 });
                 widget.respond("Complete");
               },
         backgroundColor: Colors.transparent,
-        color: isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
+        color:
+            isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
         children: Wrap(
           children: [
             Center(
@@ -1158,8 +1178,10 @@ class _TimerWidgetState extends State<TimerWidget>
                 padding: const EdgeInsets.all(3.0),
                 child: Text(
                   "I Have Completed The Task",
-                  style: CustomTypography()
-                      .button(color: isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal),
+                  style: CustomTypography().button(
+                      color: isDisabled
+                          ? CustomColors.fillDisabled
+                          : CustomColors.productNormal),
                 ),
               ),
             ),

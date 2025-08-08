@@ -2383,7 +2383,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
           _showExpandedContent =
               true; // Show content when time up overlay appears
         });
-        Future.delayed(const Duration(milliseconds: 100), () {
+        Future.delayed(const Duration(milliseconds: 200), () {
           if (mounted) {
             _insertTimeUpOverlay();
           }
