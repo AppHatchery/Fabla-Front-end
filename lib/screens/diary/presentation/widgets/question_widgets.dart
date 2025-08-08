@@ -862,7 +862,7 @@ class _TimerWidgetState extends State<TimerWidget>
     if (showPersistentSheet) {
       if (!mounted) return;
       _controller = Scaffold.of(context).showBottomSheet(
-            (context) => StatefulBuilder(
+        (context) => StatefulBuilder(
           builder: (context, setModalState) {
             _updateModalCallback = () => setModalState(() {});
             return BottomTimerModal(
@@ -982,7 +982,8 @@ class _TimerWidgetState extends State<TimerWidget>
         loopAudio: true,
         vibrate: true,
         volumeSettings: VolumeSettings.staircaseFade(
-          fadeSteps: List.generate(10, (i) => VolumeFadeStep(Duration(seconds: 3), 0.1 + (i * 0.1))),
+          fadeSteps: List.generate(
+              10, (i) => VolumeFadeStep(Duration(seconds: 3), 0.1 + (i * 0.1))),
           volume: 1.0,
         ),
         warningNotificationOnKill: Platform.isIOS,
@@ -1005,16 +1006,17 @@ class _TimerWidgetState extends State<TimerWidget>
   Future<bool> _seekPermission() async {
     if (Platform.isIOS) return true;
     final status = await Permission.scheduleExactAlarm.status;
-    return status.isGranted || (await Permission.scheduleExactAlarm.request()).isGranted;
+    return status.isGranted ||
+        (await Permission.scheduleExactAlarm.request()).isGranted;
   }
 
   // === UI ===
 
   ButtonStyle buttonStyle(Color color) => ElevatedButton.styleFrom(
-    backgroundColor: color,
-    shape: buttonShape,
-    padding: verticalButtonPadding,
-  );
+        backgroundColor: color,
+        shape: buttonShape,
+        padding: verticalButtonPadding,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -1029,7 +1031,8 @@ class _TimerWidgetState extends State<TimerWidget>
               children: [
                 Text(
                   "Time Length",
-                  style: CustomTypography().titleLarge(color: CustomColors.textNormalContent.withOpacity(.86)),
+                  style: CustomTypography().titleLarge(
+                      color: CustomColors.textNormalContent.withOpacity(.86)),
                   textAlign: TextAlign.start,
                 ),
               ],
@@ -1062,7 +1065,8 @@ class _TimerWidgetState extends State<TimerWidget>
     return [
       Text(
         "🎉 Good job! You have completed the task!",
-        style: CustomTypography().titleLarge(color: CustomColors.textNormalContent),
+        style: CustomTypography()
+            .titleLarge(color: CustomColors.textNormalContent),
         textAlign: TextAlign.center,
       ),
       const SizedBox(height: 50),
@@ -1085,14 +1089,17 @@ class _TimerWidgetState extends State<TimerWidget>
           Expanded(
             child: Text(
               "$pickerMinutes min ${pickerSeconds.toString().padLeft(2, '0')} sec",
-              style: CustomTypography().titleMedium(color: CustomColors.textNormalContent.withOpacity(0.64)),
+              style: CustomTypography().titleMedium(
+                  color: CustomColors.textNormalContent.withOpacity(0.64)),
             ),
           ),
-
           IconButton(
             onPressed: widget.userInteraction ? _showMinuteSecondPicker : null,
             icon: widget.userInteraction
-                ? const Icon(Icons.edit_outlined, color: CustomColors.productNormal,)
+                ? const Icon(
+                    Icons.edit_outlined,
+                    color: CustomColors.productNormal,
+                  )
                 : const SizedBox.shrink(),
           ),
         ],
@@ -1102,63 +1109,65 @@ class _TimerWidgetState extends State<TimerWidget>
 
   Widget _buildStartButton({bool isCompletion = false}) {
     final isDisabled = inProgress || paused;
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        style: buttonStyle(isDisabled ? Colors.grey : CustomColors.productNormal),
-        onPressed: isDisabled
+    return Stack(children: [
+      CustomElevatedButton(
+        color: (isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal),
+        onClick: isDisabled
             ? null
             : () {
-          if (isCompletion) {
-            _shakeController.reset();
-            stopAlarm();
-            setState(() {
-              inProgress = true;
-              complete = false;
-              remaining = duration;
-            });
-          }
-          _startAndShowModal();
-        },
-        child: Text(
-          "Start Timer Now",
-          style: CustomTypography().button(color: Colors.white),
-        ),
+                if (isCompletion) {
+                  _shakeController.reset();
+                  stopAlarm();
+                  setState(() {
+                    inProgress = true;
+                    complete = false;
+                    remaining = duration;
+                  });
+                }
+                _startAndShowModal();
+              },
+        text: 'Start Timer Now',
       ),
-    );
+    ]);
   }
 
   Widget _buildCompleteButton() {
     final isDisabled = inProgress || paused;
     return SizedBox(
       width: double.infinity,
-      child: OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: isDisabled ? Colors.grey : CustomColors.productNormal, width: 2),
-          shape: buttonShape,
-          padding: verticalButtonPadding,
-        ),
-        onPressed: isDisabled
-            ? null
+      height: 48,
+      child: CustomOutlineButton(
+        onClick: isDisabled
+            ? (){}
             : () {
-          setState(() {
-            complete = true;
-            inProgress = false;
-            paused = false;
-          });
-          widget.respond("Complete");
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            " I Have Completed The Task",
-            style: CustomTypography().button(color: isDisabled ? Colors.grey : CustomColors.productNormal),
-          ),
+                setState(() {
+                  complete = true;
+                  inProgress = false;
+                  paused = false;
+                });
+                widget.respond("Complete");
+              },
+        backgroundColor: Colors.transparent,
+        color: isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
+        children: Wrap(
+          children: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(3.0),
+                child: Text(
+                  "I Have Completed The Task",
+                  style: CustomTypography()
+                      .button(color: isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
 // Duration extensions for formatting
 extension DurationFormatting on Duration {
   String get mm => inMinutes.remainder(60).toString().padLeft(2, "0");
