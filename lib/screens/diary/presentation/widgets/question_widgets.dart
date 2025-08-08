@@ -703,8 +703,7 @@ class _TimerWidgetState extends State<TimerWidget>
   bool paused = false;
   bool complete = false;
   bool showTimeUpOverlay = false;
-  bool showCompletionText =
-      false; // Add this to control completion text visibility
+  bool showCompletionText = false; // completion text visibility
 
   AudioPlayer? player;
   late AnimationController _shakeController;
