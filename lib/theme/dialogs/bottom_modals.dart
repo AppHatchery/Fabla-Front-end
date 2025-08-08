@@ -16,6 +16,7 @@ import 'package:audio_session/audio_session.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:path_provider/path_provider.dart';
@@ -2379,7 +2380,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
           _isCollapsed = false;
           _containerHeight = MediaQuery.of(context).size.height * 0.85;
         });
-        Future.delayed(const Duration(milliseconds: 200), () {
+        Future.delayed(const Duration(milliseconds: 100), () {
           if (mounted) {
             _insertTimeUpOverlay();
           }
@@ -2456,7 +2457,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
               child: Container(
                 color: Colors.black.withOpacity(0.5),
               ),
-              ),
+            ),
           ],
         );
       },
@@ -2540,13 +2541,15 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
                 if (mounted) {
                   setState(() {
                     _isCollapsed = true;
-                    _containerHeight = MediaQuery.of(context).size.height * 0.15;
+                    _containerHeight =
+                        MediaQuery.of(context).size.height * 0.15;
                     _showModalUnderlay = false;
                   });
                 }
               },
               child: Container(
-                color: Colors.black.withOpacity(0.5), // Semi-transparent underlay
+                color:
+                    Colors.black.withOpacity(0.5), // Semi-transparent underlay
               ),
             ),
           ),
@@ -2574,7 +2577,12 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
         clipBehavior: Clip.none,
         children: [
           _buildCollapseButton(),
-          _buildTimerDisplay(),
+          //timer display when the modal is not collapsed
+          if(!_isCollapsed) _buildTimerDisplay(),
+          //timer display when the modal is collapsed
+          if (_isCollapsed) _buildTimerCollapseDisplay(),
+          // Rive animation when the modal is not collapsed
+          SizedBox(height: 81,),
           if (!_isCollapsed) _buildRiveAnimation(),
           if (!_isCollapsed) _buildTimerControls(),
         ],
@@ -2584,15 +2592,15 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
 
   Widget _buildCollapseButton() {
     return Positioned(
-      top: 16,
-      right: 8,
+      top: 14,
+      right: 11,
       child: IconButton(
         icon: Icon(
           _isCollapsed
               ? CupertinoIcons.chevron_up
               : CupertinoIcons.chevron_down,
           color: Colors.white,
-          size: 28,
+          size: 35,
         ),
         onPressed: _toggleHeight,
       ),
@@ -2601,26 +2609,43 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
 
   Widget _buildTimerDisplay() {
     return Positioned(
-      top: 20,
-      left: 0,
-      right: 0,
+      top: 143,
+      left: 60.25,
+      right: 60.25,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(
-            'assets/images/icons/timer.png',
-            height: 44,
-            width: 44,
-            color: CustomColors.textWhite,
-          ),
-          const SizedBox(width: 8),
+          Icon(CupertinoIcons.timer, color: CustomColors.textWhite, size: 48.sp),
+          const SizedBox(width: 4),
           Text(
             _formatDuration(widget.remaining),
-            style: const TextStyle(
+            style: CustomTypography().custom(
               color: CustomColors.textWhite,
-              fontSize: 44,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 2,
+              fontWeight: FontWeight.w400,
+              fontSize: 48.sp,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimerCollapseDisplay() {
+    return Positioned(
+      top: 35,
+      left: 64.5,
+      right: 64,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(CupertinoIcons.timer, color: CustomColors.textWhite, size: 48.sp),
+          const SizedBox(width: 4),
+          Text(
+            _formatDuration(widget.remaining),
+            style: CustomTypography().custom(
+              color: CustomColors.textWhite,
+              fontWeight: FontWeight.w400,
+              fontSize: 48.sp,
             ),
           ),
         ],
@@ -2629,19 +2654,24 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   }
 
   Widget _buildRiveAnimation() {
-    return Center(
-      child: Align(
-        alignment: Alignment.center,
-        child: IgnorePointer(
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            child: r.RiveAnimation.asset(
-              'assets/animations/onboarding/floats_in.riv',
-              fit: BoxFit.contain,
-              onInit: _onRiveInit,
-            ),
-          ),
+    return Positioned(
+      top:257,
+      bottom:154.37,
+      right: 50,
+      child: IgnorePointer(
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+         child: Transform(
+           transform: Matrix4.translationValues(5, -animationHeight / 5, 0)
+             ..scale(-1.7, 1.7), // Scale up by 1.5x and flip horizontally with negative x
+           alignment: Alignment.center,
+           child: r.RiveAnimation.asset(
+             'assets/animations/onboarding/floats_in.riv',
+             fit: BoxFit.contain,
+             onInit: _onRiveInit,
+           ),
+         ),
         ),
       ),
     );
@@ -2649,157 +2679,132 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
 
   Widget _buildTimerControls() {
     return Positioned(
-      bottom: 150,
-      left: 0,
-      right: 0,
+      bottom: 103.7,
+      left: 62.25,
+      right: 62.25,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildControlButton(
-            icon: Icons.refresh_rounded,
-            onPressed: widget.onRestart,
-            tooltip: 'Restart',
+          CustomOutlineButton(
+            backgroundColor: Colors.transparent,
+            color: CustomColors.productLightBackground,
+            onClick: () { widget.onRestart; },
+            children: Wrap(
+              children: [
+                Icon(Icons.refresh_rounded,
+                size: 35,
+                color: CustomColors.fillWhite),
+              ],
+            )
+
           ),
-          const SizedBox(width: 32),
-          _buildControlButton(
-            icon: (widget.isRunning && !widget.isPaused)
-                ? Icons.pause_rounded
-                : Icons.play_arrow_rounded,
-            onPressed: widget.onPauseResume,
-            tooltip:
-                (widget.isRunning && !widget.isPaused) ? 'Pause' : 'Resume',
+          const SizedBox(width: 37),
+          CustomOutlineButton(
+            backgroundColor: Colors.transparent,
+            color: CustomColors.productLightBackground,
+            onClick: widget.onPauseResume,
+            children: Wrap(
+              children: [
+                SizedBox(
+                  child: Icon(
+                    (widget.isRunning && !widget.isPaused)
+                        ? CupertinoIcons.pause_fill
+                        : CupertinoIcons.play_fill,
+                    size: 35,
+                    color: CustomColors.fillWhite,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildControlButton({
-    required IconData icon,
-    required VoidCallback onPressed,
-    required String tooltip,
-  }) {
-    return Container(
-      height: 55,
-      width: 90,
-      decoration: BoxDecoration(
-        border: Border.all(color: CustomColors.fillWhite, width: 1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: IconButton(
-        icon: Icon(icon, color: Colors.white, size: 36),
-        onPressed: onPressed,
-        tooltip: tooltip,
-      ),
-    );
-  }
 
   Widget _buildTimeUpOverlayContent() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        SizedBox(
+          height:150
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               CupertinoIcons.bell_fill,
               color: CustomColors.fillWhite,
-              size: 48,
+              size: 48.sp,
             ),
             const SizedBox(width: 8),
             Text(
               "Time's Up!",
               style: CustomTypography()
-                  .headlineLarge(color: CustomColors.textWhite),
+                  .custom(
+                  color: CustomColors.textWhite,
+                  fontWeight: FontWeight.w400,
+                fontSize: 48
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 30),
-        _buildOverlayButton(
-          icon: CupertinoIcons.stop_fill,
-          text: "Stop",
-          onPressed: () {
-            _removeTimeUpOverlay();
-            // Use a post frame callback to ensure overlay is removed before calling onStop
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                widget.onStop();
-              }
-            });
-          },
-          backgroundColor: CustomColors.productNormal,
-        ),
-        const SizedBox(height: 20),
-        _buildOverlayButton(
-          icon: Icons.refresh_rounded,
-          text: "Restart",
-          onPressed: () {
-            _removeTimeUpOverlay();
-            // Use a post frame callback to ensure overlay is removed before calling onRestart
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                widget.onRestart();
-              }
-            });
-          },
-          backgroundColor: Colors.transparent,
-          hasBorder: true,
-        ),
-      ],
-    );
-  }
+        const SizedBox(height: 84),
+        SizedBox(
+          height: 56,
+          width: 128,
+          child: CustomIconButtonWithTextButton(
+            onClick: () {
+              _removeTimeUpOverlay();
+              // Use a post frame callback to ensure overlay is removed before calling onStop
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  widget.onStop();
+                }
+              });
+            },
+            color: CustomColors.productNormal,
+            text: "Stop", icon: CupertinoIcons.stop_fill,
 
-  Widget _buildOverlayButton({
-    required IconData icon,
-    required String text,
-    required VoidCallback onPressed,
-    required Color backgroundColor,
-    bool hasBorder = false,
-  }) {
-    return SizedBox(
-      height: 55,
-      width: 140,
-      child: hasBorder
-          ? Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: CustomColors.fillWhite, width: 2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: InkWell(
-                onTap: onPressed,
-                borderRadius: BorderRadius.circular(12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+          ),
+        ),
+        const SizedBox(height: 48),
+        SizedBox(
+          height: 44,
+          width: 128,
+          child: Center(
+            child: CustomOutlineButton(
+              onClick: () {
+                _removeTimeUpOverlay();
+            // Use a post frame callback to ensure overlay is removed before calling onRestart
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    widget.onRestart();
+                  }
+                });
+              },
+              backgroundColor: Colors.transparent,
+              color: CustomColors.fillWhite,
+              children: Wrap(children: [
+                Row(
                   children: [
-                    Icon(icon, color: Colors.white, size: 24),
-                    const SizedBox(width: 8),
-                    Text(
-                      text,
-                      style: CustomTypography()
-                          .titleSmall(color: CustomColors.textWhite),
+                    Icon(
+                      Icons.refresh_rounded,
+                      color: CustomColors.fillWhite,
+                      size: 24.sp,
                     ),
+                    const SizedBox(width: 8),
+                    Text("Repeat",
+                        style: CustomTypography().button(
+                            color: CustomColors.fillWhite)),
                   ],
                 ),
-              ),
-            )
-          : ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: backgroundColor,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 18),
-              ),
-              onPressed: onPressed,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, color: Colors.white, size: 24),
-                  const SizedBox(width: 8),
-                  Text(text,
-                      style: CustomTypography().button(color: Colors.white)),
-                ],
-              ),
+              ]),
             ),
+          ),
+        ),
+      ],
     );
   }
 }
