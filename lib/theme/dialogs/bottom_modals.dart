@@ -2697,9 +2697,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
           CustomOutlineButton(
               backgroundColor: Colors.transparent,
               color: CustomColors.productLightBackground,
-              onClick: () {
-                widget.onRestart;
-              },
+              onClick: widget.onRestart,
               children: Wrap(
                 children: [
                   Icon(Icons.refresh_rounded,
