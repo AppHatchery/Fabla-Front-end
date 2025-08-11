@@ -559,15 +559,17 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height * 0.45;
+    final scaler = MediaQuery.of(context).textScaler;
+    final scaled = scaler.scale(1);
     return SizedBox(
       width: width,
       height: height,
       child: Padding(
         padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 24,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          left: scaled > 1.5 ? 8 : 16,
+          right: scaled > 1.5 ? 8 : 16,
+          top: scaled > 1.5 ? 12 : 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 10,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -575,7 +577,13 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
             Row(
               children: [
                 const Expanded(flex: 1, child: SizedBox()),
-                Expanded(
+                scaled > 1.5
+                    ? Text(
+                  widget.title,
+                  style: CustomTypography().titleLarge(),
+                  textAlign: TextAlign.center,
+                )
+                    : Expanded(
                   flex: 5,
                   child: Text(
                     widget.title,
@@ -589,21 +597,22 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                     alignment: Alignment.centerRight,
                     child: IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close,
                         color: CustomColors.textNormalContent,
+                        size: scaled > 1.5 ? 30 : 40,
                       ),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: scaled > 1.5 ? 15 : 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(
-                  height: 200,
+                  height: scaled > 1.5 ? 100 : 200,
                   width: 50,
                   child: ListWheelScrollView.useDelegate(
                     controller: minutesController,
@@ -617,7 +626,7 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                     diameterRatio: 2,
                     itemExtent: 50,
                     overAndUnderCenterOpacity: 0.3,
-                    squeeze: 2,
+                    squeeze: scaled > 1.5 ? 1.5 : 2,
                     childDelegate: ListWheelChildBuilderDelegate(
                       builder: (context, index) {
                         return Minutes(mins: index);
@@ -629,13 +638,11 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                 Text("mins",
                     style: CustomTypography().custom(
                         color: CustomColors.textNormalContent,
-                        fontSize: 22.172,
-                        fontWeight: FontWeight.w400
-                    )
-                ),
+                        fontSize: scaled > 1.5 ? 20 : 22.172,
+                        fontWeight: FontWeight.w400)),
                 SizedBox(width: 20),
                 SizedBox(
-                  height: 200,
+                  height: scaled > 1.5 ? 100 : 200,
                   width: 50,
                   child: ListWheelScrollView.useDelegate(
                     controller: secondsController,
@@ -649,7 +656,7 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                     diameterRatio: 2,
                     itemExtent: 50,
                     overAndUnderCenterOpacity: 0.3,
-                    squeeze: 2,
+                    squeeze: scaled > 1.5 ? 1.5 : 2,
                     childDelegate: ListWheelChildBuilderDelegate(
                       builder: (context, index) {
                         return Minutes(mins: index);
@@ -658,14 +665,11 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                     ),
                   ),
                 ),
-                Text(
-                  "sec",
+                Text("sec",
                     style: CustomTypography().custom(
                         color: CustomColors.textNormalContent,
-                        fontSize: 22.172,
-                        fontWeight: FontWeight.w400
-                    )
-                ),
+                        fontSize: scaled > 1.5 ? 20 : 22.172,
+                        fontWeight: FontWeight.w400)),
               ],
             ),
             const SizedBox(height: 20),
