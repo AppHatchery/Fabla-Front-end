@@ -2618,47 +2618,57 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   Widget _buildTimerDisplay() {
     final scaler = MediaQuery.of(context).textScaler;
     final scaled = scaler.scale(1);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
-    // Progressive positioning and sizing based on scale
-    double getTopPosition(double scale) {
-      if (scale <= 1.0) return 143;
-      if (scale <= 1.5) return 143 - (scale - 1.0) / 0.5 * 63; // 143 to 80
-      if (scale <= 2.0) return 80 - (scale - 1.5) / 0.5 * 20; // 80 to 60
-      return 60 - (scale - 2.0) * 10; // Continue reducing for extreme scales
+    // Progressive positioning functions for better scaling
+    double getTopPosition(double scale, double screenHeight) {
+      final baseTop = screenHeight * 0.15; // Use percentage of screen height
+      if (scale <= 1.0) return baseTop;
+      if (scale <= 1.2)
+        return baseTop - (scale - 1.0) / 0.2 * 20; // Reduce by 20px
+      if (scale <= 1.5)
+        return baseTop - 20 - (scale - 1.2) / 0.3 * 25; // Further reduce
+      if (scale <= 2.0)
+        return baseTop - 45 - (scale - 1.5) / 0.5 * 20; // Continue reducing
+      return baseTop - 65 - (scale - 2.0) * 15; // For extreme scales
     }
 
-    double getHorizontalPosition(double scale) {
-      if (scale <= 1.0) return 60.25;
-      if (scale <= 1.5) return 60.25 - (scale - 1.0) / 0.5 * 33.25; // 60.25 to 27
-      if (scale <= 2.0) return 27 - (scale - 1.5) / 0.5 * 7; // 27 to 20
-      if (scale <= 3.0) return 20 - (scale - 2.0) * 5; // Further reduce for extreme scales
-      return 5; // Minimum padding for very high scales
+    double getHorizontalPosition(double scale, double screenWidth) {
+      final baseHorizontal =
+          screenWidth * 0.15; // Use percentage of screen width
+      if (scale <= 1.0) return baseHorizontal;
+      if (scale <= 1.2) return baseHorizontal * 0.8; // Reduce to 80%
+      if (scale <= 1.5) return baseHorizontal * 0.6; // Reduce to 60%
+      if (scale <= 2.0) return baseHorizontal * 0.4; // Reduce to 40%
+      return screenWidth * 0.05; // Minimum 5% margin for extreme scales
     }
 
     double getIconSize(double scale) {
       if (scale <= 1.0) return 48;
-      if (scale <= 1.5) return 48 - (scale - 1.0) / 0.5 * 2.85; // 48 to 45.15
-      if (scale <= 2.0) return 45.15 - (scale - 1.5) / 0.5 * 5; // 45.15 to 40
-      if (scale <= 3.0) return 40 - (scale - 2.0) * 3; // Continue reducing
-      return 30; // Minimum icon size
+      if (scale <= 1.2) return 48 - (scale - 1.0) / 0.2 * 3; // 48 to 45
+      if (scale <= 1.5) return 45 - (scale - 1.2) / 0.3 * 5; // 45 to 40
+      if (scale <= 2.0) return 40 - (scale - 1.5) / 0.5 * 8; // 40 to 32
+      return 32 - (scale - 2.0) * 4; // Continue reducing, min 24
     }
 
     double getFontSize(double scale) {
       if (scale <= 1.0) return 48;
-      if (scale <= 1.5) return 48 - (scale - 1.0) / 0.5 * 8.6; // 48 to 39.4
-      if (scale <= 2.0) return 39.4 - (scale - 1.5) / 0.5 * 6; // 39.4 to 33
-      if (scale <= 3.0) return 33 - (scale - 2.0) * 4; // Continue reducing for extreme scales
-      return 25; // Minimum font size for readability
+      if (scale <= 1.2) return 48 - (scale - 1.0) / 0.2 * 8; // 48 to 40
+      if (scale <= 1.5) return 40 - (scale - 1.2) / 0.3 * 8; // 40 to 32
+      if (scale <= 2.0) return 32 - (scale - 1.5) / 0.5 * 8; // 32 to 24
+      return 24 - (scale - 2.0) * 3; // Continue reducing, min 18
     }
 
     double getSpacing(double scale) {
       if (scale <= 1.0) return 4;
-      if (scale <= 2.0) return 4 - (scale - 1.0) * 1; // 4 to 3
-      return 2; // Minimum spacing for extreme scales
+      if (scale <= 1.5) return 4 - (scale - 1.0) / 0.5 * 1; // 4 to 3
+      if (scale <= 2.0) return 3 - (scale - 1.5) / 0.5 * 1; // 3 to 2
+      return 2; // Minimum spacing
     }
 
-    final topPos = getTopPosition(scaled);
-    final horizontalPos = getHorizontalPosition(scaled);
+    final topPos = getTopPosition(scaled, screenHeight);
+    final horizontalPos = getHorizontalPosition(scaled, screenWidth);
     final iconSize = getIconSize(scaled);
     final fontSize = getFontSize(scaled);
     final spacing = getSpacing(scaled);
@@ -2667,34 +2677,42 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       top: topPos,
       left: horizontalPos,
       right: horizontalPos,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            CupertinoIcons.timer,
-            color: CustomColors.textWhite,
-            size: iconSize,
-          ),
-          SizedBox(width: spacing),
-          Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                _formatDuration(widget.remaining),
-                textAlign: TextAlign.center,
-                style: CustomTypography()
-                    .custom(
-                  color: CustomColors.textWhite,
-                  fontWeight: FontWeight.w400,
-                  fontSize: fontSize,
-                )
-                    .copyWith(fontFeatures: [const FontFeature.tabularFigures()]),
-                maxLines: 1,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: scaled > 1.5 ? 4 : 8,
+          vertical: scaled > 1.5 ? 2 : 4,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              CupertinoIcons.timer,
+              color: CustomColors.textWhite,
+              size: iconSize,
+            ),
+            SizedBox(width: spacing),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  _formatDuration(widget.remaining),
+                  textAlign: TextAlign.center,
+                  style: CustomTypography()
+                      .custom(
+                    color: CustomColors.textWhite,
+                    fontWeight: FontWeight.w400,
+                    fontSize: fontSize,
+                  )
+                      .copyWith(
+                          fontFeatures: [const FontFeature.tabularFigures()]),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -2870,18 +2888,11 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
               : scaled <= 1.15
                   ? 57
                   : scaled <= 1.3
-                      ? 57 +
-                          (scaled - 1.15) / (1.3 - 1.15) * (60 - 57)
+                      ? 57 + (scaled - 1.15) / (1.3 - 1.15) * (60 - 57)
                       : scaled <= 1.5
-                          ? 60 +
-                              (scaled - 1.3) /
-                                  (1.5 - 1.3) *
-                                  (65 - 60)
+                          ? 60 + (scaled - 1.3) / (1.5 - 1.3) * (65 - 60)
                           : scaled <= 1.8
-                              ? 65 +
-                                  (scaled - 1.5) /
-                                      (1.8 - 1.5) *
-                                      (80 - 65)
+                              ? 65 + (scaled - 1.5) / (1.8 - 1.5) * (80 - 65)
                               : 80,
           width: scaled > 1 ? 177 : 128,
           child: Center(
