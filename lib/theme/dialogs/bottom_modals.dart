@@ -2410,15 +2410,16 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     setState(() {
       animationHeight = art.height;
     });
-    dev.log("Rive animation initialized with height: $animationHeight");
   }
 
   void _toggleHeight() {
     setState(() {
       _isCollapsed = !_isCollapsed;
       final screenHeight = MediaQuery.of(context).size.height;
+      final scaler = MediaQuery.of(context).textScaler;
+      final scaled = scaler.scale(1);
       _containerHeight =
-          _isCollapsed ? screenHeight * 0.15 : screenHeight * 0.85;
+          _isCollapsed ? screenHeight * (scaled>1.5 ? 0.20 : 0.15) : screenHeight * 0.85;
 
       // Update underlay visibility based on collapse state
       _showModalUnderlay = !_isCollapsed;
@@ -2614,23 +2615,26 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   }
 
   Widget _buildTimerDisplay() {
+    final scaler = MediaQuery.of(context).textScaler;
+    final scaled = scaler.scale(1);
     return Positioned(
-      top: 143,
-      left: 60.25,
-      right: 60.25,
+      top: scaled > 1.5 ? 80 : 143,
+      left: scaled> 1.5 ? 27 : 60.25,
+      right:scaled> 1.5 ? 27: 60.25,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(CupertinoIcons.timer,
-              color: CustomColors.textWhite, size: 48.sp),
+              color: CustomColors.textWhite, size: scaled> 1.5 ? 45.15 : 48,),
           const SizedBox(width: 4),
           Text(
             _formatDuration(widget.remaining),
+            textAlign: TextAlign.center,
             style: CustomTypography().custom(
               color: CustomColors.textWhite,
               fontWeight: FontWeight.w400,
-              fontSize: 48.sp,
-            ),
+              fontSize: scaled > 1.5 ? 39.4 : 48,
+            ).copyWith(fontFeatures: [const FontFeature.tabularFigures()]),
           ),
         ],
       ),
@@ -2638,23 +2642,26 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   }
 
   Widget _buildTimerCollapseDisplay() {
+    final scaler = MediaQuery.of(context).textScaler;
+    final scaled = scaler.scale(1);
     return Positioned(
-      top: 35,
-      left: 64.5,
-      right: 64,
+      top: scaled > 1.5 ? 15 : 35,
+      left: scaled > 1.5 ? 50: 64.5,
+      right: scaled > 1.5 ? 49.5 : 64,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(CupertinoIcons.timer,
-              color: CustomColors.textWhite, size: 48.sp),
+              color: CustomColors.textWhite, size: scaled > 1.5 ? 45.15 : 48),
           const SizedBox(width: 4),
           Text(
             _formatDuration(widget.remaining),
+            textAlign: TextAlign.center,
             style: CustomTypography().custom(
               color: CustomColors.textWhite,
               fontWeight: FontWeight.w400,
-              fontSize: 48.sp,
-            ),
+              fontSize: scaled > 1.5 ? 30.4 : 48,
+            ).copyWith(fontFeatures: [const FontFeature.tabularFigures()]),
           ),
         ],
       ),

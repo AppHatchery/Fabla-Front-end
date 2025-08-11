@@ -1043,13 +1043,15 @@ class _TimerWidgetState extends State<TimerWidget>
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Text(
-                  "Time Length",
-                  style: CustomTypography().custom(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF383838)),
-                  textAlign: TextAlign.start,
+                Flexible(
+                  child: Text(
+                    "Time Length",
+                    style: CustomTypography().custom(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF383838)),
+                    textAlign: TextAlign.start,
+                  ),
                 ),
               ],
             ),
@@ -1151,9 +1153,11 @@ class _TimerWidgetState extends State<TimerWidget>
 
   Widget _buildCompleteButton() {
     final isDisabled = inProgress || paused;
+    final scaler = MediaQuery.of(context).textScaler;
+    final scaled = scaler.scale(1);
     return SizedBox(
       width: double.infinity,
-      height: 48,
+      height: scaled > 1.5 ? 160 : 48,
       child: CustomOutlineButton(
         onClick: isDisabled
             ? () {}
