@@ -2618,29 +2618,81 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   Widget _buildTimerDisplay() {
     final scaler = MediaQuery.of(context).textScaler;
     final scaled = scaler.scale(1);
+
+    // Progressive positioning and sizing based on scale
+    double getTopPosition(double scale) {
+      if (scale <= 1.0) return 143;
+      if (scale <= 1.5) return 143 - (scale - 1.0) / 0.5 * 63; // 143 to 80
+      if (scale <= 2.0) return 80 - (scale - 1.5) / 0.5 * 20; // 80 to 60
+      return 60 - (scale - 2.0) * 10; // Continue reducing for extreme scales
+    }
+
+    double getHorizontalPosition(double scale) {
+      if (scale <= 1.0) return 60.25;
+      if (scale <= 1.5) return 60.25 - (scale - 1.0) / 0.5 * 33.25; // 60.25 to 27
+      if (scale <= 2.0) return 27 - (scale - 1.5) / 0.5 * 7; // 27 to 20
+      if (scale <= 3.0) return 20 - (scale - 2.0) * 5; // Further reduce for extreme scales
+      return 5; // Minimum padding for very high scales
+    }
+
+    double getIconSize(double scale) {
+      if (scale <= 1.0) return 48;
+      if (scale <= 1.5) return 48 - (scale - 1.0) / 0.5 * 2.85; // 48 to 45.15
+      if (scale <= 2.0) return 45.15 - (scale - 1.5) / 0.5 * 5; // 45.15 to 40
+      if (scale <= 3.0) return 40 - (scale - 2.0) * 3; // Continue reducing
+      return 30; // Minimum icon size
+    }
+
+    double getFontSize(double scale) {
+      if (scale <= 1.0) return 48;
+      if (scale <= 1.5) return 48 - (scale - 1.0) / 0.5 * 8.6; // 48 to 39.4
+      if (scale <= 2.0) return 39.4 - (scale - 1.5) / 0.5 * 6; // 39.4 to 33
+      if (scale <= 3.0) return 33 - (scale - 2.0) * 4; // Continue reducing for extreme scales
+      return 25; // Minimum font size for readability
+    }
+
+    double getSpacing(double scale) {
+      if (scale <= 1.0) return 4;
+      if (scale <= 2.0) return 4 - (scale - 1.0) * 1; // 4 to 3
+      return 2; // Minimum spacing for extreme scales
+    }
+
+    final topPos = getTopPosition(scaled);
+    final horizontalPos = getHorizontalPosition(scaled);
+    final iconSize = getIconSize(scaled);
+    final fontSize = getFontSize(scaled);
+    final spacing = getSpacing(scaled);
+
     return Positioned(
-      top: scaled > 1 ? 80 : 143,
-      left: scaled > 1 ? 27 : 60.25,
-      right: scaled > 1 ? 27 : 60.25,
+      top: topPos,
+      left: horizontalPos,
+      right: horizontalPos,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             CupertinoIcons.timer,
             color: CustomColors.textWhite,
-            size: scaled > 1 ? 45.15 : 48,
+            size: iconSize,
           ),
-          const SizedBox(width: 4),
-          Text(
-            _formatDuration(widget.remaining),
-            textAlign: TextAlign.center,
-            style: CustomTypography()
-                .custom(
-              color: CustomColors.textWhite,
-              fontWeight: FontWeight.w400,
-              fontSize: scaled > 1 ? 39.4 : 48,
-            )
-                .copyWith(fontFeatures: [const FontFeature.tabularFigures()]),
+          SizedBox(width: spacing),
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                _formatDuration(widget.remaining),
+                textAlign: TextAlign.center,
+                style: CustomTypography()
+                    .custom(
+                  color: CustomColors.textWhite,
+                  fontWeight: FontWeight.w400,
+                  fontSize: fontSize,
+                )
+                    .copyWith(fontFeatures: [const FontFeature.tabularFigures()]),
+                maxLines: 1,
+              ),
+            ),
           ),
         ],
       ),
