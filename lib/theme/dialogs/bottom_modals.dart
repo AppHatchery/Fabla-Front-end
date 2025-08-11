@@ -2418,8 +2418,9 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       final screenHeight = MediaQuery.of(context).size.height;
       final scaler = MediaQuery.of(context).textScaler;
       final scaled = scaler.scale(1);
-      _containerHeight =
-          _isCollapsed ? screenHeight * (scaled>1.5 ? 0.20 : 0.15) : screenHeight * 0.85;
+      _containerHeight = _isCollapsed
+          ? screenHeight * (scaled > 1.5 ? 0.20 : 0.15)
+          : screenHeight * 0.85;
 
       // Update underlay visibility based on collapse state
       _showModalUnderlay = !_isCollapsed;
@@ -2618,23 +2619,28 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     final scaler = MediaQuery.of(context).textScaler;
     final scaled = scaler.scale(1);
     return Positioned(
-      top: scaled > 1.5 ? 80 : 143,
-      left: scaled> 1.5 ? 27 : 60.25,
-      right:scaled> 1.5 ? 27: 60.25,
+      top: scaled > 1 ? 80 : 143,
+      left: scaled > 1 ? 27 : 60.25,
+      right: scaled > 1 ? 27 : 60.25,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(CupertinoIcons.timer,
-              color: CustomColors.textWhite, size: scaled> 1.5 ? 45.15 : 48,),
+          Icon(
+            CupertinoIcons.timer,
+            color: CustomColors.textWhite,
+            size: scaled > 1 ? 45.15 : 48,
+          ),
           const SizedBox(width: 4),
           Text(
             _formatDuration(widget.remaining),
             textAlign: TextAlign.center,
-            style: CustomTypography().custom(
+            style: CustomTypography()
+                .custom(
               color: CustomColors.textWhite,
               fontWeight: FontWeight.w400,
-              fontSize: scaled > 1.5 ? 39.4 : 48,
-            ).copyWith(fontFeatures: [const FontFeature.tabularFigures()]),
+              fontSize: scaled > 1 ? 39.4 : 48,
+            )
+                .copyWith(fontFeatures: [const FontFeature.tabularFigures()]),
           ),
         ],
       ),
@@ -2645,23 +2651,25 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     final scaler = MediaQuery.of(context).textScaler;
     final scaled = scaler.scale(1);
     return Positioned(
-      top: scaled > 1.5 ? 15 : 35,
-      left: scaled > 1.5 ? 50: 64.5,
-      right: scaled > 1.5 ? 49.5 : 64,
+      top: scaled > 1 ? 15 : 35,
+      left: scaled > 1 ? 50 : 64.5,
+      right: scaled > 1 ? 49.5 : 64,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(CupertinoIcons.timer,
-              color: CustomColors.textWhite, size: scaled > 1.5 ? 45.15 : 48),
+              color: CustomColors.textWhite, size: scaled > 1 ? 45.15 : 48),
           const SizedBox(width: 4),
           Text(
             _formatDuration(widget.remaining),
             textAlign: TextAlign.center,
-            style: CustomTypography().custom(
+            style: CustomTypography()
+                .custom(
               color: CustomColors.textWhite,
               fontWeight: FontWeight.w400,
-              fontSize: scaled > 1.5 ? 30.4 : 48,
-            ).copyWith(fontFeatures: [const FontFeature.tabularFigures()]),
+              fontSize: scaled > 1 ? 30.4 : 48,
+            )
+                .copyWith(fontFeatures: [const FontFeature.tabularFigures()]),
           ),
         ],
       ),
@@ -2736,32 +2744,57 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   }
 
   Widget _buildTimeUpOverlayContent() {
+    final scaler = MediaQuery.of(context).textScaler;
+    final scaled = scaler.scale(1);
+    print("Scaled value: $scaled");
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(height: 150),
+        SizedBox(height: scaled > 1 ? 10 : 150),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               CupertinoIcons.bell_fill,
               color: CustomColors.fillWhite,
-              size: 48.sp,
+              size: scaled > 1 ? 70.sp : 48.sp,
             ),
             const SizedBox(width: 8),
-            Text(
-              "Time's Up!",
-              style: CustomTypography().custom(
-                  color: CustomColors.textWhite,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 48),
+            Flexible(
+              child: SizedBox(
+                child: Text(
+                  "Time's Up!",
+                  style: CustomTypography().custom(
+                      color: CustomColors.textWhite,
+                      fontWeight: FontWeight.w400,
+                      fontSize: scaled > 1 ? 38 : 48),
+                ),
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 84),
+        SizedBox(height: scaled > 1 ? 42 : 84),
         SizedBox(
-          height: 56,
-          width: 128,
+          // Calculate height based on scaled value
+          height: scaled <= 1
+              ? 56
+              : scaled <= 1.15
+                  ? 57
+                  : scaled <= 1.3
+                      ? 57 +
+                          (scaled - 1.15) / (1.3 - 1.15) * (60 - 57) // 57 → 60
+                      : scaled <= 1.5
+                          ? 60 +
+                              (scaled - 1.3) /
+                                  (1.5 - 1.3) *
+                                  (65 - 60) // 60 → 65
+                          : scaled <= 1.8
+                              ? 60 +
+                                  (scaled - 1.5) /
+                                      (1.8 - 1.5) *
+                                      (80 - 65) // 65 → 80
+                              : 80,
+          width: scaled > 1 ? 177 : 128,
           child: CustomIconButtonWithTextButton(
             onClick: () {
               _removeTimeUpOverlay();
@@ -2777,10 +2810,28 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
             icon: CupertinoIcons.stop_fill,
           ),
         ),
-        const SizedBox(height: 48),
+        SizedBox(height: scaled > 1 ? 24 : 48),
         SizedBox(
-          height: 44,
-          width: 128,
+          // Calculate height based on scaled value
+          height: scaled <= 1
+              ? 56
+              : scaled <= 1.15
+                  ? 57
+                  : scaled <= 1.3
+                      ? 57 +
+                          (scaled - 1.15) / (1.3 - 1.15) * (60 - 57)
+                      : scaled <= 1.5
+                          ? 60 +
+                              (scaled - 1.3) /
+                                  (1.5 - 1.3) *
+                                  (65 - 60)
+                          : scaled <= 1.8
+                              ? 65 +
+                                  (scaled - 1.5) /
+                                      (1.8 - 1.5) *
+                                      (80 - 65)
+                              : 80,
+          width: scaled > 1 ? 177 : 128,
           child: Center(
             child: CustomOutlineButton(
               onClick: () {

@@ -558,18 +558,36 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height * 0.45;
     final scaler = MediaQuery.of(context).textScaler;
     final scaled = scaler.scale(1);
+    final viewInsets = MediaQuery.of(context).viewInsets.bottom;
+
+    print("Scaled: $scaled");
+
+    // Dynamic height calculation based on font scaling
+    final baseHeight = MediaQuery.of(context).size.height * 0.45;
+    final scalingFactor = (scaled - 0.85) / (1.5 - 0.85); // Normalize between 0-1
+    final heightAdjustment = scalingFactor * 50; // Add up to 50px for scaling
+    final dynamicHeight = baseHeight + heightAdjustment;
+
+    // Responsive padding that decreases with higher font scaling
+    final horizontalPadding = scaled > 1.5 ? 8.0 : (scaled > 1.2 ? 12.0 : 16.0);
+    final topPadding = scaled > 1.5 ? 8.0 : (scaled > 1.2 ? 16.0 : 24.0);
+    final bottomPadding = scaled > 1.5 ? 16.0 : 24.0;
+
+    // Dynamic spacing
+    final titleSpacing = scaled > 1.5 ? 8.0 : (scaled > 1.2 ? 20.0 : 30.0);
+    final wheelHeight = scaled > 1.5 ? 80.0 : (scaled > 1.2 ? 140.0 : 200.0);
+
     return SizedBox(
       width: width,
-      height: height,
+      height: dynamicHeight,
       child: Padding(
         padding: EdgeInsets.only(
-          left: scaled > 1.5 ? 8 : 16,
-          right: scaled > 1.5 ? 8 : 16,
-          top: scaled > 1.5 ? 12 : 24,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 10,
+          left: horizontalPadding,
+          right: horizontalPadding,
+          top: topPadding,
+          bottom: viewInsets + bottomPadding,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -600,79 +618,81 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                       icon: Icon(
                         Icons.close,
                         color: CustomColors.textNormalContent,
-                        size: scaled > 1.5 ? 30 : 40,
+                        size: scaled > 1.5 ? 24 : (scaled > 1.2 ? 32 : 40),
                       ),
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: scaled > 1.5 ? 15 : 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  height: scaled > 1.5 ? 100 : 200,
-                  width: 50,
-                  child: ListWheelScrollView.useDelegate(
-                    controller: minutesController,
-                    onSelectedItemChanged: (value) {
-                      setState(() {
-                        minutes = value;
-                      });
-                    },
-                    physics: const FixedExtentScrollPhysics(),
-                    perspective: 0.01,
-                    diameterRatio: 2,
-                    itemExtent: 50,
-                    overAndUnderCenterOpacity: 0.3,
-                    squeeze: scaled > 1.5 ? 1.5 : 2,
-                    childDelegate: ListWheelChildBuilderDelegate(
-                      builder: (context, index) {
-                        return Minutes(mins: index);
+            SizedBox(height: titleSpacing),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: wheelHeight,
+                    width: 50,
+                    child: ListWheelScrollView.useDelegate(
+                      controller: minutesController,
+                      onSelectedItemChanged: (value) {
+                        setState(() {
+                          minutes = value;
+                        });
                       },
-                      childCount: 60,
+                      physics: const FixedExtentScrollPhysics(),
+                      perspective: 0.01,
+                      diameterRatio: 2,
+                      itemExtent: 50,
+                      overAndUnderCenterOpacity: 0.3,
+                      squeeze: scaled > 1.5 ? 1.5 : (scaled > 1.2 ? 1.6 : 2),
+                      childDelegate: ListWheelChildBuilderDelegate(
+                        builder: (context, index) {
+                          return Minutes(mins: index);
+                        },
+                        childCount: 60,
+                      ),
                     ),
                   ),
-                ),
-                Text("mins",
-                    style: CustomTypography().custom(
-                        color: CustomColors.textNormalContent,
-                        fontSize: scaled > 1.5 ? 20 : 22.172,
-                        fontWeight: FontWeight.w400)),
-                SizedBox(width: 20),
-                SizedBox(
-                  height: scaled > 1.5 ? 100 : 200,
-                  width: 50,
-                  child: ListWheelScrollView.useDelegate(
-                    controller: secondsController,
-                    onSelectedItemChanged: (value) {
-                      setState(() {
-                        seconds = value;
-                      });
-                    },
-                    physics: const FixedExtentScrollPhysics(),
-                    perspective: 0.01,
-                    diameterRatio: 2,
-                    itemExtent: 50,
-                    overAndUnderCenterOpacity: 0.3,
-                    squeeze: scaled > 1.5 ? 1.5 : 2,
-                    childDelegate: ListWheelChildBuilderDelegate(
-                      builder: (context, index) {
-                        return Minutes(mins: index);
+                  Text("mins",
+                      style: CustomTypography().custom(
+                          color: CustomColors.textNormalContent,
+                          fontSize: scaled > 1.5 ? 16 : (scaled > 1.2 ? 19 : 22.172),
+                          fontWeight: FontWeight.w400)),
+                  SizedBox(width: scaled > 1.5 ? 12 : 20),
+                  SizedBox(
+                    height: wheelHeight,
+                    width: 50,
+                    child: ListWheelScrollView.useDelegate(
+                      controller: secondsController,
+                      onSelectedItemChanged: (value) {
+                        setState(() {
+                          seconds = value;
+                        });
                       },
-                      childCount: 60,
+                      physics: const FixedExtentScrollPhysics(),
+                      perspective: 0.01,
+                      diameterRatio: 2,
+                      itemExtent: 50,
+                      overAndUnderCenterOpacity: 0.3,
+                      squeeze: scaled > 1.5 ? 1.5 : (scaled > 1.2 ? 1.6 : 2),
+                      childDelegate: ListWheelChildBuilderDelegate(
+                        builder: (context, index) {
+                          return Minutes(mins: index);
+                        },
+                        childCount: 60,
+                      ),
                     ),
                   ),
-                ),
-                Text("sec",
-                    style: CustomTypography().custom(
-                        color: CustomColors.textNormalContent,
-                        fontSize: scaled > 1.5 ? 20 : 22.172,
-                        fontWeight: FontWeight.w400)),
-              ],
+                  Text("sec",
+                      style: CustomTypography().custom(
+                          color: CustomColors.textNormalContent,
+                          fontSize: scaled > 1.5 ? 16 : (scaled > 1.2 ? 19 : 22.172),
+                          fontWeight: FontWeight.w400)),
+                ],
+              ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: scaled > 1.5 ? 12 : 20),
             CustomElevatedButton(
               onClick: () => save(),
               text: "SAVE",

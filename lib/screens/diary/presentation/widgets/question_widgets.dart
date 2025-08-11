@@ -1153,43 +1153,37 @@ class _TimerWidgetState extends State<TimerWidget>
 
   Widget _buildCompleteButton() {
     final isDisabled = inProgress || paused;
-    final scaler = MediaQuery.of(context).textScaler;
-    final scaled = scaler.scale(1);
-    return SizedBox(
-      width: double.infinity,
-      height: scaled > 1.5 ? 160 : 48,
-      child: CustomOutlineButton(
-        onClick: isDisabled
-            ? () {}
-            : () {
-                setState(() {
-                  complete = true;
-                  inProgress = false;
-                  paused = false;
-                  showCompletionText =
-                      true; // Show completion text immediately for manual completion
-                });
-                widget.respond("Complete");
-              },
-        backgroundColor: Colors.transparent,
-        color:
-            isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
-        children: Wrap(
-          children: [
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(3.0),
-                child: Text(
-                  "I Have Completed The Task",
-                  style: CustomTypography().button(
-                      color: isDisabled
-                          ? CustomColors.fillDisabled
-                          : CustomColors.productNormal),
-                ),
+    return CustomOutlineButton(
+      onClick: isDisabled
+          ? () {}
+          : () {
+              setState(() {
+                complete = true;
+                inProgress = false;
+                paused = false;
+                showCompletionText =
+                    true; // Show completion text immediately for manual completion
+              });
+              widget.respond("Complete");
+            },
+      backgroundColor: Colors.transparent,
+      color:
+          isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
+      children: Wrap(
+        children: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: Text(
+                "I Have Completed The Task",
+                style: CustomTypography().button(
+                    color: isDisabled
+                        ? CustomColors.fillDisabled
+                        : CustomColors.productNormal),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
