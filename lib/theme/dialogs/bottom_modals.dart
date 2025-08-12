@@ -2628,7 +2628,8 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     final double iconSize = (screenWidth * 0.12 * textScale).clamp(28.0, 48.0);
 
     // Timer text size: scales but capped
-    final double timerFontSize = (screenWidth * 0.11 * textScale).clamp(24.0, 48.0);
+    final double timerFontSize =
+        (screenWidth * 0.11 * textScale).clamp(24.0, 48.0);
 
     return Positioned(
       top: topPos,
@@ -2793,9 +2794,16 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
     final double refreshIconSize = (24 * textScale).clamp(20.0, 32.0);
     final double titleFontSize = (48 * textScale).clamp(32.0, 48.0);
 
-    // Keep buttons same size
-    final double buttonHeight = (56 * textScale).clamp(56.0, 80.0);
-    final double buttonWidth = (177 * textScale).clamp(128.0, 200.0);
+    // button sizing for extreme text scaling
+    final double buttonHeight = (56 * textScale).clamp(56.0, 100.0);
+    // Allow much more width growth for high text scaling
+    final double buttonWidth = textScale > 2.5
+        ? (size.width * 0.85).clamp(
+            200.0,
+            size.width -
+                40.0) // Use screen width percentage for extreme scaling
+        : (177 * textScale)
+            .clamp(128.0, 280.0); // Increased max width for normal scaling
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -2828,65 +2836,70 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
           ],
         ),
         SizedBox(height: betweenIconAndButton),
+        // Stop Button
         SizedBox(
           height: buttonHeight,
           width: buttonWidth,
-          child: SizedBox.expand(
-            child: CustomIconButtonWithTextButton(
-              onClick: () {
-                _removeTimeUpOverlay();
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) widget.onStop();
-                });
-              },
-              color: CustomColors.productNormal,
-              text: "Stop",
-              icon: CupertinoIcons.stop_fill,
-            ),
+          child: CustomIconButtonWithTextButton(
+            onClick: () {
+              _removeTimeUpOverlay();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) widget.onStop();
+              });
+            },
+            color: CustomColors.productNormal,
+            text: "Stop",
+            icon: CupertinoIcons.stop_fill,
           ),
         ),
         SizedBox(height: betweenButtons),
+        // Repeat Button
         SizedBox(
           height: buttonHeight / 1.28, //reducing the height of the repeat button to match the stop button
           width: buttonWidth,
-          child: SizedBox.expand(
-            child: CustomOutlineButton(
-              onClick: () {
-                _removeTimeUpOverlay();
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) widget.onRestart();
-                });
-              },
-              backgroundColor: Colors.transparent,
-              color: CustomColors.fillWhite,
-              children: Wrap(
-                children: [
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 12),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.refresh_rounded,
-                            color: CustomColors.fillWhite,
-                            size: refreshIconSize,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
+          child: CustomOutlineButton(
+            onClick: () {
+              _removeTimeUpOverlay();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) widget.onRestart();
+              });
+            },
+            backgroundColor: Colors.transparent,
+            color: CustomColors.fillWhite,
+            children: Wrap(
+              children: [
+                Padding(
+                  padding: textScale > 1.6
+                      ? EdgeInsets.fromLTRB(0, 12, 0, 12)
+                      : EdgeInsets.fromLTRB(0, 3, 0, 12),
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.refresh_rounded,
+                          color: CustomColors.fillWhite,
+                          size: refreshIconSize,
+                        ),
+                        SizedBox(
+                            width: textScale > 2.0
+                                ? 4
+                                : 8), // Reduce spacing at high text scale
+                        Flexible(
+                          child: Text(
                             "Repeat",
                             style: CustomTypography()
                                 .button(color: CustomColors.fillWhite),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
