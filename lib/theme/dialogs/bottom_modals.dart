@@ -2791,7 +2791,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
 
     // Icon & text
     final double bellIconSize = (48 * textScale).clamp(38.0, 70.0);
-    final double refreshIconSize = (24 * textScale).clamp(20.0, 32.0);
+    final double refreshIconSize = (24 * textScale).clamp(30.0, 48.0);
     final double titleFontSize = (48 * textScale).clamp(32.0, 48.0);
 
     // button sizing for extreme text scaling
@@ -2828,7 +2828,8 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
                   style: CustomTypography().custom(
                     color: CustomColors.textWhite,
                     fontWeight: FontWeight.w400,
-                    fontSize: textScale > 1 ? titleFontSize * 0.79 : titleFontSize,
+                    fontSize:
+                        textScale > 1 ? titleFontSize * 0.79 : titleFontSize,
                   ),
                 ),
               ),
@@ -2868,35 +2869,26 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
             color: CustomColors.fillWhite,
             children: Wrap(
               children: [
-                Padding(
-                  padding: textScale > 1.6
-                      ? EdgeInsets.fromLTRB(0, 12, 0, 12)
-                      : EdgeInsets.fromLTRB(0, 3, 0, 12),
-                  child: Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.refresh_rounded,
-                          color: CustomColors.fillWhite,
-                          size: refreshIconSize,
-                        ),
-                        SizedBox(
-                            width: textScale > 2.0
-                                ? 4
-                                : 8), // Reduce spacing at high text scale
-                        Flexible(
-                          child: Text(
-                            "Repeat",
-                            style: CustomTypography()
-                                .button(color: CustomColors.fillWhite),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.refresh_rounded,
+                        color: CustomColors.fillWhite,
+                        size: refreshIconSize,
+                      ),
+                      SizedBox(
+                          width: textScale > 2.0 ? 4 : 8), // Reduce spacing at high text scale
+                      Text(
+                        "Repeat",
+                        style: CustomTypography()
+                            .button(color: CustomColors.fillWhite),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ],
