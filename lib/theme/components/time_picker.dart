@@ -557,33 +557,32 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final scaler = MediaQuery.of(context).textScaler;
-    final scaled = scaler.scale(1);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final textScale = MediaQuery.of(context).textScaler.scale(1);
     final viewInsets = MediaQuery.of(context).viewInsets.bottom;
 
-    // Adaptive height calculation based on screen size and font scaling
-    final baseHeight = MediaQuery.of(context).size.height * 0.45;
-    final scalingAdjustment =
-        (scaled - 1.0) * 60; // Add extra height for larger fonts
-    final adaptiveHeight = baseHeight + scalingAdjustment;
+    // Adaptive height for entire picker
+    final adaptiveHeight = screenHeight * 0.45 + (textScale - 1.0) * screenHeight * 0.05;
 
-    // Responsive padding that adjusts to font scaling
-    final horizontalPadding = scaled > 1.5 ? 8.0 : (scaled > 1.2 ? 12.0 : 16.0);
-    final verticalPadding = scaled > 1.5 ? 12.0 : (scaled > 1.2 ? 18.0 : 24.0);
+    // Padding
+    final horizontalPadding = screenWidth * 0.04;
+    final verticalPadding = screenHeight * 0.02;
 
-    // Dynamic spacing
-    final titleSpacing = scaled > 1.5 ? 16.0 : (scaled > 1.2 ? 24.0 : 32.0);
-    final bottomSpacing = scaled > 1.5 ? 12.0 : (scaled > 1.2 ? 18.0 : 24.0);
+    final titleSpacing = screenHeight * 0.02;
+    final bottomSpacing = screenHeight * 0.02;
 
-    // Adaptive wheel height
-    final wheelHeight = scaled > 1.5 ? 140.0 : (scaled > 1.2 ? 170.0 : 200.0);
+    // Wheel height increases with scaling
+    final wheelHeight = (screenHeight * 0.20) * (textScale > 1 ? textScale * 1.1 : 1);
+    final itemExtent = (screenHeight * 0.06) * (textScale > 1 ? textScale : 1);
 
-    // Label font size
-    final labelFontSize = scaled > 1.5 ? 14.0 : (scaled > 1.2 ? 16.0 : 18.0);
+    // Cap label font size so it doesn't overflow
+    final double labelFontSize =
+    (screenWidth * 0.05 * textScale).clamp(14.0, 22.0); // Min 14, Max 22
+    final closeIconSize = (screenWidth * 0.07 * textScale).clamp(20.0, 32.0);
 
     return SizedBox(
-      width: width,
+      width: screenWidth,
       height: adaptiveHeight,
       child: Padding(
         padding: EdgeInsets.only(
@@ -610,14 +609,14 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                 ),
                 Expanded(
                   flex: 1,
-                  child: Container(
+                  child: Align(
                     alignment: Alignment.centerRight,
                     child: IconButton(
                       onPressed: () => Navigator.pop(context),
                       icon: Icon(
                         Icons.close,
                         color: CustomColors.textNormalContent,
-                        size: scaled > 1.5 ? 20 : (scaled > 1.2 ? 24 : 28),
+                        size: closeIconSize,
                       ),
                     ),
                   ),
@@ -647,10 +646,10 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                               },
                               physics: const FixedExtentScrollPhysics(),
                               perspective: 0.01,
-                              diameterRatio: 1,
-                              itemExtent: 50,
+                              diameterRatio: 2,
+                              itemExtent: itemExtent,
                               overAndUnderCenterOpacity: 0.3,
-                              squeeze: scaled > 1.5 ? 1.8 : 2,
+                              squeeze: 2,
                               childDelegate: ListWheelChildBuilderDelegate(
                                 builder: (context, index) {
                                   return Minutes(mins: index);
@@ -659,19 +658,21 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                               ),
                             ),
                           ),
-                          // Minutes label
                           Flexible(
                             flex: 1,
-                            child: Text(
-                              "min",
-                              style: CustomTypography().custom(
-                                color: CustomColors.textNormalContent,
-                                fontSize: labelFontSize,
-                                fontWeight: FontWeight.w400,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                "min",
+                                style: CustomTypography().custom(
+                                  color: CustomColors.textNormalContent,
+                                  fontSize: labelFontSize,
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
                             ),
                           ),
-                          SizedBox(width: scaled > 1.5 ? 8 : 16),
+                          SizedBox(width: screenWidth * 0.02),
                           // Seconds column
                           Flexible(
                             flex: 2,
@@ -684,10 +685,10 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                               },
                               physics: const FixedExtentScrollPhysics(),
                               perspective: 0.01,
-                              diameterRatio: 1,
-                              itemExtent: 50,
+                              diameterRatio: 2,
+                              itemExtent: itemExtent,
                               overAndUnderCenterOpacity: 0.3,
-                              squeeze: scaled > 1.5 ? 1.8 : 2,
+                              squeeze: 2,
                               childDelegate: ListWheelChildBuilderDelegate(
                                 builder: (context, index) {
                                   return Minutes(mins: index);
@@ -696,15 +697,17 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                               ),
                             ),
                           ),
-                          // Seconds label
                           Flexible(
                             flex: 1,
-                            child: Text(
-                              "sec",
-                              style: CustomTypography().custom(
-                                color: CustomColors.textNormalContent,
-                                fontSize: labelFontSize,
-                                fontWeight: FontWeight.w400,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                "sec",
+                                style: CustomTypography().custom(
+                                  color: CustomColors.textNormalContent,
+                                  fontSize: labelFontSize,
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
                             ),
                           ),
@@ -717,7 +720,7 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
             ),
             SizedBox(height: bottomSpacing),
             CustomElevatedButton(
-              onClick: () => save(),
+              onClick: save,
               text: "SAVE",
             ),
           ],

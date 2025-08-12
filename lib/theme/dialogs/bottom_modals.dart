@@ -2616,103 +2616,52 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   }
 
   Widget _buildTimerDisplay() {
-    final scaler = MediaQuery.of(context).textScaler;
-    final scaled = scaler.scale(1);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final textScale = MediaQuery.of(context).textScaler.scale(1);
 
-    // Progressive positioning functions for better scaling
-    double getTopPosition(double scale, double screenHeight) {
-      final baseTop = screenHeight * 0.15; // Use percentage of screen height
-      if (scale <= 1.0) return baseTop;
-      if (scale <= 1.2)
-        return baseTop - (scale - 1.0) / 0.2 * 20; // Reduce by 20px
-      if (scale <= 1.5)
-        return baseTop - 20 - (scale - 1.2) / 0.3 * 25; // Further reduce
-      if (scale <= 2.0)
-        return baseTop - 45 - (scale - 1.5) / 0.5 * 20; // Continue reducing
-      return baseTop - 65 - (scale - 2.0) * 15; // For extreme scales
-    }
+    // Positioning: proportional + text scaling
+    final double topPos = (screenHeight * 0.12) * (textScale > 1 ? 0.8 : 1);
+    final double sidePadding = screenWidth * 0.07;
 
-    double getHorizontalPosition(double scale, double screenWidth) {
-      final baseHorizontal =
-          screenWidth * 0.15; // Use percentage of screen width
-      if (scale <= 1.0) return baseHorizontal;
-      if (scale <= 1.2) return baseHorizontal * 0.8; // Reduce to 80%
-      if (scale <= 1.5) return baseHorizontal * 0.6; // Reduce to 60%
-      if (scale <= 2.0) return baseHorizontal * 0.4; // Reduce to 40%
-      return screenWidth * 0.05; // Minimum 5% margin for extreme scales
-    }
+    // Icon size: scales but capped
+    final double iconSize = (screenWidth * 0.12 * textScale).clamp(28.0, 48.0);
 
-    double getIconSize(double scale) {
-      if (scale <= 1.0) return 48;
-      if (scale <= 1.2) return 48 - (scale - 1.0) / 0.2 * 3; // 48 to 45
-      if (scale <= 1.5) return 45 - (scale - 1.2) / 0.3 * 5; // 45 to 40
-      if (scale <= 2.0) return 40 - (scale - 1.5) / 0.5 * 8; // 40 to 32
-      return 32 - (scale - 2.0) * 4; // Continue reducing, min 24
-    }
-
-    double getFontSize(double scale) {
-      if (scale <= 1.0) return 48;
-      if (scale <= 1.2) return 48 - (scale - 1.0) / 0.2 * 8; // 48 to 40
-      if (scale <= 1.5) return 40 - (scale - 1.2) / 0.3 * 8; // 40 to 32
-      if (scale <= 2.0) return 32 - (scale - 1.5) / 0.5 * 8; // 32 to 24
-      return 24 - (scale - 2.0) * 3; // Continue reducing, min 18
-    }
-
-    double getSpacing(double scale) {
-      if (scale <= 1.0) return 4;
-      if (scale <= 1.5) return 4 - (scale - 1.0) / 0.5 * 1; // 4 to 3
-      if (scale <= 2.0) return 3 - (scale - 1.5) / 0.5 * 1; // 3 to 2
-      return 2; // Minimum spacing
-    }
-
-    final topPos = getTopPosition(scaled, screenHeight);
-    final horizontalPos = getHorizontalPosition(scaled, screenWidth);
-    final iconSize = getIconSize(scaled);
-    final fontSize = getFontSize(scaled);
-    final spacing = getSpacing(scaled);
+    // Timer text size: scales but capped
+    final double timerFontSize = (screenWidth * 0.11 * textScale).clamp(24.0, 48.0);
 
     return Positioned(
       top: topPos,
-      left: horizontalPos,
-      right: horizontalPos,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: scaled > 1.5 ? 4 : 8,
-          vertical: scaled > 1.5 ? 2 : 4,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              CupertinoIcons.timer,
-              color: CustomColors.textWhite,
-              size: iconSize,
-            ),
-            SizedBox(width: spacing),
-            Flexible(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  _formatDuration(widget.remaining),
-                  textAlign: TextAlign.center,
-                  style: CustomTypography()
-                      .custom(
-                    color: CustomColors.textWhite,
-                    fontWeight: FontWeight.w400,
-                    fontSize: fontSize,
-                  )
-                      .copyWith(
-                          fontFeatures: [const FontFeature.tabularFigures()]),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+      left: sidePadding,
+      right: sidePadding,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            CupertinoIcons.timer,
+            color: CustomColors.textWhite,
+            size: iconSize,
+          ),
+          SizedBox(width: screenWidth * 0.01), // spacing proportional to width
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown, // prevents clipping if space is tight
+              child: Text(
+                _formatDuration(widget.remaining),
+                textAlign: TextAlign.center,
+                style: CustomTypography()
+                    .custom(
+                  color: CustomColors.textWhite,
+                  fontWeight: FontWeight.w400,
+                  fontSize: timerFontSize,
+                )
+                    .copyWith(
+                  fontFeatures: [const FontFeature.tabularFigures()],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -2772,38 +2721,55 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   }
 
   Widget _buildTimerControls() {
+    final size = MediaQuery.of(context).size;
+    final textScale = MediaQuery.of(context).textScaler.scale(1);
+
+    // Bottom position — percentage of screen height
+    final double bottomPos = size.height * 0.13;
+
+    // Side padding — percentage of width
+    final double sidePadding = size.width * 0.15;
+
+    // Icon size — percentage-based, scaled, with limits
+    final double iconSize = (size.width * 0.09 * textScale).clamp(28.0, 45.0);
+
+    // Spacing between buttons
+    final double buttonSpacing = size.width * 0.08;
+
     return Positioned(
-      bottom: 103.7,
-      left: 62.25,
-      right: 62.25,
+      bottom: bottomPos,
+      left: sidePadding,
+      right: sidePadding,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CustomOutlineButton(
-              backgroundColor: Colors.transparent,
-              color: CustomColors.productLightBackground,
-              onClick: widget.onRestart,
-              children: Wrap(
-                children: [
-                  Icon(Icons.refresh_rounded,
-                      size: 35, color: CustomColors.fillWhite),
-                ],
-              )),
-          const SizedBox(width: 37),
+            backgroundColor: Colors.transparent,
+            color: CustomColors.productLightBackground,
+            onClick: widget.onRestart,
+            children: Wrap(
+              children: [
+                Icon(
+                  Icons.refresh_rounded,
+                  size: iconSize,
+                  color: CustomColors.fillWhite,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: buttonSpacing),
           CustomOutlineButton(
             backgroundColor: Colors.transparent,
             color: CustomColors.productLightBackground,
             onClick: widget.onPauseResume,
             children: Wrap(
               children: [
-                SizedBox(
-                  child: Icon(
-                    (widget.isRunning && !widget.isPaused)
-                        ? CupertinoIcons.pause_fill
-                        : CupertinoIcons.play_fill,
-                    size: 35,
-                    color: CustomColors.fillWhite,
-                  ),
+                Icon(
+                  (widget.isRunning && !widget.isPaused)
+                      ? CupertinoIcons.pause_fill
+                      : CupertinoIcons.play_fill,
+                  size: iconSize,
+                  color: CustomColors.fillWhite,
                 ),
               ],
             ),
@@ -2814,115 +2780,113 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   }
 
   Widget _buildTimeUpOverlayContent() {
-    final scaler = MediaQuery.of(context).textScaler;
-    final scaled = scaler.scale(1);
-    print("Scaled value: $scaled");
+    final size = MediaQuery.of(context).size;
+    final textScale = MediaQuery.of(context).textScaler.scale(1);
+
+    // Heights from original (scale = 1) values
+    final double topSpacing = (150 * textScale).clamp(10.0, 180.0);
+    final double betweenIconAndButton = (84 * textScale).clamp(42.0, 120.0);
+    final double betweenButtons = (48 * textScale).clamp(24.0, 72.0);
+
+    // Icon & text
+    final double bellIconSize = (48 * textScale).clamp(38.0, 70.0);
+    final double refreshIconSize = (24 * textScale).clamp(20.0, 32.0);
+    final double titleFontSize = (48 * textScale).clamp(32.0, 48.0);
+
+    // Keep buttons same size
+    final double buttonHeight = (56 * textScale).clamp(56.0, 80.0);
+    final double buttonWidth = (177 * textScale).clamp(128.0, 200.0);
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(height: scaled > 1 ? 10 : 150),
+        SizedBox(height: textScale > 1 ? topSpacing * 0.07 : topSpacing),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               CupertinoIcons.bell_fill,
               color: CustomColors.fillWhite,
-              size: scaled > 1 ? 70.sp : 48.sp,
+              size: bellIconSize,
             ),
             const SizedBox(width: 8),
             Flexible(
-              child: SizedBox(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
                 child: Text(
                   "Time's Up!",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: CustomTypography().custom(
-                      color: CustomColors.textWhite,
-                      fontWeight: FontWeight.w400,
-                      fontSize: scaled > 1 ? 38 : 48),
+                    color: CustomColors.textWhite,
+                    fontWeight: FontWeight.w400,
+                    fontSize: textScale > 1 ? titleFontSize * 0.79 : titleFontSize,
+                  ),
                 ),
               ),
             ),
           ],
         ),
-        SizedBox(height: scaled > 1 ? 42 : 84),
+        SizedBox(height: betweenIconAndButton),
         SizedBox(
-          // Calculate height based on scaled value
-          height: scaled <= 1
-              ? 56
-              : scaled <= 1.15
-                  ? 57
-                  : scaled <= 1.3
-                      ? 57 +
-                          (scaled - 1.15) / (1.3 - 1.15) * (60 - 57) // 57 → 60
-                      : scaled <= 1.5
-                          ? 60 +
-                              (scaled - 1.3) /
-                                  (1.5 - 1.3) *
-                                  (65 - 60) // 60 → 65
-                          : scaled <= 1.8
-                              ? 60 +
-                                  (scaled - 1.5) /
-                                      (1.8 - 1.5) *
-                                      (80 - 65) // 65 → 80
-                              : 80,
-          width: scaled > 1 ? 177 : 128,
-          child: CustomIconButtonWithTextButton(
-            onClick: () {
-              _removeTimeUpOverlay();
-              // Post frame callback to ensure overlay is removed before calling onStop
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  widget.onStop();
-                }
-              });
-            },
-            color: CustomColors.productNormal,
-            text: "Stop",
-            icon: CupertinoIcons.stop_fill,
+          height: buttonHeight,
+          width: buttonWidth,
+          child: SizedBox.expand(
+            child: CustomIconButtonWithTextButton(
+              onClick: () {
+                _removeTimeUpOverlay();
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) widget.onStop();
+                });
+              },
+              color: CustomColors.productNormal,
+              text: "Stop",
+              icon: CupertinoIcons.stop_fill,
+            ),
           ),
         ),
-        SizedBox(height: scaled > 1 ? 24 : 48),
+        SizedBox(height: betweenButtons),
         SizedBox(
-          // Calculate height based on scaled value
-          height: scaled <= 1
-              ? 56
-              : scaled <= 1.15
-                  ? 57
-                  : scaled <= 1.3
-                      ? 57 + (scaled - 1.15) / (1.3 - 1.15) * (60 - 57)
-                      : scaled <= 1.5
-                          ? 60 + (scaled - 1.3) / (1.5 - 1.3) * (65 - 60)
-                          : scaled <= 1.8
-                              ? 65 + (scaled - 1.5) / (1.8 - 1.5) * (80 - 65)
-                              : 80,
-          width: scaled > 1 ? 177 : 128,
-          child: Center(
+          height: buttonHeight / 1.28, //reducing the height of the repeat button to match the stop button
+          width: buttonWidth,
+          child: SizedBox.expand(
             child: CustomOutlineButton(
               onClick: () {
                 _removeTimeUpOverlay();
-                // Post frame callback to ensure overlay is removed before calling onRestart
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) {
-                    widget.onRestart();
-                  }
+                  if (mounted) widget.onRestart();
                 });
               },
               backgroundColor: Colors.transparent,
               color: CustomColors.fillWhite,
-              children: Wrap(children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.refresh_rounded,
-                      color: CustomColors.fillWhite,
-                      size: 24.sp,
+              children: Wrap(
+                children: [
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+
+                        children: [
+                          Icon(
+                            Icons.refresh_rounded,
+                            color: CustomColors.fillWhite,
+                            size: refreshIconSize,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Repeat",
+                            style: CustomTypography()
+                                .button(color: CustomColors.fillWhite),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    Text("Repeat",
-                        style: CustomTypography()
-                            .button(color: CustomColors.fillWhite)),
-                  ],
-                ),
-              ]),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
