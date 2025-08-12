@@ -2863,10 +2863,10 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
                 children: [
                   Center(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6.0),
+                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 12),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             Icons.refresh_rounded,
