@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:developer' as dev;
+import 'dart:math';
 
 import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -2337,10 +2338,13 @@ class BottomTimerModal extends StatefulWidget {
   State<BottomTimerModal> createState() => _BottomTimerModalState();
 }
 
-class _BottomTimerModalState extends State<BottomTimerModal> {
+class _BottomTimerModalState extends State<BottomTimerModal>
+    with TickerProviderStateMixin {
   bool _isCollapsed = false;
   double _containerHeight = 0;
   double animationHeight = 0;
+  // Icon Shake animation
+  late AnimationController _shakeController;
   r.StateMachineController? _controller;
   bool _showExpandedContent = true; // content visibility
 
@@ -2354,15 +2358,25 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   @override
   void initState() {
     super.initState();
+
+    // Initialize animation controller first
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _shakeController.repeat();
+        }
+      });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final screenHeight = MediaQuery.of(context).size.height;
         _overlayState = Overlay.of(context);
         setState(() {
           _containerHeight = screenHeight * 0.85;
-          _showModalUnderlay = !_isCollapsed; // Show underlay when expanded
+          _showModalUnderlay = !_isCollapsed;
         });
-        // Initially show modal overlay since we start expanded
         _insertModalOverlay();
 
         if (widget.showTimeUpOverlay) {
@@ -2398,6 +2412,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   void dispose() {
     _removeAllOverlaysSync();
     _controller?.dispose();
+    _shakeController.dispose();
     super.dispose();
   }
 
@@ -2492,6 +2507,9 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
 
     if (_timeUpOverlayInserted || !mounted || _overlayState == null) return;
 
+    // Start shake animation
+    _shakeController.forward();
+
     _timeUpOverlayEntry = OverlayEntry(
       builder: (context) => Positioned.fill(
         child: Material(
@@ -2514,6 +2532,10 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
   }
 
   void _removeTimeUpOverlay() {
+    // Stop shake animation
+    _shakeController.stop();
+    _shakeController.reset();
+
     if (_timeUpOverlayInserted && _timeUpOverlayEntry != null) {
       _timeUpOverlayEntry?.remove();
       _timeUpOverlayEntry = null;
@@ -2572,8 +2594,17 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       curve: Curves.easeInOut,
       width: width,
       height: _containerHeight,
-      decoration: const BoxDecoration(
-        color: Color(0xFF4186F5),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xff4186F5), Color(0xff4186F5)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        image: DecorationImage(
+          image: AssetImage('assets/images/Meditation_timer_background.png'),
+          fit: BoxFit.fitWidth,
+          alignment: Alignment.topCenter, // Show top portion when collapsed
+        ),
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
@@ -2604,11 +2635,9 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       right: 11,
       child: IconButton(
         icon: Icon(
-          _isCollapsed
-              ? CupertinoIcons.chevron_up
-              : CupertinoIcons.chevron_down,
+          _isCollapsed ? Icons.expand_less_rounded : Icons.expand_more_rounded,
           color: Colors.white,
-          size: 35,
+          size: 48,
         ),
         onPressed: _toggleHeight,
       ),
@@ -2638,10 +2667,10 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            CupertinoIcons.timer,
-            color: CustomColors.textWhite,
-            size: iconSize,
+          Image.asset(
+            'assets/images/icons/pace.png',
+            height: 48,
+            width: 48,
           ),
           SizedBox(width: screenWidth * 0.01), // spacing proportional to width
           Flexible(
@@ -2677,8 +2706,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(CupertinoIcons.timer,
-              color: CustomColors.textWhite, size: scaled > 1 ? 45.15 : 48),
+          Image.asset('assets/images/icons/pace.png', height: 48, width: 48),
           const SizedBox(width: 4),
           Text(
             _formatDuration(widget.remaining),
@@ -2791,7 +2819,7 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
 
     // Icon & text
     final double bellIconSize = (48 * textScale).clamp(38.0, 70.0);
-    final double refreshIconSize = (24 * textScale).clamp(30.0, 48.0);
+    final double refreshIconSize = (24 * textScale).clamp(24.0, 48.0);
     final double titleFontSize = (48 * textScale).clamp(32.0, 48.0);
 
     // button sizing for extreme text scaling
@@ -2812,10 +2840,19 @@ class _BottomTimerModalState extends State<BottomTimerModal> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              CupertinoIcons.bell_fill,
-              color: CustomColors.fillWhite,
-              size: bellIconSize,
+            // shake animation for the bell
+            AnimatedBuilder(
+              animation: _shakeController,
+              builder: (context, child) {
+                return Transform.rotate(
+                  angle: sin(_shakeController.value * pi * 2) * 0.1,
+                  child: Icon(
+                    Icons.notifications_active,
+                    color: CustomColors.fillWhite,
+                    size: bellIconSize,
+                  ),
+                );
+              },
             ),
             const SizedBox(width: 8),
             Flexible(

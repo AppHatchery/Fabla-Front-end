@@ -191,6 +191,8 @@ class CustomIconButtonWithTextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textScale = MediaQuery.of(context).textScaler.scale(1);
+    final double iconSize = (24 * textScale).clamp(24.0, 48.0);
     return Material(
       color: Colors.transparent,
       child: Padding(
@@ -223,7 +225,9 @@ class CustomIconButtonWithTextButton extends StatelessWidget {
                   child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, color: iconColor),
+                  Icon(icon, color: iconColor,
+                      size: iconSize,
+                  ),
                   const SizedBox(width: 8),
                   Text(text.toString(),
                       style: CustomTypography().button(
