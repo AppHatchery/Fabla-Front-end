@@ -176,8 +176,6 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
   }
 
   _onDaySelected(DateTime selectedDay, DateTime focusedDate) {
-    if (selectedDay.isAfter(DateTime.now()) ||
-        DateUtils.isSameDay(DateTime.now(), selectedDay)) {
       setState(() {
         //reloading diaries bases on new selected date
 
@@ -185,7 +183,6 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
         selectedDate = selectedDay;
       });
       widget.onSelect(selectedDay);
-    }
   }
 
   getMonthYear(DateTime day) {
