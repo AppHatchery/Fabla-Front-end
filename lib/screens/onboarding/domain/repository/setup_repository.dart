@@ -30,6 +30,7 @@ import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../../../core/database/dao/participant_dao.dart';
@@ -549,6 +550,14 @@ class SetupRepository {
 
     // Log the platform-specific name (optional)
     debugPrint("Firebase Platform Name: $platformName");
+
+    var repo = _experimentDAO.getExperiment();
+    if (repo != null) {
+      dev.log("Experiment not found.....", name: repo.login);
+    }
+    DateTime date = DateTime.now();
+    String formatted = DateFormat('yyyy-MM-dd').format(date);
+    extras['date_adjuster'] = formatted;
 
     map.addAll(
       {
