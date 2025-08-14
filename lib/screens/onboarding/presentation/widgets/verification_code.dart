@@ -18,7 +18,7 @@ class VerificationCodeTextField extends StatefulWidget {
       required this.errorMessage,
       required this.hint,
       this.controller,
-      this.fieldType = TextInputType.number,
+      this.fieldType = TextInputType.text,
       this.error = false});
 
   @override
