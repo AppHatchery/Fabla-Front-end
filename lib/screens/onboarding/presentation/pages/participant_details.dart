@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
@@ -13,7 +14,6 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:rive/rive.dart';
 
 import '../../../../theme/custom_colors.dart';
-import '../../../../theme/custom_typography.dart';
 
 class ParticipantDetailsPage extends StatefulWidget {
   const ParticipantDetailsPage({super.key});
@@ -34,6 +34,11 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
   late StreamSubscription<bool> keyboardSubscription;
 
   final PageTimer timer = PageTimer();
+  TextScaler? scaler; // Get the size of the text scaler
+
+  final scrollController = ScrollController();
+  final focusNode = FocusNode();
+  final fieldKey = GlobalKey();
 
   @override
   void initState() {
@@ -50,6 +55,16 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
       } else {
         lookDown?.value = false;
       }
+    });
+
+    focusNode.addListener(() {
+      if (focusNode.hasFocus) {
+        Future.delayed(const Duration(milliseconds: 300), maybeScrollToTextField);
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      scaler = await fontScaler(context);
     });
     super.initState();
   }
@@ -69,10 +84,30 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
   void dispose() {
     keyboardSubscription.cancel();
     _controller.dispose();
+    scrollController.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
+
+  void maybeScrollToTextField() {
+  final renderBox = fieldKey.currentContext?.findRenderObject() as RenderBox?;
+  if (renderBox == null) return;
+
+  final position = renderBox.localToGlobal(Offset.zero);
+  final textFieldBottom = position.dy + renderBox.size.height;
+
+  final keyboardTop = MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom;
+
+  // If the TextField is below the keyboard
+  if (textFieldBottom > keyboardTop) {
+    Scrollable.ensureVisible(
+      fieldKey.currentContext!,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -104,14 +139,17 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
       },
     );
     return Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
         backgroundColor: CustomColors.fillWhite,
         appBar: AppBar(
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
           leading: IconButton(
-              onPressed: () =>
-                  {track(timer.stop(), "Back"), RouteService().navigateBack( context: context, current: 'participant_details')},
+              onPressed: () => {
+                    track(timer.stop(), "Back"),
+                    RouteService().navigateBack(
+                        context: context, current: 'participant_details')
+                  },
               icon: const Icon(
                 Icons.arrow_back_rounded,
                 color: CustomColors.fillWhite,
@@ -123,62 +161,37 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
           child: LayoutBuilder(builder: (context, constraints) {
             final constraintHeight = constraints.maxHeight;
             return SingleChildScrollView(
-              child: SizedBox(
+              controller: scrollController,
+              padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: Container(
                 height: constraintHeight,
-                child: Container(
-                  color: CustomColors.fillWhite,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, constraint) =>
-                              SingleChildScrollView(
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                  minHeight: constraint.maxHeight),
-                              child: IntrinsicHeight(
-                                child: GestureDetector(
-                                  onTap: () => FocusScope.of(context).unfocus(),
-                                  child: Container(
-                                    color: CustomColors.backgroundSecondary,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 16.0),
-                                          child: Text(
-                                            "Enter your preferred name",
-                                            style: CustomTypography()
-                                                .headlineLarge(
-                                                    color:
-                                                        CustomColors.textWhite),
-                                          ),
-                                        ),
-                                        Expanded(child: Container()),
-                                        SizedBox(
-                                            height: 400, child: bottomWidget)
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                width: width,
+                color: CustomColors.fillWhite,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, constraint) => GestureDetector(
+                          onTap: () => FocusScope.of(context).unfocus(),
+                          child: Container(
+                            height: constraint.maxHeight,
+                            width: width,
+                            color: CustomColors.backgroundSecondary,
+                            child: bottomWidget,
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            left: 16, right: 16, bottom: 34),
-                        child: CustomFlatButton(
-                            onClick: () =>
-                                {track(timer.stop(), "Finished"), saveName()},
-                            text: "Continue"),
-                      ),
-                    ],
-                  ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          left: 16, right: 16, bottom: 34),
+                      child: CustomFlatButton(
+                          onClick: () =>
+                              {track(timer.stop(), "Finished"), saveName()},
+                          text: "Continue"),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -195,7 +208,11 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
         animation: "assets/animations/onboarding/keyboard.riv",
         onContinue: () => {track(timer.stop(), "Finished"), saveName()},
         children: [
-          ParticipantName(controller: controller),
+          ParticipantName(
+            controller: controller,
+            node: focusNode,
+            globalKey: fieldKey,
+          ),
         ]);
   }
 
@@ -208,7 +225,12 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
         animation: "assets/animations/onboarding/keyboard.riv",
         onContinue: () => {track(timer.stop(), "Finished"), saveName()},
         children: [
-          ParticipantName(controller: controller),
+          ParticipantName(
+            controller: controller,
+            node: focusNode,
+            key: fieldKey,
+            globalKey: fieldKey,
+          ),
         ]);
   }
 
@@ -223,7 +245,11 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
         onInit: onInit,
         onContinue: () => {track(timer.stop(), "Finished"), saveName()},
         children: [
-          ParticipantName(controller: controller),
+          ParticipantName(
+            controller: controller,
+            node: focusNode,
+            globalKey: fieldKey,
+          ),
         ]);
   }
 
@@ -258,7 +284,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
   }
 
   track(int spent, String status) async {
-    await PendoService.track(
-        "Participant Details", {"time_on_page": spent, "status": status});
+    await PendoService.track("Participant Details",
+        {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 }

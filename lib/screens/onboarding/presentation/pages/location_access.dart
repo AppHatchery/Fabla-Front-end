@@ -1,4 +1,5 @@
 import 'package:app_settings/app_settings.dart';
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -23,12 +24,12 @@ class _LocationAccessState extends State<LocationAccess>
     with WidgetsBindingObserver {
   bool permission = false;
   bool requested = false;
-  bool canGoBack = false;
 
   //Animations
   late rive.StateMachineController _controller;
 
   final PageTimer timer = PageTimer();
+  TextScaler? scaler; // Get the size of the text scaler
 
   late l.Location location;
 
@@ -36,10 +37,9 @@ class _LocationAccessState extends State<LocationAccess>
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     timer.start();
-    if (Navigator.of(context).canPop()) {
-      canGoBack = true;
-    }
-
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      scaler = await fontScaler(context);
+    });
     location = l.Location();
     super.initState();
   }
@@ -270,7 +270,7 @@ class _LocationAccessState extends State<LocationAccess>
   }
 
   track(int spent, String status) async {
-    await PendoService.track(
-        "Location Access", {"time_on_page": spent, "status": status});
+    await PendoService.track("Location Access",
+        {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 }

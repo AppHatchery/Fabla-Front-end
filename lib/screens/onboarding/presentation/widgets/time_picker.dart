@@ -30,6 +30,8 @@ class _OnboardingTimePickerState extends State<OnboardingTimePicker> {
 
   @override
   Widget build(BuildContext context) {
+    final scaler = MediaQuery.of(context).textScaler;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       decoration: BoxDecoration(
@@ -40,26 +42,23 @@ class _OnboardingTimePickerState extends State<OnboardingTimePicker> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                time != null
-                    ? localizations.formatTimeOfDay(time!)
-                    : 'Select Time',
-                style: CustomTypography()
-                    .titleMedium(color: CustomColors.textNormalContent),
-              ),
-            ],
+          Flexible(
+            child: Text(
+              time != null
+                  ? localizations.formatTimeOfDay(time!)
+                  : 'Select Time',
+              style: CustomTypography()
+                  .titleMedium(color: CustomColors.textNormalContent),
+            ),
           ),
           Row(
             children: [
               IconButton(
                   onPressed: () => pickTime(time),
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.edit_outlined,
                     color: CustomColors.productNormal,
-                    size: 24,
+                    size: scaler.scale(24),
                   )),
             ],
           ),
