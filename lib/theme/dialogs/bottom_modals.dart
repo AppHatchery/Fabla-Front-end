@@ -2317,6 +2317,7 @@ class BottomTimerModal extends StatefulWidget {
   final bool isRunning;
   final bool isPaused;
   final bool showTimeUpOverlay;
+  final bool playbackControls;
   final VoidCallback onClose;
   final VoidCallback onRestart;
   final VoidCallback onPauseResume;
@@ -2328,6 +2329,7 @@ class BottomTimerModal extends StatefulWidget {
     required this.isRunning,
     required this.isPaused,
     required this.showTimeUpOverlay,
+    required this.playbackControls,
     required this.onClose,
     required this.onRestart,
     required this.onPauseResume,
@@ -2403,6 +2405,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
           }
         });
       } else {
+        _showExpandedContent = true;
         _removeTimeUpOverlay();
       }
     }
@@ -2446,21 +2449,9 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       }
     });
 
-    // Remove and re-insert overlay with new positioning when expanding
-    if (_isCollapsed) {
-      _removeModalOverlay();
-    } else {
-      // Remove first to avoid double insertion
-      _removeModalOverlay();
-      // Small delay to ensure removal completes
-      Future.delayed(const Duration(milliseconds: 320), () {
-        if (mounted) {
-          _insertModalOverlay();
-        }
-      });
-
-      // Show expanded content after container animation completes (300ms + small buffer)
-      Future.delayed(const Duration(milliseconds: 350), () {
+    if (!_isCollapsed) {
+      // When expanding, show content after animation completes
+      Future.delayed(const Duration(milliseconds: 390), () {
         if (mounted && !_isCollapsed) {
           setState(() {
             _showExpandedContent = true;
@@ -2468,6 +2459,9 @@ class _BottomTimerModalState extends State<BottomTimerModal>
         }
       });
     }
+
+    // Mark overlay for rebuild
+    _modalOverlayEntry?.markNeedsBuild();
   }
 
   void _insertModalOverlay() {
@@ -2480,19 +2474,23 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       builder: (context) {
         final modalTop = MediaQuery.of(context).size.height * 0.15;
 
-        return Stack(
-          children: [
-            // Main overlay area
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: modalTop,
-              child: Container(
-                color: Colors.black.withOpacity(0.5),
+        return AnimatedOpacity(
+          duration: const Duration(milliseconds: 390),
+          curve: Curves.easeInOut,
+          opacity: _showModalUnderlay ? 1.0 : 0.0,
+          child: Stack(
+            children: [
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: modalTop,
+                child: Container(
+                  color: Colors.black.withOpacity(0.5),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -2772,7 +2770,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CustomOutlineButton(
+          if(widget.playbackControls) ...[CustomOutlineButton(
             backgroundColor: Colors.transparent,
             color: CustomColors.productLightBackground,
             onClick: widget.onRestart,
@@ -2785,9 +2783,9 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                 ),
               ],
             ),
-          ),
+          )],
           SizedBox(width: buttonSpacing),
-          CustomOutlineButton(
+          if(widget.playbackControls) ...[CustomOutlineButton(
             backgroundColor: Colors.transparent,
             color: CustomColors.productLightBackground,
             onClick: widget.onPauseResume,
@@ -2802,7 +2800,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                 ),
               ],
             ),
-          ),
+          )],
         ],
       ),
     );
@@ -2892,10 +2890,12 @@ class _BottomTimerModalState extends State<BottomTimerModal>
         ),
         SizedBox(height: betweenButtons),
         // Repeat Button
-        SizedBox(
-          height: buttonHeight / 1.28, //reducing the height of the repeat button to match the stop button
+        if(widget.playbackControls) ...[SizedBox(
+          height: buttonHeight /
+              1.28, //reducing the height of the repeat button to match the stop button
           width: buttonWidth,
-          child: CustomOutlineButton(
+          child:
+          CustomOutlineButton(
             onClick: () {
               _removeTimeUpOverlay();
               WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -2917,7 +2917,9 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                         size: refreshIconSize,
                       ),
                       SizedBox(
-                          width: textScale > 2.0 ? 4 : 8), // Reduce spacing at high text scale
+                          width: textScale > 2.0
+                              ? 4
+                              : 8), // Reduce spacing at high text scale
                       Text(
                         "Repeat",
                         style: CustomTypography()
@@ -2931,7 +2933,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
               ],
             ),
           ),
-        ),
+        )],
       ],
     );
   }

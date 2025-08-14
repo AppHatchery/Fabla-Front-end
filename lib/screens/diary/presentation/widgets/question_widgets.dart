@@ -876,6 +876,7 @@ class _TimerWidgetState extends State<TimerWidget>
     if (showPersistentSheet) {
       if (!mounted) return;
       _controller = Scaffold.of(context).showBottomSheet(
+        enableDrag: false,
         (context) => StatefulBuilder(
           builder: (context, setModalState) {
             _updateModalCallback = () => setModalState(() {});
@@ -884,6 +885,7 @@ class _TimerWidgetState extends State<TimerWidget>
               isRunning: inProgress && !paused,
               isPaused: paused,
               showTimeUpOverlay: showTimeUpOverlay,
+              playbackControls: widget.playbackControls,
               onClose: () {
                 _controller?.close();
                 _onTimerClose();
