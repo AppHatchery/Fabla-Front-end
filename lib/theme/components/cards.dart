@@ -186,7 +186,7 @@ class _DiaryCardState extends State<DiaryCard> {
       Navigator.pushNamed(context, '/DiarySummaryPage',
           arguments: widget.diary);
     } else if (widget.diary!.status == DiaryStatus.submitted ||
-        widget.diary!.status == DiaryStatus.missed ||
+        widget.diary!.status == DiaryStatus.missed && widget.diary!.entries <= 1 ||
         widget.diary!.start.isAfter(DateTime.now())) {
       PendoService.track("ViewOldDiary", {
         "study_day": "${widget.diary!.id}",
