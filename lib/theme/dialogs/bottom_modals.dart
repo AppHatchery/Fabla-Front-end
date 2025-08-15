@@ -2594,7 +2594,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       height: _containerHeight,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xff4186F5), Color(0xff4186F5)],
+          colors: [Color(0xff4186F5), Color(0xff626AD9)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
