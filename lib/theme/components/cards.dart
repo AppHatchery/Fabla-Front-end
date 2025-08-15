@@ -230,7 +230,7 @@ class _DiaryCardState extends State<DiaryCard> {
 
   Widget body() {
     final colors = formatDiaryCardDueColors(
-        widget.diary!.due, widget.diary!.start, widget.diary!.status);
+        widget.diary!.due, widget.diary!.start, widget.diary!.status, widget.diary!.entries);
 
     final wording = formatDiaryCardDue(
         widget.diary!.due, widget.diary!.start, widget.diary!.status);
