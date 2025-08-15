@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/study_login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/verification_code.dart';
@@ -21,6 +22,7 @@ class StudyLogin extends StatefulWidget {
 
 class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   final PageTimer timer = PageTimer();
+  TextScaler? scaler; // Get the size of the text scaler
 
   final TextEditingController controller = TextEditingController();
   bool error = false;
@@ -33,6 +35,9 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     cubit = BlocProvider.of<StudyLoginCubit>(context);
     timer.start();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      scaler = await fontScaler(context);
+    });
     super.initState();
   }
 
@@ -247,8 +252,11 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   }
 
   track(int spent, String status) async {
-    await PendoService.track(
-        "Study Login", {"time_on_page": spent, "status": status});
+    await PendoService.track("Study Login", {
+      "time_on_page": spent,
+      "status": status,
+      "Font Scaler": "$scaler"
+    });
   }
 
   String? encodeQueryParameters(Map<String, String> params) {

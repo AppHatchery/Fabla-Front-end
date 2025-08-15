@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/verification_code.dart';
@@ -20,6 +21,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   final PageTimer timer = PageTimer();
+  TextScaler? scaler; // Get the size of the text scaler
   late LoginCubit loginCubit;
   final TextEditingController controller = TextEditingController();
   bool error = false;
@@ -30,6 +32,9 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     timer.start();
     loginCubit = BlocProvider.of<LoginCubit>(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      scaler = await fontScaler(context);
+    });
     super.initState();
   }
 
@@ -61,8 +66,11 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
           backgroundColor: CustomColors.backgroundSecondary,
           scrolledUnderElevation: 0.0,
           leading: IconButton(
-            onPressed: () =>
-                {track(timer.stop(), "Back"), RouteService().navigateBack( context: context, current: 'participant_login')},
+            onPressed: () => {
+              track(timer.stop(), "Back"),
+              RouteService()
+                  .navigateBack(context: context, current: 'participant_login')
+            },
             icon: const Icon(Icons.arrow_back_rounded),
             color: CustomColors.textWhite,
           )),
@@ -89,8 +97,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
               }, listener: (context, state) {
                 if (state is LoginSuccess) {
                   error = false;
-                  RouteService()
-                      .navigate(null, context: context, current: 'participant_login');
+                  RouteService().navigate(null,
+                      context: context, current: 'participant_login');
                 } else if (state is LoginError) {
                   setState(() {
                     error = true;
@@ -232,8 +240,11 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   }
 
   track(int spent, String status) async {
-    await PendoService.track(
-        "Participant Login", {"time_on_page": spent, "status": status});
+    await PendoService.track("Participant Login", {
+      "time_on_page": spent,
+      "status": status,
+      "Font Scaler": "$scaler"
+    });
   }
 
   Future<void> launchEmail() async {
