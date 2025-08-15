@@ -215,9 +215,7 @@ class DiaryRepository {
       final entryCount = diary.currentEntry;
 
       if (diary.status == DiaryStatus.missed) {
-        if(diary.entries <=1){
-          diaries.add(diary);
-        }
+        diaries.add(diary);
         continue;
       }
 
