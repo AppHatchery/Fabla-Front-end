@@ -418,18 +418,16 @@ class _StudyIncentiveState extends State<StudyIncentive> {
         children: [
           // Progress bar
           LayoutBuilder(builder: (context, constraints) {
-            final max = constraints.maxWidth - 20;
+            final max = constraints.maxWidth;
 
             // Progress is how much has been acquired
             // Bonus is how much is required to get the bonus
-            final double _progress =
-                (acquired / total) * (constraints.maxWidth - 20);
+            final double _progress = (acquired / total) * max;
             final double _bonus =
-                (bonusEntriesRequired / totalEntriesRequired) *
-                    (constraints.maxWidth - 20);
+                (bonusEntriesRequired / totalEntriesRequired) * max;
 
             return SizedBox(
-              width: constraints.maxWidth,
+              width: max,
               height: 45,
               child: Stack(
                 children: [
@@ -437,7 +435,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                   Align(
                     alignment: Alignment.center,
                     child: Container(
-                      width: constraints.maxWidth,
+                      width: max,
                       height: 6,
                       constraints: const BoxConstraints(maxHeight: 6),
                       decoration: BoxDecoration(
@@ -470,7 +468,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                         ),
                   //Completion
                   Positioned(
-                    left: max,
+                    left: max - 20,
                     top: 0,
                     child: Icon(Icons.emoji_events_rounded,
                         color: color, size: 20),
