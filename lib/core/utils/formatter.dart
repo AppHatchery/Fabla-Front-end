@@ -172,7 +172,7 @@ String formatDiaryCardDue(DateTime due, DateTime start, DiaryStatus status) {
 // First element is Background
 // Second element is Text Color
 List<Color> formatDiaryCardDueColors(
-    DateTime due, DateTime start, DiaryStatus status) {
+    DateTime due, DateTime start, DiaryStatus status, bool optional) {
   final now = DateTime.now();
   final difference = due.difference(now).inHours;
 
@@ -183,7 +183,7 @@ List<Color> formatDiaryCardDueColors(
     return [CustomColors.darkGreen, CustomColors.textWhite];
   } else if (start.isAfter(now) || now.isAfter(due)) {
     return [CustomColors.fillDisabled, CustomColors.midGrey];
-  } else if (difference > 24) {
+  } else if (difference > 24 || optional) {
     return [Colors.transparent, CustomColors.ashGrey];
   } else if (difference > 2) {
     return [CustomColors.tangerine, CustomColors.textWhite];

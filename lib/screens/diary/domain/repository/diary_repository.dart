@@ -191,11 +191,13 @@ class DiaryRepository {
         .add(const Duration(days: 1));
 
     // Filter diaries based on due date
-    final filteredDiaries =
+    final filteredDueDiaries =
         unfilteredDiaries.where((diary) => diary.start.isBefore(due)).toList();
 
+    if (filteredDueDiaries.isEmpty) return {};
+
     // Change diaries statuses if missed
-    for (final diary in filteredDiaries) {
+    for (final diary in filteredDueDiaries) {
       if (now.isAfter(diary.due) &&
           (diary.status != DiaryStatus.complete ||
               diary.status != DiaryStatus.submitted) &&
@@ -203,6 +205,22 @@ class DiaryRepository {
         diary.status = DiaryStatus.missed;
       }
     }
+
+    // filter the diaries with studies with 0 goals
+    final ids = filteredDueDiaries.map((e) => e.studyID).toSet().toList();
+    final studies =
+        _getStudies(ids).map((entity) => StudyModel.fromEntity(entity));
+
+    final filteredDiaries = filteredDueDiaries.where((diary) {
+      final study =
+          studies.firstWhere((study) => study.studyId == diary.studyID);
+
+      if (diary.status != DiaryStatus.missed) {
+        return true;
+      } else {
+        return study.goals.daily != 0 && study.goals.weekly != 0;
+      }
+    }).toList();
 
     // Sort filtered diaries by due date in descending order
     filteredDiaries.sort((a, b) => b.due.compareTo(a.due));
@@ -484,10 +502,10 @@ class DiaryRepository {
   /// For each active day in a weekly diary, it creates a new DiaryModel object
   /// with the appropriate start and due dates.
   /// Finally, it sorts the resulting list of DiaryModel objects by their start dates.
-  /// 
+  ///
   /// Returns:
   /// A list of DiaryModel objects representing every diary entry,
-  /// 
+  ///
   List<DiaryModel> getEveryDiary() {
     final all = _getAllDiariesEntities();
 

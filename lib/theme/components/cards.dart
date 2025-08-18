@@ -42,7 +42,7 @@ class DiaryCard extends StatefulWidget {
 class _DiaryCardState extends State<DiaryCard> {
   DateTime now = DateTime.now();
   late bool closed;
-  String? study;
+  StudyModel? study;
   Color color = CustomColors.productNormal;
 
   Timer? _refreshTimer;
@@ -59,7 +59,7 @@ class _DiaryCardState extends State<DiaryCard> {
     final _study = await repository.getStudy(widget.diary!.studyID);
     if (mounted) {
       setState(() {
-        study = _study?.name ?? '';
+        study = _study;
         color = _study!.color!;
       });
     }
@@ -229,8 +229,9 @@ class _DiaryCardState extends State<DiaryCard> {
   }
 
   Widget body() {
+    final optional = study?.goals.daily == 0 && study?.goals.weekly == 0;
     final colors = formatDiaryCardDueColors(
-        widget.diary!.due, widget.diary!.start, widget.diary!.status);
+        widget.diary!.due, widget.diary!.start, widget.diary!.status, optional);
 
     final wording = formatDiaryCardDue(
         widget.diary!.due, widget.diary!.start, widget.diary!.status);
