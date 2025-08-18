@@ -555,9 +555,21 @@ class SetupRepository {
     if (repo != null) {
       dev.log("Experiment not found.....", name: repo.login);
     }
-    DateTime date = DateTime.now();
-    String formatted = DateFormat('yyyy-MM-dd').format(date);
-    extras['date_adjuster'] = formatted;
+
+   // Check if date_adjuster is already in extras from onboarding questions
+    // If it exists and is not empty, use that date otherwise use current date
+    if (extras.containsKey('date_adjuster') && 
+        extras['date_adjuster'] != null && 
+        extras['date_adjuster'].toString().trim().isNotEmpty) {
+      dev.log("Using existing date_adjuster from onboarding: ${extras['date_adjuster']}", 
+              name: "Date Adjuster");
+    } else {
+      DateTime date = DateTime.now();
+      String formatted = DateFormat('yyyy-MM-dd').format(date);
+      extras['date_adjuster'] = formatted;
+      dev.log("date_adjuster not found in onboarding answers, using current date: $formatted", 
+              name: "Date Adjuster");
+    }
 
     map.addAll(
       {
