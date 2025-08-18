@@ -1,4 +1,5 @@
 import 'package:app_settings/app_settings.dart';
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/mic_tester.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -28,7 +29,6 @@ class _MicAccessPageState extends State<MicAccessPage>
   late FlutterSoundRecorder recorder;
   bool permission = false;
   bool requested = false;
-  bool canGoBack = false;
 
   //Animations
   late StateMachineController _controller;
@@ -40,16 +40,17 @@ class _MicAccessPageState extends State<MicAccessPage>
   SMITrigger? headphonesAllow;
 
   final PageTimer timer = PageTimer();
+  TextScaler? scaler; // Get the size of the text scaler
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     timer.start();
-    if (Navigator.of(context).canPop()) {
-      canGoBack = true;
-    }
     recorder = FlutterSoundRecorder();
     recorderInit();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      scaler = await fontScaler(context);
+    });
     super.initState();
   }
 
@@ -353,8 +354,11 @@ class _MicAccessPageState extends State<MicAccessPage>
   }
 
   track(int spent, String status) async {
-    await PendoService.track(
-        "Microphone Access", {"time_on_page": spent, "status": status});
+    await PendoService.track("Microphone Access", {
+      "time_on_page": spent,
+      "status": status,
+      "Font Scaler": "$scaler"
+    });
   }
 
   void _requestPermission() async {

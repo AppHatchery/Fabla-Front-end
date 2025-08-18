@@ -12,8 +12,10 @@ import 'package:flutter/material.dart';
 ///
 /// [isDisabled] is a boolean that determines if the text field is disabled.
 class CustomTextField extends StatefulWidget {
+  final GlobalKey? globalKey;
   final TextInputType? keyboardType;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final bool error;
   final String? hint;
   final int maxLines;
@@ -27,8 +29,10 @@ class CustomTextField extends StatefulWidget {
   final IconButton? suffix;
   const CustomTextField(
       {super.key,
+      this.globalKey,
       this.keyboardType = TextInputType.text,
       this.controller,
+      this.focusNode,
       this.error = false,
       this.hint,
       this.maxLines = 1,
@@ -46,11 +50,12 @@ class CustomTextField extends StatefulWidget {
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
-
   @override
   Widget build(BuildContext context) {
     return TextField(
+      key: widget.globalKey,
       controller: widget.controller,
+      focusNode: widget.focusNode,
       enabled: widget.isDisabled ? false : true,
       keyboardType: widget.keyboardType,
       maxLines: widget.maxLines,

@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
@@ -9,7 +7,7 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 
 class OnBoardingTextField extends StatefulWidget {
-  final String subtitle;
+  final String? subtitle;
   final TextEditingController controller;
   const OnBoardingTextField(
       {super.key, required this.subtitle, required this.controller});
@@ -24,13 +22,17 @@ class _OnBoardingTextFieldState extends State<OnBoardingTextField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.subtitle,
-          style: CustomTypography().titleLarge(),
-        ),
-        const SizedBox(
-          height: 12,
-        ),
+        widget.subtitle != null
+            ? Text(
+                widget.subtitle!,
+                style: CustomTypography().titleLarge(),
+              )
+            : const SizedBox.shrink(),
+        widget.subtitle != null
+            ? const SizedBox(
+                height: 12,
+              )
+            : const SizedBox.shrink(),
         CustomTextField(
           controller: widget.controller,
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -52,7 +54,7 @@ class _OnBoardingTextFieldState extends State<OnBoardingTextField> {
 }
 
 class OnBoardingRadioOptions extends StatefulWidget {
-  final String subtitle;
+  final String? subtitle;
   final List<Option> options;
   final String? value;
   final ValueChanged<String?> onChanged;
@@ -73,13 +75,17 @@ class _OnBoardingRadioOptionsState extends State<OnBoardingRadioOptions> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.subtitle,
-          style: CustomTypography().titleLarge(),
-        ),
-        const SizedBox(
-          height: 12,
-        ),
+        widget.subtitle != null
+            ? Text(
+                widget.subtitle!,
+                style: CustomTypography().titleLarge(),
+              )
+            : const SizedBox.shrink(),
+        widget.subtitle != null
+            ? const SizedBox(
+                height: 12,
+              )
+            : const SizedBox.shrink(),
         CustomRadioQuestion(
           selected: widget.value,
           options: widget.options,
@@ -91,7 +97,7 @@ class _OnBoardingRadioOptionsState extends State<OnBoardingRadioOptions> {
 }
 
 class OnBoardingMultipleOption extends StatefulWidget {
-  final String subtitle;
+  final String? subtitle;
   final List<Option> options;
   final List<String>? selected;
   final ValueChanged<String?> onChanged;
@@ -110,27 +116,26 @@ class OnBoardingMultipleOption extends StatefulWidget {
 class _OnBoardingMultipleOptionState extends State<OnBoardingMultipleOption> {
   @override
   Widget build(BuildContext context) {
-    final scale = MediaQuery.of(context).textScaleFactor;
-    double padding = max(((scale - 1.0) * 10).ceil() * 20, 20.0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.subtitle,
-          style: CustomTypography().titleLarge(),
-        ),
-        const SizedBox(
-          height: 12,
-        ),
-        Padding(
-          padding: EdgeInsets.only(bottom: padding),
-          child: CustomMultipleQuestion(
-            selected: widget.selected,
-            options: widget.options,
-            onChanged: (value) {
-              widget.onChanged(value.toString());
-            },
-          ),
+        widget.subtitle != null
+            ? Text(
+                widget.subtitle!,
+                style: CustomTypography().titleLarge(),
+              )
+            : const SizedBox.shrink(),
+        widget.subtitle != null
+            ? const SizedBox(
+                height: 12,
+              )
+            : const SizedBox.shrink(),
+        CustomMultipleQuestion(
+          selected: widget.selected,
+          options: widget.options,
+          onChanged: (value) {
+            widget.onChanged(value.toString());
+          },
         )
       ],
     );

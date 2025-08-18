@@ -7,7 +7,13 @@ import '../../../../theme/custom_typography.dart';
 
 class ParticipantName extends StatefulWidget {
   final TextEditingController controller;
-  const ParticipantName({super.key, required this.controller});
+  final FocusNode node;
+  final GlobalKey globalKey;
+  const ParticipantName(
+      {super.key,
+      required this.controller,
+      required this.node,
+      required this.globalKey});
 
   @override
   State<ParticipantName> createState() => _ParticipantNameState();
@@ -20,14 +26,16 @@ class _ParticipantNameState extends State<ParticipantName> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Your Preferred Name",
+          "Enter Your Preferred Name",
           style: CustomTypography().titleLarge(),
         ),
         const SizedBox(
           height: 12,
         ),
         CustomTextField(
+          key: widget.globalKey,
           controller: widget.controller,
+          focusNode: widget.node,
           hint: "Enter your preferred name",
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           filled: true,
