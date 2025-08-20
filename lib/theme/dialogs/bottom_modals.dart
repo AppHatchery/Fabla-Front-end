@@ -2593,7 +2593,9 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       width: width,
       height: _containerHeight,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: _isCollapsed ? LinearGradient (
+          colors: [Color(0xff4186F5), Color(0xff4186F5)],
+        ): LinearGradient(
           colors: [Color(0xff4186F5), Color(0xff626AD9)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -2667,8 +2669,8 @@ class _BottomTimerModalState extends State<BottomTimerModal>
         children: [
           Image.asset(
             'assets/images/icons/pace.png',
-            height: 48,
-            width: 48,
+            height: iconSize,
+            width: iconSize,
           ),
           SizedBox(width: screenWidth * 0.01), // spacing proportional to width
           Flexible(
@@ -2695,17 +2697,21 @@ class _BottomTimerModalState extends State<BottomTimerModal>
   }
 
   Widget _buildTimerCollapseDisplay() {
-    final scaler = MediaQuery.of(context).textScaler;
-    final scaled = scaler.scale(1);
+    final textScale = MediaQuery.of(context).textScaler.scale(1);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Icon size: scales but capped
+    final double iconSize = (screenWidth * 0.12 * textScale).clamp(28.0, 48.0);
+
     return Positioned(
-      top: scaled > 1 ? 15 : 35,
-      left: scaled > 1 ? 50 : 64.5,
-      right: scaled > 1 ? 49.5 : 64,
+      top: textScale > 1 ? 15 : 35,
+      left: textScale > 1 ? 50 : 64.5,
+      right: textScale > 1 ? 49.5 : 64,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset('assets/images/icons/pace.png', height: 48, width: 48),
-          const SizedBox(width: 4),
+          Image.asset('assets/images/icons/pace.png', height: iconSize, width: iconSize),
+          SizedBox(width: screenWidth * 0.01),
           Text(
             _formatDuration(widget.remaining),
             textAlign: TextAlign.center,
@@ -2713,7 +2719,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                 .custom(
               color: CustomColors.textWhite,
               fontWeight: FontWeight.w400,
-              fontSize: scaled > 1 ? 30.4 : 48,
+              fontSize: textScale > 1 ? 30.4 : 48,
             )
                 .copyWith(fontFeatures: [const FontFeature.tabularFigures()]),
           ),
