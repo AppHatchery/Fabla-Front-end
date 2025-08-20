@@ -42,10 +42,11 @@ Future<PromptEntry?> appendLocation(
           diaryID: diaryID,
           promptID: (promptLength + 1).toString(),
           response: "latitude: ${data.latitude}, longitude: ${data.longitude}",
+          respondedAt: "",
           questionsType: "location",
           required: true);
       return response;
-    }else{
+    } else {
       final response = PromptEntry(
           participantID: participantID,
           experimentCode: experimentCode,
@@ -53,6 +54,7 @@ Future<PromptEntry?> appendLocation(
           diaryID: diaryID,
           promptID: (promptLength + 1).toString(),
           response: "Location permission not granted",
+          respondedAt: "",
           questionsType: "location",
           required: true);
       return response;

@@ -1,17 +1,22 @@
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/pages/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
+import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -1171,6 +1176,320 @@ class _TextDiaryCardState extends State<TextDiaryCard> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class PendingSubmissionCard extends StatelessWidget {
+  final List<DiarySubmission> submissions;
+  final bool retry; // Should show the retry card
+  const PendingSubmissionCard(
+      {super.key, required this.submissions, this.retry = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final text = Intl.plural(
+      submissions.length,
+      other:
+          "You have ${submissions.length} pending diary submissions. Would you like to upload them now?",
+      one:
+          "You have 1 pending diary submission. Would you like to upload it now?",
+    );
+
+    final retryText = Intl.plural(
+      submissions.length,
+      other:
+          "${submissions.length} diary submissions could not be uploaded and are still pending",
+      one: "1 diary submission could not be uploaded and is still pending",
+    );
+    final buttonText = Intl.plural(
+      submissions.length,
+      other: "Upload All Now",
+      one: "Upload Now",
+    );
+    final retryButtonText = 'Retry Upload';
+
+    final color =
+        retry ? CustomColors.warningNormal : CustomColors.productNormalActive;
+    final backgroundColor =
+        retry ? CustomColors.warningFill : Color(0xFFD0DEF4);
+
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(16),
+      decoration: ShapeDecoration(
+        color: backgroundColor,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(width: 2, color: color),
+          borderRadius: BorderRadius.circular(11),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                retry ? CupertinoIcons.clear_circled : CupertinoIcons.wifi,
+                size: 24,
+                color: color,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 8,
+                    children: [
+                      Text(
+                        retry ? 'Upload Failed' : "You're Back Online",
+                        style:
+                            CustomTypography().titleSmallCustom(color: color),
+                      ),
+                      Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                        decoration: ShapeDecoration(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4)),
+                        ),
+                        child: Text(
+                          retry ? retryText : text,
+                          style: CustomTypography().bodyLarge(color: color),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 40.0, top: 12),
+            child: CustomOutlineButton(
+              onClick: () => _navigateToBulkSubmission(context),
+              backgroundColor: color,
+              color: color,
+              borderRadius: 12,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+              children: Wrap(children: [
+                Text(
+                  retry ? retryButtonText : buttonText,
+                  style:
+                      CustomTypography().button(color: CustomColors.textWhite),
+                )
+              ]),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  _navigateToBulkSubmission(BuildContext context) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) =>
+                BulkSubmissionPage(submissions: submissions)));
+  }
+}
+
+class PendingSubmissionSmallCard extends StatefulWidget {
+  final DiaryModel diary;
+  final StudyModel study;
+  final SubmissionStatus status;
+  const PendingSubmissionSmallCard(
+      {super.key,
+      required this.diary,
+      required this.study,
+      required this.status});
+
+  @override
+  State<PendingSubmissionSmallCard> createState() =>
+      _PendingSubmissionSmallCardState();
+}
+
+class _PendingSubmissionSmallCardState
+    extends State<PendingSubmissionSmallCard> {
+  Color color = CustomColors.productNormal;
+  late DateTime completedAt;
+
+  @override
+  void initState() {
+    completedAt = widget.diary.due;
+    color = widget.study.color ?? CustomColors.productNormal;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: CustomColors.fillWhite,
+        borderRadius: BorderRadius.circular(10),
+        border: Border(
+            left: BorderSide(
+          color: color,
+          width: 4,
+        )),
+        boxShadow: const [
+          BoxShadow(
+            color: CustomColors.productBorderNormal,
+            blurRadius: 4,
+            spreadRadius: 1,
+            offset: Offset(0, 1),
+          ),
+        ],
+        shape: BoxShape.rectangle,
+      ),
+      margin: EdgeInsets.only(
+        left: 3,
+        right: 3,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 16, 16, 16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            icon(),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: body(),
+              ),
+            ),
+            switch (widget.status) {
+              SubmissionStatus.pending => SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: Center(
+                      child: const CircularProgressIndicator(
+                    color: CustomColors.productNormalActive,
+                    strokeWidth: 4,
+                    strokeCap: StrokeCap.round,
+                  ))),
+              SubmissionStatus.successful => Icon(
+                  Icons.check_rounded,
+                  color: CustomColors.darkGreen,
+                  size: 24,
+                ),
+              SubmissionStatus.failed => Image.asset(
+                  'assets/images/icons/arrow_upload_ready.png',
+                  height: 24,
+                  width: 24,
+                )
+            }
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget icon() {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: ShapeDecoration(
+        color: widget.study.color?.withAlpha(90),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      child: Image.asset(
+        determineDiaryIcon(widget.diary),
+        height: 24,
+        width: 24,
+        color: widget.study.color,
+      ),
+    );
+  }
+
+  Widget body() {
+    final wording = formatDiaryDueSubmission(completedAt);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 8,
+      children: [
+        Text(
+          widget.diary.name,
+          style: CustomTypography().titleSmall(),
+        ),
+        Text(
+          wording,
+          style: CustomTypography()
+              .titleRegular(color: CustomColors.textSecondaryContent),
+        )
+      ],
+    );
+  }
+
+  void updateCompletedAt(DateTime date) async {
+    final _completedAt = await getCompletionDate(widget.diary.id.toString(),
+        fallback: widget.diary.due);
+
+    if (mounted) {
+      setState(() {
+        completedAt = _completedAt;
+      });
+    }
+  }
+}
+
+class NoInternetCard extends StatelessWidget {
+  const NoInternetCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(16),
+      decoration: ShapeDecoration(
+        color: Color(0xFFFFF8DE),
+        shape: RoundedRectangleBorder(
+          side: BorderSide(width: 2, color: Color(0xFFD26B00)),
+          borderRadius: BorderRadius.circular(11),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            CupertinoIcons.wifi_slash,
+            size: 24,
+            color: Color(0xFFD26B00),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: [
+                  Text(
+                    "No Internet Connection",
+                    style: CustomTypography()
+                        .titleSmallCustom(color: Color(0xFFD26B00)),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                    decoration: ShapeDecoration(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4)),
+                    ),
+                    child: Text(
+                      "You can continue logging your diary. Your data will be saved securely on this device, and you’ll need to upload it once you’re back online.",
+                      style: CustomTypography()
+                          .bodyLarge(color: Color(0xFFD26B00)),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

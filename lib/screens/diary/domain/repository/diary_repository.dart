@@ -199,7 +199,7 @@ class DiaryRepository {
     // Change diaries statuses if missed
     for (final diary in filteredDueDiaries) {
       if (now.isAfter(diary.due) &&
-          (diary.status != DiaryStatus.complete ||
+          (diary.status != DiaryStatus.complete &&
               diary.status != DiaryStatus.submitted) &&
           (diary.currentEntry < diary.entries && diary.currentEntry == 0)) {
         diary.status = DiaryStatus.missed;

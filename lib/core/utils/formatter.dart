@@ -169,6 +169,12 @@ String formatDiaryCardDue(DateTime due, DateTime start, DiaryStatus status) {
   }
 }
 
+String formatDiaryDueSubmission(DateTime date) {
+  final format = DateFormat("MMM d',' y · hh:mm a");
+
+  return format.format(date);
+}
+
 // First element is Background
 // Second element is Text Color
 List<Color> formatDiaryCardDueColors(
