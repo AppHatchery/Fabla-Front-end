@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart'
     show NoInternetCard, PendingSubmissionCard;
 import 'package:flutter/material.dart';
@@ -42,6 +42,7 @@ class _PendingSubmissionWidgetState extends State<PendingSubmissionWidget> {
           }
           break;
       }
+      _pendoTrack();
     });
   }
 
@@ -72,21 +73,26 @@ class _PendingSubmissionWidgetState extends State<PendingSubmissionWidget> {
 
   _getDiaries() async {
     final repository = DiaryRepository();
-    final diaries = repository.getAllDiaries();
-    final filtered =
-        diaries.where((element) => element.status == DiaryStatus.complete);
+    final diaries = await repository.getAllPending();
 
-    if (filtered.isEmpty) return;
+    if (diaries.isEmpty) return;
 
     final submissions = <DiarySubmission>[];
 
-    for (final diary in filtered) {
+    for (final diary in diaries) {
       final study = await repository.getStudy(diary.studyID);
       submissions.add(DiarySubmission(diary: diary, study: study!));
     }
 
     setState(() {
       this.submissions = submissions;
+    });
+  }
+
+  _pendoTrack() async {
+    await PendoService.track("Internet Connectivity", {
+      "status": connected ? "connected" : "disconnected",
+      "time": DateTime.now().toIso8601String(),
     });
   }
 }

@@ -1,8 +1,11 @@
+import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/bulk_submission/bulk_submission_cubit.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/pages/diarycompletion.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/circle_transition_clipper.dart';
 import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart'
-    show CustomOutlineButton;
+    show CustomOutlineButton, CustomFlatButton;
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -46,55 +49,75 @@ class _BulkSubmissionPageState extends State<BulkSubmissionPage> {
           backgroundColor: CustomColors.fillNormal,
           scrolledUnderElevation: 0.0,
           title: Text(
-            "Pending Submissions",
+            "Entries to be uploaded",
             style: CustomTypography()
                 .headlineMedium(color: CustomColors.textNormalContent),
           ),
-          centerTitle: true,
+          centerTitle: false,
         ),
         body: SafeArea(
-            child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              spacing: 12,
-              children: [
-                banner(),
-                BlocConsumer<BulkSubmissionCubit, BulkSubmissionState>(
-                    builder: (context, state) {
-                  if (state is BulkSubmissionInProgress) {
-                    return diaries(state.diaries);
-                  } else if (state is BulkSubmissionFailed) {
-                    retry = true;
-                    failed = state.failedCount;
-                    return diaries(state.diaries);
-                  }
+            child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            spacing: 12,
+            children: [
+              Expanded(
+                  child: BlocConsumer<BulkSubmissionCubit, BulkSubmissionState>(
+                      builder: (context, state) {
+                if (state is BulkSubmissionInProgress) {
+                  return content(state.diaries);
+                } else if (state is BulkSubmissionFailed) {
+                  return content(state.diaries);
+                }
 
-                  return CircularProgressIndicator();
-                }, listener: (context, state) {
-                  if (state is BulkSubmissionSuccess) {
-                    if (mounted) {
-                      setState(() {
-                        complete = true;
-                      });
+                return CircularProgressIndicator();
+              }, listener: (context, state) {
+                if (state is BulkSubmissionSuccess) {
+                  if (mounted) {
+                    setState(() {
+                      complete = true;
+                    });
 
-                      _hubCubit.refresh();
-                      Navigator.pop(context);
-                    }
-                  } else if (state is BulkSubmissionFailed) {
-                    if (mounted) {
-                      setState(() {
-                        complete = false;
-                        retry = true;
-                        failed = state.failedCount;
-                      });
-                    }
+                    _hubCubit.refresh();
+                    goToCompletion();
                   }
-                }),
-              ],
-            ),
+                } else if (state is BulkSubmissionFailed) {
+                  if (mounted) {
+                    setState(() {
+                      complete = false;
+                      retry = true;
+                      failed = state.failedCount;
+                    });
+                  }
+                }
+              })),
+              CustomFlatButton(
+                isDisabled: !retry,
+                onClick: () {
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const Hub(),
+                          settings: RouteSettings(name: "/Hub")),
+                      (route) => false);
+                },
+                text: "Return Home",
+                color: CustomColors.productNormal,
+                textColor: CustomColors.textWhite,
+              ),
+            ],
           ),
         )),
+      ),
+    );
+  }
+
+  Widget content(List<DiarySubmission> items) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 24,
+        children: [banner(items), diaries(items)],
       ),
     );
   }
@@ -118,7 +141,7 @@ class _BulkSubmissionPageState extends State<BulkSubmissionPage> {
         });
   }
 
-  Widget banner() {
+  Widget banner(List<DiarySubmission> items) {
     final width = MediaQuery.of(context).size.width;
 
     final text = 'Please wait until all your submissions are uploaded.';
@@ -197,7 +220,7 @@ class _BulkSubmissionPageState extends State<BulkSubmissionPage> {
               ? Padding(
                   padding: const EdgeInsets.only(left: 40.0, top: 12),
                   child: CustomOutlineButton(
-                    onClick: () => null,
+                    onClick: () => retryUpload(items),
                     backgroundColor: color,
                     color: color,
                     borderRadius: 12,
@@ -215,6 +238,44 @@ class _BulkSubmissionPageState extends State<BulkSubmissionPage> {
               : const SizedBox.shrink()
         ],
       ),
+    );
+  }
+
+  void retryUpload(List<DiarySubmission> submissions) {
+    setState(() {
+      complete = false;
+      retry = false;
+    });
+    _cubit.retryFailedSubmissions(submissions);
+  }
+
+  void goToCompletion() {
+    Navigator.of(context).pushReplacement(_completionRoute());
+  }
+
+  Route _completionRoute() {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          const DiaryCompletionPage(),
+      transitionDuration: const Duration(milliseconds: 1200),
+      reverseTransitionDuration: const Duration(milliseconds: 1200),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        var screenSize = MediaQuery.of(context).size;
+        var centerCircleClipper =
+            Offset(screenSize.width / 2, screenSize.height / 2);
+
+        double beginRadius = 0.0;
+        double endRadius = screenSize.height * 1.2;
+
+        var radiusTween = Tween(begin: beginRadius, end: endRadius);
+        var radiusTweenAnimation = animation.drive(radiusTween);
+
+        return ClipPath(
+          clipper: CircleTransitionClipper(
+              center: centerCircleClipper, radius: radiusTweenAnimation.value),
+          child: child,
+        );
+      },
     );
   }
 }

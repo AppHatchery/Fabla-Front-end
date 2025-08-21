@@ -157,7 +157,7 @@ class SummaryRepository {
         } else if (diary.currentEntry + 1 < study!.goals.daily) {
           dailyGoalNotification(diary.id);
         }
-
+        cancelContinueNotifications(diary.id);
         calculateEarnedIncentivesForAWS(participantID: participant.studyCode);
         return true;
       } else {

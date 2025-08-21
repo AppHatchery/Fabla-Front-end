@@ -11,6 +11,7 @@ import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/tag.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
 
@@ -118,6 +119,23 @@ class DiaryRepository {
   List<DiaryModel> getAllDiaries() {
     final diaries = _getAllDiariesEntities();
     return diaries.map((e) => DiaryModel.fromEntity(e)).toList();
+  }
+
+  Future<List<DiaryModel>> getAllPending() async {
+    final _summaryRepository = SummaryRepository();
+    final diaries = getAllDiaries();
+    final filtered =
+        diaries.where((diary) => diary.status == DiaryStatus.complete).toList();
+
+    // Get all diaries with their answers
+    final copy = <DiaryModel>[];
+
+    for (final diary in filtered) {
+      final _diary = await _summaryRepository.loadSummary(diary);
+      copy.add(_diary);
+    }
+
+    return copy;
   }
 
   /// Retrieves a list of Diary objects representing all stored diary entries.

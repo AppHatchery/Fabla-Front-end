@@ -32,7 +32,8 @@ void diaryEnd({required String diaryID}) async {
   final now = DateTime.now().toIso8601String();
 
   ends[diaryID] = now;
-  await preferences.setStringPreference(key: "ends", value: jsonEncode(ends));
+  await preferences.setStringPreference(
+      key: "diary_ends", value: jsonEncode(ends));
 }
 
 /// Submitting the completion diary with the start time and the end time

@@ -116,7 +116,7 @@ class SummaryCubit extends Cubit<SummaryState> {
       final result = await _summaryRepository.submitDiary(diary);
       if (result == null) {
         //TODO handle no internet connection
-        // emit(const NoInternetConnection());
+        emit(const SubmitError());
         return;
       }
 
