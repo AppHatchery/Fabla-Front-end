@@ -162,7 +162,7 @@ String formatDiaryCardDue(DateTime due, DateTime start, DiaryStatus status) {
     return "Closed on: ${dateFormat.format(due)}";
   } else if (now.isAfter(due)) {
     return "Closed at: ${formatDurationToHHMMPP(due)}";
-  } else if (difference > 24) {
+  } else if (difference >= 24) {
     return "Available until: ${dateFormat.format(due)}";
   } else {
     return "Available until: ${formatDurationToHHMMPP(due)}";
@@ -184,14 +184,14 @@ List<Color> formatDiaryCardDueColors(
 
   // when the diary is due in 2 hr display the due time label in red
   // when the diary is due today but due time is more than 2h from now, display this label in yellow
-  // when the diary is not due today, display the due time label with a transparent background
+  // when the diary is not due today or is optional, display the due time label with a transparent background
   if (status == DiaryStatus.submitted) {
     return [CustomColors.darkGreen, CustomColors.textWhite];
   } else if (start.isAfter(now) || now.isAfter(due)) {
     return [CustomColors.fillDisabled, CustomColors.midGrey];
-  } else if (difference > 24 || optional) {
+  } else if (difference >= 24 || optional) {
     return [Colors.transparent, CustomColors.ashGrey];
-  } else if (difference > 2) {
+  } else if (difference >= 2) {
     return [CustomColors.tangerine, CustomColors.textWhite];
   } else {
     return [CustomColors.warningActive, CustomColors.textWhite];

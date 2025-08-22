@@ -29,6 +29,17 @@ class _PendingSubmissionWidgetState extends State<PendingSubmissionWidget> {
   }
 
   void _initConnectivity() async {
+    if (listener != null) {
+      listener?.cancel();
+      listener = null;
+    }
+
+    final currentStatus = await InternetConnection().internetStatus;
+
+    if (mounted) {
+      setState(() => connected = currentStatus == InternetStatus.connected);
+    }
+
     listener = InternetConnection().onStatusChange.listen((status) {
       switch (status) {
         case InternetStatus.connected:
@@ -44,6 +55,12 @@ class _PendingSubmissionWidgetState extends State<PendingSubmissionWidget> {
       }
       _pendoTrack();
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant PendingSubmissionWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _initConnectivity();
   }
 
   @override
