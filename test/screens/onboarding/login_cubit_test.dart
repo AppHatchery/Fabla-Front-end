@@ -72,7 +72,6 @@ void main() {
       expect(loginCubit.state, equals(const LoginInitial()));
     });
 
- 
     group('state equality', () {
       test('LoginInitial instances are equal', () {
         const state1 = LoginInitial();

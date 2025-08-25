@@ -72,7 +72,7 @@ class ParticipantDAO {
     }
   }
 
-  void remove(){
+  void remove() {
     box.removeAll();
   }
 }

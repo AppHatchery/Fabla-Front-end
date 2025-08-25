@@ -226,7 +226,6 @@ void main() {
         state: createHomeLoadedState(),
         cubit: mockHomeCubit,
         waitForSettle: true,
-
       );
 
       expect(find.byKey(const Key('weekly_goal_widget')), findsOneWidget);

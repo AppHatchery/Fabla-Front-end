@@ -8,7 +8,6 @@ import '../../dummy_data.dart';
 void main() {
   group('PromptModelComparison Tests', () {
     test('isEffectivelyEqual should compare prompts correctly', () {
-    
       final prompt1 = createTestPromptModel(
         id: 1, 
         questionNumber: 1, 
@@ -249,6 +248,7 @@ void main() {
       );
 
       expect(diary1.isEffectivelyEqual(diary2), isFalse); 
+
     });
   });
 }

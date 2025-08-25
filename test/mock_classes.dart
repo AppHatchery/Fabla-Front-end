@@ -7,3 +7,4 @@ import 'package:objectbox/objectbox.dart';
   Query,
 ])
 void main() {}
+

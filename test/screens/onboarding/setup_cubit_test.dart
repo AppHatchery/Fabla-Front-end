@@ -209,7 +209,6 @@ void main() {
         expect(state1, equals(state2));
       });
 
-
       test('different state types are not equal', () {
         const initial = SetupInitial();
         const loading = SetupLoading();

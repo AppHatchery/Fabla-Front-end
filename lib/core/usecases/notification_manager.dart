@@ -50,7 +50,7 @@ class NotificationManager {
             ![DiaryStatus.complete, DiaryStatus.submitted]
                 .contains(diary.status))
         .toList();
-      // sort diaries by start date
+    // sort diaries by start date
     diaries.sort((a, b) => a.start.compareTo(b.start));
 
     // Check if the number of scheduled notifications is below the threshold

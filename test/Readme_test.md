@@ -18,6 +18,7 @@
 | Core         | `core/usecases` – logic branches             | Permission states, incentive math, timers        | Unit             | `flutter test`, `mocktail` (`location`)       |
 | Core         | `core/network` – upload                      | Header JSON, list creation, error paths          | Unit             | `flutter test`, `mocktail` (`http.Client`)    |
 | Core         | `core/dao` – database access                 | CRUD ops, filtering                              | Unit             | `objectbox_test`                              |
+
 | Domain       | `domain/repositories`                        | Uploads, status flows, incentives, triggers      | Unit             | `flutter test`, `mocktail`                    |
 | Domain       | `domain/entities`                            | Equality, `copyWith`, factory helpers            | Unit             | `flutter test`                                |
 | Data         | `data/models`                                | JSON ↔ Map conversion                            | Unit             | `flutter test`                                |

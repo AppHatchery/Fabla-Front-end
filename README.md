@@ -7,6 +7,7 @@ The application is built using Flutter and Dart, and uses Firebase for cloud sto
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
+  - [Pre-commit Hooks](#pre-commit-hooks)
   - [Project Structure](#project-structure)
     - [Architecture](#architecture)
       - [Core](#core)
@@ -47,24 +48,66 @@ pod install
 ```
 3. Install the database
 ```
+4. Set up pre-commit hooks (required for all developers)
+```bash
+dart run scripts/setup-bootstrapper.dart
+```
 dart run build_runner build
 ```
-4. Run the application
+5. Run the application
 ```
 flutter run
 ```
-5. Setup amplify project
+6. Setup amplify project
 ```
 famplify pull --appId d1f2k81mx528zu --envName fablapush
 ```
-6. Checkout dev enviroment
+7. Checkout dev enviroment
 ```
 amplify env checkout fablapush
 ```
-7. Pull amplify project
+8. Pull amplify project
 ```
 amplify pull
 ```
+## Pre-commit Hooks
+
+This project uses automated pre-commit hooks to maintain code quality. Tests run automatically before every commit.
+
+### Setup (One-time per developer)
+After cloning the repository, run:
+```bash
+dart run scripts/setup-bootstrapper.dart
+```
+
+### How It Works
+- 🧪 **Tests run automatically** on every `git commit`
+- ✅ **Commit succeeds** only if all tests pass  
+- ❌ **Commit is blocked** if any tests fail
+
+### Development Workflow
+```bash
+# Make your changes
+flutter pub get
+# Edit files...
+
+# Commit changes (tests run automatically)
+git add .
+git commit -m "your changes"
+# Output: 🔍 Running pre-commit checks...
+#         🧪 Running tests...
+#         ✅ All pre-commit checks passed!
+```
+### Bypassing Hooks (Emergency Only)
+If you need to commit without running tests (use sparingly):
+```bash
+git commit --no-verify -m "emergency fix"
+```
+
+### Troubleshooting
+- **First commit after setup:** May show "Installing hooks" and require retry
+- **Hooks not running:** Ensure you ran `dart run scripts/setup-bootstrapper.dart`
+- **Tests failing:** Fix the failing tests before committing, or use `--no-verify` for emergencies
 
 ## Project Structure
 The project is structured as follows:
