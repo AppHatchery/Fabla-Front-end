@@ -139,6 +139,7 @@ void _addFileData(
             diaryID: diary.id.toString(),
             promptID: prompt.id.toString(),
             response: "",
+            respondedAt: record.date.toIso8601String(),
             questionsType: responseTypeValue(prompt.responseType!),
             required: prompt.required,
             reference:
@@ -161,6 +162,7 @@ void _addPromptEntry(PromptModel prompt, String participantID,
       diaryID: diaryID,
       promptID: prompt.id.toString(),
       response: prompt.answer?.response?.join(' | ') ?? "",
+      respondedAt: prompt.answer?.date.toIso8601String() ?? "",
       questionsType: responseTypeValue(prompt.responseType!),
       required: prompt.required,
     ),
@@ -363,6 +365,7 @@ class PromptEntry {
   String diaryID;
   String promptID;
   String response;
+  String respondedAt; // Added to store the response time
   String questionsType; // Corrected parameter name
   bool required;
   String transcript;
@@ -375,6 +378,7 @@ class PromptEntry {
     required this.diaryID,
     required this.promptID,
     required this.response,
+    required this.respondedAt, // Added to store the response time
     required this.questionsType, // Corrected parameter name
     required this.required,
     this.transcript = "",
@@ -393,6 +397,7 @@ class PromptEntry {
         "DiaryID": entry.diaryID,
         "PromptID": entry.promptID,
         "Response": entry.response,
+        "RespondedAt": entry.respondedAt, // Added to store the response time
         "QuestionsType": entry.questionsType,
         "Required": entry.required.toString(), // Convert bool to string
         "Transcript": entry.transcript,

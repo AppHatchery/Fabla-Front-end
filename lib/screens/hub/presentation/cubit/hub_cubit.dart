@@ -25,4 +25,8 @@ class HubCubit extends Cubit<HubState> {
 
     emit(const HubInitial());
   }
+
+  refresh() {
+    emit(HubRefreshing());
+  }
 }

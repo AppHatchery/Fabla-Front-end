@@ -537,6 +537,7 @@ class _BottomTextModalState extends State<BottomTextModal>
     with WidgetsBindingObserver {
   late TextEditingController textController;
   late GlobalKey fieldKey;
+  late FocusNode textFocusNode;
 
   late OverlayEntry? _overlayEntry;
   double keyboardHeight = 0;
@@ -568,6 +569,7 @@ class _BottomTextModalState extends State<BottomTextModal>
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
+    textFocusNode = FocusNode();
     if (widget.index != null) {
       textController = TextEditingController(
           text: widget.prompt.answer?.response?.elementAtOrNull(widget.index!));
@@ -586,6 +588,7 @@ class _BottomTextModalState extends State<BottomTextModal>
         disabled = textController.text.isEmpty;
       });
     }
+
     fieldKey = GlobalKey();
     _overlayEntry = null;
     super.initState();
@@ -604,6 +607,9 @@ class _BottomTextModalState extends State<BottomTextModal>
   void didChangeMetrics() {
     if (mounted) {
       final size = View.of(context).viewInsets.bottom;
+      final wasKeyboardVisible = keyboardHeight > 0;
+      final isKeyboardVisible = size > 0;
+
       if (size > 0 && checkDevice()) {
         showOverlay(context);
       } else {
@@ -613,6 +619,10 @@ class _BottomTextModalState extends State<BottomTextModal>
       setState(() {
         keyboardHeight = size;
       });
+
+      if (!wasKeyboardVisible && isKeyboardVisible && textFocusNode.hasFocus) {
+        _scrollToTextField();
+      }
     }
     super.didChangeMetrics();
   }
@@ -643,10 +653,22 @@ class _BottomTextModalState extends State<BottomTextModal>
     }
   }
 
+  void _scrollToTextField() {
+    if (fieldKey.currentContext != null && mounted) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        widget.scrollController.animateTo(
+            widget.scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -658,23 +680,28 @@ class _BottomTextModalState extends State<BottomTextModal>
           borderRadius: BorderRadius.only(
               topLeft: Radius.circular(14), topRight: Radius.circular(14)),
         ),
-        child: SingleChildScrollView(
-          controller: widget.scrollController,
-          child: Column(
-            children: [
-              questionAndHints(),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                controller: widget.scrollController,
+                child: Column(
+                  children: [
+                    questionAndHints(),
 
-              const SizedBox(
-                height: 16,
+                    const SizedBox(
+                      height: 16,
+                    ),
+                    // Text controls
+                    responseField(),
+
+                    SizedBox(
+                        height: keyboardHeight > 0 ? keyboardHeight + 50 : 50),
+                  ],
+                ),
               ),
-              // Text controls
-              responseField(),
-
-              SizedBox(
-                height: keyboardHeight * 0.65,
-              )
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -765,10 +792,8 @@ class _BottomTextModalState extends State<BottomTextModal>
         children: [
           TextField(
             key: fieldKey,
+            focusNode: textFocusNode,
             controller: textController,
-            onTap: () {
-              Scrollable.ensureVisible(fieldKey.currentContext!);
-            },
             maxLines: 5,
             cursorColor: CustomColors.productNormal,
             style: CustomTypography().bodyLarge(),

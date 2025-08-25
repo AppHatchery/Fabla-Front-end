@@ -127,6 +127,12 @@ class SummaryCubit extends Cubit<SummaryState> {
       emit(const SubmitLoading());
       // Updated to use injected repository instance
       final result = await _summaryRepository.submitDiary(diary);
+      if (result == null) {
+        //TODO handle no internet connection
+        emit(const SubmitError());
+        return;
+      }
+
       if (result) {
         // Updated to use injected repository instance
         await _summaryRepository.calculateEarnedIncentives(diary);

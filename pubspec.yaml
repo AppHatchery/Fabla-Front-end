@@ -127,6 +127,7 @@ dependencies:
   mockito: ^5.4.6
   bloc_test: ^10.0.0
   # disable_battery_optimization: ^1.1.1
+  internet_connection_checker_plus: ^2.7.2
 
 dev_dependencies:
   flutter_test:
