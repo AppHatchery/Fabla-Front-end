@@ -1500,11 +1500,11 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
   }
 }
 
-class MediaPreview extends StatefulWidget {
+class MediaPreview  extends StatefulWidget {
   final List<Recording> recordings;
   final Function(String path) delete;
   final bool interactions;
-  const MediaPreview(
+  const MediaPreview (
       {super.key,
       required this.recordings,
       required this.delete,

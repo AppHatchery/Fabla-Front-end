@@ -84,7 +84,7 @@ class MockBox<T> extends Mock implements Box<T> {
 }
 
 Widget createTestableWidget(
-    MockSettingsCubit mockSettingsCubit, MockSetupRepository mockRepository) {
+  MockSettingsCubit mockSettingsCubit, MockSetupRepository mockRepository) {
   final mockHubCubit = MockHubCubit();
 
   return ScreenUtilInit(
@@ -195,14 +195,9 @@ void main() {
     expect(find.text("Microphone"), findsOneWidget);
     expect(find.text("Study Details"), findsOneWidget);
     expect(find.text("Participant Details"), findsOneWidget);
-    expect(
-        find.text(
-            "We will keep you in the loop on your entries and provide reminders for completion."),
-        findsOneWidget);
+    expect(find.text("We will keep you in the loop on your entries and provide reminders for completion."),findsOneWidget);
     expect(find.text("Enable Notifications"), findsOneWidget);
-    expect(
-        find.text("You must enable microphone Access to record audio diaries."),
-        findsOneWidget);
+    expect(find.text("You must enable microphone Access to record audio diaries."),findsOneWidget);
     expect(find.text("Enable Microphone Access"), findsOneWidget);
     expect(find.text("Reminders"), findsOneWidget);
     expect(find.text("Add a Reminder Time"), findsOneWidget);
@@ -227,8 +222,7 @@ void main() {
   });
 
   // participant details
-  testWidgets('Checking participant details displays',
-      (WidgetTester tester) async {
+  testWidgets('Checking participant details displays',(WidgetTester tester) async {
     await tester.pumpWidget(
         createTestableWidget(mockSettingsCubit, mockSetupRepository));
     await tester.pumpAndSettle();
@@ -273,7 +267,8 @@ void main() {
     final remindersFinder = find.byType(ActiveReminders);
     expect(remindersFinder, findsOneWidget);
 
-    final addReminderTimeButtonFinder = find.text("Add a Reminder Time");
+    final addReminderTimeButtonFinder =
+        find.text("Add a Reminder Time");
     expect(addReminderTimeButtonFinder, findsOneWidget);
   });
 }

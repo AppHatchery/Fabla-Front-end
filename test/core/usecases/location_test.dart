@@ -23,8 +23,7 @@ void main() {
     final testExperimentCode = TestValues.testExperimentCode;
     final testParticipantID = TestValues.testParticipantId;
     const testPromptLength = 5;
-    final testDiaryID =
-        '${TestValues.testName.toLowerCase().replaceAll(' ', '_')}_diary';
+    final testDiaryID = '${TestValues.testName.toLowerCase().replaceAll(' ', '_')}_diary';
 
     test('should return location data when permissions are granted', () async {
       // Arrange

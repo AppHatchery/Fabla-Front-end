@@ -16,7 +16,9 @@ class MockFlutterLocalNotificationsPlugin extends Mock
 
 class MockHttpClient extends Mock implements http.Client {}
 
-class MockDirectory extends Mock implements Directory {}
+class MockDirectory extends Mock
+    implements
+        Directory {} 
 
 class MockFile extends Mock implements File {}
 

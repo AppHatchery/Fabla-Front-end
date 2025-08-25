@@ -176,8 +176,9 @@ void main() {
   group('normalizeDate', () {
     test('should remove time component from DateTime', () {
       // Arrange
-      final dateTimeWithTime = DateTime(2024, 3, 15, 14, 30, 45);
-      final expectedDate = DateTime(2024, 3, 15);
+
+      final dateTimeWithTime = DateTime(2024, 3, 15, 14, 30, 45); 
+      final expectedDate = DateTime(2024, 3, 15); 
 
       // Act
       final normalized = normalizeDate(dateTimeWithTime);
@@ -191,7 +192,8 @@ void main() {
 
     test('should handle date that already has no time component', () {
       // Arrange
-      final dateWithoutTime = DateTime(2024, 3, 15);
+
+      final dateWithoutTime = DateTime(2024, 3, 15); 
 
       // Act
       final normalized = normalizeDate(dateWithoutTime);
@@ -301,14 +303,16 @@ void main() {
           id: 1,
           start: TestDates.testDate,
           end: TestDates.testDate,
-          status: DiaryStatus.submitted,
+          status:
+              DiaryStatus.submitted, 
           activeDays: null,
         ),
         createTestDiaryModel(
           id: 2,
           start: TestDates.testDate,
           end: TestDates.testDate,
-          status: DiaryStatus.idle,
+          status: DiaryStatus.idle, 
+
           activeDays: null,
         ),
       ];

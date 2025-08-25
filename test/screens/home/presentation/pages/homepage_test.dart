@@ -121,11 +121,11 @@ void setupCommonCubitMocks(MockHomeCubit cubit) {
 }
 
 Future<void> pumpHomePageWithState(
-  WidgetTester tester, {
-  required HomeState state,
-  required MockHomeCubit cubit,
-  bool waitForSettle = true,
-}) async {
+    WidgetTester tester, {
+      required HomeState state,
+      required MockHomeCubit cubit,
+      bool waitForSettle = true,
+    }) async {
   when(() => cubit.state).thenReturn(state);
   when(() => cubit.stream).thenAnswer((_) => Stream.value(state));
 
