@@ -42,7 +42,12 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
 
   @override
   Widget build(BuildContext context) {
+    final scaler = MediaQuery.of(context).textScaler;
     final width = MediaQuery.of(context).size.width;
+
+    final contentWidth =
+        scaler.scale(width / 2) > (width / 2) ? width / 1.25 : width / 2;
+    final contentExtent = scaler.scale(50) > 80 ? 80.0 : scaler.scale(50);
     return SizedBox(
       width: width,
       child: Padding(
@@ -81,7 +86,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
               children: [
                 SizedBox(
                   height: 200,
-                  width: width / 2,
+                  width: contentWidth,
                   child: Center(
                     child: Row(
                       children: [
@@ -95,7 +100,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                               physics: const FixedExtentScrollPhysics(),
                               perspective: 0.01,
                               diameterRatio: 1,
-                              itemExtent: 50,
+                              itemExtent: contentExtent,
                               overAndUnderCenterOpacity: 0.3,
                               squeeze: 2,
                               childDelegate: ListWheelChildBuilderDelegate(
@@ -120,7 +125,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                               physics: const FixedExtentScrollPhysics(),
                               perspective: 0.01,
                               diameterRatio: 1,
-                              itemExtent: 50,
+                              itemExtent: contentExtent,
                               overAndUnderCenterOpacity: 0.3,
                               squeeze: 2,
                               childDelegate: ListWheelChildBuilderDelegate(
@@ -142,7 +147,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                               physics: const FixedExtentScrollPhysics(),
                               perspective: 0.01,
                               diameterRatio: 1,
-                              itemExtent: 50,
+                              itemExtent: contentExtent,
                               overAndUnderCenterOpacity: 0.3,
                               squeeze: 2,
                               childDelegate: ListWheelChildBuilderDelegate(
@@ -189,16 +194,13 @@ class Minutes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: SizedBox(
-          child: Center(
-        child: Text(
-          twoDigits(mins),
-          style: CustomTypography().titleSmall(),
-        ),
-      )),
-    );
+    return SizedBox(
+        child: Center(
+      child: Text(
+        twoDigits(mins),
+        style: CustomTypography().titleSmall(),
+      ),
+    ));
   }
 
   String twoDigits(int n) => n.toString().padLeft(2, "0");
@@ -210,16 +212,13 @@ class Hours extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: SizedBox(
-          child: Center(
-        child: Text(
-          hour.toString(),
-          style: CustomTypography().titleSmall(),
-        ),
-      )),
-    );
+    return SizedBox(
+        child: Center(
+      child: Text(
+        hour.toString(),
+        style: CustomTypography().titleSmall(),
+      ),
+    ));
   }
 }
 
@@ -229,18 +228,13 @@ class HoursAndMinutes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: SizedBox(
-          child: Center(
-        child: Text(
-          number % 1 == 0
-              ? number.toInt().toString()
-              : number.toStringAsFixed(1),
-          style: CustomTypography().titleSmall(),
-        ),
-      )),
-    );
+    return SizedBox(
+        child: Center(
+      child: Text(
+        number % 1 == 0 ? number.toInt().toString() : number.toStringAsFixed(1),
+        style: CustomTypography().titleSmall(),
+      ),
+    ));
   }
 }
 

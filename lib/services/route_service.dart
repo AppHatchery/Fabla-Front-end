@@ -360,7 +360,7 @@ class RouteService {
 
         if (context.mounted) {
           if (onboardingQuestions.isNotEmpty) {
-            return Navigator.pop(context);
+            return Navigator.pop(context, true);
           }
 
           return Navigator.popUntil(
@@ -465,6 +465,7 @@ class RouteService {
             _navigatorTransitionBack(context, const DynamicOnBoardingHub(),
                 RouteSettings(name: "/DynamicOnBoardingHub"),
                 result: true);
+            break;
           }
         }
         // If not then we proceed to the page before that
