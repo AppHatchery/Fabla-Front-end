@@ -509,7 +509,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         return prompt.answer != null
             ? Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Preview(
+                child: MediaPreview(
                   recordings: prompt.answer?.recordings ?? [],
                   delete: (String path) {},
                   interactions: false,

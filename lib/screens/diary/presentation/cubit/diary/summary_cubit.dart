@@ -11,8 +11,17 @@ import '../../../data/diary.dart';
 part 'summary_state.dart';
 
 class SummaryCubit extends Cubit<SummaryState> {
-  SummaryCubit() : super(const SummaryInitial());
-  final SummaryRepository _summaryRepository = SummaryRepository();
+  // Modified to support dependency injection for better testability
+  // Added constructor parameter for summary repository
+  // Default value maintains backward compatibility
+  final SummaryRepository _summaryRepository;
+
+  // Constructor with optional dependency injection
+  // If not provided, uses default implementation for production use
+  SummaryCubit({
+    SummaryRepository? summaryRepository,
+  })  : _summaryRepository = summaryRepository ?? SummaryRepository(),
+        super(const SummaryInitial());
 
   /// Initiates the loading of summary information for a Diary.
   /// This method triggers the loading of summary details for the provided Diary.
@@ -29,6 +38,7 @@ class SummaryCubit extends Cubit<SummaryState> {
   void loadSummary(DiaryModel diary) {
     emit(const SummaryLoading());
     try {
+      // Updated to use injected repository instance
       _summaryRepository.loadSummary(diary).then((value) {
         emit(SummaryLoaded(value));
       });
@@ -53,6 +63,7 @@ class SummaryCubit extends Cubit<SummaryState> {
   void saveResponse(
       DiaryModel diary, PromptModel prompt, String path, String type) {
     try {
+      // Updated to use injected repository instance
       _summaryRepository.saveResponse(prompt, path, type);
     } catch (e) {
       dev.log("Error saving response: $e", name: "SummaryCubit - saveResponse");
@@ -76,6 +87,7 @@ class SummaryCubit extends Cubit<SummaryState> {
   ///
   void removeResponse(DiaryModel diary, PromptModel prompt, String? path) {
     try {
+      // Updated to use injected repository instance
       _summaryRepository.removeResponse(prompt, path).then((value) {
         if (value) {
           loadSummary(diary);
@@ -113,6 +125,7 @@ class SummaryCubit extends Cubit<SummaryState> {
   void submitDiary(DiaryModel diary) async {
     try {
       emit(const SubmitLoading());
+      // Updated to use injected repository instance
       final result = await _summaryRepository.submitDiary(diary);
       if (result == null) {
         //TODO handle no internet connection
@@ -121,6 +134,7 @@ class SummaryCubit extends Cubit<SummaryState> {
       }
 
       if (result) {
+        // Updated to use injected repository instance
         await _summaryRepository.calculateEarnedIncentives(diary);
         emit(const SummarySubmitted());
       } else {

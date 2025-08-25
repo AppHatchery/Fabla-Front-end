@@ -88,6 +88,7 @@ class _DiaryListState extends State<DiaryList> with WidgetsBindingObserver {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ListView.builder(
+              key: const Key("diary_list_view"),
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: groupedDiaries.length,
