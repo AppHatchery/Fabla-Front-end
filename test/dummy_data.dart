@@ -430,6 +430,7 @@ PromptEntry createTestPromptEntry({
   String promptID = '1',
   String response = 'Test Response',
   String questionsType = 'text',
+  String respondedAt = '',
   bool required = true,
 }) {
   return PromptEntry(
@@ -441,6 +442,7 @@ PromptEntry createTestPromptEntry({
     response: response,
     questionsType: questionsType,
     required: required,
+    respondedAt: respondedAt,
   );
 }
 

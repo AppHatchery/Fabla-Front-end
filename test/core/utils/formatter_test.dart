@@ -106,17 +106,18 @@ void main() {
       final now = DateTime.now();
       final start = now.subtract(const Duration(hours: 1));
       final due = now.add(const Duration(hours: 2));
+      final optional = true;
 
       // Test submitted status
       final submittedColors =
-          formatDiaryCardDueColors(due, start, DiaryStatus.submitted);
+          formatDiaryCardDueColors(due, start, DiaryStatus.submitted, optional);
       expect(submittedColors[0], equals(CustomColors.darkGreen));
       expect(submittedColors[1], equals(CustomColors.textWhite));
 
       // Test future start time
       final futureStart = now.add(const Duration(hours: 1));
       final futureColors =
-          formatDiaryCardDueColors(due, futureStart, DiaryStatus.idle);
+          formatDiaryCardDueColors(due, futureStart, DiaryStatus.idle, optional);
       expect(futureColors[0], equals(CustomColors.fillDisabled));
       expect(futureColors[1], equals(CustomColors.midGrey));
     });
