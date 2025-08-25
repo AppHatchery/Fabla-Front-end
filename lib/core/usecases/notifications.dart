@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:audio_diaries_flutter/core/usecases/connectivity.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 
 import '../../services/notification_service.dart';
@@ -228,59 +229,103 @@ void scheduleContinueDiaryNotifications(int id) async {
 /// scheduleSubmitDiaryNotification(123);
 /// ```
 void scheduleSubmitDiaryNotification(int id) async {
+  // Only schedule if the user has internet connection
+  final connection = await checkForInternet();
+  if (!connection) return;
+
   final source = await PreferenceService()
       .getStringPreference(key: 'continue_notifications');
 
+  Map<int, List<int>> notifications;
+  notifications = {};
+
   if (source == null) {
-    return;
-  }
 
-  final Map<String, dynamic> jsonMap = json.decode(source);
+    final now = DateTime.now();
+    final sevenPM = DateTime(now.year, now.month, now.day, 19);
+    DateTime reminderTime;
 
-  if (jsonMap.containsKey(id.toString())) {
-    final notifications = Map<int, List<int>>.fromEntries(jsonMap.entries.map(
-        (entry) =>
-            MapEntry(int.parse(entry.key), List<int>.from(entry.value))));
+    if (now.isBefore(sevenPM)) {
+      reminderTime = now.add(const Duration(minutes: 10));
+    } else {
+      return;
+    }
 
-    final notificationsForId = notifications[id];
+    final notificationID = Random().nextInt(100000);
+    await NotificationService.createNotification(
+        id: notificationID,
+        title: 'Your Entry Is Ready for Submission!',
+        body:
+            "You've completed your entry. Fantastic! Just one more step: hit 'Submit' to share your valuable thoughts.",
+        date: reminderTime);
 
-    if (notificationsForId != null) {
-      final now = DateTime.now();
-      final sevenPM = DateTime(now.year, now.month, now.day, 19);
+    notifications[id] = [notificationID];
 
-      DateTime reminderTime;
+    await PendoService.track("ScheduleReminder", {
+      "page": "summary",
+      "scheduled_by": "auto",
+      "notification_type": "submit",
+      "number_of_reminders": 1,
+      "reminder_times": "${reminderTime.hour}:${reminderTime.minute}",
+    });
 
-      if (now.isBefore(sevenPM)) {
-        reminderTime = now.add(const Duration(minutes: 10));
-      } else {
-        return;
+    final updatedJsonMap = Map<String, dynamic>.fromEntries(notifications
+        .entries
+        .map((entry) => MapEntry(entry.key.toString(), entry.value)));
+    final encoded = json.encode(updatedJsonMap);
+    await PreferenceService()
+        .setStringPreference(key: 'continue_notifications', value: encoded);
+  } else {
+    final Map<String, dynamic> jsonMap = json.decode(source);
+
+    if (jsonMap.containsKey(id.toString())) {
+      final notifications = Map<int, List<int>>.fromEntries(jsonMap.entries.map(
+          (entry) =>
+              MapEntry(int.parse(entry.key), List<int>.from(entry.value))));
+
+      final notificationsForId = notifications[id];
+      if (notificationsForId != null) {
+        // Cancel existing notifications
+        for (int notification in notificationsForId) {
+          await NotificationService.cancelNotification(notification);
+        }
+        notificationsForId.clear();
+
+        final now = DateTime.now();
+        final sevenPM = DateTime(now.year, now.month, now.day, 19);
+        DateTime reminderTime;
+
+        if (now.isBefore(sevenPM)) {
+          reminderTime = now.add(const Duration(minutes: 10));
+        } else {
+          return;
+        }
+
+        final notificationID = Random().nextInt(100000);
+        await NotificationService.createNotification(
+            id: notificationID,
+            title: 'Your Entry Is Ready for Submission!',
+            body:
+                "You've completed your entry. Fantastic! Just one more step: hit 'Submit' to share your valuable thoughts.",
+            date: reminderTime);
+
+        notifications[id] = [notificationID];
+
+        await PendoService.track("ScheduleReminder", {
+          "page": "summary",
+          "scheduled_by": "auto",
+          "notification_type": "submit",
+          "number_of_reminders": 1,
+          "reminder_times": "${reminderTime.hour}:${reminderTime.minute}",
+        });
+
+        final updatedJsonMap = Map<String, dynamic>.fromEntries(notifications
+            .entries
+            .map((entry) => MapEntry(entry.key.toString(), entry.value)));
+        final encoded = json.encode(updatedJsonMap);
+        await PreferenceService()
+            .setStringPreference(key: 'continue_notifications', value: encoded);
       }
-
-      final notificationID = Random().nextInt(100000);
-      await NotificationService.createNotification(
-          id: notificationID,
-          title: 'Your Entry Is Ready for Submission!',
-          body:
-              "You've completed your entry. Fantastic! Just one more step: hit 'Submit' to share your valuable thoughts.",
-          date: reminderTime);
-
-      notifications[id] = [notificationID];
-
-      await PendoService.track("ScheduleReminder", {
-        "page": "summary",
-        "scheduled_by": "auto",
-        "notification_type": "submit",
-        "number_of_reminders": 1,
-        "reminder_times": "${reminderTime.hour}:${reminderTime.minute}",
-      });
-
-      final updatedJsonMap = Map<String, dynamic>.fromEntries(notifications
-          .entries
-          .map((entry) => MapEntry(entry.key.toString(), entry.value)));
-
-      final encoded = json.encode(updatedJsonMap);
-      await PreferenceService()
-          .setStringPreference(key: 'continue_notifications', value: encoded);
     }
   }
 }
@@ -305,7 +350,7 @@ void dailyGoalNotification(int id) async {
 
   // If there are no reminder times, schedule a notification for 3 PM
   final value = source?.lastOrNull;
-  final last = DateTime.tryParse(value ?? "");
+  final last = DateTime.tryParse(value ?? DateTime.now().toString());
   final potential = retrieveNotificationDate(last);
 
   if (potential != null) {
