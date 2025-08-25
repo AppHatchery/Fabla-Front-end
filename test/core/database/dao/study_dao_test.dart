@@ -11,7 +11,6 @@ void main() {
   late StudyDAO studyDAO;
   late MockStudyBox mockBox;
 
-
   setUp(() {
     mockBox = MockStudyBox();
     studyDAO = StudyDAO(box: mockBox);

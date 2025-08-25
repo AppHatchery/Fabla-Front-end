@@ -57,7 +57,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
           ),
           centerTitle: true,
           leading: IconButton(
-            key: Key("back_button"),
+              key: Key("back_button"),
               onPressed: () => Navigator.pop(context, updated),
               icon: Icon(
                 Icons.arrow_back_rounded,
@@ -187,7 +187,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
             ),
           ),
           IconButton(
-            key: Key("edit_icon_button"),
+              key: Key("edit_icon_button"),
               onPressed: () => edit(question, index),
               icon: Icon(
                 Icons.edit_outlined,

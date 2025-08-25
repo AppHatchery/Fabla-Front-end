@@ -682,8 +682,7 @@ class TestValues {
 
   // Study specific values
   static const String testStudyName = 'Test Study';
-  static const String testStudyNameNumbered =
-      'Test Study 1'; 
+  static const String testStudyNameNumbered = 'Test Study 1';
   static const String testStudyExperimentCode = 'EXP001';
 
   // Goal and Incentive values

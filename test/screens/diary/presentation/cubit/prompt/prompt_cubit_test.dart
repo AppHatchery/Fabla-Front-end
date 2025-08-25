@@ -46,7 +46,6 @@ void main() {
 
     final testPrompt = createTestPromptModel();
 
-
     final testAudioPrompt = createTestPromptModel();
 
     setUp(() {

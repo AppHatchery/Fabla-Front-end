@@ -26,42 +26,41 @@ class _MicTesterState extends State<MicTester> {
     return SizedBox(
       width: widget.width,
       child: Container(
-          height: 60,
-          width: widget.width,
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
-          decoration: BoxDecoration(
-            color: CustomColors.fillWhite,
-            border: Border.all(
-                color: CustomColors.productBorderNormal, width: 2),
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: const [
-              BoxShadow(
-                color: CustomColors.productBorderNormal,
-                blurRadius: 0,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              GestureDetector(
-                onTap: (){
-                  if(widget.request != null && mounted){
-                    widget.request!();
-                  }
-                },
-                child: const Icon(CustomIcons.keyboardVoice,
-                    color: CustomColors.productNormal),
-              ),
-              const SizedBox(
-                width: 12,
-              ),
-              Expanded(child: MicGauge(recorder: widget.recorder)),
-            ],
-          ),
+        height: 60,
+        width: widget.width,
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+        decoration: BoxDecoration(
+          color: CustomColors.fillWhite,
+          border: Border.all(color: CustomColors.productBorderNormal, width: 2),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: const [
+            BoxShadow(
+              color: CustomColors.productBorderNormal,
+              blurRadius: 0,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () {
+                if (widget.request != null && mounted) {
+                  widget.request!();
+                }
+              },
+              child: const Icon(CustomIcons.keyboardVoice,
+                  color: CustomColors.productNormal),
+            ),
+            const SizedBox(
+              width: 12,
+            ),
+            Expanded(child: MicGauge(recorder: widget.recorder)),
+          ],
+        ),
+      ),
     );
   }
 }
