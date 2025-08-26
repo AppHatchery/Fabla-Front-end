@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
@@ -26,6 +27,7 @@ class ConfirmJoiningPage extends StatefulWidget {
 class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
     with WidgetsBindingObserver {
   final PageTimer timer = PageTimer();
+  TextScaler? scaler; // Get the size of the text scaler
   late bool isIos;
 
   @override
@@ -34,6 +36,9 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
     timer.start();
     setState(() {
       isIos = Platform.isIOS;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      scaler = await fontScaler(context);
     });
     super.initState();
   }
@@ -209,8 +214,11 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
   }
 
   track(int spent, String status) async {
-    await PendoService.track(
-        "Confirm Study", {"time_on_page": spent, "status": status});
+    await PendoService.track("Confirm Study", {
+      "time_on_page": spent,
+      "status": status,
+      "Font Scaler": "$scaler"
+    });
   }
 
   Future<void> pendoTrack(String login) async {

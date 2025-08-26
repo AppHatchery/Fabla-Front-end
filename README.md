@@ -7,6 +7,7 @@ The application is built using Flutter and Dart, and uses Firebase for cloud sto
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
+  - [Pre-commit Hooks](#pre-commit-hooks)
   - [Project Structure](#project-structure)
     - [Architecture](#architecture)
       - [Core](#core)
@@ -47,24 +48,66 @@ pod install
 ```
 3. Install the database
 ```
+4. Set up pre-commit hooks (required for all developers)
+```bash
+dart run scripts/setup-bootstrapper.dart
+```
 dart run build_runner build
 ```
-4. Run the application
+5. Run the application
 ```
 flutter run
 ```
-5. Setup amplify project
+6. Setup amplify project
 ```
 famplify pull --appId d1f2k81mx528zu --envName fablapush
 ```
-6. Checkout dev enviroment
+7. Checkout dev enviroment
 ```
 amplify env checkout fablapush
 ```
-7. Pull amplify project
+8. Pull amplify project
 ```
 amplify pull
 ```
+## Pre-commit Hooks
+
+This project uses automated pre-commit hooks to maintain code quality. Tests run automatically before every commit.
+
+### Setup (One-time per developer)
+After cloning the repository, run:
+```bash
+dart run scripts/setup-bootstrapper.dart
+```
+
+### How It Works
+- 🧪 **Tests run automatically** on every `git commit`
+- ✅ **Commit succeeds** only if all tests pass  
+- ❌ **Commit is blocked** if any tests fail
+
+### Development Workflow
+```bash
+# Make your changes
+flutter pub get
+# Edit files...
+
+# Commit changes (tests run automatically)
+git add .
+git commit -m "your changes"
+# Output: 🔍 Running pre-commit checks...
+#         🧪 Running tests...
+#         ✅ All pre-commit checks passed!
+```
+### Bypassing Hooks (Emergency Only)
+If you need to commit without running tests (use sparingly):
+```bash
+git commit --no-verify -m "emergency fix"
+```
+
+### Troubleshooting
+- **First commit after setup:** May show "Installing hooks" and require retry
+- **Hooks not running:** Ensure you ran `dart run scripts/setup-bootstrapper.dart`
+- **Tests failing:** Fix the failing tests before committing, or use `--no-verify` for emergencies
 
 ## Project Structure
 The project is structured as follows:
@@ -136,4 +179,81 @@ The Widgets layer is responsible for rendering the UI components for a screen.
 
 
 #### Services
-This layer contains the services that the application uses. for example, the notification service.
+This layer contains the services that the application uses — for example, the notification service.
+
+## Github Actions
+using GitHub Actions to run automatic tests when commits or Pull Requests happen to the main or dev branch. There is a workflow file in the `.github/workflows` folder, which is in `.yml` format. This file will run all tests found in the test folder at the root of the repository.
+
+## Tests
+I'd like you to please refer to the [Testing](https://docs.flutter.dev/testing/overview) documentation on the Flutter website for more information on testing
+To run local tests on your machine, you can run the following:
+
+### Widget Test
+To run UI tests, run the command. The test cases for the UI are found in the test/screens folder in the root folder
+```
+flutter test test/screens
+```
+### Unit Test
+To run the Unit tests, run the command. The test cases for the Unit tests are found in the Test folder in the root folder
+```
+flutter test test/
+```
+
+### Integration Test
+The test cases for Integration Test are found in the integration_test folder in the root folder.
+
+Add the integration_test library to the dev_dependencies; this is a native library by Flutter itself
+```
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+``` 
+To run the integration tests on Android, follow the steps below:
+
+1. Install the app on your emulator or physical device
+```
+flutter run
+```
+2. Stop the app after installing on your emulator or physical device by closing it or by pressing this command in the terminal running the Flutter app.
+```
+crtl + c
+```
+  Then typing `y` to terminate.
+
+3. Add the adb path to your environment variables. The `adb.exe` can be found in:
+  On Windows:
+    `AppData/android/sdk/platform-tools`
+  on mac, it can be found where your Android SDK is located
+    `Android/sdk/platform-tools`
+   Add these paths to your environment variable, then run `adb --version` to check if it can be seen by your machine.
+
+5. Create the grant_permission.sh script in your root folder, which has the following code
+```
+#!/bin/bash
+
+# Exit on any error
+set -e
+
+# Replace with your actual package name (check app/build.gradle)
+PACKAGE_NAME="actual-package-name"
+
+# Grant required permissions via ADB
+adb shell pm grant "$PACKAGE_NAME" android.permission.RECORD_AUDIO
+adb shell pm grant "$PACKAGE_NAME" android.permission.CAMERA
+adb shell pm grant "$PACKAGE_NAME" android.permission.POST_NOTIFICATIONS
+adb shell pm grant "$PACKAGE_NAME" android.permission.ACCESS_FINE_LOCATION
+
+echo "Permissions granted for $PACKAGE_NAME"
+
+```
+5. Run the bash script grant_permission.sh in the terminal to pre-grant permission to the app
+```
+./grant_permission.sh
+```
+6. Run the integration test command
+```
+flutter test integration_test/app_test.dart
+```
+_Note: the test may fail due to the tester missing the button, just rerun it_

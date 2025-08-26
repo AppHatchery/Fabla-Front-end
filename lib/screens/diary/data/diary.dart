@@ -88,7 +88,10 @@ class DiaryModel implements Comparable<DiaryModel> {
                   Notification.fromJson(e, DateTime.parse(json['start_time'])))
               .toList() ??
           [],
-      activeDays: (json['active_days'])?.cast<int>(),
+      activeDays: (json['active_days'] as List<dynamic>?)?.map((e) {
+        final day = e as int;
+        return day == 0 ? 7 : day;
+      }).toList(),
     );
   }
 

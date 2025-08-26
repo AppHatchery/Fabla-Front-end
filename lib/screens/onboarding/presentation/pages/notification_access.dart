@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:app_settings/app_settings.dart';
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/services/battery_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -27,24 +28,25 @@ class NotificationAccessPage extends StatefulWidget {
 
 class _NotificationAccessPageState extends State<NotificationAccessPage>
     with WidgetsBindingObserver {
-  bool canGoBack = false;
   bool batteryOptimization = false;
   bool requested = false;
   bool? granted;
 
   //Animations
   late rive.StateMachineController _controller;
+  rive.SMITrigger? showTip;
 
   final PageTimer timer = PageTimer();
+  TextScaler? scaler; // Get the size of the text scaler
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     timer.start();
-    if (Navigator.of(context).canPop()) {
-      canGoBack = true;
-    }
     checkBattery();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      scaler = await fontScaler(context);
+    });
     super.initState();
   }
 
@@ -104,7 +106,9 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                       child: Column(
                         children: [
                           Text(
-                            "Turn on notifications for timely reminders!",
+                            granted != null && granted == true
+                                ? "Make sure you have sound on to catch these alerts on time"
+                                : "Turn on notifications for timely reminders!",
                             style: CustomTypography()
                                 .headlineLarge(color: CustomColors.textWhite),
                           ),
@@ -278,6 +282,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
         _controller = ctrl;
         art.addController(_controller);
         ctrl.isActive = true;
+        showTip = _controller.getTriggerInput('tip');
       });
     }
   }
@@ -287,7 +292,9 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
 
     await PendoService.track("NotificationAccess", {"state": results.name});
     if (mounted) setState(() => granted = results.isGranted);
-
+    if (granted != null && granted == true) {
+      showTip?.fire();
+    }
     checkBattery();
     if (requested) {
       await PreferenceService()
@@ -303,8 +310,8 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   }
 
   track(int spent, String status) async {
-    await PendoService.track(
-        "Notification Access", {"time_on_page": spent, "status": status});
+    await PendoService.track("Notification Access",
+        {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
   checkBattery() async {

@@ -16,7 +16,7 @@ class AnswerDAO {
   /// A list of Answer objects representing responses linked to the specified prompt ID.
   ///
   List<Answer> getAnswers(int id) {
-    // changed from : 
+    // changed from :
     ///    return box.query(Answer_.promptId.equals(id)).build().find();
     /// to this for cleaning
     return box.query().build().find();
@@ -79,7 +79,7 @@ class AnswerDAO {
     box.remove(id);
   }
 
-  void removeAll(){
+  void removeAll() {
     box.removeAll();
   }
 }

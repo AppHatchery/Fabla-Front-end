@@ -12,9 +12,20 @@ import '../../../../diary/domain/repository/diary_repository.dart';
 part 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit() : super(const HomeInitial());
-  DiaryRepository repository = DiaryRepository();
-  final SetupRepository setupRepository = SetupRepository();
+  // Modified to support dependency injection for better testability
+  // Added constructor parameters for diary repository and setup repository
+  // Default values maintain backward compatibility
+  final DiaryRepository repository;
+  final SetupRepository setupRepository;
+
+  // Constructor with optional dependency injection
+  // If not provided, uses default implementations for production use
+  HomeCubit({
+    DiaryRepository? diaryRepository,
+    SetupRepository? setupRepository,
+  })  : repository = diaryRepository ?? DiaryRepository(),
+        setupRepository = setupRepository ?? SetupRepository(),
+        super(const HomeInitial());
 
   /// Asynchronous method to load and organize Diary objects for display on the home screen.
   /// This function initiates the loading process of Diary objects and their organization for display on the home screen.
@@ -40,15 +51,20 @@ class HomeCubit extends Cubit<HomeState> {
 
     try {
       emit(const HomeLoading());
+      // Updated to use injected repository instance
       final diaries = repository.getDiaries(start);
+      // Updated to use injected repository instance
       final entries = repository.getTotalEntries(
           monday.subtract(const Duration(days: 1)),
           sunday.add(const Duration(days: 1)));
+      // Updated to use injected repository instance
       final weekDiaries = repository.getRangeDiaries(monday, sunday);
       final completedStudy = await noMoreDiaries();
 
       final ids = weekDiaries.map((e) => e.studyID).toSet().toList();
+      // Updated to use injected repository instance
       final studies = await repository.getStudies(ids);
+      // Updated to use injected repository instance
       final allStudies = await repository.getAllStudiesWithColor();
 
       final updated = diaries
@@ -76,14 +92,20 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<String> getParticipantName() async =>
+      // Updated to use injected setupRepository instance
       setupRepository.getParticipant()!.name;
 
   Future<String> getParticipantCode() async =>
+      // Updated to use injected setupRepository instance
       setupRepository.getParticipant()!.studyCode;
 
-  ExperimentModel getExperiment() => setupRepository.getExperiment();
+  ExperimentModel getExperiment() =>
+      // Updated to use injected setupRepository instance
+      setupRepository.getExperiment();
 
-  Future<List<DiaryModel>> getAllDiaries() async => repository.getAllDiaries();
+  Future<List<DiaryModel>> getAllDiaries() async =>
+      // Updated to use injected repository instance
+      repository.getAllDiaries();
 
   List<DiaryModel> getAllDiariesThisWeek() {
     final today = DateTime.now().weekday;
@@ -95,6 +117,7 @@ class HomeCubit extends Cubit<HomeState> {
         DateTime.now().add(Duration(days: -daysUntilMonday)).day);
     final sunday = monday.add(const Duration(days: 6));
 
+    // Updated to use injected repository instance
     final diaries = repository.getAllDiaries();
     final thisWeek = diaries
         .where((element) =>
@@ -107,6 +130,7 @@ class HomeCubit extends Cubit<HomeState> {
 
   //Retrieving diaries due on a specific date for the calendar widget
   List<DiaryModel> getAllDiariesThisDay(DateTime date) {
+    // Updated to use injected repository instance
     return repository.getDailyDiaries(date);
   }
 

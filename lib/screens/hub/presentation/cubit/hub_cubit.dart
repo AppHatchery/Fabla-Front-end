@@ -6,32 +6,37 @@ import 'package:equatable/equatable.dart';
 part 'hub_state.dart';
 
 class HubCubit extends Cubit<HubState> {
-  //handles the state of the hub screen, including refreshing and updating experiments as well as listening for remote config updates
+  /// Experiment manager for handling experiment updates.
+  final ExperimentManager _experimentManager;
+
+  /// Remote config service for listening to version updates.
   final RemoteConfigService _remoteConfigService;
 
-  HubCubit({RemoteConfigService? remoteConfigService})
-      : _remoteConfigService = remoteConfigService ?? RemoteConfigService(),
+  /// Creates a HubCubit with optional dependency injection.
+  ///
+  /// If not provided, default instances will be created.
+  HubCubit({
+    ExperimentManager? experimentManager,
+    RemoteConfigService? remoteConfigService,
+  })  : _experimentManager = experimentManager ?? ExperimentManager(),
+        _remoteConfigService = remoteConfigService ?? RemoteConfigService(),
         super(const HubInitial()) {
     _initializeRemoteConfigListener();
   }
 
   void _initializeRemoteConfigListener() {
-    _remoteConfigService.versionUpdateCounter
-        .addListener(_onRemoteConfigUpdate);
+    _remoteConfigService.versionUpdateCounter.addListener(_onRemoteConfigUpdate);
   }
 
   void _onRemoteConfigUpdate() {
     if (!isClosed) {
       update();
-      emit(const HubInitial());
     }
   }
 
-  update() async {
-    if (isClosed) return;
-
-    emit(const HubUpdating());
-    final done = await ExperimentManager().update();
+  Future<void> update() async {
+    emit(HubUpdating());
+    final done = await _experimentManager.update();
 
     if (!isClosed) {
       emit(HubUpdated(done));
@@ -39,10 +44,13 @@ class HubCubit extends Cubit<HubState> {
     }
   }
 
+  void refresh() {
+    emit(HubRefreshing());
+  }
+
   @override
   Future<void> close() {
-    _remoteConfigService.versionUpdateCounter
-        .removeListener(_onRemoteConfigUpdate);
+    _remoteConfigService.versionUpdateCounter.removeListener(_onRemoteConfigUpdate);
     return super.close();
   }
 }

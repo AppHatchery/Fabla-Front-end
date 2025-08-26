@@ -81,20 +81,19 @@ class Diary {
   ///
   factory Diary.fromModel(DiaryModel model) {
     return Diary(
-      id: model.id,
-      studyID: model.studyID,
-      name: model.name,
-      due: model.due,
-      start: model.start,
-      end: model.end,
-      entries: model.entries,
-      currentEntry: model.currentEntry,
-      deadline: model.due.toString(),
-      status: model.status,
-      notifications:
-          json.encode(model.notifications.map((e) => e.toJson()).toList()),
-      activeDays: model.activeDays
-    );
+        id: model.id,
+        studyID: model.studyID,
+        name: model.name,
+        due: model.due,
+        start: model.start,
+        end: model.end,
+        entries: model.entries,
+        currentEntry: model.currentEntry,
+        deadline: model.due.toString(),
+        status: model.status,
+        notifications:
+            json.encode(model.notifications.map((e) => e.toJson()).toList()),
+        activeDays: model.activeDays);
   }
 }
 
