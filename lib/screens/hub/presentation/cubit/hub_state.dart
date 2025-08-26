@@ -15,7 +15,9 @@ class HubUpdating extends HubState {
   const HubUpdating();
 }
 
-class HubRefreshing extends HubState {}
+class HubRefreshing extends HubState {
+  const HubRefreshing();
+}
 
 class HubUpdated extends HubState {
   final bool complete;

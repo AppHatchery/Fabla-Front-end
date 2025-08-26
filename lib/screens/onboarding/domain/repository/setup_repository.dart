@@ -304,15 +304,6 @@ class SetupRepository {
       processedKeys.add(key);
     }
 
-    // Preserve valid local diaries that weren't in the API response
-    for (final existingDiary in existingDiaries) {
-      final key = getDiaryKey(existingDiary);
-      if (!processedKeys.contains(key) && existingDiary.end.isAfter(now)) {
-        result.add(existingDiary);
-        debugPrint("Preserved local diary: ${existingDiary.name} Diary Merge");
-      }
-    }
-
     return result;
   }
 

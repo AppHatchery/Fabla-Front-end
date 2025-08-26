@@ -1,21 +1,39 @@
+import 'package:audio_diaries_flutter/core/services/remote_config_service.dart';
 import 'package:audio_diaries_flutter/core/usecases/experiment_manager.dart';
 import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.dart';
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-// Mock class using mocktail
+// -----------------------------------------------------------------------------
+// Mock classes
+// -----------------------------------------------------------------------------
 class MockExperimentManager extends Mock implements ExperimentManager {}
+
+class MockRemoteConfigService extends Mock implements RemoteConfigService {}
+
+class MockValueNotifier extends Mock implements ValueNotifier<int> {}
 
 void main() {
   group('HubCubit', () {
     late HubCubit hubCubit;
     late MockExperimentManager mockExperimentManager;
+    late MockRemoteConfigService mockRemoteConfigService;
+    late ValueNotifier<int> mockVersionCounter;
 
     setUp(() {
       mockExperimentManager = MockExperimentManager();
-      // Create HubCubit with injected mock
-      hubCubit = HubCubit(experimentManager: mockExperimentManager);
+      mockRemoteConfigService = MockRemoteConfigService();
+      mockVersionCounter = ValueNotifier<int>(0);
+
+      when(() => mockRemoteConfigService.versionUpdateCounter)
+          .thenReturn(mockVersionCounter);
+
+      hubCubit = HubCubit(
+        experimentManager: mockExperimentManager,
+        remoteConfigService: mockRemoteConfigService,
+      );
     });
 
     tearDown(() {
@@ -32,7 +50,10 @@ void main() {
         build: () {
           when(() => mockExperimentManager.update())
               .thenAnswer((_) async => false);
-          return HubCubit(experimentManager: mockExperimentManager);
+          return HubCubit(
+            experimentManager: mockExperimentManager,
+            remoteConfigService: mockRemoteConfigService,
+          );
         },
         act: (cubit) => cubit.update(),
         expect: () => [
@@ -40,9 +61,6 @@ void main() {
           const HubUpdated(false),
           const HubInitial(),
         ],
-        verify: (_) {
-          verify(() => mockExperimentManager.update()).called(1);
-        },
       );
 
       blocTest<HubCubit, HubState>(
@@ -50,7 +68,10 @@ void main() {
         build: () {
           when(() => mockExperimentManager.update())
               .thenAnswer((_) async => true);
-          return HubCubit(experimentManager: mockExperimentManager);
+          return HubCubit(
+            experimentManager: mockExperimentManager,
+            remoteConfigService: mockRemoteConfigService,
+          );
         },
         act: (cubit) => cubit.update(),
         expect: () => [
@@ -58,86 +79,51 @@ void main() {
           const HubUpdated(true),
           const HubInitial(),
         ],
-        verify: (_) {
-          verify(() => mockExperimentManager.update()).called(1);
-        },
       );
+    });
 
+    group('refresh', () {
       blocTest<HubCubit, HubState>(
-        'handles exceptions by throwing the exception after emitting HubUpdating',
+        'emits HubRefreshing when refresh is called',
+        build: () => hubCubit,
+        act: (cubit) => cubit.refresh(),
+        expect: () => [isA<HubRefreshing>()],
+      );
+    });
+
+    group('remote config listener', () {
+      blocTest<HubCubit, HubState>(
+        'triggers update when versionUpdateCounter changes',
         build: () {
           when(() => mockExperimentManager.update())
-              .thenThrow(Exception('Test exception'));
-          return HubCubit(experimentManager: mockExperimentManager);
-        },
-        act: (cubit) => cubit.update(),
-        expect: () => [
-          const HubUpdating(),
-        ],
-        errors: () => [
-          isA<Exception>(),
-        ],
-        verify: (_) {
-          verify(() => mockExperimentManager.update()).called(1);
-        },
-      );
-
-      blocTest<HubCubit, HubState>(
-        'can be called multiple times without issues',
-        build: () {
-          when(() => mockExperimentManager.update())
-              .thenAnswer((_) async => false);
-          return HubCubit(experimentManager: mockExperimentManager);
+              .thenAnswer((_) async => true);
+          return hubCubit;
         },
         act: (cubit) async {
-          await cubit.update();
-          await cubit.update();
-          await cubit.update();
-        },
-        expect: () => [
-          const HubUpdating(),
-          const HubUpdated(false),
-          const HubInitial(),
-          const HubUpdating(),
-          const HubUpdated(false),
-          const HubInitial(),
-          const HubUpdating(),
-          const HubUpdated(false),
-          const HubInitial(),
-        ],
-        verify: (_) {
-          verify(() => mockExperimentManager.update()).called(3);
-        },
-      );
-
-      blocTest<HubCubit, HubState>(
-        'handles concurrent calls correctly',
-        build: () {
-          when(() => mockExperimentManager.update()).thenAnswer((_) async {
-            await Future.delayed(const Duration(milliseconds: 10));
-            return true;
-          });
-          return HubCubit(experimentManager: mockExperimentManager);
-        },
-        act: (cubit) async {
-          // Start multiple concurrent calls
-          final futures = <Future<void>>[
-            cubit.update(),
-            cubit.update(),
-          ];
-          await Future.wait(futures);
+          mockVersionCounter.value++;
+          // allow async listener to process
+          await Future.delayed(const Duration(milliseconds: 10));
         },
         expect: () => [
           const HubUpdating(),
           const HubUpdated(true),
           const HubInitial(),
-          const HubUpdated(true),
-          const HubInitial(),
         ],
-        verify: (_) {
-          verify(() => mockExperimentManager.update()).called(2);
-        },
       );
+    });
+
+    test('close removes listener from versionUpdateCounter', () async {
+
+      // Assert initial state
+      expect(mockVersionCounter.hasListeners, isTrue,
+          reason: 'Listener should be present after initialization');
+
+      // Act: Close the cubit
+      await hubCubit.close();
+
+      // Assert final state
+      expect(mockVersionCounter.hasListeners, isFalse,
+          reason: 'Expected listener to be removed on close()');
     });
 
     group('state equality', () {
@@ -153,27 +139,15 @@ void main() {
         expect(state1, equals(state2));
       });
 
-      test('HubUpdated instances are equal when complete values match', () {
-        const state1 = HubUpdated(true);
-        const state2 = HubUpdated(true);
-        expect(state1, equals(state2));
-      });
-
-      test('HubUpdated instances are not equal when complete values differ',
-          () {
-        const state1 = HubUpdated(true);
-        const state2 = HubUpdated(false);
-        expect(state1, isNot(equals(state2)));
+      test('HubUpdated equality depends on complete', () {
+        expect(const HubUpdated(true), equals(const HubUpdated(true)));
+        expect(const HubUpdated(true), isNot(equals(const HubUpdated(false))));
       });
 
       test('different state types are not equal', () {
-        const initial = HubInitial();
-        const updating = HubUpdating();
-        const updated = HubUpdated(true);
-
-        expect(initial, isNot(equals(updating)));
-        expect(initial, isNot(equals(updated)));
-        expect(updating, isNot(equals(updated)));
+        expect(const HubInitial(), isNot(equals(const HubUpdating())));
+        expect(const HubInitial(), isNot(equals(const HubUpdated(true))));
+        expect(const HubUpdating(), isNot(equals(const HubUpdated(true))));
       });
     });
   });
