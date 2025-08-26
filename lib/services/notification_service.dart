@@ -7,6 +7,22 @@ import 'package:flutter/material.dart';
 import '../theme/custom_colors.dart';
 
 class NotificationService {
+  /// Static instance of AwesomeNotifications for dependency injection.
+  /// Can be overridden for testing purposes.
+  static AwesomeNotifications _awesomeNotifications = AwesomeNotifications();
+
+  /// Sets a custom AwesomeNotifications instance for testing.
+  /// This method allows tests to inject a mock instance.
+  static void setAwesomeNotificationsForTesting(AwesomeNotifications instance) {
+    _awesomeNotifications = instance;
+  }
+
+  /// Resets the AwesomeNotifications instance to the default.
+  /// Used to clean up after tests.
+  static void resetAwesomeNotifications() {
+    _awesomeNotifications = AwesomeNotifications();
+  }
+
   /// Initializes the notification system with custom notification channels.
   ///
   /// This function sets up the notification system using the AwesomeNotifications package.
@@ -20,7 +36,7 @@ class NotificationService {
   /// NotificationService.init(); // Initialize the notification system with custom channels.
   /// ```
   static Future<void> init() async {
-    await AwesomeNotifications().initialize(
+    await _awesomeNotifications.initialize(
         null,
         [
           NotificationChannel(
@@ -44,7 +60,7 @@ class NotificationService {
   /// Note: Ensure that the `onActionReceivedMethod` and `onDismissActionReceivedMethod`
   /// functions are defined before calling this function.
   static Future<void> setListeners() async =>
-      await AwesomeNotifications().setListeners(
+      await _awesomeNotifications.setListeners(
           onActionReceivedMethod: onActionReceivedMethod,
           onDismissActionReceivedMethod: onDismissActionReceivedMethod);
 
@@ -155,11 +171,9 @@ class NotificationService {
       required final String body,
       required final DateTime date,
       Map<String, String>? payload}) async {
-    final awesomeNotifications = AwesomeNotifications();
-
-    final hasPermission = await awesomeNotifications.isNotificationAllowed();
+    final hasPermission = await _awesomeNotifications.isNotificationAllowed();
     return hasPermission
-        ? await awesomeNotifications.createNotification(
+        ? await _awesomeNotifications.createNotification(
             content: NotificationContent(
                 id: id ?? Random().nextInt(100000),
                 channelKey: 'audio-diaries',
@@ -196,7 +210,7 @@ class NotificationService {
   /// NotificationService.cancelAllNotifications(); // Cancel all scheduled and active notifications.
   /// ```
   static Future<void> cancelAllNotifications() async =>
-      await AwesomeNotifications().cancelAll();
+      await _awesomeNotifications.cancelAll();
 
   /// Cancels a scheduled notification with the specified [id].
   ///
@@ -215,7 +229,7 @@ class NotificationService {
   /// Note: This function is asynchronous, so it should be awaited when called.
 
   static Future<void> cancelNotification(int id) async =>
-      await AwesomeNotifications().cancel(id);
+      await _awesomeNotifications.cancel(id);
 
   /// Reschedules a notification with updated information.
   ///
@@ -251,7 +265,7 @@ class NotificationService {
       required final String body,
       required final DateTime date,
       Map<String, String>? payload}) async {
-    await AwesomeNotifications().cancelSchedule(id);
+    await _awesomeNotifications.cancelSchedule(id);
 
     return await createNotification(
         title: title, body: body, date: date, payload: payload);
@@ -260,12 +274,12 @@ class NotificationService {
   /// Retrieves a list of all scheduled notifications.
   /// This function returns a list of all scheduled notifications using the
   /// `AwesomeNotifications` library.
-  /// 
+  ///
   /// Returns:
   /// A list of scheduled notifications.
   static Future<List<NotificationModel>> getScheduledNotifications() async {
     final scheduledNotifications =
-        await AwesomeNotifications().listScheduledNotifications();
+        await _awesomeNotifications.listScheduledNotifications();
     return scheduledNotifications;
   }
 }

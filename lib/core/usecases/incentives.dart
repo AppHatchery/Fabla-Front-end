@@ -64,6 +64,7 @@ Future<bool> calculateEarnedIncentivesForAWS(
     diaryID: '',
     promptID: '',
     response: formatMoney(earned, currency: currency),
+    respondedAt: "",
     questionsType: "Incentives",
     required: true,
   );

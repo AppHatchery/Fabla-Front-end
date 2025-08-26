@@ -16,7 +16,7 @@ class SettingsStudyDetails extends StatefulWidget {
 }
 
 class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
-  late ExperimentModel experiment;
+  ExperimentModel? experiment;
 
   final repository = SetupRepository();
 
@@ -28,6 +28,10 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
 
   @override
   Widget build(BuildContext context) {
+    if (experiment == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Column(
       children: [
         Row(
@@ -57,22 +61,23 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      experiment.name,
+                      experiment!.name,
                       style: CustomTypography()
                           .bodyLarge(color: CustomColors.textNormalContent),
                     ),
                     Text(
-                      experiment.organization,
+                      experiment!.organization,
                       style: CustomTypography()
                           .bodyMedium(color: CustomColors.textTertiaryContent),
                     ),
                     Text(
-                      "Version: ${experiment.version}",
+                      "Version: ${experiment!.version}",
                       style: CustomTypography()
                           .bodyMedium(color: CustomColors.textTertiaryContent),
                     ),
                     const SizedBox(height: 12),
                     CustomOutlineButton(
+                      key: Key("view_details_button"),
                       onClick: () => viewStudyDetails(),
                       backgroundColor: CustomColors.productNormal,
                       color: CustomColors.productNormal,
@@ -98,6 +103,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                 padding: const EdgeInsets.only(left: 16.0, bottom: 12),
                 child: SizedBox(
                     child: CustomOutlineButton(
+                  key: Key("leave_study_button"),
                   onClick: () => leaveStudy(context),
                   backgroundColor: CustomColors.fillWhite,
                   color: CustomColors.warningActive,
@@ -121,7 +127,9 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
   }
 
   void viewStudyDetails() async {
-    await pendoTrack(experiment.login);
+    if (experiment != null) {
+      await pendoTrack(experiment!.login);
+    }
   }
 
   Future<void> pendoTrack(String login) async {
@@ -134,7 +142,6 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
 
   getStudyDetails() async {
     final experiment = repository.getExperiment();
-
     setState(() {
       this.experiment = experiment;
     });

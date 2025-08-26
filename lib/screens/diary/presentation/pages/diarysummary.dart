@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:audio_diaries_flutter/core/usecases/diary.dart' show diaryEnd;
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
@@ -584,6 +585,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
     if (result == true && mounted) {
       loadDiary(context);
+      diaryEnd(diaryID: widget.diary.id.toString());
     }
   }
 

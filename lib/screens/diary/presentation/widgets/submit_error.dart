@@ -58,16 +58,16 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                               child: Text(
                                 "support@apphatchery.org",
                                 style: TextStyle(
-                                    fontSize:
-                                    CustomTypography().bodyMedium().fontSize,
+                                    fontSize: CustomTypography()
+                                        .bodyMedium()
+                                        .fontSize,
                                     fontWeight: CustomTypography()
                                         .bodyMedium()
                                         .fontWeight,
                                     decoration: TextDecoration.underline,
                                     decorationColor: CustomColors.productNormal,
                                     color: CustomColors.productNormal),
-                              )
-                          ),
+                              )),
                         ],
                       ),
                     ),
@@ -78,7 +78,9 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                           Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const Hub(), settings: RouteSettings(name: "/Hub")), (route) => false);
+                                  builder: (context) => const Hub(),
+                                  settings: RouteSettings(name: "/Hub")),
+                              (route) => false);
                         },
                         text: "Return Home",
                         color: CustomColors.productNormal,
@@ -107,7 +109,7 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
   String? encodeQueryParameters(Map<String, String> params) {
     return params.entries
         .map((MapEntry<String, String> e) =>
-    '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
         .join('&');
   }
 }
