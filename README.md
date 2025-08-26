@@ -48,11 +48,11 @@ pod install
 ```
 3. Install the database
 ```
-4. Set up pre-commit hooks (required for all developers)
-```bash
-dart run scripts/setup-bootstrapper.dart
-```
 dart run build_runner build
+```
+4. Set up pre-commit hooks (required for all developers)
+```
+dart run scripts/setup-bootstrapper.dart
 ```
 5. Run the application
 ```
@@ -70,45 +70,6 @@ amplify env checkout fablapush
 ```
 amplify pull
 ```
-## Pre-commit Hooks
-
-This project uses automated pre-commit hooks to maintain code quality. Tests run automatically before every commit.
-
-### Setup (One-time per developer)
-After cloning the repository, run:
-```bash
-dart run scripts/setup-bootstrapper.dart
-```
-
-### How It Works
-- 🧪 **Tests run automatically** on every `git commit`
-- ✅ **Commit succeeds** only if all tests pass  
-- ❌ **Commit is blocked** if any tests fail
-
-### Development Workflow
-```bash
-# Make your changes
-flutter pub get
-# Edit files...
-
-# Commit changes (tests run automatically)
-git add .
-git commit -m "your changes"
-# Output: 🔍 Running pre-commit checks...
-#         🧪 Running tests...
-#         ✅ All pre-commit checks passed!
-```
-### Bypassing Hooks (Emergency Only)
-If you need to commit without running tests (use sparingly):
-```bash
-git commit --no-verify -m "emergency fix"
-```
-
-### Troubleshooting
-- **First commit after setup:** May show "Installing hooks" and require retry
-- **Hooks not running:** Ensure you ran `dart run scripts/setup-bootstrapper.dart`
-- **Tests failing:** Fix the failing tests before committing, or use `--no-verify` for emergencies
-
 ## Project Structure
 The project is structured as follows:
 ```
@@ -180,6 +141,39 @@ The Widgets layer is responsible for rendering the UI components for a screen.
 
 #### Services
 This layer contains the services that the application uses — for example, the notification service.
+
+## Pre-commit Hooks
+
+This project uses automated pre-commit hooks to maintain code quality. Tests run automatically before every commit.
+
+### How It Works
+- 🧪 **Tests run automatically** on every `git commit`
+- ✅ **Commit succeeds** only if all tests pass  
+- ❌ **Commit is blocked** if any tests fail
+
+### Development Workflow
+```bash
+# Make your changes
+flutter pub get
+# Edit files...
+
+# Commit changes (tests run automatically)
+git add .
+git commit -m "your changes"
+# Output: 🔍 Running pre-commit checks...
+#         🧪 Running tests...
+#         ✅ All pre-commit checks passed!
+```
+### Bypassing Hooks (Emergency Only)
+If you need to commit without running tests (use sparingly):
+```bash
+git commit --no-verify -m "emergency fix"
+```
+
+### Troubleshooting
+- **First commit after setup:** May show "Installing hooks" and require retry
+- **Hooks not running:** Ensure you ran `dart run scripts/setup-bootstrapper.dart`
+- **Tests failing:** Fix the failing tests before committing, or use `--no-verify` for emergencies
 
 ## Github Actions
 using GitHub Actions to run automatic tests when commits or Pull Requests happen to the main or dev branch. There is a workflow file in the `.github/workflows` folder, which is in `.yml` format. This file will run all tests found in the test folder at the root of the repository.
