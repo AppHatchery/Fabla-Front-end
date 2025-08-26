@@ -718,11 +718,6 @@ class _TimerWidgetState extends State<TimerWidget>
   void Function()? _updateModalCallback;
   int? currentAlarmId; // Track current alarm ID
 
-  // === Constants ===
-  final verticalButtonPadding = const EdgeInsets.symmetric(vertical: 18.0);
-  final buttonShape =
-      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12));
-
   @override
   void initState() {
     super.initState();
@@ -1026,38 +1021,15 @@ class _TimerWidgetState extends State<TimerWidget>
         (await Permission.scheduleExactAlarm.request()).isGranted;
   }
 
-  // === UI ===
-
-  ButtonStyle buttonStyle(Color color) => ElevatedButton.styleFrom(
-        backgroundColor: color,
-        shape: buttonShape,
-        padding: verticalButtonPadding,
-      );
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 36.0),
+      padding: const EdgeInsets.only(bottom: 102.0),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Flexible(
-                  child: Text(
-                    "Time Length",
-                    style: CustomTypography().custom(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF383838)),
-                    textAlign: TextAlign.start,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -1073,6 +1045,22 @@ class _TimerWidgetState extends State<TimerWidget>
 
   List<Widget> _buildInitialView() {
     return [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Flexible(
+            child: Text(
+              "Time Length",
+              style: CustomTypography().custom(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF383838)),
+              textAlign: TextAlign.start,
+            ),
+          ),
+        ],
+      ),
+      SizedBox(height: 8,),
       _buildEditableControls(),
       const SizedBox(height: 36),
       _buildStartButton(),
@@ -1086,10 +1074,10 @@ class _TimerWidgetState extends State<TimerWidget>
       Text(
         "🎉 Good job! You have completed the task!",
         style: CustomTypography()
-            .titleLarge(color: CustomColors.textNormalContent),
-        textAlign: TextAlign.center,
+            .titleSmall(color: CustomColors.textNormalContent.withOpacity(0.86),),
+        textAlign: TextAlign.left,
       ),
-      const SizedBox(height: 50),
+      const SizedBox(height: 125),
       //commenting this button until better clarity
       // widget.playbackControls ? _buildStartButton(isCompletion: false) : const SizedBox.shrink(),
     ];
