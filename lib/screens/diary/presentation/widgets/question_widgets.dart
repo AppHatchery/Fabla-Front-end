@@ -1074,7 +1074,10 @@ class _TimerWidgetState extends State<TimerWidget>
       Text(
         "🎉 Good job! You have completed the task!",
         style: CustomTypography()
-            .titleSmall(color: CustomColors.textNormalContent.withOpacity(0.86),),
+            .custom(
+          fontWeight: FontWeight.w500,
+          fontSize: 18,
+          color: CustomColors.textNormalContent.withOpacity(0.86),),
         textAlign: TextAlign.left,
       ),
       const SizedBox(height: 125),
