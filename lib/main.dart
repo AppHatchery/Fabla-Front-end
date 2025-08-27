@@ -4,6 +4,7 @@ import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/bulk_submission/bulk_submission_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/completion/completion_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_history_cubit.dart';
@@ -137,6 +138,8 @@ class _MyAppState extends State<MyApp> {
                 BlocProvider<HubCubit>(create: (context) => HubCubit()),
                 BlocProvider<SettingsCubit>(
                     create: (context) => SettingsCubit()),
+                BlocProvider<BulkSubmissionCubit>(
+                    create: (context) => BulkSubmissionCubit()),
               ],
               child: PendoActionListener(
                 child: MaterialApp(
@@ -251,6 +254,8 @@ class _HubState extends State<Hub>
             showUpdateDialog();
           } else if (state is HubUpdated) {
             completeUpdate(state.complete);
+          } else if (state is HubRefreshing) {
+            refresh();
           }
         },
         builder: (context, state) {
@@ -304,6 +309,8 @@ class _HubState extends State<Hub>
         .where((element) => element.status == DiaryStatus.complete)
         .length;
 
+    if (navigationBars.isNotEmpty) navigationBars.clear();
+
     navigationBars.addAll(<Tab>[
       const Tab(
         icon: Icon(CupertinoIcons.text_badge_checkmark),
@@ -334,9 +341,16 @@ class _HubState extends State<Hub>
           Navigator.pop(context);
         }
       }).then((_) {
-        Future.delayed(const Duration(seconds: 1), () {
-          setState(() => key = UniqueKey());
-        });
+        Future.delayed(const Duration(seconds: 1), () => refresh());
+      });
+    }
+  }
+
+  void refresh() {
+    if (mounted) {
+      setState(() {
+        key = UniqueKey();
+        _makeNavBars();
       });
     }
   }

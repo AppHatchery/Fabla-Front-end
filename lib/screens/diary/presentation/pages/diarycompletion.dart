@@ -2,7 +2,8 @@ import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/ghost_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
+
+
 
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
@@ -41,10 +42,10 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage>
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         Navigator.pushAndRemoveUntil(
-          context, 
-          MaterialPageRoute(
-            builder: (context) => const Hub(),
-            settings: RouteSettings(name: "/Hub")),
+            context,
+            MaterialPageRoute(
+                builder: (context) => const Hub(),
+                settings: RouteSettings(name: "/Hub")),
             (route) => false);
       },
       child: Scaffold(

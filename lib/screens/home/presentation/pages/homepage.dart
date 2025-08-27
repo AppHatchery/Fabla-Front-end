@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/incentives.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/pending_submission_widget.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_goal.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal.dart';
@@ -135,6 +136,7 @@ class _HomePageState extends State<HomePage>
                 children: [
                   Expanded(
                     child: GestureDetector(
+                      key: const Key("weekly_goal_widget"),
                       onTap: () => setState(() {
                         if (isExpanded) {
                           isExpanded = !isExpanded;
@@ -196,6 +198,7 @@ class _HomePageState extends State<HomePage>
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          PendingSubmissionWidget(),
                           const SizedBox(
                             height: 24,
                           ),
@@ -213,6 +216,7 @@ class _HomePageState extends State<HomePage>
                     : SingleChildScrollView(
                         child: Column(
                         children: [
+                          PendingSubmissionWidget(),
                           const SizedBox(
                             height: 24,
                           ),
@@ -262,6 +266,7 @@ class _HomePageState extends State<HomePage>
     return available <= 0
         ? const SizedBox.shrink()
         : GestureDetector(
+            key: const Key("Incentive"),
             onTap: () => showStudyIncentives(allStudies),
             child: Image.asset(
               "assets/images/icons/incentives.png",

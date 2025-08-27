@@ -2,8 +2,6 @@ import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:location/location.dart';
 
-final Location location = Location();
-
 /// Appends the current location to the diary entry.
 /// This function appends the current location to the diary entry by retrieving the location data
 /// and creating a new prompt entry with the location information.
@@ -12,28 +10,43 @@ final Location location = Location();
 /// If the permissions are granted, the function retrieves the location data and creates a new prompt entry
 /// with the location information. If the permissions are not granted, the function returns `null`.
 ///
+/// Modified to support dependency injection for better testability.
+/// Added optional parameters for Location and PreferenceService.
+/// Default values maintain backward compatibility.
+///
 /// Parameters:
 /// - [experimentCode]: The code of the experiment.
 /// - [participantID]: The ID of the participant.
 /// - [promptLength]: The length of the prompt.
 /// - [diaryID]: The ID of the diary entry.
+/// - [location]: Optional Location instance for dependency injection.
+/// - [preferenceService]: Optional PreferenceService instance for dependency injection.
 ///
 /// Returns:
 /// A `PromptEntry` object containing the current location information, or `null` if the location permissions are not granted.
-Future<PromptEntry?> appendLocation(
-    {required String experimentCode,
-    required String participantID,
-    required int promptLength,
-    required String diaryID}) async {
-  final extraPermissions = await PreferenceService().getStringListPreference(
+Future<PromptEntry?> appendLocation({
+  required String experimentCode,
+  required String participantID,
+  required int promptLength,
+  required String diaryID,
+  Location? location,
+  PreferenceService? preferenceService,
+}) async {
+  // Use injected dependencies or create default instances
+  final locationService = location ?? Location();
+  final prefService = preferenceService ?? PreferenceService();
+
+  final extraPermissions = await prefService.getStringListPreference(
         key: 'extra_permissions',
       ) ??
       [];
 
   if (extraPermissions.contains('location')) {
-    final permission = await location.hasPermission();
+    // Updated to use injected location service instead of global instance
+    final permission = await locationService.hasPermission();
     if (permission == PermissionStatus.granted) {
-      final data = await location.getLocation();
+      // Updated to use injected location service
+      final data = await locationService.getLocation();
 
       final response = PromptEntry(
           participantID: participantID,
@@ -42,10 +55,11 @@ Future<PromptEntry?> appendLocation(
           diaryID: diaryID,
           promptID: (promptLength + 1).toString(),
           response: "latitude: ${data.latitude}, longitude: ${data.longitude}",
+          respondedAt: "",
           questionsType: "location",
           required: true);
       return response;
-    }else{
+    } else {
       final response = PromptEntry(
           participantID: participantID,
           experimentCode: experimentCode,
@@ -53,6 +67,7 @@ Future<PromptEntry?> appendLocation(
           diaryID: diaryID,
           promptID: (promptLength + 1).toString(),
           response: "Location permission not granted",
+          respondedAt: "",
           questionsType: "location",
           required: true);
       return response;

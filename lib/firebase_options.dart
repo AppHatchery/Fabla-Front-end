@@ -65,5 +65,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'audio-diaries.firebasestorage.app',
     iosBundleId: 'edu.emory.audio.diaries',
   );
-
 }

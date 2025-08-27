@@ -136,7 +136,8 @@ class _CustomTextOptionState extends State<CustomTextOption> {
 class CustomOptionGroup extends StatefulWidget {
   final List<String> options;
   final Function(String) onSelect;
-  const CustomOptionGroup({super.key, required this.options, required this.onSelect});
+  const CustomOptionGroup(
+      {super.key, required this.options, required this.onSelect});
 
   @override
   State<CustomOptionGroup> createState() => _CustomOptionGroupState();
@@ -173,7 +174,8 @@ class _CustomOptionGroupState extends State<CustomOptionGroup> {
                   setState(() {
                     if (newValue == true) {
                       selectedIndex = index;
-                      widget.onSelect(option.value.toString()); // Call the callback function
+                      widget.onSelect(option.value
+                          .toString()); // Call the callback function
                     } else {
                       selectedIndex = null;
                     }

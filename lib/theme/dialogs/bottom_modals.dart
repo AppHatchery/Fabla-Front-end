@@ -1464,6 +1464,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                     border: Border.all(color: CustomColors.fillWhite, width: 5),
                     borderRadius: BorderRadius.circular(68)),
                 child: InkWell(
+                  key: const Key("capture"),
                   splashColor: CustomColors.fillWhiteShade,
                   borderRadius: BorderRadius.circular(68),
                   onTap: () => capture(),
@@ -1657,6 +1658,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                 ),
               ),
         GestureDetector(
+          key: const Key("save"),
           onTap: () => save(),
           child: Container(
             padding: const EdgeInsets.all(13),
