@@ -4,7 +4,8 @@ import 'dart:developer' as dev;
 class BatteryService {
   static const channel =
       MethodChannel('edu.emory.audio_diaries_flutter/battery');
-  static const requestEvent = EventChannel('edu.emory.audio_diaries_flutter/batteryRequest');
+  static const requestEvent =
+      EventChannel('edu.emory.audio_diaries_flutter/batteryRequest');
 
   /// Method to check if the battery optimization is disabled.
   ///

@@ -6,14 +6,35 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
 class NotificationsController {
+  // Modified to support dependency injection for better testability
+  // Added constructor parameters for messaging, local notifications, and http client
+  // Default values maintain backward compatibility
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  final FirebaseMessaging _messaging;
+  final http.Client _client;
+
+  // Constructor with optional dependency injection
+  // If not provided, uses default implementations for production use
+  NotificationsController({
+    FirebaseMessaging? messaging,
+    FlutterLocalNotificationsPlugin? localNotifications,
+    http.Client? client,
+  })  : _messaging = messaging ?? FirebaseMessaging.instance,
+        _client = client ?? http.Client() {
+    // Initialize the local notifications plugin with injected or default instance
+    flutterLocalNotificationsPlugin =
+        localNotifications ?? FlutterLocalNotificationsPlugin();
+  }
 
   Future<void> initialize() async {
-    await FirebaseMessaging.instance.getInitialMessage();
-   // await requestPermission();
+    // Updated to use injected messaging instance instead of static FirebaseMessaging.instance
+    await _messaging.getInitialMessage();
+    // await requestPermission();
     await setupNotificationPlugin();
     //await getToken();
 
+    // Note: onMessage is a static property so we use FirebaseMessaging.onMessage
+    // but we can still use the injected messaging instance for other methods
     FirebaseMessaging.onMessage.listen((RemoteMessage event) {
       messageHandler(event);
     });
@@ -25,11 +46,13 @@ class NotificationsController {
 
     if (notification != null && androidNotification != null) {
       String? imagePath;
-      StyleInformation notificationStyle = const DefaultStyleInformation(true, true);
+      StyleInformation notificationStyle =
+          const DefaultStyleInformation(true, true);
 
       if (androidNotification.imageUrl != null &&
           androidNotification.imageUrl!.isNotEmpty) {
-        imagePath = await _downloadAndSaveFile(androidNotification.imageUrl!, 'bigPicture');
+        imagePath = await _downloadAndSaveFile(
+            androidNotification.imageUrl!, 'bigPicture');
 
         notificationStyle = BigPictureStyleInformation(
           FilePathAndroidBitmap(imagePath),
@@ -48,10 +71,12 @@ class NotificationsController {
           android: AndroidNotificationDetails(
             'high_importance_channel', // Channel ID
             'High Importance Notifications', // Channel Name
-            channelDescription: 'This channel is used for important notifications.',
+            channelDescription:
+                'This channel is used for important notifications.',
             importance: Importance.max,
             styleInformation: notificationStyle,
-            largeIcon: imagePath != null ? FilePathAndroidBitmap(imagePath) : null,
+            largeIcon:
+                imagePath != null ? FilePathAndroidBitmap(imagePath) : null,
           ),
         ),
       );
@@ -59,9 +84,8 @@ class NotificationsController {
   }
 
   Future<void> requestPermission() async {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-    NotificationSettings settings = await messaging.requestPermission(
+    // Updated to use injected messaging instance instead of static FirebaseMessaging.instance
+    NotificationSettings settings = await _messaging.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
@@ -72,7 +96,8 @@ class NotificationsController {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      messaging.setForegroundNotificationPresentationOptions(
+      // Updated to use injected messaging instance
+      _messaging.setForegroundNotificationPresentationOptions(
         alert: true,
         badge: true,
         sound: true,
@@ -81,13 +106,12 @@ class NotificationsController {
   }
 
   Future<void> getToken() async {
-    final token = await FirebaseMessaging.instance.getToken();
+    // Updated to use injected messaging instance instead of static FirebaseMessaging.instance
+    final token = await _messaging.getToken();
     log("Firebase Token: $token");
   }
 
   Future<void> setupNotificationPlugin() async {
-    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     final DarwinInitializationSettings initializationSettingsDarwin =
@@ -114,7 +138,8 @@ class NotificationsController {
   Future<String> _downloadAndSaveFile(String url, String fileName) async {
     final Directory directory = await getApplicationDocumentsDirectory();
     final String filePath = '${directory.path}/$fileName';
-    final http.Response response = await http.get(Uri.parse(url));
+    // Updated to use injected http client instead of static http.get
+    final http.Response response = await _client.get(Uri.parse(url));
     final File file = File(filePath);
     await file.writeAsBytes(response.bodyBytes);
     return filePath;

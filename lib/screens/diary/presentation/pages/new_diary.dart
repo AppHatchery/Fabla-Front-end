@@ -102,6 +102,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         DiaryRepository repository = DiaryRepository();
         widget.diary.status = DiaryStatus.complete;
         repository.updateDiary(widget.diary);
+        diaryEnd(diaryID: widget.diary.id.toString());
         track(timer.stop(), "Finished");
         Navigator.push(
             context,

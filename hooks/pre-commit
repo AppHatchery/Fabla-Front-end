@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Bootstrapper hook - installs real hooks on first commit attempt
+echo "🔧 Installing pre-commit hooks (one-time setup)..."
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Install Flutter dependencies if needed
+if [ ! -f ".dart_tool/package_config.json" ]; then
+    echo "📦 Installing Flutter dependencies..."
+    flutter pub get
+fi
+
+# Install the pre-commit hooks
+echo "⚙️  Setting up quality checks..."
+dart run scripts/install-hooks.dart
+
+echo "✅ Hooks installed! Please run your commit again."
+echo "🔄 Your commit was not processed - retry now for full checks."
+exit 1 

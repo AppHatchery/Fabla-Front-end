@@ -53,7 +53,7 @@ final List<Color> studyColors = [
   CustomColors.productNormal,
   CustomColors.teal,
   CustomColors.purpleNormal,
-]; 
+];
 
 final List<int> participantCodes = [
   0001,

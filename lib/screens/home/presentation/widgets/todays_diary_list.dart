@@ -30,9 +30,9 @@ class TodaysDiaryList extends StatelessWidget {
         ),
         diaries.isEmpty
             ? Padding(
-              padding: const EdgeInsets.only(top: 26.0),
-              child: const DayComplete(),
-            )
+                padding: const EdgeInsets.only(top: 26.0),
+                child: const DayComplete(),
+              )
             : ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),

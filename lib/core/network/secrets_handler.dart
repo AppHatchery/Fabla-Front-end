@@ -5,10 +5,24 @@ import 'package:http/http.dart' as http;
 import 'dart:developer' as dev;
 
 class SecureSave {
-  final _storage = const FlutterSecureStorage();
+  // Modified to support dependency injection for better testability
+  // Added constructor parameters for storage and http client
+  // Default values maintain backward compatibility
+  final FlutterSecureStorage _storage;
+  final http.Client _client;
+
+  // Constructor with optional dependency injection
+  // If not provided, uses default implementations for production use
+  SecureSave({
+    FlutterSecureStorage? storage,
+    http.Client? client,
+  })  : _storage = storage ?? const FlutterSecureStorage(),
+        _client = client ?? http.Client();
+
   Future<String> postData(String st) async {
     try {
-      var response = await http.post(
+      // Updated to use injected http client instead of static http.post
+      var response = await _client.post(
         Uri.parse(
             'https://3z44ix42wc77473ramwyoqr6ji0fswhn.lambda-url.us-east-1.on.aws/api/getdata'),
         headers: {
@@ -20,7 +34,8 @@ class SecureSave {
       );
 
       if (response.statusCode == 200) {
-        dev.log('Response body: ${response.body}', name: 'Secrets Handler - Post Data');
+        dev.log('Response body: ${response.body}',
+            name: 'Secrets Handler - Post Data');
         String jsonString = response.body;
         Map<String, dynamic> data = jsonDecode(jsonString);
         String authorization = data['message']['Authorization'];
@@ -47,6 +62,7 @@ class SecureSave {
   }
 
   Future<CredentialsModel?> read() async {
+    // Now uses injected storage instead of hardcoded _storage
     final credentialsModel = await _storage.read(key: 'credentials');
     if (credentialsModel?.isNotEmpty ?? false) {
       return CredentialsModel.fromJson(json.decode(credentialsModel!));
@@ -55,6 +71,7 @@ class SecureSave {
   }
 
   Future<void> save(CredentialsModel credentialsModel) async {
+    // Now uses injected storage instead of hardcoded _storage
     await _storage.write(
         key: 'credentials', value: json.encode(credentialsModel.toJson()));
   }
@@ -65,12 +82,15 @@ class CredentialsModel {
   String? xapikey;
   // ignore: non_constant_identifier_names
   String? dynamo_url;
-    // ignore: non_constant_identifier_names
+  // ignore: non_constant_identifier_names
   String? presigned_url;
 
   CredentialsModel(
       // ignore: non_constant_identifier_names
-      {this.authorization, this.xapikey, this.dynamo_url, this.presigned_url});
+      {this.authorization,
+      this.xapikey,
+      this.dynamo_url,
+      this.presigned_url});
   CredentialsModel.fromJson(Map<String, dynamic> json) {
     authorization = json['authorization'];
     xapikey = json['x-api-key'];

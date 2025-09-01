@@ -28,7 +28,10 @@ class ResearchersNote extends StatelessWidget {
               ),
               GestureDetector(
                   onTap: () => onDismissed(true),
-                  child: const Icon(Icons.close_rounded, size: 18,))
+                  child: const Icon(
+                    Icons.close_rounded,
+                    size: 18,
+                  ))
             ],
           ),
           const SizedBox(height: 8),

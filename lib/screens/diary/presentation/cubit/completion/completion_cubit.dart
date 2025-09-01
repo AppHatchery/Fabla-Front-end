@@ -12,7 +12,7 @@ class CompletionCubit extends Cubit<CompletionState> {
 
   CompletionCubit() : super(const CompletionInitial());
 
-  void completeDiary(DiaryModel diary) async{
+  void completeDiary(DiaryModel diary) async {
     final today = DateTime.now();
     final monday = DateTime(today.year, today.month, today.day)
         .subtract(Duration(days: today.weekday - 1));
@@ -28,7 +28,6 @@ class CompletionCubit extends Cubit<CompletionState> {
 
       final ids = diaries.map((e) => e.studyID).toSet().toList();
       final studies = await _diaryRepository.getStudies(ids);
-
 
       emit(CompletionLoaded(
           diary: newDiary!, diaries: diaries, studies: studies));

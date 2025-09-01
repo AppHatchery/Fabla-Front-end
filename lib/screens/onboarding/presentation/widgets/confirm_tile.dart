@@ -37,8 +37,7 @@ class ConfrimTile extends StatelessWidget {
                 Expanded(
                   child: Text(
                     info,
-                    style: CustomTypography()
-                        .bodyLarge(),
+                    style: CustomTypography().bodyLarge(),
                   ),
                 )
               ],
