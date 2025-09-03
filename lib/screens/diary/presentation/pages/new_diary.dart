@@ -10,6 +10,7 @@ import 'package:audio_diaries_flutter/services/preference_service.dart';
 // import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 import '../../../../core/utils/types.dart';
 import '../../../../main.dart';
 import '../../../../theme/components/buttons.dart';
@@ -22,6 +23,7 @@ import '../../data/diary.dart';
 import '../../data/prompt.dart';
 import '../../domain/repository/diary_repository.dart';
 import '../cubit/prompt/prompt_cubit.dart';
+import '../widgets/ghost_widget.dart';
 import 'diarysummary.dart';
 
 /// This class holds and manages all the pages in the page view
@@ -48,6 +50,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   bool ableToContinue = false;
   bool showCloseIcon = true;
+  final Set<int> completedTimerPages = {};
 
   // Functions to run before moving to the next page
   List<Function> preFunctions = [];
@@ -264,11 +267,28 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                   ),
                   Expanded(
                     flex: 3,
-                    child: CustomFlatButton(
-                      isDisabled: !ableToContinue,
-                      onClick: () => nextPage(),
-                      text: "Continue",
-                    ),
+                    child: Builder(builder: (context) {
+                      final isTimer =
+                          widget.diary.prompts[currentPage].responseType ==
+                              ResponseType.timer;
+                      final isCompleted = completedTimerPages.contains(currentPage);
+                      if (isTimer) {
+                        return CustomFlatButton(
+                          color:isCompleted ? CustomColors.productNormal : CustomColors.productLightBackground,
+                          borderColor: isCompleted ? CustomColors.productNormal : CustomColors.productLightBackground,
+                          textColor: isCompleted ? CustomColors.fillWhite : CustomColors.productNormal,
+                          isDisabled: false,
+                          onClick: () => nextPage(),
+                          text: isCompleted ? "Continue" : "Task Completed",
+                        );
+                      }
+
+                      return CustomFlatButton(
+                        isDisabled: !ableToContinue,
+                        onClick: () => nextPage(),
+                        text: "Continue",
+                      );
+                    }),
                   )
                 ],
               ),
@@ -299,6 +319,13 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         isLastPage: isCurrentPageLast,
         addToPreFunction: (p0) {
           preFunctions.add(p0);
+        },
+        onTimerCompleted: () {
+          if (mounted) {
+            setState(() {
+              completedTimerPages.add(currentPage);
+            });
+          }
         },
       );
     }).toList();
@@ -371,6 +398,7 @@ class QuestionPage extends StatefulWidget {
   final VoidCallback previousPage;
   final ValueChanged<Function> addToPreFunction;
   final bool? isLastPage;
+  final VoidCallback? onTimerCompleted;
 
   const QuestionPage({
     super.key,
@@ -383,6 +411,7 @@ class QuestionPage extends StatefulWidget {
     required this.nextPage,
     required this.addToPreFunction,
     this.isLastPage,
+    this.onTimerCompleted,
   });
 
   @override
@@ -390,13 +419,15 @@ class QuestionPage extends StatefulWidget {
 }
 
 class _QuestionPageState extends State<QuestionPage>
-    with WidgetsBindingObserver {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  late final AnimationController _controller;
   late PromptCubit promptCubit;
   late PromptModel promptModel;
 
   bool isChecked = false;
   bool disabled = false;
   PersistentBottomSheetController? _bottomSheetController;
+  bool timerCompleted = false;
 
   void updateSliderValue(PromptModel prompt, double value) {
     save(prompt, value.toString(), 'other', 0);
@@ -408,6 +439,7 @@ class _QuestionPageState extends State<QuestionPage>
 
   @override
   void initState() {
+    _controller = AnimationController(vsync: this);
     WidgetsBinding.instance.addObserver(this);
     promptModel = widget.prompt;
     promptCubit = BlocProvider.of<PromptCubit>(context);
@@ -419,6 +451,7 @@ class _QuestionPageState extends State<QuestionPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _controller.dispose();
     super.dispose();
   }
 
@@ -490,6 +523,7 @@ class _QuestionPageState extends State<QuestionPage>
 
   Widget buildPrompt(PromptModel prompt) {
     Widget responseWidget;
+    final width = MediaQuery.of(context).size.width;
 
     if (prompt.responseType == ResponseType.slider) {
       responseWidget = SliderQuestionCard(
@@ -564,6 +598,16 @@ class _QuestionPageState extends State<QuestionPage>
         playbackControls: prompt.option?.playbackControl ?? false,
         respond: (answer) => save(prompt, answer, 'other', 0),
         addToPreFunction: (p0) => {widget.addToPreFunction(p0)},
+        onCompletionConfirmed: () {
+          if (mounted) {
+            setState(() {
+              timerCompleted = true;
+            });
+          }
+          // allow continue and notify parent
+          widget.answerAdded(true);
+          widget.onTimerCompleted?.call();
+        },
       );
     } else if (prompt.responseType == ResponseType.image) {
       responseWidget = VisualResponseWidget(
@@ -632,63 +676,124 @@ class _QuestionPageState extends State<QuestionPage>
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                   color: CustomColors.fillWhite,
                 ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: (prompt.responseType == ResponseType.timer &&
+                        timerCompleted)
+                    ? Column(
                         children: [
-                          Container(
-                              alignment: Alignment.topLeft,
-                              child: Text(
-                                "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
-                                style: CustomTypography().button(),
-                              )),
-                          const SizedBox(height: 15),
-                        ],
-                      ),
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.7,
+                            child: Stack(
+                              children: [
+                                // Confetti animation covering full screen
+                                Positioned.fill(
+                                  child: Lottie.asset(
+                                    "assets/animations/confetti.json",
+                                    controller: _controller,
+                                    onLoaded: (composition) {
+                                      _controller.duration =
+                                          composition.duration;
+                                      _controller.reset();
 
-                      const SizedBox(
-                        height: 12,
-                      ),
-
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              prompt.question.toString(),
-                              style: CustomTypography().titleLarge(),
+                                      // Delay the animation start
+                                      Future.delayed(
+                                          const Duration(seconds: 2), () {
+                                        if (mounted) {
+                                          _controller.repeat();
+                                        }
+                                      });
+                                    },
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                // Content overlay
+                                SafeArea(
+                                  child: SingleChildScrollView(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          "Good job!\nYou have completed the task!",
+                                          style: CustomTypography()
+                                              .headlineLarge(),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 60),
+                                        SizedBox(
+                                          height: 300,
+                                          width: width,
+                                          child:
+                                              const GhostCompletionWidget(),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
-                      ),
-                      Row(
+                      )
+                    : Column(
                         children: [
-                          Expanded(
-                            child: Text(
-                              questionTip,
-                              style: const TextStyle(
-                                  color: CustomColors.textTertiaryContent),
-                            ),
-                          )
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                  alignment: Alignment.topLeft,
+                                  child: Text(
+                                    "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
+                                    style: CustomTypography().button(),
+                                  )),
+                              const SizedBox(height: 15),
+                            ],
+                          ),
+
+                          const SizedBox(
+                            height: 12,
+                          ),
+
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  prompt.question.toString(),
+                                  style: CustomTypography().titleLarge(),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  questionTip,
+                                  style: const TextStyle(
+                                      color:
+                                          CustomColors.textTertiaryContent),
+                                ),
+                              )
+                            ],
+                          ),
+                          SizedBox(
+                              height: prompt.responseType == ResponseType.text
+                                  ? 24
+                                  : 112),
+                          responseWidget,
+                          if (widget.diary.status != DiaryStatus.submitted &&
+                              widget.diary.status != DiaryStatus.missed &&
+                              prompt.responseType == ResponseType.audio)
+                            SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.3),
+
+                          // const CustomTextButton(
+                          //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
                         ],
                       ),
-                      SizedBox(
-                          height: prompt.responseType == ResponseType.text
-                              ? 24
-                              : 112),
-                      responseWidget,
-                      if (widget.diary.status != DiaryStatus.submitted &&
-                          widget.diary.status != DiaryStatus.missed &&
-                          prompt.responseType == ResponseType.audio)
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.3),
-
-                      // const CustomTextButton(
-                      //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
-                    ],
-                  ),
-                ),
               );
   }
 

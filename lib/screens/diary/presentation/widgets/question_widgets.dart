@@ -678,6 +678,7 @@ class TimerWidget extends StatefulWidget {
   final bool userInteraction;
   final void Function(String) respond;
   final Function(Function) addToPreFunction;
+  final VoidCallback? onCompletionConfirmed;
 
   const TimerWidget({
     super.key,
@@ -686,6 +687,7 @@ class TimerWidget extends StatefulWidget {
     required this.userInteraction,
     required this.respond,
     required this.addToPreFunction,
+    this.onCompletionConfirmed,
   });
 
   @override
@@ -898,6 +900,10 @@ class _TimerWidgetState extends State<TimerWidget>
                 stopAlarm();
                 _controller?.close();
                 _onTimerClose();
+                // Notify parent that the user confirmed completion
+                if (widget.onCompletionConfirmed != null) {
+                  widget.onCompletionConfirmed!.call();
+                }
               },
             );
           },
@@ -1021,7 +1027,6 @@ class _TimerWidgetState extends State<TimerWidget>
         (await Permission.scheduleExactAlarm.request()).isGranted;
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -1034,7 +1039,6 @@ class _TimerWidgetState extends State<TimerWidget>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (!complete) ..._buildInitialView(),
-                if (complete && showCompletionText) ..._buildCompletionView(),
               ],
             ),
           ],
@@ -1060,29 +1064,12 @@ class _TimerWidgetState extends State<TimerWidget>
           ),
         ],
       ),
-      SizedBox(height: 8,),
+      SizedBox(
+        height: 8,
+      ),
       _buildEditableControls(),
       const SizedBox(height: 36),
       _buildStartButton(),
-      const SizedBox(height: 40),
-      _buildCompleteButton(),
-    ];
-  }
-
-  List<Widget> _buildCompletionView() {
-    return [
-      Text(
-        "🎉 Good job! You have completed the task!",
-        style: CustomTypography()
-            .custom(
-          fontWeight: FontWeight.w500,
-          fontSize: 18,
-          color: CustomColors.textNormalContent.withOpacity(0.86),),
-        textAlign: TextAlign.left,
-      ),
-      const SizedBox(height: 125),
-      //commenting this button until better clarity
-      // widget.playbackControls ? _buildStartButton(isCompletion: false) : const SizedBox.shrink(),
     ];
   }
 
@@ -1142,43 +1129,6 @@ class _TimerWidgetState extends State<TimerWidget>
         text: 'Start Timer Now',
       ),
     ]);
-  }
-
-  Widget _buildCompleteButton() {
-    final isDisabled = inProgress || paused;
-    return CustomOutlineButton(
-      onClick: isDisabled
-          ? () {}
-          : () {
-              setState(() {
-                complete = true;
-                inProgress = false;
-                paused = false;
-                showCompletionText =
-                    true; // Show completion text immediately for manual completion
-              });
-              widget.respond("Complete");
-            },
-      backgroundColor: Colors.transparent,
-      color:
-          isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
-      children: Wrap(
-        children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(3.0),
-              child: Text(
-                "I Have Completed The Task",
-                style: CustomTypography().button(
-                    color: isDisabled
-                        ? CustomColors.fillDisabled
-                        : CustomColors.productNormal),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -1313,11 +1263,11 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
   }
 }
 
-class MediaPreview  extends StatefulWidget {
+class MediaPreview extends StatefulWidget {
   final List<Recording> recordings;
   final Function(String path) delete;
   final bool interactions;
-  const MediaPreview (
+  const MediaPreview(
       {super.key,
       required this.recordings,
       required this.delete,

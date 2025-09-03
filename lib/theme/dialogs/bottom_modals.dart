@@ -2379,9 +2379,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
 
   bool _showModalUnderlay = true; // Controls the underlay visibility
   OverlayEntry? _modalOverlayEntry;
-  OverlayEntry? _timeUpOverlayEntry;
   bool _modalOverlayInserted = false;
-  bool _timeUpOverlayInserted = false;
   OverlayState? _overlayState;
 
   @override
@@ -2407,10 +2405,6 @@ class _BottomTimerModalState extends State<BottomTimerModal>
           _showModalUnderlay = !_isCollapsed;
         });
         _insertModalOverlay();
-
-        if (widget.showTimeUpOverlay) {
-          _insertTimeUpOverlay();
-        }
       }
     });
   }
@@ -2423,17 +2417,15 @@ class _BottomTimerModalState extends State<BottomTimerModal>
         setState(() {
           _isCollapsed = false;
           _containerHeight = MediaQuery.of(context).size.height * 0.85;
-          _showExpandedContent =
-              true; // Show content when time up overlay appears
+          _showExpandedContent = true;
         });
-        Future.delayed(const Duration(milliseconds: 200), () {
-          if (mounted) {
-            _insertTimeUpOverlay();
-          }
-        });
+        // Start shake animation when time is up
+        _shakeController.forward();
       } else {
         _showExpandedContent = true;
-        _removeTimeUpOverlay();
+        // Stop shake animation
+        _shakeController.stop();
+        _shakeController.reset();
       }
     }
   }
@@ -2457,45 +2449,8 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     });
   }
 
-  void _toggleHeight() {
-    setState(() {
-      _isCollapsed = !_isCollapsed;
-      final screenHeight = MediaQuery.of(context).size.height;
-      final scaler = MediaQuery.of(context).textScaler;
-      final scaled = scaler.scale(1);
-      _containerHeight = _isCollapsed
-          ? screenHeight * (scaled > 1.5 ? 0.20 : 0.15)
-          : screenHeight * 0.85;
-
-      // Update underlay visibility based on collapse state
-      _showModalUnderlay = !_isCollapsed;
-
-      // Hide content immediately when collapsing
-      if (_isCollapsed) {
-        _showExpandedContent = false;
-      }
-    });
-
-    if (!_isCollapsed) {
-      // When expanding, show content after animation completes
-      Future.delayed(const Duration(milliseconds: 390), () {
-        if (mounted && !_isCollapsed) {
-          setState(() {
-            _showExpandedContent = true;
-          });
-        }
-      });
-    }
-
-    // Mark overlay for rebuild
-    _modalOverlayEntry?.markNeedsBuild();
-  }
-
   void _insertModalOverlay() {
-    if (_modalOverlayInserted ||
-        _timeUpOverlayInserted ||
-        !mounted ||
-        _overlayState == null) return;
+    if (_modalOverlayInserted || !mounted || _overlayState == null) return;
 
     _modalOverlayEntry = OverlayEntry(
       builder: (context) {
@@ -2526,65 +2481,11 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     _modalOverlayInserted = true;
   }
 
-  void _insertTimeUpOverlay() {
-    // Remove modal overlay first if it exists
-    _removeModalOverlay();
-
-    if (_timeUpOverlayInserted || !mounted || _overlayState == null) return;
-
-    // Start shake animation
-    _shakeController.forward();
-
-    _timeUpOverlayEntry = OverlayEntry(
-      builder: (context) => Positioned.fill(
-        child: Material(
-          color: Colors.black.withOpacity(0.8),
-          child: Center(child: _buildTimeUpOverlayContent()),
-        ),
-      ),
-    );
-
-    _overlayState!.insert(_timeUpOverlayEntry!);
-    _timeUpOverlayInserted = true;
-  }
-
-  void _removeModalOverlay() {
-    if (_modalOverlayInserted && _modalOverlayEntry != null) {
-      _modalOverlayEntry?.remove();
-      _modalOverlayEntry = null;
-      _modalOverlayInserted = false;
-    }
-  }
-
-  void _removeTimeUpOverlay() {
-    // Stop shake animation
-    _shakeController.stop();
-    _shakeController.reset();
-
-    if (_timeUpOverlayInserted && _timeUpOverlayEntry != null) {
-      _timeUpOverlayEntry?.remove();
-      _timeUpOverlayEntry = null;
-      _timeUpOverlayInserted = false;
-    }
-
-    // Restore modal overlay if modal is expanded
-    if (!_isCollapsed && !_modalOverlayInserted && mounted) {
-      _insertModalOverlay();
-      _showModalUnderlay = true;
-    }
-  }
-
   void _removeAllOverlaysSync() {
     if (_modalOverlayInserted && _modalOverlayEntry != null) {
       _modalOverlayEntry?.remove();
       _modalOverlayEntry = null;
       _modalOverlayInserted = false;
-    }
-
-    if (_timeUpOverlayInserted && _timeUpOverlayEntry != null) {
-      _timeUpOverlayEntry?.remove();
-      _timeUpOverlayEntry = null;
-      _timeUpOverlayInserted = false;
     }
   }
 
@@ -2600,7 +2501,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     return Stack(
       children: [
         // Underlay - appears behind the modal when expanded
-        if (_showModalUnderlay && !widget.showTimeUpOverlay)
+        if (_showModalUnderlay)
           Positioned.fill(
             child: Container(
               color: Colors.black.withOpacity(0.5), // Semi-transparent underlay
@@ -2620,13 +2521,15 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       width: width,
       height: _containerHeight,
       decoration: BoxDecoration(
-        gradient: _isCollapsed ? LinearGradient (
-          colors: [Color(0xff4186F5), Color(0xff4186F5)],
-        ): LinearGradient(
-          colors: [Color(0xff4186F5), Color(0xff626AD9)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+        gradient: _isCollapsed
+            ? LinearGradient(
+                colors: [Color(0xff4186F5), Color(0xff4186F5)],
+              )
+            : LinearGradient(
+                colors: [Color(0xff4186F5), Color(0xff626AD9)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
         image: DecorationImage(
           image: AssetImage('assets/images/Meditation_timer_background.png'),
           fit: BoxFit.fitWidth,
@@ -2640,7 +2543,6 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          _buildCollapseButton(),
           //timer display when the modal is not collapsed
           if (!_isCollapsed && _showExpandedContent) _buildTimerDisplay(),
           //timer display when the modal is collapsed
@@ -2656,21 +2558,6 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     );
   }
 
-  Widget _buildCollapseButton() {
-    return Positioned(
-      top: 14,
-      right: 11,
-      child: IconButton(
-        icon: Icon(
-          _isCollapsed ? Icons.expand_less_rounded : Icons.expand_more_rounded,
-          color: Colors.white,
-          size: 48,
-        ),
-        onPressed: _toggleHeight,
-      ),
-    );
-  }
-
   Widget _buildTimerDisplay() {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -2681,11 +2568,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     final double sidePadding = screenWidth * 0.07;
 
     // Icon size: scales but capped
-    final double iconSize = (screenWidth * 0.12 * textScale).clamp(28.0, 48.0);
-
-    // Timer text size: scales but capped
-    final double timerFontSize =
-        (screenWidth * 0.11 * textScale).clamp(24.0, 48.0);
+    final double iconSize = 32;
 
     return Positioned(
       top: topPos,
@@ -2699,22 +2582,26 @@ class _BottomTimerModalState extends State<BottomTimerModal>
             height: iconSize,
             width: iconSize,
           ),
-          SizedBox(width: screenWidth * 0.01), // spacing proportional to width
+          SizedBox(width: 8), // spacing proportional to width
           Flexible(
             child: FittedBox(
               fit: BoxFit.scaleDown, // prevents clipping if space is tight
               child: Text(
-                _formatDuration(widget.remaining),
+                widget.showTimeUpOverlay
+                    ? "Time's Up!"
+                    : _formatDuration(widget.remaining),
                 textAlign: TextAlign.center,
                 style: CustomTypography()
                     .custom(
-                  color: CustomColors.textWhite,
-                  fontWeight: FontWeight.w400,
-                  fontSize: timerFontSize,
-                )
+                      color: CustomColors.textWhite,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 48,
+                    )
                     .copyWith(
-                  fontFeatures: [const FontFeature.tabularFigures()],
-                ),
+                      fontFeatures: widget.showTimeUpOverlay
+                          ? []
+                          : [const FontFeature.tabularFigures()],
+                    ),
               ),
             ),
           ),
@@ -2724,33 +2611,92 @@ class _BottomTimerModalState extends State<BottomTimerModal>
   }
 
   Widget _buildTimerCollapseDisplay() {
+    final size = MediaQuery.of(context).size;
     final textScale = MediaQuery.of(context).textScaler.scale(1);
-    final screenWidth = MediaQuery.of(context).size.width;
-
     // Icon size: scales but capped
-    final double iconSize = (screenWidth * 0.12 * textScale).clamp(28.0, 48.0);
+    final double iconSize = 32;
+    final double buttonSpacing = size.width * 0.08;
 
     return Positioned(
-      top: textScale > 1 ? 15 : 35,
-      left: textScale > 1 ? 50 : 64.5,
-      right: textScale > 1 ? 49.5 : 64,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset('assets/images/icons/pace.png', height: iconSize, width: iconSize),
-          SizedBox(width: screenWidth * 0.01),
-          Text(
-            _formatDuration(widget.remaining),
-            textAlign: TextAlign.center,
-            style: CustomTypography()
-                .custom(
-              color: CustomColors.textWhite,
-              fontWeight: FontWeight.w400,
-              fontSize: textScale > 1 ? 30.4 : 48,
-            )
-                .copyWith(fontFeatures: [const FontFeature.tabularFigures()]),
-          ),
-        ],
+      top: textScale > 1 ? 22.5 : 22.5,
+      left: textScale > 1 ? 16 : 16,
+      right: textScale > 1 ? 16 : 16,
+      child: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Image.asset('assets/images/icons/pace.png',
+                height: iconSize, width: iconSize),
+            Text(
+              widget.showTimeUpOverlay
+                  ? "Time's Up!"
+                  : _formatDuration(widget.remaining),
+              textAlign: TextAlign.center,
+              style: CustomTypography()
+                  .custom(
+                    color: CustomColors.textWhite,
+                    fontWeight: FontWeight.w400,
+                    fontSize: textScale > 1 ? 30.4 : 48,
+                  )
+                  .copyWith(
+                      fontFeatures: widget.showTimeUpOverlay
+                          ? []
+                          : [const FontFeature.tabularFigures()]),
+            ),
+            SizedBox(
+              width: 16,
+            ),
+            if (widget.playbackControls) ...[
+              GestureDetector(
+                onTap: widget.onPauseResume,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  padding: const EdgeInsets.fromLTRB(5, 12, 5, 12),
+                  decoration: BoxDecoration(
+                    color: CustomColors.fillWhite,
+                    border: Border.all(
+                      color: CustomColors.productLightBackground,
+                    ),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Icon(
+                    (widget.isRunning && !widget.isPaused)
+                        ? CupertinoIcons.pause_fill
+                        : CupertinoIcons.play_fill,
+                    size: 40,
+                    color: (widget.isRunning && !widget.isPaused)
+                        ? CustomColors.warningActive
+                        : CustomColors.productNormal,
+                  ),
+                ),
+              )
+            ],
+            if (widget.playbackControls && !widget.showTimeUpOverlay) ...[
+              GestureDetector(
+                onTap: () {},
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  padding: const EdgeInsets.fromLTRB(5, 12, 5, 12),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    border: Border.all(
+                      color: CustomColors.productLightBackground,
+                    ),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Icon(
+                    Icons.close,
+                    size: 24,
+                    color: CustomColors.fillWhite,
+                  ),
+                ),
+              )
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -2790,9 +2736,6 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     // Side padding — percentage of width
     final double sidePadding = size.width * 0.15;
 
-    // Icon size — percentage-based, scaled, with limits
-    final double iconSize = (size.width * 0.09 * textScale).clamp(28.0, 45.0);
-
     // Spacing between buttons
     final double buttonSpacing = size.width * 0.08;
 
@@ -2803,171 +2746,84 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if(widget.playbackControls) ...[CustomOutlineButton(
-            backgroundColor: Colors.transparent,
-            color: CustomColors.productLightBackground,
-            onClick: widget.onRestart,
-            children: Wrap(
-              children: [
-                Icon(
+          if (widget.playbackControls) ...[
+            GestureDetector(
+              onTap: widget.onRestart,
+              child: Container(
+                width: 64,
+                height: 64,
+                padding: const EdgeInsets.fromLTRB(5, 12, 5, 12),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border.all(
+                    color: CustomColors.productLightBackground,
+                  ),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Icon(
                   Icons.refresh_rounded,
-                  size: iconSize,
+                  size: 24,
                   color: CustomColors.fillWhite,
-                ),
-              ],
-            ),
-          )],
-          SizedBox(width: buttonSpacing),
-          if(widget.playbackControls) ...[CustomOutlineButton(
-            backgroundColor: Colors.transparent,
-            color: CustomColors.productLightBackground,
-            onClick: widget.onPauseResume,
-            children: Wrap(
-              children: [
-                Icon(
-                  (widget.isRunning && !widget.isPaused)
-                      ? CupertinoIcons.pause_fill
-                      : CupertinoIcons.play_fill,
-                  size: iconSize,
-                  color: CustomColors.fillWhite,
-                ),
-              ],
-            ),
-          )],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimeUpOverlayContent() {
-    final size = MediaQuery.of(context).size;
-    final textScale = MediaQuery.of(context).textScaler.scale(1);
-
-    // Heights from original (scale = 1) values
-    final double topSpacing = (150 * textScale).clamp(10.0, 180.0);
-    final double betweenIconAndButton = (84 * textScale).clamp(42.0, 120.0);
-    final double betweenButtons = (48 * textScale).clamp(24.0, 72.0);
-
-    // Icon & text
-    final double bellIconSize = (48 * textScale).clamp(38.0, 70.0);
-    final double refreshIconSize = (24 * textScale).clamp(24.0, 48.0);
-    final double titleFontSize = (48 * textScale).clamp(32.0, 48.0);
-
-    // button sizing for extreme text scaling
-    final double buttonHeight = (56 * textScale).clamp(56.0, 100.0);
-    // Allow much more width growth for high text scaling
-    final double buttonWidth = textScale > 2.5
-        ? (size.width * 0.85).clamp(
-            200.0,
-            size.width -
-                40.0) // Use screen width percentage for extreme scaling
-        : (177 * textScale)
-            .clamp(128.0, 280.0); // Increased max width for normal scaling
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SizedBox(height: textScale > 1 ? topSpacing * 0.07 : topSpacing),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // shake animation for the bell
-            AnimatedBuilder(
-              animation: _shakeController,
-              builder: (context, child) {
-                return Transform.rotate(
-                  angle: sin(_shakeController.value * pi * 2) * 0.1,
-                  child: Icon(
-                    Icons.notifications_active,
-                    color: CustomColors.fillWhite,
-                    size: bellIconSize,
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  "Time's Up!",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: CustomTypography().custom(
-                    color: CustomColors.textWhite,
-                    fontWeight: FontWeight.w400,
-                    fontSize:
-                        textScale > 1 ? titleFontSize * 0.79 : titleFontSize,
-                  ),
                 ),
               ),
-            ),
+            )
           ],
-        ),
-        SizedBox(height: betweenIconAndButton),
-        // Stop Button
-        SizedBox(
-          height: buttonHeight,
-          width: buttonWidth,
-          child: CustomIconButtonWithTextButton(
-            onClick: () {
-              _removeTimeUpOverlay();
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) widget.onStop();
-              });
-            },
-            color: CustomColors.productNormal,
-            text: "Stop",
-            icon: CupertinoIcons.stop_fill,
-          ),
-        ),
-        SizedBox(height: betweenButtons),
-        // Repeat Button
-        if(widget.playbackControls) ...[SizedBox(
-          height: buttonHeight /
-              1.28, //reducing the height of the repeat button to match the stop button
-          width: buttonWidth,
-          child:
-          CustomOutlineButton(
-            onClick: () {
-              _removeTimeUpOverlay();
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) widget.onRestart();
-              });
-            },
-            backgroundColor: Colors.transparent,
-            color: CustomColors.fillWhite,
-            children: Wrap(
-              children: [
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.refresh_rounded,
-                        color: CustomColors.fillWhite,
-                        size: refreshIconSize,
-                      ),
-                      SizedBox(
-                          width: textScale > 2.0
-                              ? 4
-                              : 8), // Reduce spacing at high text scale
-                      Text(
-                        "Repeat",
-                        style: CustomTypography()
-                            .button(color: CustomColors.fillWhite),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+          SizedBox(width: buttonSpacing),
+          if (widget.playbackControls || widget.showTimeUpOverlay) ...[
+            GestureDetector(
+              onTap: widget.showTimeUpOverlay ? widget.onStop : widget.onPauseResume,
+              child: Container(
+                width: 80,
+                height: 80,
+                padding: const EdgeInsets.fromLTRB(5, 12, 5, 12),
+                decoration: BoxDecoration(
+                  color: CustomColors.fillWhite,
+                  border: Border.all(
+                    color: CustomColors.productLightBackground,
                   ),
+                  borderRadius: BorderRadius.circular(100),
                 ),
-              ],
-            ),
-          ),
-        )],
-      ],
+                child: Icon(
+                  widget.showTimeUpOverlay
+                      ? CupertinoIcons.checkmark_alt
+                      : (widget.isRunning && !widget.isPaused)
+                      ? CupertinoIcons.pause_fill
+                      : CupertinoIcons.play_fill,
+                  size: 40,
+                  color: widget.showTimeUpOverlay
+                      ? CustomColors.productNormal
+                      : (widget.isRunning && !widget.isPaused)
+                      ? CustomColors.warningActive
+                      : CustomColors.productNormal,
+                ),
+              ),
+            )
+          ],
+          SizedBox(width: buttonSpacing),
+          if (widget.playbackControls && !widget.showTimeUpOverlay) ...[
+            GestureDetector(
+              onTap: widget.onStop,
+              child: Container(
+                width: 64,
+                height: 64,
+                padding: const EdgeInsets.fromLTRB(5, 12, 5, 12),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border.all(
+                    color: CustomColors.productLightBackground,
+                  ),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Icon(
+                  Icons.close,
+                  size: 24,
+                  color: CustomColors.fillWhite,
+                ),
+              ),
+            )
+          ],
+        ],
+      ),
     );
   }
 }
