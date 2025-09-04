@@ -45,7 +45,9 @@ class NotificationService {
               channelDescription: "Reminders for Daily Diary Entries",
               channelShowBadge: false,
               defaultColor: CustomColors.fillWhite,
-              importance: NotificationImportance.High)
+              playSound: true,
+              enableVibration: true,
+              importance: NotificationImportance.Max)
         ],
         debug: true);
   }
@@ -182,7 +184,7 @@ class NotificationService {
                 icon: null,
                 largeIcon: null,
                 bigPicture: null,
-                category: NotificationCategory.Reminder,
+                category: NotificationCategory.Message,
                 actionType: ActionType.Default,
                 payload: payload),
             actionButtons: [
