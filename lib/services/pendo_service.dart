@@ -91,9 +91,10 @@ class PendoService {
   static Future<void> start(String code, String experiment) async {
     try {
       if (foundation.kDebugMode) {
-        await _plugin.startSession(code, _testID, null, null);
+        await _plugin.startSession('$experiment-$code', _testID, null, null);
       } else {
-        await _plugin.startSession(code, 'Exp-$experiment', null, null);
+        await _plugin.startSession(
+            '$experiment-$code', 'Exp-$experiment', null, null);
       }
     } catch (e) {
       dev.log('Error starting Pendo session: $e', name: 'Pendo Service - Init');
