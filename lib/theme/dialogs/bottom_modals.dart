@@ -2659,6 +2659,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     return Positioned(
       bottom: bottomPos,
       right: 74,
+      left: widget.playbackControls ? null : 74,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
