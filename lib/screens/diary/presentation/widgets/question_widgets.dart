@@ -15,7 +15,6 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/ti
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
-import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -678,7 +677,6 @@ class TimerWidget extends StatefulWidget {
   final bool userInteraction;
   final void Function(String) respond;
   final Function(Function) addToPreFunction;
-  final VoidCallback? onCompletionConfirmed;
 
   const TimerWidget({
     super.key,
@@ -687,7 +685,6 @@ class TimerWidget extends StatefulWidget {
     required this.userInteraction,
     required this.respond,
     required this.addToPreFunction,
-    this.onCompletionConfirmed,
   });
 
   @override
@@ -715,11 +712,11 @@ class _TimerWidgetState extends State<TimerWidget>
   int pickerMinutes = 1;
   int pickerSeconds = 0;
 
-  PersistentBottomSheetController? _controller;
   bool showPersistentSheet = false;
   void Function()? _updateModalCallback;
   int? currentAlarmId; // Track current alarm ID
-
+  // Track when the current countdown should complete (wall-clock). Used to detect completion when app is backgrounded
+  DateTime? _expectedEndTime;
   @override
   void initState() {
     super.initState();
@@ -736,6 +733,30 @@ class _TimerWidgetState extends State<TimerWidget>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
+
+    // Observe lifecycle to detect if timer elapsed while in background
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!mounted) return;
+    if (state == AppLifecycleState.resumed) {
+      if (_expectedEndTime != null &&
+          DateTime.now().isAfter(_expectedEndTime!)) {
+        setState(() {
+          _timer?.cancel();
+          inProgress = false;
+          paused = false;
+          complete = true;
+          showTimeUpOverlay = false;
+          showCompletionText = true;
+          showPersistentSheet = false;
+          remaining = Duration.zero;
+          _expectedEndTime = null;
+        });
+        stopAlarm();
+      }
+    }
   }
 
   @override
@@ -755,6 +776,10 @@ class _TimerWidgetState extends State<TimerWidget>
       setState(() {
         if (remaining.inSeconds > 0 && inProgress && !paused) {
           remaining -= const Duration(seconds: 1);
+          // Update expected end time on first tick after start/resume
+          if (_expectedEndTime == null) {
+            _expectedEndTime = DateTime.now().add(remaining);
+          }
           _refreshModal();
         } else if (remaining.inSeconds <= 0) {
           _timer?.cancel();
@@ -774,6 +799,7 @@ class _TimerWidgetState extends State<TimerWidget>
     setState(() => paused = false);
     // Set alarm for remaining time when resuming
     setAlarm(remaining);
+    _expectedEndTime = DateTime.now().add(remaining);
     _startTimer();
   }
 
@@ -844,6 +870,7 @@ class _TimerWidgetState extends State<TimerWidget>
       showTimeUpOverlay = false;
       showPersistentSheet = false;
       showCompletionText = false; // Reset completion text visibility
+      _expectedEndTime = null;
     });
     _shakeController.reset();
     stopAlarm();
@@ -869,57 +896,67 @@ class _TimerWidgetState extends State<TimerWidget>
 
     _startSound();
     _startTimer();
+    _expectedEndTime = DateTime.now().add(remaining);
 
-    if (showPersistentSheet) {
-      if (!mounted) return;
-      _controller = Scaffold.of(context).showBottomSheet(
-        enableDrag: false,
-        (context) => StatefulBuilder(
-          builder: (context, setModalState) {
-            _updateModalCallback = () => setModalState(() {});
-            return BottomTimerModal(
-              remaining: remaining,
-              isRunning: inProgress && !paused,
-              isPaused: paused,
-              showTimeUpOverlay: showTimeUpOverlay,
-              playbackControls: widget.playbackControls,
-              onClose: () {
-                _controller?.close();
-                _onTimerClose();
-              },
-              onRestart: () {
-                widget.playbackControls ? _restartTimer() : null;
-                _refreshModal();
-              },
-              onPauseResume: () {
-                _playBlack();
-                _refreshModal();
-              },
-              onStop: () {
-                _stopTimer();
-                stopAlarm();
-                _controller?.close();
-                _onTimerClose();
-                // Notify parent that the user confirmed completion
-                if (widget.onCompletionConfirmed != null) {
-                  widget.onCompletionConfirmed!.call();
-                }
-              },
-            );
-          },
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      );
-
-      showPersistentSheet = true;
-
-      _controller!.closed.then((_) {
-        _updateModalCallback = null;
-        showPersistentSheet = false;
-        _onTimerClose();
-      });
-    }
+    showModalBottomSheet(
+      backgroundColor: Colors.transparent,
+      context: context,
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
+      elevation: 0,
+      useSafeArea: true,
+      routeSettings: RouteSettings(name: "/TimerModal"),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 1,
+        minChildSize: 1,
+        snap: true,
+        builder: (context, scrollController) {
+          return StatefulBuilder(
+            builder: (context, setModalState) {
+              // Capture a callback to refresh the modal with latest parent state
+              _updateModalCallback = () {
+                if (mounted) setModalState(() {});
+              };
+              return BottomTimerModal(
+                  remaining: remaining,
+                  isRunning: inProgress && !paused,
+                  isPaused: paused,
+                  showTimeUpOverlay: showTimeUpOverlay,
+                  playbackControls: widget.playbackControls,
+                  onClose: () {
+                    Navigator.of(context).pop();
+                    _onTimerClose();
+                  },
+                  onRestart: () {
+                    if (widget.playbackControls) _restartTimer();
+                    _refreshModal();
+                  },
+                  onPauseResume: () {
+                    _playBlack();
+                    _refreshModal();
+                  },
+                  onStop: () {
+                    _stopTimer();
+                    stopAlarm();
+                    Navigator.of(context).pop();
+                    if (mounted) {
+                      setState(() {
+                        inProgress = false;
+                        paused = false;
+                        complete = true;
+                        showTimeUpOverlay = false;
+                        showCompletionText = true;
+                        showPersistentSheet = false;
+                        _expectedEndTime = null;
+                      });
+                    }
+                  });
+            },
+          );
+        },
+      ),
+    );
   }
 
   void _refreshModal() {
@@ -1030,15 +1067,34 @@ class _TimerWidgetState extends State<TimerWidget>
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 102.0),
+      padding: const EdgeInsets.only(bottom: 36.0),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 10.0),
         child: Column(
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Flexible(
+                  child: Text(
+                    "Time Length",
+                    style: CustomTypography().custom(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF383838)),
+                    textAlign: TextAlign.start,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (!complete) ..._buildInitialView(),
+                _buildEditableControls(),
+                const SizedBox(height: 36),
+                if (!complete) ...[_buildStartButton()],
+                if (complete && showCompletionText) ...[_buildCompletionView()],
               ],
             ),
           ],
@@ -1047,30 +1103,28 @@ class _TimerWidgetState extends State<TimerWidget>
     );
   }
 
-  List<Widget> _buildInitialView() {
-    return [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+  Widget _buildCompletionView() {
+    return CustomOutlineButton(
+      onClick: () {
+        _startAndShowModal();
+      },
+      backgroundColor: Colors.transparent,
+      color: CustomColors.productNormal,
+      children: Wrap(
         children: [
-          Flexible(
-            child: Text(
-              "Time Length",
-              style: CustomTypography().custom(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF383838)),
-              textAlign: TextAlign.start,
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: Text(
+                "Restart Timer",
+                style: CustomTypography()
+                    .button(color: CustomColors.productNormal),
+              ),
             ),
           ),
         ],
       ),
-      SizedBox(
-        height: 8,
-      ),
-      _buildEditableControls(),
-      const SizedBox(height: 36),
-      _buildStartButton(),
-    ];
+    );
   }
 
   Widget _buildEditableControls() {
@@ -1108,6 +1162,7 @@ class _TimerWidgetState extends State<TimerWidget>
   Widget _buildStartButton({bool isCompletion = false}) {
     final isDisabled = inProgress || paused;
     return Stack(children: [
+      //completetion check here then display either the start timer now button another button
       CustomElevatedButton(
         color: (isDisabled
             ? CustomColors.fillDisabled
