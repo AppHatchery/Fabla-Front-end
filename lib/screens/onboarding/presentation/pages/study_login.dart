@@ -143,9 +143,9 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                       height: 24,
                     ),
                     VerificationCodeTextField(
-                      title: "Study Code",
+                      title: "Study String",
                       errorMessage: message,
-                      hint: 'Enter the study code...',
+                      hint: 'Enter the study string...',
                       controller: controller,
                       fieldType: TextInputType.text,
                       error: error,
@@ -252,11 +252,8 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   }
 
   track(int spent, String status) async {
-    await PendoService.track("Study Login", {
-      "time_on_page": spent,
-      "status": status,
-      "Font Scaler": "$scaler"
-    });
+    await PendoService.track("Study Login",
+        {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
   String? encodeQueryParameters(Map<String, String> params) {
