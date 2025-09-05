@@ -284,11 +284,20 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
             diary: widget.diary,
             respond: (answer) => save(prompt, answer, 'other', 0));
       case ResponseType.timer:
+        final completedTimes = prompt.answer?.response != null
+            ? prompt.answer?.response!.first.split("| ")
+            : <String>[];
         return TimerWidget(
           time: prompt.option?.timerLength ?? Duration(seconds: 30),
           userInteraction: prompt.option?.userInteraction ?? false,
           playbackControls: prompt.option?.playbackControl ?? false,
-          respond: (answer) => save(prompt, answer, 'other', 0),
+          respond: (answer) {
+            final completed = completedTimes ?? [];
+            completed.add(answer);
+            final response = completed.join("| ");
+
+            save(prompt, response, 'other', 0);
+          },
           addToPreFunction: (p0) => preFunctions.add(p0),
         );
       case ResponseType.timePicker:
