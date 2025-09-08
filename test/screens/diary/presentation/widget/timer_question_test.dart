@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 // Import your timer widget and dependencies
 import 'package:audio_diaries_flutter/theme/components/time_picker.dart';
-import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
+import  'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 // Helper function available to all test groups
@@ -244,24 +244,24 @@ void main() {
       group('Duration Extensions', () {
         test('should format minutes correctly', () {
           const duration1 = Duration(minutes: 5, seconds: 30);
-          expect(duration1.mm, equals('05'));
+          expect(formatDurationMMOnly(duration1), equals('05'));
 
           const duration2 = Duration(minutes: 25, seconds: 10);
-          expect(duration2.mm, equals('25'));
+          expect(formatDurationMMOnly(duration2), equals('25'));
 
           const duration3 = Duration(seconds: 45);
-          expect(duration3.mm, equals('00'));
+          expect(formatDurationMMOnly(duration3), equals('00'));
         });
 
         test('should format seconds correctly', () {
           const duration1 = Duration(minutes: 5, seconds: 5);
-          expect(duration1.ss, equals('05'));
+          expect(formatDurationMMOnly(duration1), equals('05'));
 
           const duration2 = Duration(minutes: 25, seconds: 30);
-          expect(duration2.ss, equals('30'));
+          expect(formatDurationSSOnly(duration2), equals('30'));
 
           const duration3 = Duration(seconds: 9);
-          expect(duration3.ss, equals('09'));
+          expect(formatDurationSSOnly(duration3), equals('09'));
         });
       });
 

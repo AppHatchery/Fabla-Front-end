@@ -2374,7 +2374,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
   // Icon Shake animation
   late AnimationController _shakeController;
   r.StateMachineController? _controller;
-  bool _showExpandedContent = true; // content visibility
+  final bool _showExpandedContent = true; // content visibility
 
 
   @override
@@ -2408,13 +2408,6 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     setState(() {
       animationHeight = art.height;
     });
-  }
-
-  String _formatDuration(Duration d) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final m = twoDigits(d.inMinutes.remainder(60));
-    final s = twoDigits(d.inSeconds.remainder(60));
-    return "$m:$s";
   }
 
   @override
@@ -2505,7 +2498,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
               child: Text(
                 widget.showTimeUpOverlay
                     ? "Time's Up!"
-                    : _formatDuration(widget.remaining),
+                    : formatMinsAndSecs(widget.remaining),
                 textAlign: TextAlign.center,
                 style: CustomTypography()
                     .custom(
@@ -2551,7 +2544,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
             Text(
               widget.showTimeUpOverlay
                   ? "Time's Up!"
-                  : _formatDuration(widget.remaining),
+                  : formatMinsAndSecs(widget.remaining),
               textAlign: TextAlign.center,
               style: CustomTypography()
                   .custom(

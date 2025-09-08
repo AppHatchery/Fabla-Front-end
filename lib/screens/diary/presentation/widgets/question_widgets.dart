@@ -726,17 +726,16 @@ class _TimerWidgetState extends State<TimerWidget>
     pickerMinutes = duration.inMinutes;
     pickerSeconds = duration.inSeconds.remainder(60);
 
-    minuteController = TextEditingController(text: duration.mm);
-    secondsController = TextEditingController(text: duration.ss);
+    minuteController = TextEditingController(text: formatDurationMMOnly(duration));
+    secondsController = TextEditingController(text: formatDurationSSOnly(duration));
 
     _shakeController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-
-    // Observe lifecycle to detect if timer elapsed while in background
   }
 
+// Observe lifecycle to detect if timer elapsed while in background
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!mounted) return;
@@ -755,6 +754,7 @@ class _TimerWidgetState extends State<TimerWidget>
           _expectedEndTime = null;
         });
         stopAlarm();
+        widget.respond("Complete");
       }
     }
   }
@@ -777,9 +777,7 @@ class _TimerWidgetState extends State<TimerWidget>
         if (remaining.inSeconds > 0 && inProgress && !paused) {
           remaining -= const Duration(seconds: 1);
           // Update expected end time on first tick after start/resume
-          if (_expectedEndTime == null) {
-            _expectedEndTime = DateTime.now().add(remaining);
-          }
+          _expectedEndTime ??= DateTime.now().add(remaining);
           _refreshModal();
         } else if (remaining.inSeconds <= 0) {
           _timer?.cancel();
@@ -898,6 +896,7 @@ class _TimerWidgetState extends State<TimerWidget>
     _startTimer();
     _expectedEndTime = DateTime.now().add(remaining);
 
+    if(!mounted) return;
     showModalBottomSheet(
       backgroundColor: Colors.transparent,
       context: context,
@@ -951,6 +950,7 @@ class _TimerWidgetState extends State<TimerWidget>
                         _expectedEndTime = null;
                       });
                     }
+                    widget.respond("Complete");
                   });
             },
           );
@@ -1185,12 +1185,6 @@ class _TimerWidgetState extends State<TimerWidget>
       ),
     ]);
   }
-}
-
-// Duration extensions for formatting
-extension DurationFormatting on Duration {
-  String get mm => inMinutes.remainder(60).toString().padLeft(2, "0");
-  String get ss => inSeconds.remainder(60).toString().padLeft(2, "0");
 }
 
 class VisualResponseWidget extends StatefulWidget {
