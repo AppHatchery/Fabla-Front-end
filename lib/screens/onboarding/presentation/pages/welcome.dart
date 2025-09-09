@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
@@ -22,6 +23,7 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
   bool canGoBack = false;
   final SetupRepository repository = SetupRepository();
   final PageTimer timer = PageTimer();
+  TextScaler? scaler; // Get the size of the text scaler
 
   late StateMachineController _controller;
 
@@ -35,6 +37,9 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
     timer.start();
     _participant = repository.getParticipant()!;
     startPendo();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      scaler = await fontScaler(context);
+    });
     super.initState();
   }
 
@@ -170,8 +175,11 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
   }
 
   track(int spent, String status) async {
-    await PendoService.track(
-        "Welcome", {"time_on_page": spent, "status": status});
+    await PendoService.track("Welcome", {
+      "time_on_page": spent,
+      "status": status,
+      "Font Scaler": "$scaler"
+    });
   }
 
   startPendo() async {

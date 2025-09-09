@@ -250,6 +250,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
           ),
           const SizedBox(width: 6),
           Text(
+            key: const Key('displayText'),
             displayText,
             style: CustomTypography().bodyMedium(),
           ),

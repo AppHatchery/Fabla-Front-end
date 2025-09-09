@@ -31,6 +31,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../../../core/database/dao/participant_dao.dart';
@@ -517,6 +518,7 @@ class SetupRepository {
     final participant = _participantDAO.get();
 
     final map = <String, dynamic>{};
+    final getextrasmap = <String, dynamic>{};
 
     final extras = <String, dynamic>{};
 
@@ -551,6 +553,67 @@ class SetupRepository {
 
     // Log the platform-specific name (optional)
     debugPrint("Firebase Platform Name: $platformName");
+
+    var repo = _experimentDAO.getExperiment();
+    if (repo != null) {
+      dev.log("Experiment not found.....", name: repo.login);
+    }
+
+    /////////////-------------------------------------------------/////////////
+    getextrasmap.addAll(
+      {
+        'participant_id': participant!.studyCode.toString(),
+        'login_code': experiment!.login,
+      },
+    );
+
+    final getdbextras =
+        await post(path: "/fabla/getuserextras", body: getextrasmap)
+            .then((value) {
+      if (value == null) return null;
+      try {
+        final response = jsonDecode(value);
+        if (response is Map<String, dynamic> &&
+            response['status'] == 'success') {
+          return response['data'] as List<dynamic>?;
+        }
+      } catch (e) {
+        dev.log("Response JSON decode error: $e");
+      }
+      return null;
+    });
+
+    final date = DateTime.now();
+    final formatted = DateFormat('yyyy-MM-dd').format(date);
+
+    if (getdbextras == null || getdbextras.isEmpty) {
+      dev.log(">>>>>>>>>>>No users found in response.");
+      extras['date_adjuster'] = formatted;
+    } else {
+      final firstUser = getdbextras[0];
+      final extraString = firstUser['extra'];
+      if (extraString is String) {
+        try {
+          final extra = jsonDecode(extraString) as Map<String, dynamic>?;
+          extras['date_adjuster'] =
+              (extra?['date_adjuster']?.toString().trim().isNotEmpty ?? false)
+                  ? extra!['date_adjuster']
+                  : formatted;
+          dev.log(">>>>>>>>>>>date_adjuster: ${extras['date_adjuster']}");
+        } catch (e) {
+          dev.log(">>>>>>>>>>>Failed to decode 'extra': $e");
+          extras['date_adjuster'] = formatted;
+        }
+      } else {
+        dev.log(">>>>>>>>>>>Missing or invalid 'extra' field for first user.");
+        extras['date_adjuster'] = formatted;
+      }
+    }
+
+    //dev.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>: $jsonString");
+
+    // Check if date_adjuster is already in extras from onboarding questions
+    // If it exists and is not empty, use that date otherwise use current date
 
     map.addAll(
       {
@@ -605,7 +668,39 @@ class SetupRepository {
   /// Returns:
   /// - A `Future` that resolves to a `bool` value indicating the success of the operation.
   Future<bool> leaveStudy() async {
+    final userclearextrasmap = <String, dynamic>{};
+
+    final participant = _participantDAO.get();
+    final experiment = _experimentDAO.getExperiment();
+
     try {
+      userclearextrasmap.addAll(
+        {
+          'participant_id': participant!.studyCode.toString(),
+          'login_code': experiment!.login,
+        },
+      );
+
+      final leavestudymap =
+          await post(path: "/fabla/leavestudy", body: userclearextrasmap)
+              .then((value) {
+        if (value == null) return null;
+        try {
+          final response = jsonDecode(value);
+          if (response is Map<String, dynamic> &&
+              response['status'] == 'success') {
+            return response['status'];
+          }
+        } catch (e) {
+          dev.log("Response JSON decode error: $e");
+        }
+        //return null;
+      });
+
+      if (leavestudymap != 'success') {
+        return false;
+      }
+
       _participantDAO.remove();
       _experimentDAO.deleteExperiment();
       _protocolDAO.deleteProtocol();

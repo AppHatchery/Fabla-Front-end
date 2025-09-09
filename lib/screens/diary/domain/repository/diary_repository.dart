@@ -11,6 +11,7 @@ import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/tag.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
 
@@ -120,6 +121,23 @@ class DiaryRepository {
     return diaries.map((e) => DiaryModel.fromEntity(e)).toList();
   }
 
+  Future<List<DiaryModel>> getAllPending() async {
+    final _summaryRepository = SummaryRepository();
+    final diaries = getAllDiaries();
+    final filtered =
+        diaries.where((diary) => diary.status == DiaryStatus.complete).toList();
+
+    // Get all diaries with their answers
+    final copy = <DiaryModel>[];
+
+    for (final diary in filtered) {
+      final _diary = await _summaryRepository.loadSummary(diary);
+      copy.add(_diary);
+    }
+
+    return copy;
+  }
+
   /// Retrieves a list of Diary objects representing all stored diary entries.
   List<DiaryModel> getAllDiariesWithMultipleEntries() {
     // Retrieve all diaries from the database
@@ -192,18 +210,36 @@ class DiaryRepository {
         .add(const Duration(days: 1));
 
     // Filter diaries based on due date
-    final filteredDiaries =
+    final filteredDueDiaries =
         unfilteredDiaries.where((diary) => diary.start.isBefore(due)).toList();
 
+    if (filteredDueDiaries.isEmpty) return {};
+
     // Change diaries statuses if missed
-    for (final diary in filteredDiaries) {
+    for (final diary in filteredDueDiaries) {
       if (now.isAfter(diary.due) &&
-          (diary.status != DiaryStatus.complete ||
+          (diary.status != DiaryStatus.complete &&
               diary.status != DiaryStatus.submitted) &&
           (diary.currentEntry < diary.entries && diary.currentEntry == 0)) {
         diary.status = DiaryStatus.missed;
       }
     }
+
+    // filter the diaries with studies with 0 goals
+    final ids = filteredDueDiaries.map((e) => e.studyID).toSet().toList();
+    final studies =
+        _getStudies(ids).map((entity) => StudyModel.fromEntity(entity));
+
+    final filteredDiaries = filteredDueDiaries.where((diary) {
+      final study =
+          studies.firstWhere((study) => study.studyId == diary.studyID);
+
+      if (diary.status != DiaryStatus.missed) {
+        return true;
+      } else {
+        return study.goals.daily != 0 && study.goals.weekly != 0;
+      }
+    }).toList();
 
     // Sort filtered diaries by due date in descending order
     filteredDiaries.sort((a, b) => b.due.compareTo(a.due));

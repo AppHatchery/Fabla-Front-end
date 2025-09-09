@@ -337,6 +337,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                   ),
                   const SizedBox(height: 12),
                   Image.asset(
+                    key: Key("emory_image"),
                     "assets/images/emory_image.png",
                     width: 180,
                     height: 55,

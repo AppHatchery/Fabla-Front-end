@@ -52,9 +52,11 @@ class _CustomCameraPreviewState extends State<CustomCameraPreview> {
                           fit: BoxFit.cover,
                           child: SizedBox(
                             width:
-                                widget.controller?.value.previewSize?.height ?? 0,
+                                widget.controller?.value.previewSize?.height ??
+                                    0,
                             height:
-                                widget.controller?.value.previewSize?.width ?? 0,
+                                widget.controller?.value.previewSize?.width ??
+                                    0,
                             child: CameraPreview(widget.controller!),
                           ),
                         ),

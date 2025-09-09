@@ -5,14 +5,28 @@ import 'package:equatable/equatable.dart';
 part 'hub_state.dart';
 
 class HubCubit extends Cubit<HubState> {
-  HubCubit() : super(const HubInitial());
+  /// The experiment manager instance used for updates.
+  /// If not provided, a default instance will be created.
+  final ExperimentManager _experimentManager;
+
+  /// Creates a HubCubit with optional dependency injection.
+  ///
+  /// [experimentManager] can be provided for testing purposes.
+  /// If not provided, a default ExperimentManager instance will be used.
+  HubCubit({ExperimentManager? experimentManager})
+      : _experimentManager = experimentManager ?? ExperimentManager(),
+        super(const HubInitial());
 
   update() async {
     emit(HubUpdating());
-    final done = await ExperimentManager().update();
+    final done = await _experimentManager.update();
 
     emit(HubUpdated(done));
 
     emit(const HubInitial());
+  }
+
+  refresh() {
+    emit(HubRefreshing());
   }
 }

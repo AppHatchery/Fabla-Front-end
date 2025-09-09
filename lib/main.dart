@@ -4,6 +4,7 @@ import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/bulk_submission/bulk_submission_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/completion/completion_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_history_cubit.dart';
@@ -29,6 +30,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SystemChrome, SystemUiOverlayStyle;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -137,6 +139,8 @@ class _MyAppState extends State<MyApp> {
                 BlocProvider<HubCubit>(create: (context) => HubCubit()),
                 BlocProvider<SettingsCubit>(
                     create: (context) => SettingsCubit()),
+                BlocProvider<BulkSubmissionCubit>(
+                    create: (context) => BulkSubmissionCubit()),
               ],
               child: PendoActionListener(
                 child: MaterialApp(
@@ -210,9 +214,22 @@ class _HubState extends State<Hub>
     Settings(),
   ];
 
+  final isAndroid = Platform.isAndroid;
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
+    // Removing the dark bars that come with the safe area
+    if (isAndroid) {
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Colors.white,
+          statusBarIconBrightness: Brightness.dark,
+          systemNavigationBarColor: Colors.white,
+          systemNavigationBarIconBrightness: Brightness.dark,
+        ),
+      );
+    }
     cubit = BlocProvider.of<HubCubit>(context);
     tabController = TabController(length: pages.length, vsync: this);
     startPendo();
@@ -251,35 +268,41 @@ class _HubState extends State<Hub>
             showUpdateDialog();
           } else if (state is HubUpdated) {
             completeUpdate(state.complete);
+          } else if (state is HubRefreshing) {
+            refresh();
           }
         },
         builder: (context, state) {
-          return Scaffold(
-            body: TabBarView(
-                physics: const NeverScrollableScrollPhysics(),
-                controller: tabController,
-                children: pages),
-            bottomNavigationBar: Material(
-              color: CustomColors.fillWhite,
-              child: Container(
-                decoration: const BoxDecoration(
-                  border: Border(
-                    top: BorderSide(
-                      color: CustomColors.productBorderNormal,
-                      width: 1.0,
+          return SafeArea(
+            top: isAndroid,
+            bottom: isAndroid,
+            child: Scaffold(
+              body: TabBarView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  controller: tabController,
+                  children: pages),
+              bottomNavigationBar: Material(
+                color: CustomColors.fillWhite,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      top: BorderSide(
+                        color: CustomColors.productBorderNormal,
+                        width: 1.0,
+                      ),
                     ),
                   ),
-                ),
-                child: TabBar(
-                  controller: tabController,
-                  tabs: navigationBars,
-                  labelColor: CustomColors.productNormal,
-                  unselectedLabelColor: Colors.black,
-                  indicatorColor: Colors.transparent,
-                  indicatorWeight: 2,
-                  indicator: null,
-                  padding: EdgeInsets.only(bottom: isIos ? 34 : 0),
-                  dividerColor: Colors.transparent,
+                  child: TabBar(
+                    controller: tabController,
+                    tabs: navigationBars,
+                    labelColor: CustomColors.productNormal,
+                    unselectedLabelColor: Colors.black,
+                    indicatorColor: Colors.transparent,
+                    indicatorWeight: 2,
+                    indicator: null,
+                    padding: EdgeInsets.only(bottom: isIos ? 34 : 0),
+                    dividerColor: Colors.transparent,
+                  ),
                 ),
               ),
             ),
@@ -303,6 +326,8 @@ class _HubState extends State<Hub>
     final count = diaries
         .where((element) => element.status == DiaryStatus.complete)
         .length;
+
+    if (navigationBars.isNotEmpty) navigationBars.clear();
 
     navigationBars.addAll(<Tab>[
       const Tab(
@@ -334,9 +359,16 @@ class _HubState extends State<Hub>
           Navigator.pop(context);
         }
       }).then((_) {
-        Future.delayed(const Duration(seconds: 1), () {
-          setState(() => key = UniqueKey());
-        });
+        Future.delayed(const Duration(seconds: 1), () => refresh());
+      });
+    }
+  }
+
+  void refresh() {
+    if (mounted) {
+      setState(() {
+        key = UniqueKey();
+        _makeNavBars();
       });
     }
   }

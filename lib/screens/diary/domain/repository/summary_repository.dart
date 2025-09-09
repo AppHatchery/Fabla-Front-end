@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
+import 'package:audio_diaries_flutter/core/usecases/connectivity.dart';
 import 'package:audio_diaries_flutter/core/usecases/incentives.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -114,8 +115,11 @@ class SummaryRepository {
   /// A Future<bool> indicating the success or failure of the submission process.
   /// The boolean value indicates whether the submission was successful (true) or encountered an error (false).
   ///
-  Future<bool> submitDiary(DiaryModel diary) async {
+  Future<bool?> submitDiary(DiaryModel diary) async {
     try {
+      final hasInternet = await checkForInternet();
+      if (!hasInternet) return null;
+
       final participant = setupRepository.getParticipant();
       final uploaded = await upload(participant!.studyCode, diary);
       final study = await diaryRepository.getStudy(diary.studyID);
@@ -158,7 +162,7 @@ class SummaryRepository {
         } else if (diary.currentEntry + 1 < study!.goals.daily) {
           dailyGoalNotification(diary.id);
         }
-
+        cancelContinueNotifications(diary.id);
         calculateEarnedIncentivesForAWS(participantID: participant.studyCode);
         return true;
       } else {

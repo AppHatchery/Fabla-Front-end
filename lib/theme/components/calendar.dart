@@ -31,6 +31,14 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
 
   @override
   Widget build(BuildContext context) {
+    final scaler = MediaQuery.of(context).textScaler;
+    final scaled = scaler.scale(56);
+    final rowHeight = scaled < 100
+        ? 60.0
+        : scaled < 130
+            ? 72.0
+            : 80.0;
+
     return Container(
       decoration: BoxDecoration(
           color: CustomColors.fillWhite,
@@ -57,7 +65,8 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
               color: CustomColors.productNormal, shape: BoxShape.circle),
         ),
         startingDayOfWeek: StartingDayOfWeek.monday,
-        daysOfWeekHeight: 45,
+        daysOfWeekHeight: scaler.scale(45),
+        rowHeight: rowHeight,
         onDaySelected: _onDaySelected,
         onCalendarCreated: (controller) {
           pageController = controller;
@@ -68,12 +77,14 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 20),
-                  child: Text(
-                    getMonthYear(day),
-                    style: CustomTypography()
-                        .titleSmall(color: CustomColors.textSecondaryContent),
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: Text(
+                      getMonthYear(day),
+                      style: CustomTypography()
+                          .titleSmall(color: CustomColors.textSecondaryContent),
+                    ),
                   ),
                 ),
                 SizedBox(
@@ -83,20 +94,26 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                         onTap: () => pageController?.previousPage(
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.ease),
-                        child: const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: Icon(Icons.chevron_left_rounded)),
+                        child: SizedBox(
+                            height: scaler.scale(24),
+                            width: scaler.scale(24),
+                            child: Icon(
+                              Icons.chevron_left_rounded,
+                              size: scaler.scale(24),
+                            )),
                       ),
                       const SizedBox(width: 12),
                       GestureDetector(
                         onTap: () => pageController?.nextPage(
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.ease),
-                        child: const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: Icon(Icons.chevron_right_rounded)),
+                        child: SizedBox(
+                            height: scaler.scale(24),
+                            width: scaler.scale(24),
+                            child: Icon(
+                              Icons.chevron_right_rounded,
+                              size: scaler.scale(24),
+                            )),
                       ),
                     ],
                   ),
@@ -133,8 +150,8 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                 : CustomColors.textTertiaryContent;
             return Center(
               child: Container(
-                width: 33,
-                height: 33,
+                width: scaler.scale(33),
+                height: scaler.scale(33),
                 margin: const EdgeInsets.only(bottom: 4),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(shape: BoxShape.circle, color: color),
@@ -158,8 +175,8 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                 : CustomColors.textTertiaryContent;
             return Center(
               child: Container(
-                width: 33,
-                height: 33,
+                width: scaler.scale(33),
+                height: scaler.scale(33),
                 margin: const EdgeInsets.only(bottom: 4),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(shape: BoxShape.circle, color: color),
@@ -176,8 +193,6 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
   }
 
   _onDaySelected(DateTime selectedDay, DateTime focusedDate) {
-    if (selectedDay.isAfter(DateTime.now()) ||
-        DateUtils.isSameDay(DateTime.now(), selectedDay)) {
       setState(() {
         //reloading diaries bases on new selected date
 
@@ -185,7 +200,6 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
         selectedDate = selectedDay;
       });
       widget.onSelect(selectedDay);
-    }
   }
 
   getMonthYear(DateTime day) {

@@ -70,3 +70,6 @@ amplifytools.xcconfig
 .secret-*
 **.sample
 #amplify-do-not-edit-end
+
+# Integration test related
+grant_permission.sh
