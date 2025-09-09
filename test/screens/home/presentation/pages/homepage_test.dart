@@ -89,6 +89,7 @@ HomeLoaded createHomeLoadedState({
     end: DateTime.now(),
     notifications: [],
     activeDays: [],
+    submissions: [],
   );
 
   return HomeLoaded(

@@ -45,52 +45,52 @@ void main() {
 
   // Test data
   final testDiary1 = DiaryModel(
-    id: 1,
-    studyID: 1,
-    name: 'Morning Diary',
-    status: DiaryStatus.submitted,
-    start: DateTime(2023, 1, 1, 9),
-    due: DateTime(2023, 1, 1, 11),
-    prompts: const [],
-    activeDays: const [1, 2, 3, 4, 5, 6, 7],
-    tags: const [],
-    entries: 1,
-    currentEntry: 1,
-    end: DateTime(2023, 1, 1, 11),
-    notifications: const [],
-  );
+      id: 1,
+      studyID: 1,
+      name: 'Morning Diary',
+      status: DiaryStatus.submitted,
+      start: DateTime(2023, 1, 1, 9),
+      due: DateTime(2023, 1, 1, 11),
+      prompts: const [],
+      activeDays: const [1, 2, 3, 4, 5, 6, 7],
+      tags: const [],
+      entries: 1,
+      currentEntry: 1,
+      end: DateTime(2023, 1, 1, 11),
+      notifications: const [],
+      submissions: const []);
 
   final testDiary2 = DiaryModel(
-    id: 2,
-    studyID: 1,
-    name: 'Evening Diary',
-    status: DiaryStatus.submitted,
-    start: DateTime(2023, 1, 1, 18),
-    due: DateTime(2023, 1, 1, 20),
-    prompts: const [],
-    activeDays: const [1, 2, 3, 4, 5, 6, 7],
-    tags: const [],
-    entries: 1,
-    currentEntry: 1,
-    end: DateTime(2023, 1, 1, 20),
-    notifications: const [],
-  );
+      id: 2,
+      studyID: 1,
+      name: 'Evening Diary',
+      status: DiaryStatus.submitted,
+      start: DateTime(2023, 1, 1, 18),
+      due: DateTime(2023, 1, 1, 20),
+      prompts: const [],
+      activeDays: const [1, 2, 3, 4, 5, 6, 7],
+      tags: const [],
+      entries: 1,
+      currentEntry: 1,
+      end: DateTime(2023, 1, 1, 20),
+      notifications: const [],
+      submissions: const []);
 
   final testDiary3 = DiaryModel(
-    id: 3,
-    studyID: 1,
-    name: 'Yesterday Diary',
-    status: DiaryStatus.missed,
-    start: DateTime(2022, 12, 31, 15),
-    due: DateTime(2022, 12, 31, 17),
-    prompts: const [],
-    activeDays: const [1, 2, 3, 4, 5, 6, 7],
-    tags: const [],
-    entries: 0,
-    currentEntry: 0,
-    end: DateTime(2022, 12, 31, 17),
-    notifications: const [],
-  );
+      id: 3,
+      studyID: 1,
+      name: 'Yesterday Diary',
+      status: DiaryStatus.missed,
+      start: DateTime(2022, 12, 31, 15),
+      due: DateTime(2022, 12, 31, 17),
+      prompts: const [],
+      activeDays: const [1, 2, 3, 4, 5, 6, 7],
+      tags: const [],
+      entries: 0,
+      currentEntry: 0,
+      end: DateTime(2022, 12, 31, 17),
+      notifications: const [],
+      submissions: const []);
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -342,20 +342,20 @@ void main() {
 
               for (int i = 1; i <= 3; i++) {
                 diariesForDate.add(DiaryModel(
-                  id: (day * 10) + i,
-                  studyID: 1,
-                  name: 'Diary $day-$i',
-                  status: i == 1 ? DiaryStatus.submitted : DiaryStatus.missed,
-                  start: DateTime(2023, 1, day, 9 + i),
-                  due: DateTime(2023, 1, day, 11 + i),
-                  prompts: const [],
-                  activeDays: const [1, 2, 3, 4, 5, 6, 7],
-                  tags: const [],
-                  entries: i,
-                  currentEntry: i,
-                  end: DateTime(2023, 1, day, 11 + i),
-                  notifications: const [],
-                ));
+                    id: (day * 10) + i,
+                    studyID: 1,
+                    name: 'Diary $day-$i',
+                    status: i == 1 ? DiaryStatus.submitted : DiaryStatus.missed,
+                    start: DateTime(2023, 1, day, 9 + i),
+                    due: DateTime(2023, 1, day, 11 + i),
+                    prompts: const [],
+                    activeDays: const [1, 2, 3, 4, 5, 6, 7],
+                    tags: const [],
+                    entries: i,
+                    currentEntry: i,
+                    end: DateTime(2023, 1, day, 11 + i),
+                    notifications: const [],
+                    submissions: const []));
               }
 
               mockHistoryData[dateKey] = diariesForDate;

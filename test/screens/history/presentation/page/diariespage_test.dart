@@ -76,6 +76,7 @@ final dummyDiary = DiaryModel(
   end: DateTime.now(),
   notifications: [],
   activeDays: [],
+  submissions: [],
 );
 
 Future<void> pumpDiariesPageWithState(
