@@ -15,6 +15,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/ti
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
+import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -693,7 +694,6 @@ class TimerWidget extends StatefulWidget {
 
 class _TimerWidgetState extends State<TimerWidget>
     with TickerProviderStateMixin, WidgetsBindingObserver {
-  // Timer state
   late Duration duration;
   late Duration remaining;
   Timer? _timer;
@@ -702,7 +702,7 @@ class _TimerWidgetState extends State<TimerWidget>
   bool paused = false;
   bool complete = false;
   bool showTimeUpOverlay = false;
-  bool showCompletionText = false; // completion text visibility
+  bool showCompletionText = false;
 
   AudioPlayer? player;
   late AnimationController _shakeController;
@@ -714,7 +714,7 @@ class _TimerWidgetState extends State<TimerWidget>
 
   bool showPersistentSheet = false;
   void Function()? _updateModalCallback;
-  int? currentAlarmId; // Track current alarm ID
+  int? currentAlarmId;
   // Track when the current countdown should complete (wall-clock). Used to detect completion when app is backgrounded
   DateTime? _expectedEndTime;
   @override
@@ -726,8 +726,10 @@ class _TimerWidgetState extends State<TimerWidget>
     pickerMinutes = duration.inMinutes;
     pickerSeconds = duration.inSeconds.remainder(60);
 
-    minuteController = TextEditingController(text: formatDurationMMOnly(duration));
-    secondsController = TextEditingController(text: formatDurationSSOnly(duration));
+    minuteController =
+        TextEditingController(text: formatDurationMMOnly(duration));
+    secondsController =
+        TextEditingController(text: formatDurationSSOnly(duration));
 
     _shakeController = AnimationController(
       duration: const Duration(milliseconds: 500),
@@ -867,7 +869,7 @@ class _TimerWidgetState extends State<TimerWidget>
       complete = false;
       showTimeUpOverlay = false;
       showPersistentSheet = false;
-      showCompletionText = false; // Reset completion text visibility
+      showCompletionText = false;
       _expectedEndTime = null;
     });
     _shakeController.reset();
@@ -896,7 +898,7 @@ class _TimerWidgetState extends State<TimerWidget>
     _startTimer();
     _expectedEndTime = DateTime.now().add(remaining);
 
-    if(!mounted) return;
+    if (!mounted) return;
     showModalBottomSheet(
       backgroundColor: Colors.transparent,
       context: context,
@@ -1009,8 +1011,6 @@ class _TimerWidgetState extends State<TimerWidget>
       _refreshModal();
     }
   }
-
-  // === Audio/Alarm ===
 
   Future<void> stopAlarm() async {
     await Alarm.stopAll();
