@@ -67,17 +67,8 @@ class _StudyIncentivesState extends State<StudyIncentives> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: IconButton(
-                              onPressed: () => Navigator.pop(context),
-                              icon: const Icon(
-                                CupertinoIcons.clear,
-                                color: CustomColors.yellowDark,
-                                size: 20,
-                              )),
-                        ),
+                      const Expanded(
+                        child: SizedBox(),
                       ),
                       Expanded(
                         flex: 2,
@@ -88,9 +79,18 @@ class _StudyIncentivesState extends State<StudyIncentives> {
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      const Expanded(
-                        child: SizedBox(),
-                      )
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: IconButton(
+                              onPressed: () => Navigator.pop(context),
+                              icon: const Icon(
+                                CupertinoIcons.clear,
+                                color: CustomColors.yellowDark,
+                                size: 20,
+                              )),
+                        ),
+                      ),
                     ],
                   ),
                   //Days active
@@ -127,17 +127,16 @@ class _StudyIncentivesState extends State<StudyIncentives> {
 
   Widget header() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          formatMoney(acquired,
-              currency: widget.studies.first.incentive.currency),
-          style: CustomTypography().headlineLargeCustom(
-              color: CustomColors.yellowDark, fontSize: 64.sp),
-        ),
-        Text(
-          "Current Incentive",
-          style: CustomTypography().titleSmall(color: CustomColors.yellowDark),
+        Center(
+          child: Text(
+            formatMoney(acquired,
+                currency: widget.studies.first.incentive.currency),
+            style: CustomTypography().headlineLargeCustom(
+                color: CustomColors.yellowDark, fontSize: 64.sp),
+          ),
         ),
       ],
     );
@@ -411,7 +410,10 @@ class _StudyIncentiveState extends State<StudyIncentive> {
   Widget progress() {
     final width = MediaQuery.of(context).size.width;
     final color = widget.study.color;
-
+    final bonusAvailable = widget.study.incentive.bonus > 0;
+    final bonusXTotalEntries =
+        (bonusEntriesRequired / totalEntriesRequired) * 100;
+    final showtwoIcons = bonusXTotalEntries >= 95;
     return SizedBox(
       width: width,
       child: Column(
@@ -431,16 +433,51 @@ class _StudyIncentiveState extends State<StudyIncentive> {
               height: 45,
               child: Stack(
                 children: [
+                  //BONUS
+                  _bonus >= max
+                      ? const SizedBox.shrink()
+                      : bonusAvailable
+                          ? Positioned(
+                              left: _bonus,
+                              top: 5,
+                              child: showtwoIcons
+                                  ? SizedBox.shrink()
+                                  : Image.asset(
+                                      'assets/images/icons/Flag.png',
+                                      width: 20,
+                                      height: 20,
+                                      color: color,
+                                    ))
+                          : const SizedBox.shrink(),
+                  //Completion
+                  Positioned(
+                    left: showtwoIcons ? max - 33 : max - 20,
+                    top: showtwoIcons ? 0.3 : 5,
+                    child: showtwoIcons
+                        ? Image.asset(
+                            'assets/images/icons/Trophy&Flag.png',
+                            width: 40.34,
+                            height: 28.45,
+                            color: color,
+                          )
+                        : Icon(Icons.emoji_events_rounded,
+                            color: color, size: 20),
+                  ),
+
                   //PROGRESS BAR BACKGROUND
                   Align(
                     alignment: Alignment.center,
                     child: Container(
-                      width: max,
                       height: 6,
-                      constraints: const BoxConstraints(maxHeight: 6),
-                      decoration: BoxDecoration(
-                        color: color?.withAlpha(90),
-                        borderRadius: BorderRadius.circular(27),
+                      decoration: BoxDecoration(color: CustomColors.fillWhite),
+                      child: Container(
+                        width: max,
+                        height: 6,
+                        constraints: const BoxConstraints(maxHeight: 6),
+                        decoration: BoxDecoration(
+                          color: color?.withAlpha(90),
+                          borderRadius: BorderRadius.circular(27),
+                        ),
                       ),
                     ),
                   ),
@@ -456,48 +493,34 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                       ),
                     ),
                   ),
-
-                  //BONUS
-                  _bonus >= max
-                      ? const SizedBox.shrink()
-                      : Positioned(
-                          left: _bonus,
-                          top: 0,
-                          child: Icon(CupertinoIcons.flag_fill,
-                              color: color, size: 17),
-                        ),
-                  //Completion
-                  Positioned(
-                    left: max - 20,
-                    top: 0,
-                    child: Icon(Icons.emoji_events_rounded,
-                        color: color, size: 20),
-                  ),
                 ],
               ),
             );
           }),
           // Keys
           // Bonus
-          Row(
-            spacing: 2,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(
-                CupertinoIcons.flag_fill,
-                size: 18,
-                color: color,
-              ),
-              Expanded(
-                child: Text("Get Your Bonus",
-                    style: CustomTypography()
-                        .bodyMedium(color: CustomColors.textNormalContent)),
-              ),
-              Text("$completed/$bonusEntriesRequired",
-                  style: CustomTypography()
-                      .bodyMedium(color: CustomColors.textNormalContent)),
-            ],
-          ),
+          bonusAvailable
+              ? Row(
+                  spacing: 2,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Image.asset(
+                      'assets/images/icons/Flag.png',
+                      width: 18,
+                      height: 18,
+                      color: color,
+                    ),
+                    Expanded(
+                      child: Text("Get Your Bonus",
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textNormalContent)),
+                    ),
+                    Text("$completed/$bonusEntriesRequired",
+                        style: CustomTypography()
+                            .bodyMedium(color: CustomColors.textNormalContent)),
+                  ],
+                )
+              : SizedBox.shrink(),
 
           // Total
           Row(
