@@ -719,6 +719,7 @@ class _QuestionPageState extends State<QuestionPage>
 
     switch (prompt1.responseType) {
       case ResponseType.instruction:
+        save(prompt1, 'read', 'other', 0);
         isValidResponse = true;
         break;
       case ResponseType.audio:

@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/daily_goal_service.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
@@ -57,13 +58,14 @@ Widget createTestableWidget(MockHomeCubit mockHomeCubit) {
 }
 
 HomeLoaded createHomeLoadedState({
-  List<DiaryModel>? diaries,
-  List<DiaryModel>? weeksDiaries,
+  TodaysData? todaysData,
+  WeeklyData? weeklyData,
   bool available = false,
   List<StudyModel>? studies,
   List<StudyModel>? allStudies,
   int entries = 0,
   bool finished = true,
+  Map<StudyModel, DailyGoalData>? goalData,
 }) {
   final dummyStudy = StudyModel(
     id: 1,
@@ -92,14 +94,36 @@ HomeLoaded createHomeLoadedState({
     submissions: [],
   );
 
+  // Key change: Use empty diaries list when available is false
+  final diariesList = available ? [dummyDiary] : <DiaryModel>[];
+
+  final actualTodaysData =
+      todaysData ?? TodaysData(diaries: diariesList, studies: [dummyStudy]);
+
+  final actualWeeklyData = weeklyData ??
+      WeeklyData(
+        diaries: diariesList,
+        studies: [dummyStudy],
+        totalEntries: entries,
+      );
+
+  final actualGoalData = goalData ??
+      <StudyModel, DailyGoalData>{
+        dummyStudy: DailyGoalData(
+          diaries: diariesList,
+          completed: 0,
+          target: 1,
+          progress: 0.0,
+        ),
+      };
+
   return HomeLoaded(
-    diaries ?? [dummyDiary],
-    weeksDiaries ?? [dummyDiary],
-    available,
-    studies ?? [dummyStudy],
-    allStudies ?? [dummyStudy],
-    entries,
-    finished,
+    todaysData: actualTodaysData,
+    weeklyData: actualWeeklyData,
+    allStudies: allStudies ?? [dummyStudy],
+    weeklyEntries: entries,
+    isFinished: finished,
+    goalData: actualGoalData,
   );
 }
 
@@ -122,11 +146,11 @@ void setupCommonCubitMocks(MockHomeCubit cubit) {
 }
 
 Future<void> pumpHomePageWithState(
-    WidgetTester tester, {
-      required HomeState state,
-      required MockHomeCubit cubit,
-      bool waitForSettle = true,
-    }) async {
+  WidgetTester tester, {
+  required HomeState state,
+  required MockHomeCubit cubit,
+  bool waitForSettle = true,
+}) async {
   when(() => cubit.state).thenReturn(state);
   when(() => cubit.stream).thenAnswer((_) => Stream.value(state));
 
@@ -149,26 +173,50 @@ void main() {
 
   group('HomePage Widget', () {
     testWidgets(
-        'Displays FreeDayWidget when available = false & finished = false',
-        (tester) async {
-      await pumpHomePageWithState(
-        tester,
-        state: createHomeLoadedState(available: false, finished: false),
-        cubit: mockHomeCubit,
-        waitForSettle: true,
-      );
+      'Displays FreeDayWidget when available = false & finished = false',
+      (tester) async {
+        // Create state with no diaries for today
+        final emptyTodaysData = TodaysData(diaries: [], studies: []);
+        final emptyWeeklyData =
+            WeeklyData(diaries: [], studies: [], totalEntries: 0);
 
-      expect(find.byType(FreeDayWidget), findsOneWidget);
-      expect(find.byType(EndStateWidget), findsNothing);
-      expect(find.text("Today's Entries"), findsOneWidget);
-    });
+        await pumpHomePageWithState(
+          tester,
+          state: createHomeLoadedState(
+            todaysData: emptyTodaysData,
+            weeklyData: emptyWeeklyData,
+            goalData: {},
+            available: false,
+            finished: false,
+          ),
+          cubit: mockHomeCubit,
+          waitForSettle: true,
+        );
+
+        expect(find.byType(FreeDayWidget), findsOneWidget);
+        expect(find.byType(EndStateWidget), findsNothing);
+        expect(find.text("Today's Entries"), findsOneWidget);
+      },
+    );
 
     testWidgets(
         'Displays EndStateWidget when available = false & finished = true',
         (tester) async {
+      // Create empty but valid data structures
+      final emptyTodaysData = TodaysData(diaries: [], studies: []);
+      final emptyWeeklyData =
+          WeeklyData(diaries: [], studies: [], totalEntries: 0);
+
       await pumpHomePageWithState(
         tester,
-        state: createHomeLoadedState(available: false, finished: true),
+        state: HomeLoaded(
+          todaysData: emptyTodaysData,
+          weeklyData: emptyWeeklyData,
+          allStudies: [],
+          weeklyEntries: 0,
+          isFinished: true,
+          goalData: {}, // Empty goal data to avoid TodayGoalWidget rendering
+        ),
         cubit: mockHomeCubit,
         waitForSettle: true,
       );
@@ -177,21 +225,13 @@ void main() {
       expect(find.byType(FreeDayWidget), findsNothing);
     });
 
-    testWidgets("Displays 'Today's Entries'", (tester) async {
-      await pumpHomePageWithState(
-        tester,
-        state: createHomeLoadedState(),
-        cubit: mockHomeCubit,
-        waitForSettle: true,
-      );
-
-      expect(find.text("Today's Entries"), findsOneWidget);
-    });
-
     testWidgets("Displays 'Weekly Goal'", (tester) async {
       await pumpHomePageWithState(
         tester,
-        state: createHomeLoadedState(),
+        state: createHomeLoadedState(
+          available: true,
+          goalData: {}, // Empty goal data to avoid TodayGoalWidget rendering)
+        ),
         cubit: mockHomeCubit,
         waitForSettle: true,
       );
@@ -224,7 +264,10 @@ void main() {
     testWidgets('Shows weekly goal widget when icon is tapped', (tester) async {
       await pumpHomePageWithState(
         tester,
-        state: createHomeLoadedState(),
+        state: createHomeLoadedState(
+          available: true,
+          goalData: {}, // Empty goal data to avoid TodayGoalWidget rendering)
+        ),
         cubit: mockHomeCubit,
         waitForSettle: true,
       );
@@ -247,7 +290,10 @@ void main() {
     testWidgets('Shows calendar icon in app bar', (tester) async {
       await pumpHomePageWithState(
         tester,
-        state: createHomeLoadedState(),
+        state: createHomeLoadedState(
+          available: true,
+          goalData: {}, // Empty goal data to avoid TodayGoalWidget rendering)
+        ),
         cubit: mockHomeCubit,
         waitForSettle: true,
       );
@@ -255,16 +301,17 @@ void main() {
       expect(find.byIcon(Icons.calendar_month), findsOneWidget);
     });
 
-    testWidgets('Hides TodayGoalWidget when available is false',
-        (tester) async {
-      await pumpHomePageWithState(
-        tester,
-        state: createHomeLoadedState(available: false),
-        cubit: mockHomeCubit,
-        waitForSettle: true,
-      );
+    // !Removing as TodayGoal is visible all the time
+    // testWidgets('Hides TodayGoalWidget when available is false',
+    //     (tester) async {
+    //   await pumpHomePageWithState(
+    //     tester,
+    //     state: createHomeLoadedState(available: false),
+    //     cubit: mockHomeCubit,
+    //     waitForSettle: true,
+    //   );
 
-      expect(find.byType(TodayGoalWidget), findsNothing);
-    });
+    //   expect(find.byType(TodayGoalWidget), findsNothing);
+    // });
   });
 }

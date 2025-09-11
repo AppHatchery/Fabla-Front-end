@@ -88,7 +88,7 @@ void main() {
               .called(1);
           verify(() => mockDiaryRepository.getRangeDiaries(any(), any()))
               .called(1);
-          verify(() => mockDiaryRepository.getStudies(any())).called(1);
+          verify(() => mockDiaryRepository.getStudies(any())).called(2);
           verify(() => mockDiaryRepository.getAllStudiesWithColor()).called(1);
         },
       );
@@ -118,13 +118,19 @@ void main() {
         ],
         verify: (cubit) {
           final state = cubit.state as HomeLoaded;
-          expect(state.diaries, isNotEmpty);
-          expect(state.weeksDiaries, isNotEmpty);
-          expect(state.available, isTrue);
-          expect(state.studies, isNotEmpty);
+          expect(state.todaysData.diaries, isNotEmpty);
+          expect(state.weeklyData.diaries, isNotEmpty);
           expect(state.allStudies, isNotEmpty);
-          expect(state.entries, equals(5));
-          expect(state.finished, isFalse); // Has future diaries
+          expect(state.weeklyEntries, equals(5));
+          expect(state.isFinished, isFalse); // Has future diaries
+          expect(state.goalData, isNotEmpty);
+
+          // Test computed properties
+          expect(state.hasAvailableDiaries, isTrue);
+          expect(state.shouldShowGoalWidget, isTrue);
+          expect(state.shouldShowDiaryList, isTrue);
+          expect(state.shouldShowEndState, isFalse);
+          expect(state.shouldShowFreeDay, isFalse);
         },
       );
 
@@ -153,7 +159,7 @@ void main() {
         ],
         verify: (cubit) {
           final state = cubit.state as HomeLoaded;
-          expect(state.finished, isTrue); // No future diaries
+          expect(state.isFinished, isTrue); // No future diaries
         },
       );
 
@@ -195,13 +201,19 @@ void main() {
         ],
         verify: (cubit) {
           final state = cubit.state as HomeLoaded;
-          expect(state.diaries, isEmpty);
-          expect(state.weeksDiaries, isEmpty);
-          expect(state.available, isFalse);
-          expect(state.studies, isEmpty);
+          expect(state.todaysData.diaries, isEmpty);
+          expect(state.weeklyData.diaries, isEmpty);
           expect(state.allStudies, isEmpty);
-          expect(state.entries, equals(0));
-          expect(state.finished, isTrue); // No diaries = finished
+          expect(state.weeklyEntries, equals(0));
+          expect(state.isFinished, isTrue); // No diaries = finished
+          expect(state.goalData, isEmpty);
+
+          // Test computed properties
+          expect(state.hasAvailableDiaries, isFalse);
+          expect(state.shouldShowGoalWidget, isFalse);
+          expect(state.shouldShowDiaryList, isFalse);
+          expect(state.shouldShowEndState, isTrue);
+          expect(state.shouldShowFreeDay, isFalse);
         },
       );
     });
