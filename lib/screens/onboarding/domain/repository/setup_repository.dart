@@ -200,7 +200,7 @@ class SetupRepository {
           dev.log("No new or changed diaries to update", name: "Get Studies");
           return true;
         }
-        //delete diary(s) which have been updated and are not in the API response (local copy)
+        //delete duplicated diaries from the local database to avoid duplicates
         final keysToDelete = mergedDiaries
             .map((d) =>
                 '${d.studyID}_${d.name}_${d.start.toIso8601String()}_${d.end.toIso8601String()}')
