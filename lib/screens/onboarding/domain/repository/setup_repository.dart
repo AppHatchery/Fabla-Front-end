@@ -308,29 +308,20 @@ class SetupRepository {
   DiaryModel _mergeDiaryContents(
       DiaryModel newDiary, DiaryModel existingDiary) {
     return DiaryModel(
-      id: existingDiary.id,
+      id: newDiary.id,
       studyID: newDiary.studyID,
       name: newDiary.name,
       prompts: newDiary.prompts,
       tags: newDiary.tags,
-      // checks which status to preserve
-      status: _determineStatus(existingDiary.status, newDiary.status),
+      status: existingDiary.status,
       due: newDiary.due,
       start: newDiary.start,
       end: newDiary.end,
       entries: newDiary.entries,
-      // Preserve the current entry from the existing diary
-      currentEntry: max(existingDiary.currentEntry, newDiary.currentEntry),
+      currentEntry: existingDiary.currentEntry,
       notifications: newDiary.notifications,
       activeDays: newDiary.activeDays,
     );
-  }
-
-  // Determines the status of a diary based on the old and new statuses.
-  DiaryStatus _determineStatus(DiaryStatus oldStatus, DiaryStatus newStatus) {
-    // Preserve completed and ongoing status - user shouldn't lose completed/ongoing work
-    if (oldStatus == DiaryStatus.complete || oldStatus == DiaryStatus.ongoing) return oldStatus;
-    return newStatus;
   }
 
   ExperimentModel getExperiment() {
