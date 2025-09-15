@@ -2524,73 +2524,16 @@ class _BottomTimerModalState extends State<BottomTimerModal>
   }
 
   Widget _buildTimerControls() {
-    return Positioned(
-      top: 620.63,
-      bottom: 169.37,
-      right: 74,
-      left: widget.playbackControls ? null : 74,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          GestureDetector(
-            onTap: widget.onClose,
-            child: Container(
-              width: 64,
-              height: 64,
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                border: Border.all(
-                  color: CustomColors.fillWhite,
-                ),
-                borderRadius: BorderRadius.circular(100.0),
-              ),
-              child: Icon(
-                Icons.close,
-                size: 24,
-                color: CustomColors.fillWhite,
-              ),
-            ),
-          ),
-          SizedBox(width: 37),
-          if (widget.playbackControls || widget.showTimeUpOverlay) ...[
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 100),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
             GestureDetector(
-              onTap: widget.showTimeUpOverlay
-                  ? widget.onStop
-                  : widget.onPauseResume,
-              child: Container(
-                width: 80,
-                height: 80,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
-                decoration: BoxDecoration(
-                    color: CustomColors.fillWhite,
-                    border: Border.all(
-                      color: CustomColors.productLightBackground,
-                    ),
-                    shape: BoxShape.circle),
-                child: Center(
-                  child: Icon(
-                    widget.showTimeUpOverlay
-                        ? CupertinoIcons.checkmark_alt
-                        : (widget.isRunning && !widget.isPaused)
-                            ? CupertinoIcons.pause_fill
-                            : CupertinoIcons.play_fill,
-                    size: 40,
-                    color: widget.showTimeUpOverlay
-                        ? CustomColors.productNormal
-                        : (widget.isRunning && !widget.isPaused)
-                            ? CustomColors.warningActive
-                            : CustomColors.productNormal,
-                  ),
-                ),
-              ),
-            )
-          ],
-          SizedBox(width: 37),
-          if (widget.playbackControls) ...[
-            GestureDetector(
-              onTap: widget.onRestart,
+              onTap: widget.onClose,
               child: Container(
                 width: 64,
                 height: 64,
@@ -2598,19 +2541,76 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                 decoration: BoxDecoration(
                   color: Colors.transparent,
                   border: Border.all(
-                    color: CustomColors.productLightBackground,
+                    color: CustomColors.fillWhite,
                   ),
-                  borderRadius: BorderRadius.circular(100),
+                  borderRadius: BorderRadius.circular(100.0),
                 ),
                 child: Icon(
-                  Icons.refresh_rounded,
+                  Icons.close,
                   size: 24,
                   color: CustomColors.fillWhite,
                 ),
               ),
-            )
+            ),
+            SizedBox(width: 37),
+            if (widget.playbackControls || widget.showTimeUpOverlay) ...[
+              GestureDetector(
+                onTap: widget.showTimeUpOverlay
+                    ? widget.onStop
+                    : widget.onPauseResume,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+                  decoration: BoxDecoration(
+                      color: CustomColors.fillWhite,
+                      border: Border.all(
+                        color: CustomColors.productLightBackground,
+                      ),
+                      shape: BoxShape.circle),
+                  child: Center(
+                    child: Icon(
+                      widget.showTimeUpOverlay
+                          ? CupertinoIcons.checkmark_alt
+                          : (widget.isRunning && !widget.isPaused)
+                              ? CupertinoIcons.pause_fill
+                              : CupertinoIcons.play_fill,
+                      size: 40,
+                      color: widget.showTimeUpOverlay
+                          ? CustomColors.productNormal
+                          : (widget.isRunning && !widget.isPaused)
+                              ? CustomColors.warningActive
+                              : CustomColors.productNormal,
+                    ),
+                  ),
+                ),
+              )
+            ],
+            SizedBox(width: 37),
+            if (widget.playbackControls) ...[
+              GestureDetector(
+                onTap: widget.onRestart,
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    border: Border.all(
+                      color: CustomColors.productLightBackground,
+                    ),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Icon(
+                    Icons.refresh_rounded,
+                    size: 24,
+                    color: CustomColors.fillWhite,
+                  ),
+                ),
+              )
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
