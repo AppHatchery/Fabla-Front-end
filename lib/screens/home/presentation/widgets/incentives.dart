@@ -580,6 +580,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
   }
 
   Widget helpDialog() {
+    final bonusAvailable = widget.study.incentive.bonus > 0;
     return SimpleDialog(
       contentPadding: const EdgeInsets.all(0),
       titlePadding: const EdgeInsets.all(0),
@@ -636,7 +637,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                             style: CustomTypography().bodyMedium()),
                       ],
                     ),
-                    Row(
+                    bonusAvailable ? Row(
                       children: [
                         Expanded(
                             child: Text(
@@ -647,7 +648,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                                 currency: currency),
                             style: CustomTypography().bodyMedium()),
                       ],
-                    ),
+                    ) : SizedBox.shrink(),
                   ],
                 ),
               ),
