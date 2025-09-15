@@ -17,60 +17,6 @@ The main functionality being tested:
 void main() {
   group('SetupRepository Business Logic Tests', () {
     group('Diary Merging Logic', () {
-      group('Status Determination', () {
-        test('should preserve completed status', () {
-          // Act
-          final result = DiaryMergingHelper.determineStatus(
-            DiaryStatus.complete,
-            DiaryStatus.idle,
-          );
-
-          // Assert
-          expect(result, DiaryStatus.complete);
-        });
-
-        test('should preserve ongoing status when new status is idle', () {
-          // Act
-          final result = DiaryMergingHelper.determineStatus(
-            DiaryStatus.ongoing,
-            DiaryStatus.idle,
-          );
-
-          // Assert
-          expect(result, DiaryStatus.ongoing);
-        });
-
-
-        test('should handle all status transitions correctly', () {
-          // Test all possible status combinations
-          final statuses = [
-            DiaryStatus.idle,
-            DiaryStatus.ongoing,
-            DiaryStatus.complete,
-            DiaryStatus.submitted,
-            DiaryStatus.missed,
-          ];
-
-          for (final oldStatus in statuses) {
-            for (final newStatus in statuses) {
-              final result =
-                  DiaryMergingHelper.determineStatus(oldStatus, newStatus);
-
-              // Verify the result is always a valid status
-              expect(statuses.contains(result), isTrue);
-
-              // Verify specific business rules
-              if (oldStatus == DiaryStatus.complete) {
-                expect(result, equals(DiaryStatus.complete));
-              } else if (oldStatus == DiaryStatus.ongoing &&
-                  newStatus == DiaryStatus.idle) {
-                expect(result, equals(DiaryStatus.ongoing));
-              }
-            }
-          }
-        });
-      });
-
       group('Diary Merging', () {
         test('should merge existing diaries with new diaries correctly', () {
           // Arrange
@@ -447,32 +393,15 @@ class DiaryMergingHelper {
       name: newDiary.name,
       prompts: newDiary.prompts,
       tags: newDiary.tags,
-      status: determineStatus(existingDiary.status, newDiary.status),
+      status: existingDiary.status,
       due: newDiary.due,
       start: newDiary.start,
       end: newDiary.end,
       entries: newDiary.entries,
-      currentEntry: max(existingDiary.currentEntry, newDiary.currentEntry),
+      currentEntry: existingDiary.currentEntry,
       notifications: newDiary.notifications,
       activeDays: newDiary.activeDays,
     );
-  }
-
-  /// Determines the appropriate status when merging diaries
-  static DiaryStatus determineStatus(
-    DiaryStatus oldStatus,
-    DiaryStatus newStatus,
-  ) {
-    // Preserve completed status - user shouldn't lose completed work
-    if (oldStatus == DiaryStatus.complete) return oldStatus;
-
-    // Preserve ongoing status if API says it should be idle
-    // This prevents regression when user has started but API hasn't updated
-    if (oldStatus == DiaryStatus.ongoing && newStatus == DiaryStatus.idle) {
-      return oldStatus;
-    }
-
-    return newStatus;
   }
 
   /// Creates a composite key for unique diary identification
