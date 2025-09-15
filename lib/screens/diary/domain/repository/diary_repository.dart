@@ -754,8 +754,7 @@ class DiaryRepository {
   }
 
   /// Deletes all diaries that match any of the composite keys provided
-  void deleteDiariesByKey(Set<String> keysToDelete) {
-    final all = getAllDiaries();
+  void deleteDiariesByKey(Set<String> keysToDelete, List<DiaryModel> all) {
 
     final toDelete = all
         .where((diary) {

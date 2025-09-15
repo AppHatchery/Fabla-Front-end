@@ -205,7 +205,7 @@ class SetupRepository {
             .map((d) =>
                 '${d.studyID}_${d.name}_${d.start.toIso8601String()}_${d.end.toIso8601String()}')
             .toSet();
-        diaryRepository.deleteDiariesByKey(keysToDelete);
+        diaryRepository.deleteDiariesByKey(keysToDelete, localDiaries);
 
         // Convert diaries to entities and map prompts to their models
         final entities = mergedDiaries.map((model) {
@@ -280,8 +280,6 @@ class SetupRepository {
     };
 
     final result = <DiaryModel>[];
-    final processedKeys = <String>{};
-    final now = DateTime.now();
 
     // Process incoming diaries first - O(n)
     for (final newDiary in newDiaries) {
@@ -302,9 +300,7 @@ class SetupRepository {
         result.add(newDiary);
         dev.log("Added new diary: ${newDiary.name}", name: " Diary Merge");
       }
-      processedKeys.add(key);
     }
-
     return result;
   }
 
