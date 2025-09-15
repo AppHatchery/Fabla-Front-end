@@ -752,4 +752,23 @@ class DiaryRepository {
     final result = _diaryDAO.deleteDiaries(filtered);
     return result > 0 ? true : false;
   }
+
+  /// Deletes all diaries that match any of the composite keys provided
+  void deleteDiariesByKey(Set<String> keysToDelete, List<DiaryModel> all) {
+
+    final toDelete = all
+        .where((diary) {
+          final key =
+              '${diary.studyID}_${diary.name}_${diary.start.toIso8601String()}_${diary.end.toIso8601String()}';
+          return keysToDelete.contains(key);
+        })
+        .map((model) => Diary.fromModel(model))
+        .toList();
+
+    for (final diary in toDelete) {
+      NotificationManager().cancelDiaryNotifications(diary.id);
+    }
+
+    _diaryDAO.deleteDiaries(toDelete);
+  }
 }
