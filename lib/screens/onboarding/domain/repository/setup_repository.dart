@@ -332,14 +332,8 @@ class SetupRepository {
 
   // Determines the status of a diary based on the old and new statuses.
   DiaryStatus _determineStatus(DiaryStatus oldStatus, DiaryStatus newStatus) {
-    // Preserve completed status - user shouldn't lose completed work
-    if (oldStatus == DiaryStatus.complete) return oldStatus;
-
-    // Preserve ongoing status if API says it should be idle
-    // This prevents regression when user has started but API hasn't updated
-    if (oldStatus == DiaryStatus.ongoing && newStatus == DiaryStatus.idle) {
-      return oldStatus;
-    }
+    // Preserve completed and ongoing status - user shouldn't lose completed/ongoing work
+    if (oldStatus == DiaryStatus.complete || oldStatus == DiaryStatus.ongoing) return oldStatus;
     return newStatus;
   }
 

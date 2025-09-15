@@ -88,13 +88,16 @@ class DiaryModel implements Comparable<DiaryModel> {
                   Notification.fromJson(e, DateTime.parse(json['start_time'])))
               .toList() ??
           [],
-      activeDays: (json['active_days'])?.cast<int>(),
+      activeDays: (json['active_days'] as List<dynamic>?)?.map((e) {
+        final day = e as int;
+        return day == 0 ? 7 : day;
+      }).toList(),
     );
   }
 
   DiaryModel copyWith({
-    int? id,
-    int? studyID,
+    required int id,
+    required int studyID,
     String? name,
     List<PromptModel>? prompts,
     List<Tag>? tags,
@@ -108,8 +111,8 @@ class DiaryModel implements Comparable<DiaryModel> {
     List<int>? activeDays,
   }) {
     return DiaryModel(
-      id: id ?? this.id,
-      studyID: studyID ?? this.studyID,
+      id: id,
+      studyID: studyID,
       name: name ?? this.name,
       prompts: prompts ?? this.prompts,
       tags: tags ?? this.tags,
