@@ -163,6 +163,88 @@ class CustomElevatedIconButton extends StatelessWidget {
   }
 }
 
+class CustomIconButtonWithTextButton extends StatelessWidget {
+  final VoidCallback? onClick;
+  final IconData icon;
+  final String text;
+  final Color color;
+  final Color shadowColor;
+  final Color iconColor;
+  final Border border;
+  final double? elevation;
+  final bool isDisabled;
+  final Color? textColor;
+
+  const CustomIconButtonWithTextButton({
+    super.key,
+    required this.onClick,
+    required this.icon,
+    required this.text,
+    this.color = CustomColors.productNormal,
+    this.shadowColor = CustomColors.productNormalActive,
+    this.iconColor = CustomColors.fillWhite,
+    this.border = const Border(),
+    this.elevation = 0,
+    this.isDisabled = false,
+    this.textColor
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textScale = MediaQuery.of(context).textScaler.scale(1);
+    final double iconSize = (24 * textScale).clamp(24.0, 48.0);
+    return Material(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6.0),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(12),
+            border: border,
+            boxShadow: [
+              BoxShadow(
+                color: shadowColor,
+                blurRadius: 0,
+                offset: Offset(0, elevation!),
+              ),
+            ],
+            shape: BoxShape.rectangle,
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: isDisabled
+                ? null
+                : () => {
+                      if (onClick != null) {onClick!()}
+                    },
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 4.0, vertical: 12.0),
+              child: Center(
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: iconColor,
+                      size: iconSize,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(text.toString(),
+                      style: CustomTypography().button(
+                        color: isDisabled
+                            ? CustomColors.textTertiaryContent
+                            : textColor ?? CustomColors.fillWhite,
+                      )),
+                ],
+              )),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Custom button with no elevation.
 ///
 /// [onClick] is the callback function when the button is clicked.
