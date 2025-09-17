@@ -200,6 +200,9 @@ class SetupRepository {
           dev.log("No new or changed diaries to update", name: "Get Studies");
           return true;
         }
+        // clear notification pipeline before adding diaries
+        removeNotificationsBeforeAddingDiaries();
+
         //delete duplicated diaries from the local database to avoid duplicates
         final keysToDelete = mergedDiaries
             .map((d) =>
@@ -256,7 +259,7 @@ class SetupRepository {
   }
 
   /// Cleans up any existing notifications and pending notifications before updating the experiment.
-  Future<void> cleanupBeforeUpdate() async {
+  Future<void> removeNotificationsBeforeAddingDiaries() async {
     try {
       // Cancel existing notifications first
       await NotificationService.cancelAllNotifications();
