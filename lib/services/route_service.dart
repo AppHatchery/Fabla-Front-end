@@ -11,6 +11,8 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/logi
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/participant_details.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/study_login.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welcome.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
 
@@ -535,5 +537,218 @@ class RouteService {
       ),
       result: result,
     );
+  }
+}
+
+/// A custom Navigator observer that tracks screen navigation events and integrates with Crashlytics.
+/// This observer monitors all navigation operations within the Flutter application and maintains
+/// a record of current and previous screens for debugging and analytics purposes.
+///
+/// Features:
+/// - Tracks current and previous screen names globally
+/// - Automatically logs navigation events to Crashlytics
+/// - Handles all types of route operations (push, pop, replace, remove)
+/// - Provides fallback screen name extraction for unnamed routes
+/// - Static accessors for easy access to screen context from anywhere in the app
+///
+/// Usage:
+/// Add this observer to your MaterialApp or similar:
+/// ```dart
+/// MaterialApp(
+///   navigatorObservers: [CustomNavigatorObserver()],
+///   // ... other properties
+/// )
+///
+/// // Access current screen from anywhere:
+/// String current = CustomNavigatorObserver.currentScreen;
+/// String previous = CustomNavigatorObserver.previousScreen;
+/// ```
+///
+/// Note:
+/// This observer automatically integrates with CrashlyticsService to provide
+/// navigation context in crash reports and error logs.
+///
+class CustomNavigatorObserver extends NavigatorObserver {
+  static String _currentScreen = 'Unknown';
+  static String _previousScreen = 'Unknown';
+
+  /// Get the current screen name
+  static String get currentScreen => _currentScreen;
+
+  /// Get the previous screen name
+  static String get previousScreen => _previousScreen;
+
+  /// Handles route pop operations when a screen is removed from the navigation stack.
+  /// This method is called when the user navigates back or when a route is programmatically
+  /// popped from the navigation stack.
+  ///
+  /// Parameters:
+  /// - [route]: The route that was popped/removed from the stack
+  /// - [previousRoute]: The route that becomes active after the pop operation
+  ///
+  /// The method updates the current screen tracking to reflect the navigation change
+  /// and logs the event to Crashlytics for debugging purposes.
+  ///
+  @override
+  void didPop(Route route, Route? previousRoute) {
+    super.didPop(route, previousRoute);
+    if (previousRoute != null) {
+      _updateCurrentScreen(previousRoute, route);
+    }
+  }
+
+  /// Handles route push operations when a new screen is added to the navigation stack.
+  /// This method is called when a new screen is navigated to, either through
+  /// Navigator.push() or similar navigation methods.
+  ///
+  /// Parameters:
+  /// - [route]: The new route that was pushed onto the navigation stack
+  /// - [previousRoute]: The route that was previously active before the push
+  ///
+  /// The method updates screen tracking to reflect the new current screen
+  /// and maintains the previous screen reference for context.
+  ///
+  @override
+  void didPush(Route route, Route? previousRoute) {
+    super.didPush(route, previousRoute);
+    _updateCurrentScreen(route, previousRoute);
+  }
+
+  /// Handles route replacement operations when one route is substituted for another.
+  /// This method is called when a route is replaced in place, such as when using
+  /// Navigator.pushReplacement() or similar replacement navigation methods.
+  ///
+  /// Parameters:
+  /// - [newRoute]: The new route that replaces the old route
+  /// - [oldRoute]: The route that was replaced and removed from the stack
+  ///
+  /// The method updates screen tracking to reflect the route replacement
+  /// and logs the navigation change to Crashlytics.
+  ///
+  @override
+  void didReplace({Route? newRoute, Route? oldRoute}) {
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+    if (newRoute != null) {
+      _updateCurrentScreen(newRoute, oldRoute);
+    }
+  }
+
+  /// Handles route removal operations when a route is removed from the navigation stack.
+  /// This method is called when a route is removed from the stack without being
+  /// the top route, such as when removing intermediate routes.
+  ///
+  /// Parameters:
+  /// - [route]: The route that was removed from the navigation stack
+  /// - [previousRoute]: The route that remains active after the removal
+  ///
+  /// The method updates screen tracking if the removal affects the current
+  /// active screen and logs the change for debugging purposes.
+  ///
+  @override
+  void didRemove(Route route, Route? previousRoute) {
+    super.didRemove(route, previousRoute);
+    if (previousRoute != null) {
+      _updateCurrentScreen(previousRoute, route);
+    }
+  }
+
+  /// Updates the internal screen tracking state and logs navigation events.
+  /// This internal method handles the core logic of updating current and previous
+  /// screen references, and triggers Crashlytics logging for navigation events.
+  ///
+  /// Parameters:
+  /// - [route]: The route that is becoming the current/active route
+  /// - [previousRoute]: The route that was previously active (optional)
+  ///
+  /// The method performs the following operations:
+  /// - Extracts screen names from route objects
+  /// - Updates internal state only if screen actually changed
+  /// - Maintains previous screen reference for context
+  /// - Triggers Crashlytics navigation logging
+  ///
+  /// Note:
+  /// This method includes logic to avoid duplicate logging when the screen
+  /// name hasn't actually changed between navigation events.
+  ///
+  void _updateCurrentScreen(
+      Route<dynamic> route, Route<dynamic>? previousRoute) {
+    final screenName = _getScreenName(route);
+    final previousScreenName =
+        previousRoute != null ? _getScreenName(previousRoute) : _previousScreen;
+
+    if (screenName != _currentScreen) {
+      _previousScreen = _currentScreen;
+      _currentScreen = screenName;
+
+      _logNavigationToCrashlytics(previousScreenName, screenName);
+    }
+  }
+
+  /// Extracts a human-readable screen name from a Route object.
+  /// This method attempts to determine the screen name using multiple fallback strategies
+  /// to ensure meaningful screen identification even for routes without explicit names.
+  ///
+  /// Parameters:
+  /// - [route]: The route object from which to extract the screen name
+  ///
+  /// Returns:
+  /// A string representing the screen name. The method uses the following priority:
+  /// 1. Route settings name (if explicitly set)
+  /// 2. Widget name extracted from MaterialPageRoute string representation
+  /// 3. 'UnknownScreen' as final fallback
+  ///
+  /// Extraction strategies:
+  /// - **Named routes**: Uses route.settings.name directly
+  /// - **MaterialPageRoute**: Parses route string to extract widget class name
+  /// - **Fallback**: Returns 'UnknownScreen' when other methods fail
+  ///
+  /// Usage example:
+  /// ```dart
+  /// String screenName = _getScreenName(route);
+  /// // Returns: 'ProfileScreen', '/home', 'UnknownScreen', etc.
+  /// ```
+  ///
+  /// Note:
+  /// For best results, use named routes or ensure route.settings.name is set
+  /// when creating routes. The string parsing fallback is less reliable.
+  ///
+  String _getScreenName(Route<dynamic> route) {
+    if (route.settings.name != null && route.settings.name!.isNotEmpty) {
+      return route.settings.name!;
+    }
+
+    // Fall back to trying to extract from route type
+    final routeStr = route.toString();
+    if (routeStr.contains('MaterialPageRoute')) {
+      // Try to extract widget name from MaterialPageRoute
+      final match =
+          RegExp(r'MaterialPageRoute<.*?>\((.*?)\)').firstMatch(routeStr);
+      if (match != null) {
+        return match.group(1)?.split('(').first ?? 'UnknownScreen';
+      }
+    }
+
+    return 'UnknownScreen';
+  }
+
+  /// Logs navigation events to the Crashlytics service for debugging and analytics.
+  /// This internal method creates a bridge between the navigation observer and
+  /// the Crashlytics service, ensuring all navigation events are recorded.
+  ///
+  /// Parameters:
+  /// - [from]: The name of the screen being navigated away from
+  /// - [to]: The name of the destination screen
+  ///
+  /// The method calls CrashlyticsService.logNavigation() to record:
+  /// - Navigation flow information (from → to)
+  /// - Updated current/previous screen context
+  /// - Timestamped navigation logs
+  ///
+  /// Note:
+  /// This method assumes CrashlyticsService is properly initialized.
+  /// Navigation logging will fail silently if Crashlytics is not available.
+  ///
+  void _logNavigationToCrashlytics(String from, String to) {
+    CrashlyticsService().logNavigation(from, to);
   }
 }

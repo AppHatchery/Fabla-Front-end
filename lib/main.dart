@@ -1,4 +1,3 @@
-import 'dart:ui';
 
 import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
@@ -20,15 +19,14 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/logi
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
 import 'package:audio_diaries_flutter/screens/settings/cubit/settings_cubit.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemChrome, SystemUiOverlayStyle;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -59,15 +57,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  FlutterError.onError = (errorDetails) {
-    FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
-    FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
-  };
-  PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
-    return true;
-  };
+  await CrashlyticsService().initialize();
   objectbox = await ObjectBox.create();
   cameras = await availableCameras();
   //await configureAmplify();
@@ -107,6 +97,7 @@ class _MyAppState extends State<MyApp> {
   @override
   initState() {
     NotificationService.setListeners();
+    CrashlyticsService().setUserIdentifier();
     _route = widget.route;
     super.initState();
   }
@@ -150,7 +141,10 @@ class _MyAppState extends State<MyApp> {
                       useMaterial3: true),
                   home: child,
                   debugShowCheckedModeBanner: false,
-                  navigatorObservers: [PendoNavigationObserver()],
+                  navigatorObservers: [
+                    PendoNavigationObserver(),
+                    CustomNavigatorObserver()
+                  ],
                   onGenerateRoute: (settings) {
                     switch (settings.name) {
                       case "/NewDiaryPage":
