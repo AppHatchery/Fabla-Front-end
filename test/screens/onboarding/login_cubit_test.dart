@@ -1,6 +1,7 @@
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/login_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,6 +16,8 @@ class TestableLoginCubit extends Cubit<LoginState> {
   final LoginRepository repository;
   final SetupRepository setupRepository;
 
+  bool secondAttempt = false;
+
   TestableLoginCubit({
     required this.repository,
     required this.setupRepository,
@@ -24,26 +27,32 @@ class TestableLoginCubit extends Cubit<LoginState> {
     emit(const LoginLoading());
     try {
       final result = await repository.verify(code);
-      if (result) {
-        try {
-          setupRepository.getExperiment();
-          // Skip PendoService.start in tests
-          // await PendoService.start(code, experiment.login);
-        } catch (e) {
-          // debugPrint('Pendo session handling error: $e');
+      if (result['success'] == true) {
+        if (result['alreadyLoggedIn'] == true) {
+          //on first attempt, show warning if the user is already logged in
+          if(secondAttempt == false){
+            emit(const LoginWarning("The ID you entered is already in use. Please confirm that this the correct ID, or contact your study researcher if you're unsure."));
+            secondAttempt = true;
+          } else {
+            //login in on second attempt
+            secondAttempt = false;
+            emit(const LoginSuccess());
+          }
+        } else {
+          //log in on first attempt if not already logged in
+          secondAttempt = false;
+          emit(const LoginSuccess());
         }
-        emit(const LoginSuccess());
       } else {
-        // Skip PendoService.track in tests
-        // PendoService.track("Participant Login", {
-        //   "participant_id": code,
-        //   "status": "error",
-        // });
+        //avoid keeping the state for second login attempt if the code is invalid
+        secondAttempt = false;
+        // show error if the code does not exist or is invalid
         emit(const LoginError(
             "Oops! We do not have this ID in the participant list. Please check your email and try again."));
       }
     } catch (e) {
-      // debugPrint(e.toString());
+      // General error handling
+      debugPrint(e.toString());
       emit(const LoginError("Something went wrong"));
     }
   }

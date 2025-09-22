@@ -149,6 +149,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                       controller: controller,
                       fieldType: TextInputType.text,
                       error: error,
+                      warningMessage: '',
                     ),
                     const SizedBox(
                       height: 24,

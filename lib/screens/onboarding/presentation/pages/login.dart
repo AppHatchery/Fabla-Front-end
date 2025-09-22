@@ -5,6 +5,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/ve
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
+import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,7 +26,9 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   late LoginCubit loginCubit;
   final TextEditingController controller = TextEditingController();
   bool error = false;
+  bool warning = false;
   String message = '';
+  String warnMessage = '';
 
   @override
   void initState() {
@@ -97,11 +100,19 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
               }, listener: (context, state) {
                 if (state is LoginSuccess) {
                   error = false;
+                  warning = false;
                   RouteService().navigate(null,
                       context: context, current: 'participant_login');
+                } else if (state is LoginWarning) {
+                  setState(() {
+                    error = false;
+                    warning = true;
+                    warnMessage = state.message;
+                  });
                 } else if (state is LoginError) {
                   setState(() {
                     error = true;
+                    warning = false;
                     message = state.message;
                   });
                 }
@@ -148,6 +159,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                       controller: controller,
                       fieldType: TextInputType.text,
                       error: error,
+                      warning: warning,
+                      warningMessage: warnMessage,
                     ),
                     const SizedBox(
                       height: 24,
