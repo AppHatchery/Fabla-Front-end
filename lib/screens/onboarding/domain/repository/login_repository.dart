@@ -75,6 +75,11 @@ class LoginRepository {
   /// bool isValidCode = await verify("ABC123");
   /// if (isValidCode) {
   ///   // Proceed with login or registration...
+  ///   if (isAlreadyLoggedIn) {
+  ///     // Show warning about existing login...
+  ///   } else {
+  ///     // Proceed with normal login...
+  ///   }
   /// } else {
   ///   // Display an error message indicating invalid code...
   /// }
@@ -140,7 +145,6 @@ class LoginRepository {
         return {
           'success': true,
           'alreadyLoggedIn': isAlreadyLoggedIn,
-          'message': 'Login successful'
         };
       }
     }
@@ -148,7 +152,6 @@ class LoginRepository {
     return {
       'success': false,
       'alreadyLoggedIn': false,
-      'message': 'Invalid participant ID'
     };
   }
 
