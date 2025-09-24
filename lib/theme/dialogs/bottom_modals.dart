@@ -2571,11 +2571,14 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                       shape: BoxShape.circle),
                   child: Center(
                     child: widget.showTimeUpOverlay
-                        ? Icon(
-                      CupertinoIcons.checkmark_alt,
-                      size: 40,
-                      color: CustomColors.productNormal,
-                    )
+                        ? Transform.translate(
+                          offset: Offset(3, 0), // Shift checkmark slightly right
+                          child: Icon(
+                            CupertinoIcons.checkmark_alt,
+                            size: 40,
+                            color: CustomColors.productNormal,
+                          ),
+                        )
                         : (widget.isRunning && !widget.isPaused)
                         ? Icon(
                       CupertinoIcons.pause_fill,
@@ -2592,32 +2595,30 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                     ),
                   ),
                 ),
-              )
+              ),
             ],
             SizedBox(width: 37),
-            if (widget.playbackControls) ...[
-              GestureDetector(
-                onTap: widget.onRestart,
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    border: Border.all(
-                      width: 2,
-                      color: CustomColors.productLightBackground,
-                    ),
-                    borderRadius: BorderRadius.circular(100),
+            widget.playbackControls ? GestureDetector(
+              onTap: widget.onRestart,
+              child: Container(
+                width: 64,
+                height: 64,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border.all(
+                    width: 2,
+                    color: CustomColors.productLightBackground,
                   ),
-                  child: Icon(
-                    Icons.refresh_rounded,
-                    size: 24,
-                    color: CustomColors.fillWhite,
-                  ),
+                  borderRadius: BorderRadius.circular(100),
                 ),
-              )
-            ],
+                child: Icon(
+                  Icons.refresh_rounded,
+                  size: 24,
+                  color: CustomColors.fillWhite,
+                ),
+              ),
+            ) : SizedBox(width: 64, height: 64),
           ],
         ) : GestureDetector(
           onTap: widget.onClose,
