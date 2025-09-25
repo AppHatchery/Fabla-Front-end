@@ -161,4 +161,17 @@ class SummaryCubit extends Cubit<SummaryState> {
 
     return null;
   }
+
+  void updateDiaryCompletion(DiaryModel diary) async {
+    final isAlreadyAvailable =
+        diary.completions?.elementAtOrNull(diary.currentEntry);
+    if (isAlreadyAvailable == null) {
+      final now = DateTime.now();
+      final completions = List<DateTime>.from(diary.completions ?? []);
+      completions.add(now);
+      final newDiary = diary.copyWith(
+          id: diary.id, studyID: diary.studyID, completions: completions);
+      await _summaryRepository.diaryRepository.updateDiary(newDiary);
+    }
+  }
 }

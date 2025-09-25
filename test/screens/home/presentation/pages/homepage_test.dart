@@ -3,7 +3,6 @@ import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
-import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_goal.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -92,6 +91,7 @@ HomeLoaded createHomeLoadedState({
     notifications: [],
     activeDays: [],
     submissions: [],
+    completions: const []
   );
 
   // Key change: Use empty diaries list when available is false

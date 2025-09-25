@@ -27,6 +27,7 @@ class Diary {
   String notifications;
   List<int>? activeDays;
   List<String>? submissions;
+  List<String>? completions;
 
   @Backlink('diary')
   final prompts = ToMany<Prompt>();
@@ -54,7 +55,8 @@ class Diary {
       required this.notifications,
       this.status,
       required this.activeDays,
-      required this.submissions});
+      required this.submissions,
+      required this.completions});
 
   /// Ensures the consistency of DiaryStatus enumeration indices.
   /// This private method verifies that the indices of the DiaryStatus enum values correspond to their expected numerical values.
@@ -98,6 +100,9 @@ class Diary {
         activeDays: model.activeDays,
         submissions: model.submissions
             ?.map((submission) => submission.toString())
+            .toList(),
+        completions: model.completions
+            ?.map((completion) => completion.toString())
             .toList());
   }
 }

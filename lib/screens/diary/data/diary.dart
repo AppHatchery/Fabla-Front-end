@@ -22,6 +22,7 @@ class DiaryModel implements Comparable<DiaryModel> {
   final List<Notification> notifications;
   final List<int>? activeDays;
   final List<DateTime>? submissions;
+  final List<DateTime>? completions;
 
   DiaryModel(
       {required this.id,
@@ -37,7 +38,8 @@ class DiaryModel implements Comparable<DiaryModel> {
       required this.end,
       required this.notifications,
       required this.activeDays,
-      required this.submissions});
+      required this.submissions,
+      required this.completions});
 
   /// Factory constructor that creates a Diary object from a DiaryEntity.
   /// This function generates a Diary instance using data from a provided DiaryEntity object.
@@ -70,6 +72,9 @@ class DiaryModel implements Comparable<DiaryModel> {
         activeDays: entity.activeDays,
         submissions: entity.submissions
             ?.map((submission) => DateTime.parse(submission))
+            .toList(),
+        completions: entity.completions
+            ?.map((completion) => DateTime.parse(completion))
             .toList());
   }
 
@@ -97,7 +102,8 @@ class DiaryModel implements Comparable<DiaryModel> {
           final day = e as int;
           return day == 0 ? 7 : day;
         }).toList(),
-        submissions: null);
+        submissions: null,
+        completions: null);
   }
 
   DiaryModel copyWith(
@@ -112,7 +118,8 @@ class DiaryModel implements Comparable<DiaryModel> {
       DateTime? start,
       List<Notification>? notifications,
       List<int>? activeDays,
-      List<DateTime>? submissions}) {
+      List<DateTime>? submissions,
+      List<DateTime>? completions}) {
     return DiaryModel(
         id: id,
         studyID: studyID,
@@ -127,7 +134,8 @@ class DiaryModel implements Comparable<DiaryModel> {
         end: due ?? end,
         notifications: notifications ?? this.notifications,
         activeDays: activeDays,
-        submissions: submissions);
+        submissions: submissions,
+        completions: completions);
   }
 
   /// Compares this DiaryModel object with another DiaryModel object.

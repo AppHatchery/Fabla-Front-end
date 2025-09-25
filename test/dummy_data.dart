@@ -56,6 +56,7 @@ entity.Diary createTestDiary({
   String notifications = '[]',
   List<int> activeDays = const [1, 2, 3],
   List<String> submissions = const [],
+  List<String> completions = const [],
 }) {
   final now = DateTime.now();
   return entity.Diary(
@@ -70,7 +71,8 @@ entity.Diary createTestDiary({
     deadline: deadline,
     notifications: notifications,
     activeDays: activeDays,
-    submissions: submissions
+    submissions: submissions,
+    completions: completions
   );
 }
 
@@ -312,6 +314,7 @@ DiaryModel createTestDiaryModel({
   List<Notification>? notifications,
   List<Tag>? tags,
   List<DateTime>? submissions,
+  List<DateTime>? completions,
 }) {
   final now = DateTime.now();
   return DiaryModel(
@@ -328,7 +331,8 @@ DiaryModel createTestDiaryModel({
     prompts: prompts ?? <PromptModel>[],
     notifications: notifications ?? <Notification>[],
     tags: tags,
-    submissions: submissions
+    submissions: submissions,
+    completions: completions
   );
 }
 

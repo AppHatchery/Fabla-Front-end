@@ -161,6 +161,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           Navigator.of(context).pushReplacement(_completionRoute()).then((_) {
             summaryCubit.loadSummary(widget.diary);
           });
+        } else if (state is SummaryLoaded) {
+          // If the user reaches the submission page for the first time add to the completion list
+          summaryCubit.updateDiaryCompletion(widget.diary);
         }
       },
     );

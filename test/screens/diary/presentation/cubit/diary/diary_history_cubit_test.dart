@@ -58,7 +58,8 @@ void main() {
       currentEntry: 1,
       end: DateTime(2023, 1, 1, 11),
       notifications: const [],
-      submissions: const []);
+      submissions: const [],
+      completions: const []);
 
   final testDiary2 = DiaryModel(
       id: 2,
@@ -74,7 +75,8 @@ void main() {
       currentEntry: 1,
       end: DateTime(2023, 1, 1, 20),
       notifications: const [],
-      submissions: const []);
+      submissions: const [],
+      completions: const []);
 
   final testDiary3 = DiaryModel(
       id: 3,
@@ -90,7 +92,8 @@ void main() {
       currentEntry: 0,
       end: DateTime(2022, 12, 31, 17),
       notifications: const [],
-      submissions: const []);
+      submissions: const [],
+      completions: const []);
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -355,7 +358,8 @@ void main() {
                     currentEntry: i,
                     end: DateTime(2023, 1, day, 11 + i),
                     notifications: const [],
-                    submissions: const []));
+                    submissions: const [],
+                    completions: const []));
               }
 
               mockHistoryData[dateKey] = diariesForDate;

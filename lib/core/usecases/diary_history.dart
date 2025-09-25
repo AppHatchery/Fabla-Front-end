@@ -130,7 +130,7 @@ DiaryModel _createEntryDiary(DiaryModel originalDiary, int entryIndex) {
     studyID: originalDiary.studyID,
     currentEntry: entryIndex,
     status: entryStatus,
-    submissions: originalDiary.submissions,
+    completions: originalDiary.completions,
   );
 }
 
@@ -195,9 +195,9 @@ Map<String, List<DiaryModel>> _groupAndSortDiaries(
 DateTime _determineAccurateDisplayDate(DiaryModel diary, DateTime now) {
   // PRIORITY 1: If this specific entry was submitted, use its submission date
   if (diary.status == DiaryStatus.submitted &&
-      diary.submissions != null &&
-      diary.submissions!.length > diary.currentEntry) {
-    return diary.submissions![diary.currentEntry];
+      diary.completions != null &&
+      diary.completions!.length > diary.currentEntry) {
+    return diary.completions![diary.currentEntry];
   }
 
   // PRIORITY 2: If diary is currently active (ongoing/idle) and should show today
@@ -250,9 +250,9 @@ bool _isDiaryActiveToday(DiaryModel diary, DateTime now) {
 /// Gets the completion date for a specific entry
 DateTime _getCompletionDateForEntry(DiaryModel diary, DateTime now) {
   // If we have submission data for this specific entry, use it
-  if (diary.submissions != null &&
-      diary.submissions!.length > diary.currentEntry) {
-    return diary.submissions![diary.currentEntry];
+  if (diary.completions != null &&
+      diary.completions!.length > diary.currentEntry) {
+    return diary.completions![diary.currentEntry];
   }
 
   // If no specific submission data, estimate based on diary type
@@ -272,9 +272,9 @@ bool _isWeeklyDiary(DiaryModel diary) {
 /// Gets the most appropriate date for a weekly diary
 DateTime _getAppropriateWeeklyDate(DiaryModel diary, DateTime now) {
   // If we have submission data, use the latest submission for this entry
-  if (diary.submissions != null &&
-      diary.submissions!.length > diary.currentEntry) {
-    return diary.submissions![diary.currentEntry];
+  if (diary.completions != null &&
+      diary.completions!.length > diary.currentEntry) {
+    return diary.completions![diary.currentEntry];
   }
 
   // If no submission data, find the last active day in the diary's range
