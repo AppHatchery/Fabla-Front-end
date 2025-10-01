@@ -104,7 +104,7 @@ void main() {
 
         expect(log, <Matcher>[
           isMethodCall('startSession', arguments: {
-            'visitorId': testVisitorId,
+            'visitorId': '$testAccountId-$testVisitorId',
             'accountId': 'Test', // Expecting 'Test' because kDebugMode is true
             'visitorData': null,
             'accountData': null,

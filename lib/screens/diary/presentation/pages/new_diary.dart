@@ -265,9 +265,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                   Expanded(
                     flex: 3,
                     child: CustomFlatButton(
-                      isDisabled: !ableToContinue,
+                      isDisabled: widget.diary.prompts[currentPage].responseType == ResponseType.timer ? false : !ableToContinue,
                       onClick: () => nextPage(),
-                      text: "Continue",
+                      text: "Next",
                     ),
                   )
                 ],
@@ -558,11 +558,20 @@ class _QuestionPageState extends State<QuestionPage>
           diary: widget.diary,
           respond: (answer) => save(prompt, answer, 'other', 0));
     } else if (prompt.responseType == ResponseType.timer) {
+      final completedTimes = prompt.answer?.response != null
+          ? prompt.answer?.response!.first.split("| ")
+          : <String>[];
       responseWidget = TimerWidget(
         time: prompt.option?.timerLength ?? Duration(seconds: 30),
         userInteraction: prompt.option?.userInteraction ?? false,
         playbackControls: prompt.option?.playbackControl ?? false,
-        respond: (answer) => save(prompt, answer, 'other', 0),
+        respond: (answer) {
+          final completed = completedTimes ?? [];
+          completed.add(answer);
+          final response = completed.join("| ");
+
+          save(prompt, response, 'other', 0);
+        },
         addToPreFunction: (p0) => {widget.addToPreFunction(p0)},
       );
     } else if (prompt.responseType == ResponseType.image) {

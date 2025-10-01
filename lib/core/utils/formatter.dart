@@ -149,6 +149,15 @@ String formatDurationToString(Duration duration) {
   return '$hoursStr:$minutesStr:$secondsStr';
 }
 
+// Returns Mintues and Seconds only
+
+String formatMinsAndSecs(Duration d) {
+  String twoDigits(int n) => n.toString().padLeft(2, '0');
+  final m = twoDigits(d.inMinutes.remainder(60));
+  final s = twoDigits(d.inSeconds.remainder(60));
+  return "$m:$s";
+}
+
 String formatDiaryCardDue(DateTime due, DateTime start, DiaryStatus status) {
   final now = DateTime.now();
   final difference = due.difference(now).inHours;

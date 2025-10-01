@@ -519,3 +519,211 @@ class _CustomTimeElapsedPickerState extends State<CustomTimeElapsedPicker> {
 //     Navigator.pop(context, duration);
 //   }
 // }
+
+class CustomMinuteSecondPicker extends StatefulWidget {
+  final String title;
+  final Duration? duration;
+  const CustomMinuteSecondPicker({
+    super.key,
+    this.title = "Time Length",
+    this.duration,
+  });
+
+  @override
+  State<CustomMinuteSecondPicker> createState() =>
+      _CustomMinuteSecondPickerState();
+}
+
+class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
+  late int minutes;
+  late int seconds;
+  late FixedExtentScrollController minutesController;
+  late FixedExtentScrollController secondsController;
+
+  @override
+  void initState() {
+    minutes = widget.duration?.inMinutes ?? 1;
+    seconds = widget.duration?.inSeconds.remainder(60) ?? 0;
+    minutesController = FixedExtentScrollController(initialItem: minutes);
+    secondsController = FixedExtentScrollController(initialItem: seconds);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final textScale = MediaQuery.of(context).textScaler.scale(1);
+    final viewInsets = MediaQuery.of(context).viewInsets.bottom;
+
+    // Adaptive height for entire picker
+    final adaptiveHeight = screenHeight * 0.45 + (textScale - 1.0) * screenHeight * 0.05;
+
+    // Padding
+    final horizontalPadding = screenWidth * 0.04;
+    final verticalPadding = screenHeight * 0.02;
+
+    final titleSpacing = screenHeight * 0.02;
+    final bottomSpacing = screenHeight * 0.02;
+
+    // Wheel height increases with scaling
+    final wheelHeight = (screenHeight * 0.20) * (textScale > 1 ? textScale * 1.1 : 1);
+    final itemExtent = (screenHeight * 0.06) * (textScale > 1 ? textScale : 1);
+
+    // Cap label font size so it doesn't overflow
+    final double labelFontSize =
+    (screenWidth * 0.05 * textScale).clamp(14.0, 22.0); // Min 14, Max 22
+    final closeIconSize = (screenWidth * 0.07 * textScale).clamp(20.0, 32.0);
+
+    return SizedBox(
+      width: screenWidth,
+      height: adaptiveHeight,
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: horizontalPadding,
+          right: horizontalPadding,
+          top: verticalPadding,
+          bottom: viewInsets + verticalPadding,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(flex: 1, child: SizedBox()),
+                Expanded(
+                  flex: 5,
+                  child: Text(
+                    widget.title,
+                    style: CustomTypography().titleLarge(),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(
+                        Icons.close,
+                        color: CustomColors.textNormalContent,
+                        size: closeIconSize,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: titleSpacing),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: SizedBox(
+                      height: wheelHeight,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Minutes column
+                          Flexible(
+                            flex: 2,
+                            child: ListWheelScrollView.useDelegate(
+                              controller: minutesController,
+                              onSelectedItemChanged: (value) {
+                                setState(() {
+                                  minutes = value;
+                                });
+                              },
+                              physics: const FixedExtentScrollPhysics(),
+                              perspective: 0.01,
+                              diameterRatio: 2,
+                              itemExtent: itemExtent,
+                              overAndUnderCenterOpacity: 0.3,
+                              squeeze: 2,
+                              childDelegate: ListWheelChildBuilderDelegate(
+                                builder: (context, index) {
+                                  return Minutes(mins: index);
+                                },
+                                childCount: 60,
+                              ),
+                            ),
+                          ),
+                          Flexible(
+                            flex: 1,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                "min",
+                                style: CustomTypography().custom(
+                                  color: CustomColors.textNormalContent,
+                                  fontSize: labelFontSize,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: screenWidth * 0.02),
+                          // Seconds column
+                          Flexible(
+                            flex: 2,
+                            child: ListWheelScrollView.useDelegate(
+                              controller: secondsController,
+                              onSelectedItemChanged: (value) {
+                                setState(() {
+                                  seconds = value;
+                                });
+                              },
+                              physics: const FixedExtentScrollPhysics(),
+                              perspective: 0.01,
+                              diameterRatio: 2,
+                              itemExtent: itemExtent,
+                              overAndUnderCenterOpacity: 0.3,
+                              squeeze: 2,
+                              childDelegate: ListWheelChildBuilderDelegate(
+                                builder: (context, index) {
+                                  return Minutes(mins: index);
+                                },
+                                childCount: 60,
+                              ),
+                            ),
+                          ),
+                          Flexible(
+                            flex: 1,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                "sec",
+                                style: CustomTypography().custom(
+                                  color: CustomColors.textNormalContent,
+                                  fontSize: labelFontSize,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: bottomSpacing),
+            CustomElevatedButton(
+              onClick: save,
+              text: "SAVE",
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void save() {
+    Navigator.pop(context, Duration(minutes: minutes, seconds: seconds));
+  }
+}

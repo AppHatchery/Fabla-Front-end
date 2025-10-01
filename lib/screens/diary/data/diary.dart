@@ -96,8 +96,8 @@ class DiaryModel implements Comparable<DiaryModel> {
   }
 
   DiaryModel copyWith({
-    int? id,
-    int? studyID,
+    required int id,
+    required int studyID,
     String? name,
     List<PromptModel>? prompts,
     List<Tag>? tags,
@@ -111,8 +111,8 @@ class DiaryModel implements Comparable<DiaryModel> {
     List<int>? activeDays,
   }) {
     return DiaryModel(
-      id: id ?? this.id,
-      studyID: studyID ?? this.studyID,
+      id: id,
+      studyID: studyID,
       name: name ?? this.name,
       prompts: prompts ?? this.prompts,
       tags: tags ?? this.tags,

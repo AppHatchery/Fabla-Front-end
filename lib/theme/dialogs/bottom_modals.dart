@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:developer' as dev;
+import 'dart:math';
 
 import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -16,6 +17,7 @@ import 'package:audio_session/audio_session.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:path_provider/path_provider.dart';
@@ -2334,5 +2336,312 @@ class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
                 );
               },
             ));
+  }
+}
+
+class BottomTimerModal extends StatefulWidget {
+  final Duration remaining;
+  final bool isRunning;
+  final bool isPaused;
+  final bool showTimeUpOverlay;
+  final bool playbackControls;
+  final VoidCallback onClose;
+  final VoidCallback onRestart;
+  final VoidCallback onPauseResume;
+  final VoidCallback onStop;
+
+  const BottomTimerModal({
+    super.key,
+    required this.remaining,
+    required this.isRunning,
+    required this.isPaused,
+    required this.showTimeUpOverlay,
+    required this.playbackControls,
+    required this.onClose,
+    required this.onRestart,
+    required this.onPauseResume,
+    required this.onStop,
+  });
+
+  @override
+  State<BottomTimerModal> createState() => _BottomTimerModalState();
+}
+
+class _BottomTimerModalState extends State<BottomTimerModal>
+    with TickerProviderStateMixin {
+  double animationHeight = 0;
+  // Icon Shake animation
+  late AnimationController _shakeController;
+  r.StateMachineController? _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize animation controller
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _shakeController.repeat();
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    _shakeController.dispose();
+    super.dispose();
+  }
+
+  void _onRiveInit(r.Artboard art) {
+    var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
+    if (ctrl != null) {
+      art.addController(ctrl);
+      _controller = ctrl;
+    }
+    setState(() {
+      animationHeight = art.height;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _mainArea();
+  }
+
+  Widget _mainArea() {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+      width: width,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xff4186F5), Color(0xff626AD9)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        image: DecorationImage(
+          image: AssetImage('assets/images/Meditation_timer_background.png'),
+          fit: BoxFit.fitWidth,
+          alignment: Alignment.topCenter,
+        ),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          _buildTimerDisplay(),
+          SizedBox(height: 81),
+          _buildRiveAnimation(),
+          _buildTimerControls(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimerDisplay() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final textScale = MediaQuery.of(context).textScaler.scale(1);
+
+    // Positioning: proportional + text scaling
+    final double topPos = (screenHeight * 0.12) * (textScale > 1 ? 0.8 : 1);
+    final double sidePadding = screenWidth * 0.07;
+
+    // Icon size: scales but capped
+    final double iconSize = 32;
+
+    return Positioned(
+      top: topPos,
+      left: sidePadding,
+      right: sidePadding,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          widget.showTimeUpOverlay
+              ? SizedBox.shrink()
+              : Image.asset(
+                  'assets/images/icons/pace.png',
+                  height: iconSize,
+                  width: iconSize,
+                ),
+          SizedBox(width: 8), // spacing proportional to width
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown, // prevents clipping if space is tight
+              child: Text(
+                widget.showTimeUpOverlay
+                    ? "Time's Up!"
+                    : formatMinsAndSecs(widget.remaining),
+                textAlign: TextAlign.center,
+                style: CustomTypography()
+                    .custom(
+                      color: CustomColors.textWhite,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 48,
+                    )
+                    .copyWith(
+                      fontFeatures: widget.showTimeUpOverlay
+                          ? []
+                          : [const FontFeature.tabularFigures()],
+                    ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRiveAnimation() {
+    return Positioned(
+      top: 257,
+      bottom: 154.37,
+      right: 50,
+      child: IgnorePointer(
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          child: Transform(
+            transform: Matrix4.translationValues(5, -animationHeight / 5, 0)
+              ..scale(-1.7,
+                  1.7), // Scale up by 1.5x and flip horizontally with negative x
+            alignment: Alignment.center,
+            child: r.RiveAnimation.asset(
+              'assets/animations/onboarding/floats_in.riv',
+              fit: BoxFit.contain,
+              onInit: _onRiveInit,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimerControls() {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 100),
+        child: widget.playbackControls || widget.showTimeUpOverlay ? Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: widget.onClose,
+              child: Container(
+                width: 64,
+                height: 64,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border.all(
+                    width: 2,
+                    color: CustomColors.fillWhite,
+                  ),
+                  borderRadius: BorderRadius.circular(100.0),
+                ),
+                child: Icon(
+                  Icons.close,
+                  size: 24,
+                  color: CustomColors.fillWhite,
+                ),
+              ),
+            ),
+            SizedBox(width: 37),
+            if (widget.playbackControls || widget.showTimeUpOverlay) ...[
+              GestureDetector(
+                onTap: widget.showTimeUpOverlay
+                    ? widget.onStop
+                    : widget.onPauseResume,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+                  decoration: BoxDecoration(
+                      color: CustomColors.fillWhite,
+                      border: Border.all(
+                        color: CustomColors.productLightBackground,
+                      ),
+                      shape: BoxShape.circle),
+                  child: Center(
+                    child: widget.showTimeUpOverlay
+                        ? Transform.translate(
+                          offset: Offset(3, 0), // Shift checkmark slightly right
+                          child: Icon(
+                            CupertinoIcons.checkmark_alt,
+                            size: 40,
+                            color: CustomColors.productNormal,
+                          ),
+                        )
+                        : (widget.isRunning && !widget.isPaused)
+                        ? Icon(
+                      CupertinoIcons.pause_fill,
+                      size: 40,
+                      color: CustomColors.warningActive,
+                    )
+                        : Transform.translate(
+                      offset: Offset(4, 0), // Shift play icon slightly right
+                      child: Icon(
+                        CupertinoIcons.play_fill,
+                        size: 40,
+                        color: CustomColors.productNormal,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            SizedBox(width: 37),
+            widget.playbackControls ? GestureDetector(
+              onTap: widget.onRestart,
+              child: Container(
+                width: 64,
+                height: 64,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border.all(
+                    width: 2,
+                    color: CustomColors.productLightBackground,
+                  ),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Icon(
+                  Icons.refresh_rounded,
+                  size: 24,
+                  color: CustomColors.fillWhite,
+                ),
+              ),
+            ) : SizedBox(width: 64, height: 64),
+          ],
+        ) : GestureDetector(
+          onTap: widget.onClose,
+          child: Container(
+            width: 64,
+            height: 64,
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              border: Border.all(
+                width: 2,
+                color: CustomColors.fillWhite,
+              ),
+              borderRadius: BorderRadius.circular(100.0),
+            ),
+            child: Icon(
+              Icons.close,
+              size: 24,
+              color: CustomColors.fillWhite,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
