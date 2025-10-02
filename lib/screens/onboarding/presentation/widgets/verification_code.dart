@@ -1,10 +1,17 @@
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/database/dao/experiment_dao.dart';
+import '../../../../main.dart';
+import '../../../../objectbox.g.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
+
+import '../../../home/data/experiment.dart';
+import '../../../home/domain/entities/experiment.dart';
 
 class VerificationCodeTextField extends StatefulWidget {
   final String title;
@@ -30,6 +37,9 @@ class VerificationCodeTextField extends StatefulWidget {
   State<VerificationCodeTextField> createState() =>
       _VerificationCodeTextFieldState();
 }
+
+final ExperimentDAO _experimentDAO =
+    ExperimentDAO(box: Box<Experiment>(objectbox.store));
 
 class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
   @override
@@ -99,37 +109,51 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
                                     color: CustomColors.pumpkinOrange,
                                     weight: FontWeight.w700),
                               ),
-                              Container(
-                                decoration: ShapeDecoration(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(11)),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      widget.warningMessage,
-                                      style: CustomTypography().bodyLarge(
-                                        color: CustomColors.pumpkinOrange,
-                                      ),
+                              Column(
+                                children: [
+                                  Text(
+                                    widget.warningMessage,
+                                    style: CustomTypography().bodyLarge(
+                                      color: CustomColors.pumpkinOrange,
                                     ),
-                                    const SizedBox(height: 12),
-                                    SizedBox(
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          CustomFlatButton(
-                                            onClick: () {},
-                                            text: "Contact Researcher",
+                                  ),
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          height: 45,
+                                          decoration: ShapeDecoration(
                                             color: CustomColors.pumpkinOrange,
-                                            textColor: CustomColors.fillVanilla,
-                                            borderColor: Colors.transparent,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(11),
+                                            ),
                                           ),
-                                        ],
-                                      ),
-                                    )
-                                  ],
-                                ),
+                                          child: TextButton(
+                                            onPressed: () => launchEmail(),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      8, 4, 8, 8),
+                                              child: Text(
+                                                "Contact Researcher",
+                                                style: CustomTypography()
+                                                    .bodyLarge(
+                                                  color:
+                                                      CustomColors.fillVanilla,
+                                                  weight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                ],
                               )
                             ],
                           ),
@@ -170,4 +194,55 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
       ],
     );
   }
+}
+
+// launch email to experiment owner email
+Future<void> launchEmail() async {
+  try {
+    //get experiment owner email from the database
+    final experimentDAO = ExperimentDAO(box: Box<Experiment>(objectbox.store));
+    final entity = experimentDAO.getExperiment();
+
+    if (entity == null) {
+      // Handle case where no experiment exists
+      print('No experiment found');
+      return;
+    }
+
+    final experiment = ExperimentModel.fromEntity(entity);
+    final ownerEmail = experiment.ownerEmail;
+
+    if (ownerEmail.isEmpty) {
+      print('No owner email found');
+      return;
+    }
+
+    print(ownerEmail);
+
+    //create the email uri
+    final uri = Uri(
+        scheme: "mailto",
+        //replace with experiment owner email
+        path: ownerEmail,
+        query: encodeQueryParameters(<String, String>{
+          'subject': 'Need help with the participant ID',
+          'body': 'I have a problem with my participant ID:'
+        }));
+
+    //launch the email client
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      print('Could not launch email client');
+    }
+  } catch (e) {
+    print('Error launching email: $e');
+  }
+}
+
+String? encodeQueryParameters(Map<String, String> params) {
+  return params.entries
+      .map((MapEntry<String, String> e) =>
+          '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+      .join('&');
 }

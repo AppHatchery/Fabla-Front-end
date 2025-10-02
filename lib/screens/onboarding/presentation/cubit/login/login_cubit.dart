@@ -47,7 +47,7 @@ class LoginCubit extends Cubit<LoginState> {
           });
           //on first attempt, show warning if the user is already logged in
           if(secondAttempt == false){
-            emit(const LoginWarning("The ID you entered is already in use. Please confirm that this the correct ID, or contact your study researcher if you're unsure."));
+            emit(const LoginWarning("The ID you entered is already in use. Please confirm that this is the correct ID, or contact your study researcher if you’re unsure"));
             secondAttempt = true;
           } else {
             //login in on second attempt
