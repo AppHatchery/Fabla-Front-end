@@ -221,13 +221,17 @@ Future<void> launchEmail() async {
 
     //create the email uri
     final uri = Uri(
-        scheme: "mailto",
-        //replace with experiment owner email
-        path: ownerEmail,
-        query: encodeQueryParameters(<String, String>{
-          'subject': 'Need help with the participant ID',
-          'body': 'I have a problem with my participant ID:'
-        }));
+      scheme: "mailto",
+      path: ownerEmail,
+      query: encodeQueryParameters(<String, String>{
+        'subject': 'Assistance Needed: Participant ID Already in Use',
+        'body':
+            ''' Participant ID entered is already in use. Please confirm or advise next steps.
+        
+        
+Name: '''
+      }),
+    );
 
     //launch the email client
     if (await canLaunchUrl(uri)) {
