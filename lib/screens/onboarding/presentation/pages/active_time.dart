@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/li
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 
 import '../../../../services/pendo_service.dart';
 import '../../../../theme/custom_colors.dart';
@@ -32,89 +33,100 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
-        backgroundColor: CustomColors.fillWhite,
-        appBar: AppBar(
-          backgroundColor: CustomColors.backgroundSecondary,
-          scrolledUnderElevation: 0.0,
-          leading: canGoBack
-              ? IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: CustomColors.fillWhite,
-                    size: 32,
-                  ))
-              : null,
-        ),
-        body: SafeArea(
-          bottom: false,
-          child: LayoutBuilder(builder: (context, constraints) {
-            return Container(
-              color: CustomColors.fillWhite,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraint) => SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints:
-                              BoxConstraints(minHeight: constraint.maxHeight),
-                          child: IntrinsicHeight(
-                            child: Container(
-                              color: CustomColors.backgroundSecondary,
-                              child: Column(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0),
-                                    child: Text(
-                                      "When would you like to receive reminders?",
-                                      style: CustomTypography().headlineLarge(
-                                          color: CustomColors.textWhite),
-                                    ),
+      backgroundColor: CustomColors.fillWhite,
+      appBar: AppBar(
+        backgroundColor: CustomColors.backgroundSecondary,
+        scrolledUnderElevation: 0.0,
+        leading: canGoBack
+            ? IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: CustomColors.fillWhite,
+                  size: 32,
+                ))
+            : null,
+      ),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: LayoutBuilder(builder: (context, constraints) {
+          return Container(
+            color: CustomColors.fillWhite,
+            child: Column(
+              children: [
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraint) => SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints:
+                            BoxConstraints(minHeight: constraint.maxHeight),
+                        child: IntrinsicHeight(
+                          child: Container(
+                            color: CustomColors.backgroundSecondary,
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0),
+                                  child: Text(
+                                    "When would you like to receive reminders?",
+                                    style: CustomTypography().headlineLarge(
+                                        color: CustomColors.textWhite),
                                   ),
-                                  Expanded(child: Container()),
-                                  SizedBox(
-                                    height: 500,
-                                    child: AvatarBackground(
-                                        height: height,
-                                        width: width,
-                                        image: "assets/images/active_time.png",
-                                        avatarType: "animation",
-                                        animation:
-                                            "assets/animations/onboarding/onboarding_remindersetting.riv",
-                                        onContinue: () => navigateToNextPage(),
-                                        children: [
-                                          Text(
-                                            "Reminder",
-                                            style:
-                                                CustomTypography().titleLarge(),
-                                          ),
-                                          const SizedBox(
-                                            height: 12,
-                                          ),
-                                          ListActiveTimes(times: times),
-                                        ]),
-                                  )
-                                ],
-                              ),
+                                ),
+                                Expanded(child: Container()),
+                                SizedBox(
+                                  height: 500,
+                                  child: AvatarBackground(
+                                      height: height,
+                                      width: width,
+                                      image: "assets/images/active_time.png",
+                                      avatarType: "animation",
+                                      animation:
+                                          "assets/animations/onboarding/onboarding_remindersetting.riv",
+                                      onContinue: () => navigateToNextPage(),
+                                      children: [
+                                        Text(
+                                          "Reminder",
+                                          style:
+                                              CustomTypography().titleLarge(),
+                                        ),
+                                        const SizedBox(
+                                          height: 12,
+                                        ),
+                                        ListActiveTimes(times: times),
+                                      ]),
+                                )
+                              ],
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: CustomFlatButton(
-                        onClick: navigateToNextPage, text: "Continue"),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 16,
+                    bottom: bottomPadding > 0
+                        ? bottomPadding + 16
+                        : (isIos ? 34 + 16 : 16),
                   ),
-                ],
-              ),
-            );
-          }),
-        ));
+                  child: CustomFlatButton(
+                      onClick: navigateToNextPage, text: "Continue"),
+                ),
+              ],
+            ),
+          );
+        }),
+      ),
+    );
   }
 
   void navigateToNextPage() async {

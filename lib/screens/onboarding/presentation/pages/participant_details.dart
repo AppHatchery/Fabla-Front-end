@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:rive/rive.dart';
+import 'dart:io' show Platform;
 
 import '../../../../theme/custom_colors.dart';
 
@@ -59,7 +60,8 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
 
     focusNode.addListener(() {
       if (focusNode.hasFocus) {
-        Future.delayed(const Duration(milliseconds: 300), maybeScrollToTextField);
+        Future.delayed(
+            const Duration(milliseconds: 300), maybeScrollToTextField);
       }
     });
 
@@ -91,28 +93,31 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
   }
 
   void maybeScrollToTextField() {
-  final renderBox = fieldKey.currentContext?.findRenderObject() as RenderBox?;
-  if (renderBox == null) return;
+    final renderBox = fieldKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
 
-  final position = renderBox.localToGlobal(Offset.zero);
-  final textFieldBottom = position.dy + renderBox.size.height;
+    final position = renderBox.localToGlobal(Offset.zero);
+    final textFieldBottom = position.dy + renderBox.size.height;
 
-  final keyboardTop = MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom;
+    final keyboardTop = MediaQuery.of(context).size.height -
+        MediaQuery.of(context).viewInsets.bottom;
 
-  // If the TextField is below the keyboard
-  if (textFieldBottom > keyboardTop) {
-    Scrollable.ensureVisible(
-      fieldKey.currentContext!,
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    // If the TextField is below the keyboard
+    if (textFieldBottom > keyboardTop) {
+      Scrollable.ensureVisible(
+        fieldKey.currentContext!,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     Widget bottomWidget = BlocConsumer<SetupCubit, SetupState>(
       builder: (context, state) {
@@ -139,64 +144,70 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
       },
     );
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-        backgroundColor: CustomColors.fillWhite,
-        appBar: AppBar(
-          backgroundColor: CustomColors.backgroundSecondary,
-          scrolledUnderElevation: 0.0,
-          leading: IconButton(
-              onPressed: () => {
-                    track(timer.stop(), "Back"),
-                    RouteService().navigateBack(
-                        context: context, current: 'participant_details')
-                  },
-              icon: const Icon(
-                Icons.arrow_back_rounded,
-                color: CustomColors.fillWhite,
-                size: 32,
-              )),
-        ),
-        body: SafeArea(
-          bottom: false,
-          child: LayoutBuilder(builder: (context, constraints) {
-            final constraintHeight = constraints.maxHeight;
-            return SingleChildScrollView(
-              controller: scrollController,
-              padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom),
-              child: Container(
-                height: constraintHeight,
-                width: width,
-                color: CustomColors.fillWhite,
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: LayoutBuilder(
-                        builder: (context, constraint) => GestureDetector(
-                          onTap: () => FocusScope.of(context).unfocus(),
-                          child: Container(
-                            height: constraint.maxHeight,
-                            width: width,
-                            color: CustomColors.backgroundSecondary,
-                            child: bottomWidget,
-                          ),
+      resizeToAvoidBottomInset: false,
+      backgroundColor: CustomColors.fillWhite,
+      appBar: AppBar(
+        backgroundColor: CustomColors.backgroundSecondary,
+        scrolledUnderElevation: 0.0,
+        leading: IconButton(
+            onPressed: () => {
+                  track(timer.stop(), "Back"),
+                  RouteService().navigateBack(
+                      context: context, current: 'participant_details')
+                },
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: CustomColors.fillWhite,
+              size: 32,
+            )),
+      ),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: LayoutBuilder(builder: (context, constraints) {
+          final constraintHeight = constraints.maxHeight;
+          return SingleChildScrollView(
+            controller: scrollController,
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom),
+            child: Container(
+              height: constraintHeight,
+              width: width,
+              color: CustomColors.fillWhite,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraint) => GestureDetector(
+                        onTap: () => FocusScope.of(context).unfocus(),
+                        child: Container(
+                          height: constraint.maxHeight,
+                          width: width,
+                          color: CustomColors.backgroundSecondary,
+                          child: bottomWidget,
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 16, right: 16, bottom: 34),
-                      child: CustomFlatButton(
-                          onClick: () =>
-                              {track(timer.stop(), "Finished"), saveName()},
-                          text: "Continue"),
-                    ),
-                  ],
-                ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        bottom: bottomPadding > 0
+                            ? bottomPadding + 34
+                            : (isIos ? 34 + 34 : 34)),
+                    child: CustomFlatButton(
+                        onClick: () =>
+                            {track(timer.stop(), "Finished"), saveName()},
+                        text: "Continue"),
+                  ),
+                ],
               ),
-            );
-          }),
-        ));
+            ),
+          );
+        }),
+      ),
+    );
   }
 
   Widget intialDetails(double height, double width) {

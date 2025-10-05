@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:location/location.dart' as l;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart' as rive;
+import 'dart:io' show Platform;
 
 class LocationAccess extends StatefulWidget {
   const LocationAccess({super.key});
@@ -68,25 +69,30 @@ class _LocationAccessState extends State<LocationAccess>
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
+      backgroundColor: CustomColors.backgroundSecondary,
+      appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
-        appBar: AppBar(
-          backgroundColor: CustomColors.backgroundSecondary,
-          scrolledUnderElevation: 0.0,
-          leading: IconButton(
-              onPressed: () => {
-                    track(timer.stop(), "Back"),
-                    RouteService()
-                        .navigateBack(context: context, current: 'location')
-                  },
-              icon: const Icon(
-                Icons.arrow_back_rounded,
-                color: CustomColors.fillWhite,
-                size: 32,
-              )),
-          automaticallyImplyLeading: false,
-        ),
-        body: LayoutBuilder(builder: (context, constraints) {
+        scrolledUnderElevation: 0.0,
+        leading: IconButton(
+            onPressed: () => {
+                  track(timer.stop(), "Back"),
+                  RouteService()
+                      .navigateBack(context: context, current: 'location')
+                },
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: CustomColors.fillWhite,
+              size: 32,
+            )),
+        automaticallyImplyLeading: false,
+      ),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: LayoutBuilder(builder: (context, constraints) {
           return Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -214,7 +220,12 @@ class _LocationAccessState extends State<LocationAccess>
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 34),
+                padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: bottomPadding > 0
+                        ? bottomPadding + 34
+                        : (isIos ? 34 + 34 : 34)),
                 child: CustomFlatButton(
                   onClick: () => navigateToNextPage(context),
                   text: "Continue",
@@ -225,7 +236,9 @@ class _LocationAccessState extends State<LocationAccess>
               )
             ],
           );
-        }));
+        }),
+      ),
+    );
   }
 
   navigateToNextPage(BuildContext context) async {

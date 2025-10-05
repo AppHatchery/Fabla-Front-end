@@ -9,6 +9,7 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:io' show Platform;
 
 import '../../../../theme/custom_colors.dart';
 
@@ -60,6 +61,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       backgroundColor: CustomColors.backgroundSecondary,
       appBar: AppBar(
@@ -85,7 +88,13 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             height: height,
             width: width,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 34),
+              padding: EdgeInsets.fromLTRB(
+                  16,
+                  16,
+                  16,
+                  bottomPadding > 0
+                      ? bottomPadding + 34
+                      : (isIos ? 34 + 34 : 34)),
               child: BlocConsumer<LoginCubit, LoginState>(
                   builder: (context, state) {
                 if (state is LoginInitial) {
@@ -240,11 +249,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   }
 
   track(int spent, String status) async {
-    await PendoService.track("Participant Login", {
-      "time_on_page": spent,
-      "status": status,
-      "Font Scaler": "$scaler"
-    });
+    await PendoService.track("Participant Login",
+        {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
   Future<void> launchEmail() async {
