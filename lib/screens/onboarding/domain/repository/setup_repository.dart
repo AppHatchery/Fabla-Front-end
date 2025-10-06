@@ -35,6 +35,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../../../core/database/dao/participant_dao.dart';
+import '../../../../core/utils/statuses.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
 import '../../../diary/data/protocol.dart';
@@ -170,14 +171,12 @@ class SetupRepository {
 
     if (response != null) {
       try {
-        final data = await json.decode(response)['data'];
-
-        // Parse the studies from the response
+        final data = json.decode(response)['data'];
         final studiesFromJson = data['studies'] as List;
         final studies = <StudyModel>[];
-        final diaries = <DiaryModel>[];
 
-        // Convert each study and its associated diaries to their respective models
+        final fetchedDiaries = <DiaryModel>[];
+
         for (final study in studiesFromJson) {
           final studyModel = StudyModel.fromJson(study, experiment.login);
           studies.add(studyModel);
@@ -185,32 +184,32 @@ class SetupRepository {
           final diariesJson = study['diaries'] as List;
           for (final json in diariesJson) {
             final diary = DiaryModel.fromJson(json, studyModel.studyId);
-            dev.log(
-                "Diary ${diary.name} - Diary start: ${diary.start} | end: ${diary.due}",
-                name: "Get Studies");
-            diaries.add(diary);
+            fetchedDiaries.add(diary);
           }
         }
 
         // Fetch all diaries from the local database
         // Filter out duplicates from the new diaries
         // For fresh installs it will be empty and result in all diaries being fetched
-        final all = diaryRepository.getAllDiaries();
-        final filtered =
-            all.isEmpty ? diaries : filterDuplicateDiaries(diaries, all);
+        final localDiaries = diaryRepository.getAllDiaries();
 
-        dev.log(
-            "Filtered: ${filtered.length} diaries - Remaining: ${all.length} - FROM JSON: ${diaries.length}",
-            name: "Get Studies");
+        // Merge using clean rules (fresh installs work as intended)
+        final mergedDiaries = _mergeDiaries(fetchedDiaries, localDiaries);
 
         // If no diaries are found, return true
-        if (filtered.isEmpty) {
-          dev.log("No diaries found in the response", name: "Get Studies");
+        if (mergedDiaries.isEmpty) {
+          dev.log("No new or changed diaries to update", name: "Get Studies");
           return true;
         }
+        //delete duplicated diaries from the local database to avoid duplicates
+        final keysToDelete = mergedDiaries
+            .map((d) =>
+                '${d.studyID}_${d.name}_${d.start.toIso8601String()}_${d.end.toIso8601String()}')
+            .toSet();
+        diaryRepository.deleteDiariesByKey(keysToDelete, localDiaries);
 
         // Convert diaries to entities and map prompts to their models
-        final entities = filtered.map((model) {
+        final entities = mergedDiaries.map((model) {
           final prompts =
               model.prompts.map((prompt) => Prompt.fromModel(prompt)).toList();
           final entity = Diary.fromModel(model);
@@ -240,9 +239,11 @@ class SetupRepository {
         dev.log(
             "Studies: ${studyEntities.length} | Entities: ${entities.length}",
             name: "Get Studies");
-        diaryRepository.addDiaries(entities);
         _studyDAO.addStudies(studyEntities);
+        diaryRepository.addDiaries(entities);
 
+        //give enough time for the database to update
+        await Future.delayed(const Duration(milliseconds: 500));
         // Schedule notifications for the diaries
         NotificationManager().scheduleLimit();
         return true;
@@ -255,15 +256,73 @@ class SetupRepository {
     return false;
   }
 
-  // Function to filter out duplicates from the new diaries
-  List<DiaryModel> filterDuplicateDiaries(
+  /// Cleans up any existing notifications and pending notifications before updating the experiment.
+  Future<void> cleanupBeforeUpdate() async {
+    try {
+      // Cancel existing notifications first
+      await NotificationService.cancelAllNotifications();
+      //delay before exiting
+      await Future.delayed(const Duration(milliseconds: 300));
+    } catch (e) {
+      dev.log("Cleanup error: $e", name: "Setup Repository");
+    }
+  }
+
+  /// Merges new diaries with existing diaries based on specific rules.
+  List<DiaryModel> _mergeDiaries(
       List<DiaryModel> newDiaries, List<DiaryModel> existingDiaries) {
-    return newDiaries.where((newDiary) {
-      // Check if this diary already exists in the database
-      final isDuplicate = existingDiaries
-          .any((existingDiary) => newDiary.isEffectivelyEqual(existingDiary));
-      return !isDuplicate;
-    }).toList();
+    // Create a composite key for unique diary identification
+    String getDiaryKey(DiaryModel d) =>
+        '${d.studyID}_${d.name}_${d.start.toIso8601String()}_${d.end.toIso8601String()}';
+
+    // Create hash maps for O(1) lookups
+    final existingDiariesMap = {
+      for (var diary in existingDiaries) getDiaryKey(diary): diary
+    };
+
+    final result = <DiaryModel>[];
+
+    // Process incoming diaries first - O(n)
+    for (final newDiary in newDiaries) {
+      final key = getDiaryKey(newDiary);
+      final existingDiary = existingDiariesMap[key];
+
+      if (existingDiary != null) {
+        // Update existing diary if there are changes
+        if (!newDiary.isEffectivelyEqual(existingDiary)) {
+          result.add(_mergeDiaryContents(newDiary, existingDiary));
+          dev.log("Updated diary: ${newDiary.name}", name: "Diary Merge");
+        } else {
+          result.add(existingDiary);
+          dev.log("Kept existing diary: ${newDiary.name}", name: "Diary Merge");
+        }
+      } else {
+        // Add new diary
+        result.add(newDiary);
+        dev.log("Added new diary: ${newDiary.name}", name: " Diary Merge");
+      }
+    }
+    return result;
+  }
+
+  /// Merges the contents of a new diary with an existing diary.
+  DiaryModel _mergeDiaryContents(
+      DiaryModel newDiary, DiaryModel existingDiary) {
+    return DiaryModel(
+      id: newDiary.id,
+      studyID: newDiary.studyID,
+      name: newDiary.name,
+      prompts: newDiary.prompts,
+      tags: newDiary.tags,
+      status: existingDiary.status,
+      due: newDiary.due,
+      start: newDiary.start,
+      end: newDiary.end,
+      entries: newDiary.entries,
+      currentEntry: existingDiary.currentEntry,
+      notifications: newDiary.notifications,
+      activeDays: newDiary.activeDays,
+    );
   }
 
   ExperimentModel getExperiment() {

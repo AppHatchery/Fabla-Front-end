@@ -265,9 +265,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                   Expanded(
                     flex: 3,
                     child: CustomFlatButton(
-                      isDisabled: !ableToContinue,
+                      isDisabled: widget.diary.prompts[currentPage].responseType == ResponseType.timer ? false : !ableToContinue,
                       onClick: () => nextPage(),
-                      text: "Continue",
+                      text: "Next",
                     ),
                   )
                 ],

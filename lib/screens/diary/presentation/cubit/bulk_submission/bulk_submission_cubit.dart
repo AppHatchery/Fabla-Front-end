@@ -7,8 +7,12 @@ import 'package:equatable/equatable.dart';
 part 'bulk_submission_state.dart';
 
 class BulkSubmissionCubit extends Cubit<BulkSubmissionState> {
-  BulkSubmissionCubit() : super(BulkSubmissionInitial());
-  final SummaryRepository _summaryRepository = SummaryRepository();
+  final SummaryRepository _summaryRepository;
+
+// to improve testability, we can pass the summary repository as a parameter
+  BulkSubmissionCubit({SummaryRepository? summaryRepository})
+      : _summaryRepository = summaryRepository ?? SummaryRepository(),
+        super(BulkSubmissionInitial());
 
   void startBulkSubmission(List<DiarySubmission> submissions) async {
     final _submissions = List<DiarySubmission>.from(submissions);
