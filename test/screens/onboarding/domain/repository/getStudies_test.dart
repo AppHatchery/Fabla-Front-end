@@ -34,7 +34,8 @@ void main() {
 
           // Act
           final result = DiaryMergingHelper.mergeDiaries(
-           [newDiary], [existingDiary],
+            [newDiary],
+            [existingDiary],
           );
 
           // Assert
@@ -50,9 +51,7 @@ void main() {
           );
 
           // Act
-          final result = DiaryMergingHelper.mergeDiaries(
-            [newDiary],[]
-            );
+          final result = DiaryMergingHelper.mergeDiaries([newDiary], []);
 
           // Assert
           expect(result, hasLength(1));
@@ -88,9 +87,8 @@ void main() {
           ];
 
           // Act
-          final result = DiaryMergingHelper.mergeDiaries(
-            newDiaries, existingDiaries
-          );
+          final result =
+              DiaryMergingHelper.mergeDiaries(newDiaries, existingDiaries);
 
           // Assert
           expect(result, hasLength(2));
@@ -113,9 +111,8 @@ void main() {
           final newDiary = _createTestDiary(id: 2, activeDays: null);
 
           // Act
-          final result = DiaryMergingHelper.mergeDiaries(
-            [newDiary],  [existingDiary]
-          );
+          final result =
+              DiaryMergingHelper.mergeDiaries([newDiary], [existingDiary]);
 
           // Assert
           expect(result, hasLength(1));
@@ -388,20 +385,21 @@ class DiaryMergingHelper {
     DiaryModel existingDiary,
   ) {
     return DiaryModel(
-      id: existingDiary.id,
-      studyID: newDiary.studyID,
-      name: newDiary.name,
-      prompts: newDiary.prompts,
-      tags: newDiary.tags,
-      status: existingDiary.status,
-      due: newDiary.due,
-      start: newDiary.start,
-      end: newDiary.end,
-      entries: newDiary.entries,
-      currentEntry: existingDiary.currentEntry,
-      notifications: newDiary.notifications,
-      activeDays: newDiary.activeDays,
-    );
+        id: existingDiary.id,
+        studyID: newDiary.studyID,
+        name: newDiary.name,
+        prompts: newDiary.prompts,
+        tags: newDiary.tags,
+        status: existingDiary.status,
+        due: newDiary.due,
+        start: newDiary.start,
+        end: newDiary.end,
+        entries: newDiary.entries,
+        currentEntry: existingDiary.currentEntry,
+        notifications: newDiary.notifications,
+        activeDays: newDiary.activeDays,
+        completions: existingDiary.completions,
+        submissions: existingDiary.submissions);
   }
 
   /// Creates a composite key for unique diary identification

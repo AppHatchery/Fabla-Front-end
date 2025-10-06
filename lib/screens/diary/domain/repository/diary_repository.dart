@@ -460,7 +460,8 @@ class DiaryRepository {
                   diary.due.hour,
                   diary.due.minute,
                 ),
-                submissions: diary.submissions);
+                submissions: diary.submissions,
+                completions: diary.completions);
             filtered.add(newDiary);
           }
         }

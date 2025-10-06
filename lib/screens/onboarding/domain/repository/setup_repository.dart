@@ -309,20 +309,21 @@ class SetupRepository {
   DiaryModel _mergeDiaryContents(
       DiaryModel newDiary, DiaryModel existingDiary) {
     return DiaryModel(
-      id: newDiary.id,
-      studyID: newDiary.studyID,
-      name: newDiary.name,
-      prompts: newDiary.prompts,
-      tags: newDiary.tags,
-      status: existingDiary.status,
-      due: newDiary.due,
-      start: newDiary.start,
-      end: newDiary.end,
-      entries: newDiary.entries,
-      currentEntry: existingDiary.currentEntry,
-      notifications: newDiary.notifications,
-      activeDays: newDiary.activeDays,
-    );
+        id: newDiary.id,
+        studyID: newDiary.studyID,
+        name: newDiary.name,
+        prompts: newDiary.prompts,
+        tags: newDiary.tags,
+        status: existingDiary.status,
+        due: newDiary.due,
+        start: newDiary.start,
+        end: newDiary.end,
+        entries: newDiary.entries,
+        currentEntry: existingDiary.currentEntry,
+        notifications: newDiary.notifications,
+        activeDays: newDiary.activeDays,
+        submissions: existingDiary.submissions,
+        completions: existingDiary.completions);
   }
 
   ExperimentModel getExperiment() {
