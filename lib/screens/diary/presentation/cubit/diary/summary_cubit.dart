@@ -128,8 +128,8 @@ class SummaryCubit extends Cubit<SummaryState> {
       // Updated to use injected repository instance
       final result = await _summaryRepository.submitDiary(diary);
       if (result == null) {
-        //TODO handle no internet connection
-        emit(const SubmitError());
+        print("No internet connection");
+        emit(const SubmitNoInternet());
         return;
       }
 

@@ -38,3 +38,7 @@ final class SubmitLoading extends SummaryState {
 final class SubmitError extends SummaryState {
   const SubmitError();
 }
+
+final class SubmitNoInternet extends SummaryState {
+  const SubmitNoInternet();
+}
