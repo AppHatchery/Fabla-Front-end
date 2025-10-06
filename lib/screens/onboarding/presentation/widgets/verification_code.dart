@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -5,13 +7,12 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/database/dao/experiment_dao.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
-import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
 
-import '../../../home/data/experiment.dart';
 import '../../../home/domain/entities/experiment.dart';
+import '../../domain/repository/setup_repository.dart';
 
 class VerificationCodeTextField extends StatefulWidget {
   final String title;
@@ -199,25 +200,17 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
 // launch email to experiment owner email
 Future<void> launchEmail() async {
   try {
-    //get experiment owner email from the database
-    final experimentDAO = ExperimentDAO(box: Box<Experiment>(objectbox.store));
-    final entity = experimentDAO.getExperiment();
-
-    if (entity == null) {
-      // Handle case where no experiment exists
-      print('No experiment found');
-      return;
-    }
-
-    final experiment = ExperimentModel.fromEntity(entity);
+    //get experiment owner email
+    final repository = SetupRepository();
+    final experiment = repository.getExperiment();
     final ownerEmail = experiment.ownerEmail;
 
     if (ownerEmail.isEmpty) {
-      print('No owner email found');
+      dev.log('No owner email found');
       return;
     }
 
-    print(ownerEmail);
+    dev.log(ownerEmail);
 
     //create the email uri
     final uri = Uri(
@@ -237,10 +230,10 @@ Name: '''
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      print('Could not launch email client');
+      dev.log('Could not launch email client');
     }
   } catch (e) {
-    print('Error launching email: $e');
+    dev.log('Error launching email: $e');
   }
 }
 
