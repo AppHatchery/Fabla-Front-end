@@ -205,17 +205,10 @@ Future<void> launchEmail() async {
     final experiment = repository.getExperiment();
     final ownerEmail = experiment.ownerEmail;
 
-    if (ownerEmail.isEmpty) {
-      dev.log('No owner email found');
-      return;
-    }
-
-    dev.log(ownerEmail);
-
     //create the email uri
     final uri = Uri(
       scheme: "mailto",
-      path: ownerEmail,
+      path: ownerEmail.isNotEmpty ? ownerEmail : "support@apphatchery.org",
       query: encodeQueryParameters(<String, String>{
         'subject': 'Assistance Needed: Participant ID Already in Use',
         'body':
