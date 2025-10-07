@@ -79,6 +79,7 @@ void main() {
           name: 'Test',
           duration: '30',
           description: 'Test',
+          ownerEmail: 'test@test.com',
           version: '1.0',
         );
 
@@ -111,6 +112,7 @@ void main() {
           name: 'Test',
           duration: '30',
           description: 'Test',
+          ownerEmail: 'test@test.com',
           version: '1.0',
         );
         final success = StudyLoginSuccess(experiment);
