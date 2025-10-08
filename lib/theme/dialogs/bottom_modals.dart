@@ -69,24 +69,17 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   //Animation
   late r.StateMachineController _controller;
+  double animationHeight = 0;
 
   void _onInit(r.Artboard art) {
-    var ctrl = r.StateMachineController.fromArtboard(art, "Ghosts");
-
-    ctrl?.isActive = false;
-    if (ctrl != null) {
-      art.addController(ctrl);
-      setState(() {
+      var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
+      if (ctrl != null) {
+        art.addController(ctrl);
         _controller = ctrl;
+      }
+      setState(() {
+        animationHeight = art.height;
       });
-
-      Future.delayed(const Duration(milliseconds: 10), () {
-        final searchingThree = _controller.findSMI('Searching_3');
-        if (searchingThree != null && mounted) {
-          searchingThree.value = true;
-        }
-      });
-    }
   }
 
   @override
@@ -123,39 +116,53 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return Container(
-      width: width,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF3F3F3),
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(14), topRight: Radius.circular(14)),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(
-            height: 32,
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+
+    // Calculate scaled heights
+    final baseModalHeight = 0.75;
+    final scaledModalHeight = (baseModalHeight + (textScaleFactor - 1) * 0.15).clamp(0.75, 0.95);
+
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        width: width,
+        height: MediaQuery.of(context).size.height * scaledModalHeight,
+        decoration: const BoxDecoration(
+          color: Color(0xFFF3F3F3),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
           ),
-          // Close Modal Button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(
-                    CupertinoIcons.clear_circled_solid,
-                    size: 26,
-                    color: CustomColors.textSecondaryContent,
+        ),
+        child: Column(
+          children: [
+            // Close Modal Button
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16 * textScaleFactor.clamp(1.0, 1.3),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GestureDetector(
+                    onTap: () => {
+                      Navigator.pop(context),
+                    },
+                    child: Icon(
+                      CupertinoIcons.clear_circled_solid,
+                      size: 32,
+                      color: CustomColors.textSecondaryContent,
+                    ),
                   ),
-                )
-              ],
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: questionAndHints(),
-          ),
-        ],
+            Expanded(child: questionAndHints()),
+          ],
+        ),
       ),
     );
   }
@@ -163,79 +170,120 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Widget questionAndHints() {
     final width = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final textScaleFactor = MediaQuery.of(context).textScaler.scale(1);
+
+    // Calculate scaled bottom container height
+    final baseBottomHeight = 0.35;
+    final scaledBottomHeight = (baseBottomHeight + (textScaleFactor - 1) * 0.1).clamp(0.35, 0.50);
+
+
     return LayoutBuilder(builder: (context, constraints) {
-      return SingleChildScrollView(
-        controller: scrollController,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: constraints.maxHeight),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
+      return Stack(
+        children: [
+          //Animation
+          //show the animation when the text scale is less than 1.2 and hide it when it is greater than 1.2 for better visuals
+          if(textScaleFactor > 1) ...[SizedBox.shrink()] else ...[_riveAnimation()],
+          //Scrollable content
+          //Positioned allows the content to scroll
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: MediaQuery.of(context).size.height * scaledBottomHeight,
+            child: SingleChildScrollView(
+              controller: scrollController,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       widget.question,
                       style: CustomTypography().titleLarge(),
                     ),
-                    const SizedBox(
-                      height: 32,
-                    ),
-                    SizedBox(
-                      height: 100,
-                      width: 100,
-                      child: r.RiveAnimation.asset(
-                        'assets/animations/ghosts.riv',
-                        onInit: _onInit,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 16,
-                    ),
+                    SizedBox(height: 24 * textScaleFactor.clamp(1.0, 1.3)),
                     Text(
                       widget.hint ??
                           "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
                       style: CustomTypography().body(),
                     ),
+                    SizedBox(height: 24,),
                   ],
                 ),
               ),
-              SizedBox(height: screenHeight > 750 ? 70 : 32),
-              // Recording Controls
-              Container(
-                width: width,
-                padding: const EdgeInsets.all(32),
-                color: CustomColors.productNormal,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    recordingTimer(),
-                    SizedBox(
-                      height: screenHeight > 850 ? 36 : 24,
-                    ),
-                    SizedBox(
-                      height: 42,
-                      width: width,
-                      child: waveForm(),
-                    ),
-                    SizedBox(
-                      height: screenHeight > 850 ? 36 : 24,
-                    ),
-                    recordingControls(screenHeight),
-                    SizedBox(
-                      height: screenHeight > 850 ? 36 : 24,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          //Recording Controls Section - fixed at bottom
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              width: width,
+              height: MediaQuery.of(context).size.height * scaledBottomHeight,
+              padding: EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 20.0 * textScaleFactor.clamp(1.0, 1.3),
+              ),
+              color: CustomColors.productNormal,
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Recording...",
+                        style: CustomTypography().custom(
+                          color: CustomColors.fillWhite,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 5 * textScaleFactor.clamp(1.0, 1.3)),
+                  SizedBox(
+                    height: 42 * textScaleFactor.clamp(1.0, 1.4),
+                    width: width,
+                    child: waveForm(),
+                  ),
+                  SizedBox(height: 5 * textScaleFactor.clamp(1.0, 1.3)),
+                  progressBar(),
+                  SizedBox(height: 16 * textScaleFactor.clamp(1.0, 1.3)),
+                  recordingControls(screenHeight),
+                ],
+              ),
+            ),
+          ),
+        ],
       );
     });
+  }
+
+  Widget _riveAnimation() {
+    return Positioned(
+      top: 250,
+      bottom: 123.93,
+      left: 14.29,
+      right: 181.29,
+      child: IgnorePointer(
+        child: ColorFiltered(
+          colorFilter: ColorFilter.mode(
+           Color(0xFFACD3FC),
+            BlendMode.modulate,
+          ),
+          child: Transform(
+            transform: Matrix4.translationValues(5, -animationHeight / 5, 0)
+              ..scale(-3.0, 3.0),
+            alignment: Alignment.center,
+            child: r.RiveAnimation.asset(
+              'assets/animations/onboarding/floats_in.riv',
+              fit: BoxFit.contain,
+              onInit: _onInit,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget recordingTimer() {
@@ -250,8 +298,50 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       children: [
         Text(
           "$timer / ${formatDurationtoHHMMSS(text)}",
-          style: CustomTypography().titleMedium(color: CustomColors.textWhite),
+          style: CustomTypography().titleSmall(color: CustomColors.textWhite),
         )
+      ],
+    );
+  }
+
+  Widget progressBar() {
+    // Calculate the total duration for the progress bar
+    final totalDuration =
+        widget.suggested != null && widget.suggested!.inMilliseconds > 0
+            ? widget.suggested!
+            : widget.limit != null && widget.limit!.inMilliseconds > 0
+                ? widget.limit!
+                : const Duration(minutes: 5);
+
+    // Calculate progress as a percentage (0.0 to 1.0)
+    final progress = totalDuration.inMilliseconds > 0
+        ? (elapsed.inMilliseconds / totalDuration.inMilliseconds)
+            .clamp(0.0, 1.0)
+        : 0.0;
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            recordingTimer(),
+          ],
+        ),
+        const SizedBox(height: 5),
+        // Progress bar using LinearProgressIndicator
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(1.0),
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: CustomColors.grey,
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF56BB70)),
+              minHeight: 17,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -269,84 +359,131 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Widget recordingControls(double height) {
+    final isCompleted = recorderState == RecorderState.isStopped &&
+        elapsed.inSeconds > 0; // Completed by stop or timeout
+
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            GestureDetector(
-              onTap: () => record(),
-              child: Container(
+            if (!isCompleted) ...[
+              // When stopped initially: Show mic
+              if (recorderState == RecorderState.isStopped)
+                Container(
                   height: 68,
                   width: 68,
                   decoration: BoxDecoration(
-                      color: CustomColors.fillWhite,
-                      borderRadius: BorderRadius.circular(68)),
-                  padding: const EdgeInsets.all(4),
-                  child: recorderState == RecorderState.isStopped
-                      ? Container(
-                          height: 60,
-                          width: 60,
-                          decoration: BoxDecoration(
-                              color: CustomColors.warningActive,
-                              borderRadius: BorderRadius.circular(60)),
-                        )
-                      : Center(
-                          child: Icon(
-                            recorderState == RecorderState.isRecording
-                                ? CupertinoIcons.pause_fill
-                                : CupertinoIcons.play_fill,
-                            color: CustomColors.warningActive,
-                            size: 24,
-                          ),
-                        )),
-            )
-          ],
-        ),
-        SizedBox(
-          height: height > 850 ? 36 : 24,
-        ),
-        AnimatedOpacity(
-          duration: const Duration(milliseconds: 150),
-          opacity: _timer != null ? 1 : 0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              GestureDetector(
-                onTap: () => redo(),
-                child: Container(
-                  padding: const EdgeInsets.all(13),
+                    color: CustomColors.fillWhite,
+                    borderRadius: BorderRadius.circular(42),
+                  ),
+                  child: _buildControlButton(
+                    icon: Icons.mic,
+                    size: 34,
+                    onPressed: () => record(),
+                    color: CustomColors.warningActive,
+                  ),
+                )
+              else
+                // When recording or paused
+                ...[
+                SizedBox(
+                    width:
+                        recorderState == RecorderState.isRecording ? 100 : 130),
+                // Stop button
+                Container(
+                  height: recorderState == RecorderState.isRecording ? 68 : 40,
+                  width: recorderState == RecorderState.isRecording ? 68 : 40,
                   decoration: BoxDecoration(
-                      color: CustomColors.fillWhite,
-                      borderRadius: BorderRadius.circular(42)),
-                  child: const Center(
-                      child: Icon(
-                    CupertinoIcons.arrow_uturn_left,
-                    color: CustomColors.productNormal,
-                  )),
+                    color: CustomColors.fillWhite,
+                    borderRadius: BorderRadius.circular(42),
+                  ),
+                  child: _buildControlButton(
+                    icon: CupertinoIcons.stop_fill,
+                    size: recorderState == RecorderState.isRecording ? 34 : 24,
+                    onPressed: () => stop(),
+                    color: CustomColors.warningActive,
+                  ),
+                ),
+                const SizedBox(width: 60),
+                // Pause/Resume (right - swaps size)
+                Container(
+                  height: recorderState == RecorderState.isRecording ? 40 : 68,
+                  width: recorderState == RecorderState.isRecording ? 40 : 68,
+                  decoration: BoxDecoration(
+                    color: recorderState == RecorderState.isRecording
+                        ? CustomColors.fillWhite
+                        : CustomColors.warningActive,
+                    borderRadius: BorderRadius.circular(42),
+                  ),
+                  child: _buildControlButton(
+                    icon: recorderState == RecorderState.isRecording
+                        ? CupertinoIcons.pause_fill
+                        : Icons.mic,
+                    color: recorderState == RecorderState.isRecording
+                        ? CustomColors.productNormal
+                        : CustomColors.fillWhite,
+                    size: recorderState == RecorderState.isRecording ? 24 : 34,
+                    onPressed: () => record(),
+                  ),
+                ),
+              ],
+            ] else ...[
+              // Checkmark button (left)
+              SizedBox(width: 100),
+              Container(
+                height: 68,
+                width: 68,
+                decoration: BoxDecoration(
+                  color: CustomColors.fillWhite,
+                  borderRadius: BorderRadius.circular(42),
+                ),
+                child: _buildControlButton(
+                  icon: CupertinoIcons.checkmark_alt,
+                  size: 34,
+                  onPressed: () => save(),
+                  color: CustomColors.productNormal,
                 ),
               ),
-              const SizedBox(
-                width: 68,
-              ),
-              GestureDetector(
-                onTap: () => save(),
-                child: Container(
-                  padding: const EdgeInsets.all(13),
-                  decoration: BoxDecoration(
-                      color: CustomColors.fillWhite,
-                      borderRadius: BorderRadius.circular(42)),
-                  child: const Center(
-                      child: Icon(
-                    CupertinoIcons.checkmark_alt,
+              const SizedBox(width: 60),
+              // Redo button (right)
+              Container(
+                height: 40,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: CustomColors.fillWhite,
+                  borderRadius: BorderRadius.circular(42),
+                ),
+                child: Transform.rotate(
+                  angle: -40 * pi / 180,
+                  child: _buildControlButton(
+                    icon: CupertinoIcons.refresh_bold,
+                    size: 24,
+                    onPressed: () => redo(),
                     color: CustomColors.productNormal,
-                  )),
+                  ),
                 ),
               ),
             ],
-          ),
-        )
+          ],
+        ),
       ],
+    );
+  }
+
+  Widget _buildControlButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+    required int size,
+    required color,
+  }) {
+    return IconButton(
+      onPressed: onPressed,
+      icon: Icon(
+        icon,
+        size: size.toDouble(),
+        color: color,
+      ),
     );
   }
 
@@ -394,8 +531,15 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     });
   }
 
+  Future<void> stop() async {
+    await recorder.stopRecorder();
+    _timer?.cancel();
+    setState(() {
+      recorderState = RecorderState.isStopped;
+    });
+  }
+
   Future<void> redo() async {
-    await recorder.pauseRecorder();
     _timer?.cancel();
 
     if (mounted) {
