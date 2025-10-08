@@ -248,6 +248,8 @@ class SetupRepository {
         return true;
       } catch (e) {
         dev.log("Error parsing studies or diaries: $e", name: "Get Studies");
+        CrashlyticsService().recordError(e, null,
+            reason: 'Error parsing studies or diaries in getStudies');
         return false;
       }
     }
@@ -264,6 +266,8 @@ class SetupRepository {
       await Future.delayed(const Duration(milliseconds: 300));
     } catch (e) {
       dev.log("Cleanup error: $e", name: "Setup Repository");
+      CrashlyticsService()
+          .recordError(e, null, reason: 'Error during cleanupBeforeUpdate');
     }
   }
 
