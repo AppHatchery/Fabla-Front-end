@@ -246,9 +246,9 @@ class SetupRepository {
         // Schedule notifications for the diaries
         NotificationManager().scheduleLimit();
         return true;
-      } catch (e) {
+      } catch (e, stackTrace) {
         dev.log("Error parsing studies or diaries: $e", name: "Get Studies");
-        CrashlyticsService().recordError(e, null,
+        CrashlyticsService().recordError(e, stackTrace,
             reason: 'Error parsing studies or diaries in getStudies');
         return false;
       }
@@ -264,10 +264,10 @@ class SetupRepository {
       await NotificationService.cancelAllNotifications();
       //delay before exiting
       await Future.delayed(const Duration(milliseconds: 300));
-    } catch (e) {
+    } catch (e, stackTrace) {
       dev.log("Cleanup error: $e", name: "Setup Repository");
-      CrashlyticsService()
-          .recordError(e, null, reason: 'Error during cleanupBeforeUpdate');
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error during cleanupBeforeUpdate');
     }
   }
 
