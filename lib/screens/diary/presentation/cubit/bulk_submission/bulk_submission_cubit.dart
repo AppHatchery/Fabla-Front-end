@@ -1,6 +1,8 @@
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart'
+    show PreferenceService;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -79,11 +81,16 @@ class BulkSubmissionCubit extends Cubit<BulkSubmissionState> {
       if (failedSubmissions.isNotEmpty) {
         emit(BulkSubmissionFailed(_submissions, failedSubmissions.length));
       } else {
+        resetNetworkError();
         emit(BulkSubmissionSuccess());
       }
     } catch (e) {
-      print("Error during bulk submission: $e");
       emit(BulkSubmissionError(e.toString()));
     }
+  }
+
+  resetNetworkError() async {
+    final prefs = PreferenceService();
+    await prefs.setBoolPreference(key: 'network_error', value: false);
   }
 }
