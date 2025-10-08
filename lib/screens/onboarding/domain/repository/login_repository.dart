@@ -6,6 +6,8 @@ import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/credentials.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:developer' as dev;
@@ -186,8 +188,11 @@ class LoginRepository {
       }
 
       return null;
-    } catch (e) {
+    } catch (e, stackTrace) {
       // Log the error if something goes wrong
+      CrashlyticsService().recordError(e, stackTrace,
+          context: {'code': code},
+          reason: 'Error during study verification in studyVerification');
       dev.log(e.toString(), name: "Study Verification");
       return null;
     }

@@ -7,6 +7,7 @@ import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -100,6 +101,12 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
   } catch (e, stackTrace) {
     dev.log("Failed to upload data: $e", name: "Upload");
     dev.log(stackTrace.toString());
+    CrashlyticsService().recordError(e, stackTrace,
+        context: {
+          'ParticipantID': participantID,
+          'DiaryID': diary.id.toString()
+        },
+        reason: 'Failed to upload data in upload function');
     return false;
   }
 }
@@ -206,9 +213,11 @@ Future<bool> uploadNonAudioData(
     var response = await httpClient.post(url, headers: headers, body: jsonBody);
 
     return response.statusCode == 200;
-  } catch (e) {
+  } catch (e, stackTrace) {
     // An error occurred
     dev.log('Error sending request: $e', name: 'Upload - Non-Audio Data');
+    CrashlyticsService().recordError(e, stackTrace,
+        reason: 'Error sending request in uploadNonAudioData');
     return false; // Submission failed due to error
   }
 }
@@ -277,14 +286,21 @@ Future<String?> getPresignedUrl(
       var uploadUrl = body['uploadURL'];
       return uploadUrl;
     } else {
+      CrashlyticsService().recordApiError(
+          'Failed to get presigned URL: ${response.body}', apiUrl,
+          statusCode: response.statusCode,
+          method: 'POST',
+          requestData: {'filename': filename});
       dev.log(
           'Failed to get presigned URL: ${response.statusCode}, ${response.body}',
           name: 'Upload - Get Presigned URL');
       return null;
     }
-  } catch (e) {
+  } catch (e, stackTrace) {
     dev.log('Error getting presigned URL: $e',
         name: 'Upload - Get Presigned URL');
+    CrashlyticsService().recordError(e, stackTrace,
+        reason: 'Error getting presigned URL in getPresignedUrl');
     return null;
   }
 }
@@ -309,9 +325,11 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
     var response = await http.Client().send(request);
 
     return response.statusCode == 200;
-  } catch (e) {
+  } catch (e, stackTrace) {
     dev.log('S3 Storage: Error uploading file: $e',
         name: 'Upload - S3 Storage');
+    CrashlyticsService().recordError(e, stackTrace,
+        reason: 'Error uploading file in uploadFileToS3');
     return false; // Return false if an error occurred
   }
 }
@@ -416,8 +434,10 @@ Future<bool> awsUploadResponses(
     final filesResult = files.isNotEmpty ? await uploadFiles(files) : true;
     final dataSent = await uploadNonAudioData(promptEntryList);
     return filesResult && dataSent;
-  } catch (e) {
+  } catch (e, stackTrace) {
     dev.log("EXCEPTION: $e", name: "Upload - AWS Upload Responses");
+    CrashlyticsService()
+        .recordError(e, stackTrace, reason: 'Exception in awsUploadResponses');
     return false;
   }
 }

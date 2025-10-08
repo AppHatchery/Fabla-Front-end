@@ -363,7 +363,7 @@ class CrashlyticsService {
     StackTrace? stackTrace,
     int? statusCode,
     String? method,
-    Map<String, Object>? requestData,
+    Map<String, dynamic>? requestData,
   }) async {
     final context = <String, Object>{
       'api_endpoint': endpoint,

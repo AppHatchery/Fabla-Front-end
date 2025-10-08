@@ -1,4 +1,6 @@
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -26,8 +28,10 @@ class SetupCubit extends Cubit<SetupState> {
     try {
       final participant = repository.getParticipant();
       emit(SetupLoaded(participant));
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint(e.toString());
+      CrashlyticsService()
+          .recordError(e, stackTrace, reason: "Error loading participant data");
       emit(const SetupError("Something went wrong"));
     }
   }
@@ -49,8 +53,10 @@ class SetupCubit extends Cubit<SetupState> {
     try {
       repository.updateParticipant(name);
       emit(const SetupSuccess());
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint(e.toString());
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: "Error updating participant name");
       emit(const SetupError("Something went wrong"));
     }
   }

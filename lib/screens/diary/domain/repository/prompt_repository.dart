@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 
 import 'dart:io';
 import 'dart:developer' as dev;
@@ -182,9 +183,12 @@ class PromptRepository {
       updatedPrompt.diary.target = diary;
       _promptDAO.updatePrompt(updatedPrompt);
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
       dev.log("Error deleting response: $e",
           name: "Prompt Repository - Remove Response");
+      CrashlyticsService().recordError(e, stackTrace,
+          reason:
+              'Error deleting response in removeResponse - PromptRepository');
       return false;
     }
   }

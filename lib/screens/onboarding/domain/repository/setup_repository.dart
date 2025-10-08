@@ -24,6 +24,7 @@ import 'package:audio_diaries_flutter/screens/home/domain/entities/experiment.da
 import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -34,7 +35,6 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../../../core/database/dao/participant_dao.dart';
-import '../../../../core/utils/statuses.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
 import '../../../diary/data/protocol.dart';
@@ -592,7 +592,9 @@ class SetupRepository {
       } else {
         debugPrint("Failed to fetch Firebase token: Token is null.");
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService()
+          .recordError(e, stackTrace, reason: "Fetching Firebase token failed");
       debugPrint("Error fetching Firebase token: $e");
     }
 
@@ -634,7 +636,9 @@ class SetupRepository {
             response['status'] == 'success') {
           return response['data'] as List<dynamic>?;
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
+        CrashlyticsService()
+            .recordError(e, stackTrace, reason: "Fetching user extras failed");
         dev.log("Response JSON decode error: $e");
       }
       return null;
@@ -657,7 +661,9 @@ class SetupRepository {
                   ? extra!['date_adjuster']
                   : formatted;
           dev.log(">>>>>>>>>>>date_adjuster: ${extras['date_adjuster']}");
-        } catch (e) {
+        } catch (e, stackTrace) {
+          CrashlyticsService().recordError(e, stackTrace,
+              reason: "Decoding 'extra' field failed");
           dev.log(">>>>>>>>>>>Failed to decode 'extra': $e");
           extras['date_adjuster'] = formatted;
         }
@@ -748,7 +754,9 @@ class SetupRepository {
               response['status'] == 'success') {
             return response['status'];
           }
-        } catch (e) {
+        } catch (e, stackTrace) {
+          CrashlyticsService()
+              .recordError(e, stackTrace, reason: "Leaving study failed");
           dev.log("Response JSON decode error: $e");
         }
         //return null;
@@ -792,7 +800,9 @@ class SetupRepository {
       await storage.deleteAll();
 
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService()
+          .recordError(e, stackTrace, reason: "Leaving study failed");
       return false;
     }
   }

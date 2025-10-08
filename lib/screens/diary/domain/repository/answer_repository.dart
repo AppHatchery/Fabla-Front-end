@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/utils/types.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'dart:developer' as dev;
 
 import '../../../../core/database/dao/answer_dao.dart';
@@ -134,8 +135,11 @@ class AnswerRepository {
       //Removing the response for text questions
       answer.response = null;
       dao.updateResponse(answer);
-    } catch (e) {
+    } catch (e, stackTrace) {
       dev.log("Catch Error: $e", name: 'Answer Repository - Remove Response');
+      CrashlyticsService().recordError(e, stackTrace,
+          reason:
+              'Error removing response in removeResponse - AnswerRepository');
     }
   }
 

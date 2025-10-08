@@ -1,5 +1,7 @@
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -42,7 +44,9 @@ class SummaryCubit extends Cubit<SummaryState> {
       _summaryRepository.loadSummary(diary).then((value) {
         emit(SummaryLoaded(value));
       });
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error loading summary in loadSummary - SummaryCubit');
       dev.log("Error loading summary: $e", name: "SummaryCubit - loadSummary");
     }
   }
@@ -65,7 +69,9 @@ class SummaryCubit extends Cubit<SummaryState> {
     try {
       // Updated to use injected repository instance
       _summaryRepository.saveResponse(prompt, path, type);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error saving response in saveResponse - SummaryCubit');
       dev.log("Error saving response: $e", name: "SummaryCubit - saveResponse");
     } finally {
       loadSummary(diary);
@@ -93,7 +99,9 @@ class SummaryCubit extends Cubit<SummaryState> {
           loadSummary(diary);
         }
       });
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error removing response in removeResponse - SummaryCubit');
       dev.log("Error deleting response: $e",
           name: "SummaryCubit - removeResponse");
     }
@@ -140,8 +148,10 @@ class SummaryCubit extends Cubit<SummaryState> {
       } else {
         emit(const SubmitError());
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       dev.log("Error submitting diary: $e", name: "SummaryCubit - submitDiary");
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error submitting diary in submitDiary - SummaryCubit');
       emit(const SubmitError());
     }
   }

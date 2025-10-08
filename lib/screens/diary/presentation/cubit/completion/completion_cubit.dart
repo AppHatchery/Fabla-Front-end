@@ -1,6 +1,7 @@
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
@@ -31,8 +32,10 @@ class CompletionCubit extends Cubit<CompletionState> {
 
       emit(CompletionLoaded(
           diary: newDiary!, diaries: diaries, studies: studies));
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint(e.toString());
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error in CompletionCubit.completeDiary');
       emit(CompletionError(message: e.toString()));
     }
   }

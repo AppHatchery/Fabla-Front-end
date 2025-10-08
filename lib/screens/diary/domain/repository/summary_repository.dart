@@ -6,6 +6,7 @@ import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'dart:developer' as dev;
 
@@ -54,9 +55,11 @@ class SummaryRepository {
           prompts: cleanPrompts,
           activeDays: diary.activeDays);
       return newDiary;
-    } catch (e) {
+    } catch (e, stackTrace) {
       dev.log("Error loading summary: $e",
           name: "SummaryRepository - loadSummary");
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error loading summary in loadSummary - SummaryRepository');
       rethrow;
     }
   }

@@ -2,6 +2,8 @@ import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
@@ -85,8 +87,16 @@ class HomeCubit extends Cubit<HomeState> {
         entries,
         completedStudy,
       ));
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint("Error loading home page: $e");
+      CrashlyticsService().recordError(e, stackTrace,
+          context: {
+            'today': today.toIso8601String(),
+            'start': start.toIso8601String(),
+            'monday': monday.toIso8601String(),
+            'sunday': sunday.toIso8601String(),
+          },
+          reason: 'Error loading diaries in loadDiaries - HomeCubit');
       emit(const HomeError("Something went wrong"));
     }
   }

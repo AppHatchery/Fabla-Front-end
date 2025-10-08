@@ -1,5 +1,7 @@
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/login_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -32,7 +34,9 @@ class LoginCubit extends Cubit<LoginState> {
           final setupRepository = SetupRepository();
           final experiment = setupRepository.getExperiment();
           await PendoService.start(code, experiment.login);
-        } catch (e) {
+        } catch (e, stackTrace) {
+          CrashlyticsService().recordError(e, stackTrace,
+              reason: "Pendo session handling failed");
           debugPrint('Pendo session handling error: $e');
         }
         emit(const LoginSuccess());
@@ -44,8 +48,10 @@ class LoginCubit extends Cubit<LoginState> {
         emit(const LoginError(
             "Oops! We do not have this ID in the participant list. Please check your email and try again."));
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint(e.toString());
+      CrashlyticsService()
+          .recordError(e, stackTrace, reason: 'Error in LoginCubit.login');
       emit(const LoginError("Something went wrong"));
     }
   }

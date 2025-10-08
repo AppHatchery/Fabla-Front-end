@@ -1,4 +1,6 @@
 import 'package:audio_diaries_flutter/core/secrets/keys.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:pendo_sdk/pendo_sdk.dart';
 import 'dart:developer' as dev;
@@ -70,7 +72,9 @@ class PendoService {
   static Future<void> init() async {
     try {
       await _plugin.setup(pendoKey);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error initializing Pendo in init - PendoService');
       dev.log('Error initializing Pendo: $e', name: 'Pendo Service - Init');
     }
   }
@@ -96,7 +100,9 @@ class PendoService {
         await _plugin.startSession(
             '$experiment-$code', 'Exp-$experiment', null, null);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error starting Pendo session in start - PendoService');
       dev.log('Error starting Pendo session: $e', name: 'Pendo Service - Init');
     }
   }
@@ -113,7 +119,9 @@ class PendoService {
   static Future<void> stop() async {
     try {
       await _plugin.endSession();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error stopping Pendo session in stop - PendoService');
       dev.log('Error stopping Pendo session: $e', name: 'Pendo Service - Init');
     }
   }
@@ -134,7 +142,9 @@ class PendoService {
   static Future<void> track(String event, Map<String, dynamic>? data) async {
     try {
       await _plugin.track(event, data);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error tracking Pendo event in track - PendoService');
       dev.log('Error tracking Pendo event: $e', name: 'Pendo Service - Init');
     }
   }

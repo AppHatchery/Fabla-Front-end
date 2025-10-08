@@ -2,6 +2,8 @@ import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -24,7 +26,9 @@ class SettingsCubit extends Cubit<SettingsState> {
           : DateTime.now();
       emit(SettingsLoaded(
           onboardingQuestion: questions, completedDate: formatDateOnly(date)));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: "Error fetching Onboarding Questions");
       emit(SettingsError("Error fetching Onboarding Questions: $e"));
     }
   }
@@ -36,7 +40,9 @@ class SettingsCubit extends Cubit<SettingsState> {
       await PreferenceService().setStringPreference(
           key: "onboardingSurveyCompletedDate",
           value: DateTime.now().toString());
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService()
+          .recordError(e, stackTrace, reason: "Error saving Onboarding Answer");
       emit(SettingsError("Error saving Onboarding Answer: $e"));
     }
   }

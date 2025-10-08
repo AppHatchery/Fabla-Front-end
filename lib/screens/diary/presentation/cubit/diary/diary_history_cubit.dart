@@ -1,4 +1,6 @@
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -17,7 +19,10 @@ class DiaryHistoryCubit extends Cubit<DiaryHistoryState> {
       final history = repository.getAllHistoryDiaries();
 
       emit(DiaryHistoryLoaded(history));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason:
+              'Error loading past diaries in loadPastDiaries - DiaryHistoryCubit');
       emit(const DiaryHistoryError("Something went wrong"));
     }
   }
