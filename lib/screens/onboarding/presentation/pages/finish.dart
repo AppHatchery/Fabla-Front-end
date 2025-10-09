@@ -5,6 +5,7 @@ import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
+import 'dart:io' show Platform;
 
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
@@ -54,96 +55,110 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
       backgroundColor: CustomColors.backgroundSecondary,
       body: SafeArea(
-          child: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Stack(
-                    children: [
-                      SizedBox(
-                        height: height * .7,
-                        width: width,
-                        child: FutureBuilder(
-                            future: Future.delayed(
-                                const Duration(milliseconds: 150)),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.done) {
-                                return const RiveAnimation.asset(
-                                    'assets/animations/onboarding/onboarding_congrats.riv',
-                                    fit: BoxFit.cover);
-                              }
+        top: false,
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Stack(
+                      children: [
+                        SizedBox(
+                          height: height * .7,
+                          width: width,
+                          child: FutureBuilder(
+                              future: Future.delayed(
+                                  const Duration(milliseconds: 150)),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.done) {
+                                  return const RiveAnimation.asset(
+                                      'assets/animations/onboarding/onboarding_congrats.riv',
+                                      fit: BoxFit.cover);
+                                }
 
-                              return const SizedBox.shrink();
-                            }),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                  padding: const EdgeInsets.only(top: 64),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Welcome, \nLet's Get Started",
-                                        style: CustomTypography().headlineLarge(
-                                            color: CustomColors.textWhite),
-                                      ),
-                                      const SizedBox(
-                                        height: 16,
-                                      ),
-                                      Text(
-                                        "Congratulations! ${Strings.confetti} You are all set! Your participation is invaluable to our research. We're thrilled to have you on board!",
-                                        style: CustomTypography().bodyLarge(
-                                            color: CustomColors.textWhite),
-                                      ),
-                                    ],
-                                  )),
-                            ],
+                                return const SizedBox.shrink();
+                              }),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                    padding: const EdgeInsets.only(top: 64),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Welcome, \nLet's Get Started",
+                                          style: CustomTypography()
+                                              .headlineLarge(
+                                                  color:
+                                                      CustomColors.textWhite),
+                                        ),
+                                        const SizedBox(
+                                          height: 16,
+                                        ),
+                                        Text(
+                                          "Congratulations! ${Strings.confetti} You are all set! Your participation is invaluable to our research. We're thrilled to have you on board!",
+                                          style: CustomTypography().bodyLarge(
+                                              color: CustomColors.textWhite),
+                                        ),
+                                      ],
+                                    )),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: bottomPadding > 0
+                    ? bottomPadding + 16
+                    : (isIos ? 34 + 16 : 16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image.asset(
+                  //   "assets/images/finish_image.png",
+                  //   width: width,
+                  // ),
+                  // const SizedBox(
+                  //   height: 38,
+                  // ),
+                  CustomFlatButton(
+                    onClick: () => _next(context),
+                    text: "Get Started",
+                    color: CustomColors.fillWhite,
+                    textColor: CustomColors.productNormalActive,
+                  )
                 ],
               ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Image.asset(
-                //   "assets/images/finish_image.png",
-                //   width: width,
-                // ),
-                // const SizedBox(
-                //   height: 38,
-                // ),
-                CustomFlatButton(
-                  onClick: () => _next(context),
-                  text: "Get Started",
-                  color: CustomColors.fillWhite,
-                  textColor: CustomColors.productNormalActive,
-                )
-              ],
-            ),
-          ),
-        ],
-      )),
+          ],
+        ),
+      ),
     );
   }
 
@@ -162,10 +177,7 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
   }
 
   track(int spent, String status) async {
-    await PendoService.track("Finish", {
-      "time_on_page": spent,
-      "status": status,
-      "Font Scaler": "$scaler"
-    });
+    await PendoService.track("Finish",
+        {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 }

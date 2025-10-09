@@ -10,6 +10,7 @@ import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart';
+import 'dart:io' show Platform;
 
 import '../../../../services/preference_service.dart';
 import '../../../../theme/components/buttons.dart';
@@ -81,27 +82,36 @@ class _MicAccessPageState extends State<MicAccessPage>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
+      backgroundColor: CustomColors.backgroundSecondary,
+      appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
-        appBar: AppBar(
-          backgroundColor: CustomColors.backgroundSecondary,
-          scrolledUnderElevation: 0.0,
-          leading: IconButton(
-              onPressed: () => {
-                    track(timer.stop(), "Back"),
-                    RouteService()
-                        .navigateBack(context: context, current: 'microphone')
-                  },
-              icon: const Icon(
-                Icons.arrow_back_rounded,
-                color: CustomColors.fillWhite,
-                size: 32,
-              )),
-        ),
-        body: LayoutBuilder(builder: (context, constraints) {
+        scrolledUnderElevation: 0.0,
+        leading: IconButton(
+            onPressed: () => {
+                  track(timer.stop(), "Back"),
+                  RouteService()
+                      .navigateBack(context: context, current: 'microphone')
+                },
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: CustomColors.fillWhite,
+              size: 32,
+            )),
+      ),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: LayoutBuilder(builder: (context, constraints) {
           return Padding(
-            padding:
-                const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
+            padding: EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                bottom: bottomPadding > 0
+                    ? bottomPadding + 34
+                    : (isIos ? 34 + 34 : 34)),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -260,7 +270,9 @@ class _MicAccessPageState extends State<MicAccessPage>
               ],
             ),
           );
-        }));
+        }),
+      ),
+    );
   }
 
   onInit(Artboard art) async {
@@ -354,11 +366,8 @@ class _MicAccessPageState extends State<MicAccessPage>
   }
 
   track(int spent, String status) async {
-    await PendoService.track("Microphone Access", {
-      "time_on_page": spent,
-      "status": status,
-      "Font Scaler": "$scaler"
-    });
+    await PendoService.track("Microphone Access",
+        {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
   void _requestPermission() async {

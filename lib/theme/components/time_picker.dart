@@ -170,6 +170,9 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
               height: 24,
             ),
             CustomElevatedButton(onClick: () => save(), text: "SAVE"),
+            const SizedBox(
+              height: 24,
+            ),
           ],
         ),
       ),

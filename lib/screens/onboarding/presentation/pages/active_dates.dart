@@ -7,6 +7,7 @@ import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
+import 'dart:io' show Platform;
 
 import '../../../../services/preference_service.dart';
 import '../../../../theme/custom_colors.dart';
@@ -32,6 +33,9 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
 
   final PageTimer timer = PageTimer();
   TextScaler? scaler; // Get the size of the text scaler
+
+  late bool isIos;
+  late double bottomPadding;
 
   @override
   void initState() {
@@ -68,47 +72,51 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
+    isIos = Platform.isIOS;
+    bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
-        backgroundColor: CustomColors.fillWhite,
-        appBar: AppBar(
-          backgroundColor: CustomColors.backgroundSecondary,
-          scrolledUnderElevation: 0.0,
-          leading: IconButton(
-              onPressed: () => {
-                    track(timer.stop(), "Back"),
-                    RouteService()
-                        .navigateBack(context: context, current: 'active_dates')
-                  },
-              icon: const Icon(
-                Icons.arrow_back_rounded,
-                color: CustomColors.fillWhite,
-                size: 32,
-              )),
-        ),
-        body: SafeArea(
-          bottom: false,
-          child: Container(
-            color: CustomColors.backgroundSecondary,
-            child: BlocConsumer<SetupCubit, SetupState>(
-                builder: (context, state) {
-                  if (state is SetupInitial) {
-                    return initial();
-                  } else if (state is SetupLoading) {
-                    return loading();
-                  } else if (state is SetupLoaded) {
-                    final participant = state.participant;
-                    if (participant != null) {
-                      return loaded(height, width, participant);
-                    } else {
-                      return initial();
-                    }
-                  }
-                  return initial();
+      backgroundColor: CustomColors.fillWhite,
+      appBar: AppBar(
+        backgroundColor: CustomColors.backgroundSecondary,
+        scrolledUnderElevation: 0.0,
+        leading: IconButton(
+            onPressed: () => {
+                  track(timer.stop(), "Back"),
+                  RouteService()
+                      .navigateBack(context: context, current: 'active_dates')
                 },
-                listener: (context, state) {}),
-          ),
-        ));
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: CustomColors.fillWhite,
+              size: 32,
+            )),
+      ),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: Container(
+          color: CustomColors.backgroundSecondary,
+          child: BlocConsumer<SetupCubit, SetupState>(
+              builder: (context, state) {
+                if (state is SetupInitial) {
+                  return initial();
+                } else if (state is SetupLoading) {
+                  return loading();
+                } else if (state is SetupLoaded) {
+                  final participant = state.participant;
+                  if (participant != null) {
+                    return loaded(height, width, participant);
+                  } else {
+                    return initial();
+                  }
+                }
+                return initial();
+              },
+              listener: (context, state) {}),
+        ),
+      ),
+    );
   }
 
   Widget initial() {
@@ -179,7 +187,14 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
               }),
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: bottomPadding > 0
+                    ? bottomPadding + 16
+                    : (isIos ? 34 + 16 : 16),
+              ),
               child: CustomFlatButton(
                   onClick: () => navigateToNextPage(context), text: "Continue"),
             )
