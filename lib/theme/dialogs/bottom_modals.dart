@@ -72,14 +72,14 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   double animationHeight = 0;
 
   void _onInit(r.Artboard art) {
-      var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
-      if (ctrl != null) {
-        art.addController(ctrl);
-        _controller = ctrl;
-      }
-      setState(() {
-        animationHeight = art.height;
-      });
+    var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
+    if (ctrl != null) {
+      art.addController(ctrl);
+      _controller = ctrl;
+    }
+    setState(() {
+      animationHeight = art.height;
+    });
   }
 
   @override
@@ -118,22 +118,18 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     final width = MediaQuery.of(context).size.width;
     final textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
-    // Calculate scaled heights
-    final baseModalHeight = 0.75;
-    final scaledModalHeight = (baseModalHeight + (textScaleFactor - 1) * 0.15).clamp(0.75, 0.95);
-
     return Align(
       alignment: Alignment.bottomCenter,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
         width: width,
-        height: MediaQuery.of(context).size.height * scaledModalHeight,
+        height: 689,
         decoration: const BoxDecoration(
           color: Color(0xFFF3F3F3),
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
           ),
         ),
         child: Column(
@@ -142,7 +138,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: 16,
-                vertical: 16 * textScaleFactor.clamp(1.0, 1.3),
+                vertical: 16,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -169,46 +165,43 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Widget questionAndHints() {
     final width = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final textScaleFactor = MediaQuery.of(context).textScaler.scale(1);
-
-    // Calculate scaled bottom container height
-    final baseBottomHeight = 0.35;
-    final scaledBottomHeight = (baseBottomHeight + (textScaleFactor - 1) * 0.1).clamp(0.35, 0.50);
-
 
     return LayoutBuilder(builder: (context, constraints) {
       return Stack(
         children: [
           //Animation
-          //show the animation when the text scale is less than 1.2 and hide it when it is greater than 1.2 for better visuals
-          if(textScaleFactor > 1) ...[SizedBox.shrink()] else ...[_riveAnimation()],
+          _riveAnimation(),
           //Scrollable content
-          //Positioned allows the content to scroll
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: MediaQuery.of(context).size.height * scaledBottomHeight,
+          //Add padding at the bottom to account for the fixed controls
+          SizedBox(
+            height: 210,
+            width: MediaQuery.of(context).size.width,
             child: SingleChildScrollView(
               controller: scrollController,
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 32),
+                padding: EdgeInsets.only(
+                  left: 32,
+                  right: 32,
+                  bottom: 24,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
                       widget.question,
-                      style: CustomTypography().titleLarge(),
+                      style:
+                          CustomTypography().titleLarge(color: Color(0xFF000000)),
                     ),
-                    SizedBox(height: 24 * textScaleFactor.clamp(1.0, 1.3)),
+                    SizedBox(height: 24),
                     Text(
                       widget.hint ??
                           "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
-                      style: CustomTypography().body(),
+                      style: CustomTypography().bodyLarge(
+                        color: Color(0x5C000000),
+                        weight: FontWeight.w400,
+                      ),
                     ),
-                    SizedBox(height: 24,),
                   ],
                 ),
               ),
@@ -218,11 +211,11 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              width: width,
-              height: MediaQuery.of(context).size.height * scaledBottomHeight,
+              width: 430,
+              height: 301,
               padding: EdgeInsets.symmetric(
                 horizontal: 16.0,
-                vertical: 20.0 * textScaleFactor.clamp(1.0, 1.3),
+                vertical: 20.0,
               ),
               color: CustomColors.productNormal,
               child: Column(
@@ -235,21 +228,21 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                         style: CustomTypography().custom(
                           color: CustomColors.fillWhite,
                           fontWeight: FontWeight.w500,
-                          fontSize: 18,
+                          fontSize: 18
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 5 * textScaleFactor.clamp(1.0, 1.3)),
+                  SizedBox(height: 5),
                   SizedBox(
-                    height: 42 * textScaleFactor.clamp(1.0, 1.4),
+                    height: 42,
                     width: width,
                     child: waveForm(),
                   ),
-                  SizedBox(height: 5 * textScaleFactor.clamp(1.0, 1.3)),
+                  SizedBox(height: 5),
                   progressBar(),
-                  SizedBox(height: 16 * textScaleFactor.clamp(1.0, 1.3)),
-                  recordingControls(screenHeight),
+                  SizedBox(height: 15),
+                  recordingControls(),
                 ],
               ),
             ),
@@ -268,7 +261,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       child: IgnorePointer(
         child: ColorFiltered(
           colorFilter: ColorFilter.mode(
-           Color(0xFFACD3FC),
+            Color(0xFFACD3FC),
             BlendMode.modulate,
           ),
           child: Transform(
@@ -339,6 +332,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               backgroundColor: CustomColors.grey,
               valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF56BB70)),
               minHeight: 17,
+              borderRadius: BorderRadius.circular(6.5),
             ),
           ),
         ),
@@ -358,7 +352,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     );
   }
 
-  Widget recordingControls(double height) {
+  Widget recordingControls() {
     final isCompleted = recorderState == RecorderState.isStopped &&
         elapsed.inSeconds > 0; // Completed by stop or timeout
 
@@ -573,7 +567,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         }
       } else {
         setState(() {
-          recorderState = RecorderState.isPaused;
+          recorderState = RecorderState.isStopped;
         });
       }
     }
