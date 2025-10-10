@@ -418,7 +418,7 @@ class CustomRecordButton extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: CustomTypography()
                     .button(color: CustomColors.productNormal),
-                overflow: TextOverflow.ellipsis,
+                overflow: TextOverflow.visible,
               ),
             ],
           ),
