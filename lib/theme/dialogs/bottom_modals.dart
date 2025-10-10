@@ -64,6 +64,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Duration elapsed = const Duration();
   RecorderState recorderState = RecorderState.isStopped;
   final ValueNotifier<bool> _erase = ValueNotifier<bool>(false);
+  String? tempUrl;
 
   ScrollController scrollController = ScrollController();
 
@@ -169,8 +170,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     return LayoutBuilder(builder: (context, constraints) {
       return Stack(
         children: [
-          //Animation
-          _riveAnimation(),
           //Scrollable content
           //Add padding at the bottom to account for the fixed controls
           SizedBox(
@@ -207,6 +206,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               ),
             ),
           ),
+          //Animation
+          SizedBox(child: _riveAnimation()),
           //Recording Controls Section - fixed at bottom
           Align(
             alignment: Alignment.bottomCenter,
@@ -253,26 +254,20 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Widget _riveAnimation() {
-    return Positioned(
-      top: 250,
-      bottom: 123.93,
-      left: 14.29,
-      right: 181.29,
-      child: IgnorePointer(
-        child: ColorFiltered(
-          colorFilter: ColorFilter.mode(
-            Color(0xFFACD3FC),
-            BlendMode.modulate,
-          ),
-          child: Transform(
-            transform: Matrix4.translationValues(5, -animationHeight / 5, 0)
-              ..scale(-3.0, 3.0),
-            alignment: Alignment.center,
-            child: r.RiveAnimation.asset(
-              'assets/animations/onboarding/floats_in.riv',
-              fit: BoxFit.contain,
-              onInit: _onInit,
-            ),
+    return IgnorePointer(
+      child: ColorFiltered(
+        colorFilter: ColorFilter.mode(
+          Color(0xFFACD3FC),
+          BlendMode.modulate,
+        ),
+        child: Transform(
+          transform: Matrix4.translationValues(-120, -animationHeight / 150, 0)
+            ..scale(-1.3, 1.3),
+          alignment: Alignment.center,
+          child: r.RiveAnimation.asset(
+            'assets/animations/onboarding/floats_in.riv',
+            fit: BoxFit.scaleDown,
+            onInit: _onInit,
           ),
         ),
       ),
@@ -399,7 +394,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     color: CustomColors.warningActive,
                   ),
                 ),
-                const SizedBox(width: 60),
+                const SizedBox(width: 50),
                 // Pause/Resume (right - swaps size)
                 Container(
                   height: recorderState == RecorderState.isRecording ? 40 : 68,
@@ -439,7 +434,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   color: CustomColors.productNormal,
                 ),
               ),
-              const SizedBox(width: 60),
+              const SizedBox(width: 50),
               // Redo button (right)
               Container(
                 height: 40,
@@ -526,7 +521,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Future<void> stop() async {
-    await recorder.stopRecorder();
+    tempUrl = await recorder.stopRecorder();
     _timer?.cancel();
     setState(() {
       recorderState = RecorderState.isStopped;
@@ -615,12 +610,11 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   void save() async {
     WakelockPlus.disable();
     try {
-      final url = await recorder.stopRecorder();
       _timer?.cancel();
       if (mounted) setState(() => recorderState = RecorderState.isStopped);
 
-      if (url != null) {
-        final file = File(url);
+      if (tempUrl != null) {
+        final file = File(tempUrl!);
         final name = basePath(file.path);
         widget.onSave?.call(name);
         if (mounted) Navigator.pop(context);
