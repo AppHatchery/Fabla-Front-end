@@ -87,8 +87,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
       setState(() {
-        recorderState = RecorderState.isPaused;
         if (recorder.isRecording) {
+          recorderState = RecorderState.isPaused;
           WakelockPlus.disable();
           recorder.pauseRecorder();
           _timer?.cancel();
@@ -117,15 +117,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
 
     return Align(
       alignment: Alignment.bottomCenter,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+      child: Container(
         width: width,
-        height: 689,
+        height: textScaleFactor >= 1.6 ? MediaQuery.of(context).size.height * .8 : 689,
         decoration: const BoxDecoration(
           color: Color(0xFFF3F3F3),
           borderRadius: BorderRadius.only(
@@ -166,6 +164,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Widget questionAndHints() {
     final width = MediaQuery.of(context).size.width;
+    final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
 
     return LayoutBuilder(builder: (context, constraints) {
       return Stack(
@@ -173,7 +172,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           //Scrollable content
           //Add padding at the bottom to account for the fixed controls
           SizedBox(
-            height: 210,
+            height: textScaleFactor >= 1.6 ? 260 : 210,
             width: MediaQuery.of(context).size.width,
             child: SingleChildScrollView(
               controller: scrollController,
@@ -207,19 +206,18 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             ),
           ),
           //Animation
-          SizedBox(child: _riveAnimation()),
+          _riveAnimation(),
           //Recording Controls Section - fixed at bottom
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              width: 430,
-              height: 301,
               padding: EdgeInsets.symmetric(
                 horizontal: 16.0,
                 vertical: 20.0,
               ),
               color: CustomColors.productNormal,
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -254,6 +252,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Widget _riveAnimation() {
+    final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
     return IgnorePointer(
       child: ColorFiltered(
         colorFilter: ColorFilter.mode(
@@ -261,8 +260,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           BlendMode.modulate,
         ),
         child: Transform(
-          transform: Matrix4.translationValues(-120, -animationHeight / 150, 0)
-            ..scale(-1.3, 1.3),
+          transform: Matrix4.translationValues(-140, textScaleFactor >= 1.6 ? 0 : 20, 0)
+            ..scale(-1.0, 1.0),
           alignment: Alignment.center,
           child: r.RiveAnimation.asset(
             'assets/animations/onboarding/floats_in.riv',
@@ -353,12 +352,72 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (!isCompleted) ...[
-              // When stopped initially: Show mic
-              if (recorderState == RecorderState.isStopped)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (!isCompleted) ...[
+                // When stopped initially: Show mic
+                if (recorderState == RecorderState.isStopped)
+                  Container(
+                    height: 68,
+                    width: 68,
+                    decoration: BoxDecoration(
+                      color: CustomColors.fillWhite,
+                      borderRadius: BorderRadius.circular(42),
+                    ),
+                    child: _buildControlButton(
+                      icon: Icons.mic,
+                      size: 34,
+                      onPressed: () => record(),
+                      color: CustomColors.warningActive,
+                    ),
+                  )
+                else
+                  // When recording or paused
+                  ...[SizedBox(width: recorderState == RecorderState.isRecording ? 100 : 130),
+                  // Stop button
+                  Container(
+                    height: recorderState == RecorderState.isPaused ? 40 : 68,
+                    width: recorderState == RecorderState.isPaused ? 40 : 68,
+                    decoration: BoxDecoration(
+                      color: CustomColors.fillWhite,
+                      borderRadius: BorderRadius.circular(42),
+                    ),
+                    child: _buildControlButton(
+                      icon: CupertinoIcons.stop_fill,
+                      size: recorderState == RecorderState.isPaused ? 24 : 34,
+                      onPressed: () => stop(),
+                      color: CustomColors.warningActive,
+                    ),
+                  ),
+                  const SizedBox(width: 50),
+                  // Pause/Resume (right - swaps size)
+                  Container(
+                    height: recorderState == RecorderState.isPaused ? 68 : 40,
+                    width: recorderState == RecorderState.isPaused ? 68 : 40,
+                    decoration: BoxDecoration(
+                      color: recorderState == RecorderState.isRecording
+                          ? CustomColors.fillWhite
+                          : CustomColors.warningActive,
+                      borderRadius: BorderRadius.circular(42),
+                    ),
+                    child: _buildControlButton(
+                      icon: recorderState == RecorderState.isPaused
+                          ? Icons.mic
+                          : CupertinoIcons.pause_fill,
+                      color: recorderState == RecorderState.isPaused
+                          ? CustomColors.fillWhite
+                          : CustomColors.productNormal,
+                      size: recorderState == RecorderState.isPaused ? 34 : 24,
+                      onPressed: () => record(),
+                    ),
+                  ),
+                ],
+              ] else ...[
+                // Checkmark button (left)
+                SizedBox(width: 100),
                 Container(
                   height: 68,
                   width: 68,
@@ -367,94 +426,34 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     borderRadius: BorderRadius.circular(42),
                   ),
                   child: _buildControlButton(
-                    icon: Icons.mic,
+                    icon: CupertinoIcons.checkmark_alt,
                     size: 34,
-                    onPressed: () => record(),
-                    color: CustomColors.warningActive,
+                    onPressed: () => save(),
+                    color: CustomColors.productNormal,
                   ),
-                )
-              else
-                // When recording or paused
-                ...[
-                SizedBox(
-                    width:
-                        recorderState == RecorderState.isRecording ? 100 : 130),
-                // Stop button
+                ),
+                const SizedBox(width: 50),
+                // Redo button (right)
                 Container(
-                  height: recorderState == RecorderState.isRecording ? 68 : 40,
-                  width: recorderState == RecorderState.isRecording ? 68 : 40,
+                  height: 40,
+                  width: 40,
                   decoration: BoxDecoration(
                     color: CustomColors.fillWhite,
                     borderRadius: BorderRadius.circular(42),
                   ),
-                  child: _buildControlButton(
-                    icon: CupertinoIcons.stop_fill,
-                    size: recorderState == RecorderState.isRecording ? 34 : 24,
-                    onPressed: () => stop(),
-                    color: CustomColors.warningActive,
-                  ),
-                ),
-                const SizedBox(width: 50),
-                // Pause/Resume (right - swaps size)
-                Container(
-                  height: recorderState == RecorderState.isRecording ? 40 : 68,
-                  width: recorderState == RecorderState.isRecording ? 40 : 68,
-                  decoration: BoxDecoration(
-                    color: recorderState == RecorderState.isRecording
-                        ? CustomColors.fillWhite
-                        : CustomColors.warningActive,
-                    borderRadius: BorderRadius.circular(42),
-                  ),
-                  child: _buildControlButton(
-                    icon: recorderState == RecorderState.isRecording
-                        ? CupertinoIcons.pause_fill
-                        : Icons.mic,
-                    color: recorderState == RecorderState.isRecording
-                        ? CustomColors.productNormal
-                        : CustomColors.fillWhite,
-                    size: recorderState == RecorderState.isRecording ? 24 : 34,
-                    onPressed: () => record(),
+                  child: Transform.rotate(
+                    angle: -40 * pi / 180,
+                    child: _buildControlButton(
+                      icon: CupertinoIcons.refresh_bold,
+                      size: 24,
+                      onPressed: () => redo(),
+                      color: CustomColors.productNormal,
+                    ),
                   ),
                 ),
               ],
-            ] else ...[
-              // Checkmark button (left)
-              SizedBox(width: 100),
-              Container(
-                height: 68,
-                width: 68,
-                decoration: BoxDecoration(
-                  color: CustomColors.fillWhite,
-                  borderRadius: BorderRadius.circular(42),
-                ),
-                child: _buildControlButton(
-                  icon: CupertinoIcons.checkmark_alt,
-                  size: 34,
-                  onPressed: () => save(),
-                  color: CustomColors.productNormal,
-                ),
-              ),
-              const SizedBox(width: 50),
-              // Redo button (right)
-              Container(
-                height: 40,
-                width: 40,
-                decoration: BoxDecoration(
-                  color: CustomColors.fillWhite,
-                  borderRadius: BorderRadius.circular(42),
-                ),
-                child: Transform.rotate(
-                  angle: -40 * pi / 180,
-                  child: _buildControlButton(
-                    icon: CupertinoIcons.refresh_bold,
-                    size: 24,
-                    onPressed: () => redo(),
-                    color: CustomColors.productNormal,
-                  ),
-                ),
-              ),
             ],
-          ],
+          ),
         ),
       ],
     );
@@ -545,10 +544,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             _erase.value = !_erase.value;
           });
         }
-        final stoppedRecorderValue = await recorder.stopRecorder();
 
-        if (stoppedRecorderValue != null) {
-          final file = File(stoppedRecorderValue);
+        if (tempUrl != null) {
+          final file = File(tempUrl!);
           await file.delete();
         }
 
