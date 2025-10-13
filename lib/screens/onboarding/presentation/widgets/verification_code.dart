@@ -129,22 +129,17 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
                                           decoration: ShapeDecoration(
                                             color: CustomColors.pumpkinOrange,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(11),
+                                              borderRadius: BorderRadius.circular(11),
                                             ),
                                           ),
                                           child: TextButton(
                                             onPressed: () => launchEmail(),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      8, 4, 8, 8),
+                                            child: FittedBox(
+                                              fit: BoxFit.scaleDown,
                                               child: Text(
                                                 "Contact Researcher",
-                                                style: CustomTypography()
-                                                    .bodyLarge(
-                                                  color:
-                                                      CustomColors.fillVanilla,
+                                                style: CustomTypography().bodyLarge(
+                                                  color: CustomColors.fillVanilla,
                                                   weight: FontWeight.w400,
                                                 ),
                                               ),
