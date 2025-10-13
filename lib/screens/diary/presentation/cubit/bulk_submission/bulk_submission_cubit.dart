@@ -10,10 +10,14 @@ part 'bulk_submission_state.dart';
 
 class BulkSubmissionCubit extends Cubit<BulkSubmissionState> {
   final SummaryRepository _summaryRepository;
+  final PreferenceService _preferenceService;
 
 // to improve testability, we can pass the summary repository as a parameter
-  BulkSubmissionCubit({SummaryRepository? summaryRepository})
-      : _summaryRepository = summaryRepository ?? SummaryRepository(),
+  BulkSubmissionCubit({
+    SummaryRepository? summaryRepository,
+    PreferenceService? preferenceService,
+  })  : _summaryRepository = summaryRepository ?? SummaryRepository(),
+        _preferenceService = preferenceService ?? PreferenceService(),
         super(BulkSubmissionInitial());
 
   void startBulkSubmission(List<DiarySubmission> submissions) async {
@@ -90,7 +94,7 @@ class BulkSubmissionCubit extends Cubit<BulkSubmissionState> {
   }
 
   resetNetworkError() async {
-    final prefs = PreferenceService();
-    await prefs.setBoolPreference(key: 'network_error', value: false);
+    await _preferenceService.setBoolPreference(
+        key: 'network_error', value: false);
   }
 }
