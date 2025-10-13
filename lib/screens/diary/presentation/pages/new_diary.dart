@@ -239,36 +239,43 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                 right: 16,
                 bottom: 30,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
                 children: [
-                  Visibility(
-                      visible: currentPage != 0,
-                      child: CustomElevatedIconButton(
-                        onClick: () {
-                          track(timer.reset(), "Previous");
-                          previousPage();
-                        },
-                        icon: Icons.arrow_back,
-                        //iconSize: 25.0,
-                        iconColor: CustomColors.productNormal,
-                        color: CustomColors.fillWhite,
-                        shadowColor: Colors.transparent,
-                        border: Border.all(
-                          color: CustomColors.productBorderNormal,
-                          width: 2,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Visibility(
+                          visible: currentPage != 0,
+                          child: CustomElevatedIconButton(
+                            onClick: () {
+                              track(timer.reset(), "Previous");
+                              previousPage();
+                            },
+                            icon: Icons.arrow_back,
+                            //iconSize: 25.0,
+                            iconColor: CustomColors.productNormal,
+                            color: CustomColors.fillWhite,
+                            shadowColor: Colors.transparent,
+                            border: Border.all(
+                              color: CustomColors.productBorderNormal,
+                              width: 2,
+                            ),
+                          )),
+                      const SizedBox(
+                        width: 12,
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: CustomFlatButton(
+                          isDisabled: widget.diary.prompts[currentPage].responseType == ResponseType.timer ? false : !ableToContinue,
+                          onClick: () => nextPage(),
+                          text: "Next",
                         ),
-                      )),
-                  const SizedBox(
-                    width: 12,
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    flex: 3,
-                    child: CustomFlatButton(
-                      isDisabled: widget.diary.prompts[currentPage].responseType == ResponseType.timer ? false : !ableToContinue,
-                      onClick: () => nextPage(),
-                      text: "Continue",
-                    ),
+                  SizedBox(
+                    height: 20,
                   )
                 ],
               ),

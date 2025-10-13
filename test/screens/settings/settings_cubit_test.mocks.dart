@@ -5,7 +5,6 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i7;
 
-import 'package:audio_diaries_flutter/screens/diary/data/diary.dart' as _i8;
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/answer_repository.dart'
     as _i4;
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart'
@@ -13,14 +12,14 @@ import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repo
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart'
     as _i3;
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart' as _i5;
-import 'package:audio_diaries_flutter/screens/home/data/study.dart' as _i9;
+import 'package:audio_diaries_flutter/screens/home/data/study.dart' as _i8;
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart'
-    as _i10;
+    as _i9;
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart'
-    as _i11;
+    as _i10;
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart'
     as _i6;
-import 'package:audio_diaries_flutter/services/preference_service.dart' as _i12;
+import 'package:audio_diaries_flutter/services/preference_service.dart' as _i11;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -146,20 +145,14 @@ class MockSetupRepository extends _i1.Mock implements _i6.SetupRepository {
       ) as _i7.Future<bool>);
 
   @override
-  List<_i8.DiaryModel> filterDuplicateDiaries(
-    List<_i8.DiaryModel>? newDiaries,
-    List<_i8.DiaryModel>? existingDiaries,
-  ) =>
-      (super.noSuchMethod(
+  _i7.Future<void> cleanupBeforeUpdate() => (super.noSuchMethod(
         Invocation.method(
-          #filterDuplicateDiaries,
-          [
-            newDiaries,
-            existingDiaries,
-          ],
+          #cleanupBeforeUpdate,
+          [],
         ),
-        returnValue: <_i8.DiaryModel>[],
-      ) as List<_i8.DiaryModel>);
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
 
   @override
   _i5.ExperimentModel getExperiment() => (super.noSuchMethod(
@@ -177,7 +170,7 @@ class MockSetupRepository extends _i1.Mock implements _i6.SetupRepository {
       ) as _i5.ExperimentModel);
 
   @override
-  dynamic setColorForStudy(List<_i9.StudyModel>? studies) =>
+  dynamic setColorForStudy(List<_i8.StudyModel>? studies) =>
       super.noSuchMethod(Invocation.method(
         #setColorForStudy,
         [studies],
@@ -194,14 +187,14 @@ class MockSetupRepository extends _i1.Mock implements _i6.SetupRepository {
       );
 
   @override
-  _i7.Future<List<_i10.Questions>> getOnBoardingQuestions() =>
+  _i7.Future<List<_i9.Questions>> getOnBoardingQuestions() =>
       (super.noSuchMethod(
         Invocation.method(
           #getOnBoardingQuestions,
           [],
         ),
-        returnValue: _i7.Future<List<_i10.Questions>>.value(<_i10.Questions>[]),
-      ) as _i7.Future<List<_i10.Questions>>);
+        returnValue: _i7.Future<List<_i9.Questions>>.value(<_i9.Questions>[]),
+      ) as _i7.Future<List<_i9.Questions>>);
 
   @override
   _i7.Future<dynamic> saveOnBoardingQuestions(List<dynamic>? json) =>
@@ -214,7 +207,7 @@ class MockSetupRepository extends _i1.Mock implements _i6.SetupRepository {
       ) as _i7.Future<dynamic>);
 
   @override
-  void saveOnBoardingAnswer(_i11.QuestionsEntity? question) =>
+  void saveOnBoardingAnswer(_i10.QuestionsEntity? question) =>
       super.noSuchMethod(
         Invocation.method(
           #saveOnBoardingAnswer,
@@ -265,7 +258,7 @@ class MockSetupRepository extends _i1.Mock implements _i6.SetupRepository {
 /// A class which mocks [PreferenceService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockPreferenceService extends _i1.Mock implements _i12.PreferenceService {
+class MockPreferenceService extends _i1.Mock implements _i11.PreferenceService {
   MockPreferenceService() {
     _i1.throwOnMissingStub(this);
   }

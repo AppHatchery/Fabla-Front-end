@@ -1181,7 +1181,7 @@ class _TimerWidgetState extends State<TimerWidget>
                 }
                 _startAndShowModal();
               },
-        text: 'Start Timer Now',
+        text: 'Start Timer',
       ),
     ]);
   }

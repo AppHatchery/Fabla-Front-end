@@ -112,6 +112,7 @@ void setupCommonCubitMocks(MockHomeCubit cubit) {
       name: 'test',
       duration: '7',
       description: 'test',
+      ownerEmail: 'test@test.com',
       version: '1.0',
     ),
   );

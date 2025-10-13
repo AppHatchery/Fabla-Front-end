@@ -535,6 +535,8 @@ class DiaryRepository {
         .map((e) => DiaryModel.fromEntity(e))
         .toList();
 
+    final List<DiaryModel> diaries = [];
+
     // For weekly diaries add diaries to each of the active days
     for (final diary in filtered) {
       if (diary.activeDays != null && diary.activeDays!.isNotEmpty) {
@@ -564,19 +566,19 @@ class DiaryRepository {
                 diary.due.minute,
               ),
             );
-            filtered.add(newDiary);
+            diaries.add(newDiary);
           }
         }
-
-        // Remove the original diary if it was a weekly diary
-        filtered.remove(diary);
+      } else {
+        // Daily diaries
+        diaries.add(diary);
       }
     }
 
     // Sort the diaries by start date
-    filtered.sort((a, b) => a.start.compareTo(b.start));
+    diaries.sort((a, b) => a.start.compareTo(b.start));
 
-    return filtered;
+    return diaries;
   }
 
   // retrieves the protocol from the protocol entity
@@ -755,7 +757,6 @@ class DiaryRepository {
 
   /// Deletes all diaries that match any of the composite keys provided
   void deleteDiariesByKey(Set<String> keysToDelete, List<DiaryModel> all) {
-
     final toDelete = all
         .where((diary) {
           final key =

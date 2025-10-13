@@ -5,7 +5,6 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i7;
 
-import 'package:audio_diaries_flutter/screens/diary/data/diary.dart' as _i9;
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/answer_repository.dart'
     as _i4;
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart'
@@ -13,15 +12,15 @@ import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repo
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart'
     as _i3;
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart' as _i5;
-import 'package:audio_diaries_flutter/screens/home/data/study.dart' as _i10;
+import 'package:audio_diaries_flutter/screens/home/data/study.dart' as _i9;
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart'
-    as _i11;
+    as _i10;
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart'
-    as _i12;
+    as _i11;
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart'
     as _i8;
 import 'package:audio_diaries_flutter/services/preference_service.dart' as _i6;
-import 'package:flutter/material.dart' as _i13;
+import 'package:flutter/material.dart' as _i12;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -316,20 +315,14 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
       ) as _i7.Future<bool>);
 
   @override
-  List<_i9.DiaryModel> filterDuplicateDiaries(
-    List<_i9.DiaryModel>? newDiaries,
-    List<_i9.DiaryModel>? existingDiaries,
-  ) =>
-      (super.noSuchMethod(
+  _i7.Future<void> cleanupBeforeUpdate() => (super.noSuchMethod(
         Invocation.method(
-          #filterDuplicateDiaries,
-          [
-            newDiaries,
-            existingDiaries,
-          ],
+          #cleanupBeforeUpdate,
+          [],
         ),
-        returnValue: <_i9.DiaryModel>[],
-      ) as List<_i9.DiaryModel>);
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
 
   @override
   _i5.ExperimentModel getExperiment() => (super.noSuchMethod(
@@ -347,7 +340,7 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
       ) as _i5.ExperimentModel);
 
   @override
-  dynamic setColorForStudy(List<_i10.StudyModel>? studies) =>
+  dynamic setColorForStudy(List<_i9.StudyModel>? studies) =>
       super.noSuchMethod(Invocation.method(
         #setColorForStudy,
         [studies],
@@ -364,14 +357,14 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
       );
 
   @override
-  _i7.Future<List<_i11.Questions>> getOnBoardingQuestions() =>
+  _i7.Future<List<_i10.Questions>> getOnBoardingQuestions() =>
       (super.noSuchMethod(
         Invocation.method(
           #getOnBoardingQuestions,
           [],
         ),
-        returnValue: _i7.Future<List<_i11.Questions>>.value(<_i11.Questions>[]),
-      ) as _i7.Future<List<_i11.Questions>>);
+        returnValue: _i7.Future<List<_i10.Questions>>.value(<_i10.Questions>[]),
+      ) as _i7.Future<List<_i10.Questions>>);
 
   @override
   _i7.Future<dynamic> saveOnBoardingQuestions(List<dynamic>? json) =>
@@ -384,7 +377,7 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
       ) as _i7.Future<dynamic>);
 
   @override
-  void saveOnBoardingAnswer(_i12.QuestionsEntity? question) =>
+  void saveOnBoardingAnswer(_i11.QuestionsEntity? question) =>
       super.noSuchMethod(
         Invocation.method(
           #saveOnBoardingAnswer,
@@ -435,15 +428,15 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
 /// A class which mocks [NavigatorObserver].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNavigatorObserver extends _i1.Mock implements _i13.NavigatorObserver {
+class MockNavigatorObserver extends _i1.Mock implements _i12.NavigatorObserver {
   MockNavigatorObserver() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
   void didPush(
-    _i13.Route<dynamic>? route,
-    _i13.Route<dynamic>? previousRoute,
+    _i12.Route<dynamic>? route,
+    _i12.Route<dynamic>? previousRoute,
   ) =>
       super.noSuchMethod(
         Invocation.method(
@@ -458,8 +451,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i13.NavigatorObserver {
 
   @override
   void didPop(
-    _i13.Route<dynamic>? route,
-    _i13.Route<dynamic>? previousRoute,
+    _i12.Route<dynamic>? route,
+    _i12.Route<dynamic>? previousRoute,
   ) =>
       super.noSuchMethod(
         Invocation.method(
@@ -474,8 +467,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i13.NavigatorObserver {
 
   @override
   void didRemove(
-    _i13.Route<dynamic>? route,
-    _i13.Route<dynamic>? previousRoute,
+    _i12.Route<dynamic>? route,
+    _i12.Route<dynamic>? previousRoute,
   ) =>
       super.noSuchMethod(
         Invocation.method(
@@ -490,8 +483,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i13.NavigatorObserver {
 
   @override
   void didReplace({
-    _i13.Route<dynamic>? newRoute,
-    _i13.Route<dynamic>? oldRoute,
+    _i12.Route<dynamic>? newRoute,
+    _i12.Route<dynamic>? oldRoute,
   }) =>
       super.noSuchMethod(
         Invocation.method(
@@ -507,8 +500,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i13.NavigatorObserver {
 
   @override
   void didChangeTop(
-    _i13.Route<dynamic>? topRoute,
-    _i13.Route<dynamic>? previousTopRoute,
+    _i12.Route<dynamic>? topRoute,
+    _i12.Route<dynamic>? previousTopRoute,
   ) =>
       super.noSuchMethod(
         Invocation.method(
@@ -523,8 +516,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i13.NavigatorObserver {
 
   @override
   void didStartUserGesture(
-    _i13.Route<dynamic>? route,
-    _i13.Route<dynamic>? previousRoute,
+    _i12.Route<dynamic>? route,
+    _i12.Route<dynamic>? previousRoute,
   ) =>
       super.noSuchMethod(
         Invocation.method(

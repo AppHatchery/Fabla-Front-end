@@ -9,9 +9,8 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
     show CrashlyticsService;
 import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'dart:developer' as dev;
-
 import '../../../../core/database/dao/participant_dao.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
@@ -78,14 +77,59 @@ class LoginRepository {
   /// bool isValidCode = await verify("ABC123");
   /// if (isValidCode) {
   ///   // Proceed with login or registration...
+  ///   if (isAlreadyLoggedIn) {
+  ///     // Show warning about existing login...
+  ///   } else {
+  ///     // Proceed with normal login...
+  ///   }
   /// } else {
   ///   // Display an error message indicating invalid code...
   /// }
   /// ```
-  Future<bool> verify(String code) async {
+  Future<Map<String, Object>> verify(String code) async {
     final entity = _experimentDAO.getExperiment();
     final experiment = ExperimentModel.fromEntity(entity!);
 
+    bool isAlreadyLoggedIn = false;
+
+    // Check if user has already logged in
+    final getextrasmap = <String, dynamic>{};
+    getextrasmap.addAll({
+      'participant_id': code,
+      'login_code': experiment.login,
+    });
+
+    final getdbextras = await post(path: "/fabla/getuserextras", body: getextrasmap)
+        .then((value) {
+      if (value == null) return null;
+      try {
+        final response = jsonDecode(value);
+        if (response is Map<String, dynamic> && response['status'] == 'success') {
+          return response['data'] as List<dynamic>?;
+        }
+      } catch (e) {
+        debugPrint("Response JSON decode error: $e");
+      }
+      return null;
+    });
+
+    // Check if user has extras data
+    if (getdbextras != null && getdbextras.isNotEmpty) {
+      final firstUser = getdbextras[0];
+      final extraString = firstUser['extra'];
+      if (extraString is String && extraString.isNotEmpty) {
+        try {
+          final extra = jsonDecode(extraString) as Map<String, dynamic>?;
+          if (extra != null && extra.isNotEmpty) {
+            isAlreadyLoggedIn = true;
+          }
+        } catch (e) {
+          debugPrint("Failed to decode 'extra': $e");
+        }
+      }
+    }
+
+    // Proceed with verification
     final response = await post(path: "/fabla/verifyuser", body: {
       'login_code': experiment.login,
       'participant_id': code,
@@ -100,11 +144,17 @@ class LoginRepository {
 
         //Add Participant to DB
         addParticipant(code);
-        return true;
+        return {
+          'success': true,
+          'alreadyLoggedIn': isAlreadyLoggedIn,
+        };
       }
     }
 
-    return false;
+    return {
+      'success': false,
+      'alreadyLoggedIn': false,
+    };
   }
 
   void storeCredentials(Map<String, dynamic> data) async {
@@ -157,7 +207,7 @@ class LoginRepository {
       if (response != null) {
         final result = json.decode(response);
         final data = result['data'];
-        dev.log(data.toString(), name: "Study Verification");
+        debugPrint("$data.toString(), name: Study Verification");
         final experiment = ExperimentModel.fromJson(data);
 
         // Verify the code and save the experiment data to the database

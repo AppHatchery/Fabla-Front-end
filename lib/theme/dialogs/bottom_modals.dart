@@ -2528,7 +2528,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       alignment: Alignment.bottomCenter,
       child: Padding(
         padding: const EdgeInsets.only(bottom: 100),
-        child: Row(
+        child: widget.playbackControls || widget.showTimeUpOverlay ? Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -2541,6 +2541,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                 decoration: BoxDecoration(
                   color: Colors.transparent,
                   border: Border.all(
+                    width: 2,
                     color: CustomColors.fillWhite,
                   ),
                   borderRadius: BorderRadius.circular(100.0),
@@ -2569,47 +2570,76 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                       ),
                       shape: BoxShape.circle),
                   child: Center(
-                    child: Icon(
-                      widget.showTimeUpOverlay
-                          ? CupertinoIcons.checkmark_alt
-                          : (widget.isRunning && !widget.isPaused)
-                              ? CupertinoIcons.pause_fill
-                              : CupertinoIcons.play_fill,
+                    child: widget.showTimeUpOverlay
+                        ? Transform.translate(
+                          offset: Offset(3, 0), // Shift checkmark slightly right
+                          child: Icon(
+                            CupertinoIcons.checkmark_alt,
+                            size: 40,
+                            color: CustomColors.productNormal,
+                          ),
+                        )
+                        : (widget.isRunning && !widget.isPaused)
+                        ? Icon(
+                      CupertinoIcons.pause_fill,
                       size: 40,
-                      color: widget.showTimeUpOverlay
-                          ? CustomColors.productNormal
-                          : (widget.isRunning && !widget.isPaused)
-                              ? CustomColors.warningActive
-                              : CustomColors.productNormal,
+                      color: CustomColors.warningActive,
+                    )
+                        : Transform.translate(
+                      offset: Offset(4, 0), // Shift play icon slightly right
+                      child: Icon(
+                        CupertinoIcons.play_fill,
+                        size: 40,
+                        color: CustomColors.productNormal,
+                      ),
                     ),
                   ),
                 ),
-              )
+              ),
             ],
             SizedBox(width: 37),
-            if (widget.playbackControls) ...[
-              GestureDetector(
-                onTap: widget.onRestart,
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    border: Border.all(
-                      color: CustomColors.productLightBackground,
-                    ),
-                    borderRadius: BorderRadius.circular(100),
+            widget.playbackControls ? GestureDetector(
+              onTap: widget.onRestart,
+              child: Container(
+                width: 64,
+                height: 64,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border.all(
+                    width: 2,
+                    color: CustomColors.productLightBackground,
                   ),
-                  child: Icon(
-                    Icons.refresh_rounded,
-                    size: 24,
-                    color: CustomColors.fillWhite,
-                  ),
+                  borderRadius: BorderRadius.circular(100),
                 ),
-              )
-            ],
+                child: Icon(
+                  Icons.refresh_rounded,
+                  size: 24,
+                  color: CustomColors.fillWhite,
+                ),
+              ),
+            ) : SizedBox(width: 64, height: 64),
           ],
+        ) : GestureDetector(
+          onTap: widget.onClose,
+          child: Container(
+            width: 64,
+            height: 64,
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              border: Border.all(
+                width: 2,
+                color: CustomColors.fillWhite,
+              ),
+              borderRadius: BorderRadius.circular(100.0),
+            ),
+            child: Icon(
+              Icons.close,
+              size: 24,
+              color: CustomColors.fillWhite,
+            ),
+          ),
         ),
       ),
     );

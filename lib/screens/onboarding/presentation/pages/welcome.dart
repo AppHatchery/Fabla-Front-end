@@ -6,6 +6,7 @@ import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
+import 'dart:io' show Platform;
 
 import '../../../../services/pendo_service.dart';
 import '../../../../theme/components/buttons.dart';
@@ -80,6 +81,8 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
       appBar: AppBar(
@@ -97,10 +100,12 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
                 size: 32,
               ))),
       backgroundColor: CustomColors.backgroundSecondary,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return SafeArea(
-            child: Column(
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
@@ -153,7 +158,13 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: EdgeInsets.only(
+                    left: 16.0,
+                    right: 16.0,
+                    top: 16.0,
+                    bottom:
+                        bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 16),
+                  ),
                   child: CustomFlatButton(
                     onClick: () => navigateToNextPage(),
                     text: "Continue",
@@ -162,9 +173,9 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
                   ),
                 ),
               ],
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -175,11 +186,8 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
   }
 
   track(int spent, String status) async {
-    await PendoService.track("Welcome", {
-      "time_on_page": spent,
-      "status": status,
-      "Font Scaler": "$scaler"
-    });
+    await PendoService.track("Welcome",
+        {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
   startPendo() async {
