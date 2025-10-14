@@ -1,10 +1,12 @@
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart'
     show PreferenceService;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'dart:developer' as dev;
 
 part 'bulk_submission_state.dart';
 
@@ -88,7 +90,10 @@ class BulkSubmissionCubit extends Cubit<BulkSubmissionState> {
         resetNetworkError();
         emit(BulkSubmissionSuccess());
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      dev.log("Error during bulk submission: $e");
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error during bulk submission in BulkSubmissionCubit');
       emit(BulkSubmissionError(e.toString()));
     }
   }

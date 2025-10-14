@@ -1,5 +1,7 @@
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'dart:developer' as dev;
@@ -34,7 +36,9 @@ class PromptCubit extends Cubit<PromptState> {
       final newPrompt = _repository.load(diary, prompt.id);
       await Future.delayed(const Duration(microseconds: 1));
       emit(PromptLoaded(newPrompt));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error loading prompt in loadPrompt - PromptCubit');
       dev.log("Catch Error: $e", name: 'Prompt Cubit - Load Prompt');
     }
   }
@@ -77,7 +81,9 @@ class PromptCubit extends Cubit<PromptState> {
           showSuccessModal();
         }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error saving response in saveResponse - PromptCubit');
       dev.log("Catch Error: $e", name: 'Prompt Cubit - Save Response');
       showErrorModal();
     } finally {
@@ -126,7 +132,9 @@ class PromptCubit extends Cubit<PromptState> {
           emit(const PromptResponseDeleted());
         }
       });
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error removing response in removeResponse - PromptCubit');
       dev.log("Catch Error: $e", name: 'Prompt Cubit - Remove Response');
     }
   }

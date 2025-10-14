@@ -1,3 +1,5 @@
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:flutter/services.dart';
 import 'dart:developer' as dev;
 
@@ -17,9 +19,12 @@ class BatteryService {
       final bool isDisabled =
           await channel.invokeMethod('isBatteryOptimizationDisabled');
       return isDisabled;
-    } on PlatformException catch (e) {
+    } on PlatformException catch (e, stackTrace) {
       dev.log(e.message.toString(),
           name: "Battery Service - isBatteryOptimizationDisabled");
+      CrashlyticsService().recordError(e, stackTrace,
+          reason:
+              "Error checking battery optimization status in isBatteryOptimizationDisabled");
       throw Exception(e.message);
     }
   }

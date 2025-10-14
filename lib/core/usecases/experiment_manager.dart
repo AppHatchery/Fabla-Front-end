@@ -2,6 +2,8 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup
 
 import 'dart:developer' as dev;
 
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+
 class ExperimentManager {
   // Modified to support dependency injection for better testability
   // Added constructor parameter for setup repository
@@ -24,8 +26,10 @@ class ExperimentManager {
           partialCleanDB: true);
 
       return done;
-    } catch (e) {
+    } catch (e, stackTrace) {
       dev.log(e.toString(), name: 'Experiment Manager Update');
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error updating experiment in ExperimentManager.update');
       return false;
     }
   }

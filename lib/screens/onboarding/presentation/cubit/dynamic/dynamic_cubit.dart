@@ -1,6 +1,8 @@
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -27,7 +29,9 @@ class DynamicCubit extends Cubit<DynamicState> {
         await setupRepository.getStudies();
         upload(questions.length);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: "Error fetching Onboarding Questions");
       debugPrint("Error fetching Onboarding Questions: $e");
     }
   }
@@ -41,7 +45,9 @@ class DynamicCubit extends Cubit<DynamicState> {
       final newQuestion = question.copyWith(answer: answer);
       setupRepository
           .saveOnBoardingAnswer(QuestionsEntity.fromModel(newQuestion));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService()
+          .recordError(e, stackTrace, reason: "Error saving Onboarding Answer");
       debugPrint("Error saving Onboarding Answer: $e");
     }
   }
@@ -58,7 +64,9 @@ class DynamicCubit extends Cubit<DynamicState> {
       } else {
         emit(const DynamicError("Failed to upload answers"));
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: "Error uploading Onboarding Answers");
       debugPrint("Error uploading Onboarding Answers: $e");
     }
   }
