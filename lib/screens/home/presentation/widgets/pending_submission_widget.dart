@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart'
     show NoInternetCard, PendingSubmissionCard;
 import 'package:flutter/material.dart';
@@ -17,8 +18,10 @@ class PendingSubmissionWidget extends StatefulWidget {
 }
 
 class _PendingSubmissionWidgetState extends State<PendingSubmissionWidget> {
+  final _pref = PreferenceService();
   List<DiarySubmission> submissions = [];
   bool connected = true;
+  bool hadNetworkError = false;
 
   StreamSubscription<InternetStatus>? listener;
   @override
@@ -29,6 +32,9 @@ class _PendingSubmissionWidgetState extends State<PendingSubmissionWidget> {
   }
 
   void _initConnectivity() async {
+    hadNetworkError =
+        await _pref.getBoolPreference(key: 'network_error') ?? false;
+
     if (listener != null) {
       listener?.cancel();
       listener = null;
@@ -78,7 +84,7 @@ class _PendingSubmissionWidgetState extends State<PendingSubmissionWidget> {
       );
     }
 
-    return submissions.isEmpty
+    return !hadNetworkError
         ? const SizedBox()
         : Padding(
             padding: EdgeInsets.only(top: 24),

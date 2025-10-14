@@ -1,6 +1,8 @@
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart'
+    show PreferenceService;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -8,10 +10,14 @@ part 'bulk_submission_state.dart';
 
 class BulkSubmissionCubit extends Cubit<BulkSubmissionState> {
   final SummaryRepository _summaryRepository;
+  final PreferenceService _preferenceService;
 
 // to improve testability, we can pass the summary repository as a parameter
-  BulkSubmissionCubit({SummaryRepository? summaryRepository})
-      : _summaryRepository = summaryRepository ?? SummaryRepository(),
+  BulkSubmissionCubit({
+    SummaryRepository? summaryRepository,
+    PreferenceService? preferenceService,
+  })  : _summaryRepository = summaryRepository ?? SummaryRepository(),
+        _preferenceService = preferenceService ?? PreferenceService(),
         super(BulkSubmissionInitial());
 
   void startBulkSubmission(List<DiarySubmission> submissions) async {
@@ -79,11 +85,16 @@ class BulkSubmissionCubit extends Cubit<BulkSubmissionState> {
       if (failedSubmissions.isNotEmpty) {
         emit(BulkSubmissionFailed(_submissions, failedSubmissions.length));
       } else {
+        resetNetworkError();
         emit(BulkSubmissionSuccess());
       }
     } catch (e) {
-      print("Error during bulk submission: $e");
       emit(BulkSubmissionError(e.toString()));
     }
+  }
+
+  resetNetworkError() async {
+    await _preferenceService.setBoolPreference(
+        key: 'network_error', value: false);
   }
 }

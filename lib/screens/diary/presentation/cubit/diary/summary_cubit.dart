@@ -128,14 +128,16 @@ class SummaryCubit extends Cubit<SummaryState> {
       // Updated to use injected repository instance
       final result = await _summaryRepository.submitDiary(diary);
       if (result == null) {
-        //TODO handle no internet connection
-        emit(const SubmitError());
+        // Save network error state
+        saveNetworkError();
+        emit(const SubmitNoInternet());
         return;
       }
 
       if (result) {
         // Updated to use injected repository instance
         await _summaryRepository.calculateEarnedIncentives(diary);
+        resetNetworkError();
         emit(const SummarySubmitted());
       } else {
         emit(const SubmitError());
@@ -160,5 +162,15 @@ class SummaryCubit extends Cubit<SummaryState> {
     }
 
     return null;
+  }
+
+  void saveNetworkError() async {
+    final prefs = PreferenceService();
+    await prefs.setBoolPreference(key: 'network_error', value: true);
+  }
+
+  resetNetworkError() async {
+    final prefs = PreferenceService();
+    await prefs.setBoolPreference(key: 'network_error', value: false);
   }
 }

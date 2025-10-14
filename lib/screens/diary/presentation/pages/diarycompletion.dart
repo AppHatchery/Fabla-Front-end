@@ -1,9 +1,9 @@
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/ghost_widget.dart';
+import 'package:audio_diaries_flutter/theme/components/cards.dart'
+    show FailedSubmissionCard;
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-
-
 
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
@@ -12,7 +12,8 @@ import '../../../../theme/custom_typography.dart';
 /// this is the last page in the New Daily Diary flow
 /// The button leads to the home page
 class DiaryCompletionPage extends StatefulWidget {
-  const DiaryCompletionPage({super.key});
+  final bool? submissionFailed;
+  const DiaryCompletionPage({super.key, this.submissionFailed});
 
   @override
   State<DiaryCompletionPage> createState() => _DiaryCompletionPageState();
@@ -127,6 +128,9 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage>
                     );
                   }),
                 ),
+                widget.submissionFailed == true
+                    ? const FailedSubmissionCard()
+                    : const SizedBox.shrink(),
                 CustomFlatButton(
                   onClick: () {
                     Navigator.pushAndRemoveUntil(
