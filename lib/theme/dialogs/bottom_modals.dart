@@ -64,37 +64,31 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Duration elapsed = const Duration();
   RecorderState recorderState = RecorderState.isStopped;
   final ValueNotifier<bool> _erase = ValueNotifier<bool>(false);
+  String? tempUrl;
 
   ScrollController scrollController = ScrollController();
 
   //Animation
   late r.StateMachineController _controller;
+  double animationHeight = 0;
 
   void _onInit(r.Artboard art) {
-    var ctrl = r.StateMachineController.fromArtboard(art, "Ghosts");
-
-    ctrl?.isActive = false;
+    var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
     if (ctrl != null) {
       art.addController(ctrl);
-      setState(() {
-        _controller = ctrl;
-      });
-
-      Future.delayed(const Duration(milliseconds: 10), () {
-        final searchingThree = _controller.findSMI('Searching_3');
-        if (searchingThree != null && mounted) {
-          searchingThree.value = true;
-        }
-      });
+      _controller = ctrl;
     }
+    setState(() {
+      animationHeight = art.height;
+    });
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
       setState(() {
-        recorderState = RecorderState.isPaused;
         if (recorder.isRecording) {
+          recorderState = RecorderState.isPaused;
           WakelockPlus.disable();
           recorder.pauseRecorder();
           _timer?.cancel();
@@ -123,119 +117,146 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return Container(
-      width: width,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF3F3F3),
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(14), topRight: Radius.circular(14)),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(
-            height: 32,
+    final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
+
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        width: width,
+        height: textScaleFactor >= 1.8 ? MediaQuery.of(context).size.height * 1 :
+        textScaleFactor >= 1.2 ? MediaQuery.of(context).size.height * .85 :  MediaQuery.of(context).size.height * .75,
+        decoration: const BoxDecoration(
+          color: Color(0xFFF3F3F3),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
           ),
-          // Close Modal Button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(
-                    CupertinoIcons.clear_circled_solid,
-                    size: 26,
-                    color: CustomColors.textSecondaryContent,
+        ),
+        child: Column(
+          children: [
+            // Close Modal Button
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GestureDetector(
+                    onTap: () => {
+                      Navigator.pop(context),
+                    },
+                    child: Icon(
+                      CupertinoIcons.clear_circled_solid,
+                      size: 32,
+                      color: CustomColors.textSecondaryContent,
+                    ),
                   ),
-                )
-              ],
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: questionAndHints(),
-          ),
-        ],
+            Expanded(child: questionAndHints()),
+          ],
+        ),
       ),
     );
   }
 
   Widget questionAndHints() {
     final width = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
+
     return LayoutBuilder(builder: (context, constraints) {
-      return SingleChildScrollView(
-        controller: scrollController,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: constraints.maxHeight),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      return Column(
+        children: [
+          // Scrollable content
+          Expanded(
+            child: SingleChildScrollView(
+              controller: scrollController,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.question,
+                    style: CustomTypography().titleLarge(color: const Color(0xFF000000)),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    widget.hint ??
+                        "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
+                    style: CustomTypography().bodyLarge(
+                      color: const Color(0x5C000000),
+                      weight: FontWeight.w400,
+                    ),
+                  ),
+                  SizedBox(
+                    height: textScaleFactor >= 1.8 ? 0 : textScaleFactor >= 1.2 ? 75 : textScaleFactor >= 1.0 ? 80 : 100
+                  ),
+                  _riveAnimation(),
+                ],
+              ),
+            ),
+          ),
+
+          // Fixed bottom recording controls
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+            color: CustomColors.productNormal,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      widget.question,
-                      style: CustomTypography().titleLarge(),
-                    ),
-                    const SizedBox(
-                      height: 32,
-                    ),
-                    SizedBox(
-                      height: 100,
-                      width: 100,
-                      child: r.RiveAnimation.asset(
-                        'assets/animations/ghosts.riv',
-                        onInit: _onInit,
+                      "Recording...",
+                      style: CustomTypography().custom(
+                        color: CustomColors.fillWhite,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 18,
                       ),
                     ),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    Text(
-                      widget.hint ??
-                          "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
-                      style: CustomTypography().body(),
-                    ),
                   ],
                 ),
-              ),
-              SizedBox(height: screenHeight > 750 ? 70 : 32),
-              // Recording Controls
-              Container(
-                width: width,
-                padding: const EdgeInsets.all(32),
-                color: CustomColors.productNormal,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    recordingTimer(),
-                    SizedBox(
-                      height: screenHeight > 850 ? 36 : 24,
-                    ),
-                    SizedBox(
-                      height: 42,
-                      width: width,
-                      child: waveForm(),
-                    ),
-                    SizedBox(
-                      height: screenHeight > 850 ? 36 : 24,
-                    ),
-                    recordingControls(screenHeight),
-                    SizedBox(
-                      height: screenHeight > 850 ? 36 : 24,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+                const SizedBox(height: 5),
+                SizedBox(height: 42, width: width, child: waveForm()),
+                const SizedBox(height: 5),
+                progressBar(),
+                const SizedBox(height: 15),
+                recordingControls(),
+              ],
+            ),
           ),
-        ),
+        ],
       );
     });
+  }
+
+  Widget _riveAnimation() {
+    final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
+    return SizedBox(
+      height:150,
+      child: IgnorePointer(
+        child: ColorFiltered(
+          colorFilter: ColorFilter.mode(
+            Color(0xFFACD3FC),
+            BlendMode.modulate,
+          ),
+          child: Transform(
+            transform: Matrix4.translationValues(-140, textScaleFactor >= 1.6 ? 0 : 20, 0)
+              ..scale(-1.0, 1.0),
+            alignment: Alignment.center,
+            child: r.RiveAnimation.asset(
+              'assets/animations/onboarding/floats_in.riv',
+              fit: BoxFit.scaleDown,
+              onInit: _onInit,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget recordingTimer() {
@@ -250,8 +271,51 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       children: [
         Text(
           "$timer / ${formatDurationtoHHMMSS(text)}",
-          style: CustomTypography().titleMedium(color: CustomColors.textWhite),
+          style: CustomTypography().titleSmall(color: CustomColors.textWhite),
         )
+      ],
+    );
+  }
+
+  Widget progressBar() {
+    // Calculate the total duration for the progress bar
+    final totalDuration =
+        widget.suggested != null && widget.suggested!.inMilliseconds > 0
+            ? widget.suggested!
+            : widget.limit != null && widget.limit!.inMilliseconds > 0
+                ? widget.limit!
+                : const Duration(minutes: 5);
+
+    // Calculate progress as a percentage (0.0 to 1.0)
+    final progress = totalDuration.inMilliseconds > 0
+        ? (elapsed.inMilliseconds / totalDuration.inMilliseconds)
+            .clamp(0.0, 1.0)
+        : 0.0;
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            recordingTimer(),
+          ],
+        ),
+        const SizedBox(height: 5),
+        // Progress bar using LinearProgressIndicator
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(1.0),
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: CustomColors.grey,
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF56BB70)),
+              minHeight: 17,
+              borderRadius: BorderRadius.circular(6.5),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -268,85 +332,132 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     );
   }
 
-  Widget recordingControls(double height) {
+  Widget recordingControls() {
+    final isCompleted = recorderState == RecorderState.isStopped &&
+        elapsed.inSeconds > 0; // Completed by stop or timeout
+
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onTap: () => record(),
-              child: Container(
-                  height: 68,
-                  width: 68,
-                  decoration: BoxDecoration(
-                      color: CustomColors.fillWhite,
-                      borderRadius: BorderRadius.circular(68)),
-                  padding: const EdgeInsets.all(4),
-                  child: recorderState == RecorderState.isStopped
-                      ? Container(
-                          height: 60,
-                          width: 60,
-                          decoration: BoxDecoration(
-                              color: CustomColors.warningActive,
-                              borderRadius: BorderRadius.circular(60)),
-                        )
-                      : Center(
-                          child: Icon(
-                            recorderState == RecorderState.isRecording
-                                ? CupertinoIcons.pause_fill
-                                : CupertinoIcons.play_fill,
-                            color: CustomColors.warningActive,
-                            size: 24,
-                          ),
-                        )),
-            )
-          ],
-        ),
-        SizedBox(
-          height: height > 850 ? 36 : 24,
-        ),
-        AnimatedOpacity(
-          duration: const Duration(milliseconds: 150),
-          opacity: _timer != null ? 1 : 0,
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              GestureDetector(
-                onTap: () => redo(),
-                child: Container(
-                  padding: const EdgeInsets.all(13),
-                  decoration: BoxDecoration(
+              if (!isCompleted) ...[
+                // When stopped initially: Show mic
+                if (recorderState == RecorderState.isStopped)
+                  Container(
+                    height: 68,
+                    width: 68,
+                    decoration: BoxDecoration(
                       color: CustomColors.fillWhite,
-                      borderRadius: BorderRadius.circular(42)),
-                  child: const Center(
-                      child: Icon(
-                    CupertinoIcons.arrow_uturn_left,
-                    color: CustomColors.productNormal,
-                  )),
-                ),
-              ),
-              const SizedBox(
-                width: 68,
-              ),
-              GestureDetector(
-                onTap: () => save(),
-                child: Container(
-                  padding: const EdgeInsets.all(13),
-                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(42),
+                    ),
+                    child: _buildControlButton(
+                      icon: Icons.mic,
+                      size: 34,
+                      onPressed: () => record(),
+                      color: CustomColors.warningActive,
+                    ),
+                  )
+                else
+                  // When recording or paused
+                  ...[SizedBox(width: recorderState == RecorderState.isRecording ? 100 : 130),
+                  // Stop button
+                  Container(
+                    height: recorderState == RecorderState.isPaused ? 40 : 68,
+                    width: recorderState == RecorderState.isPaused ? 40 : 68,
+                    decoration: BoxDecoration(
                       color: CustomColors.fillWhite,
-                      borderRadius: BorderRadius.circular(42)),
-                  child: const Center(
-                      child: Icon(
-                    CupertinoIcons.checkmark_alt,
+                      borderRadius: BorderRadius.circular(42),
+                    ),
+                    child: _buildControlButton(
+                      icon: CupertinoIcons.stop_fill,
+                      size: recorderState == RecorderState.isPaused ? 24 : 34,
+                      onPressed: () => stop(),
+                      color: CustomColors.warningActive,
+                    ),
+                  ),
+                  const SizedBox(width: 50),
+                  // Pause/Resume (right - swaps size)
+                  Container(
+                    height: recorderState == RecorderState.isPaused ? 68 : 40,
+                    width: recorderState == RecorderState.isPaused ? 68 : 40,
+                    decoration: BoxDecoration(
+                      color: recorderState == RecorderState.isRecording
+                          ? CustomColors.fillWhite
+                          : CustomColors.warningActive,
+                      borderRadius: BorderRadius.circular(42),
+                    ),
+                    child: _buildControlButton(
+                      icon: recorderState == RecorderState.isPaused
+                          ? Icons.mic
+                          : CupertinoIcons.pause_fill,
+                      color: recorderState == RecorderState.isPaused
+                          ? CustomColors.fillWhite
+                          : CustomColors.productNormal,
+                      size: recorderState == RecorderState.isPaused ? 34 : 24,
+                      onPressed: () => record(),
+                    ),
+                  ),
+                ],
+              ] else ...[
+                // Checkmark button (left)
+                SizedBox(width: 100),
+                Container(
+                  height: 68,
+                  width: 68,
+                  decoration: BoxDecoration(
+                    color: CustomColors.fillWhite,
+                    borderRadius: BorderRadius.circular(42),
+                  ),
+                  child: _buildControlButton(
+                    icon: CupertinoIcons.checkmark_alt,
+                    size: 34,
+                    onPressed: () => save(),
                     color: CustomColors.productNormal,
-                  )),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 50),
+                // Redo button (right)
+                Container(
+                  height: 40,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: CustomColors.fillWhite,
+                    borderRadius: BorderRadius.circular(42),
+                  ),
+                  child: Transform.rotate(
+                    angle: -40 * pi / 180,
+                    child: _buildControlButton(
+                      icon: CupertinoIcons.refresh_bold,
+                      size: 24,
+                      onPressed: () => redo(),
+                      color: CustomColors.productNormal,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
-        )
+        ),
       ],
+    );
+  }
+
+  Widget _buildControlButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+    required int size,
+    required color,
+  }) {
+    return IconButton(
+      onPressed: onPressed,
+      icon: Icon(
+        icon,
+        size: size.toDouble(),
+        color: color,
+      ),
     );
   }
 
@@ -394,8 +505,15 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     });
   }
 
+  Future<void> stop() async {
+    tempUrl = await recorder.stopRecorder();
+    _timer?.cancel();
+    setState(() {
+      recorderState = RecorderState.isStopped;
+    });
+  }
+
   Future<void> redo() async {
-    await recorder.pauseRecorder();
     _timer?.cancel();
 
     if (mounted) {
@@ -412,10 +530,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             _erase.value = !_erase.value;
           });
         }
-        final stoppedRecorderValue = await recorder.stopRecorder();
 
-        if (stoppedRecorderValue != null) {
-          final file = File(stoppedRecorderValue);
+        if (tempUrl != null) {
+          final file = File(tempUrl!);
           await file.delete();
         }
 
@@ -429,7 +546,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         }
       } else {
         setState(() {
-          recorderState = RecorderState.isPaused;
+          recorderState = RecorderState.isStopped;
         });
       }
     }
@@ -477,12 +594,11 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   void save() async {
     WakelockPlus.disable();
     try {
-      final url = await recorder.stopRecorder();
       _timer?.cancel();
       if (mounted) setState(() => recorderState = RecorderState.isStopped);
 
-      if (url != null) {
-        final file = File(url);
+      if (tempUrl != null) {
+        final file = File(tempUrl!);
         final name = basePath(file.path);
         widget.onSave?.call(name);
         if (mounted) Navigator.pop(context);

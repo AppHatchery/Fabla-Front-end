@@ -368,50 +368,59 @@ class CustomRecordButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10.0),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: CustomColors.productNormal,
-            //const Color.fromARGB(255, 255, 255, 255),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white, width: 2),
-            // boxShadow: [
-            //   BoxShadow(
-            //     color: Colors.grey.shade400,
-            //     blurRadius: 0,
-            //     offset: const Offset(0, 4.5),
-            //   ),
-            // ],
-            shape: BoxShape.rectangle,
-          ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: () => {
-              if (onClick != null) {onClick!()}
-            },
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
-              width: MediaQuery.of(context).size.width,
-              child: Center(
-                  child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.mic, color: CustomColors.fillWhite),
-                  const SizedBox(
-                    width: 8,
+      child: Ink(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => {
+            if (onClick != null) {onClick!()}
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 150,
+                width: 150,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      CustomColors.productNormal,
+                      CustomColors.productNormal.withOpacity(0.7),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  Flexible(
-                    child: Text(
-                      text.toString(),
-                      style: CustomTypography()
-                          .button(color: CustomColors.fillWhite),
+                  border: Border.all(
+                    color: CustomColors.productNormal,
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CustomColors.productNormal.withOpacity(0.5),
+                      spreadRadius: 5,
+                      blurRadius: 7,
+                      offset: const Offset(0, 3),
                     ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 25.0),
+                  child: const Icon(
+                    Icons.mic,
+                    color: CustomColors.fillWhite,
+                    size: 100,
                   ),
-                ],
-              )),
-            ),
+                ),
+              ),
+              const SizedBox(height: 37),
+              Text(
+                text.toString(),
+                textAlign: TextAlign.center,
+                style: CustomTypography()
+                    .button(color: CustomColors.productNormal),
+                overflow: TextOverflow.visible,
+              ),
+            ],
           ),
         ),
       ),
@@ -451,7 +460,7 @@ class CustomTextAnswerButton extends StatelessWidget {
                   child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.keyboard, color: CustomColors.productNormal),
+                  const Icon(Icons.keyboard_alt, color: CustomColors.productNormal),
                   const SizedBox(
                     width: 8,
                   ),
