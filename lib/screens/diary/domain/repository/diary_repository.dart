@@ -1,6 +1,8 @@
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
+import 'package:audio_diaries_flutter/core/usecases/diary_history.dart'
+    show getAllHistoryDiariesUseCase;
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -166,7 +168,8 @@ class DiaryRepository {
               studyID: diary.studyID,
               currentEntry: i,
               activeDays: diary.activeDays,
-              status: entryCount != i ? DiaryStatus.submitted : null);
+              status: entryCount != i ? DiaryStatus.submitted : null,
+              submissions: diary.submissions);
 
           //check if diary is answered
           final prompt =
@@ -199,136 +202,7 @@ class DiaryRepository {
   /// A map where keys are formatted historical dates and values are lists of DiaryModel objects
   /// representing diaries due before the start of the next day, grouped by date.
   Map<String, List<DiaryModel>> getAllHistoryDiaries() {
-    // Retrieve all diaries from the database
-    List<DiaryModel> unfilteredDiaries = getAllDiaries();
-    final promptRepository = PromptRepository();
-
-    // Calculate the start of the next day
-    final now = DateTime.now();
-    final due = DateTime(now.year, now.month, now.day, 0, 0, 0)
-        .add(const Duration(days: 1));
-
-    // Filter diaries based on due date
-    final filteredDueDiaries =
-        unfilteredDiaries.where((diary) => diary.start.isBefore(due)).toList();
-
-    if (filteredDueDiaries.isEmpty) return {};
-
-    // Change diaries statuses if missed
-    for (final diary in filteredDueDiaries) {
-      if (now.isAfter(diary.due) &&
-          (diary.status != DiaryStatus.complete &&
-              diary.status != DiaryStatus.submitted) &&
-          (diary.currentEntry < diary.entries && diary.currentEntry == 0)) {
-        diary.status = DiaryStatus.missed;
-      }
-    }
-
-    // filter the diaries with studies with 0 goals
-    final ids = filteredDueDiaries.map((e) => e.studyID).toSet().toList();
-    final studies =
-        _getStudies(ids).map((entity) => StudyModel.fromEntity(entity));
-
-    final filteredDiaries = filteredDueDiaries.where((diary) {
-      final study =
-          studies.firstWhere((study) => study.studyId == diary.studyID);
-
-      if (diary.status != DiaryStatus.missed) {
-        return true;
-      } else {
-        return study.goals.daily != 0 && study.goals.weekly != 0;
-      }
-    }).toList();
-
-    // Sort filtered diaries by due date in descending order
-    filteredDiaries.sort((a, b) => b.due.compareTo(a.due));
-
-    // Prepare a list to store processed diaries
-    final List<DiaryModel> diaries = [];
-
-    // Process filtered diaries
-    for (var diary in filteredDiaries) {
-      final entryCount = diary.currentEntry;
-
-      if (diary.status == DiaryStatus.missed) {
-        diaries.add(diary);
-        continue;
-      }
-
-      if (entryCount == 0 && diary.status != DiaryStatus.missed) {
-        diaries.add(diary);
-      } else {
-        for (var i = 0; i <= entryCount; i++) {
-          final newDiary = diary.copyWith(
-              id: diary.id,
-              studyID: diary.studyID,
-              currentEntry: i,
-              status: entryCount != i ? DiaryStatus.submitted : null);
-
-          //check if diary is answered
-          final prompt =
-              promptRepository.load(newDiary, newDiary.prompts.first.id);
-
-          if (prompt.answer != null ||
-              (diary.status == DiaryStatus.idle && diary.due.isAfter(now))) {
-            diaries.add(newDiary);
-          }
-        }
-      }
-    }
-
-    // Sort all processed diaries
-    diaries.sort((a, b) => b.start.compareTo(a.start));
-
-    // Retrieve tags for each diary
-    for (var diary in diaries) {
-      diary.tags = _getTags(diary);
-    }
-
-    // Create a map to store diaries grouped by formatted historical dates
-    final Map<String, List<DiaryModel>> history = {};
-
-    // Group diaries by formatted historical dates
-    for (final diary in diaries) {
-      String date = formatHistoryDate(diary.start);
-
-      // If diary is still open and is from any date before today, set it to today's list
-      if ((diary.status == DiaryStatus.ongoing ||
-              diary.status == DiaryStatus.idle) &&
-          (diary.start.isBefore(now) && diary.due.isAfter(now))) {
-        date = formatHistoryDate(now);
-      }
-
-      history.update(
-        date,
-        (value) => value..add(diary),
-        ifAbsent: () => [diary],
-      );
-    }
-
-    // sort using priority sort
-    for (var entry in history.entries) {
-      entry.value.sort((a, b) {
-        // Determine priority category for each diary (0=high, 1=medium, 2=low)
-        final aPriority = getPriorityCategory(a, now);
-        final bPriority = getPriorityCategory(b, now);
-
-        // If different categories, sort by category
-        if (aPriority != bPriority) {
-          return aPriority - bPriority;
-        }
-
-        if (aPriority == 0) {
-          // High priority: sort by due date
-          return a.due.compareTo(b.due);
-        } else {
-          // Medium and low: sort by start date
-          return a.start.compareTo(b.start);
-        }
-      });
-    }
-
-    return history;
+    return getAllHistoryDiariesUseCase();
   }
 
   /// Counts the number of days with submitted diary entries `ActiveDays` of the user.
@@ -383,56 +257,107 @@ class DiaryRepository {
   /// Returns:
   /// A list of DiaryModel objects representing diaries within the specified date range.
   List<DiaryModel> getRangeDiaries(DateTime start, DateTime end) {
-    // Retrieve all diaries from the DAO
-    final diaries = _diaryDAO.getAllDiaries();
+    final now = DateTime.now();
 
-    // Filter diaries based on their start dates falling within the specified range
-    final filtered = diaries.where((element) {
-      return (element.start.isAfter(start) ||
-              element.start.isAtSameMomentAs(start)) &&
-          element.start.isBefore(end);
-    }).toList();
+    // Get all diaries that overlap with the specified time window
+    final overlappingDiaries = _getOverlappingDiaries(start, end);
 
-    final List<DiaryModel> _diaries =
-        filtered.map((e) => DiaryModel.fromEntity(e)).toList();
-
-    final List<DiaryModel> updated = [];
-    final DateTime now = DateTime.now();
+    // Process each diary and generate the appropriate entries
+    final processedDiaries = <DiaryModel>[];
     final promptRepository = PromptRepository();
 
-    // Process filtered diaries
-    for (var diary in _diaries) {
-      final entryCount = diary.currentEntry;
+    for (final diary in overlappingDiaries) {
+      final diaryEntries = _processDiaryEntries(diary, now, promptRepository);
+      processedDiaries.addAll(diaryEntries);
+    }
 
-      if (diary.status == DiaryStatus.missed) {
-        updated.add(diary);
-        continue;
-      }
+    return processedDiaries;
+  }
 
-      if (entryCount == 0 && diary.status != DiaryStatus.missed) {
-        updated.add(diary);
-      } else {
-        for (var i = 0; i <= entryCount; i++) {
-          final newDiary = diary.copyWith(
-              id: diary.id,
-              studyID: diary.studyID,
-              currentEntry: i,
-              status: entryCount != i ? DiaryStatus.submitted : null);
+  /// Retrieves and filters diaries that overlap with the given time window
+  List<DiaryModel> _getOverlappingDiaries(DateTime start, DateTime end) {
+    final allDiaryEntities = _diaryDAO.getAllDiaries();
 
-          //check if diary is answered
-          final prompt =
-              promptRepository.load(newDiary, newDiary.prompts.first.id);
+    final overlappingEntities = allDiaryEntities
+        .where((entity) => _isOverlappingWithWindow(entity, start, end))
+        .toList();
 
-          if (prompt.answer != null ||
-              (diary.status == DiaryStatus.idle && diary.due.isAfter(now))) {
-            updated.add(newDiary);
-          }
-        }
+    return overlappingEntities
+        .map((entity) => DiaryModel.fromEntity(entity))
+        .toList();
+  }
+
+  /// Checks if a diary entity overlaps with the specified time window
+  bool _isOverlappingWithWindow(Diary entity, DateTime start, DateTime end) {
+    return entity.start.isBefore(end) && entity.due.isAfter(start);
+  }
+
+  /// Processes a diary and returns all relevant entries based on its status and current state
+  List<DiaryModel> _processDiaryEntries(
+      DiaryModel diary, DateTime now, PromptRepository promptRepository) {
+    // Handle missed diaries - return as-is
+    if (diary.status == DiaryStatus.missed) {
+      return [diary];
+    }
+
+    // Handle diaries with no entries
+    if (diary.currentEntry == 0) {
+      return [diary];
+    }
+
+    // Handle diaries with entries - generate entry variants
+    return _generateDiaryEntryVariants(diary, now, promptRepository);
+  }
+
+  /// Generates multiple diary variants representing different entry states
+  List<DiaryModel> _generateDiaryEntryVariants(
+      DiaryModel diary, DateTime now, PromptRepository promptRepository) {
+    final variants = <DiaryModel>[];
+    final entryCount = diary.currentEntry;
+
+    for (int entryIndex = 0; entryIndex <= entryCount; entryIndex++) {
+      final variant = _createDiaryVariant(diary, entryIndex, entryCount);
+
+      if (_shouldIncludeVariant(variant, diary, now, promptRepository)) {
+        variants.add(variant);
       }
     }
 
-    // Map filtered diaries to DiaryModel objects and return them
-    return updated;
+    return variants;
+  }
+
+  /// Creates a diary variant for a specific entry index
+  DiaryModel _createDiaryVariant(
+      DiaryModel originalDiary, int entryIndex, int totalEntries) {
+    final isSubmittedEntry = entryIndex < totalEntries;
+
+    return originalDiary.copyWith(
+      id: originalDiary.id,
+      studyID: originalDiary.studyID,
+      currentEntry: entryIndex,
+      status: isSubmittedEntry ? DiaryStatus.submitted : null,
+      submissions: originalDiary.submissions,
+    );
+  }
+
+  /// Determines whether a diary variant should be included in the results
+  bool _shouldIncludeVariant(DiaryModel variant, DiaryModel originalDiary,
+      DateTime now, PromptRepository promptRepository) {
+    // Load the prompt for this variant
+    final prompt = promptRepository.load(variant, variant.prompts.first.id);
+
+    // Include if the prompt has been answered
+    if (prompt.answer != null) {
+      return true;
+    }
+
+    // Include if the diary is idle and not yet due
+    if (originalDiary.status == DiaryStatus.idle &&
+        originalDiary.due.isAfter(now)) {
+      return true;
+    }
+
+    return false;
   }
 
   /// Retrieves a diary model by its ID.
@@ -475,42 +400,12 @@ class DiaryRepository {
   }
 
   List<DiaryModel> getDiaries(DateTime day) {
-    final now = DateTime.now();
-    final nextDay = day.add(const Duration(days: 1));
-    // Retrieve all diaries from the DAO
-    final diaries = _diaryDAO.getAllDiaries();
-    // Filter diaries based on their start dates falling within the specified range
-    final filtered = diaries.where((element) {
-      if (element.activeDays?.isNotEmpty ?? false) {
-        // Calculate date range between start and end
-        final start = normalizeDate(element.start);
-        final end = normalizeDate(element.end);
-        final daysDifference = end.difference(start).inDays;
+    // Get all diaries from database
+    final allDiaries = _diaryDAO.getAllDiaries();
 
-        // Find all active dates for this diary
-        for (int i = 0; i <= daysDifference; i++) {
-          final currentDate = start.add(Duration(days: i));
-          if (element.activeDays!.contains(currentDate.weekday) &&
-              currentDate == normalizeDate(day) &&
-              end.isAfter(now) &&
-              element.status != DiaryStatus.submitted) {
-            return true;
-          }
-        }
-      }
+    final availableDiaries = getDiariesUseCase(allDiaries, day);
 
-      return (((element.start.isAfter(day) ||
-                      element.start.isAtSameMomentAs(
-                          day)) && // If the start date is at 04:00 or after
-                  element.start.isBefore(nextDay) &&
-                  element.due.isAfter(
-                      now)) || // If the start date is before 04:00 the next day and is still active
-              (element.due.isAfter(now) &&
-                  element.due.isBefore(
-                      nextDay))) && // If the due date is before 04:00 the next day
-          element.status != DiaryStatus.submitted;
-    }).toList();
-    return filtered.map((e) => DiaryModel.fromEntity(e)).toList();
+    return availableDiaries;
   }
 
   /// Retrieves a list of DiaryModel objects representing every diary entry.
@@ -549,24 +444,25 @@ class DiaryRepository {
           if (diary.activeDays!.contains(currentDate.weekday)) {
             // Add a copy of the diary for each active day
             final newDiary = diary.copyWith(
-              id: diary.id,
-              studyID: diary.studyID,
-              start: DateTime(
-                currentDate.year,
-                currentDate.month,
-                currentDate.day,
-                diary.start.hour,
-                diary.start.minute,
-              ),
-              due: DateTime(
-                currentDate.year,
-                currentDate.month,
-                currentDate.day,
-                diary.due.hour,
-                diary.due.minute,
-              ),
-            );
-            diaries.add(newDiary);
+                id: diary.id,
+                studyID: diary.studyID,
+                start: DateTime(
+                  currentDate.year,
+                  currentDate.month,
+                  currentDate.day,
+                  diary.start.hour,
+                  diary.start.minute,
+                ),
+                due: DateTime(
+                  currentDate.year,
+                  currentDate.month,
+                  currentDate.day,
+                  diary.due.hour,
+                  diary.due.minute,
+                ),
+                submissions: diary.submissions,
+                completions: diary.completions);
+            filtered.add(newDiary);
           }
         }
       } else {
@@ -610,6 +506,16 @@ class DiaryRepository {
   }
 
   List<Study> _getStudies(List<int> ids) {
+    List<Study> studies = [];
+    for (final id in ids) {
+      final study = _getStudy(id);
+      if (study != null) studies.add(study);
+    }
+
+    return studies;
+  }
+
+  List<Study> getStudiesOnly(List<int> ids) {
     List<Study> studies = [];
     for (final id in ids) {
       final study = _getStudy(id);

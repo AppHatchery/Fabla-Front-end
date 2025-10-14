@@ -16,32 +16,37 @@ class HomeLoading extends HomeState {
 }
 
 class HomeLoaded extends HomeState {
-  final List<DiaryModel> diaries;
-  final List<DiaryModel> weeksDiaries;
-  final bool available; // any diaries available that day
-  final List<StudyModel> studies;
+  final TodaysData todaysData;
+  final WeeklyData weeklyData;
   final List<StudyModel> allStudies;
-  final int entries;
-  final bool finished;
-  const HomeLoaded(
-    this.diaries,
-    this.weeksDiaries,
-    this.available,
-    this.studies,
-    this.allStudies,
-    this.entries,
-    this.finished,
-  );
+  final int weeklyEntries;
+  final bool isFinished;
+  final Map<StudyModel, DailyGoalData> goalData;
+
+  const HomeLoaded({
+    required this.todaysData,
+    required this.weeklyData,
+    required this.allStudies,
+    required this.weeklyEntries,
+    required this.isFinished,
+    required this.goalData,
+  });
+
+  bool get hasAvailableDiaries => todaysData.diaries.isNotEmpty;
+  bool get hasGoals => goalData.isNotEmpty;
+  bool get shouldShowGoalWidget => hasGoals;
+  bool get shouldShowDiaryList => hasAvailableDiaries && !isFinished;
+  bool get shouldShowEndState => isFinished;
+  bool get shouldShowFreeDay => !hasAvailableDiaries && !isFinished;
 
   @override
   List<Object> get props => [
-        diaries,
-        weeksDiaries,
-        available,
-        studies,
+        todaysData,
+        weeklyData,
         allStudies,
-        entries,
-        finished,
+        weeklyEntries,
+        isFinished,
+        goalData,
       ];
 }
 

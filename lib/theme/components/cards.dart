@@ -77,6 +77,16 @@ class _DiaryCardState extends State<DiaryCard> {
 
     if (diary.status == DiaryStatus.submitted) return false;
 
+    // If a weekly diary and today is not part of the active days of the diary
+    if (diary.activeDays != null && !diary.activeDays!.contains(now.weekday)) {
+      if (mounted) {
+        setState(() {
+          diary.status = DiaryStatus.missed;
+        });
+      }
+      return true;
+    }
+
     return (diary.due.isBefore(now) && diary.status != DiaryStatus.complete) ||
         diary.start.isAfter(now);
   }

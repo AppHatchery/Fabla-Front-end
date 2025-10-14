@@ -1,8 +1,8 @@
 import 'dart:math';
 
+import 'package:audio_diaries_flutter/core/usecases/daily_goal_service.dart'
+    show DailyGoalData;
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/ring_progress_indicator.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -11,18 +11,16 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart' as rive;
 
+import 'dart:developer' as dev;
+
 class TodayGoalWidget extends StatefulWidget {
-  final int dailyGoal;
-  final List<StudyModel> studies;
-  final List<DiaryModel> diaries;
+  final Map<StudyModel, DailyGoalData> dailyGoal;
   final int weeklyEntries;
   final ValueNotifier<bool> isHomeTipClosed;
 
   const TodayGoalWidget(
       {super.key,
       required this.dailyGoal,
-      required this.studies,
-      required this.diaries,
       required this.weeklyEntries,
       required this.isHomeTipClosed});
 
@@ -31,9 +29,6 @@ class TodayGoalWidget extends StatefulWidget {
 }
 
 class _TodayGoalWidgetState extends State<TodayGoalWidget> {
-  Map<StudyModel, List<DiaryModel>> data = {};
-  bool goalsAvailable = false;
-
   late rive.StateMachineController _controller;
 
   void _onInit(rive.Artboard art) {
@@ -58,38 +53,6 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     widget.isHomeTipClosed.addListener(() {
       if (widget.isHomeTipClosed.value) determineAnimation();
     });
-    // create map of study to diaries
-
-    final start = DateTime(
-        DateTime.now().year, DateTime.now().month, DateTime.now().day, 4, 0, 0);
-    final end = start.add(const Duration(days: 1));
-
-    for (var study in widget.studies) {
-      if (study.goals.daily == 0) {
-        continue;
-      }
-
-      final diaries = widget.diaries
-          .where((diary) =>
-              diary.studyID == study.studyId &&
-              (((diary.start.isAfter(start) ||
-                          diary.start.isAtSameMomentAs(start)) &&
-                      diary.start.isBefore(end)) ||
-                  (diary.due.isAfter(start) && diary.due.isBefore(end))))
-          .toList();
-      if (diaries.isNotEmpty) {
-        data[study] = diaries;
-      }
-    }
-
-    if (data.keys.isNotEmpty) {
-      for (final entry in data.keys) {
-        if (entry.goals.daily > 0) {
-          goalsAvailable = true;
-          break;
-        }
-      }
-    }
 
     super.initState();
   }
@@ -107,23 +70,23 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 16,
       children: [
-        goalsAvailable
+        widget.dailyGoal.isNotEmpty
             ? Text("Today's Goal", style: CustomTypography().titleLarge())
             : const SizedBox.shrink(),
         Align(
             alignment: Alignment.center,
             child: SizedBox(
-              height: !goalsAvailable ? 120 : null,
+              height: widget.dailyGoal.isEmpty ? 120 : null,
               width: width,
               child: Stack(
                 children: [
-                  goalsAvailable
+                  widget.dailyGoal.isNotEmpty
                       ? Align(
                           alignment: Alignment.center,
                           child: Padding(
                             padding: const EdgeInsets.only(top: 5.0),
                             child: GoalProgressIndicators(
-                              goals: data,
+                              goalData: widget.dailyGoal,
                             ),
                           ),
                         )
@@ -166,17 +129,172 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                 ],
               ),
             )),
-        SizedBox(width: width, child: entries(data))
+        SizedBox(
+            width: width,
+            child: DailyGoalEntries(
+              goalData: widget.dailyGoal,
+            ))
       ],
     );
   }
 
-  Widget entries(Map<StudyModel, List<DiaryModel>> data) {
-    List<Widget> entryWidgets = [];
+  determineAnimation() async {
+    final coldStart =
+        await PreferenceService().getBoolPreference(key: 'cold_start') ?? true;
 
-    final entriesList = data.entries.toList();
+    if (coldStart) {
+      final arrival = _controller.findSMI('First arrival');
+      if (arrival != null && mounted) {
+        arrival.value = true;
+      }
 
-    if (entriesList.isEmpty) {
+      //set cold start in shared pref
+      await PreferenceService()
+          .setBoolPreference(key: 'cold_start', value: false);
+
+      // change animation after 30 seconds
+      return Future.delayed(
+          const Duration(seconds: 30), () => determineAnimation());
+    }
+
+    final goalData = widget.dailyGoal;
+
+    // If no goals are available for today
+    if (goalData.isEmpty) {
+      final animation = _controller.findSMI('Searching_2');
+      if (animation != null && mounted) {
+        animation.value = true;
+      }
+      return;
+    }
+
+    // Calculate totals from goal data
+    final goalStats = _calculateGoalStatistics(goalData);
+
+    // Debug logging
+    _logGoalProgress(goalData, goalStats);
+
+    // Determine animation based on goal progress
+    _setAnimationBasedOnProgress(goalStats);
+  }
+
+  /// Calculates overall goal statistics from the goal data
+  GoalStatistics _calculateGoalStatistics(
+      Map<StudyModel, DailyGoalData> goalData) {
+    int totalCompleted = 0;
+    int totalDailyGoal = 0;
+    int totalWeeklyGoal = 0;
+
+    for (var entry in goalData.entries) {
+      final study = entry.key;
+      final data = entry.value;
+
+      totalCompleted += data.completed;
+      totalDailyGoal += data.target;
+      totalWeeklyGoal += study.goals.weekly;
+    }
+
+    return GoalStatistics(
+      totalCompleted: totalCompleted,
+      totalDailyGoal: totalDailyGoal,
+      totalWeeklyGoal: totalWeeklyGoal,
+      dailyProgress: totalDailyGoal > 0 ? totalCompleted / totalDailyGoal : 0.0,
+      weeklyProgress:
+          totalWeeklyGoal > 0 ? totalCompleted / totalWeeklyGoal : 0.0,
+    );
+  }
+
+  /// Sets the appropriate animation based on goal progress
+  void _setAnimationBasedOnProgress(GoalStatistics stats) {
+    // No entries completed yet - show random searching animation
+    if (stats.totalCompleted == 0) {
+      _showRandomSearchingAnimation();
+      return;
+    }
+
+    // Daily goal achieved - celebrate!
+    if (stats.totalCompleted >= stats.totalDailyGoal &&
+        stats.totalDailyGoal > 0) {
+      _showAnimation('Blinking + Blowing the horn');
+      return;
+    }
+
+    // Weekly goal achieved
+    if (stats.totalCompleted >= stats.totalWeeklyGoal &&
+        stats.totalWeeklyGoal > 0) {
+      _showAnimation('Achieving the goal ');
+      return;
+    }
+
+    // Beyond weekly goal - exceptional performance!
+    if (stats.totalCompleted > stats.totalWeeklyGoal &&
+        stats.totalWeeklyGoal > 0) {
+      _showAnimation('Beyond the goal ');
+      return;
+    }
+
+    // Some progress made but goals not yet achieved
+    if (stats.totalCompleted > 0) {
+      _showAnimation('Searching_3');
+      return;
+    }
+  }
+
+  /// Shows a random searching animation (50/50 chance between Searching_1 and Searching_2)
+  void _showRandomSearchingAnimation() {
+    final searchingOne = _controller.findSMI('Searching_1');
+    final searchingTwo = _controller.findSMI('Searching_2');
+
+    final random = Random().nextInt(2);
+    final animation = random == 0 ? searchingOne : searchingTwo;
+
+    if (animation != null && mounted) {
+      animation.value = true;
+    }
+  }
+
+  /// Helper method to show a specific animation
+  void _showAnimation(String animationName) {
+    final animation = _controller.findSMI(animationName);
+    if (animation != null && mounted) {
+      animation.value = true;
+    }
+  }
+
+  /// Logs goal progress for debugging
+  void _logGoalProgress(
+      Map<StudyModel, DailyGoalData> goalData, GoalStatistics stats) {
+    dev.log("=== Daily Goal Progress ===");
+
+    for (var entry in goalData.entries) {
+      final study = entry.key;
+      final data = entry.value;
+
+      dev.log(
+          "${study.name}: ${data.completed}/${data.target} (${(data.progress * 100).toStringAsFixed(1)}%)");
+
+      for (var diary in data.diaries) {
+        dev.log(
+            "  - ${diary.name} | Status: ${diary.status} | Submissions: ${diary.submissions?.length ?? 0}");
+      }
+    }
+
+    dev.log(
+        "Total Progress: ${stats.totalCompleted}/${stats.totalDailyGoal} daily, ${stats.totalCompleted}/${stats.totalWeeklyGoal} weekly");
+    dev.log("Daily Progress: ${(stats.dailyProgress * 100).toStringAsFixed(1)}%");
+    dev.log(
+        "Weekly Progress: ${(stats.weeklyProgress * 100).toStringAsFixed(1)}%");
+    dev.log("========================");
+  }
+}
+
+class DailyGoalEntries extends StatelessWidget {
+  final Map<StudyModel, DailyGoalData> goalData;
+  const DailyGoalEntries({super.key, required this.goalData});
+
+  @override
+  Widget build(BuildContext context) {
+    if (goalData.isEmpty) {
       return Row(
           spacing: 6,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -187,30 +305,25 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
               size: 20,
             ),
             Text(
-              "There’s no daily goal today",
+              "There's no daily goal today",
               style: CustomTypography().bodyMedium(),
             ),
           ]);
     }
 
-    for (int i = 0; i < entriesList.length; i++) {
-      final entry = entriesList[i];
+    List<Widget> entryWidgets = [];
+    final entries = goalData.entries.toList();
+
+    for (int i = 0; i < entries.length; i++) {
+      final entry = entries[i];
       final study = entry.key;
-      final diaries = entry.value;
+      final data = entry.value;
 
-      if (study.goals.daily == 0) {
-        continue;
-      }
+      final displayText = "${study.name}: ${data.completed}/${data.target}"
+          "${entries.length > 1 && i != entries.length - 1 ? ' | ' : ''}";
 
-      final completedCount = diaries
-          .where((diary) => diary.status == DiaryStatus.submitted)
-          .length;
-
-      final displayText = "${study.name}: $completedCount/${study.goals.daily}"
-          "${data.length > 1 && i != data.length - 1 ? ' | ' : ''}";
-      var color = study.color ?? CustomColors.productNormal;
-
-      final icon = determineDiaryIcon(diaries.first);
+      final color = study.color ?? CustomColors.productNormal;
+      final icon = determineDiaryIcon(data.diaries.first);
 
       entryWidgets.add(Row(
         mainAxisSize: MainAxisSize.min,
@@ -238,99 +351,31 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       children: entryWidgets,
     );
   }
+}
 
-  determineAnimation() async {
-    final coldStart =
-        await PreferenceService().getBoolPreference(key: 'cold_start') ?? true;
+/// Data class to hold goal statistics
+class GoalStatistics {
+  final int totalCompleted;
+  final int totalDailyGoal;
+  final int totalWeeklyGoal;
+  final double dailyProgress;
+  final double weeklyProgress;
 
-    if (coldStart) {
-      final arrival = _controller.findSMI('First arrival');
-      if (arrival != null && mounted) {
-        arrival.value = true;
-      }
+  GoalStatistics({
+    required this.totalCompleted,
+    required this.totalDailyGoal,
+    required this.totalWeeklyGoal,
+    required this.dailyProgress,
+    required this.weeklyProgress,
+  });
 
-      //set cold start in shared pref
-      await PreferenceService()
-          .setBoolPreference(key: 'cold_start', value: false);
-
-      // change animation after 30 seconds
-      return Future.delayed(
-          const Duration(seconds: 30), () => determineAnimation());
-    }
-
-    if (!goalsAvailable) {
-      final animation = _controller.findSMI('Searching_2');
-
-      if (animation != null && mounted) {
-        animation.value = true;
-      }
-      return;
-    }
-
-    final diariesForToday = widget.diaries
-        .where((diary) => diary.due.day == DateTime.now().day)
-        .toList();
-
-    final totalEntries = diariesForToday
-        .where((diary) => diary.status == DiaryStatus.submitted)
-        .length;
-    final totalGoal =
-        widget.studies.fold(0, (prev, study) => prev + study.goals.daily);
-    final weeklyGoal =
-        widget.studies.fold(0, (prev, study) => prev + study.goals.weekly);
-
-    //Show Searching 1 or Searching 2 if there is no entry
-    // Make the animation random with a 50/50 chance of both showing up
-    if (totalEntries == 0) {
-      final searchingOne = _controller.findSMI('Searching_1');
-      final searchingTwo = _controller.findSMI('Searching_2');
-
-      final random = Random().nextInt(2);
-      final animation = random == 0 ? searchingOne : searchingTwo;
-
-      if (animation != null && mounted) {
-        animation.value = true;
-      }
-      return;
-    }
-
-    //Show Blinking + Blowing the horn if the daily goal is achieved
-    if (totalEntries == totalGoal) {
-      final blowing = _controller.findSMI('Blinking + Blowing the horn');
-
-      if (blowing != null && mounted) {
-        blowing.value = true;
-      }
-      return;
-    }
-
-    //Show Achieving the goal if the weekly goal is achieved
-    if (totalEntries == weeklyGoal) {
-      final achieving = _controller.findSMI('Achieving the goal ');
-
-      if (achieving != null && mounted) {
-        achieving.value = true;
-      }
-      return;
-    }
-
-    //Show Beyond the goal if the weekly goal is exceeded
-    if (totalEntries > weeklyGoal) {
-      final beyond = _controller.findSMI('Beyond the goal ');
-
-      if (beyond != null && mounted) {
-        beyond.value = true;
-      }
-      return;
-    }
-
-    //Show Searching 3 if there is an entry or more
-    if (totalEntries > 0) {
-      final searchingThree = _controller.findSMI('Searching_3');
-      if (searchingThree != null && mounted) {
-        searchingThree.value = true;
-      }
-      return;
-    }
-  }
+  bool get hasDailyGoals => totalDailyGoal > 0;
+  bool get hasWeeklyGoals => totalWeeklyGoal > 0;
+  bool get isDailyGoalAchieved =>
+      totalCompleted >= totalDailyGoal && hasDailyGoals;
+  bool get isWeeklyGoalAchieved =>
+      totalCompleted >= totalWeeklyGoal && hasWeeklyGoals;
+  bool get isBeyondWeeklyGoal =>
+      totalCompleted > totalWeeklyGoal && hasWeeklyGoals;
+  bool get hasProgress => totalCompleted > 0;
 }

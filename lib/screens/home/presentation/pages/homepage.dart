@@ -85,14 +85,7 @@ class _HomePageState extends State<HomePage>
               } else if (state is HomeLoading) {
                 return loading();
               } else if (state is HomeLoaded) {
-                return loadedHome(
-                    state.diaries,
-                    state.weeksDiaries,
-                    state.available,
-                    state.studies,
-                    state.allStudies,
-                    state.entries,
-                    state.finished);
+                return loadedHome(state);
               } else {
                 return initialHome();
               }
@@ -114,146 +107,161 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget loadedHome(
-      List<DiaryModel> diaries,
-      List<DiaryModel> weeksDiaries,
-      bool available,
-      List<StudyModel> studies,
-      List<StudyModel> allStudies,
-      int entries,
-      bool finished) {
+  Widget loadedHome(HomeLoaded state) {
     return Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: CustomColors.fillWhiteShade,
-          scrolledUnderElevation: 0.0,
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(30),
-            child: Padding(
+      backgroundColor: Colors.transparent,
+      appBar: _buildAppBar(state),
+      body: GestureDetector(
+        onTap: _handleBackgroundTap,
+        child: Stack(
+          children: [
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      key: const Key("weekly_goal_widget"),
-                      onTap: () => setState(() {
-                        if (isExpanded) {
-                          isExpanded = !isExpanded;
-                          _controller.reverse();
-                        } else {
-                          isExpanded = !isExpanded;
-                          _controller.forward();
-                          track();
-                        }
-                      }),
-                      child: WeeklyGoalWidget(
-                        isExpanded: isExpanded,
-                        studies: studies,
-                        diaries: weeksDiaries,
-                      ),
-                    ),
-                  ),
-
-                  // Incentive
-                  incentives(allStudies),
-
-                  // Calendar
-                  IconButton(
-                      onPressed: () {
-                        if (isExpanded) {
-                          setState(() {
-                            isExpanded = false;
-                            _controller.reverse();
-                            _controller.addStatusListener((status) =>
-                                _dismissAndShow(status, allStudies));
-                          });
-                        } else {
-                          showStudyCalendar(allStudies);
-                        }
-                      },
-                      icon: const Icon(
-                        Icons.calendar_month,
-                        color: CustomColors.productNormal,
-                      ))
-                ],
-              ),
+              child: _buildMainContent(state),
             ),
-          ),
+            _buildWeeklyGoalPopup(state),
+          ],
         ),
-        body: GestureDetector(
-          onTap: () {
-            if (isExpanded) {
-              setState(() {
-                isExpanded = false;
-                _controller.reverse();
-              });
-            }
-          },
-          child: Stack(
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(HomeLoaded state) {
+    return AppBar(
+      backgroundColor: CustomColors.fillWhiteShade,
+      scrolledUnderElevation: 0.0,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(30),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: available == false || finished
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          PendingSubmissionWidget(),
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          Text(
-                            "Today's Entries",
-                            style: CustomTypography().headlineMedium(),
-                            textAlign: TextAlign.left,
-                          ),
-                          Expanded(
-                              child: finished
-                                  ? EndStateWidget()
-                                  : FreeDayWidget()),
-                        ],
-                      )
-                    : SingleChildScrollView(
-                        child: Column(
-                        children: [
-                          PendingSubmissionWidget(),
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          TodayGoalWidget(
-                            dailyGoal: studies.firstOrNull?.goals.daily ?? 0,
-                            studies: studies,
-                            diaries: weeksDiaries,
-                            weeklyEntries: entries,
-                            isHomeTipClosed: isHomeTipClosed,
-                          ),
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          TodaysDiaryList(
-                            diaries: diaries,
-                            refresh: (value) => refresh(value),
-                            getPageName: () => "home",
-                          )
-                        ],
-                      )),
+              Expanded(
+                child: GestureDetector(
+                  key: const Key("weekly_goal_widget"),
+                  onTap: _handleWeeklyGoalTap,
+                  child: WeeklyGoalWidget(
+                    isExpanded: isExpanded,
+                    studies: state.weeklyData.studies,
+                    diaries: state.weeklyData.diaries,
+                  ),
+                ),
               ),
-              Positioned(
-                  top: 0,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, -2),
-                      end: const Offset(0, 0),
-                    ).animate(CurvedAnimation(
-                        parent: _controller, curve: Curves.fastOutSlowIn)),
-                    child: WeeklyGoalPopup(
-                      studies: studies,
-                      diaries: weeksDiaries,
-                    ),
-                  ))
+              incentives(state.allStudies),
+              IconButton(
+                onPressed: () => _handleCalendarTap(state.allStudies),
+                icon: const Icon(
+                  Icons.calendar_month,
+                  color: CustomColors.productNormal,
+                ),
+              ),
             ],
           ),
-        ));
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainContent(HomeLoaded state) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Always show pending submissions
+          PendingSubmissionWidget(),
+          const SizedBox(height: 24),
+
+          // Show goal widget if there are goals (even when finished)
+          if (state.shouldShowGoalWidget) ...[
+            TodayGoalWidget(
+              dailyGoal: state.goalData,
+              weeklyEntries: state.weeklyEntries,
+              isHomeTipClosed: isHomeTipClosed,
+            ),
+            const SizedBox(height: 24),
+          ],
+
+          // Content based on state
+          if (state.shouldShowDiaryList) ...[
+            TodaysDiaryList(
+              diaries: state.todaysData.diaries,
+              refresh: (value) => refresh(value),
+              getPageName: () => "home",
+            ),
+          ] else if (state.shouldShowEndState) ...[
+            Text(
+              "Today's Entries",
+              style: CustomTypography().headlineMedium(),
+              textAlign: TextAlign.left,
+            ),
+            Center(child: EndStateWidget()),
+          ] else if (state.shouldShowFreeDay) ...[
+            Text(
+              "Today's Entries",
+              style: CustomTypography().headlineMedium(),
+              textAlign: TextAlign.left,
+            ),
+            Center(child: FreeDayWidget()),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeeklyGoalPopup(HomeLoaded state) {
+    return Positioned(
+      top: 0,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, -2),
+          end: const Offset(0, 0),
+        ).animate(
+            CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn)),
+        child: WeeklyGoalPopup(
+          studies: state.weeklyData.studies,
+          diaries: state.weeklyData.diaries,
+        ),
+      ),
+    );
+  }
+
+  /// Handle weekly goal widget tap
+  void _handleWeeklyGoalTap() {
+    setState(() {
+      if (isExpanded) {
+        isExpanded = false;
+        _controller.reverse();
+      } else {
+        isExpanded = true;
+        _controller.forward();
+        track();
+      }
+    });
+  }
+
+  /// Handle calendar button tap
+  void _handleCalendarTap(List<StudyModel> allStudies) {
+    if (isExpanded) {
+      setState(() {
+        isExpanded = false;
+        _controller.reverse();
+        _controller
+            .addStatusListener((status) => _dismissAndShow(status, allStudies));
+      });
+    } else {
+      showStudyCalendar(allStudies);
+    }
+  }
+
+  /// Handle background tap to close expanded view
+  void _handleBackgroundTap() {
+    if (isExpanded) {
+      setState(() {
+        isExpanded = false;
+        _controller.reverse();
+      });
+    }
   }
 
   Widget incentives(List<StudyModel> allStudies) {

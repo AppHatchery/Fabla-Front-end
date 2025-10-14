@@ -1,5 +1,4 @@
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/core/usecases/daily_goal_service.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
@@ -37,37 +36,30 @@ class RingProgressIndicator extends StatelessWidget {
 }
 
 class GoalProgressIndicators extends StatelessWidget {
-  final Map<StudyModel, List<DiaryModel>> goals;
-  const GoalProgressIndicators({super.key, required this.goals});
+  final Map<StudyModel, DailyGoalData> goalData;
+
+  const GoalProgressIndicators({super.key, required this.goalData});
 
   @override
   Widget build(BuildContext context) {
     double baseSize = 150;
     double spacing = 40;
+
     return Center(
       child: Stack(
         alignment: Alignment.center,
-        children: goals.entries.toList().asMap().entries.map((entry) {
+        children: goalData.entries.toList().asMap().entries.map((entry) {
           int index = entry.key;
-          final map = entry.value;
-          Goal goal = map.key.goals;
-          final diaries = map.value;
-          final completed = diaries
-              .where((diary) => diary.status == DiaryStatus.submitted)
-              .length;
+          final study = entry.value.key;
+          final data = entry.value.value;
 
-          // [isNaN] & [isInfinite] are checks to see if the value we are calculating is an actual double
-          double progress = (completed / goal.daily).isNaN ||
-                  (completed / goal.daily).isInfinite
-              ? 0
-              : completed / goal.daily;
           double size = baseSize + (index * spacing);
 
           return RingProgressIndicator(
-            progress: progress,
+            progress: data.progress,
             size: size,
-            color: map.key.color ?? CustomColors.productNormal,
-            backgroundColor: map.key.color?.withOpacity(0.2) ??
+            color: study.color ?? CustomColors.productNormal,
+            backgroundColor: study.color?.withOpacity(0.2) ??
                 CustomColors.productNormal.withOpacity(0.2),
           );
         }).toList(),

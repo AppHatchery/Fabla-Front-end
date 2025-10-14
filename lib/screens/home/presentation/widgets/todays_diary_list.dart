@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,9 @@ class TodaysDiaryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final _diaries = diaries
+        .where((diary) => diary.status != DiaryStatus.submitted)
+        .toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -28,7 +32,7 @@ class TodaysDiaryList extends StatelessWidget {
         const SizedBox(
           height: 24,
         ),
-        diaries.isEmpty
+        _diaries.isEmpty
             ? Padding(
                 padding: const EdgeInsets.only(top: 26.0),
                 child: const DayComplete(),
@@ -36,12 +40,12 @@ class TodaysDiaryList extends StatelessWidget {
             : ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: diaries.length,
+                itemCount: _diaries.length,
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: DiaryCard(
-                      diary: diaries[index],
+                      diary: _diaries[index],
                       refresh: (value) => refresh(value),
                       getPageName: getPageName,
                     ),

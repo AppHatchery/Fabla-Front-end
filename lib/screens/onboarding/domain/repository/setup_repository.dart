@@ -27,6 +27,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questio
 import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -308,20 +309,21 @@ class SetupRepository {
   DiaryModel _mergeDiaryContents(
       DiaryModel newDiary, DiaryModel existingDiary) {
     return DiaryModel(
-      id: newDiary.id,
-      studyID: newDiary.studyID,
-      name: newDiary.name,
-      prompts: newDiary.prompts,
-      tags: newDiary.tags,
-      status: existingDiary.status,
-      due: newDiary.due,
-      start: newDiary.start,
-      end: newDiary.end,
-      entries: newDiary.entries,
-      currentEntry: existingDiary.currentEntry,
-      notifications: newDiary.notifications,
-      activeDays: newDiary.activeDays,
-    );
+        id: newDiary.id,
+        studyID: newDiary.studyID,
+        name: newDiary.name,
+        prompts: newDiary.prompts,
+        tags: newDiary.tags,
+        status: existingDiary.status,
+        due: newDiary.due,
+        start: newDiary.start,
+        end: newDiary.end,
+        entries: newDiary.entries,
+        currentEntry: existingDiary.currentEntry,
+        notifications: newDiary.notifications,
+        activeDays: newDiary.activeDays,
+        submissions: existingDiary.submissions,
+        completions: existingDiary.completions);
   }
 
   ExperimentModel getExperiment() {
@@ -586,7 +588,8 @@ class SetupRepository {
 
     String? firebaseToken;
     try {
-      firebaseToken = await FirebaseMessaging.instance.getToken();
+      firebaseToken =
+          kDebugMode ? "dev" : await FirebaseMessaging.instance.getToken();
       if (firebaseToken != null) {
         debugPrint("Firebase Token: $firebaseToken");
       } else {

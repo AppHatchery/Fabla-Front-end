@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/daily_goal_service.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
@@ -40,55 +41,98 @@ class HomeCubit extends Cubit<HomeState> {
   /// A Future indicating that the operation may be asynchronous and requires awaiting.
   ///
   Future<void> loadDiaries() async {
-    final today = DateTime.now();
-    final start = DateTime(today.year, today.month, today.day, 4, 0, 0);
-    // final due = DateTime(today.year, today.month, today.day, 3, 59, 59);
-
-    final monday = DateTime(today.year, today.month, today.day, 4, 0, 0)
-        .subtract(Duration(days: today.weekday - 1));
-    final sunday = DateTime(monday.year, monday.month, monday.day, 3, 59, 0)
-        .add(const Duration(days: 6));
-
     try {
       emit(const HomeLoading());
-      // Updated to use injected repository instance
-      final diaries = repository.getDiaries(start);
-      // Updated to use injected repository instance
-      final entries = repository.getTotalEntries(
-          monday.subtract(const Duration(days: 1)),
-          sunday.add(const Duration(days: 1)));
-      // Updated to use injected repository instance
-      final weekDiaries = repository.getRangeDiaries(monday, sunday);
-      final completedStudy = await noMoreDiaries();
 
-      final ids = weekDiaries.map((e) => e.studyID).toSet().toList();
-      // Updated to use injected repository instance
-      final studies = await repository.getStudies(ids);
-      // Updated to use injected repository instance
-      final allStudies = await repository.getAllStudiesWithColor();
+      final today = DateTime.now();
+      final weekBoundaries = _getWeekBoundaries(today);
 
-      final updated = diaries
-          .map((diary) => diary.copyWith(
-              id: diary.id,
-              studyID: diary.studyID,
-              tags: null,
-              activeDays: diary.activeDays))
-          .toList();
+      // Load all necessary data in parallel for better performance
+      final results = await Future.wait([
+        _loadTodaysDiaries(today),
+        _loadWeeklyData(weekBoundaries),
+        _loadAllStudies(),
+        _checkCompletionStatus(),
+      ]);
 
-      final sortedDiaries = prioritySort(updated);
+      final todaysData = results[0] as TodaysData;
+      final weeklyData = results[1] as WeeklyData;
+      final allStudies = results[2] as List<StudyModel>;
+      final isFinished = results[3] as bool;
+
+      // Calculate goal data using the new service
+      final goalService = DailyGoalService();
+      final goalData = goalService.calculateDailyGoals(
+          todaysData.studies, todaysData.diaries);
+
       emit(HomeLoaded(
-        sortedDiaries,
-        weekDiaries,
-        diaries.isNotEmpty,
-        studies,
-        allStudies,
-        entries,
-        completedStudy,
+        todaysData: todaysData,
+        weeklyData: weeklyData,
+        allStudies: allStudies,
+        weeklyEntries: weeklyData.totalEntries,
+        isFinished: isFinished,
+        goalData: goalData, // Add goal data to state
       ));
     } catch (e) {
       debugPrint("Error loading home page: $e");
       emit(const HomeError("Something went wrong"));
     }
+  }
+
+  /// Helper method to get week boundaries with shifted day logic
+  WeekBoundaries _getWeekBoundaries(DateTime today) {
+    // Start from Monday 4:00 AM of the current week
+    final monday = DateTime(today.year, today.month, today.day, 4, 0, 0)
+        .subtract(Duration(days: today.weekday - 1));
+
+    // End on Sunday 3:59 AM of the current week
+    final sunday = DateTime(monday.year, monday.month, monday.day, 3, 59, 0)
+        .add(const Duration(days: 6));
+
+    return WeekBoundaries(start: monday, end: sunday);
+  }
+
+  /// Load today's diaries and their studies
+  Future<TodaysData> _loadTodaysDiaries(DateTime today) async {
+    final diaries = repository.getDiaries(today);
+
+    if (diaries.isEmpty) {
+      return TodaysData(diaries: [], studies: []);
+    }
+
+    final sortedDiaries = prioritySort(diaries);
+
+    // Get unique study IDs and load studies
+    final studyIds = diaries.map((e) => e.studyID).toSet().toList();
+    final studies = await repository.getStudies(studyIds);
+
+    return TodaysData(diaries: sortedDiaries, studies: studies);
+  }
+
+  /// Load weekly data (diaries and entry count)
+  Future<WeeklyData> _loadWeeklyData(WeekBoundaries boundaries) async {
+    final weekDiaries =
+        repository.getRangeDiaries(boundaries.start, boundaries.end);
+    final totalEntries = repository.getTotalEntries(
+        boundaries.start.subtract(const Duration(days: 1)),
+        boundaries.end.add(const Duration(days: 1)));
+
+    // Get unique study IDs and load studies
+    final studyIds = weekDiaries.map((e) => e.studyID).toSet().toList();
+    final studies = await repository.getStudies(studyIds);
+
+    return WeeklyData(
+        diaries: weekDiaries, studies: studies, totalEntries: totalEntries);
+  }
+
+  /// Load all studies
+  Future<List<StudyModel>> _loadAllStudies() async {
+    return await repository.getAllStudiesWithColor();
+  }
+
+  /// Check if user has completed all studies
+  Future<bool> _checkCompletionStatus() async {
+    return await noMoreDiaries();
   }
 
   Future<String> getParticipantName() async =>
@@ -142,4 +186,30 @@ class HomeCubit extends Cubit<HomeState> {
     final last = diaries.where((diary) => diary.due.isAfter(today)).toList();
     return last.isEmpty;
   }
+}
+
+/// Data classes for better organization
+class TodaysData {
+  final List<DiaryModel> diaries;
+  final List<StudyModel> studies;
+
+  TodaysData({required this.diaries, required this.studies});
+}
+
+class WeeklyData {
+  final List<StudyModel> studies;
+  final List<DiaryModel> diaries;
+  final int totalEntries;
+
+  WeeklyData(
+      {required this.diaries,
+      required this.studies,
+      required this.totalEntries});
+}
+
+class WeekBoundaries {
+  final DateTime start;
+  final DateTime end;
+
+  WeekBoundaries({required this.start, required this.end});
 }

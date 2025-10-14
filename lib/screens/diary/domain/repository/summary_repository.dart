@@ -52,7 +52,8 @@ class SummaryRepository {
           id: diary.id,
           studyID: diary.studyID,
           prompts: cleanPrompts,
-          activeDays: diary.activeDays);
+          activeDays: diary.activeDays,
+          submissions: diary.submissions);
       return newDiary;
     } catch (e) {
       dev.log("Error loading summary: $e",
@@ -132,20 +133,24 @@ class SummaryRepository {
         dev.log("Current entry: ${diary.currentEntry}",
             name: "SummaryRepository - submitDiary");
 
+        final List<DateTime> submissions = diary.submissions ?? [];
+        submissions.add(DateTime.now());
         if (diary.currentEntry + 1 == diary.entries) {
           newDiary = diary.copyWith(
               id: diary.id,
               studyID: diary.studyID,
               status: DiaryStatus.submitted,
               activeDays: diary.activeDays,
-              currentEntry: diary.currentEntry + 1);
+              currentEntry: diary.currentEntry + 1,
+              submissions: submissions);
         } else {
           newDiary = diary.copyWith(
               id: diary.id,
               studyID: diary.studyID,
               status: DiaryStatus.idle,
               activeDays: diary.activeDays,
-              currentEntry: diary.currentEntry + 1);
+              currentEntry: diary.currentEntry + 1,
+              submissions: submissions);
         }
 
         diaryRepository.updateDiary(newDiary);
