@@ -123,7 +123,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       alignment: Alignment.bottomCenter,
       child: Container(
         width: width,
-        height: textScaleFactor >= 1.6 ? MediaQuery.of(context).size.height * .8 : 689,
+        height: textScaleFactor >= 1.8 ? MediaQuery.of(context).size.height * 1 :
+        textScaleFactor >= 1.2 ? MediaQuery.of(context).size.height * .85 :  MediaQuery.of(context).size.height * .75,
         decoration: const BoxDecoration(
           color: Color(0xFFF3F3F3),
           borderRadius: BorderRadius.only(
@@ -167,83 +168,65 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
 
     return LayoutBuilder(builder: (context, constraints) {
-      return Stack(
+      return Column(
         children: [
-          //Scrollable content
-          //Add padding at the bottom to account for the fixed controls
-          SizedBox(
-            height: textScaleFactor >= 1.6 ? 260 : 210,
-            width: MediaQuery.of(context).size.width,
+          // Scrollable content
+          Expanded(
             child: SingleChildScrollView(
               controller: scrollController,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: 32,
-                  right: 32,
-                  bottom: 24,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.question,
+                    style: CustomTypography().titleLarge(color: const Color(0xFF000000)),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    widget.hint ??
+                        "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
+                    style: CustomTypography().bodyLarge(
+                      color: const Color(0x5C000000),
+                      weight: FontWeight.w400,
+                    ),
+                  ),
+                  SizedBox(
+                    height: textScaleFactor >= 1.8 ? 0 : textScaleFactor >= 1.2 ? 75 : textScaleFactor >= 1.0 ? 80 : 100
+                  ),
+                  _riveAnimation(),
+                ],
+              ),
+            ),
+          ),
+
+          // Fixed bottom recording controls
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+            color: CustomColors.productNormal,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      widget.question,
-                      style:
-                          CustomTypography().titleLarge(color: Color(0xFF000000)),
-                    ),
-                    SizedBox(height: 24),
-                    Text(
-                      widget.hint ??
-                          "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
-                      style: CustomTypography().bodyLarge(
-                        color: Color(0x5C000000),
-                        weight: FontWeight.w400,
+                      "Recording...",
+                      style: CustomTypography().custom(
+                        color: CustomColors.fillWhite,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 18,
                       ),
                     ),
                   ],
                 ),
-              ),
-            ),
-          ),
-          //Animation
-          _riveAnimation(),
-          //Recording Controls Section - fixed at bottom
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 20.0,
-              ),
-              color: CustomColors.productNormal,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Recording...",
-                        style: CustomTypography().custom(
-                          color: CustomColors.fillWhite,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 18
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 5),
-                  SizedBox(
-                    height: 42,
-                    width: width,
-                    child: waveForm(),
-                  ),
-                  SizedBox(height: 5),
-                  progressBar(),
-                  SizedBox(height: 15),
-                  recordingControls(),
-                ],
-              ),
+                const SizedBox(height: 5),
+                SizedBox(height: 42, width: width, child: waveForm()),
+                const SizedBox(height: 5),
+                progressBar(),
+                const SizedBox(height: 15),
+                recordingControls(),
+              ],
             ),
           ),
         ],
@@ -253,20 +236,23 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Widget _riveAnimation() {
     final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
-    return IgnorePointer(
-      child: ColorFiltered(
-        colorFilter: ColorFilter.mode(
-          Color(0xFFACD3FC),
-          BlendMode.modulate,
-        ),
-        child: Transform(
-          transform: Matrix4.translationValues(-140, textScaleFactor >= 1.6 ? 0 : 20, 0)
-            ..scale(-1.0, 1.0),
-          alignment: Alignment.center,
-          child: r.RiveAnimation.asset(
-            'assets/animations/onboarding/floats_in.riv',
-            fit: BoxFit.scaleDown,
-            onInit: _onInit,
+    return SizedBox(
+      height:150,
+      child: IgnorePointer(
+        child: ColorFiltered(
+          colorFilter: ColorFilter.mode(
+            Color(0xFFACD3FC),
+            BlendMode.modulate,
+          ),
+          child: Transform(
+            transform: Matrix4.translationValues(-140, textScaleFactor >= 1.6 ? 0 : 20, 0)
+              ..scale(-1.0, 1.0),
+            alignment: Alignment.center,
+            child: r.RiveAnimation.asset(
+              'assets/animations/onboarding/floats_in.riv',
+              fit: BoxFit.scaleDown,
+              onInit: _onInit,
+            ),
           ),
         ),
       ),
