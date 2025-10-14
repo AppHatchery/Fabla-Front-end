@@ -9,10 +9,12 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../../core/usecases/location_test.dart';
 import '../../../../dummy_data.dart';
 import '../../../../mock_classes.mocks.dart';
 
-class MockObjectBox extends Mock implements ObjectBox { //mock class from mock_classes.dart
+class MockObjectBox extends Mock implements ObjectBox {
+  //mock class from mock_classes.dart
   @override
   late final Store store = MockStore();
 }
@@ -21,16 +23,18 @@ class MockSummaryRepository extends Mock implements SummaryRepository {}
 
 void main() {
   late MockSummaryRepository mockSummaryRepository;
+  late MockPreferenceService mockPreferenceService;
   late BulkSubmissionCubit bulkSubmissionCubit;
 
   // Use centralized helpers
   List<DiarySubmission> createTestSubmissions(
-      int count, {
-        SubmissionStatus? status,
-      }) {
+    int count, {
+    SubmissionStatus? status,
+  }) {
     final study = createTestStudyModel(); // study data from dummy data file
     return List.generate(count, (index) {
-      final diary = createTestDiaryModel( //diary model from dummy data file
+      final diary = createTestDiaryModel(
+        //diary model from dummy data file
         id: index + 1,
         studyID: study.id,
         name: '${TestValues.testDiaryOngoing} ${index + 1}',
@@ -50,9 +54,10 @@ void main() {
 
   setUp(() {
     mockSummaryRepository = MockSummaryRepository();
+    mockPreferenceService = MockPreferenceService();
     bulkSubmissionCubit = BulkSubmissionCubit(
-      summaryRepository: mockSummaryRepository,
-    );
+        summaryRepository: mockSummaryRepository,
+        preferenceService: mockPreferenceService);
   });
 
   tearDown(() {
@@ -79,6 +84,10 @@ void main() {
       setUp: () {
         when(() => mockSummaryRepository.submitDiary(any()))
             .thenAnswer((_) async => true);
+        when(() => mockPreferenceService.setBoolPreference(
+              key: any(named: 'key'),
+              value: any(named: 'value'),
+            )).thenAnswer((_) async => true);
       },
       act: (cubit) {
         final submissions = createTestSubmissions(2);
@@ -102,6 +111,10 @@ void main() {
       setUp: () {
         when(() => mockSummaryRepository.submitDiary(any()))
             .thenAnswer((_) async => false);
+        when(() => mockPreferenceService.setBoolPreference(
+              key: any(named: 'key'),
+              value: any(named: 'value'),
+            )).thenAnswer((_) async => false);
       },
       act: (cubit) {
         final submissions = createTestSubmissions(2);
@@ -123,6 +136,10 @@ void main() {
       setUp: () {
         when(() => mockSummaryRepository.submitDiary(any()))
             .thenAnswer((_) async => null);
+        when(() => mockPreferenceService.setBoolPreference(
+              key: any(named: 'key'),
+              value: any(named: 'value'),
+            )).thenAnswer((_) async => false);
       },
       act: (cubit) {
         final submissions = createTestSubmissions(1);
@@ -165,6 +182,12 @@ void main() {
     blocTest<BulkSubmissionCubit, BulkSubmissionState>(
       'handles empty submissions list',
       build: () => bulkSubmissionCubit,
+      setUp: () {
+        when(() => mockPreferenceService.setBoolPreference(
+              key: any(named: 'key'),
+              value: any(named: 'value'),
+            )).thenAnswer((_) async => false);
+      },
       act: (cubit) {
         cubit.startBulkSubmission([]);
       },
@@ -203,6 +226,10 @@ void main() {
       setUp: () {
         when(() => mockSummaryRepository.submitDiary(any()))
             .thenAnswer((_) async => true);
+        when(() => mockPreferenceService.setBoolPreference(
+              key: any(named: 'key'),
+              value: any(named: 'value'),
+            )).thenAnswer((_) async => true);
       },
       act: (cubit) {
         final submissions =
@@ -227,6 +254,10 @@ void main() {
       setUp: () {
         when(() => mockSummaryRepository.submitDiary(any()))
             .thenAnswer((_) async => true);
+        when(() => mockPreferenceService.setBoolPreference(
+              key: any(named: 'key'),
+              value: any(named: 'value'),
+            )).thenAnswer((_) async => true);
       },
       act: (cubit) {
         final submissions = [
@@ -271,6 +302,10 @@ void main() {
         () async {
       when(() => mockSummaryRepository.submitDiary(any()))
           .thenAnswer((_) async => true);
+      when(() => mockPreferenceService.setBoolPreference(
+            key: any(named: 'key'),
+            value: any(named: 'value'),
+          )).thenAnswer((_) async => true);
 
       final originalSubmissions = createTestSubmissions(1);
       final originalStatus = originalSubmissions[0].status;

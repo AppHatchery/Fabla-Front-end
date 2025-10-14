@@ -11,6 +11,7 @@ class Experiment {
   String name;
   String duration;
   String description;
+  String ownerEmail;
   String version;
 
   Experiment(
@@ -21,6 +22,7 @@ class Experiment {
       required this.name,
       required this.duration,
       required this.description,
+      required this.ownerEmail,
       required this.version});
 
   factory Experiment.fromModel(ExperimentModel model) {
@@ -32,6 +34,7 @@ class Experiment {
       name: model.name,
       duration: model.duration,
       description: model.description,
+      ownerEmail: model.ownerEmail,
       version: model.version,
     );
   }

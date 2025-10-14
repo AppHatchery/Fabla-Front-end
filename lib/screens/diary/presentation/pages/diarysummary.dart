@@ -145,13 +145,13 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   ? loading()
                   : state is SummaryLoaded
                       ? content(state.diary, context)
-                      : state is SubmitLoading
+                      : state is SubmitLoading ||
+                              state is SummarySubmitted ||
+                              state is SubmitNoInternet
                           ? submitLoading()
-                          : state is SummarySubmitted
-                              ? submitLoading()
-                              : state is SubmitError
-                                  ? submitError()
-                                  : initial(),
+                          : state is SubmitError
+                              ? submitError()
+                              : initial(),
         );
       },
       listener: (context, state) async {
@@ -164,6 +164,13 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         } else if (state is SummaryLoaded) {
           // If the user reaches the submission page for the first time add to the completion list
           summaryCubit.updateDiaryCompletion(widget.diary);
+        } else if (state is SubmitNoInternet) {
+          track(timer.stop(), "Submission Failed");
+          Navigator.of(context)
+              .pushReplacement(_completionRoute(submissionFailed: true))
+              .then((_) {
+            summaryCubit.loadSummary(widget.diary);
+          });
         }
       },
     );
@@ -185,10 +192,12 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     });
   }
 
-  Route _completionRoute() {
+  Route _completionRoute({bool? submissionFailed}) {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>
-          const DiaryCompletionPage(),
+          DiaryCompletionPage(
+        submissionFailed: submissionFailed,
+      ),
       transitionDuration: const Duration(milliseconds: 1200),
       reverseTransitionDuration: const Duration(milliseconds: 1200),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {

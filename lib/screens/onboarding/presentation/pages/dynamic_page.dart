@@ -21,6 +21,7 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
+import 'dart:io' show Platform;
 
 class DynamicOnBoardingHub extends StatefulWidget {
   const DynamicOnBoardingHub({super.key});
@@ -73,51 +74,55 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: CustomColors.backgroundSecondary,
-      body: BlocConsumer<DynamicCubit, DynamicState>(
-        listener: (context, state) {
-          if (state is DynamicNone) {
-            track(timer.stop(), "Finished");
-            Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const ActiveDatesPage(),
-                    settings: RouteSettings(name: "/ActiveDatesPage")));
-          } else if (state is DynamicUploaded) {
-            track(timer.stop(), "Finished");
-            moveOn(context, state.questionsLength);
-          }
-        },
-        builder: (context, state) {
-          if (state is DynamicInitial || state is DynamicLoading) {
-            return loading();
-          } else if (state is DynamicUploading) {
-            return uploading(height, width);
-          } else if (state is DynamicLoaded) {
-            return PageView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              controller: controller,
-              itemCount: state.questions.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return welcome();
-                }
-                return DynamicOnBoardingPage(
-                  index: index + 1,
-                  question: state.questions[index - 1],
-                  onPrevious: () => previousPage(),
-                  onContinue: (answer) {
-                    if (answer != null) {
-                      _cubit.save(state.questions[index - 1], answer);
-                      nextPage(state.questions.length);
-                    }
-                  },
-                );
-              },
-            );
-          }
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: BlocConsumer<DynamicCubit, DynamicState>(
+          listener: (context, state) {
+            if (state is DynamicNone) {
+              track(timer.stop(), "Finished");
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ActiveDatesPage(),
+                      settings: RouteSettings(name: "/ActiveDatesPage")));
+            } else if (state is DynamicUploaded) {
+              track(timer.stop(), "Finished");
+              moveOn(context, state.questionsLength);
+            }
+          },
+          builder: (context, state) {
+            if (state is DynamicInitial || state is DynamicLoading) {
+              return loading();
+            } else if (state is DynamicUploading) {
+              return uploading(height, width);
+            } else if (state is DynamicLoaded) {
+              return PageView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                controller: controller,
+                itemCount: state.questions.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return welcome();
+                  }
+                  return DynamicOnBoardingPage(
+                    index: index + 1,
+                    question: state.questions[index - 1],
+                    onPrevious: () => previousPage(),
+                    onContinue: (answer) {
+                      if (answer != null) {
+                        _cubit.save(state.questions[index - 1], answer);
+                        nextPage(state.questions.length);
+                      }
+                    },
+                  );
+                },
+              );
+            }
 
-          return const SizedBox.shrink();
-        },
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
   }
@@ -289,6 +294,8 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
     // super.build(context);
     // final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: CustomColors.backgroundSecondary,
@@ -339,7 +346,14 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        top: 16,
+                        bottom: bottomPadding > 0
+                            ? bottomPadding + 16
+                            : (isIos ? 34 + 16 : 16),
+                      ),
                       child: CustomFlatButton(
                           onClick: () => {
                                 FocusScope.of(context).unfocus(),
@@ -583,6 +597,8 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
@@ -600,6 +616,7 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
       ),
       backgroundColor: CustomColors.backgroundSecondary,
       body: SafeArea(
+        top: false,
         bottom: false,
         child: LayoutBuilder(builder: (context, constraints) {
           return Column(
@@ -643,8 +660,12 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(
-                    left: 16.0, right: 16.0, bottom: 34.0),
+                padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: bottomPadding > 0
+                        ? bottomPadding + 34
+                        : (isIos ? 34 + 34 : 34)),
                 child: CustomFlatButton(
                   onClick: () => widget.onContinue(),
                   text: "Continue",

@@ -1309,6 +1309,71 @@ class PendingSubmissionCard extends StatelessWidget {
   }
 }
 
+class FailedSubmissionCard extends StatelessWidget {
+  const FailedSubmissionCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(16),
+      decoration: ShapeDecoration(
+        color: Color(0xFFD0DEF4),
+        shape: RoundedRectangleBorder(
+          side: BorderSide(width: 2, color: CustomColors.productNormalActive),
+          borderRadius: BorderRadius.circular(11),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Image.asset(
+                'assets/images/icons/arrow_upload_progress.png',
+                height: 24,
+                width: 24,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 8,
+                    children: [
+                      Text(
+                        'Diary Saved for Submission',
+                        style: CustomTypography().titleSmallCustom(
+                            color: CustomColors.productNormalActive),
+                      ),
+                      Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                        decoration: ShapeDecoration(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4)),
+                        ),
+                        child: Text(
+                          'Your entry is saved on your phone. you can submit it once you get back online.',
+                          style: CustomTypography().bodyLarge(
+                              color: CustomColors.productNormalActive),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class PendingSubmissionSmallCard extends StatefulWidget {
   final DiaryModel diary;
   final StudyModel study;

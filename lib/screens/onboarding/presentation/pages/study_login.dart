@@ -10,6 +10,7 @@ import 'package:audio_diaries_flutter/theme/resources/strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:io' show Platform;
 
 import '../../../../services/pendo_service.dart';
 
@@ -64,45 +65,52 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       backgroundColor: CustomColors.backgroundSecondary,
       body: SafeArea(
-          top: true,
-          left: false,
-          right: false,
-          bottom: false,
-          child: GestureDetector(
-              onTap: () => FocusScope.of(context).unfocus(),
-              child: SizedBox(
-                height: height,
-                width: width,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 70, 16, 34),
-                  child: BlocConsumer<StudyLoginCubit, StudyLoginState>(
-                      builder: (context, state) {
-                    if (state is StudyLoginInitial) {
-                      return initialLogin();
-                    } else if (state is StudyLoginLoading) {
-                      return loading(height - 100);
-                    }
+        bottom: false,
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SizedBox(
+            height: height,
+            width: width,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                  16,
+                  70,
+                  16,
+                  bottomPadding > 0
+                      ? bottomPadding + 34
+                      : (isIos ? 34 + 34 : 34)),
+              child: BlocConsumer<StudyLoginCubit, StudyLoginState>(
+                  builder: (context, state) {
+                if (state is StudyLoginInitial) {
+                  return initialLogin();
+                } else if (state is StudyLoginLoading) {
+                  return loading(height - 100);
+                }
 
-                    return initialLogin();
-                  }, listener: (context, state) {
-                    if (state is StudyLoginError) {
-                      setState(() {
-                        error = true;
-                        message = state.message;
-                      });
-                    } else if (state is StudyLoginSuccess) {
-                      error = false;
-                      int spent = timer.stop();
-                      track(spent, "Finished");
-                      RouteService().navigate(state.experiment,
-                          context: context, current: 'login');
-                    }
-                  }),
-                ),
-              ))),
+                return initialLogin();
+              }, listener: (context, state) {
+                if (state is StudyLoginError) {
+                  setState(() {
+                    error = true;
+                    message = state.message;
+                  });
+                } else if (state is StudyLoginSuccess) {
+                  error = false;
+                  int spent = timer.stop();
+                  track(spent, "Finished");
+                  RouteService().navigate(state.experiment,
+                      context: context, current: 'login');
+                }
+              }),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -149,6 +157,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                       controller: controller,
                       fieldType: TextInputType.text,
                       error: error,
+                      warningMessage: '',
                     ),
                     const SizedBox(
                       height: 24,

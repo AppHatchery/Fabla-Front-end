@@ -30,7 +30,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show SystemChrome, SystemUiOverlayStyle;
+import 'package:flutter/services.dart' show SystemChrome, SystemUiOverlayStyle, SystemUiMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -220,13 +220,15 @@ class _HubState extends State<Hub>
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     // Removing the dark bars that come with the safe area
-    if (isAndroid) {
+    if (Platform.isAndroid) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setSystemUIOverlayStyle(
         const SystemUiOverlayStyle(
           statusBarColor: Colors.white,
           statusBarIconBrightness: Brightness.dark,
           systemNavigationBarColor: Colors.white,
           systemNavigationBarIconBrightness: Brightness.dark,
+          systemNavigationBarContrastEnforced: false,
         ),
       );
     }
@@ -260,6 +262,8 @@ class _HubState extends State<Hub>
   @override
   Widget build(BuildContext context) {
     final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return KeyedSubtree(
       key: key,
       child: BlocConsumer<HubCubit, HubState>(
@@ -273,36 +277,40 @@ class _HubState extends State<Hub>
           }
         },
         builder: (context, state) {
-          return SafeArea(
-            top: isAndroid,
-            bottom: isAndroid,
-            child: Scaffold(
-              body: TabBarView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  controller: tabController,
-                  children: pages),
-              bottomNavigationBar: Material(
-                color: CustomColors.fillWhite,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: CustomColors.productBorderNormal,
-                        width: 1.0,
-                      ),
+          return Scaffold(
+            body: SafeArea(
+              top: false,
+              bottom: false,
+              child: TabBarView(
+                physics: const NeverScrollableScrollPhysics(),
+                controller: tabController,
+                children: pages,
+              ),
+            ),
+            bottomNavigationBar: Material(
+              color: CustomColors.fillWhite,
+              child: Container(
+                decoration: const BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: CustomColors.productBorderNormal,
+                      width: 1.0,
                     ),
                   ),
-                  child: TabBar(
-                    controller: tabController,
-                    tabs: navigationBars,
-                    labelColor: CustomColors.productNormal,
-                    unselectedLabelColor: Colors.black,
-                    indicatorColor: Colors.transparent,
-                    indicatorWeight: 2,
-                    indicator: null,
-                    padding: EdgeInsets.only(bottom: isIos ? 34 : 0),
-                    dividerColor: Colors.transparent,
+                ),
+                child: TabBar(
+                  controller: tabController,
+                  tabs: navigationBars,
+                  labelColor: CustomColors.productNormal,
+                  unselectedLabelColor: Colors.black,
+                  indicatorColor: Colors.transparent,
+                  indicatorWeight: 2,
+                  indicator: null,
+                  padding: EdgeInsets.only(
+                    top: 8,
+                    bottom: bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 8),
                   ),
+                  dividerColor: Colors.transparent,
                 ),
               ),
             ),

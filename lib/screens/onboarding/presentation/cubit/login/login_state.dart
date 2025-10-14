@@ -23,3 +23,8 @@ final class LoginError extends LoginState {
   final String message;
   const LoginError(this.message);
 }
+
+final class LoginWarning extends LoginState {
+  final String message;
+  const LoginWarning(this.message);
+}

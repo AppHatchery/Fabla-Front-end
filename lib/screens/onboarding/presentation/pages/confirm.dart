@@ -63,6 +63,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       backgroundColor: CustomColors.backgroundSecondary,
       appBar: AppBar(
@@ -70,80 +71,87 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
         scrolledUnderElevation: 0.0,
         automaticallyImplyLeading: false,
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Study Information",
-                  style: CustomTypography()
-                      .headlineLarge(color: CustomColors.textWhite)),
-              const SizedBox(
-                height: 16,
-              ),
-              Text(
-                  "Below is the study information associated with this study code.",
-                  style: CustomTypography()
-                      .bodyLarge(color: CustomColors.textWhite)),
-              const SizedBox(
-                height: 24,
-              ),
-              ConfrimTile(
-                title: "Study Name",
-                info: widget.experiment.name,
-                icon: const Icon(
-                  Icons.assured_workload_rounded,
+      body: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Study Information",
+                    style: CustomTypography()
+                        .headlineLarge(color: CustomColors.textWhite)),
+                const SizedBox(
+                  height: 16,
                 ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              ConfrimTile(
-                title: "Study Duration",
-                info: widget.experiment.duration,
-                icon: const Icon(
-                  Icons.calendar_month_outlined,
+                Text(
+                    "Below is the study information associated with this study code.",
+                    style: CustomTypography()
+                        .bodyLarge(color: CustomColors.textWhite)),
+                const SizedBox(
+                  height: 24,
                 ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              ConfrimTile(
-                title: "Researcher Name",
-                info: widget.experiment.researcher,
-                icon: const Icon(
-                  Icons.person_outline_rounded,
+                ConfrimTile(
+                  title: "Study Name",
+                  info: widget.experiment.name,
+                  icon: const Icon(
+                    Icons.assured_workload_rounded,
+                  ),
                 ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              TextButton(
-                  onPressed: () => showResearchDetails(
-                      context,
-                      widget.experiment.name,
-                      widget.experiment.duration,
-                      widget.experiment.organization,
-                      widget.experiment.researcher,
-                      widget.experiment.description,
-                      widget.experiment.login),
-                  child: Text(
-                    "View Study Details",
-                    style: TextStyle(
-                        color: CustomColors.textWhite,
-                        fontFamily: CustomTypography.fontName,
-                        fontSize: 18.sp,
-                        decoration: TextDecoration.underline,
-                        decorationColor: CustomColors.textWhite),
-                  ))
-            ],
+                const SizedBox(
+                  height: 12,
+                ),
+                ConfrimTile(
+                  title: "Study Duration",
+                  info: widget.experiment.duration,
+                  icon: const Icon(
+                    Icons.calendar_month_outlined,
+                  ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                ConfrimTile(
+                  title: "Researcher Name",
+                  info: widget.experiment.researcher,
+                  icon: const Icon(
+                    Icons.person_outline_rounded,
+                  ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                TextButton(
+                    onPressed: () => showResearchDetails(
+                        context,
+                        widget.experiment.name,
+                        widget.experiment.duration,
+                        widget.experiment.organization,
+                        widget.experiment.researcher,
+                        widget.experiment.description,
+                        widget.experiment.login),
+                    child: Text(
+                      "View Study Details",
+                      style: TextStyle(
+                          color: CustomColors.textWhite,
+                          fontFamily: CustomTypography.fontName,
+                          fontSize: 18.sp,
+                          decoration: TextDecoration.underline,
+                          decorationColor: CustomColors.textWhite),
+                    ))
+              ],
+            ),
           ),
         ),
       ),
       bottomNavigationBar: SizedBox(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 16),
+          ),
           child: Wrap(
             children: [
               CustomFlatButton(
@@ -172,12 +180,6 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
                 textColor: CustomColors.productNormalActive,
               ),
 
-              isIos
-                  ? const SizedBox(
-                      height: 24,
-                      width: double.infinity,
-                    )
-                  : const SizedBox.shrink()
               //CustomTextButton(onClick: ()=> null, text: "I HAVE A PROBLEM JOINING THE STUDY", textColor: CustomColors.textWhite,)
             ],
           ),
@@ -214,11 +216,8 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
   }
 
   track(int spent, String status) async {
-    await PendoService.track("Confirm Study", {
-      "time_on_page": spent,
-      "status": status,
-      "Font Scaler": "$scaler"
-    });
+    await PendoService.track("Confirm Study",
+        {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
   Future<void> pendoTrack(String login) async {

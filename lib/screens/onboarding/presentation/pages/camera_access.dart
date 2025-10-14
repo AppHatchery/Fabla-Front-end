@@ -14,6 +14,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:developer' as dev;
+import 'dart:io' show Platform;
 
 class CameraAccess extends StatefulWidget {
   const CameraAccess({super.key});
@@ -69,28 +70,37 @@ class _CameraAccessState extends State<CameraAccess>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
+      backgroundColor: CustomColors.backgroundSecondary,
+      appBar: AppBar(
         backgroundColor: CustomColors.backgroundSecondary,
-        appBar: AppBar(
-          backgroundColor: CustomColors.backgroundSecondary,
-          scrolledUnderElevation: 0.0,
-          leading: IconButton(
-              onPressed: () => {
-                    track(timer.stop(), "Back"),
-                    RouteService()
-                        .navigateBack(context: context, current: 'camera')
-                  },
-              icon: const Icon(
-                Icons.arrow_back_rounded,
-                color: CustomColors.fillWhite,
-                size: 32,
-              )),
-          automaticallyImplyLeading: false,
-        ),
-        body: LayoutBuilder(builder: (context, constraints) {
+        scrolledUnderElevation: 0.0,
+        leading: IconButton(
+            onPressed: () => {
+                  track(timer.stop(), "Back"),
+                  RouteService()
+                      .navigateBack(context: context, current: 'camera')
+                },
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: CustomColors.fillWhite,
+              size: 32,
+            )),
+        automaticallyImplyLeading: false,
+      ),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: LayoutBuilder(builder: (context, constraints) {
           return Padding(
-            padding:
-                const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34.0),
+            padding: EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                bottom: bottomPadding > 0
+                    ? bottomPadding + 34
+                    : (isIos ? 34 + 34 : 34)),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -226,7 +236,9 @@ class _CameraAccessState extends State<CameraAccess>
               ],
             ),
           );
-        }));
+        }),
+      ),
+    );
   }
 
   navigateToNextPage(BuildContext context) async {

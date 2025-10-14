@@ -126,6 +126,7 @@ Experiment createTestExperiment({
   String organization = 'test_org',
   String duration = '7 days',
   String description = 'Test description',
+  String ownerEmail ='test@test.com',
   String version = '1.0.0',
 }) {
   return Experiment(
@@ -136,6 +137,7 @@ Experiment createTestExperiment({
     organization: organization,
     duration: duration,
     description: description,
+    ownerEmail: ownerEmail,
     version: version,
   );
 }
@@ -345,6 +347,7 @@ ExperimentModel createTestExperimentModel({
   String organization = 'test_org',
   String duration = '7 days',
   String description = 'Test description',
+  String ownerEmail = 'test@test.com',
   String version = '1.0.0',
 }) {
   return ExperimentModel(
@@ -355,6 +358,7 @@ ExperimentModel createTestExperimentModel({
     organization: organization,
     duration: duration,
     description: description,
+    ownerEmail: ownerEmail,
     version: version,
   );
 }

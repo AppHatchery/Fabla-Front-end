@@ -75,6 +75,8 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       backgroundColor: CustomColors.backgroundSecondary,
       appBar: AppBar(
@@ -92,55 +94,64 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
               size: 32,
             )),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          left: 16.0, right: 16.0, bottom: 34.0),
-                      child: Column(
-                        children: [
-                          Text(
-                            granted != null && granted == true
-                                ? "Make sure you have sound on to catch these alerts on time"
-                                : "Turn on notifications for timely reminders!",
-                            style: CustomTypography()
-                                .headlineLarge(color: CustomColors.textWhite),
-                          ),
-                          const SizedBox(height: 40.0),
-                          illustrations(width)
-                        ],
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SizedBox(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                            left: 16.0, right: 16.0, bottom: 34.0),
+                        child: Column(
+                          children: [
+                            Text(
+                              granted != null && granted == true
+                                  ? "Make sure you have sound on to catch these alerts on time"
+                                  : "Turn on notifications for timely reminders!",
+                              style: CustomTypography()
+                                  .headlineLarge(color: CustomColors.textWhite),
+                            ),
+                            const SizedBox(height: 40.0),
+                            illustrations(width)
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(
-                    height: height >= 700 ? 300 : height * 0.65,
-                    width: width,
-                    child: rive.RiveAnimation.asset(
-                      'assets/animations/onboarding/notification_access.riv',
-                      fit: BoxFit.fitWidth,
-                      onInit: onInit,
+                    SizedBox(
+                      height: height >= 700 ? 300 : height * 0.65,
+                      width: width,
+                      child: rive.RiveAnimation.asset(
+                        'assets/animations/onboarding/notification_access.riv',
+                        fit: BoxFit.fitWidth,
+                        onInit: onInit,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 34),
-            child: CustomFlatButton(
-              onClick: () => navigateToNextPage(context),
-              text: "Continue",
-              color: CustomColors.fillWhite,
-              textColor: CustomColors.productNormalActive,
+            Padding(
+              padding: EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  bottom: bottomPadding > 0
+                      ? bottomPadding + 34
+                      : (isIos ? 34 + 34 : 34)),
+              child: CustomFlatButton(
+                onClick: () => navigateToNextPage(context),
+                text: "Continue",
+                color: CustomColors.fillWhite,
+                textColor: CustomColors.productNormalActive,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
