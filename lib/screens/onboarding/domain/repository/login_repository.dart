@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'dart:developer' as dev;
 import 'package:audio_diaries_flutter/core/database/dao/experiment_dao.dart';
 import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
@@ -99,12 +100,14 @@ class LoginRepository {
       'login_code': experiment.login,
     });
 
-    final getdbextras = await post(path: "/fabla/getuserextras", body: getextrasmap)
-        .then((value) {
+    final getdbextras =
+        await post(path: "/fabla/getuserextras", body: getextrasmap)
+            .then((value) {
       if (value == null) return null;
       try {
         final response = jsonDecode(value);
-        if (response is Map<String, dynamic> && response['status'] == 'success') {
+        if (response is Map<String, dynamic> &&
+            response['status'] == 'success') {
           return response['data'] as List<dynamic>?;
         }
       } catch (e) {
