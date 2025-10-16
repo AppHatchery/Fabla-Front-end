@@ -166,6 +166,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Widget questionAndHints() {
     final width = MediaQuery.of(context).size.width;
     final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
+    final isCompleted = recorderState == RecorderState.isStopped &&
+        elapsed.inSeconds > 0;
 
     return LayoutBuilder(builder: (context, constraints) {
       return Column(
@@ -210,8 +212,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text(
-                      "Recording...",
+                    Text(recorderState == RecorderState.isPaused ? "Resume Recording" : recorderState == RecorderState.isRecording ? "Recording" :  isCompleted ? "Save Recording" : "Start Recording",
                       style: CustomTypography().custom(
                         color: CustomColors.fillWhite,
                         fontWeight: FontWeight.w500,
@@ -362,7 +363,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   )
                 else
                   // When recording or paused
-                  ...[SizedBox(width: recorderState == RecorderState.isRecording ? 100 : 130),
+                  ...[SizedBox(width: recorderState == RecorderState.isRecording ? 90 : 130),
                   // Stop button
                   Container(
                     height: recorderState == RecorderState.isPaused ? 40 : 68,
@@ -403,7 +404,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 ],
               ] else ...[
                 // Checkmark button (left)
-                SizedBox(width: 100),
+                SizedBox(width: 90),
                 Container(
                   height: 68,
                   width: 68,
