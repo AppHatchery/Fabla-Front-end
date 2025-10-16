@@ -123,8 +123,11 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       alignment: Alignment.bottomCenter,
       child: Container(
         width: width,
-        height: textScaleFactor >= 1.8 ? MediaQuery.of(context).size.height * 1 :
-        textScaleFactor >= 1.2 ? MediaQuery.of(context).size.height * .85 :  MediaQuery.of(context).size.height * .75,
+        height: textScaleFactor >= 1.8
+            ? MediaQuery.of(context).size.height * 1
+            : textScaleFactor >= 1.2
+                ? MediaQuery.of(context).size.height * .85
+                : MediaQuery.of(context).size.height * .75,
         decoration: const BoxDecoration(
           color: Color(0xFFF3F3F3),
           borderRadius: BorderRadius.only(
@@ -166,6 +169,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Widget questionAndHints() {
     final width = MediaQuery.of(context).size.width;
     final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
+    final isCompleted =
+        recorderState == RecorderState.isStopped && elapsed.inSeconds > 0;
 
     return LayoutBuilder(builder: (context, constraints) {
       return Column(
@@ -180,7 +185,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 children: [
                   Text(
                     widget.question,
-                    style: CustomTypography().titleLarge(color: const Color(0xFF000000)),
+                    style: CustomTypography()
+                        .titleLarge(color: const Color(0xFF000000)),
                   ),
                   const SizedBox(height: 24),
                   Text(
@@ -192,8 +198,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     ),
                   ),
                   SizedBox(
-                    height: textScaleFactor >= 1.8 ? 0 : textScaleFactor >= 1.2 ? 75 : textScaleFactor >= 1.0 ? 80 : 100
-                  ),
+                      height: textScaleFactor >= 1.8
+                          ? 0
+                          : textScaleFactor >= 1.2
+                              ? 75
+                              : textScaleFactor >= 1.0
+                                  ? 80
+                                  : 100),
                   _riveAnimation(),
                 ],
               ),
@@ -202,7 +213,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
           // Fixed bottom recording controls
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
             color: CustomColors.productNormal,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -211,7 +223,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      "Recording...",
+                      recorderState == RecorderState.isPaused
+                          ? "Resume Recording"
+                          : recorderState == RecorderState.isRecording
+                              ? "Recording"
+                              : isCompleted
+                                  ? "Save Recording"
+                                  : "Start Recording",
                       style: CustomTypography().custom(
                         color: CustomColors.fillWhite,
                         fontWeight: FontWeight.w500,
@@ -237,7 +255,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Widget _riveAnimation() {
     final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
     return SizedBox(
-      height:150,
+      height: 150,
       child: IgnorePointer(
         child: ColorFiltered(
           colorFilter: ColorFilter.mode(
@@ -245,7 +263,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             BlendMode.modulate,
           ),
           child: Transform(
-            transform: Matrix4.translationValues(-140, textScaleFactor >= 1.6 ? 0 : 20, 0)
+            transform: Matrix4.translationValues(
+                -140, textScaleFactor >= 1.6 ? 0 : 20, 0)
               ..scale(-1.0, 1.0),
             alignment: Alignment.center,
             child: r.RiveAnimation.asset(
@@ -362,7 +381,11 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   )
                 else
                   // When recording or paused
-                  ...[SizedBox(width: recorderState == RecorderState.isRecording ? 100 : 130),
+                  ...[
+                  SizedBox(
+                      width: recorderState == RecorderState.isRecording
+                          ? 90
+                          : 130),
                   // Stop button
                   Container(
                     height: recorderState == RecorderState.isPaused ? 40 : 68,
@@ -403,7 +426,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 ],
               ] else ...[
                 // Checkmark button (left)
-                SizedBox(width: 100),
+                SizedBox(width: 90),
                 Container(
                   height: 68,
                   width: 68,
@@ -2644,119 +2667,129 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       alignment: Alignment.bottomCenter,
       child: Padding(
         padding: const EdgeInsets.only(bottom: 100),
-        child: widget.playbackControls || widget.showTimeUpOverlay ? Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onTap: widget.onClose,
-              child: Container(
-                width: 64,
-                height: 64,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  border: Border.all(
-                    width: 2,
-                    color: CustomColors.fillWhite,
-                  ),
-                  borderRadius: BorderRadius.circular(100.0),
-                ),
-                child: Icon(
-                  Icons.close,
-                  size: 24,
-                  color: CustomColors.fillWhite,
-                ),
-              ),
-            ),
-            SizedBox(width: 37),
-            if (widget.playbackControls || widget.showTimeUpOverlay) ...[
-              GestureDetector(
-                onTap: widget.showTimeUpOverlay
-                    ? widget.onStop
-                    : widget.onPauseResume,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
-                  decoration: BoxDecoration(
-                      color: CustomColors.fillWhite,
-                      border: Border.all(
-                        color: CustomColors.productLightBackground,
+        child: widget.playbackControls || widget.showTimeUpOverlay
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: widget.onClose,
+                    child: Container(
+                      width: 64,
+                      height: 64,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        border: Border.all(
+                          width: 2,
+                          color: CustomColors.fillWhite,
+                        ),
+                        borderRadius: BorderRadius.circular(100.0),
                       ),
-                      shape: BoxShape.circle),
-                  child: Center(
-                    child: widget.showTimeUpOverlay
-                        ? Transform.translate(
-                          offset: Offset(3, 0), // Shift checkmark slightly right
-                          child: Icon(
-                            CupertinoIcons.checkmark_alt,
-                            size: 40,
-                            color: CustomColors.productNormal,
-                          ),
-                        )
-                        : (widget.isRunning && !widget.isPaused)
-                        ? Icon(
-                      CupertinoIcons.pause_fill,
-                      size: 40,
-                      color: CustomColors.warningActive,
-                    )
-                        : Transform.translate(
-                      offset: Offset(4, 0), // Shift play icon slightly right
                       child: Icon(
-                        CupertinoIcons.play_fill,
-                        size: 40,
-                        color: CustomColors.productNormal,
+                        Icons.close,
+                        size: 24,
+                        color: CustomColors.fillWhite,
                       ),
                     ),
                   ),
-                ),
-              ),
-            ],
-            SizedBox(width: 37),
-            widget.playbackControls ? GestureDetector(
-              onTap: widget.onRestart,
-              child: Container(
-                width: 64,
-                height: 64,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  border: Border.all(
-                    width: 2,
-                    color: CustomColors.productLightBackground,
+                  SizedBox(width: 37),
+                  if (widget.playbackControls || widget.showTimeUpOverlay) ...[
+                    GestureDetector(
+                      onTap: widget.showTimeUpOverlay
+                          ? widget.onStop
+                          : widget.onPauseResume,
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 5),
+                        decoration: BoxDecoration(
+                            color: CustomColors.fillWhite,
+                            border: Border.all(
+                              color: CustomColors.productLightBackground,
+                            ),
+                            shape: BoxShape.circle),
+                        child: Center(
+                          child: widget.showTimeUpOverlay
+                              ? Transform.translate(
+                                  offset: Offset(
+                                      3, 0), // Shift checkmark slightly right
+                                  child: Icon(
+                                    CupertinoIcons.checkmark_alt,
+                                    size: 40,
+                                    color: CustomColors.productNormal,
+                                  ),
+                                )
+                              : (widget.isRunning && !widget.isPaused)
+                                  ? Icon(
+                                      CupertinoIcons.pause_fill,
+                                      size: 40,
+                                      color: CustomColors.warningActive,
+                                    )
+                                  : Transform.translate(
+                                      offset: Offset(4,
+                                          0), // Shift play icon slightly right
+                                      child: Icon(
+                                        CupertinoIcons.play_fill,
+                                        size: 40,
+                                        color: CustomColors.productNormal,
+                                      ),
+                                    ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  SizedBox(width: 37),
+                  widget.playbackControls
+                      ? GestureDetector(
+                          onTap: widget.onRestart,
+                          child: Container(
+                            width: 64,
+                            height: 64,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              border: Border.all(
+                                width: 2,
+                                color: CustomColors.productLightBackground,
+                              ),
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: Icon(
+                              Icons.refresh_rounded,
+                              size: 24,
+                              color: CustomColors.fillWhite,
+                            ),
+                          ),
+                        )
+                      : SizedBox(width: 64, height: 64),
+                ],
+              )
+            : GestureDetector(
+                onTap: widget.onClose,
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    border: Border.all(
+                      width: 2,
+                      color: CustomColors.fillWhite,
+                    ),
+                    borderRadius: BorderRadius.circular(100.0),
                   ),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Icon(
-                  Icons.refresh_rounded,
-                  size: 24,
-                  color: CustomColors.fillWhite,
+                  child: Icon(
+                    Icons.close,
+                    size: 24,
+                    color: CustomColors.fillWhite,
+                  ),
                 ),
               ),
-            ) : SizedBox(width: 64, height: 64),
-          ],
-        ) : GestureDetector(
-          onTap: widget.onClose,
-          child: Container(
-            width: 64,
-            height: 64,
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              border: Border.all(
-                width: 2,
-                color: CustomColors.fillWhite,
-              ),
-              borderRadius: BorderRadius.circular(100.0),
-            ),
-            child: Icon(
-              Icons.close,
-              size: 24,
-              color: CustomColors.fillWhite,
-            ),
-          ),
-        ),
       ),
     );
   }
