@@ -3,6 +3,8 @@ import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
@@ -73,8 +75,16 @@ class HomeCubit extends Cubit<HomeState> {
         isFinished: isFinished,
         goalData: goalData, // Add goal data to state
       ));
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint("Error loading home page: $e");
+      final today = DateTime.now();
+      final weekBoundaries = _getWeekBoundaries(today);
+      CrashlyticsService().recordError(e, stackTrace,
+          context: {
+            'today': today.toIso8601String(),
+            'weekBoundaries': weekBoundaries.toJson(),
+          },
+          reason: 'Error loading diaries in loadDiaries - HomeCubit');
       emit(const HomeError("Something went wrong"));
     }
   }
@@ -212,4 +222,11 @@ class WeekBoundaries {
   final DateTime end;
 
   WeekBoundaries({required this.start, required this.end});
+
+  Map<String, String> toJson() {
+    return {
+      'start': start.toIso8601String(),
+      'end': end.toIso8601String(),
+    };
+  }
 }

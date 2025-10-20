@@ -1,4 +1,6 @@
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -37,7 +39,9 @@ class DiaryCubit extends Cubit<DiaryState> {
       } else {
         emit(DiaryLoaded(const [], startDate));
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error loading diaries in loadDiaries - DiaryCubit');
       emit(const DiaryError("Something went wrong"));
     }
   }

@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:developer' as dev;
@@ -52,11 +54,14 @@ class SecureSave {
       } else {
         throw Exception('Failed to load data: ${response.statusCode}');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       //print('Error during HTTP request: $e');
       Map<String, dynamic> error = {
         'exists': false,
       };
+      CrashlyticsService().recordError(e, stackTrace,
+          context: {'StudyCode': st},
+          reason: 'Error during HTTP request in postData');
       throw jsonEncode(error);
     }
   }

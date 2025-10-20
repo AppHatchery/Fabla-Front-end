@@ -1,5 +1,7 @@
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/login_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -23,7 +25,9 @@ class StudyLoginCubit extends Cubit<StudyLoginState> {
         emit(const StudyLoginError(
             "Oops! We do not have this code in the study list. Please check your email and try again."));
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      CrashlyticsService()
+          .recordError(e, stackTrace, reason: 'Error in StudyLoginCubit.login');
       emit(const StudyLoginError("Something went wrong. Please try again."));
     }
   }

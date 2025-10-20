@@ -2,7 +2,7 @@ name: audio_diaries_flutter
 description: Audio Diaries Flutter is a mobile application that allows users to record audio diaries and store them locally and in a cloud database. The application is built using Flutter and Dart, and uses Firebase for cloud storage.
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -16,10 +16,10 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.9.9+77
+version: 1.9.11+84
 
 environment:
-  sdk: '>=3.0.2 <4.0.0'
+  sdk: ">=3.0.2 <4.0.0"
 
 dependencies:
   flutter:
@@ -61,7 +61,7 @@ dependencies:
   path_provider: ^2.1.5
 
   #Http
-  http: 
+  http:
 
   #path manipulation
   path: ^1.9.1
@@ -81,7 +81,6 @@ dependencies:
   objectbox: ^4.1.0
   objectbox_flutter_libs: any
 
-
   #Animations
   rive: ^0.13.20
   lottie: ^3.3.1
@@ -96,8 +95,6 @@ dependencies:
   # amplify_analytics_pinpoint: ^2.6.0
   firebase_messaging: ^15.2.4
   flutter_local_notifications: ^18.0.1
-
-
 
   #Notification
   awesome_notifications: ^0.10.1
@@ -119,7 +116,7 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   wakelock_plus:
   firebase_analytics: ^11.4.4
-  package_info_plus: ^8.3.0 
+  package_info_plus: ^8.3.0
   flutter_keyboard_visibility: ^6.0.0
   alarm: ^5.0.3
   gradient_borders: ^1.0.1
@@ -134,7 +131,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
-  
+
   #Database
   build_runner: ^2.4.15
   objectbox_generator: any
@@ -143,7 +140,6 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.1
 
   flutter_lints: ^5.0.0
-
 
 #Icon Configuration
 flutter_launcher_icons:
@@ -163,7 +159,6 @@ flutter_native_splash:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
@@ -214,6 +209,6 @@ flutter:
           weight: 600
           style: italic
 
-    - family:  CustomIcons
+    - family: CustomIcons
       fonts:
         - asset: assets/fonts/CustomIcons.ttf

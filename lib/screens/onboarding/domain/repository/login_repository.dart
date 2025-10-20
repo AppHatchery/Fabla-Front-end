@@ -1,11 +1,14 @@
 import 'dart:convert';
 
+import 'dart:developer' as dev;
 import 'package:audio_diaries_flutter/core/database/dao/experiment_dao.dart';
 import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/credentials.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
+    show CrashlyticsService;
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -97,12 +100,14 @@ class LoginRepository {
       'login_code': experiment.login,
     });
 
-    final getdbextras = await post(path: "/fabla/getuserextras", body: getextrasmap)
-        .then((value) {
+    final getdbextras =
+        await post(path: "/fabla/getuserextras", body: getextrasmap)
+            .then((value) {
       if (value == null) return null;
       try {
         final response = jsonDecode(value);
-        if (response is Map<String, dynamic> && response['status'] == 'success') {
+        if (response is Map<String, dynamic> &&
+            response['status'] == 'success') {
           return response['data'] as List<dynamic>?;
         }
       } catch (e) {
@@ -236,9 +241,12 @@ class LoginRepository {
       }
 
       return null;
-    } catch (e) {
+    } catch (e, stackTrace) {
       // Log the error if something goes wrong
-      debugPrint("$e.toString(), name: Study Verification");
+      CrashlyticsService().recordError(e, stackTrace,
+          context: {'code': code},
+          reason: 'Error during study verification in studyVerification');
+      dev.log(e.toString(), name: "Study Verification");
       return null;
     }
   }

@@ -386,27 +386,49 @@ class _AudioTextCardState extends State<AudioTextCard> {
     return !multipleAnswers && (length > 0 || textPresent)
         ? const SizedBox.shrink()
         : Column(
-            spacing: 12,
+            spacing: 24,
             children: [
               CustomRecordButton(
                 onClick: () => widget.respond("audio", null),
-                text: length > 0 ? "Record Another Answer" : "Record My Answer",
+                text:
+                    length > 0 ? "Record Another Answer" : "Record My Response",
               ),
               widget.prompt.responseType == ResponseType.textAudio
                   ? Column(
-                      spacing: 4,
+                      spacing: 24,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          "If you would prefer to type, click below.",
-                          style: CustomTypography().bodyLight(
-                              color: CustomColors.textTertiaryContent),
-                        ),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              SizedBox(
+                                  width: 65,
+                                  child: Divider(
+                                    color: Color(0xFFB0B0B0),
+                                    thickness: 1,
+                                  )),
+                              SizedBox(width: 24),
+                              Text(
+                                "OR",
+                                style: CustomTypography().bodyLarge(
+                                    weight: FontWeight.w500,
+                                    color: Color(0xFFB0B0B0)),
+                              ),
+                              SizedBox(
+                                width: 24,
+                              ),
+                              SizedBox(
+                                  width: 65,
+                                  child: Divider(
+                                    color: Color(0xFFB0B0B0),
+                                    thickness: 1,
+                                  )),
+                            ]),
                         CustomTextAnswerButton(
                           onClick: () => widget.respond("text", null),
                           text: textPresent
                               ? "Type Another Answer"
-                              : "Type My Answer",
+                              : "Text My Response",
                         ),
                       ],
                     )
@@ -1033,8 +1055,8 @@ class _TimerWidgetState extends State<TimerWidget>
         id: currentAlarmId!,
         dateTime: alarmTime,
         assetAudioPath: 'assets/audio/bowl.wav',
-        loopAudio: true,
-        vibrate: true,
+        loopAudio: false,
+        vibrate: false,
         volumeSettings: VolumeSettings.staircaseFade(
           fadeSteps: List.generate(
               10, (i) => VolumeFadeStep(Duration(seconds: 3), 0.1 + (i * 0.1))),
@@ -1325,7 +1347,6 @@ class MediaPreview extends StatefulWidget {
   @override
   State<MediaPreview> createState() => _MediaPreviewState();
 }
-
 
 class _MediaPreviewState extends State<MediaPreview> {
   final children = <Widget>[];

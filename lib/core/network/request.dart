@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/secrets/keys.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -38,7 +39,9 @@ Future<String?> get({
     final url = Uri.https(base(), path);
     final response = await httpClient.get(url, headers: headers);
     return response.body;
-  } catch (e) {
+  } catch (e, stackTrace) {
+    CrashlyticsService().recordApiError(e, path,
+        stackTrace: stackTrace, method: 'GET', requestData: null);
     debugPrint(e.toString());
     return null;
   }
@@ -66,10 +69,14 @@ Future<String?> post({
       return response.body;
     } else {
       debugPrint(response.body);
+      CrashlyticsService().recordApiError(response.body, path,
+          statusCode: response.statusCode, method: 'POST', requestData: body);
       throw Exception("Failed to post");
     }
-  } catch (e) {
+  } catch (e, stackTrace) {
     debugPrint(e.toString());
+    CrashlyticsService().recordApiError(e, path,
+        stackTrace: stackTrace, method: 'POST', requestData: body);
     return null;
   }
 }
