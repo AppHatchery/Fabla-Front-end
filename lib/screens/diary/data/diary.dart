@@ -94,8 +94,8 @@ class DiaryModel implements Comparable<DiaryModel> {
         currentEntry: 0,
         end: DateTime.parse(json['end_time']).toLocal(),
         notifications: (json['notifications'] as List?)
-                ?.map((e) => Notification.fromJson(
-                    e, DateTime.parse(json['start_time'])))
+                ?.expand((group) => (group['slots'] as List? ?? [])
+                    .map((slot) => Notification.fromJson(slot)))
                 .toList() ??
             [],
         activeDays: (json['active_days'] as List<dynamic>?)?.map((e) {
