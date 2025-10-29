@@ -20,7 +20,6 @@ import 'package:audio_diaries_flutter/theme/resources/strings.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -650,7 +649,6 @@ class WebViewResponseCard extends StatefulWidget {
 }
 
 class _WebViewResponseCardState extends State<WebViewResponseCard> {
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -658,16 +656,16 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-              widget.prompt.answer?.response?.isEmpty ?? true
-                  ? CustomFlatButton(
-                onClick: () => showModal(),
-                text: "Tap here to respond",
-              )
-                  : Text(
-                "✅ Thank you, please click 'Continue' to proceed.",
-                style: CustomTypography()
-                    .bodyLarge(color: CustomColors.textTertiaryContent),
-              ),
+            widget.prompt.answer?.response?.isEmpty ?? true
+                ? CustomFlatButton(
+                    onClick: () => showModal(),
+                    text: "Tap here to respond",
+                  )
+                : Text(
+                    "✅ Thank you, please click 'Continue' to proceed.",
+                    style: CustomTypography()
+                        .bodyLarge(color: CustomColors.textTertiaryContent),
+                  ),
           ],
         ));
   }
