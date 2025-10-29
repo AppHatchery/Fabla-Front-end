@@ -27,14 +27,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../../services/pendo_service.dart';
-import '../../../../services/preference_service.dart';
-import '../../../../theme/components/cards.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
 import 'my_responses.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 ///These widgets are being used in the QuestionPage class
 ///They are used to display tbe answer options for each question
@@ -654,68 +650,6 @@ class WebViewResponseCard extends StatefulWidget {
 }
 
 class _WebViewResponseCardState extends State<WebViewResponseCard> {
-  bool connected = true;
-  StreamSubscription<InternetStatus>? listener;
-  final _pref = PreferenceService();
-  bool hadNetworkError = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initConnectivity();
-  }
-
-  void _initConnectivity() async {
-    if (kDebugMode) return; // always connected in debug mode
-    hadNetworkError =
-        await _pref.getBoolPreference(key: 'network_error') ?? false;
-
-    if (listener != null) {
-      listener?.cancel();
-      listener = null;
-    }
-
-    final currentStatus = await InternetConnection().internetStatus;
-
-    if (mounted) {
-      setState(() => connected = currentStatus == InternetStatus.connected);
-    }
-
-    listener = InternetConnection().onStatusChange.listen((status) {
-      switch (status) {
-        case InternetStatus.connected:
-          if (mounted) {
-            setState(() => connected = true);
-          }
-          break;
-        case InternetStatus.disconnected:
-          if (mounted) {
-            setState(() => connected = false);
-          }
-          break;
-      }
-      _pendoTrack();
-    });
-  }
-
-  @override
-  void didUpdateWidget(covariant WebViewResponseCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _initConnectivity();
-  }
-
-  @override
-  void dispose() {
-    listener?.cancel();
-    super.dispose();
-  }
-
-  _pendoTrack() async {
-    await PendoService.track("Internet Connectivity", {
-      "status": connected ? "connected" : "disconnected",
-      "time": DateTime.now().toIso8601String(),
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -724,7 +658,6 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if(connected) ...[
               widget.prompt.answer?.response?.isEmpty ?? true
                   ? CustomFlatButton(
                 onClick: () => showModal(),
@@ -735,12 +668,6 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                 style: CustomTypography()
                     .bodyLarge(color: CustomColors.textTertiaryContent),
               ),
-            ] else ...[
-              CustomFlatButton(
-                onClick: () => showNoInternetModal(),
-                text: "Tap here to respond",
-              )
-            ]
           ],
         ));
   }
@@ -766,26 +693,6 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                 );
               },
             ));
-  }
-
-  void showNoInternetModal() {
-    showModalBottomSheet(
-        backgroundColor: Colors.transparent,
-        context: context,
-        isScrollControlled: true,
-        isDismissible: false,
-        enableDrag: false,
-        elevation: 0,
-        useSafeArea: true,
-        routeSettings: RouteSettings(name: "/WebViewNoInternetModal"),
-        builder: (context) => DraggableScrollableSheet(
-          initialChildSize: 1,
-          minChildSize: 1,
-          snap: true,
-          builder: (context, scrollController) {
-            return BottomWebViewNoInternetModal();
-          },
-        ));
   }
 }
 
