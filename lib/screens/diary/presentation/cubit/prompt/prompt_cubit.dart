@@ -43,6 +43,18 @@ class PromptCubit extends Cubit<PromptState> {
     }
   }
 
+  /// Save a response to the DB indicating the user has read the instructions
+  void handleInstructionsPrompt(PromptModel prompt, DiaryModel diary) {
+    if (prompt.responseType == ResponseType.instruction) {
+      saveResponse(
+          diary: diary,
+          prompt: prompt,
+          response: 'read',
+          type: 'other',
+          index: 0);
+    }
+  }
+
   /// Saves a user response, handling success, errors, and subsequent prompt loading.
   ///
   /// This function attempts to save a user response based on the provided [prompt]
