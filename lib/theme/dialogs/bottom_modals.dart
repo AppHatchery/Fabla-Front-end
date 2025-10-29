@@ -1273,6 +1273,96 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   }
 }
 
+class BottomWebViewNoInternetModal extends StatefulWidget {
+  const BottomWebViewNoInternetModal({super.key});
+
+  @override
+  State<BottomWebViewNoInternetModal> createState() =>
+      _BottomWebViewNoInternetModalState();
+}
+
+class _BottomWebViewNoInternetModalState
+    extends State<BottomWebViewNoInternetModal> {
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+      width: width,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF3F3F3),
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(14), topRight: Radius.circular(14)),
+      ),
+      child: Column(
+        children: [
+          SizedBox(height: 26),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(
+                    CupertinoIcons.clear_circled_solid,
+                    size: 26,
+                    color: CustomColors.textSecondaryContent,
+                  ),
+                )
+              ],
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset("assets/images/icons/warning.png",
+                      width: 80,
+                      height: 80,
+                    ),
+                    SizedBox(height: 24),
+                    Text(
+                      "Connection Issue",
+                      textAlign: TextAlign.center,
+                      style: CustomTypography()
+                          .headlineMedium(color: CustomColors.warningActive),
+                    ),
+                    SizedBox(height: 24),
+                    Text(
+                      "Your internet connection is unstable. The survey can’t be accessed right now. Please reconnect to access the survey.",
+                      textAlign: TextAlign.center,
+                      style: CustomTypography().bodyLarge(),
+                    ),
+                    SizedBox(height: 24),
+                    CustomOutlineButton(
+                      onClick: () {},
+                      color: CustomColors.warningActive,
+                      backgroundColor: Colors.transparent,
+                      children: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            "Try Again",
+                            style: TextStyle(color: CustomColors.warningActive),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class BottomCameraModal extends StatefulWidget {
   final void Function(String p, [String? type]) respond;
   final PromptModel prompt;
