@@ -62,7 +62,6 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   @override
   void dispose() {
     _checkTimer?.cancel();
-    controller.reload();
     controller.clearCache();
     controller.clearLocalStorage();
     super.dispose();
@@ -82,6 +81,7 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30.0),
                   child: Column(
+                    spacing: 24,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -90,20 +90,17 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                         width: 80,
                         height: 80,
                       ),
-                      SizedBox(height: 24),
                       Text(
                         "Connection Issue",
                         textAlign: TextAlign.center,
                         style: CustomTypography()
-                            .headlineMedium(color: CustomColors.warningActive),
+                            .headlineMedium(color: CustomColors.warningNormal),
                       ),
-                      SizedBox(height: 24),
                       Text(
                         "Your internet connection is unstable. The survey can’t be accessed right now. Please reconnect to access the survey.",
                         textAlign: TextAlign.center,
                         style: CustomTypography().bodyLarge(),
                       ),
-                      SizedBox(height: 24),
                       CustomOutlineButton(
                         onClick: () {
                           setState(() {
@@ -112,7 +109,7 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                           });
                           controller.reload();
                         },
-                        color: CustomColors.warningActive,
+                        color: CustomColors.warningNormal,
                         backgroundColor: Colors.transparent,
                         children: Wrap(
                           crossAxisAlignment: WrapCrossAlignment.center,
@@ -120,7 +117,7 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                             const Text(
                               "Try Again",
                               style:
-                                  TextStyle(color: CustomColors.warningActive),
+                                  TextStyle(color: CustomColors.warningNormal),
                             ),
                           ],
                         ),
