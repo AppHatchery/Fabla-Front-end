@@ -4,6 +4,9 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../custom_typography.dart';
+import 'buttons.dart';
+
 class CustomWebViewWidget extends StatefulWidget {
   final String url;
   final Function(bool) onComplete;
@@ -21,25 +24,37 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   bool surveyCompleted = false;
 
   bool loading = false;
+  bool networkError = false;
 
   @override
   void initState() {
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(NavigationDelegate(
-        onPageStarted: (url) {
-          setState(() {
-            loading = true;
-            surveyCompleted = false;
-          });
-        },
-        onPageFinished: (url) {
-          setState(() {
-            loading = false;
-          });
-          _startPeriodicCheck();
-        },
-      ))
+          onPageStarted: (url) {
+        setState(() {
+          loading = true;
+          surveyCompleted = false;
+        });
+      }, onPageFinished: (url) {
+        setState(() {
+          loading = false;
+        });
+        _startPeriodicCheck();
+      },
+          //general errors
+          onWebResourceError: (error) {
+        setState(() {
+          networkError = true;
+        });
+      },
+          //server related errors
+          onHttpError: (error) {
+        error.response?.statusCode == 502;
+        setState(() {
+          networkError = true;
+        });
+      }))
       ..loadRequest(Uri.parse(widget.url));
     super.initState();
   }
@@ -47,6 +62,7 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   @override
   void dispose() {
     _checkTimer?.cancel();
+    controller.reload();
     controller.clearCache();
     controller.clearLocalStorage();
     super.dispose();
@@ -61,7 +77,59 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
             strokeCap: StrokeCap.round,
             strokeWidth: 8,
           ))
-        : WebViewWidget(controller: controller);
+        : networkError
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        "assets/images/icons/warning.png",
+                        width: 80,
+                        height: 80,
+                      ),
+                      SizedBox(height: 24),
+                      Text(
+                        "Connection Issue",
+                        textAlign: TextAlign.center,
+                        style: CustomTypography()
+                            .headlineMedium(color: CustomColors.warningActive),
+                      ),
+                      SizedBox(height: 24),
+                      Text(
+                        "Your internet connection is unstable. The survey can’t be accessed right now. Please reconnect to access the survey.",
+                        textAlign: TextAlign.center,
+                        style: CustomTypography().bodyLarge(),
+                      ),
+                      SizedBox(height: 24),
+                      CustomOutlineButton(
+                        onClick: () {
+                          setState(() {
+                            networkError = false;
+                            loading = true;
+                          });
+                          controller.reload();
+                        },
+                        color: CustomColors.warningActive,
+                        backgroundColor: Colors.transparent,
+                        children: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            const Text(
+                              "Try Again",
+                              style:
+                                  TextStyle(color: CustomColors.warningActive),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              )
+            : WebViewWidget(controller: controller);
   }
 
   void _startPeriodicCheck() {
@@ -74,6 +142,7 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   }
 
   void detectSurveyFinish() async {
+    if (networkError) return;
     final String javaScript = '''
     (function() {
 

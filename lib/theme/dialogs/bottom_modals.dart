@@ -1198,70 +1198,11 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   late DateTime start;
   late DateTime end;
   bool completed = false;
-  bool checkingConnection = false;
-
-  bool connected = true;
-  StreamSubscription<InternetStatus>? listener;
-  final _pref = PreferenceService();
-  bool hadNetworkError = false;
 
   @override
   void initState() {
     start = DateTime.now();
-    _initConnectivity();
     super.initState();
-  }
-
-  void _initConnectivity() async {
-    if (!kDebugMode) return; // always connected in debug mode
-    hadNetworkError =
-        await _pref.getBoolPreference(key: 'network_error') ?? false;
-
-    if (listener != null) {
-      listener?.cancel();
-      listener = null;
-    }
-
-    final currentStatus = await InternetConnection().internetStatus;
-
-    if (mounted) {
-      setState(() => connected = currentStatus == InternetStatus.connected);
-    }
-
-    listener = InternetConnection().onStatusChange.listen((status) {
-      switch (status) {
-        case InternetStatus.connected:
-          if (mounted) {
-            setState(() => connected = true);
-          }
-          break;
-        case InternetStatus.disconnected:
-          if (mounted) {
-            setState(() => connected = false);
-          }
-          break;
-      }
-      _pendoTrack();
-    });
-  }
-
-  @override
-  void didUpdateWidget(covariant BottomWebViewModal oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _initConnectivity();
-  }
-
-  @override
-  void dispose() {
-    listener?.cancel();
-    super.dispose();
-  }
-
-  _pendoTrack() async {
-    await PendoService.track("Internet Connectivity", {
-      "status": connected ? "connected" : "disconnected",
-      "time": DateTime.now().toIso8601String(),
-    });
   }
 
   @override
@@ -1295,98 +1236,25 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
               ],
             ),
           ),
-          if (connected) ...[
-            Expanded(
-                child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Container(
-                width: width,
-                color: CustomColors.greyTrack,
-                child: CustomWebViewWidget(
-                    url: widget.url,
-                    onComplete: (value) => setState(() => completed = value)),
-              ),
-            )),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-              child: CustomFlatButton(
-                isDisabled: !completed,
-                onClick: () => save(),
-                text: "Continue",
-              ),
-            )
-          ] else ...[
-            Expanded(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        "assets/images/icons/warning.png",
-                        width: 80,
-                        height: 80,
-                      ),
-                      SizedBox(height: 24),
-                      Text(
-                        "Connection Issue",
-                        textAlign: TextAlign.center,
-                        style: CustomTypography()
-                            .headlineMedium(color: CustomColors.warningActive),
-                      ),
-                      SizedBox(height: 24),
-                      Text(
-                        "Your internet connection is unstable. The survey can’t be accessed right now. Please reconnect to access the survey.",
-                        textAlign: TextAlign.center,
-                        style: CustomTypography().bodyLarge(),
-                      ),
-                      SizedBox(height: 24),
-                      CustomOutlineButton(
-                        onClick: () async {
-                          setState(() => checkingConnection = true);
-
-                          await Future.delayed(const Duration(seconds: 5));
-
-                          final currentStatus =
-                              await InternetConnection().internetStatus;
-
-                          setState(() => checkingConnection = false);
-
-                          if (currentStatus == InternetStatus.connected) {
-                            setState(() => connected = true);
-                          }
-                        },
-                        color: CustomColors.warningActive,
-                        backgroundColor: Colors.transparent,
-                        children: Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            if (checkingConnection)
-                              const SizedBox(
-                                height: 18,
-                                width: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: CustomColors.warningActive,
-                                ),
-                              )
-                            else
-                              const Text(
-                                "Try Again",
-                                style: TextStyle(
-                                    color: CustomColors.warningActive),
-                              ),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
+          Expanded(
+              child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Container(
+              width: width,
+              color: CustomColors.greyTrack,
+              child: CustomWebViewWidget(
+                  url: widget.url,
+                  onComplete: (value) => setState(() => completed = value)),
             ),
-          ],
+          )),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: CustomFlatButton(
+              isDisabled: !completed,
+              onClick: () => save(),
+              text: "Continue",
+            ),
+          )
         ],
       ),
     );
