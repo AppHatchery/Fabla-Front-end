@@ -1,5 +1,3 @@
-import 'package:audio_diaries_flutter/core/utils/formatter.dart';
-
 class Notification {
   final String title;
   final String body;
@@ -11,12 +9,11 @@ class Notification {
     required this.date,
   });
 
-  factory Notification.fromJson(Map<String, dynamic> json, DateTime day) {
-    final time = timeOfDayFromString(json['time']);
+  factory Notification.fromJson(Map<String, dynamic> json) {
     return Notification(
       title: json['title'],
       body: json['content'],
-      date: DateTime(day.year, day.month, day.day, time.hour, time.minute),
+      date: DateTime.parse(json['time']).toLocal(),
     );
   }
 
