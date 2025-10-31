@@ -498,15 +498,13 @@ class _StudyCalendarState extends State<StudyCalendar> {
       );
 
       // If study not found OR doesn't have BOTH goals >= 1, return false immediately
-      if (study == null ||
-          study.goals.weekly < 1 ||
-          study.goals.daily < 1) {
-        return false;
+      if (study.goals.weekly >= 1 || study.goals.daily >= 1) {
+        return true;
       }
     }
 
     // All diaries have goals
-    return true;
+    return false;
   }
 
   //Retrieving entries for a specific date (Called From StudyCalendar)
