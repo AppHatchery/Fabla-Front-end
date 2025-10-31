@@ -497,13 +497,13 @@ class _StudyCalendarState extends State<StudyCalendar> {
             (s) => s.studyId == diary.studyID,
       );
 
-      // If study not found OR doesn't have BOTH goals >= 1, return false immediately
+      // If diary(s) is not optional display the dot
       if (study.goals.weekly >= 1 || study.goals.daily >= 1) {
         return true;
       }
     }
 
-    // All diaries have goals
+    // Optional Diary(s) - no dot displayed
     return false;
   }
 
