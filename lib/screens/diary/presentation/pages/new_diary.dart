@@ -267,7 +267,11 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                       Expanded(
                         flex: 3,
                         child: CustomFlatButton(
-                          isDisabled: widget.diary.prompts[currentPage].responseType == ResponseType.timer ? false : !ableToContinue,
+                          isDisabled:
+                              widget.diary.prompts[currentPage].responseType ==
+                                      ResponseType.timer
+                                  ? false
+                                  : !ableToContinue,
                           onClick: () => nextPage(),
                           text: "Next",
                         ),
@@ -710,6 +714,7 @@ class _QuestionPageState extends State<QuestionPage>
 
   void loadPrompt() {
     promptCubit.loadPrompt(widget.diary, promptModel);
+    promptCubit.handleInstructionsPrompt(promptModel, widget.diary);
   }
 
   ///Checks whether the provided prompt has a response
@@ -726,7 +731,6 @@ class _QuestionPageState extends State<QuestionPage>
 
     switch (prompt1.responseType) {
       case ResponseType.instruction:
-        save(prompt1, 'read', 'other', 0);
         isValidResponse = true;
         break;
       case ResponseType.audio:
