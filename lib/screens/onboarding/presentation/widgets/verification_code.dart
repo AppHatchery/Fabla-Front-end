@@ -203,7 +203,7 @@ Future<void> launchEmail() async {
     //create the email uri
     final uri = Uri(
       scheme: "mailto",
-      path: ownerEmail.isNotEmpty ? ownerEmail : "support@apphatchery.org",
+      path: ownerEmail.isNotEmpty ? ownerEmail : "fabla@emory.edu",
       query: encodeQueryParameters(<String, String>{
         'subject': 'Assistance Needed: Participant ID Already in Use',
         'body':

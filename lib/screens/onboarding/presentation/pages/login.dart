@@ -269,7 +269,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   Future<void> launchEmail() async {
     final uri = Uri(
         scheme: "mailto",
-        path: "support@apphatchery.org",
+        path: "fabla@emory.edu",
         query: encodeQueryParameters(<String, String>{
           'subject': 'Need help with the participant ID',
           'body': 'I have a problem with my participant ID:'
