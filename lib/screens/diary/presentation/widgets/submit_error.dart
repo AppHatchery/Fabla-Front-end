@@ -56,7 +56,7 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                           GestureDetector(
                               onTap: () => launchEmail(),
                               child: Text(
-                                "support@apphatchery.org",
+                                "fabla@emory.edu",
                                 style: TextStyle(
                                     fontSize: CustomTypography()
                                         .bodyMedium()
@@ -97,7 +97,7 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
   Future<void> launchEmail() async {
     final uri = Uri(
         scheme: "mailto",
-        path: "support@apphatchery.org",
+        path: "fabla@emory.edu",
         query: encodeQueryParameters(<String, String>{
           'subject': 'Had an error submitting my diary',
           'body': 'I had a problem submitting my diary on day: '
