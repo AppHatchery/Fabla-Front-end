@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
@@ -32,29 +33,38 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(NavigationDelegate(
           onPageStarted: (url) {
-        setState(() {
-          loading = true;
-          surveyCompleted = false;
-        });
-      }, onPageFinished: (url) {
-        setState(() {
-          loading = false;
-        });
-        _startPeriodicCheck();
-      },
-          //general errors
+            setState(() {
+              loading = true;
+              surveyCompleted = false;
+            });
+          },
+          onPageFinished: (url) {
+            setState(() {
+              loading = false;
+            });
+            _startPeriodicCheck();
+          },
+          // Only show error for connection issues
           onWebResourceError: (error) {
-        setState(() {
-          networkError = true;
-        });
-      },
-          //server related errors
+            // Only care about host lookup, connection and timeout errors
+            if (error.errorType == WebResourceErrorType.hostLookup ||
+                error.errorType == WebResourceErrorType.connect ||
+                error.errorType == WebResourceErrorType.timeout) {
+              setState(() {
+                networkError = true;
+              });
+            }
+            dev.log("WebView error: ${error.description}");
+          },
+          // Only show error for severe server issues
           onHttpError: (error) {
-        error.response?.statusCode == 502;
-        setState(() {
-          networkError = true;
-        });
-      }))
+            if ((error.response?.statusCode ?? 0) >= 500) {
+              setState(() {
+                networkError = true;
+              });
+            }
+          }
+      ))
       ..loadRequest(Uri.parse(widget.url));
     super.initState();
   }
