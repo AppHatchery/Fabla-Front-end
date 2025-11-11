@@ -344,7 +344,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    "Copyright © 2024 Emory University",
+                    "Copyright © 2025 Emory University",
                     style: CustomTypography()
                         .bodyMedium(color: CustomColors.textSecondaryContent),
                     textAlign: TextAlign.center,
