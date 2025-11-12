@@ -1357,7 +1357,7 @@ class FailedSubmissionCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(4)),
                         ),
                         child: Text(
-                          'Your entry is saved on your phone. you can submit it once you get back online.',
+                          'Your entry is saved on your phone. You can submit it once you get back online.',
                           style: CustomTypography().bodyLarge(
                               color: CustomColors.productNormalActive),
                         ),

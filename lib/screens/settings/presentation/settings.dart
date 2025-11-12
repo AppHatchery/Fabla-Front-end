@@ -8,6 +8,7 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:intl/intl.dart';
 
 import '../../../services/preference_service.dart';
 
@@ -23,6 +24,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
   bool notificationCheck = false;
   List<TimeOfDay> times = [];
   bool isButtonVisible = true;
+  final DateTime _date = DateTime.now();
 
   String version = "1.0";
 
@@ -78,6 +80,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    String formattedDate = DateFormat('yyyy').format(_date);
     return Scaffold(
         backgroundColor: CustomColors.fillNormal,
         appBar: AppBar(
@@ -344,7 +347,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    "Copyright © 2024 Emory University",
+                    "Copyright © $formattedDate Emory University",
                     style: CustomTypography()
                         .bodyMedium(color: CustomColors.textSecondaryContent),
                     textAlign: TextAlign.center,
