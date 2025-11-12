@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../../../theme/custom_colors.dart';
+import '../../../home/data/study.dart';
 import '../../data/diary.dart';
 
 class CustomCalender extends StatefulWidget {
@@ -28,6 +29,7 @@ class _CustomCalenderState extends State<CustomCalender> {
   late List<DiaryModel> diaryList;
   final DiaryRepository repository = DiaryRepository();
   Map<DateTime, List<String>>? events = {};
+  late List<StudyModel> studies;
 
   @override
   void initState() {
@@ -39,6 +41,7 @@ class _CustomCalenderState extends State<CustomCalender> {
     diaries = fetchDiaries(today);
     diaryList = _getAllDiaries();
     events = getCalendarEvents(diaryList);
+    studies = _getAllStudies();
     super.initState();
   }
 
@@ -204,10 +207,11 @@ class _CustomCalenderState extends State<CustomCalender> {
                 );
               },
               singleMarkerBuilder: (context, date, event) {
+                final goal = studyGoalCheck(date);
                 isBeforeToday = date.isBefore(today);
                 final color = isBeforeToday
                     ? CustomColors.textTertiaryContent
-                    : CustomColors.productNormalActive;
+                    : goal ? CustomColors.productNormalActive : Colors.transparent;
                 return Container(
                   width: 7.0,
                   height: 7.0,
@@ -254,11 +258,49 @@ class _CustomCalenderState extends State<CustomCalender> {
     return list;
   }
 
+  List<StudyModel> _getAllStudies(){
+    final list = repository.getAllStudies();
+    return list;
+  }
+
   //Retrieving entries for a specific date (Called From StudyCalendar)
   List<DiaryModel> fetchDiaries(DateTime date) {
     setState(() {
       diaryList = repository.getDailyDiaries(date);
     });
     return diaryList;
+  }
+
+  //function to check if the diaries belong to a study with a goal or not
+  bool studyGoalCheck(DateTime date) {
+    // Get diaries for the specific date
+    final diariesForDate = diaryList.where((diary) {
+      return DateTime(
+        diary.start.year,
+        diary.start.month,
+        diary.start.day,
+      ).isAtSameMomentAs(DateTime(date.year, date.month, date.day));
+    }).toList();
+
+    // If no diaries on this date, return false
+    if (diariesForDate.isEmpty) {
+      return false;
+    }
+
+    // Check if ALL diaries on this date belong to studies with goals
+    for (final diary in diariesForDate) {
+      // Find the study that matches this diary
+      final study = studies.firstWhere(
+            (s) => s.studyId == diary.studyID,
+      );
+
+      // If diary(s) is not optional display the dot
+      if (study.goals.weekly >= 1 || study.goals.daily >= 1) {
+        return true;
+      }
+    }
+
+    // Optional Diary(s) - no dot displayed
+    return false;
   }
 }
