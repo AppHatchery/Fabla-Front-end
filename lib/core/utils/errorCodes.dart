@@ -42,18 +42,10 @@ class HttpErrorGroups {
   }
 
   static String getErrorButtonText(int statusCode) {
-    if (inputOrFormErrors.contains(statusCode)) {
-      return "Try Again";
-    } else if (loginOrPermissionErrors.contains(statusCode)) {
+    if (loginOrPermissionErrors.contains(statusCode)) {
       return "Contact Researcher";
     } else if (pageNotFoundErrors.contains(statusCode)) {
       return "";
-    } else if (slowOrLostConnectionErrors.contains(statusCode)) {
-      return "Try Again";
-    } else if (duplicateOrConflictErrors.contains(statusCode)) {
-      return "Try Again";
-    } else if (serverOrSystemFailureErrors.contains(statusCode)) {
-      return "Try Again";
     }
     return "Try Again";
   }
