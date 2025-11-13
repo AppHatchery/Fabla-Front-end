@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
@@ -19,10 +20,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/utils/formatter.dart';
 import '../../core/utils/statuses.dart';
 import '../../screens/diary/data/diary.dart';
+import '../../screens/onboarding/domain/repository/setup_repository.dart';
 import '../custom_icons.dart';
 import '../resources/strings.dart';
 
@@ -1567,5 +1570,120 @@ class NoInternetCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class WebViewErrorCard extends StatelessWidget {
+  final String title;
+  final String message;
+  final double spacing;
+  final String buttonText;
+  final VoidCallback onRetry;
+  final bool showActionButton;
+  final bool showContactResearch;
+
+  const WebViewErrorCard({
+    super.key,
+    required this.title,
+    required this.message,
+    this.spacing = 24,
+    required this.buttonText,
+    required this.onRetry,
+    required this.showActionButton,
+    required this.showContactResearch,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      spacing: spacing,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset(
+          "assets/images/icons/warning.png",
+          width: 80,
+          height: 80,
+        ),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: CustomTypography().headlineMedium(
+            color: CustomColors.warningNormal,
+          ),
+        ),
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          style: CustomTypography().bodyLarge(),
+        ),
+        if (showActionButton)
+          CustomOutlineButton(
+            onClick: onRetry,
+            color: CustomColors.warningNormal,
+            backgroundColor: Colors.transparent,
+            children: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  buttonText,
+                  style: TextStyle(color: CustomColors.warningNormal),
+                ),
+              ],
+            ),
+          ),
+        SizedBox(
+          height: 142,
+        ),
+        if (showContactResearch)
+          GestureDetector(
+            onTap: launchEmail,
+            child: Text(
+              "Contact Researcher",
+              textAlign: TextAlign.center,
+              style:
+                  CustomTypography().button(color: CustomColors.warningNormal),
+            ),
+          )
+      ],
+    );
+  }
+
+  Future<void> launchEmail() async {
+    try {
+      //get experiment owner email
+      final repository = SetupRepository();
+      final experiment = repository.getExperiment();
+      final ownerEmail = experiment.ownerEmail;
+
+      //create the email uri
+      final uri = Uri(
+        scheme: "mailto",
+        path: ownerEmail.isNotEmpty ? ownerEmail : "fabla@emory.edu",
+        query: encodeQueryParameters(<String, String>{
+          'subject': 'Webview Server Error',
+          'body': '''I am having trouble accessing the webview
+        
+        
+Name: '''
+        }),
+      );
+
+      //launch the email client
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        dev.log('Could not launch email client');
+      }
+    } catch (e) {
+      dev.log('Error launching email: $e');
+    }
+  }
+
+  String? encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map((MapEntry<String, String> e) =>
+            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
   }
 }

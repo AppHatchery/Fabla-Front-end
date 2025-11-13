@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 
+import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-import '../custom_typography.dart';
-import 'buttons.dart';
+import '../../core/utils/errorCodes.dart';
+import '../../screens/onboarding/domain/repository/setup_repository.dart';
 
 class CustomWebViewWidget extends StatefulWidget {
   final String url;
@@ -26,55 +28,86 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
   bool loading = false;
   bool networkError = false;
+  String errorTitle = '';
+  String errorMessage = '';
+  String errorButtonText = '';
+
+  //variables to show different UI elements on the error card
+  bool showActionButton = false;
+  bool showContactResearcher = false;
+  bool showContactResearcherButton = false;
 
   @override
   void initState() {
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(NavigationDelegate(
-          onPageStarted: (url) {
-            setState(() {
-              loading = true;
-              surveyCompleted = false;
-            });
-          },
-          onPageFinished: (url) {
-            setState(() {
-              loading = false;
-            });
-            _startPeriodicCheck();
-          },
+      ..setNavigationDelegate(NavigationDelegate(onPageStarted: (url) {
+        setState(() {
+          loading = true;
+          surveyCompleted = false;
+          networkError = false;
+        });
+      }, onPageFinished: (url) {
+        setState(() {
+          loading = false;
+        });
+        _startPeriodicCheck();
+      },
           // Only show error for connection issues
           onWebResourceError: (error) {
-            // Only care about host lookup, connection and timeout errors
-            if (error.errorType == WebResourceErrorType.hostLookup ||
-                error.errorType == WebResourceErrorType.connect ||
-                error.errorType == WebResourceErrorType.timeout) {
-              setState(() {
-                networkError = true;
-              });
-            }
-            dev.log("WebView error: ${error.description}");
-          },
-          // Only show error for severe server issues
+        // Only care about connection
+        if (error.errorType == WebResourceErrorType.connect) {
+          setState(() {
+            networkError = true;
+            errorTitle = "Connection Issue";
+            errorMessage =
+                "Your internet connection is unstable. The survey can't be accessed right now. Please reconnect to access the survey.";
+            errorButtonText = "Try Again";
+          });
+        }
+        dev.log("WebView client error: ${error.description}");
+      },
+          // Check HTTP status codes and categorize errors
           onHttpError: (error) {
-            if ((error.response?.statusCode ?? 0) >= 500) {
-              setState(() {
-                networkError = true;
-              });
+        final statusCode = error.response?.statusCode;
+        if (statusCode == null) return;
+
+        // Check if status code is in any error group
+        if (HttpErrorGroups.inputOrFormErrors.contains(statusCode) ||
+            HttpErrorGroups.loginOrPermissionErrors.contains(statusCode) ||
+            HttpErrorGroups.pageNotFoundErrors.contains(statusCode) ||
+            HttpErrorGroups.slowOrLostConnectionErrors.contains(statusCode) ||
+            HttpErrorGroups.duplicateOrConflictErrors.contains(statusCode) ||
+            HttpErrorGroups.serverOrSystemFailureErrors.contains(statusCode)) {
+          setState(() {
+            networkError = true;
+            errorTitle = HttpErrorGroups.getErrorTitle(statusCode);
+            errorMessage = HttpErrorGroups.getErrorMessage(statusCode);
+            errorButtonText = HttpErrorGroups.getErrorButtonText(statusCode);
+
+            //showing states which trigger different UI elements
+            if (HttpErrorGroups.loginOrPermissionErrors.contains(statusCode)) {
+              showContactResearcherButton = true;
+            } else {
+              showContactResearcherButton = false;
             }
-          }
-      ))
+            if (HttpErrorGroups.serverOrSystemFailureErrors
+                .contains(statusCode)) {
+              showContactResearcher = true;
+            } else {
+              showContactResearcher = false;
+            }
+            if (HttpErrorGroups.pageNotFoundErrors.contains(statusCode)) {
+              showActionButton = false;
+            } else {
+              showActionButton = true;
+            }
+          });
+        }
+        dev.log("WebView server error: ${error.response}");
+      }))
       ..loadRequest(Uri.parse(widget.url));
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _checkTimer?.cancel();
-    controller.clearCache();
-    controller.clearLocalStorage();
-    super.dispose();
   }
 
   @override
@@ -90,53 +123,67 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
             ? Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                  child: Column(
-                    spacing: 24,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        "assets/images/icons/warning.png",
-                        width: 80,
-                        height: 80,
-                      ),
-                      Text(
-                        "Connection Issue",
-                        textAlign: TextAlign.center,
-                        style: CustomTypography()
-                            .headlineMedium(color: CustomColors.warningNormal),
-                      ),
-                      Text(
-                        "Your internet connection is unstable. The survey can’t be accessed right now. Please reconnect to access the survey.",
-                        textAlign: TextAlign.center,
-                        style: CustomTypography().bodyLarge(),
-                      ),
-                      CustomOutlineButton(
-                        onClick: () {
-                          setState(() {
-                            networkError = false;
-                            loading = true;
-                          });
-                          controller.reload();
-                        },
-                        color: CustomColors.warningNormal,
-                        backgroundColor: Colors.transparent,
-                        children: Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            const Text(
-                              "Try Again",
-                              style:
-                                  TextStyle(color: CustomColors.warningNormal),
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
+                  child: WebViewErrorCard(
+                    title: errorTitle,
+                    message: errorMessage,
+                    buttonText: errorButtonText,
+                    //shows the button for try again
+                    showActionButton: showActionButton,
+                    //shows the text button for contact researcher
+                    showContactResearch: showContactResearcher,
+                    onRetry: showContactResearcherButton
+                        ? () {
+                            launchEmail;
+                          }
+                        : () {
+                            setState(() {
+                              networkError = false;
+                              loading = true;
+                            });
+                            controller.reload();
+                          },
                   ),
                 ),
               )
             : WebViewWidget(controller: controller);
+  }
+
+  Future<void> launchEmail() async {
+    try {
+      //get experiment owner email
+      final repository = SetupRepository();
+      final experiment = repository.getExperiment();
+      final ownerEmail = experiment.ownerEmail;
+
+      //create the email uri
+      final uri = Uri(
+        scheme: "mailto",
+        path: ownerEmail.isNotEmpty ? ownerEmail : "fabla@emory.edu",
+        query: encodeQueryParameters(<String, String>{
+          'subject': 'WebView Permission Issue',
+          'body': ''' I am having troubles accessing the webview
+        
+        
+Name: '''
+        }),
+      );
+
+      //launch the email client
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        dev.log('Could not launch email client');
+      }
+    } catch (e) {
+      dev.log('Error launching email: $e');
+    }
+  }
+
+  String? encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map((MapEntry<String, String> e) =>
+            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
   }
 
   void _startPeriodicCheck() {
@@ -149,7 +196,7 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   }
 
   void detectSurveyFinish() async {
-    if (networkError) return;
+    //leaving the continue button available so users can skip this if an error occurs.
     final String javaScript = '''
     (function() {
 
