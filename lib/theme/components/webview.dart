@@ -26,6 +26,7 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   Timer? _checkTimer;
   bool surveyCompleted = false;
 
+  //ui elements
   bool loading = false;
   bool networkError = false;
   String errorTitle = '';
@@ -54,19 +55,86 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
         _startPeriodicCheck();
       },
           // Only show error for connection issues
+          // Only show error for connection issues
           onWebResourceError: (error) {
-        // Only care about connection
-        if (error.errorType == WebResourceErrorType.connect) {
+        // Check if errorType is null
+        if (error.errorType == null) return;
+
+        final errorType = error.errorType!;
+
+        // Define error type groups
+        final loginOrPermissionErrors = [
+          WebResourceErrorType.authentication,
+          WebResourceErrorType.proxyAuthentication,
+        ];
+
+        final pageNotFoundErrors = [
+          WebResourceErrorType.fileNotFound,
+          WebResourceErrorType.unsupportedScheme,
+        ];
+
+        final slowOrLostConnectionErrors = [
+          WebResourceErrorType.timeout,
+          WebResourceErrorType.connect,
+          WebResourceErrorType.hostLookup,
+          WebResourceErrorType.io,
+        ];
+
+        final duplicateOrConflictErrors = [
+          WebResourceErrorType.redirectLoop,
+          WebResourceErrorType.tooManyRequests,
+        ];
+
+        final serverOrSystemFailureErrors = [
+          WebResourceErrorType.failedSslHandshake,
+          WebResourceErrorType.webContentProcessTerminated,
+          WebResourceErrorType.webViewInvalidated,
+        ];
+
+        final inputOrFormErrors = [
+          WebResourceErrorType.badUrl,
+          WebResourceErrorType.unsupportedAuthScheme,
+        ];
+
+        // Check if error type is in any group
+        if (loginOrPermissionErrors.contains(errorType) ||
+            pageNotFoundErrors.contains(errorType) ||
+            slowOrLostConnectionErrors.contains(errorType) ||
+            duplicateOrConflictErrors.contains(errorType) ||
+            serverOrSystemFailureErrors.contains(errorType) ||
+            inputOrFormErrors.contains(errorType)) {
           setState(() {
             networkError = true;
-            errorTitle = "Connection Issue";
-            errorMessage =
-                "Your internet connection is unstable. The survey can't be accessed right now. Please reconnect to access the survey.";
-            errorButtonText = "Try Again";
+            errorTitle = WebResourceErrorGroups.getErrorTitle(errorType);
+            errorMessage = WebResourceErrorGroups.getErrorMessage(errorType);
+            errorButtonText =
+                WebResourceErrorGroups.getErrorButtonText(errorType);
+
+            // Showing states which trigger different UI elements
+            if (loginOrPermissionErrors.contains(errorType)) {
+              showContactResearcherButton = true;
+            } else {
+              showContactResearcherButton = false;
+            }
+
+            if (serverOrSystemFailureErrors.contains(errorType)) {
+              showContactResearcher = true;
+            } else {
+              showContactResearcher = false;
+            }
+
+            if (pageNotFoundErrors.contains(errorType)) {
+              showActionButton = false;
+            } else {
+              showActionButton = true;
+            }
           });
         }
-        dev.log("WebView client error: ${error.description}");
+
+        dev.log(
+            "WebView resource error: ${error.description}, Type: $errorType");
       },
+
           // Check HTTP status codes and categorize errors
           onHttpError: (error) {
         final statusCode = error.response?.statusCode;
@@ -111,6 +179,12 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   }
 
   @override
+  void dispose() {
+    _checkTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return loading
         ? Center(
@@ -124,31 +198,30 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30.0),
                   child: WebViewErrorCard(
-                    title: errorTitle,
-                    message: errorMessage,
-                    buttonText: errorButtonText,
-                    //shows the button for try again
-                    showActionButton: showActionButton,
-                    //shows the text button for contact researcher
-                    showContactResearch: showContactResearcher,
-                    onRetry: showContactResearcherButton
-                        ? () {
-                            launchEmail;
-                          }
-                        : () {
-                            setState(() {
-                              networkError = false;
-                              loading = true;
-                            });
-                            controller.reload();
-                          },
-                  ),
+                      //error message content
+                      title: errorTitle,
+                      message: errorMessage,
+                      buttonText: errorButtonText,
+                      //shows the button for try again/contact researcher
+                      showActionButton: showActionButton,
+                      //shows the text button for contact researcher
+                      showContactResearch: showContactResearcher,
+                      //button action
+                      onRetry: showContactResearcherButton ? _launchEmail : _reTry),
                 ),
               )
             : WebViewWidget(controller: controller);
   }
 
-  Future<void> launchEmail() async {
+  void _reTry() {
+    setState(() {
+      networkError = false;
+      loading = true;
+    });
+    controller.reload();
+  }
+
+  Future<void> _launchEmail() async {
     try {
       //get experiment owner email
       final repository = SetupRepository();
@@ -159,13 +232,13 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
       final uri = Uri(
         scheme: "mailto",
         path: ownerEmail.isNotEmpty ? ownerEmail : "fabla@emory.edu",
-        query: encodeQueryParameters(<String, String>{
+        queryParameters: {
           'subject': 'WebView Permission Issue',
           'body': ''' I am having troubles accessing the webview
         
         
 Name: '''
-        }),
+        },
       );
 
       //launch the email client
@@ -177,13 +250,6 @@ Name: '''
     } catch (e) {
       dev.log('Error launching email: $e');
     }
-  }
-
-  String? encodeQueryParameters(Map<String, String> params) {
-    return params.entries
-        .map((MapEntry<String, String> e) =>
-            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-        .join('&');
   }
 
   void _startPeriodicCheck() {
@@ -366,7 +432,7 @@ Name: '''
         await controller.runJavaScriptReturningResult(javaScript).catchError(
       (error) {
         // Handle any errors that occur during JavaScript execution
-        print('Error running JavaScript: $error');
+        dev.log('Error running JavaScript: $error');
         return false; // Default to false if there's an error
       },
     );

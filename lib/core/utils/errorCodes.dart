@@ -1,4 +1,8 @@
+import 'package:webview_flutter/webview_flutter.dart';
+
 // Error code groups and helper class
+
+//server side error codes
 class HttpErrorGroups {
   static const inputOrFormErrors = [400, 406, 411, 412, 413, 414, 415, 416, 417, 422, 431];
   static const loginOrPermissionErrors = [401, 402, 403, 407, 511];
@@ -46,6 +50,84 @@ class HttpErrorGroups {
       return "Contact Researcher";
     } else if (pageNotFoundErrors.contains(statusCode)) {
       return "";
+    }
+    return "Try Again";
+  }
+}
+
+//client side error codes
+class WebResourceErrorGroups {
+
+  static const loginOrPermissionErrors = [
+    WebResourceErrorType.authentication,
+    WebResourceErrorType.proxyAuthentication,
+  ];
+
+  static const pageNotFoundErrors = [
+    WebResourceErrorType.fileNotFound,
+    WebResourceErrorType.unsupportedScheme,
+  ];
+
+  static const slowOrLostConnectionErrors = [
+    WebResourceErrorType.timeout,
+    WebResourceErrorType.connect,
+    WebResourceErrorType.hostLookup,
+    WebResourceErrorType.io,
+  ];
+
+  static const duplicateOrConflictErrors = [
+    WebResourceErrorType.redirectLoop,
+    WebResourceErrorType.tooManyRequests,
+  ];
+
+  static const serverOrSystemFailureErrors = [
+    WebResourceErrorType.failedSslHandshake,
+    WebResourceErrorType.webContentProcessTerminated,
+    WebResourceErrorType.webViewInvalidated,
+  ];
+
+  static const inputOrFormErrors = [
+    WebResourceErrorType.badUrl,
+    WebResourceErrorType.unsupportedAuthScheme,
+  ];
+
+  static String getErrorTitle(WebResourceErrorType errorType) {
+    if (loginOrPermissionErrors.contains(errorType)) {
+      return "Authentication Required";
+    } else if (pageNotFoundErrors.contains(errorType)) {
+      return "Page Not Found";
+    } else if (slowOrLostConnectionErrors.contains(errorType)) {
+      return "Connection Issue";
+    } else if (duplicateOrConflictErrors.contains(errorType)) {
+      return "Too Many Attempts";
+    } else if (serverOrSystemFailureErrors.contains(errorType)) {
+      return "Server Error";
+    } else if (inputOrFormErrors.contains(errorType)) {
+      return "Invalid Request";
+    }
+    return "Error";
+  }
+
+  static String getErrorMessage(WebResourceErrorType errorType) {
+    if (loginOrPermissionErrors.contains(errorType)) {
+      return "Authentication is required to access this content. Please check your credentials.";
+    } else if (pageNotFoundErrors.contains(errorType)) {
+      return "The requested page could not be found. Please check the URL or contact support.";
+    } else if (slowOrLostConnectionErrors.contains(errorType)) {
+      return "Your internet connection is unstable. The survey can't be accessed right now. Please reconnect to access the survey.";
+    } else if (duplicateOrConflictErrors.contains(errorType)) {
+      return "Too many requests or redirects. Please wait a moment and try again.";
+    } else if (serverOrSystemFailureErrors.contains(errorType)) {
+      return "The server is experiencing issues. Please try again later or contact support.";
+    } else if (inputOrFormErrors.contains(errorType)) {
+      return "The request format is invalid. Please check the URL or contact support.";
+    }
+    return "An unexpected error occurred. Please try again.";
+  }
+
+  static String getErrorButtonText(WebResourceErrorType errorType) {
+    if (pageNotFoundErrors.contains(errorType)) {
+      return "Go Back";
     }
     return "Try Again";
   }
