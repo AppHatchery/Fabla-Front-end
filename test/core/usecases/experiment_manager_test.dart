@@ -20,8 +20,6 @@ void main() {
     test('update should upload onboarding questions with partialCleanDB true',
         () async {
       // Arrange
-      when(() => mockSetupRepository.cleanupBeforeUpdate())
-          .thenAnswer((_) async {});
       when(() => mockSetupRepository.uploadOnBoardingQuestions(
           partialCleanDB: true)).thenAnswer((_) async => true);
 
@@ -31,7 +29,6 @@ void main() {
       // Assert
       expect(result, true);
       verifyInOrder([
-        () => mockSetupRepository.cleanupBeforeUpdate(),
         () => mockSetupRepository.uploadOnBoardingQuestions(
               partialCleanDB: true,
             ),
@@ -43,8 +40,6 @@ void main() {
         'update should return false when uploadOnBoardingQuestions returns false',
         () async {
       // Arrange
-      when(() => mockSetupRepository.cleanupBeforeUpdate())
-          .thenAnswer((_) async {});
       when(() => mockSetupRepository.uploadOnBoardingQuestions(
           partialCleanDB: true)).thenAnswer((_) async => false);
 
@@ -54,7 +49,6 @@ void main() {
       // Assert
       expect(result, false);
       verifyInOrder([
-        () => mockSetupRepository.cleanupBeforeUpdate(),
         () => mockSetupRepository.uploadOnBoardingQuestions(
               partialCleanDB: true,
             ),
@@ -64,8 +58,6 @@ void main() {
 
     test('update should return false when an error occurs', () async {
       // Arrange
-      when(() => mockSetupRepository.cleanupBeforeUpdate())
-          .thenAnswer((_) async {});
       when(() => mockSetupRepository.uploadOnBoardingQuestions(
           partialCleanDB: true)).thenThrow(Exception('Test error'));
 
@@ -75,7 +67,6 @@ void main() {
       // Assert
       expect(result, false);
       verifyInOrder([
-        () => mockSetupRepository.cleanupBeforeUpdate(),
         () => mockSetupRepository.uploadOnBoardingQuestions(
               partialCleanDB: true,
             ),
