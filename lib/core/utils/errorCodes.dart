@@ -66,6 +66,7 @@ class WebResourceErrorGroups {
   static const pageNotFoundErrors = [
     WebResourceErrorType.fileNotFound,
     WebResourceErrorType.unsupportedScheme,
+    WebResourceErrorType.unknown
   ];
 
   static const slowOrLostConnectionErrors = [
@@ -127,7 +128,7 @@ class WebResourceErrorGroups {
 
   static String getErrorButtonText(WebResourceErrorType errorType) {
     if (pageNotFoundErrors.contains(errorType)) {
-      return "Go Back";
+      return "";
     }
     return "Try Again";
   }
