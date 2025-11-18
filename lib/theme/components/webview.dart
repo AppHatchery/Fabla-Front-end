@@ -233,11 +233,11 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
         scheme: "mailto",
         path: ownerEmail.isNotEmpty ? ownerEmail : "fabla@emory.edu",
         queryParameters: {
-          'subject': 'WebView Permission Issue',
-          'body': ''' I am having troubles accessing the webview
+          'subject': 'Permission Issue – Assistance Needed',
+          'body': ''' A permission issue was encountered. Please investigate and advise on next steps.
         
         
-Name: '''
+Participant ID: '''
         },
       );
 

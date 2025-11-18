@@ -1661,11 +1661,11 @@ class WebViewErrorCard extends StatelessWidget {
         scheme: "mailto",
         path: ownerEmail.isNotEmpty ? ownerEmail : "fabla@emory.edu",
         query: encodeQueryParameters(<String, String>{
-          'subject': 'Webview Server Error',
-          'body': '''I am having trouble accessing the webview
+          'subject': 'Server Error – Assistance Needed',
+          'body': '''Server error encountered. Please investigate and advise on next steps.
         
         
-Name: '''
+Participant ID: '''
         }),
       );
 
