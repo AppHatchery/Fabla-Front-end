@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
+import 'package:audio_diaries_flutter/core/utils/emailFunction.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -20,12 +20,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/utils/formatter.dart';
 import '../../core/utils/statuses.dart';
 import '../../screens/diary/data/diary.dart';
-import '../../screens/onboarding/domain/repository/setup_repository.dart';
 import '../custom_icons.dart';
 import '../resources/strings.dart';
 
@@ -1637,7 +1635,7 @@ class WebViewErrorCard extends StatelessWidget {
         ),
         if (showContactResearch)
           GestureDetector(
-            onTap: launchEmail,
+            onTap: _launchEmail(),
             child: Text(
               "Contact Researcher",
               textAlign: TextAlign.center,
@@ -1649,41 +1647,11 @@ class WebViewErrorCard extends StatelessWidget {
     );
   }
 
-  Future<void> launchEmail() async {
-    try {
-      //get experiment owner email
-      final repository = SetupRepository();
-      final experiment = repository.getExperiment();
-      final ownerEmail = experiment.ownerEmail;
-
-      //create the email uri
-      final uri = Uri(
-        scheme: "mailto",
-        path: ownerEmail.isNotEmpty ? ownerEmail : "fabla@emory.edu",
-        query: encodeQueryParameters(<String, String>{
-          'subject': 'Server Error – Assistance Needed',
-          'body': '''Server error encountered. Please investigate and advise on next steps.
+  _launchEmail() async {
+   launchEmail(subject: 'Server Error – Assistance Needed',
+       body: '''Server error encountered. Please investigate and advise on next steps.
         
         
-Participant ID: '''
-        }),
-      );
-
-      //launch the email client
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else {
-        dev.log('Could not launch email client');
-      }
-    } catch (e) {
-      dev.log('Error launching email: $e');
-    }
-  }
-
-  String? encodeQueryParameters(Map<String, String> params) {
-    return params.entries
-        .map((MapEntry<String, String> e) =>
-            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-        .join('&');
+Participant ID: ''');
   }
 }

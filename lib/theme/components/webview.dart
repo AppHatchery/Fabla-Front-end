@@ -4,11 +4,10 @@ import 'dart:developer' as dev;
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../core/utils/emailFunction.dart';
 import '../../core/utils/errorCodes.dart';
-import '../../screens/onboarding/domain/repository/setup_repository.dart';
 
 class CustomWebViewWidget extends StatefulWidget {
   final String url;
@@ -207,10 +206,20 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                       //shows the text button for contact researcher
                       showContactResearch: showContactResearcher,
                       //button action
-                      onRetry: showContactResearcherButton ? _launchEmail : _reTry),
+                      onRetry: showContactResearcherButton ? _launchEmail() : _reTry),
                 ),
               )
             : WebViewWidget(controller: controller);
+  }
+
+  _launchEmail() async {
+    await launchEmail(
+    subject: 'Permission Issue – Assistance Needed',
+    body: ''' A permission issue was encountered. Please investigate and advise on next steps.
+        
+        
+Participant ID: ''',
+    );
   }
 
   void _reTry() {
@@ -221,36 +230,6 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
     controller.reload();
   }
 
-  Future<void> _launchEmail() async {
-    try {
-      //get experiment owner email
-      final repository = SetupRepository();
-      final experiment = repository.getExperiment();
-      final ownerEmail = experiment.ownerEmail;
-
-      //create the email uri
-      final uri = Uri(
-        scheme: "mailto",
-        path: ownerEmail.isNotEmpty ? ownerEmail : "fabla@emory.edu",
-        queryParameters: {
-          'subject': 'Permission Issue – Assistance Needed',
-          'body': ''' A permission issue was encountered. Please investigate and advise on next steps.
-        
-        
-Participant ID: '''
-        },
-      );
-
-      //launch the email client
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else {
-        dev.log('Could not launch email client');
-      }
-    } catch (e) {
-      dev.log('Error launching email: $e');
-    }
-  }
 
   void _startPeriodicCheck() {
     _checkTimer?.cancel();
