@@ -11,15 +11,15 @@ import '../../core/utils/errorCodes.dart';
 
 class CustomWebViewWidget extends StatefulWidget {
   final String url;
-  final Function(bool) onComplete;
+  final Function(bool?) onComplete;
   const CustomWebViewWidget(
       {super.key, required this.url, required this.onComplete});
 
   @override
-  State<CustomWebViewWidget> createState() => _CustomWebViewWidgetState();
+  State<CustomWebViewWidget> createState() => CustomWebViewWidgetState();
 }
 
-class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
+class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   late WebViewController controller;
 
   Timer? _checkTimer;
@@ -241,7 +241,11 @@ Participant ID: ''',
   }
 
   void detectSurveyFinish() async {
-    //leaving the continue button available so users can skip this if an error occurs.
+    if (networkError) {
+      widget.onComplete(null); // Pass null when there's an error
+      _checkTimer?.cancel(); // Stop checking
+      return;
+    }
     final String javaScript = '''
     (function() {
 

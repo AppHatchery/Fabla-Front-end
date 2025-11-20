@@ -637,7 +637,7 @@ class _FreeTextQuestionSummaryState extends State<FreeTextQuestionSummary> {
 class WebViewResponseCard extends StatefulWidget {
   final DiaryModel diary;
   final PromptModel prompt;
-  final void Function(String) respond;
+  final void Function(String?) respond;
   const WebViewResponseCard(
       {super.key,
       required this.diary,

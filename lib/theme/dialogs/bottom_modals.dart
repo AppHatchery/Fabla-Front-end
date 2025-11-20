@@ -1181,7 +1181,7 @@ class BottomErrorModal extends StatelessWidget {
 
 class BottomWebViewModal extends StatefulWidget {
   final String url;
-  final void Function(String) respond;
+  final void Function(String?) respond;
   const BottomWebViewModal(
       {super.key, required this.url, required this.respond});
 
@@ -1192,7 +1192,7 @@ class BottomWebViewModal extends StatefulWidget {
 class _BottomWebViewModalState extends State<BottomWebViewModal> {
   late DateTime start;
   late DateTime end;
-  bool completed = false;
+  bool? completed = false;
 
   @override
   void initState() {
@@ -1245,7 +1245,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: CustomFlatButton(
-              isDisabled: !completed,
+              isDisabled: (completed == false),
               onClick: () => save(),
               text: "Continue",
             ),
@@ -1267,8 +1267,15 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
 
   save() {
     end = DateTime.now();
-    widget.respond("Start: $start | End: $end");
-    Navigator.pop(context);
+    // Pass null if there was an error, otherwise pass the time range
+    if (completed == null) {
+      widget.respond(null);
+      dev.log("the response is: ${widget.respond}");
+    } else {
+      widget.respond("Start: $start | End: $end");
+      dev.log("the response is: ${widget.respond}");
+    }
+    // Navigator.pop(context);
   }
 }
 
