@@ -1270,12 +1270,10 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
     // Pass null if there was an error, otherwise pass the time range
     if (completed == null) {
       widget.respond(null);
-      dev.log("the response is: ${widget.respond}");
     } else {
       widget.respond("Start: $start | End: $end");
-      dev.log("the response is: ${widget.respond}");
     }
-    // Navigator.pop(context);
+    Navigator.pop(context);
   }
 }
 
