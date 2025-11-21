@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'dart:developer' as dev;
 
+import 'package:audio_diaries_flutter/core/usecases/prompt_conditions.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/condition.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/options.dart';
 
 import '../domain/entities/answer.dart';
@@ -19,6 +22,10 @@ class PromptModel {
   String? subtitle;
   bool? multipleAnswer;
 
+  // Optional conditions for displaying the prompt
+  List<PromptCondition>? conditions;
+  ConditionLogic? conditionLogic;
+
   PromptModel(
       {this.id = 0,
       required this.questionNumber,
@@ -28,7 +35,9 @@ class PromptModel {
       this.option,
       required this.required,
       this.subtitle,
-      required this.multipleAnswer});
+      required this.multipleAnswer,
+      this.conditions,
+      this.conditionLogic});
 
   /// Creates a new Prompt object with optional modifications.
   /// This method generates a new Prompt instance based on the current prompt object while allowing specific properties to be updated or changed.
@@ -63,7 +72,9 @@ class PromptModel {
         option: option ?? this.option,
         subtitle: subtitle ?? this.subtitle,
         required: required,
-        multipleAnswer: multipleAnswer ?? this.multipleAnswer);
+        multipleAnswer: multipleAnswer ?? this.multipleAnswer,
+        conditions: conditions,
+        conditionLogic: conditionLogic);
   }
 
   factory PromptModel.fromEntity(Prompt prompt) {
@@ -79,6 +90,14 @@ class PromptModel {
       required: prompt.required,
       subtitle: prompt.subtitle,
       multipleAnswer: prompt.multipleAnswer,
+      conditions: prompt.conditions != null
+          ? (jsonDecode(prompt.conditions!) as List)
+              .map((e) => PromptCondition.fromJson(e))
+              .toList()
+          : null,
+      conditionLogic: prompt.conditionLogic != null
+          ? ConditionLogic.values[prompt.conditionLogic!]
+          : null,
     );
     return model;
   }
@@ -94,6 +113,52 @@ class PromptModel {
       required: json['required'],
       subtitle: json['subtitle'],
       multipleAnswer: json['multiple_answer'],
+      conditions: json['conditions'] != null
+          ? (json['conditions'] as List)
+              .map((e) => PromptCondition.fromJson(e))
+              .toList()
+          : null,
+      conditionLogic: json['condition_logic'] != null
+          ? ConditionLogic.values.byName(json['condition_logic'])
+          : null,
     );
+  }
+
+  /// Determines whether the prompt should be shown based on previous answers and its conditions.
+  /// This method evaluates the conditions associated with the prompt against a map of previous answers to decide if the prompt should be displayed.
+  ///
+  /// Parameters:
+  /// - [previousAnswers]: A map where the key is the question number and the value
+  ///  is the corresponding Answer object.
+  ///
+  /// Returns:
+  /// true if the prompt should be shown, false otherwise.
+  ///
+  bool shouldShow(Map<int, Answer> previousAnswers) {
+    if (conditions == null || conditions!.isEmpty) return true;
+
+    final results = [];
+
+    // Evaluate each condition
+    for (var condition in conditions!) {
+      dev.log(
+          "Evaluating condition for Prompt : $question | condition: ${condition.conditionType} with expected value: ${condition.expectedValue} | targeted Prompt: ${condition.targetPrompt}",
+          name: "Prompt Repository - Evaluate Condition");
+      final answer = previousAnswers[condition.targetPrompt];
+      if (!condition.evaluate(answer)) {
+        results.add(false);
+      } else {
+        results.add(true);
+      }
+    }
+
+    // Evaluate based on condition logic
+    if (conditionLogic == ConditionLogic.and) {
+      return results.every((result) => result == true);
+    } else if (conditionLogic == ConditionLogic.or) {
+      return results.any((result) => result == true);
+    }
+
+    return true;
   }
 }

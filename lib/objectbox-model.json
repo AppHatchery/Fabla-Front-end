@@ -194,7 +194,7 @@
     },
     {
       "id": "5:8772867094899341742",
-      "lastPropertyId": "9:2371406240884662852",
+      "lastPropertyId": "11:865954081540331108",
       "name": "Prompt",
       "properties": [
         {
@@ -245,6 +245,16 @@
           "id": "9:2371406240884662852",
           "name": "multipleAnswer",
           "type": 1
+        },
+        {
+          "id": "10:1424706225527827574",
+          "name": "conditions",
+          "type": 9
+        },
+        {
+          "id": "11:865954081540331108",
+          "name": "conditionLogic",
+          "type": 6
         }
       ],
       "relations": []

@@ -37,8 +37,60 @@ class PromptRepository {
 
     // Retrieve the answer associated with the current entry in the diary
     // and associate it with the loaded prompt model
-    return model.copyWith(
+    final modelWithAnswer = model.copyWith(
         answer: prompt.answers.elementAtOrNull(diary.currentEntry));
+
+    // Check conditions to determine if the prompt should be shown
+    if (modelWithAnswer.conditions != null &&
+        modelWithAnswer.conditions!.isNotEmpty) {
+      dev.log("Prompt No: ${modelWithAnswer.questionNumber} has conditions:",
+          name: "Prompt Repository - Load Prompt");
+
+      final answers =
+          _previousDiaryAnswers(diary, modelWithAnswer.questionNumber);
+
+      if (!modelWithAnswer.shouldShow(answers)) {
+        dev.log(
+            "Prompt : ${modelWithAnswer.question} will be hidden based on conditions.",
+            name: "Prompt Repository - Load Prompt");
+
+        // condition not met, go to next prompt
+        // ! check if there is a next prompt before calling load again
+        // ! to avoid infinite recursion
+        // TODO: Think of ways to optimize this recursive call
+
+        return load(diary, id + 1);
+      }
+    }
+
+    return modelWithAnswer;
+  }
+
+  /// Retrieves previous answers from the diary up to the current prompt.
+  /// This function collects answers from prompts that precede the current prompt
+  /// in the diary and returns them as a map.
+  ///
+  /// Parameters:
+  /// - [diary]: The diary model from which previous answers are to be retrieved.
+  /// - [currentPrompt]: The question number of the current prompt.
+  ///
+  /// Returns:
+  /// A map where the key is the question number and the value is the corresponding Answer object
+  Map<int, Answer> _previousDiaryAnswers(DiaryModel diary, int currentPrompt) {
+    final Map<int, Answer> answersMap = {};
+    final prompts = _promptDAO.getPrompts(id: diary.id);
+
+    for (var prompt in prompts) {
+      if (prompt.questionNumber < currentPrompt) {
+        final answer = prompt.answers.elementAtOrNull(diary.currentEntry);
+
+        if (answer != null) {
+          answersMap[prompt.questionNumber] = answer;
+        }
+      }
+    }
+
+    return answersMap;
   }
 
   Future<List<PromptModel>> loadAll(DiaryModel diary) async {

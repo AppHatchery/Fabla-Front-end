@@ -589,3 +589,66 @@ class CustomFormatterText extends StatelessWidget {
     return spans;
   }
 }
+
+ConditionType parseConditionType(String value) {
+  switch (value.toLowerCase()) {
+    case 'equals':
+      return ConditionType.equals;
+    case 'notequals':
+    case 'not_equals':
+      return ConditionType.notEquals;
+    case 'contains':
+      return ConditionType.contains;
+    case 'notcontains':
+    case 'not_contains':
+      return ConditionType.notContains;
+    case 'answered':
+      return ConditionType.answered;
+    case 'notanswered':
+    case 'not_answered':
+      return ConditionType.notAnswered;
+    case 'greaterthan':
+    case 'greater_than':
+      return ConditionType.greaterThan;
+    case 'lessthan':
+    case 'less_than':
+      return ConditionType.lessThan;
+    case 'between':
+      return ConditionType.between;
+    case 'beforetime':
+    case 'before_time':
+      return ConditionType.beforeTime;
+    case 'aftertime':
+    case 'after_time':
+      return ConditionType.afterTime;
+    default:
+      return ConditionType.equals;
+  }
+}
+
+String conditionTypeToString(ConditionType type) {
+  switch (type) {
+    case ConditionType.equals:
+      return 'equals';
+    case ConditionType.notEquals:
+      return 'not_equals';
+    case ConditionType.contains:
+      return 'contains';
+    case ConditionType.notContains:
+      return 'not_contains';
+    case ConditionType.answered:
+      return 'answered';
+    case ConditionType.notAnswered:
+      return 'not_answered';
+    case ConditionType.greaterThan:
+      return 'greater_than';
+    case ConditionType.lessThan:
+      return 'less_than';
+    case ConditionType.between:
+      return 'between';
+    case ConditionType.beforeTime:
+      return 'before_time';
+    case ConditionType.afterTime:
+      return 'after_time';
+  }
+}
