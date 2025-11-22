@@ -12,6 +12,8 @@ import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart'
+    show RescheduleDiaryModal;
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
@@ -19,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:popover/popover.dart';
 
 import '../../core/utils/formatter.dart';
 import '../../core/utils/statuses.dart';
@@ -149,6 +152,7 @@ class _DiaryCardState extends State<DiaryCard> {
     closed = isClosed();
     return GestureDetector(
       onTap: () => closed ? null : navigateToDiary(context),
+      onLongPress: () => showDiaryOptions(context),
       child: Container(
         decoration: BoxDecoration(
           color: CustomColors.fillWhite,
@@ -225,6 +229,72 @@ class _DiaryCardState extends State<DiaryCard> {
         widget.refresh(true);
       }
     }
+  }
+
+  void showDiaryOptions(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    showPopover(
+      context: context,
+      bodyBuilder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        child: Column(
+          spacing: 24,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Reschedule
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+                showRescheduleDiaryModal(context);
+              },
+              child: Row(
+                spacing: 12,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Image.asset('assets/images/reschedule.png',
+                      height: 20, width: 20),
+                  Text('Reschedule Diary',
+                      style: CustomTypography().titleRegular()),
+                ],
+              ),
+            ),
+            // Send feedback
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Row(
+                spacing: 12,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Image.asset('assets/images/feedback.png',
+                      height: 20, width: 20),
+                  Text('Send Feedback',
+                      style: CustomTypography().titleRegular()),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      direction: PopoverDirection.top,
+      width: width * 0.6,
+      arrowHeight: 15,
+      arrowWidth: 30,
+      radius: 10,
+    );
+  }
+
+  void showRescheduleDiaryModal(BuildContext context) async {
+    final result = await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        routeSettings: RouteSettings(name: "/RescheduleDiaryModal"),
+        builder: (context) => RescheduleDiaryModal(
+              diary: widget.diary!,
+            ));
+
+    if (result == true) widget.refresh(true);
   }
 
   Widget icon() {

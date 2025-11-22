@@ -6,8 +6,10 @@ import 'dart:math';
 import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/main.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
 import 'package:audio_diaries_flutter/theme/components/webview.dart';
@@ -19,6 +21,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
@@ -2791,5 +2794,280 @@ class _BottomTimerModalState extends State<BottomTimerModal>
               ),
       ),
     );
+  }
+}
+
+class RescheduleDiaryModal extends StatefulWidget {
+  final DiaryModel diary;
+  const RescheduleDiaryModal({super.key, required this.diary});
+
+  @override
+  State<RescheduleDiaryModal> createState() => _RescheduleDiaryModalState();
+}
+
+class _RescheduleDiaryModalState extends State<RescheduleDiaryModal> {
+  DateTime now = DateTime.now();
+  List<DateTime> dates = [];
+
+  DateTime? selectedDate;
+  bool changed = false;
+  Duration difference = Duration.zero;
+
+  @override
+  void initState() {
+    difference = widget.diary.end.difference(widget.diary.start);
+    selectedDate = widget.diary.start;
+    now = widget.diary.start;
+    // add today and the next two days
+    for (int i = 0; i < 3; i++) {
+      dates.add(now.add(Duration(days: i)));
+    }
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      decoration: const BoxDecoration(
+        color: CustomColors.fillWhite,
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(14), topRight: Radius.circular(14)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                "Reschedule Diary",
+                style: CustomTypography().titleLarge(),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: const Icon(
+                  CupertinoIcons.clear,
+                  size: 20,
+                  color: CustomColors.textSecondaryContent,
+                ),
+              )
+            ],
+          ),
+          Flexible(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: Text(
+                'You can reschedule this diary to a later time when you are available to complete it. You are currently rescheduling "${widget.diary.name}", originally scheduled for ${DateFormat.yMMMd().add_jm().format(widget.diary.start)} until ${DateFormat.yMMMd().add_jm().format(widget.diary.end)}. Please select a new date and time below.',
+                style: CustomTypography().bodyMedium(),
+              ),
+            ),
+          ),
+
+          // Date Picker
+          Padding(
+            padding: const EdgeInsets.only(top: 16.0),
+            child: datesSelector(),
+          ),
+
+          // Time Picker
+          Padding(
+            padding: const EdgeInsets.only(top: 16.0),
+            child: timeSelector(),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.only(top: 34.0),
+            child: CustomFlatButton(
+              isDisabled: !changed,
+              onClick: () => save(),
+              text: "Reschedule",
+            ),
+          ),
+          CustomFlatButton(
+            color: CustomColors.fillWhite,
+            borderColor: CustomColors.fillWhite,
+            textColor: CustomColors.warningActive,
+            onClick: () => Navigator.pop(context),
+            text: "Cancel",
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget datesSelector() {
+    final width = MediaQuery.of(context).size.width;
+    return Column(
+      spacing: 8,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Select reschedule date',
+              style: CustomTypography().titleSmall(),
+            ),
+            Tooltip(
+              triggerMode: TooltipTriggerMode.tap,
+              constraints: BoxConstraints(maxWidth: 200),
+              showDuration: Duration(seconds: 3),
+              message:
+                  'You can only reschedule diaries up to 2 days from the original scheduled date.',
+              child: Icon(
+                Icons.info_outline,
+                size: 24,
+                color: CustomColors.textSecondaryContent,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(
+          height: 80,
+          width: width,
+          child: ListView.builder(
+              shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+              itemCount: dates.length,
+              itemBuilder: (context, index) {
+                final date = dates[index];
+                final weekday = DateFormat.E().format(date);
+                final isToday = DateUtils.isSameDay(date, now);
+                final isSelected = DateUtils.isSameDay(date, selectedDate);
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedDate = DateTime(
+                          date.year,
+                          date.month,
+                          date.day,
+                          selectedDate!.hour,
+                          selectedDate!.minute,
+                        );
+                        changed = true;
+                      });
+                    },
+                    child: Container(
+                      height: 80,
+                      width: 80,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? CustomColors.productLightSecondaryActive
+                            : CustomColors.greyTrack,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: isToday
+                          ? Center(
+                              child: Text(
+                                'Today',
+                                style: CustomTypography().bodyLarge(
+                                    color: isSelected
+                                        ? CustomColors.textWhite
+                                        : Colors.black),
+                              ),
+                            )
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  weekday,
+                                  style: CustomTypography().bodyLarge(
+                                      color: isSelected
+                                          ? CustomColors.textWhite
+                                          : Colors.black),
+                                ),
+                                Text(
+                                  date.day.toString(),
+                                  style: CustomTypography().bodyMedium(
+                                      color: isSelected
+                                          ? CustomColors.textWhite
+                                          : Colors.black),
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
+                );
+              }),
+        ),
+      ],
+    );
+  }
+
+  Widget timeSelector() {
+    final time = DateFormat.Hm().format(selectedDate!);
+    final due = selectedDate!.add(difference);
+    final dueTime = DateFormat.Hm().format(due);
+    return Column(
+      spacing: 8,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Select reschedule time',
+              style: CustomTypography().titleSmall(),
+            ),
+            Tooltip(
+              triggerMode: TooltipTriggerMode.tap,
+              constraints: BoxConstraints(maxWidth: 200),
+              showDuration: Duration(seconds: 3),
+              message:
+                  'You can only reschedule the start time of the diary. The end time will adjust accordingly based on the original duration.',
+              child: Icon(
+                Icons.info_outline,
+                size: 24,
+                color: CustomColors.textSecondaryContent,
+              ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '$time - $dueTime',
+              style: CustomTypography().titleSmall(),
+            ),
+            GestureDetector(
+              onTap: () async {
+                final TimeOfDay? picked = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.fromDateTime(selectedDate!),
+                );
+                if (picked != null) {
+                  setState(() {
+                    selectedDate = DateTime(
+                      selectedDate!.year,
+                      selectedDate!.month,
+                      selectedDate!.day,
+                      picked.hour,
+                      picked.minute,
+                    );
+                    changed = true;
+                  });
+                }
+              },
+              child: Icon(
+                Icons.edit,
+                size: 24,
+                color: CustomColors.textSecondaryContent,
+              ),
+            )
+          ],
+        ),
+      ],
+    );
+  }
+
+  void save() {
+    final newEnd = selectedDate!.add(difference);
+
+    final repository = DiaryRepository();
+    repository.rescheduleDiary(widget.diary, selectedDate!, newEnd);
+    Navigator.pop(context, true);
   }
 }

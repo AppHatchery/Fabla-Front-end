@@ -604,6 +604,25 @@ class DiaryRepository {
     _diaryDAO.updateDiary(entity);
   }
 
+  // !Potential issue with notifications when rescheduling weekly diaries
+  void rescheduleDiary(DiaryModel diary, DateTime newStart, DateTime newDue) {
+    final newDiary = diary.copyWith(
+      id: diary.id,
+      studyID: diary.studyID,
+      start: newStart,
+      due: newDue,
+    );
+
+    // Check for notifications to be rescheduled
+    // Cancel existing notifications for this day only!
+    // ? What if the diary is weekly and has multiple notifications?
+    // ! Needs to be tested thoroughly
+    // * Potential fix for weekly diaries is create a separate instance for that day only
+    // * where the original diary remains unchanged but a new diary is created for that specific day with a copy of the original diary's data
+
+    updateDiary(newDiary);
+  }
+
   List<Tag> _getTags(DiaryModel diary) {
     List<Tag> tags = [];
 

@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/screens/settings/widgets/faq.dart';
 import 'package:audio_diaries_flutter/screens/settings/widgets/participant_details.dart';
 import 'package:audio_diaries_flutter/screens/settings/widgets/settings_active_reminders.dart';
 import 'package:audio_diaries_flutter/screens/settings/widgets/study_details.dart';
@@ -326,6 +327,9 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                   isEnabled: notificationCheck,
                 ),
                 const SizedBox(height: 12.0),
+
+                /// FAQ
+                const FAQCard(),
               ]),
             ),
             //
