@@ -1579,6 +1579,7 @@ class WebViewErrorCard extends StatelessWidget {
   final VoidCallback onRetry;
   final bool showActionButton;
   final bool showContactResearch;
+  final String icon;
 
   const WebViewErrorCard({
     super.key,
@@ -1589,6 +1590,7 @@ class WebViewErrorCard extends StatelessWidget {
     required this.onRetry,
     required this.showActionButton,
     required this.showContactResearch,
+    required this.icon,
   });
 
   @override
@@ -1599,7 +1601,7 @@ class WebViewErrorCard extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Image.asset(
-          "assets/images/icons/warning.png",
+          icon,
           width: 80,
           height: 80,
         ),
@@ -1635,7 +1637,7 @@ class WebViewErrorCard extends StatelessWidget {
         ),
         if (showContactResearch)
           GestureDetector(
-            onTap: _launchEmail(),
+            onTap: _launchEmail,
             child: Text(
               "Contact Researcher",
               textAlign: TextAlign.center,

@@ -53,6 +53,23 @@ class HttpErrorGroups {
     }
     return "Try Again";
   }
+
+  static String getErrorIcon(int statusCode) {
+    if (inputOrFormErrors.contains(statusCode)) {
+      return "assets/images/icons/content_paste_off.png";
+    } else if (loginOrPermissionErrors.contains(statusCode)) {
+      return "assets/images/icons/lock.png";
+    } else if (pageNotFoundErrors.contains(statusCode)) {
+      return "assets/images/icons/link_off.png";
+    } else if (slowOrLostConnectionErrors.contains(statusCode)) {
+      return "assets/images/icons/paceError.png";
+    } else if (duplicateOrConflictErrors.contains(statusCode)) {
+      return "assets/images/icons/scan_delete.png";
+    } else if (serverOrSystemFailureErrors.contains(statusCode)) {
+      return "assets/images/icons/database_off.png";
+    }
+    return "assets/images/icons/warning.png";
+  }
 }
 
 //client side error codes
@@ -131,5 +148,21 @@ class WebResourceErrorGroups {
       return "";
     }
     return "Try Again";
+  }
+  static String getErrorIcon(WebResourceErrorType errorType) {
+    if (loginOrPermissionErrors.contains(errorType)) {
+      return "assets/images/icons/lock.png";
+    } else if (pageNotFoundErrors.contains(errorType)) {
+      return "assets/images/icons/link_off.png";
+    } else if (slowOrLostConnectionErrors.contains(errorType)) {
+      return "assets/images/icons/paceError.png";
+    } else if (duplicateOrConflictErrors.contains(errorType)) {
+      return "assets/images/icons/scan_delete.png";;
+    } else if (serverOrSystemFailureErrors.contains(errorType)) {
+      return "assets/images/icons/database_off.png";
+    } else if (inputOrFormErrors.contains(errorType)) {
+      return "assets/images/icons/content_paste_off.png";
+    }
+    return "assets/images/icons/warning.png";
   }
 }
