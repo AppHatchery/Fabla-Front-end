@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
@@ -637,45 +639,51 @@ class DiaryRepository {
     return _diaryDAO.deleteAllDiaries();
   }
 
-  /// Removing all the diaries that start after now
-  bool removeDiariesFrom(DateTime now) {
-    final all = getAllDiaries();
+  // Removing all the diaries that start today and onwards
+  Future<bool> removeDiariesFrom(DateTime now) async {
 
-    // filter
-    // ! What if there is a change in the current diary the user is replying to
-    final filtered = all
-        .where((diary) =>
-            diary.start.isAfter(now) &&
-            (diary.status != DiaryStatus.submitted &&
-                diary.status != DiaryStatus.ongoing &&
-                diary.status != DiaryStatus.complete))
-        .map((model) => Diary.fromModel(model))
-        .toList();
+    try {
+      // Get all diaries
+      final all = getAllDiaries();
 
-    // Cancel all notifications
-    for (var diary in filtered) {
-      NotificationManager().cancelDiaryNotifications(diary.id);
+      dev.log("Total diaries before deletion: ${all.length}", name: "Diary Deletion");
+
+      // Filter diaries that start today
+      final filtered = all
+          .where((diary) => !diary.start.isBefore(now))
+          .toList();
+
+      dev.log("Diaries to delete: ${filtered.length}", name: "Diary Deletion");
+
+      if (filtered.isEmpty) {
+        return true;
+      }
+
+      // Cancel notifications in batches to avoid blocking
+      for (int i = 0; i < filtered.length; i++) {
+        NotificationManager().cancelDiaryNotifications(filtered[i].id);
+
+        // Yield to prevent blocking UI
+        if (i % 10 == 0) {
+          await Future.delayed(Duration.zero);
+        }
+      }
+
+      // Convert to entities
+      final entitiesToDelete = filtered
+          .map((model) => Diary.fromModel(model))
+          .toList();
+
+      // Delete in the database
+      final result = _diaryDAO.deleteDiaries(entitiesToDelete);
+
+      dev.log("Deletion result: $result diaries deleted", name: "Diary Deletion");
+
+      return result > 0;
+
+    } catch (e) {
+      dev.log("Error in removeDiariesFrom: $e", name: "Diary Deletion");
+      return false;
     }
-
-    final result = _diaryDAO.deleteDiaries(filtered);
-    return result > 0 ? true : false;
-  }
-
-  /// Deletes all diaries that match any of the composite keys provided
-  void deleteDiariesByKey(Set<String> keysToDelete, List<DiaryModel> all) {
-    final toDelete = all
-        .where((diary) {
-          final key =
-              '${diary.studyID}_${diary.name}_${diary.start.toIso8601String()}_${diary.end.toIso8601String()}';
-          return keysToDelete.contains(key);
-        })
-        .map((model) => Diary.fromModel(model))
-        .toList();
-
-    for (final diary in toDelete) {
-      NotificationManager().cancelDiaryNotifications(diary.id);
-    }
-
-    _diaryDAO.deleteDiaries(toDelete);
   }
 }
