@@ -37,6 +37,10 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   bool showActionButton = false;
   bool showContactResearcher = false;
   bool showContactResearcherButton = false;
+
+  //Flag to prevent error callbacks from overwriting JS-detected errors
+  bool errorAlreadyHandled = false;
+
   late final uri = Uri.tryParse(widget.url);
 
   @override
@@ -48,163 +52,139 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
         ..setBackgroundColor(Colors.white)
         ..setNavigationDelegate(NavigationDelegate(
           onPageStarted: (url) {
-            setState(() {
-              loading = true;
-              surveyCompleted = false;
-              networkError = false;
-            });
+            if (mounted) {
+              setState(() {
+                loading = true;
+                errorAlreadyHandled = false; // Reset flag on new page load
+              });
+            }
           },
           onPageFinished: (url) async {
-            // Check for error pages AFTER page loads
-            await Future.delayed(Duration(milliseconds: 250));
+            await Future.delayed(const Duration(milliseconds: 500));
+
+            if (!mounted) return;
+
             final errorInfo = await _checkForErrorPage();
 
-            if (errorInfo != null && !networkError) {
-              // Error page detected but no error callback was triggered
-              setState(() {
-                loading = false;
-                networkError = true;
-                errorTitle = errorInfo['title']!;
-                errorMessage = errorInfo['message']!;
-                errorButtonText = errorInfo['buttonText']!;
-                errorIcon = errorInfo['icon']!;
-                showActionButton = errorInfo['showActionButton'] == 'true';
-                showContactResearcherButton =
-                    errorInfo['showContactResearcherButton'] == 'true';
-                showContactResearcher =
-                    errorInfo['showContactResearcher'] == 'true';
-              });
-            } else if (errorInfo == null) {
-              setState(() {
-                loading = false;
-              });
-              _startPeriodicCheck();
+            if (errorInfo != null) {
+              // Error detected - set flag FIRST, then update UI
+              errorAlreadyHandled = true;
+
+              if (mounted) {
+                setState(() {
+                  loading = false;
+                  networkError = true;
+                  errorTitle = errorInfo['title']!;
+                  errorMessage = errorInfo['message']!;
+                  errorButtonText = errorInfo['buttonText']!;
+                  errorIcon = errorInfo['icon']!;
+                  showActionButton = errorInfo['showActionButton'] == 'true';
+                  showContactResearcherButton = errorInfo['showContactResearcherButton'] == 'true';
+                  showContactResearcher = errorInfo['showContactResearcher'] == 'true';
+                });
+
+                // Cancel any survey checking
+                _checkTimer?.cancel();
+
+                // Notify parent of error
+                widget.onComplete(null);
+              }
+            } else {
+              // Success load - only update if no error was already set
+              if (mounted && !networkError) {
+                setState(() {
+                  loading = false;
+                  networkError = false;
+                });
+                _startPeriodicCheck();
+              }
             }
           },
           onWebResourceError: (error) {
-            if (error.errorType == null) return;
-
-            final errorType = error.errorType!;
-
-            // Define error type groups
-            final loginOrPermissionErrors = [
-              WebResourceErrorType.authentication,
-              WebResourceErrorType.proxyAuthentication,
-              WebResourceErrorType.unknown
-            ];
-
-            final pageNotFoundErrors = [
-              WebResourceErrorType.fileNotFound,
-              WebResourceErrorType.unsupportedScheme,
-            ];
-
-            final slowOrLostConnectionErrors = [
-              WebResourceErrorType.timeout,
-              WebResourceErrorType.connect,
-              WebResourceErrorType.hostLookup,
-              WebResourceErrorType.io,
-            ];
-
-            final duplicateOrConflictErrors = [
-              WebResourceErrorType.redirectLoop,
-              WebResourceErrorType.tooManyRequests,
-            ];
-
-            final serverOrSystemFailureErrors = [
-              WebResourceErrorType.failedSslHandshake,
-              WebResourceErrorType.webContentProcessTerminated,
-              WebResourceErrorType.webViewInvalidated,
-            ];
-
-            final inputOrFormErrors = [
-              WebResourceErrorType.badUrl,
-              WebResourceErrorType.unsupportedAuthScheme,
-            ];
-
-            // Check if error type is in any group
-            if (loginOrPermissionErrors.contains(errorType) ||
-                pageNotFoundErrors.contains(errorType) ||
-                slowOrLostConnectionErrors.contains(errorType) ||
-                duplicateOrConflictErrors.contains(errorType) ||
-                serverOrSystemFailureErrors.contains(errorType) ||
-                inputOrFormErrors.contains(errorType)) {
-              setState(() {
-                networkError = true;
-                errorTitle = WebResourceErrorGroups.getErrorTitle(errorType);
-                errorMessage = WebResourceErrorGroups.getErrorMessage(errorType);
-                errorButtonText =
-                    WebResourceErrorGroups.getErrorButtonText(errorType);
-                errorIcon = WebResourceErrorGroups.getErrorIcon(errorType);
-
-                // Showing states which trigger different UI elements
-                if (loginOrPermissionErrors.contains(errorType)) {
-                  showContactResearcherButton = true;
-                } else {
-                  showContactResearcherButton = false;
-                }
-
-                if (serverOrSystemFailureErrors.contains(errorType)) {
-                  showContactResearcher = true;
-                } else {
-                  showContactResearcher = false;
-                }
-
-                if (pageNotFoundErrors.contains(errorType)) {
-                  showActionButton = false;
-                } else {
-                  showActionButton = true;
-                }
-              });
+            // CRITICAL: Don't overwrite errors already detected by JavaScript
+            if (errorAlreadyHandled) {
+              dev.log("Ignoring onWebResourceError - error already handled via JS");
+              return;
             }
 
-            dev.log(
-                "WebView resource error: ${error.description}, Type: $errorType");
+            // CRITICAL FIX FOR iOS: IGNORE CANCELLED REQUESTS
+            // iOS throws "NSURLErrorDomain code -999" (Cancelled) when
+            // a redirect happens. This is NOT a real error.
+            if (error.description.toLowerCase().contains('cancelled') ||
+                error.description.contains('NSURLErrorDomain code -999')) {
+              return;
+            }
+
+            final errorType = error.errorType;
+            if (errorType == null) return;
+
+            errorAlreadyHandled = true; // Mark error as handled
+
+            if (mounted) {
+              setState(() {
+                networkError = true;
+                loading = false;
+                errorTitle = WebResourceErrorGroups.getErrorTitle(errorType);
+                errorMessage = WebResourceErrorGroups.getErrorMessage(errorType);
+                errorButtonText = WebResourceErrorGroups.getErrorButtonText(errorType);
+                errorIcon = WebResourceErrorGroups.getErrorIcon(errorType);
+                showContactResearcherButton = WebResourceErrorGroups.loginOrPermissionErrors.contains(errorType);
+                showContactResearcher = WebResourceErrorGroups.serverOrSystemFailureErrors.contains(errorType);
+                showActionButton = !WebResourceErrorGroups.pageNotFoundErrors.contains(errorType);
+              });
+
+              // Cancel any survey checking
+              _checkTimer?.cancel();
+
+              // Notify parent of error
+              widget.onComplete(null);
+            }
+
+            dev.log("WebView resource error: ${error.description}, Type: $errorType");
           },
+
+          // NOTE: onHttpError IS ANDROID ONLY
           onHttpError: (error) {
+            // CRITICAL: Don't overwrite errors already detected by JavaScript
+            if (errorAlreadyHandled) {
+              dev.log("Ignoring onHttpError - error already handled via JS");
+              return;
+            }
+
             final statusCode = error.response?.statusCode;
             if (statusCode == null) return;
 
-            // Check if status code is in any error group
-            if (HttpErrorGroups.inputOrFormErrors.contains(statusCode) ||
-                HttpErrorGroups.loginOrPermissionErrors.contains(statusCode) ||
-                HttpErrorGroups.pageNotFoundErrors.contains(statusCode) ||
-                HttpErrorGroups.slowOrLostConnectionErrors.contains(statusCode) ||
-                HttpErrorGroups.duplicateOrConflictErrors.contains(statusCode) ||
-                HttpErrorGroups.serverOrSystemFailureErrors
-                    .contains(statusCode)) {
+            errorAlreadyHandled = true; // Mark error as handled
+
+            if (mounted) {
               setState(() {
                 networkError = true;
+                loading = false;
                 errorTitle = HttpErrorGroups.getErrorTitle(statusCode);
                 errorMessage = HttpErrorGroups.getErrorMessage(statusCode);
                 errorButtonText = HttpErrorGroups.getErrorButtonText(statusCode);
                 errorIcon = HttpErrorGroups.getErrorIcon(statusCode);
 
-                //showing states which trigger different UI elements
-                if (HttpErrorGroups.loginOrPermissionErrors
-                    .contains(statusCode)) {
-                  showContactResearcherButton = true;
-                } else {
-                  showContactResearcherButton = false;
-                }
-                if (HttpErrorGroups.serverOrSystemFailureErrors
-                    .contains(statusCode)) {
-                  showContactResearcher = true;
-                } else {
-                  showContactResearcher = false;
-                }
-                if (HttpErrorGroups.pageNotFoundErrors.contains(statusCode)) {
-                  showActionButton = false;
-                } else {
-                  showActionButton = true;
-                }
+                showContactResearcherButton = HttpErrorGroups.loginOrPermissionErrors.contains(statusCode);
+                showContactResearcher = HttpErrorGroups.serverOrSystemFailureErrors.contains(statusCode);
+                showActionButton = !HttpErrorGroups.pageNotFoundErrors.contains(statusCode);
               });
+
+              // Cancel any survey checking
+              _checkTimer?.cancel();
+
+              // Notify parent of error
+              widget.onComplete(null);
             }
+
             dev.log("WebView server error: ${error.response?.statusCode}");
           },
         ))
         ..loadRequest(Uri.parse(widget.url));
     } else {
+      // Handle invalid URL at start
       networkError = true;
+      loading = false;
       errorTitle = HttpErrorGroups.getErrorTitle(404);
       errorMessage = HttpErrorGroups.getErrorMessage(404);
       errorButtonText = HttpErrorGroups.getErrorButtonText(404);
@@ -221,131 +201,139 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return loading
-        ? Center(
-            child: CircularProgressIndicator(
+    // Debug logging to see state changes
+    dev.log('WebView build - loading: $loading, networkError: $networkError, errorTitle: $errorTitle');
+
+    if (loading) {
+      return Center(
+          child: CircularProgressIndicator(
             color: CustomColors.productNormalActive,
             strokeCap: StrokeCap.round,
             strokeWidth: 8,
-          ))
-        : networkError
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                  child: WebViewErrorCard(
-                    //error message content
-                    title: errorTitle,
-                    message: errorMessage,
-                    buttonText: errorButtonText,
-                    //show error icon
-                    icon: errorIcon,
-                    //shows the button for try again/contact researcher
-                    showActionButton: showActionButton,
-                    //shows the text button for contact researcher
-                    showContactResearch: showContactResearcher,
-                    //button action
-                    onRetry:
-                        showContactResearcherButton ? _launchEmail : _reTry,
-                  ),
-                ),
-              )
-            : WebViewWidget(controller: controller);
+          ));
+    }
+
+    if (networkError) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 30.0),
+          child: WebViewErrorCard(
+            title: errorTitle,
+            message: errorMessage,
+            buttonText: errorButtonText,
+            icon: errorIcon,
+            showActionButton: showActionButton,
+            showContactResearch: showContactResearcher,
+            onRetry: showContactResearcherButton ? _launchEmail : _reTry,
+          ),
+        ),
+      );
+    }
+
+    return WebViewWidget(controller: controller);
   }
 
+  // UPDATED JS CHECKER FOR iOS COMPATIBILITY
   Future<Map<String, String>?> _checkForErrorPage() async {
     try {
       final result = await controller.runJavaScriptReturningResult('''
         (function() {
-          // Check for Chrome/WebView error pages
-          const body = document.body;
-          const title = document.title.toLowerCase();
-          const bodyText = body?.innerText || '';
+          // 1. Get basic info
+          const bodyText = document.body ? document.body.innerText : '';
+          const title = document.title ? document.title.toLowerCase() : '';
           
-          // Chrome error page indicators
-          const hasErrorHeading = document.querySelector('[jsselect="heading"]');
-          const hasErrorCode = document.querySelector('.error-code');
+          // 2. iOS/Standard WebKit Checks (Since onHttpError doesn't work on iOS)
+          // Check for explicit status codes in title or body first
+          const statusCodeMatch = bodyText.match(/\\b(4\\d{2}|5\\d{2})\\b/) || title.match(/\\b(4\\d{2}|5\\d{2})\\b/);
+          if (statusCodeMatch) {
+            const code = parseInt(statusCodeMatch[1]);
+            if (code >= 400 && code < 600) {
+              return code;
+            }
+          }
           
-          // Check for common error patterns
+          // Specific error page checks
+          if (title.includes('404') || bodyText.includes('404') || 
+              title.includes('not found') || bodyText.includes('Not Found')) {
+             return 404;
+          }
+          if (title.includes('500') || bodyText.includes('500') || 
+              title.includes('internal server error') || bodyText.includes('Internal Server Error')) {
+             return 500;
+          }
+          if (title.includes('403') || bodyText.includes('403') || 
+              title.includes('forbidden') || bodyText.includes('Forbidden')) {
+             return 403;
+          }
+          if (title.includes('401') || bodyText.includes('401') || 
+              title.includes('unauthorized') || bodyText.includes('Unauthorized')) {
+             return 401;
+          }
+          if (title.includes('400') || bodyText.includes('400') || 
+              title.includes('bad request') || bodyText.includes('Bad Request')) {
+             return 400;
+          }
+          if (title.includes('503') || bodyText.includes('503') || 
+              title.includes('service unavailable') || bodyText.includes('Service Unavailable')) {
+             return 503;
+          }
+
+          // 3. Chrome/Android specific checks
           const errorPatterns = [
             'ERR_HTTP_RESPONSE_CODE_FAILURE',
-            'HTTP ERROR 404',
-            'HTTP ERROR 500',
-            'HTTP ERROR 403',
-            'HTTP ERROR 401',
-            '404 Not Found',
-            '500 Internal Server Error',
-            '403 Forbidden',
-            '401 Unauthorized'
+            'ERR_NAME_NOT_RESOLVED',
+            'ERR_CONNECTION_REFUSED'
           ];
           
-          const hasErrorText = errorPatterns.some(pattern => 
-            bodyText.includes(pattern)
-          );
-          
-          // Check if page looks like an error page
-          const looksLikeErrorPage = (
-            hasErrorHeading || 
-            hasErrorCode || 
-            hasErrorText ||
-            (title.includes('error') && body?.children.length < 5)
-          );
-          
-          if (!looksLikeErrorPage) {
-            return null;
+          if (errorPatterns.some(pattern => bodyText.includes(pattern))) {
+             return 'connection';
           }
           
-          // Try to extract status code
-          let statusCode = null;
-          const codeMatch = bodyText.match(/HTTP ERROR (\\d{3})|\\b(4\\d{2}|5\\d{2})\\b/);
-          if (codeMatch) {
-            statusCode = parseInt(codeMatch[1] || codeMatch[2]);
-          }
-          
-          return statusCode || 'unknown';
+          return null;
         })();
       ''');
 
-      if (result == 'null') {
-        return null; // No error page detected
+      if (result == null || result == 'null') {
+        return null;
       }
 
-      // Parse the status code
       int? statusCode;
       if (result is int) {
         statusCode = result;
-      } else if (result is String && result != 'unknown') {
+      } else if (result is String) {
+        // Try to parse as integer first
         statusCode = int.tryParse(result);
+
+        // If it's the string 'connection', handle separately
+        if (statusCode == null && result == 'connection') {
+          return {
+            'title': 'Connection Issue',
+            'message': 'We could not connect to the server.',
+            'buttonText': 'Try Again',
+            'icon': 'assets/images/icons/paceError.png',
+            'showActionButton': 'true',
+            'showContactResearcherButton': 'false',
+            'showContactResearcher': 'false',
+          };
+        }
       }
 
-      // Return appropriate error info based on status code
-      if (statusCode != null) {
+      if (statusCode != null && statusCode >= 400 && statusCode < 600) {
+        dev.log('JavaScript detected HTTP error: $statusCode');
+
+        // Return mapped error info
         return {
           'title': HttpErrorGroups.getErrorTitle(statusCode),
           'message': HttpErrorGroups.getErrorMessage(statusCode),
           'buttonText': HttpErrorGroups.getErrorButtonText(statusCode),
           'icon': HttpErrorGroups.getErrorIcon(statusCode),
-          'showActionButton':
-              (!HttpErrorGroups.pageNotFoundErrors.contains(statusCode))
-                  .toString(),
-          'showContactResearcherButton': HttpErrorGroups.loginOrPermissionErrors
-              .contains(statusCode)
-              .toString(),
-          'showContactResearcher': HttpErrorGroups.serverOrSystemFailureErrors
-              .contains(statusCode)
-              .toString(),
-        };
-      } else {
-        // Generic error
-        return {
-          'title': 'Connection Issue',
-          'message': 'An unexpected error occurred. Please try again.',
-          'buttonText': 'Try Again',
-          'icon': 'assets/images/icons/warning.png',
-          'showActionButton': 'true',
-          'showContactResearcherButton': 'false',
-          'showContactResearcher': 'true',
+          'showActionButton': (!HttpErrorGroups.pageNotFoundErrors.contains(statusCode)).toString(),
+          'showContactResearcherButton': HttpErrorGroups.loginOrPermissionErrors.contains(statusCode).toString(),
+          'showContactResearcher': HttpErrorGroups.serverOrSystemFailureErrors.contains(statusCode).toString(),
         };
       }
+
+      return null;
     } catch (e) {
       dev.log('Error checking for error page: $e');
       return null;
@@ -354,8 +342,8 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
   _launchEmail() async {
     await launchEmail(
-    subject: 'Permission Issue – Assistance Needed',
-    body: ''' A permission issue was encountered. Please investigate and advise on next steps.
+      subject: 'Permission Issue – Assistance Needed',
+      body: ''' A permission issue was encountered. Please investigate and advise on next steps.
         
         
 Participant ID: ''',
@@ -366,6 +354,7 @@ Participant ID: ''',
     setState(() {
       networkError = false;
       loading = true;
+      errorAlreadyHandled = false; // Reset flag on retry
     });
     controller.reload();
   }
@@ -381,11 +370,12 @@ Participant ID: ''',
   }
 
   void detectSurveyFinish() async {
-    if (networkError) {
-      widget.onComplete(null); // Pass null when there's an error
-      _checkTimer?.cancel(); // Stop checking
+    // Don't run survey checks if there's an error
+    if (networkError || loading) {
+      _checkTimer?.cancel();
       return;
     }
+
     final String javaScript = '''
     (function() {
 
@@ -556,7 +546,7 @@ Participant ID: ''',
       (error) {
         // Handle any errors that occur during JavaScript execution
         dev.log('Error running JavaScript: $error');
-        return false; // Default to false if there's an error
+        return false;
       },
     );
     if (data == true && mounted) {
