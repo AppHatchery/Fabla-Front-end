@@ -28,9 +28,17 @@ String determineDiaryIcon(DiaryModel diary) {
 
   final hasTimer = responseTypes.contains(ResponseType.timer);
 
+  final hasWebView = responseTypes.contains(ResponseType.webview);
+
+
   // Doesn’t have audio/video/timer questions
   if (!hasAudio && !hasCamera && !hasTimer) {
     return "assets/images/icons/survey.png";
+  }
+
+  //has webview only question
+  if(hasWebView) {
+    return "assets/images/icons/webview.png";
   }
 
   // has audio question(s), doesn’t have video/timer questions.
