@@ -354,6 +354,7 @@ Participant ID: ''',
       networkError = false;
       loading = true;
       errorAlreadyHandled = false; // Reset flag on retry
+      widget.onComplete(false);
     });
     controller.reload();
   }
