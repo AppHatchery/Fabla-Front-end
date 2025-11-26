@@ -1181,7 +1181,7 @@ class BottomErrorModal extends StatelessWidget {
 
 class BottomWebViewModal extends StatefulWidget {
   final String url;
-  final void Function(String?) respond;
+  final void Function(String) respond;
   const BottomWebViewModal(
       {super.key, required this.url, required this.respond});
 
@@ -1247,7 +1247,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
             child: CustomFlatButton(
               isDisabled: (completed == false),
               onClick: () => save(),
-              text: "Continue",
+              text: completed == null ? "skip" : "Continue",
             ),
           )
         ],
@@ -1267,9 +1267,8 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
 
   save() {
     end = DateTime.now();
-    // Pass null if there was an error, otherwise pass the time range
     if (completed == null) {
-      widget.respond(null);
+      widget.respond("Item was skipped due to lack of internet connectivity");
     } else {
       widget.respond("Start: $start | End: $end");
     }

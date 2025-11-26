@@ -201,7 +201,6 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Debug logging to see state changes
     dev.log('WebView build - loading: $loading, networkError: $networkError, errorTitle: $errorTitle');
 
     if (loading) {
