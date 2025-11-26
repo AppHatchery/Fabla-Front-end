@@ -662,7 +662,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                     text: "Tap here to respond",
                   )
                 : Text(
-                    "✅ Thank you, please click 'Continue' to proceed.",
+                    "✅ Thank you, please click 'Next' to proceed.",
                     style: CustomTypography()
                         .bodyLarge(color: CustomColors.textTertiaryContent),
                   ),
