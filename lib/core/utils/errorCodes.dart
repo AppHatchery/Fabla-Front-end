@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:webview_flutter/webview_flutter.dart';
 
 // Error code groups and helper class
@@ -13,19 +15,19 @@ class HttpErrorGroups {
 
   static String getErrorMessage(int statusCode) {
     if (inputOrFormErrors.contains(statusCode)) {
-      return "Something seems wrong with what you entered. Please review and try again.";
+      return "Something seems wrong with what you entered. Please review and try again, or choose to skip. If you skip, you won’t be able to submit the web survey later, but your other responses will be saved.";
     } else if (loginOrPermissionErrors.contains(statusCode)) {
-      return "You don’t have access permission to this page.";
+      return "You don’t have permission to access this page. Contact the researcher or skip. If you skip, you won’t be able to submit the web survey later, but your other responses will be saved.";
     } else if (pageNotFoundErrors.contains(statusCode)) {
-      return "The page or form you’re trying to open isn’t available.";
+      return "The web survey you’re trying to open isn’t available. Contact the researcher or skip. If you skip, you won’t be able to submit it later, but your other responses will be saved.";
     } else if (slowOrLostConnectionErrors.contains(statusCode)) {
-      return "It’s taking too long or too many requests were made. Please wait a moment and try again.";
+      return "It’s taking too long or there were too many requests. Try again shortly or skip. If you skip, you won’t be able to submit it later, but your other responses will be saved.";
     } else if (duplicateOrConflictErrors.contains(statusCode)) {
-      return "There was a problem saving your form. Please refresh and try again.";
+      return "We couldn’t save your form. Try again or skip. If you skip, you won’t be able to submit it later, but your other responses will be saved.";
     } else if (serverOrSystemFailureErrors.contains(statusCode)) {
-      return "Something went wrong on our end. Please try again later.";
+      return "Something went wrong on our end. Try again later or skip. If you skip, you won’t be able to submit it later, but your other responses will be saved.";
     }
-    return "An unexpected error occurred. Please try again.";
+    return "AIt looks like your internet might be slow or disconnected. Please check your connection. You need internet to start this entry.";
   }
 
   static String getErrorTitle(int statusCode) {
@@ -46,10 +48,9 @@ class HttpErrorGroups {
   }
 
   static String getErrorButtonText(int statusCode) {
-    if (loginOrPermissionErrors.contains(statusCode)) {
+    if (loginOrPermissionErrors.contains(statusCode) ||
+        pageNotFoundErrors.contains(statusCode)) {
       return "Contact Researcher";
-    } else if (pageNotFoundErrors.contains(statusCode)) {
-      return "";
     }
     return "Try Again";
   }
@@ -68,13 +69,24 @@ class HttpErrorGroups {
     } else if (serverOrSystemFailureErrors.contains(statusCode)) {
       return "assets/images/icons/database_off.png";
     }
-    return "assets/images/icons/warning.png";
+    return "assets/images/icons/link_off.png";
+  }
+
+  static bool getConnectionStatus(int statusCode){
+    if(inputOrFormErrors.contains(statusCode) ||
+    loginOrPermissionErrors.contains(statusCode) ||
+    pageNotFoundErrors.contains(statusCode) ||
+    slowOrLostConnectionErrors.contains(statusCode) ||
+    duplicateOrConflictErrors.contains(statusCode) ||
+    serverOrSystemFailureErrors.contains(statusCode)){
+      return false;
+    }
+    return true;
   }
 }
 
 //client side error codes
 class WebResourceErrorGroups {
-
   static const loginOrPermissionErrors = [
     WebResourceErrorType.authentication,
     WebResourceErrorType.proxyAuthentication,
@@ -89,7 +101,6 @@ class WebResourceErrorGroups {
   static const slowOrLostConnectionErrors = [
     WebResourceErrorType.timeout,
     WebResourceErrorType.connect,
-    WebResourceErrorType.hostLookup,
     WebResourceErrorType.io,
   ];
 
@@ -111,44 +122,46 @@ class WebResourceErrorGroups {
 
   static String getErrorTitle(WebResourceErrorType errorType) {
     if (loginOrPermissionErrors.contains(errorType)) {
-      return "Authentication Required";
+      return "Permission Issue";
     } else if (pageNotFoundErrors.contains(errorType)) {
       return "Page Not Found";
     } else if (slowOrLostConnectionErrors.contains(errorType)) {
       return "Connection Issue";
     } else if (duplicateOrConflictErrors.contains(errorType)) {
-      return "Too Many Attempts";
+      return "Submission Error";
     } else if (serverOrSystemFailureErrors.contains(errorType)) {
       return "Server Error";
     } else if (inputOrFormErrors.contains(errorType)) {
-      return "Invalid Request";
+      return "Input Error";
     }
-    return "Error";
+    return "Connection Issue";
   }
 
   static String getErrorMessage(WebResourceErrorType errorType) {
     if (loginOrPermissionErrors.contains(errorType)) {
-      return "Authentication is required to access this content. Please check your credentials.";
+      return "You don’t have permission to access this page. Contact the researcher or skip. If you skip, you won’t be able to submit the web survey later, but your other responses will be saved.";
     } else if (pageNotFoundErrors.contains(errorType)) {
-      return "The requested page could not be found. Please check the URL or contact support.";
+      return "The web survey you’re trying to open isn’t available. Contact the researcher or skip. If you skip, you won’t be able to submit it later, but your other responses will be saved.";
     } else if (slowOrLostConnectionErrors.contains(errorType)) {
-      return "Your internet connection is unstable. The survey can't be accessed right now. Please reconnect to access the survey.";
+      return "It’s taking too long or there were too many requests. Try again shortly or skip. If you skip, you won’t be able to submit it later, but your other responses will be saved.";
     } else if (duplicateOrConflictErrors.contains(errorType)) {
-      return "Too many requests or redirects. Please wait a moment and try again.";
+      return "We couldn’t save your form. Try again or skip. If you skip, you won’t be able to submit it later, but your other responses will be saved.";
     } else if (serverOrSystemFailureErrors.contains(errorType)) {
-      return "The server is experiencing issues. Please try again later or contact support.";
+      return "Something went wrong on our end. Try again later or skip. If you skip, you won’t be able to submit it later, but your other responses will be saved.";
     } else if (inputOrFormErrors.contains(errorType)) {
-      return "The request format is invalid. Please check the URL or contact support.";
+      return "Something seems wrong with what you entered. Please review and try again, or choose to skip. If you skip, you won’t be able to submit the web survey later, but your other responses will be saved.";
     }
-    return "An unexpected error occurred. Please try again.";
+    return "It looks like your internet might be slow or disconnected. Please check your connection. You need internet to start this entry.";
   }
 
   static String getErrorButtonText(WebResourceErrorType errorType) {
-    if (pageNotFoundErrors.contains(errorType)) {
-      return "";
+    if (loginOrPermissionErrors.contains(errorType) ||
+        pageNotFoundErrors.contains(errorType)) {
+      return "Contact Researcher";
     }
     return "Try Again";
   }
+
   static String getErrorIcon(WebResourceErrorType errorType) {
     if (loginOrPermissionErrors.contains(errorType)) {
       return "assets/images/icons/lock.png";
@@ -157,12 +170,25 @@ class WebResourceErrorGroups {
     } else if (slowOrLostConnectionErrors.contains(errorType)) {
       return "assets/images/icons/paceError.png";
     } else if (duplicateOrConflictErrors.contains(errorType)) {
-      return "assets/images/icons/scan_delete.png";;
+      return "assets/images/icons/scan_delete.png";
+      ;
     } else if (serverOrSystemFailureErrors.contains(errorType)) {
       return "assets/images/icons/database_off.png";
     } else if (inputOrFormErrors.contains(errorType)) {
       return "assets/images/icons/content_paste_off.png";
     }
-    return "assets/images/icons/warning.png";
+    return "assets/images/icons/link_off.png";
+  }
+
+  static bool getConnectionStatus(WebResourceErrorType errorType){
+    if(inputOrFormErrors.contains(errorType) ||
+        loginOrPermissionErrors.contains(errorType) ||
+        pageNotFoundErrors.contains(errorType) ||
+        slowOrLostConnectionErrors.contains(errorType)||
+        duplicateOrConflictErrors.contains(errorType) ||
+        serverOrSystemFailureErrors.contains(errorType)){
+      return false;
+    }
+    return true;
   }
 }

@@ -1247,7 +1247,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
             child: CustomFlatButton(
               isDisabled: (completed == false),
               onClick: () => save(),
-              text: completed == null ? "skip" : "Continue",
+              text: "Continue",
             ),
           )
         ],
@@ -1269,6 +1269,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
     end = DateTime.now();
     if (completed == null) {
       widget.respond("Item was skipped due to lack of internet connectivity");
+      dev.log("skipped");
     } else {
       widget.respond("Start: $start | End: $end");
     }

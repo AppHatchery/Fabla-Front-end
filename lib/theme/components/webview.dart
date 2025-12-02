@@ -32,9 +32,9 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   String errorMessage = '';
   String errorButtonText = '';
   String errorIcon = '';
+  bool connection = false;
 
   //variables to show different UI elements on the error card
-  bool showActionButton = false;
   bool showContactResearcher = false;
   bool showContactResearcherButton = false;
 
@@ -78,16 +78,14 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                   errorMessage = errorInfo['message']!;
                   errorButtonText = errorInfo['buttonText']!;
                   errorIcon = errorInfo['icon']!;
-                  showActionButton = errorInfo['showActionButton'] == 'true';
                   showContactResearcherButton = errorInfo['showContactResearcherButton'] == 'true';
                   showContactResearcher = errorInfo['showContactResearcher'] == 'true';
+                  connection = false;
                 });
 
                 // Cancel any survey checking
                 _checkTimer?.cancel();
 
-                // Notify parent of error
-                widget.onComplete(null);
               }
             } else {
               // Success load - only update if no error was already set
@@ -128,16 +126,14 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                 errorMessage = WebResourceErrorGroups.getErrorMessage(errorType);
                 errorButtonText = WebResourceErrorGroups.getErrorButtonText(errorType);
                 errorIcon = WebResourceErrorGroups.getErrorIcon(errorType);
+                connection = WebResourceErrorGroups.getConnectionStatus(errorType);
                 showContactResearcherButton = WebResourceErrorGroups.loginOrPermissionErrors.contains(errorType);
                 showContactResearcher = WebResourceErrorGroups.serverOrSystemFailureErrors.contains(errorType);
-                showActionButton = !WebResourceErrorGroups.pageNotFoundErrors.contains(errorType);
               });
 
               // Cancel any survey checking
               _checkTimer?.cancel();
 
-              // Notify parent of error
-              widget.onComplete(null);
             }
 
             dev.log("WebView resource error: ${error.description}, Type: $errorType");
@@ -164,17 +160,15 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                 errorMessage = HttpErrorGroups.getErrorMessage(statusCode);
                 errorButtonText = HttpErrorGroups.getErrorButtonText(statusCode);
                 errorIcon = HttpErrorGroups.getErrorIcon(statusCode);
-
+                connection = HttpErrorGroups.getConnectionStatus(statusCode);
                 showContactResearcherButton = HttpErrorGroups.loginOrPermissionErrors.contains(statusCode);
                 showContactResearcher = HttpErrorGroups.serverOrSystemFailureErrors.contains(statusCode);
-                showActionButton = !HttpErrorGroups.pageNotFoundErrors.contains(statusCode);
+
               });
 
               // Cancel any survey checking
               _checkTimer?.cancel();
 
-              // Notify parent of error
-              widget.onComplete(null);
             }
 
             dev.log("WebView server error: ${error.response?.statusCode}");
@@ -189,7 +183,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
       errorMessage = HttpErrorGroups.getErrorMessage(404);
       errorButtonText = HttpErrorGroups.getErrorButtonText(404);
       errorIcon = HttpErrorGroups.getErrorIcon(404);
-      showActionButton = false;
+      connection = HttpErrorGroups.getConnectionStatus(404);
     }
   }
 
@@ -215,15 +209,17 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
     if (networkError) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30.0),
+          padding: const EdgeInsets.symmetric(horizontal: 19.0),
           child: WebViewErrorCard(
             title: errorTitle,
             message: errorMessage,
             buttonText: errorButtonText,
             icon: errorIcon,
-            showActionButton: showActionButton,
             showContactResearch: showContactResearcher,
             onRetry: showContactResearcherButton ? _launchEmail : _reTry,
+            skip: _skip,
+            connection: connection,
+            screenChange: _screenChange
           ),
         ),
       );
@@ -357,6 +353,22 @@ Participant ID: ''',
       widget.onComplete(false);
     });
     controller.reload();
+  }
+
+  void _skip(){
+    setState(() {
+      widget.onComplete(null);
+    });
+  }
+
+  void _screenChange(){
+    setState(() {
+      errorTitle = "No Internet Connection";
+      errorMessage = "We’re unable to load the survey due to no internet connection. Reconnect or skip to continue. If you skip, you won’t be able to submit the web survey later, but your remaining responses will still be recorded.";
+      errorIcon = "assets/images/icons/android_wifi_3_bar_off.png";
+      errorButtonText = "Try Again";
+      connection = false;
+    });
   }
 
 

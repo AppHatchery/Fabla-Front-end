@@ -26,6 +26,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../../core/utils/emailFunction.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
@@ -651,23 +652,103 @@ class WebViewResponseCard extends StatefulWidget {
 class _WebViewResponseCardState extends State<WebViewResponseCard> {
   @override
   Widget build(BuildContext context) {
+    final response = widget.prompt.answer?.response;
+
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            widget.prompt.answer?.response?.isEmpty ?? true
-                ? CustomFlatButton(
-                    onClick: () => showModal(),
-                    text: "Tap here to respond",
-                  )
-                : Text(
-                    "✅ Thank you, please click 'Next' to proceed.",
-                    style: CustomTypography()
-                        .bodyLarge(color: CustomColors.textTertiaryContent),
+            if (response == null || response.isEmpty) ...[
+              CustomFlatButton(
+                onClick: () => showModal(),
+                text: "Tap here to respond",
+              )
+            ]
+            else if (response.contains("Item was skipped due to lack of internet connectivity")) ...[
+              SizedBox(
+                width: 230,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      "assets/images/icons/link_off.png",
+                      width: 80,
+                      height: 80,
+                    ),
+                    SizedBox(
+                      height: 24,
+                    ),
+                    Text(
+                      "Unable to Complete Web Survey",
+                      textAlign: TextAlign.center,
+                      style: CustomTypography().headlineMedium(
+                        color: Color(0xFFFF3B30),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 4,
+                    ),
+                    Text(
+                      "You can reach out to the researcher to complete it.",
+                      textAlign: TextAlign.center,
+                      style: CustomTypography().bodyLarge(),
+                    ),
+                    SizedBox(
+                      height: 100,
+                    ),
+                    GestureDetector(
+                      onTap: _launchEmail,
+                      child: Text(
+                        "Contact Researcher",
+                        textAlign: TextAlign.center,
+                        style:
+                            CustomTypography().button(color: Color(0xFFFF3B30)),
+                      ),
+                    )
+                  ],
+                ),
+              )
+            ]
+            else
+              Column(
+                spacing: 24,
+                children: [
+                  SizedBox(
+                    height: 160,
+                    width: 160,
+                    child: Image.asset("assets/images/icons/check_circle.png"),
                   ),
+                  RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: "Thank you\n",
+                          style: CustomTypography().titleSmall(
+                            color: CustomColors.productNormal,
+                          ),
+                        ),
+                        TextSpan(
+                            text: "Please click ‘Next’ to proceed",
+                            style: CustomTypography().titleSmall()),
+                      ],
+                    ),
+                  )
+                ],
+              ),
           ],
         ));
+  }
+
+  _launchEmail() async {
+    launchEmail(
+        subject: 'Web Survey – Assistance Needed',
+        body: '''Error encountered. Please investigate and advise on next steps.
+        
+        
+Participant ID: ''');
   }
 
   void showModal() {

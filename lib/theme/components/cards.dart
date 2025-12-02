@@ -1577,9 +1577,11 @@ class WebViewErrorCard extends StatelessWidget {
   final double spacing;
   final String buttonText;
   final VoidCallback onRetry;
-  final bool showActionButton;
   final bool showContactResearch;
   final String icon;
+  final VoidCallback skip;
+  final bool connection;
+  final VoidCallback screenChange;
 
   const WebViewErrorCard({
     super.key,
@@ -1588,9 +1590,10 @@ class WebViewErrorCard extends StatelessWidget {
     this.spacing = 24,
     required this.buttonText,
     required this.onRetry,
-    required this.showActionButton,
     required this.showContactResearch,
     required this.icon,
+    required this.skip,
+    required this.connection, required this.screenChange,
   });
 
   @override
@@ -1609,7 +1612,7 @@ class WebViewErrorCard extends StatelessWidget {
           title,
           textAlign: TextAlign.center,
           style: CustomTypography().headlineMedium(
-            color: CustomColors.warningNormal,
+            color: Color(0xFFFF3B30),
           ),
         ),
         Text(
@@ -1617,21 +1620,43 @@ class WebViewErrorCard extends StatelessWidget {
           textAlign: TextAlign.center,
           style: CustomTypography().bodyLarge(),
         ),
-        if (showActionButton)
-          CustomOutlineButton(
-            onClick: onRetry,
-            color: CustomColors.warningNormal,
-            backgroundColor: Colors.transparent,
-            children: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  buttonText,
-                  style: TextStyle(color: CustomColors.warningNormal),
+        Row(
+          spacing: 12,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.39,
+              height: 48.5,
+              child: CustomOutlineButton(
+                onClick: onRetry,
+                color: Color(0xFFFF3B30),
+                backgroundColor: Colors.transparent,
+                children: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  alignment: WrapAlignment.center,
+                  runAlignment: WrapAlignment.center,
+                  children: [
+                    Text(
+                      softWrap: false,
+                      buttonText,
+                      style: TextStyle(fontSize: 12, color: Color(0xFFFF3B30)),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.38,
+              height: 61,
+              child: CustomFlatButton(
+                  color: Color(0xFFFF3B30),
+                  borderColor: Color(0xFFFF3B30),
+                  onClick: connection ? screenChange : skip,
+                  text: connection ? "Yes, I'm Offline" : "Skip"),
+            )
+          ],
+        ),
         SizedBox(
           height: 142,
         ),
@@ -1641,8 +1666,7 @@ class WebViewErrorCard extends StatelessWidget {
             child: Text(
               "Contact Researcher",
               textAlign: TextAlign.center,
-              style:
-                  CustomTypography().button(color: CustomColors.warningNormal),
+              style: CustomTypography().button(color: Color(0xFFFF3B30)),
             ),
           )
       ],
@@ -1650,8 +1674,10 @@ class WebViewErrorCard extends StatelessWidget {
   }
 
   _launchEmail() async {
-   launchEmail(subject: 'Server Error – Assistance Needed',
-       body: '''Server error encountered. Please investigate and advise on next steps.
+    launchEmail(
+        subject: 'Server Error – Assistance Needed',
+        body:
+            '''Server error encountered. Please investigate and advise on next steps.
         
         
 Participant ID: ''');
