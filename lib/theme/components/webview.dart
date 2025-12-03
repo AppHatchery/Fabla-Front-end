@@ -380,7 +380,7 @@ Participant ID: ''',
   void _startTimeout() async {
 
     _startTimer?.cancel();
-    _startTimer = Timer.periodic(Duration(seconds: 5), (timer) {
+    _startTimer = Timer.periodic(Duration(seconds: 60), (timer) {
 
       if (mounted && timeOut) {
 
