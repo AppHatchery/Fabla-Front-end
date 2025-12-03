@@ -27,7 +27,7 @@ class HttpErrorGroups {
     } else if (serverOrSystemFailureErrors.contains(statusCode)) {
       return "Something went wrong on our end. Try again later or skip. If you skip, you won’t be able to submit it later, but your other responses will be saved.";
     }
-    return "AIt looks like your internet might be slow or disconnected. Please check your connection. You need internet to start this entry.";
+    return "It looks like your internet might be slow or disconnected. Please check your connection. You need internet to start this entry.";
   }
 
   static String getErrorTitle(int statusCode) {

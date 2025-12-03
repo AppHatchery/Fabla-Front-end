@@ -23,6 +23,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   late WebViewController controller;
 
   Timer? _checkTimer;
+  Timer? _startTimer;
   bool surveyCompleted = false;
 
   //ui elements
@@ -33,6 +34,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   String errorButtonText = '';
   String errorIcon = '';
   bool connection = false;
+  bool timeOut = true;
 
   //variables to show different UI elements on the error card
   bool showContactResearcher = false;
@@ -55,12 +57,18 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
             if (mounted) {
               setState(() {
                 loading = true;
-                errorAlreadyHandled = false; // Reset flag on new page load
+                errorAlreadyHandled = false;// Reset flag on new page load
               });
             }
+            _startTimeout();
+
+            _cancelTimer();
           },
           onPageFinished: (url) async {
-            await Future.delayed(const Duration(milliseconds: 500));
+
+            _cancelTimer();
+
+            await Future.delayed(const Duration(milliseconds: 300));
 
             if (!mounted) return;
 
@@ -85,6 +93,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
                 // Cancel any survey checking
                 _checkTimer?.cancel();
+                _startTimer?.cancel();
 
               }
             } else {
@@ -93,12 +102,15 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                 setState(() {
                   loading = false;
                   networkError = false;
+                  timeOut = false;
                 });
                 _startPeriodicCheck();
               }
             }
           },
           onWebResourceError: (error) {
+            _cancelTimer();
+
             // CRITICAL: Don't overwrite errors already detected by JavaScript
             if (errorAlreadyHandled) {
               dev.log("Ignoring onWebResourceError - error already handled via JS");
@@ -133,6 +145,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
               // Cancel any survey checking
               _checkTimer?.cancel();
+              _startTimer?.cancel();
 
             }
 
@@ -141,6 +154,9 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
           // NOTE: onHttpError IS ANDROID ONLY
           onHttpError: (error) {
+
+            _cancelTimer();
+
             // CRITICAL: Don't overwrite errors already detected by JavaScript
             if (errorAlreadyHandled) {
               dev.log("Ignoring onHttpError - error already handled via JS");
@@ -169,6 +185,8 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
               // Cancel any survey checking
               _checkTimer?.cancel();
 
+              _startTimer?.cancel();
+
             }
 
             dev.log("WebView server error: ${error.response?.statusCode}");
@@ -190,6 +208,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   @override
   void dispose() {
     _checkTimer?.cancel();
+    _startTimer?.cancel();
     super.dispose();
   }
 
@@ -352,13 +371,49 @@ Participant ID: ''',
       errorAlreadyHandled = false; // Reset flag on retry
       widget.onComplete(false);
     });
+    _cancelTimer();
     controller.reload();
+    _startTimeout();
   }
+
+
+  void _startTimeout() async {
+
+    _startTimer?.cancel();
+    _startTimer = Timer.periodic(Duration(seconds: 5), (timer) {
+
+      if (mounted && timeOut) {
+
+        errorAlreadyHandled = true;
+        dev.log("connection Time Out");
+
+        setState(() {
+          loading = false;
+          errorTitle = "Connection Issue";
+          errorMessage =
+          "It looks like your internet might be slow or disconnected. Please check your connection. You need internet to start this entry.";
+          errorButtonText = "Try Again";
+          errorIcon = "assets/images/icons/link_off.png";
+          connection = true;
+          networkError = true;
+        });
+      }
+    });
+  }
+
+  void _cancelTimer(){
+    if (networkError){
+      _startTimer?.cancel();
+      _startTimer = null;
+    }
+  }
+
 
   void _skip(){
     setState(() {
       widget.onComplete(null);
     });
+    _startTimer?.cancel();
   }
 
   void _screenChange(){
