@@ -521,7 +521,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                       ),
                       Expanded(
                         child: Text("Skipped due to internet connectivity",
-                            style: CustomTypography().bodyMedium(),
+                            style: CustomTypography().bodyMedium(
+                              color: Color(0xFFFF3B30),
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis),
                       ),
