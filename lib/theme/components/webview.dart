@@ -398,7 +398,7 @@ Participant ID: ''',
   void _startTimeout() async {
 
     _startTimer?.cancel();
-    _startTimer = Timer(Duration(seconds: 5),(){
+    _startTimer = Timer(Duration(seconds: 15),(){
 
       if (mounted && timeOut) {
 
