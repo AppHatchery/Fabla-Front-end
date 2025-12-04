@@ -51,7 +51,6 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
     if (uri != null && uri!.hasScheme) {
       controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setBackgroundColor(Colors.white)
         ..setNavigationDelegate(NavigationDelegate(
           onPageStarted: (url) {
             if (mounted) {
@@ -61,14 +60,8 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
               });
             }
             _startTimeout();
-
-            _cancelTimer();
           },
           onPageFinished: (url) async {
-
-            _cancelTimer();
-
-            await Future.delayed(const Duration(milliseconds: 300));
 
             if (!mounted) return;
 
@@ -89,6 +82,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                   showContactResearcherButton = errorInfo['showContactResearcherButton'] == 'true';
                   showContactResearcher = errorInfo['showContactResearcher'] == 'true';
                   connection = false;
+                  timeOut = false;
                 });
 
                 // Cancel any survey checking
@@ -109,7 +103,6 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
             }
           },
           onWebResourceError: (error) {
-            _cancelTimer();
 
             // CRITICAL: Don't overwrite errors already detected by JavaScript
             if (errorAlreadyHandled) {
@@ -154,8 +147,6 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
           // NOTE: onHttpError IS ANDROID ONLY
           onHttpError: (error) {
-
-            _cancelTimer();
 
             // CRITICAL: Don't overwrite errors already detected by JavaScript
             if (errorAlreadyHandled) {
@@ -202,6 +193,11 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
       errorButtonText = HttpErrorGroups.getErrorButtonText(404);
       errorIcon = HttpErrorGroups.getErrorIcon(404);
       connection = HttpErrorGroups.getConnectionStatus(404);
+
+      // Cancel any survey checking
+      _checkTimer?.cancel();
+
+      _startTimer?.cancel();
     }
   }
 
@@ -364,23 +360,45 @@ Participant ID: ''',
     );
   }
 
-  void _reTry() {
+  void _reTry() async {
+    // Cancel the timers first
+    _startTimer?.cancel();
+    _startTimer = null;
+
+    // Reset ALL state variables
     setState(() {
       networkError = false;
       loading = true;
-      errorAlreadyHandled = false; // Reset flag on retry
-      widget.onComplete(false);
+      errorAlreadyHandled = false;
+      timeOut = true;
     });
-    _cancelTimer();
-    controller.reload();
-    _startTimeout();
+
+    // Notify parent
+    widget.onComplete(false);
+
+    // Small delay to let the UI rebuild for iOS
+    await Future.delayed(const Duration(milliseconds: 80));
+
+    // force a fresh navigation on iOS
+    final cacheBustedUrl = Uri.parse(
+      '${widget.url}${widget.url.contains('?') ? '&' : '?'}_ts=${DateTime.now().millisecondsSinceEpoch}',
+    );
+
+    try {
+      await controller.loadRequest(cacheBustedUrl);
+      // Give a moment for the page to start loading
+      await Future.delayed(const Duration(milliseconds: 120));
+      return;
+    } catch (e) {
+      dev.log('loadRequest(cacheBustedUrl) failed: $e');
+    }
   }
 
 
   void _startTimeout() async {
 
     _startTimer?.cancel();
-    _startTimer = Timer.periodic(Duration(seconds: 60), (timer) {
+    _startTimer = Timer(Duration(seconds: 5),(){
 
       if (mounted && timeOut) {
 
@@ -400,14 +418,6 @@ Participant ID: ''',
       }
     });
   }
-
-  void _cancelTimer(){
-    if (networkError){
-      _startTimer?.cancel();
-      _startTimer = null;
-    }
-  }
-
 
   void _skip(){
     setState(() {
