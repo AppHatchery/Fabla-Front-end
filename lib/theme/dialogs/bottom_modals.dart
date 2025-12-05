@@ -40,6 +40,7 @@ class BottomRecordingModal extends StatefulWidget {
   final Duration? suggested;
   final Duration? limit;
   final ValueChanged<String?>? onSave;
+  final String? subtitle;
 
   const BottomRecordingModal(
       {super.key,
@@ -48,7 +49,8 @@ class BottomRecordingModal extends StatefulWidget {
       required this.question,
       this.suggested,
       this.limit,
-      this.hint});
+      this.hint,
+      required this.subtitle});
 
   @override
   State<BottomRecordingModal> createState() => _BottomRecordingModalState();
@@ -189,21 +191,21 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    widget.hint ??
-                        "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
-                    style: CustomTypography().bodyLarge(
-                      color: const Color(0x5C000000),
+                    widget.subtitle ?? "",
+                    style: CustomTypography()
+                        .bodyLarge(
+                      color: CustomColors.textNormalContent,
                       weight: FontWeight.w400,
                     ),
                   ),
-                  SizedBox(
-                      height: textScaleFactor >= 1.8
-                          ? 0
-                          : textScaleFactor >= 1.2
-                              ? 75
-                              : textScaleFactor >= 1.0
-                                  ? 80
-                                  : 100),
+                  Text(
+                    widget.hint ??
+                        "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
+                    style: CustomTypography().bodyLarge(
+                      color: const Color(0x000000DB),
+                      weight: FontWeight.w400,
+                    ),
+                  ),
                   _riveAnimation(),
                 ],
               ),

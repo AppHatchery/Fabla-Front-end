@@ -620,6 +620,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
               return BottomRecordingModal(
                 promptId: prompt.id,
                 question: prompt.question,
+                subtitle: prompt.subtitle,
                 limit: prompt.option?.maxLength,
                 suggested: prompt.option?.suggestedLength,
                 hint: hint,

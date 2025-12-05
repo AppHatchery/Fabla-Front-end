@@ -65,7 +65,7 @@ class AudioQuestionsWidget extends StatelessWidget {
                     child: Text(
                       questionTip,
                       style: const TextStyle(
-                          color: CustomColors.textTertiaryContent),
+                          color: CustomColors.textNormalContent),
                     ),
                   )
                 ],

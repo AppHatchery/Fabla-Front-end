@@ -687,8 +687,10 @@ class _QuestionPageState extends State<QuestionPage>
                           Expanded(
                             child: Text(
                               questionTip,
-                              style: const TextStyle(
-                                  color: CustomColors.textTertiaryContent),
+                              style:CustomTypography().bodyLarge(
+                                color: CustomColors.textNormalContent,
+                                weight: FontWeight.w400
+                              )
                             ),
                           )
                         ],
@@ -774,6 +776,7 @@ class _QuestionPageState extends State<QuestionPage>
                   return BottomRecordingModal(
                     promptId: prompt.id,
                     question: prompt.question,
+                    subtitle: prompt.subtitle,
                     hint: hint,
                     limit: prompt.option?.maxLength,
                     suggested: prompt.option?.suggestedLength,
