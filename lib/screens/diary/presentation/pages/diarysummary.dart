@@ -498,23 +498,63 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             });
       case ResponseType.webview:
         final width = MediaQuery.of(context).size.width;
-        return prompt.answer != null
-            ? Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                child: Container(
-                  width: width,
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: Row(children: [
-                    Expanded(
-                      child: Text("Response recorded externally",
-                          style: CustomTypography().bodyMedium(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis),
+        return prompt.answer == null
+            ? const SizedBox.shrink()
+            : prompt.answer?.response?.contains("Item was skipped due to lack of internet connectivity") == true
+                ? Container(
+                    width: width,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: CustomColors.grey,
+                      borderRadius: BorderRadius.circular(12),
+                      shape: BoxShape.rectangle,
                     ),
-                  ]),
-                ),
-              )
-            : const SizedBox.shrink();
+                    child: Row(children: [
+                      Image.asset(
+                        "assets/images/icons/block.png",
+                        height: 16,
+                        width: 16,
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Expanded(
+                        child: Text("Skipped due to internet connectivity",
+                            style: CustomTypography().bodyMedium(
+                              color: Color(0xFFFF3B30),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
+                      ),
+                    ]),
+                  )
+                : Container(
+                    width: width,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: CustomColors.grey,
+                      borderRadius: BorderRadius.circular(12),
+                      shape: BoxShape.rectangle,
+                    ),
+                    child: Row(children: [
+                      Image.asset(
+                        "assets/images/icons/task_alt.png",
+                        height: 16,
+                        width: 16,
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Expanded(
+                        child: Text("Survey response collected",
+                            style: CustomTypography().bodyMedium(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
+                      ),
+                    ]),
+                  );
       case ResponseType.image:
       case ResponseType.video:
       case ResponseType.imageVideo:

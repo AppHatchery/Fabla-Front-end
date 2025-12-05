@@ -1,133 +1,441 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 
+import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-import '../custom_typography.dart';
-import 'buttons.dart';
+import '../../core/utils/emailFunction.dart';
+import '../../core/utils/errorCodes.dart';
 
 class CustomWebViewWidget extends StatefulWidget {
   final String url;
-  final Function(bool) onComplete;
+  final Function(bool?) onComplete;
   const CustomWebViewWidget(
       {super.key, required this.url, required this.onComplete});
 
   @override
-  State<CustomWebViewWidget> createState() => _CustomWebViewWidgetState();
+  State<CustomWebViewWidget> createState() => CustomWebViewWidgetState();
 }
 
-class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
+class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   late WebViewController controller;
 
   Timer? _checkTimer;
+  Timer? _startTimer;
   bool surveyCompleted = false;
 
+  //ui elements
   bool loading = false;
   bool networkError = false;
+  String errorTitle = '';
+  String errorMessage = '';
+  String errorButtonText = '';
+  String errorIcon = '';
+  bool connection = false;
+  bool timeOut = true;
+
+  //variables to show different UI elements on the error card
+  bool showContactResearcher = false;
+  bool showContactResearcherButton = false;
+
+  //Flag to prevent error callbacks from overwriting JS-detected errors
+  bool errorAlreadyHandled = false;
+
+  late final uri = Uri.tryParse(widget.url);
 
   @override
   void initState() {
-    controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(NavigationDelegate(
-          onPageStarted: (url) {
-        setState(() {
-          loading = true;
-          surveyCompleted = false;
-        });
-      }, onPageFinished: (url) {
-        setState(() {
-          loading = false;
-        });
-        _startPeriodicCheck();
-      },
-          //general errors
-          onWebResourceError: (error) {
-        setState(() {
-          networkError = true;
-        });
-      },
-          //server related errors
-          onHttpError: (error) {
-        error.response?.statusCode == 502;
-        setState(() {
-          networkError = true;
-        });
-      }))
-      ..loadRequest(Uri.parse(widget.url));
     super.initState();
+    if (uri != null && uri!.hasScheme) {
+      controller = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setNavigationDelegate(NavigationDelegate(
+          onPageStarted: (url) {
+            if (mounted) {
+              setState(() {
+                loading = true;
+                errorAlreadyHandled = false;// Reset flag on new page load
+              });
+            }
+            _startTimeout();
+          },
+          onPageFinished: (url) async {
+
+            if (!mounted) return;
+
+            final errorInfo = await _checkForErrorPage();
+
+            if (errorInfo != null) {
+              // Error detected - set flag FIRST, then update UI
+              errorAlreadyHandled = true;
+
+              if (mounted) {
+                setState(() {
+                  loading = false;
+                  networkError = true;
+                  errorTitle = errorInfo['title']!;
+                  errorMessage = errorInfo['message']!;
+                  errorButtonText = errorInfo['buttonText']!;
+                  errorIcon = errorInfo['icon']!;
+                  showContactResearcherButton = errorInfo['showContactResearcherButton'] == 'true';
+                  showContactResearcher = errorInfo['showContactResearcher'] == 'true';
+                  connection = false;
+                  timeOut = false;
+                });
+
+                // Cancel any survey checking
+                _checkTimer?.cancel();
+                _startTimer?.cancel();
+
+              }
+            } else {
+              // Success load - only update if no error was already set
+              if (mounted && !networkError) {
+                setState(() {
+                  loading = false;
+                  networkError = false;
+                  timeOut = false;
+                });
+                _startPeriodicCheck();
+              }
+            }
+          },
+          onWebResourceError: (error) {
+
+            // CRITICAL: Don't overwrite errors already detected by JavaScript
+            if (errorAlreadyHandled) {
+              dev.log("Ignoring onWebResourceError - error already handled via JS");
+              return;
+            }
+
+            // CRITICAL FIX FOR iOS: IGNORE CANCELLED REQUESTS
+            // iOS throws "NSURLErrorDomain code -999" (Cancelled) when
+            // a redirect happens. This is NOT a real error.
+            if (error.description.toLowerCase().contains('cancelled') ||
+                error.description.contains('NSURLErrorDomain code -999')) {
+              return;
+            }
+
+            final errorType = error.errorType;
+            if (errorType == null) return;
+
+            errorAlreadyHandled = true; // Mark error as handled
+
+            if (mounted) {
+              setState(() {
+                networkError = true;
+                loading = false;
+                errorTitle = WebResourceErrorGroups.getErrorTitle(errorType);
+                errorMessage = WebResourceErrorGroups.getErrorMessage(errorType);
+                errorButtonText = WebResourceErrorGroups.getErrorButtonText(errorType);
+                errorIcon = WebResourceErrorGroups.getErrorIcon(errorType);
+                connection = WebResourceErrorGroups.getConnectionStatus(errorType);
+                showContactResearcherButton = WebResourceErrorGroups.loginOrPermissionErrors.contains(errorType);
+                showContactResearcher = WebResourceErrorGroups.serverOrSystemFailureErrors.contains(errorType);
+              });
+
+              // Cancel any survey checking
+              _checkTimer?.cancel();
+              _startTimer?.cancel();
+
+            }
+
+            dev.log("WebView resource error: ${error.description}, Type: $errorType");
+          },
+
+          // NOTE: onHttpError IS ANDROID ONLY
+          onHttpError: (error) {
+
+            // CRITICAL: Don't overwrite errors already detected by JavaScript
+            if (errorAlreadyHandled) {
+              dev.log("Ignoring onHttpError - error already handled via JS");
+              return;
+            }
+
+            final statusCode = error.response?.statusCode;
+            if (statusCode == null) return;
+
+            errorAlreadyHandled = true; // Mark error as handled
+
+            if (mounted) {
+              setState(() {
+                networkError = true;
+                loading = false;
+                errorTitle = HttpErrorGroups.getErrorTitle(statusCode);
+                errorMessage = HttpErrorGroups.getErrorMessage(statusCode);
+                errorButtonText = HttpErrorGroups.getErrorButtonText(statusCode);
+                errorIcon = HttpErrorGroups.getErrorIcon(statusCode);
+                connection = HttpErrorGroups.getConnectionStatus(statusCode);
+                showContactResearcherButton = HttpErrorGroups.loginOrPermissionErrors.contains(statusCode);
+                showContactResearcher = HttpErrorGroups.serverOrSystemFailureErrors.contains(statusCode);
+
+              });
+
+              // Cancel any survey checking
+              _checkTimer?.cancel();
+
+              _startTimer?.cancel();
+
+            }
+
+            dev.log("WebView server error: ${error.response?.statusCode}");
+          },
+        ))
+        ..loadRequest(Uri.parse(widget.url));
+    } else {
+      // Handle invalid URL at start
+      networkError = true;
+      loading = false;
+      errorTitle = HttpErrorGroups.getErrorTitle(404);
+      errorMessage = HttpErrorGroups.getErrorMessage(404);
+      errorButtonText = HttpErrorGroups.getErrorButtonText(404);
+      errorIcon = HttpErrorGroups.getErrorIcon(404);
+      connection = HttpErrorGroups.getConnectionStatus(404);
+
+      // Cancel any survey checking
+      _checkTimer?.cancel();
+
+      _startTimer?.cancel();
+    }
   }
 
   @override
   void dispose() {
     _checkTimer?.cancel();
-    controller.clearCache();
-    controller.clearLocalStorage();
+    _startTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return loading
-        ? Center(
-            child: CircularProgressIndicator(
+    dev.log('WebView build - loading: $loading, networkError: $networkError, errorTitle: $errorTitle');
+
+    if (loading) {
+      return Center(
+          child: CircularProgressIndicator(
             color: CustomColors.productNormalActive,
             strokeCap: StrokeCap.round,
             strokeWidth: 8,
-          ))
-        : networkError
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                  child: Column(
-                    spacing: 24,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        "assets/images/icons/warning.png",
-                        width: 80,
-                        height: 80,
-                      ),
-                      Text(
-                        "Connection Issue",
-                        textAlign: TextAlign.center,
-                        style: CustomTypography()
-                            .headlineMedium(color: CustomColors.warningNormal),
-                      ),
-                      Text(
-                        "Your internet connection is unstable. The survey can’t be accessed right now. Please reconnect to access the survey.",
-                        textAlign: TextAlign.center,
-                        style: CustomTypography().bodyLarge(),
-                      ),
-                      CustomOutlineButton(
-                        onClick: () {
-                          setState(() {
-                            networkError = false;
-                            loading = true;
-                          });
-                          controller.reload();
-                        },
-                        color: CustomColors.warningNormal,
-                        backgroundColor: Colors.transparent,
-                        children: Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            const Text(
-                              "Try Again",
-                              style:
-                                  TextStyle(color: CustomColors.warningNormal),
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              )
-            : WebViewWidget(controller: controller);
+          ));
+    }
+
+    if (networkError) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 19.0),
+          child: WebViewErrorCard(
+            title: errorTitle,
+            message: errorMessage,
+            buttonText: errorButtonText,
+            icon: errorIcon,
+            showContactResearch: showContactResearcher,
+            onRetry: showContactResearcherButton ? _launchEmail : _reTry,
+            skip: _skip,
+            connection: connection,
+            screenChange: _screenChange
+          ),
+        ),
+      );
+    }
+
+    return WebViewWidget(controller: controller);
   }
+
+  // UPDATED JS CHECKER FOR iOS COMPATIBILITY
+  Future<Map<String, String>?> _checkForErrorPage() async {
+    try {
+      final result = await controller.runJavaScriptReturningResult('''
+        (function() {
+          // 1. Get basic info
+          const bodyText = document.body ? document.body.innerText : '';
+          const title = document.title ? document.title.toLowerCase() : '';
+          
+          // 2. iOS/Standard WebKit Checks (Since onHttpError doesn't work on iOS)
+          // Check for explicit status codes in title or body first
+          const statusCodeMatch = bodyText.match(/\\b(4\\d{2}|5\\d{2})\\b/) || title.match(/\\b(4\\d{2}|5\\d{2})\\b/);
+          if (statusCodeMatch) {
+            const code = parseInt(statusCodeMatch[1]);
+            if (code >= 400 && code < 600) {
+              return code;
+            }
+          }
+          
+          // Specific error page checks
+          if (title.includes('404') || bodyText.includes('404') || 
+              title.includes('not found') || bodyText.includes('Not Found')) {
+             return 404;
+          }
+          if (title.includes('500') || bodyText.includes('500') || 
+              title.includes('internal server error') || bodyText.includes('Internal Server Error')) {
+             return 500;
+          }
+          if (title.includes('403') || bodyText.includes('403') || 
+              title.includes('forbidden') || bodyText.includes('Forbidden')) {
+             return 403;
+          }
+          if (title.includes('401') || bodyText.includes('401') || 
+              title.includes('unauthorized') || bodyText.includes('Unauthorized')) {
+             return 401;
+          }
+          if (title.includes('400') || bodyText.includes('400') || 
+              title.includes('bad request') || bodyText.includes('Bad Request')) {
+             return 400;
+          }
+          if (title.includes('503') || bodyText.includes('503') || 
+              title.includes('service unavailable') || bodyText.includes('Service Unavailable')) {
+             return 503;
+          }
+
+          // 3. Chrome/Android specific checks
+          const errorPatterns = [
+            'ERR_HTTP_RESPONSE_CODE_FAILURE',
+            'ERR_NAME_NOT_RESOLVED',
+            'ERR_CONNECTION_REFUSED'
+          ];
+          
+          if (errorPatterns.some(pattern => bodyText.includes(pattern))) {
+             return 'connection';
+          }
+          
+          return null;
+        })();
+      ''');
+
+      if (result == null || result == 'null') {
+        return null;
+      }
+
+      int? statusCode;
+      if (result is int) {
+        statusCode = result;
+      } else if (result is String) {
+        // Try to parse as integer first
+        statusCode = int.tryParse(result);
+
+        // If it's the string 'connection', handle separately
+        if (statusCode == null && result == 'connection') {
+          return {
+            'title': 'Connection Issue',
+            'message': 'We could not connect to the server.',
+            'buttonText': 'Try Again',
+            'icon': 'assets/images/icons/paceError.png',
+            'showActionButton': 'true',
+            'showContactResearcherButton': 'false',
+            'showContactResearcher': 'false',
+          };
+        }
+      }
+
+      if (statusCode != null && statusCode >= 400 && statusCode < 600) {
+        dev.log('JavaScript detected HTTP error: $statusCode');
+
+        // Return mapped error info
+        return {
+          'title': HttpErrorGroups.getErrorTitle(statusCode),
+          'message': HttpErrorGroups.getErrorMessage(statusCode),
+          'buttonText': HttpErrorGroups.getErrorButtonText(statusCode),
+          'icon': HttpErrorGroups.getErrorIcon(statusCode),
+          'showActionButton': (!HttpErrorGroups.pageNotFoundErrors.contains(statusCode)).toString(),
+          'showContactResearcherButton': HttpErrorGroups.loginOrPermissionErrors.contains(statusCode).toString(),
+          'showContactResearcher': HttpErrorGroups.serverOrSystemFailureErrors.contains(statusCode).toString(),
+        };
+      }
+
+      return null;
+    } catch (e) {
+      dev.log('Error checking for error page: $e');
+      return null;
+    }
+  }
+
+  _launchEmail() async {
+    await launchEmail(
+      subject: 'Permission Issue – Assistance Needed',
+      body: ''' A permission issue was encountered. Please investigate and advise on next steps.
+        
+        
+Participant ID: ''',
+    );
+  }
+
+  void _reTry() async {
+    // Cancel the timers first
+    _startTimer?.cancel();
+    _startTimer = null;
+
+    // Reset ALL state variables
+    setState(() {
+      networkError = false;
+      loading = true;
+      errorAlreadyHandled = false;
+      timeOut = true;
+    });
+
+    // Notify parent
+    widget.onComplete(false);
+
+    // Small delay to let the UI rebuild for iOS
+    await Future.delayed(const Duration(milliseconds: 80));
+
+    // force a fresh navigation on iOS
+    final cacheBustedUrl = Uri.parse(
+      '${widget.url}${widget.url.contains('?') ? '&' : '?'}_ts=${DateTime.now().millisecondsSinceEpoch}',
+    );
+
+    try {
+      await controller.loadRequest(cacheBustedUrl);
+      // Give a moment for the page to start loading
+      await Future.delayed(const Duration(milliseconds: 120));
+      return;
+    } catch (e) {
+      dev.log('loadRequest(cacheBustedUrl) failed: $e');
+    }
+  }
+
+
+  void _startTimeout() async {
+
+    _startTimer?.cancel();
+    _startTimer = Timer(Duration(seconds: 15),(){
+
+      if (mounted && timeOut) {
+
+        errorAlreadyHandled = true;
+        dev.log("connection Time Out");
+
+        setState(() {
+          loading = false;
+          errorTitle = "Connection Issue";
+          errorMessage =
+          "It looks like your internet might be slow or disconnected. Please check your connection. You need internet to start this entry.";
+          errorButtonText = "Try Again";
+          errorIcon = "assets/images/icons/link_off.png";
+          connection = true;
+          networkError = true;
+        });
+      }
+    });
+  }
+
+  void _skip(){
+    setState(() {
+      widget.onComplete(null);
+    });
+    _startTimer?.cancel();
+  }
+
+  void _screenChange(){
+    setState(() {
+      errorTitle = "No Internet Connection";
+      errorMessage = "We’re unable to load the survey due to no internet connection. Reconnect or skip to continue. If you skip, you won’t be able to submit the web survey later, but your remaining responses will still be recorded.";
+      errorIcon = "assets/images/icons/android_wifi_3_bar_off.png";
+      errorButtonText = "Try Again";
+      connection = false;
+    });
+  }
+
 
   void _startPeriodicCheck() {
     _checkTimer?.cancel();
@@ -139,7 +447,12 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   }
 
   void detectSurveyFinish() async {
-    if (networkError) return;
+    // Don't run survey checks if there's an error
+    if (networkError || loading) {
+      _checkTimer?.cancel();
+      return;
+    }
+
     final String javaScript = '''
     (function() {
 
@@ -309,8 +622,8 @@ class _CustomWebViewWidgetState extends State<CustomWebViewWidget> {
         await controller.runJavaScriptReturningResult(javaScript).catchError(
       (error) {
         // Handle any errors that occur during JavaScript execution
-        print('Error running JavaScript: $error');
-        return false; // Default to false if there's an error
+        dev.log('Error running JavaScript: $error');
+        return false;
       },
     );
     if (data == true && mounted) {

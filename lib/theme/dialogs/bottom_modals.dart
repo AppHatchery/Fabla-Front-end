@@ -1194,7 +1194,7 @@ class BottomWebViewModal extends StatefulWidget {
 class _BottomWebViewModalState extends State<BottomWebViewModal> {
   late DateTime start;
   late DateTime end;
-  bool completed = false;
+  bool? completed = false;
 
   @override
   void initState() {
@@ -1247,7 +1247,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: CustomFlatButton(
-              isDisabled: !completed,
+              isDisabled: (completed == false),
               onClick: () => save(),
               text: "Continue",
             ),
@@ -1269,7 +1269,12 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
 
   save() {
     end = DateTime.now();
-    widget.respond("Start: $start | End: $end");
+    if (completed == null) {
+      widget.respond("Item was skipped due to lack of internet connectivity");
+      dev.log("skipped");
+    } else {
+      widget.respond("Start: $start | End: $end");
+    }
     Navigator.pop(context);
   }
 }
