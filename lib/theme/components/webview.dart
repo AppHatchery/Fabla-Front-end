@@ -12,8 +12,9 @@ import '../../core/utils/errorCodes.dart';
 class CustomWebViewWidget extends StatefulWidget {
   final String url;
   final Function(bool?) onComplete;
+  final Function(dynamic) errorText;
   const CustomWebViewWidget(
-      {super.key, required this.url, required this.onComplete});
+      {super.key, required this.url, required this.onComplete, required this.errorText});
 
   @override
   State<CustomWebViewWidget> createState() => CustomWebViewWidgetState();
@@ -422,6 +423,7 @@ Participant ID: ''',
   void _skip(){
     setState(() {
       widget.onComplete(null);
+      widget.errorText(errorTitle);
     });
     _startTimer?.cancel();
   }

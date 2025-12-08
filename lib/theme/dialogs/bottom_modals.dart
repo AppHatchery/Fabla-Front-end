@@ -1184,8 +1184,9 @@ class BottomErrorModal extends StatelessWidget {
 class BottomWebViewModal extends StatefulWidget {
   final String url;
   final void Function(String) respond;
-  const BottomWebViewModal(
-      {super.key, required this.url, required this.respond});
+  final Function(dynamic) errorTitle;
+   const BottomWebViewModal(
+      {super.key, required this.url, required this.respond, required this.errorTitle});
 
   @override
   State<BottomWebViewModal> createState() => _BottomWebViewModalState();
@@ -1195,6 +1196,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   late DateTime start;
   late DateTime end;
   bool? completed = false;
+  late String errorText;
 
   @override
   void initState() {
@@ -1240,8 +1242,10 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
               width: width,
               color: CustomColors.greyTrack,
               child: CustomWebViewWidget(
-                  url: widget.url,
-                  onComplete: (value) => setState(() => completed = value)),
+                url: widget.url,
+                onComplete: (value) => setState(() => completed = value),
+                errorText: (value) => setState(() => errorText = value),
+              ),
             ),
           )),
           Padding(
@@ -1270,8 +1274,8 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   save() {
     end = DateTime.now();
     if (completed == null) {
-      widget.respond("Item was skipped due to lack of internet connectivity");
-      dev.log("skipped");
+      widget.respond("Item was skipped due to: $errorText");
+      widget.errorTitle(errorText);
     } else {
       widget.respond("Start: $start | End: $end");
     }
