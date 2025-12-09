@@ -186,7 +186,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
             dev.log("WebView server error: ${error.response?.statusCode}");
           },
         ))
-        ..loadRequest(Uri.parse("https://tools-httpstatus.pickup-services.com/404"));
+        ..loadRequest(Uri.parse(widget.url));
     } else {
       // Handle invalid URL at start
       networkError = true;
