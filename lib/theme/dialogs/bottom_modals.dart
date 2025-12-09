@@ -1243,8 +1243,16 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
               color: CustomColors.greyTrack,
               child: CustomWebViewWidget(
                 url: widget.url,
-                onComplete: (value) => setState(() => completed = value),
                 errorText: (value) => setState(() => errorText = value),
+                onComplete: (value) {
+                  setState(() {
+                    completed = value;
+
+                    if (completed == null) {
+                      save();
+                    }
+                  });
+                },
               ),
             ),
           )),
