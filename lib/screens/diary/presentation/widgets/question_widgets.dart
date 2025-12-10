@@ -651,7 +651,6 @@ class WebViewResponseCard extends StatefulWidget {
 }
 
 class _WebViewResponseCardState extends State<WebViewResponseCard> {
-  String? errorText;
   @override
   Widget build(BuildContext context) {
     final response = widget.prompt.answer?.response;
@@ -666,7 +665,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                 text: "Tap here to respond",
               )
             ]
-            else if (response.contains("Item was skipped due to: $errorText")) ...[
+            else if (response.firstOrNull!.contains("Item was skipped due to: ")) ...[
               SizedBox(
                 width: 230,
                 child: Column(
@@ -770,7 +769,6 @@ Participant ID: ''');
                 return BottomWebViewModal(
                   url: widget.prompt.option!.link!,
                   respond: widget.respond,
-                  errorTitle:(value) => setState(() => errorText = value),
                 );
               },
             ));

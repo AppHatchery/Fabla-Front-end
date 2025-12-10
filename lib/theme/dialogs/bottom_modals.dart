@@ -1184,9 +1184,8 @@ class BottomErrorModal extends StatelessWidget {
 class BottomWebViewModal extends StatefulWidget {
   final String url;
   final void Function(String) respond;
-  final Function(dynamic) errorTitle;
    const BottomWebViewModal(
-      {super.key, required this.url, required this.respond, required this.errorTitle});
+      {super.key, required this.url, required this.respond});
 
   @override
   State<BottomWebViewModal> createState() => _BottomWebViewModalState();
@@ -1282,7 +1281,6 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   save() {
     end = DateTime.now();
     if (completed == null) {
-      widget.errorTitle(errorText);
       widget.respond("Item was skipped due to: $errorText");
     } else {
       widget.respond("Start: $start | End: $end");
