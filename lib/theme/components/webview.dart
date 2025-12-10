@@ -12,8 +12,9 @@ import '../../core/utils/errorCodes.dart';
 class CustomWebViewWidget extends StatefulWidget {
   final String url;
   final Function(bool?) onComplete;
+  final Function(dynamic) errorText;
   const CustomWebViewWidget(
-      {super.key, required this.url, required this.onComplete});
+      {super.key, required this.url, required this.onComplete, required this.errorText});
 
   @override
   State<CustomWebViewWidget> createState() => CustomWebViewWidgetState();
@@ -38,7 +39,6 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
   //variables to show different UI elements on the error card
   bool showContactResearcher = false;
-  bool showContactResearcherButton = false;
 
   //Flag to prevent error callbacks from overwriting JS-detected errors
   bool errorAlreadyHandled = false;
@@ -79,7 +79,6 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                   errorMessage = errorInfo['message']!;
                   errorButtonText = errorInfo['buttonText']!;
                   errorIcon = errorInfo['icon']!;
-                  showContactResearcherButton = errorInfo['showContactResearcherButton'] == 'true';
                   showContactResearcher = errorInfo['showContactResearcher'] == 'true';
                   connection = false;
                   timeOut = false;
@@ -132,8 +131,9 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                 errorButtonText = WebResourceErrorGroups.getErrorButtonText(errorType);
                 errorIcon = WebResourceErrorGroups.getErrorIcon(errorType);
                 connection = WebResourceErrorGroups.getConnectionStatus(errorType);
-                showContactResearcherButton = WebResourceErrorGroups.loginOrPermissionErrors.contains(errorType);
-                showContactResearcher = WebResourceErrorGroups.serverOrSystemFailureErrors.contains(errorType);
+                showContactResearcher = WebResourceErrorGroups.serverOrSystemFailureErrors.contains(errorType) ||
+                    WebResourceErrorGroups.pageNotFoundErrors.contains(errorType) ||
+                    WebResourceErrorGroups.loginOrPermissionErrors.contains(errorType);
               });
 
               // Cancel any survey checking
@@ -142,7 +142,8 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
             }
 
-            dev.log("WebView resource error: ${error.description}, Type: $errorType");
+            dev.log(
+                "WebView resource error: ${error.description}, Type: $errorType");
           },
 
           // NOTE: onHttpError IS ANDROID ONLY
@@ -165,11 +166,13 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                 loading = false;
                 errorTitle = HttpErrorGroups.getErrorTitle(statusCode);
                 errorMessage = HttpErrorGroups.getErrorMessage(statusCode);
-                errorButtonText = HttpErrorGroups.getErrorButtonText(statusCode);
+                errorButtonText =
+                    HttpErrorGroups.getErrorButtonText(statusCode);
                 errorIcon = HttpErrorGroups.getErrorIcon(statusCode);
                 connection = HttpErrorGroups.getConnectionStatus(statusCode);
-                showContactResearcherButton = HttpErrorGroups.loginOrPermissionErrors.contains(statusCode);
-                showContactResearcher = HttpErrorGroups.serverOrSystemFailureErrors.contains(statusCode);
+                showContactResearcher =  HttpErrorGroups.serverOrSystemFailureErrors.contains(statusCode) ||
+                    HttpErrorGroups.pageNotFoundErrors.contains(statusCode) ||
+                    HttpErrorGroups.loginOrPermissionErrors.contains(statusCode);
 
               });
 
@@ -222,19 +225,21 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
     }
 
     if (networkError) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 19.0),
-          child: WebViewErrorCard(
-            title: errorTitle,
-            message: errorMessage,
-            buttonText: errorButtonText,
-            icon: errorIcon,
-            showContactResearch: showContactResearcher,
-            onRetry: showContactResearcherButton ? _launchEmail : _reTry,
-            skip: _skip,
-            connection: connection,
-            screenChange: _screenChange
+      return Container(
+        color: Colors.white,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 19.0),
+            child: WebViewErrorCard(
+                title: errorTitle,
+                message: errorMessage,
+                buttonText: errorButtonText,
+                icon: errorIcon,
+                showContactResearch: showContactResearcher,
+                onRetry: _reTry,
+                skip: _skip,
+                connection: connection,
+                screenChange: _screenChange),
           ),
         ),
       );
@@ -322,7 +327,6 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
             'buttonText': 'Try Again',
             'icon': 'assets/images/icons/paceError.png',
             'showActionButton': 'true',
-            'showContactResearcherButton': 'false',
             'showContactResearcher': 'false',
           };
         }
@@ -337,9 +341,14 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
           'message': HttpErrorGroups.getErrorMessage(statusCode),
           'buttonText': HttpErrorGroups.getErrorButtonText(statusCode),
           'icon': HttpErrorGroups.getErrorIcon(statusCode),
-          'showActionButton': (!HttpErrorGroups.pageNotFoundErrors.contains(statusCode)).toString(),
-          'showContactResearcherButton': HttpErrorGroups.loginOrPermissionErrors.contains(statusCode).toString(),
-          'showContactResearcher': HttpErrorGroups.serverOrSystemFailureErrors.contains(statusCode).toString(),
+          'showActionButton':
+          (!HttpErrorGroups.pageNotFoundErrors.contains(statusCode))
+              .toString(),
+          'showContactResearcher': (
+              HttpErrorGroups.serverOrSystemFailureErrors.contains(statusCode) ||
+                  HttpErrorGroups.loginOrPermissionErrors.contains(statusCode) ||
+                  HttpErrorGroups.pageNotFoundErrors.contains(statusCode)
+          ).toString(),
         };
       }
 
@@ -348,16 +357,6 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
       dev.log('Error checking for error page: $e');
       return null;
     }
-  }
-
-  _launchEmail() async {
-    await launchEmail(
-      subject: 'Permission Issue – Assistance Needed',
-      body: ''' A permission issue was encountered. Please investigate and advise on next steps.
-        
-        
-Participant ID: ''',
-    );
   }
 
   void _reTry() async {
@@ -421,6 +420,7 @@ Participant ID: ''',
 
   void _skip(){
     setState(() {
+      widget.errorText(errorTitle);
       widget.onComplete(null);
     });
     _startTimer?.cancel();

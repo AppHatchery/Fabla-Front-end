@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 import 'dart:io';
 import 'dart:math';
 
@@ -650,7 +651,6 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
   @override
   Widget build(BuildContext context) {
     final response = widget.prompt.answer?.response;
-
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
         child: Column(
@@ -661,8 +661,8 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                 onClick: () => showModal(),
                 text: "Tap here to respond",
               )
-            ] else if (response.contains(
-                "Item was skipped due to lack of internet connectivity")) ...[
+            ]
+            else if (response.firstOrNull!.contains("Item was skipped due to: ")) ...[
               SizedBox(
                 width: 230,
                 child: Column(

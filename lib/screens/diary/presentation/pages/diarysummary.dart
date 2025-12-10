@@ -55,6 +55,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
   late MaterialLocalizations localizations = MaterialLocalizations.of(context);
 
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -500,13 +501,12 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         final width = MediaQuery.of(context).size.width;
         return prompt.answer == null
             ? const SizedBox.shrink()
-            : prompt.answer?.response?.contains("Item was skipped due to lack of internet connectivity") == true
+            : prompt.answer?.response?.firstOrNull?.contains("Item was skipped due to:") ?? true
                 ? Container(
                     width: width,
                     padding:
                         const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
                     decoration: BoxDecoration(
-                      color: CustomColors.grey,
                       borderRadius: BorderRadius.circular(12),
                       shape: BoxShape.rectangle,
                     ),
@@ -520,7 +520,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                         width: 5,
                       ),
                       Expanded(
-                        child: Text("Skipped due to internet connectivity",
+                        child: Text(prompt.answer?.response?.firstOrNull ?? "",
                             style: CustomTypography().bodyMedium(
                               color: Color(0xFFFF3B30),
                             ),
@@ -534,7 +534,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
                     decoration: BoxDecoration(
-                      color: CustomColors.grey,
                       borderRadius: BorderRadius.circular(12),
                       shape: BoxShape.rectangle,
                     ),

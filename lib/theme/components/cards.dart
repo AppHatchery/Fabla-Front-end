@@ -1598,86 +1598,88 @@ class WebViewErrorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      spacing: spacing,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Image.asset(
-          icon,
-          width: 80,
-          height: 80,
-        ),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: CustomTypography().headlineMedium(
-            color: Color(0xFFFF3B30),
+    return SingleChildScrollView(
+      child: Column(
+        spacing: spacing,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            icon,
+            width: 80,
+            height: 80,
           ),
-        ),
-        Text(
-          message,
-          textAlign: TextAlign.center,
-          style: CustomTypography().bodyLarge(),
-        ),
-        Row(
-          spacing: 12,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.39,
-              height: 48.5,
-              child: CustomOutlineButton(
-                onClick: onRetry,
-                color: Color(0xFFFF3B30),
-                backgroundColor: Colors.transparent,
-                children: Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  alignment: WrapAlignment.center,
-                  runAlignment: WrapAlignment.center,
-                  children: [
-                    Text(
-                      softWrap: false,
-                      buttonText,
-                      style: TextStyle(fontSize: 12, color: Color(0xFFFF3B30)),
-                    ),
-                  ],
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: CustomTypography().headlineMedium(
+              color: Color(0xFFFF3B30),
+            ),
+          ),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: CustomTypography().bodyLarge(),
+          ),
+          Row(
+            spacing: 12,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (buttonText == "Try Again")
+                SizedBox(
+                width: MediaQuery.of(context).size.width * 0.38,
+                height: 52,
+                child: CustomOutlineButton(
+                  onClick: onRetry,
+                  color: Color(0xFFFF3B30),
+                  backgroundColor: Colors.transparent,
+                  children: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    alignment: WrapAlignment.center,
+                    runAlignment: WrapAlignment.center,
+                    children: [
+                      Text(
+                        buttonText,
+                        style: TextStyle(fontSize: 12, color: Color(0xFFFF3B30)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.38,
-              height: 61,
-              child: CustomFlatButton(
-                  color: Color(0xFFFF3B30),
-                  borderColor: Color(0xFFFF3B30),
-                  onClick: connection ? screenChange : skip,
-                  text: connection ? "Yes, I'm Offline" : "Skip"),
+              SizedBox(
+                width: buttonText == "Try Again" ?
+                  MediaQuery.of(context).size.width * 0.38 : MediaQuery.of(context).size.width * 0.8,
+                child: CustomFlatButton(
+                    color: Color(0xFFFF3B30),
+                    borderColor: Color(0xFFFF3B30),
+                    onClick: connection ? screenChange : skip,
+                    text: connection ? "Yes, I'm Offline" : "Skip"),
+              )
+            ],
+          ),
+          SizedBox(
+            height: 142,
+          ),
+          if (showContactResearch)
+            GestureDetector(
+              onTap: _launchEmail,
+              child: Text(
+                "Contact Researcher",
+                textAlign: TextAlign.center,
+                style: CustomTypography().button(color: Color(0xFFFF3B30)),
+              ),
             )
-          ],
-        ),
-        SizedBox(
-          height: 142,
-        ),
-        if (showContactResearch)
-          GestureDetector(
-            onTap: _launchEmail,
-            child: Text(
-              "Contact Researcher",
-              textAlign: TextAlign.center,
-              style: CustomTypography().button(color: Color(0xFFFF3B30)),
-            ),
-          )
-      ],
+        ],
+      ),
     );
   }
 
   _launchEmail() async {
     launchEmail(
-        subject: 'Server Error – Assistance Needed',
+        subject: '$title – Assistance Needed',
         body:
-            '''Server error encountered. Please investigate and advise on next steps.
+            '''$title was encountered. Please investigate and advise on next steps.
         
         
 Participant ID: ''');

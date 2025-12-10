@@ -72,13 +72,13 @@ class HttpErrorGroups {
     return "assets/images/icons/link_off.png";
   }
 
-  static bool getConnectionStatus(int statusCode){
-    if(inputOrFormErrors.contains(statusCode) ||
-    loginOrPermissionErrors.contains(statusCode) ||
-    pageNotFoundErrors.contains(statusCode) ||
-    slowOrLostConnectionErrors.contains(statusCode) ||
-    duplicateOrConflictErrors.contains(statusCode) ||
-    serverOrSystemFailureErrors.contains(statusCode)){
+  static bool getConnectionStatus(int statusCode) {
+    if (inputOrFormErrors.contains(statusCode) ||
+        loginOrPermissionErrors.contains(statusCode) ||
+        pageNotFoundErrors.contains(statusCode) ||
+        slowOrLostConnectionErrors.contains(statusCode) ||
+        duplicateOrConflictErrors.contains(statusCode) ||
+        serverOrSystemFailureErrors.contains(statusCode)) {
       return false;
     }
     return true;
@@ -171,7 +171,6 @@ class WebResourceErrorGroups {
       return "assets/images/icons/paceError.png";
     } else if (duplicateOrConflictErrors.contains(errorType)) {
       return "assets/images/icons/scan_delete.png";
-      ;
     } else if (serverOrSystemFailureErrors.contains(errorType)) {
       return "assets/images/icons/database_off.png";
     } else if (inputOrFormErrors.contains(errorType)) {
