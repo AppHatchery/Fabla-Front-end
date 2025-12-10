@@ -55,24 +55,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
   late MaterialLocalizations localizations = MaterialLocalizations.of(context);
 
-  final List<String> skippedReasons = [
-    "Input Error",
-    "Permission Error",
-    "Page Not Found",
-    "Please Try Again",
-    "Submission Error",
-    "Server Error",
-    "Connection Issue",
-  ];
-
-  bool _isSkippedResponse(String? response) {
-    if (response == null) return false;
-
-    // Check if the response contains "Item was skipped due to:" followed by any of the skipped reasons
-    if (!response.contains("Item was skipped due to:")) return false;
-
-    return skippedReasons.any((reason) => response.contains(reason));
-  }
 
   @override
   void initState() {
@@ -519,7 +501,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         final width = MediaQuery.of(context).size.width;
         return prompt.answer == null
             ? const SizedBox.shrink()
-            : _isSkippedResponse(prompt.answer?.response?.firstOrNull)
+            : prompt.answer?.response?.firstOrNull?.contains("Item was skipped due to:") ?? true
                 ? Container(
                     width: width,
                     padding:
@@ -538,7 +520,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                         width: 5,
                       ),
                       Expanded(
-                        child: Text("Skipped due to internet connectivity",
+                        child: Text(prompt.answer?.response?.firstOrNull ?? "",
                             style: CustomTypography().bodyMedium(
                               color: Color(0xFFFF3B30),
                             ),

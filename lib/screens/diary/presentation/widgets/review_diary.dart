@@ -26,25 +26,6 @@ class _ReviewDiaryState extends State<ReviewDiary> {
   bool isSliderEnabled = false;
   Map<int, bool> sliderEnabledStates = {};
 
-  final List<String> skippedReasons = [
-    "Input Error",
-    "Permission Error",
-    "Page Not Found",
-    "Please Try Again",
-    "Submission Error",
-    "Server Error",
-    "Connection Issue",
-  ];
-
-  bool _isSkippedResponse(String? response) {
-    if (response == null) return false;
-
-    // Check if the response contains "Item was skipped due to:" followed by any of the skipped reasons
-    if (!response.contains("Item was skipped due to:")) return false;
-
-    return skippedReasons.any((reason) => response.contains(reason));
-  }
-
   @override
   void initState() {
     summaryCubit = BlocProvider.of<SummaryCubit>(context);
@@ -299,7 +280,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
           padding: const EdgeInsets.symmetric(vertical: 6.0),
           child:prompt.answer == null
               ? const SizedBox.shrink()
-              : _isSkippedResponse(prompt.answer?.response?.firstOrNull)
+              : prompt.answer?.response?.firstOrNull?.contains("Item was skipped due to:") ?? true
               ? Container(
             width: width,
             padding:
@@ -318,7 +299,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                 width: 5,
               ),
               Expanded(
-                child: Text("Skipped due to internet connectivity",
+                child: Text(prompt.answer?.response?.firstOrNull ?? "",
                     style: CustomTypography().bodyMedium(
                       color: Color(0xFFFF3B30)
                     ),
