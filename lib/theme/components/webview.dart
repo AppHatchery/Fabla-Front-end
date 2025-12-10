@@ -6,7 +6,6 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-import '../../core/utils/emailFunction.dart';
 import '../../core/utils/errorCodes.dart';
 
 class CustomWebViewWidget extends StatefulWidget {
@@ -14,7 +13,10 @@ class CustomWebViewWidget extends StatefulWidget {
   final Function(bool?) onComplete;
   final Function(dynamic) errorText;
   const CustomWebViewWidget(
-      {super.key, required this.url, required this.onComplete, required this.errorText});
+      {super.key,
+      required this.url,
+      required this.onComplete,
+      required this.errorText});
 
   @override
   State<CustomWebViewWidget> createState() => CustomWebViewWidgetState();
@@ -56,13 +58,12 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
             if (mounted) {
               setState(() {
                 loading = true;
-                errorAlreadyHandled = false;// Reset flag on new page load
+                errorAlreadyHandled = false; // Reset flag on new page load
               });
             }
             _startTimeout();
           },
           onPageFinished: (url) async {
-
             if (!mounted) return;
 
             final errorInfo = await _checkForErrorPage();
@@ -79,7 +80,8 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                   errorMessage = errorInfo['message']!;
                   errorButtonText = errorInfo['buttonText']!;
                   errorIcon = errorInfo['icon']!;
-                  showContactResearcher = errorInfo['showContactResearcher'] == 'true';
+                  showContactResearcher =
+                      errorInfo['showContactResearcher'] == 'true';
                   connection = false;
                   timeOut = false;
                 });
@@ -87,7 +89,6 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                 // Cancel any survey checking
                 _checkTimer?.cancel();
                 _startTimer?.cancel();
-
               }
             } else {
               // Success load - only update if no error was already set
@@ -102,10 +103,10 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
             }
           },
           onWebResourceError: (error) {
-
             // CRITICAL: Don't overwrite errors already detected by JavaScript
             if (errorAlreadyHandled) {
-              dev.log("Ignoring onWebResourceError - error already handled via JS");
+              dev.log(
+                  "Ignoring onWebResourceError - error already handled via JS");
               return;
             }
 
@@ -127,19 +128,25 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                 networkError = true;
                 loading = false;
                 errorTitle = WebResourceErrorGroups.getErrorTitle(errorType);
-                errorMessage = WebResourceErrorGroups.getErrorMessage(errorType);
-                errorButtonText = WebResourceErrorGroups.getErrorButtonText(errorType);
+                errorMessage =
+                    WebResourceErrorGroups.getErrorMessage(errorType);
+                errorButtonText =
+                    WebResourceErrorGroups.getErrorButtonText(errorType);
                 errorIcon = WebResourceErrorGroups.getErrorIcon(errorType);
-                connection = WebResourceErrorGroups.getConnectionStatus(errorType);
-                showContactResearcher = WebResourceErrorGroups.serverOrSystemFailureErrors.contains(errorType) ||
-                    WebResourceErrorGroups.pageNotFoundErrors.contains(errorType) ||
-                    WebResourceErrorGroups.loginOrPermissionErrors.contains(errorType);
+                connection =
+                    WebResourceErrorGroups.getConnectionStatus(errorType);
+                showContactResearcher = WebResourceErrorGroups
+                        .serverOrSystemFailureErrors
+                        .contains(errorType) ||
+                    WebResourceErrorGroups.pageNotFoundErrors
+                        .contains(errorType) ||
+                    WebResourceErrorGroups.loginOrPermissionErrors
+                        .contains(errorType);
               });
 
               // Cancel any survey checking
               _checkTimer?.cancel();
               _startTimer?.cancel();
-
             }
 
             dev.log(
@@ -148,7 +155,6 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
           // NOTE: onHttpError IS ANDROID ONLY
           onHttpError: (error) {
-
             // CRITICAL: Don't overwrite errors already detected by JavaScript
             if (errorAlreadyHandled) {
               dev.log("Ignoring onHttpError - error already handled via JS");
@@ -170,17 +176,18 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                     HttpErrorGroups.getErrorButtonText(statusCode);
                 errorIcon = HttpErrorGroups.getErrorIcon(statusCode);
                 connection = HttpErrorGroups.getConnectionStatus(statusCode);
-                showContactResearcher =  HttpErrorGroups.serverOrSystemFailureErrors.contains(statusCode) ||
+                showContactResearcher = HttpErrorGroups
+                        .serverOrSystemFailureErrors
+                        .contains(statusCode) ||
                     HttpErrorGroups.pageNotFoundErrors.contains(statusCode) ||
-                    HttpErrorGroups.loginOrPermissionErrors.contains(statusCode);
-
+                    HttpErrorGroups.loginOrPermissionErrors
+                        .contains(statusCode);
               });
 
               // Cancel any survey checking
               _checkTimer?.cancel();
 
               _startTimer?.cancel();
-
             }
 
             dev.log("WebView server error: ${error.response?.statusCode}");
@@ -213,15 +220,16 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
   @override
   Widget build(BuildContext context) {
-    dev.log('WebView build - loading: $loading, networkError: $networkError, errorTitle: $errorTitle');
+    dev.log(
+        'WebView build - loading: $loading, networkError: $networkError, errorTitle: $errorTitle');
 
     if (loading) {
       return Center(
           child: CircularProgressIndicator(
-            color: CustomColors.productNormalActive,
-            strokeCap: StrokeCap.round,
-            strokeWidth: 8,
-          ));
+        color: CustomColors.productNormalActive,
+        strokeCap: StrokeCap.round,
+        strokeWidth: 8,
+      ));
     }
 
     if (networkError) {
@@ -308,7 +316,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
         })();
       ''');
 
-      if (result == null || result == 'null') {
+      if (result == 'null') {
         return null;
       }
 
@@ -342,13 +350,14 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
           'buttonText': HttpErrorGroups.getErrorButtonText(statusCode),
           'icon': HttpErrorGroups.getErrorIcon(statusCode),
           'showActionButton':
-          (!HttpErrorGroups.pageNotFoundErrors.contains(statusCode))
+              (!HttpErrorGroups.pageNotFoundErrors.contains(statusCode))
+                  .toString(),
+          'showContactResearcher': (HttpErrorGroups.serverOrSystemFailureErrors
+                      .contains(statusCode) ||
+                  HttpErrorGroups.loginOrPermissionErrors
+                      .contains(statusCode) ||
+                  HttpErrorGroups.pageNotFoundErrors.contains(statusCode))
               .toString(),
-          'showContactResearcher': (
-              HttpErrorGroups.serverOrSystemFailureErrors.contains(statusCode) ||
-                  HttpErrorGroups.loginOrPermissionErrors.contains(statusCode) ||
-                  HttpErrorGroups.pageNotFoundErrors.contains(statusCode)
-          ).toString(),
         };
       }
 
@@ -393,14 +402,10 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
     }
   }
 
-
   void _startTimeout() async {
-
     _startTimer?.cancel();
-    _startTimer = Timer(Duration(seconds: 15),(){
-
+    _startTimer = Timer(Duration(seconds: 15), () {
       if (mounted && timeOut) {
-
         errorAlreadyHandled = true;
         dev.log("connection Time Out");
 
@@ -408,7 +413,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
           loading = false;
           errorTitle = "Connection Issue";
           errorMessage =
-          "It looks like your internet might be slow or disconnected. Please check your connection. You need internet to start this entry.";
+              "It looks like your internet might be slow or disconnected. Please check your connection. You need internet to start this entry.";
           errorButtonText = "Try Again";
           errorIcon = "assets/images/icons/link_off.png";
           connection = true;
@@ -418,7 +423,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
     });
   }
 
-  void _skip(){
+  void _skip() {
     setState(() {
       widget.errorText(errorTitle);
       widget.onComplete(null);
@@ -426,16 +431,16 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
     _startTimer?.cancel();
   }
 
-  void _screenChange(){
+  void _screenChange() {
     setState(() {
       errorTitle = "No Internet Connection";
-      errorMessage = "We’re unable to load the survey due to no internet connection. Reconnect or skip to continue. If you skip, you won’t be able to submit the web survey later, but your remaining responses will still be recorded.";
+      errorMessage =
+          "We’re unable to load the survey due to no internet connection. Reconnect or skip to continue. If you skip, you won’t be able to submit the web survey later, but your remaining responses will still be recorded.";
       errorIcon = "assets/images/icons/android_wifi_3_bar_off.png";
       errorButtonText = "Try Again";
       connection = false;
     });
   }
-
 
   void _startPeriodicCheck() {
     _checkTimer?.cancel();

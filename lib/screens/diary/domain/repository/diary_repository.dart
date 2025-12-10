@@ -12,8 +12,6 @@ import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 
-import 'package:audio_diaries_flutter/core/utils/types.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/tag.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
@@ -606,24 +604,6 @@ class DiaryRepository {
     _diaryDAO.updateDiary(entity);
   }
 
-  List<Tag> _getTags(DiaryModel diary) {
-    List<Tag> tags = [];
-
-    if (diary.status == DiaryStatus.submitted) {
-      tags.add(const Tag(text: "Done", type: TagType.time));
-      // } else if (diary.status == DiaryStatus.missed) {
-      //   tags.add(const Tag(text: "Missed", type: TagType.time));
-    } else if (diary.status == DiaryStatus.complete) {
-      tags.add(const Tag(text: "Awaiting Submission", type: TagType.time));
-    } else if (diary.status == DiaryStatus.ongoing) {
-      tags.add(const Tag(text: "Ongoing", type: TagType.time));
-    } else if (diary.status == DiaryStatus.idle) {
-      tags.add(const Tag(text: "Ready to Start", type: TagType.time));
-    }
-
-    return tags;
-  }
-
   Future<int> getIndexOfLastAnsweredPrompt(DiaryModel diary) async {
     final promptRepository = PromptRepository();
     final prompts = await promptRepository.loadAll(diary);
@@ -641,17 +621,16 @@ class DiaryRepository {
 
   // Removing all the diaries that start today and onwards
   Future<bool> removeDiariesFrom(DateTime now) async {
-
     try {
       // Get all diaries
       final all = getAllDiaries();
 
-      dev.log("Total diaries before deletion: ${all.length}", name: "Diary Deletion");
+      dev.log("Total diaries before deletion: ${all.length}",
+          name: "Diary Deletion");
 
       // Filter diaries that start today
-      final filtered = all
-          .where((diary) => !diary.start.isBefore(now))
-          .toList();
+      final filtered =
+          all.where((diary) => !diary.start.isBefore(now)).toList();
 
       dev.log("Diaries to delete: ${filtered.length}", name: "Diary Deletion");
 
@@ -670,17 +649,16 @@ class DiaryRepository {
       }
 
       // Convert to entities
-      final entitiesToDelete = filtered
-          .map((model) => Diary.fromModel(model))
-          .toList();
+      final entitiesToDelete =
+          filtered.map((model) => Diary.fromModel(model)).toList();
 
       // Delete in the database
       final result = _diaryDAO.deleteDiaries(entitiesToDelete);
 
-      dev.log("Deletion result: $result diaries deleted", name: "Diary Deletion");
+      dev.log("Deletion result: $result diaries deleted",
+          name: "Diary Deletion");
 
       return result > 0;
-
     } catch (e) {
       dev.log("Error in removeDiariesFrom: $e", name: "Diary Deletion");
       return false;

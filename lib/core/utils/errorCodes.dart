@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:webview_flutter/webview_flutter.dart';
 
 // Error code groups and helper class

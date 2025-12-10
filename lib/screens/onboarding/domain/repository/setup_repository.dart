@@ -10,7 +10,6 @@ import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
-import 'package:audio_diaries_flutter/core/utils/extensions.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
@@ -635,8 +634,8 @@ class SetupRepository {
 
     map.addAll(
       {
-        'participant_id': participant!.studyCode.toString(),
-        'login_code': experiment!.login,
+        'participant_id': participant.studyCode.toString(),
+        'login_code': experiment.login,
         'extras': jsonEncode(extras),
         'token': firebaseToken,
         'service': platformName,

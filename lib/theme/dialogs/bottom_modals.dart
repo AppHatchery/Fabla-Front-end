@@ -169,7 +169,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Widget questionAndHints() {
     final width = MediaQuery.of(context).size.width;
-    final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
     final isCompleted =
         recorderState == RecorderState.isStopped && elapsed.inSeconds > 0;
 

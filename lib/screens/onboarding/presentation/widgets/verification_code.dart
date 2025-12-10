@@ -4,14 +4,10 @@ import 'package:audio_diaries_flutter/theme/components/textfields.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../core/database/dao/experiment_dao.dart';
-import '../../../../main.dart';
-import '../../../../objectbox.g.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
 
-import '../../../home/domain/entities/experiment.dart';
 import '../../domain/repository/setup_repository.dart';
 
 class VerificationCodeTextField extends StatefulWidget {
@@ -38,9 +34,6 @@ class VerificationCodeTextField extends StatefulWidget {
   State<VerificationCodeTextField> createState() =>
       _VerificationCodeTextFieldState();
 }
-
-final ExperimentDAO _experimentDAO =
-    ExperimentDAO(box: Box<Experiment>(objectbox.store));
 
 class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
   @override
