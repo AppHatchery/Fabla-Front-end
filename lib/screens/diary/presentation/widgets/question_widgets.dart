@@ -15,13 +15,11 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/ti
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
-import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
@@ -148,20 +146,19 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
           height: 12,
         ),
         Row(
+          spacing: 40,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SizedBox(
-              width: 87,
+            Expanded(
               child: Text(
-                widget.scaleMinText!,
+                widget.scaleMinText ?? '',
                 textAlign: TextAlign.start,
                 style: CustomTypography().bodyLarge(),
               ),
             ),
-            SizedBox(
-              width: 87,
+            Expanded(
               child: Text(
-                widget.scaleMaxText!,
+                widget.scaleMaxText ?? '',
                 textAlign: TextAlign.end,
                 style: CustomTypography().bodyLarge(),
               ),
@@ -664,8 +661,8 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                 onClick: () => showModal(),
                 text: "Tap here to respond",
               )
-            ]
-            else if (response.contains("Item was skipped due to lack of internet connectivity")) ...[
+            ] else if (response.contains(
+                "Item was skipped due to lack of internet connectivity")) ...[
               SizedBox(
                 width: 230,
                 child: Column(
@@ -710,8 +707,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                   ],
                 ),
               )
-            ]
-            else
+            ] else
               Column(
                 spacing: 24,
                 children: [
