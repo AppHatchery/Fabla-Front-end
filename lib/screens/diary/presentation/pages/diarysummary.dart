@@ -55,6 +55,25 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
   late MaterialLocalizations localizations = MaterialLocalizations.of(context);
 
+  final List<String> skippedReasons = [
+    "Input Error",
+    "Permission Error",
+    "Page Not Found",
+    "Please Try Again",
+    "Submission Error",
+    "Server Error",
+    "Connection Issue",
+  ];
+
+  bool _isSkippedResponse(String? response) {
+    if (response == null) return false;
+
+    // Check if the response contains "Item was skipped due to:" followed by any of the skipped reasons
+    if (!response.contains("Item was skipped due to:")) return false;
+
+    return skippedReasons.any((reason) => response.contains(reason));
+  }
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -500,13 +519,12 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         final width = MediaQuery.of(context).size.width;
         return prompt.answer == null
             ? const SizedBox.shrink()
-            : prompt.answer?.response?.contains("Item was skipped due to lack of internet connectivity") == true
+            : _isSkippedResponse(prompt.answer?.response?.firstOrNull)
                 ? Container(
                     width: width,
                     padding:
                         const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
                     decoration: BoxDecoration(
-                      color: CustomColors.grey,
                       borderRadius: BorderRadius.circular(12),
                       shape: BoxShape.rectangle,
                     ),
@@ -534,7 +552,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
                     decoration: BoxDecoration(
-                      color: CustomColors.grey,
                       borderRadius: BorderRadius.circular(12),
                       shape: BoxShape.rectangle,
                     ),
