@@ -14,24 +14,29 @@ Future<void> launchEmail({
     final experiment = repository.getExperiment();
     final ownerEmail = experiment.ownerEmail;
 
-    // Use provided owner email or default
-    final emailAddress = ownerEmail.isNotEmpty ? ownerEmail : "fabla@emory.edu";
+    const emailAddress = "fabla@emory.edu";
 
-    // Create the email URI
+    final queryParams = {
+      'subject': subject,
+      'body': body,
+    };
+
+    // CC only if ownerEmail exists and is not empty
+    if (ownerEmail.isNotEmpty) {
+      queryParams['cc'] = ownerEmail;
+    }
+
     final uri = Uri(
       scheme: "mailto",
       path: emailAddress,
-        query: encodeQueryParameters(<String, String>{
-        'subject': subject,
-        'body': body,
-      }),
+      query: encodeQueryParameters(queryParams),
     );
 
     // Launch the email client
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      dev.log('Could not launch email client');
+      dev.log('Could not launch email client for: $uri');
     }
   } catch (e) {
     dev.log('Error launching email: $e');

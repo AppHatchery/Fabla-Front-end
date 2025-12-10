@@ -280,13 +280,12 @@ class _ReviewDiaryState extends State<ReviewDiary> {
           padding: const EdgeInsets.symmetric(vertical: 6.0),
           child:prompt.answer == null
               ? const SizedBox.shrink()
-              : prompt.answer?.response?.contains("Item was skipped due to lack of internet connectivity") == true
+              : prompt.answer?.response?.firstOrNull?.contains("Item was skipped due to:") ?? true
               ? Container(
             width: width,
             padding:
             const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
             decoration: BoxDecoration(
-              color: CustomColors.grey,
               borderRadius: BorderRadius.circular(12),
               shape: BoxShape.rectangle,
             ),
@@ -300,7 +299,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                 width: 5,
               ),
               Expanded(
-                child: Text("Skipped due to internet connectivity",
+                child: Text(prompt.answer?.response?.firstOrNull ?? "",
                     style: CustomTypography().bodyMedium(
                       color: Color(0xFFFF3B30)
                     ),
@@ -314,7 +313,6 @@ class _ReviewDiaryState extends State<ReviewDiary> {
             padding:
             const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
             decoration: BoxDecoration(
-              color: CustomColors.grey,
               borderRadius: BorderRadius.circular(12),
               shape: BoxShape.rectangle,
             ),
