@@ -368,9 +368,11 @@ class _DiaryCardSmallState extends State<DiaryCardSmall> {
               padding: const EdgeInsets.only(left: 16),
               child: Row(
                 children: [
-                  Text(
-                    widget.diary.name,
-                    style: CustomTypography().titleSmall(),
+                  Flexible(
+                    child: Text(
+                      widget.diary.name,
+                      style: CustomTypography().titleSmall(),
+                    ),
                   ),
                 ],
               ),
