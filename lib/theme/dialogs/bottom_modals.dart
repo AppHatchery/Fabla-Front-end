@@ -513,10 +513,11 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     final limit = (widget.limit != null && widget.limit!.inSeconds > 0)
         ? widget.limit
         : null;
-    _timer = Timer.periodic(const Duration(seconds: 1), (time) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (time) async {
       if (limit != null && elapsed >= limit) {
-        _timer?.cancel();
+        await stop();
         save();
+        dev.log("time is stopped due to time limit");
         return;
       }
 
