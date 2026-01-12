@@ -517,7 +517,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       if (limit != null && elapsed >= limit) {
         await stop();
         save();
-        dev.log("time is stopped due to time limit");
         return;
       }
 
