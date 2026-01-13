@@ -117,6 +117,16 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
               return;
             }
 
+            /// CRITICAL FIX FOR ORB BLOCKING
+            /// Android fix for 'net::ERR_BLOCKED_BY_ORB' errors
+            /// These errors occur when the OS blocks responses due to
+            /// the response headers not having proper CORS settings.
+            if (error.description.contains('net::ERR_BLOCKED_BY_ORB')) {
+                  errorAlreadyHandled = true;
+              return;
+            }
+
+
             final errorType = error.errorType;
             if (errorType == null) return;
 
