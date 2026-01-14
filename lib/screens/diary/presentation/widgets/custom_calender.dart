@@ -272,6 +272,7 @@ class _CustomCalenderState extends State<CustomCalender> {
       }
     }
 
+    // Optional Diary(s) - no dot displayed
     return false;
   }
 }
