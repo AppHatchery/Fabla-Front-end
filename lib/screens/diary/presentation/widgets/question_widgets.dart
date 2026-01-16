@@ -663,7 +663,6 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
             ]
             else if (response.firstOrNull!.contains("Item was skipped due to: ")) ...[
               SizedBox(
-                width: 230,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -677,7 +676,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                       height: 24,
                     ),
                     Text(
-                      "Unable to Complete Web Survey",
+                      "Unable to Complete\nWeb Survey",
                       textAlign: TextAlign.center,
                       style: CustomTypography().headlineMedium(
                         color: Color(0xFFFF3B30),
