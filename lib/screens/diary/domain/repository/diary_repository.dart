@@ -4,7 +4,7 @@ import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
 import 'package:audio_diaries_flutter/core/usecases/diary_history.dart'
-    show getAllHistoryDiariesUseCase;
+    show getPaginatedHistoryDiariesUseCase, invalidateDiaryHistoryCache, PaginatedDiaryResult, getAllHistoryDiariesUseCase;
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -61,6 +61,13 @@ class DiaryRepository {
       return _diaryDAO.getAllDiaries();
     }
     return diaries;
+  }
+
+  PaginatedDiaryResult getPaginatedHistoryDiaries({
+    required int page,
+    required int limit,
+  }) {
+    return getPaginatedHistoryDiariesUseCase(page: page, limit: limit);
   }
 
   /// Retrieves a DiaryEntity object from the data source based on a specified due date.
@@ -589,6 +596,7 @@ class DiaryRepository {
   ///
   Future<void> addDiaries(List<Diary> diaries) async {
     _diaryDAO.addDiaries(diaries);
+    invalidateDiaryHistoryCache();
   }
 
   /// Asynchronous method to update a Diary object in the data source.
@@ -604,6 +612,7 @@ class DiaryRepository {
   Future<void> updateDiary(DiaryModel diary) async {
     final entity = Diary.fromModel(diary);
     _diaryDAO.updateDiary(entity);
+    invalidateDiaryHistoryCache();
   }
 
   List<Tag> _getTags(DiaryModel diary) {
@@ -678,6 +687,10 @@ class DiaryRepository {
       final result = _diaryDAO.deleteDiaries(entitiesToDelete);
 
       dev.log("Deletion result: $result diaries deleted", name: "Diary Deletion");
+
+      if (result > 0) {
+        invalidateDiaryHistoryCache();
+      }
 
       return result > 0;
 

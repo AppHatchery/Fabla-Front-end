@@ -17,10 +17,26 @@ class DiaryHistoryLoading extends DiaryHistoryState {
 
 class DiaryHistoryLoaded extends DiaryHistoryState {
   final Map<String, List<DiaryModel>> groupedDiaries;
-  const DiaryHistoryLoaded(this.groupedDiaries);
+  final bool hasMore;
+  final int currentPage;
+
+  const DiaryHistoryLoaded({
+    required this.groupedDiaries,
+    required this.hasMore,
+    required this.currentPage,
+  });
 
   @override
-  List<Object> get props => [groupedDiaries];
+  List<Object> get props => [groupedDiaries, hasMore, currentPage];
+}
+
+class DiaryHistoryLoadingMore extends DiaryHistoryState {
+  final Map<String, List<DiaryModel>> currentDiaries;
+
+  const DiaryHistoryLoadingMore(this.currentDiaries);
+
+  @override
+  List<Object> get props => [currentDiaries];
 }
 
 class DiaryHistoryError extends DiaryHistoryState {

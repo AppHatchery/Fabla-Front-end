@@ -11,6 +11,121 @@ import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 final diaryRepository = DiaryRepository();
 final promptRepository = PromptRepository();
 
+
+class PaginatedDiaryResult {
+  final Map<String, List<DiaryModel>> diaries;
+  final bool hasMore;
+  final int totalCount;
+
+  const PaginatedDiaryResult({
+    required this.diaries,
+    required this.hasMore,
+    required this.totalCount,
+  });
+}
+
+// Cache variables at file level
+List<DiaryModel>? _cachedProcessedDiaries;
+DateTime? _cacheTime;
+const _cacheDuration = Duration(seconds: 30);
+
+void invalidateDiaryHistoryCache() {
+  _cachedProcessedDiaries = null;
+  _cacheTime = null;
+}
+
+List<DiaryModel> _getOrBuildDiaryCache() {
+  final now = DateTime.now();
+
+  if (_cachedProcessedDiaries == null ||
+      _cacheTime == null ||
+      now.difference(_cacheTime!) > _cacheDuration) {
+
+    _cachedProcessedDiaries = _buildProcessedDiariesList();
+    _cacheTime = now;
+  }
+
+  return _cachedProcessedDiaries!;
+}
+
+List<DiaryModel> _buildProcessedDiariesList() {
+  final unfilteredDiaries = diaryRepository.getAllDiaries();
+
+  final now = DateTime.now();
+  final tomorrow = DateTime(now.year, now.month, now.day)
+      .add(const Duration(days: 1));
+
+  final eligibleDiaries = unfilteredDiaries
+      .where((diary) => diary.start.isBefore(tomorrow))
+      .toList();
+
+  if (eligibleDiaries.isEmpty) return [];
+
+  _updateMissedStatuses(eligibleDiaries, now);
+  final validDiaries = _filterDiariesByStudyGoals(eligibleDiaries);
+  final processedDiaries = _processDiariesIntoEntries(validDiaries, now);
+
+  for (var diary in processedDiaries) {
+    diary.tags = _getTags(diary);
+  }
+
+  processedDiaries.sort((a, b) {
+    final dateA = _determineAccurateDisplayDate(a, now);
+    final dateB = _determineAccurateDisplayDate(b, now);
+    final comparison = dateB.compareTo(dateA);
+    if (comparison != 0) return comparison;
+    return _compareDiariesByPriority(a, b, now);
+  });
+
+  return processedDiaries;
+}
+
+// Pagination
+PaginatedDiaryResult getPaginatedHistoryDiariesUseCase({
+  required int page,
+  required int limit,
+}) {
+  final now = DateTime.now();
+  final allProcessedDiaries = _getOrBuildDiaryCache();
+
+  if (allProcessedDiaries.isEmpty) {
+    return const PaginatedDiaryResult(
+      diaries: {},
+      hasMore: false,
+      totalCount: 0,
+    );
+  }
+
+  final startIndex = page * limit;
+  final endIndex = (startIndex + limit).clamp(0, allProcessedDiaries.length);
+
+  if (startIndex >= allProcessedDiaries.length) {
+    return PaginatedDiaryResult(
+      diaries: const {},
+      hasMore: false,
+      totalCount: allProcessedDiaries.length,
+    );
+  }
+
+  final paginatedDiaries = allProcessedDiaries.sublist(startIndex, endIndex);
+  final hasMore = endIndex < allProcessedDiaries.length;
+
+  final grouped = _groupAndSortDiaries(paginatedDiaries, now);
+
+  return PaginatedDiaryResult(
+    diaries: grouped,
+    hasMore: hasMore,
+    totalCount: allProcessedDiaries.length,
+  );
+}
+
+//backward compatibility
+Map<String, List<DiaryModel>> getAllHistoryDiariesUseCase() {
+  final allProcessedDiaries = _getOrBuildDiaryCache();
+  final now = DateTime.now();
+  return _groupAndSortDiaries(allProcessedDiaries, now);
+}
+
 /// Retrieves all history diaries grouped by date with 100% accuracy.
 ///
 /// This function processes diaries to ensure accurate date mapping based on:
@@ -21,37 +136,39 @@ final promptRepository = PromptRepository();
 ///
 /// Returns:
 /// A map where keys are formatted historical dates and values are lists of DiaryModel objects
-Map<String, List<DiaryModel>> getAllHistoryDiariesUseCase() {
-  final unfilteredDiaries = diaryRepository.getAllDiaries();
 
-  final now = DateTime.now();
-  final tomorrow =
-      DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
-
-  // Filter diaries that should appear in history (started before tomorrow)
-  final eligibleDiaries = unfilteredDiaries
-      .where((diary) => diary.start.isBefore(tomorrow))
-      .toList();
-
-  if (eligibleDiaries.isEmpty) return {};
-
-  // Update missed statuses
-  _updateMissedStatuses(eligibleDiaries, now);
-
-  // Filter out diaries from studies with 0 goals (only for missed diaries)
-  final validDiaries = _filterDiariesByStudyGoals(eligibleDiaries);
-
-  // Process diaries into individual entries with accurate date mapping
-  final processedDiaries = _processDiariesIntoEntries(validDiaries, now);
-
-  // Load tags for all processed diaries
-  for (var diary in processedDiaries) {
-    diary.tags = _getTags(diary);
-  }
-
-  // Group by date and sort
-  return _groupAndSortDiaries(processedDiaries, now);
-}
+///Commenting this method for documentation
+// Map<String, List<DiaryModel>> getAllHistoryDiariesUseCase() {
+//   final unfilteredDiaries = diaryRepository.getAllDiaries();
+//
+//   final now = DateTime.now();
+//   final tomorrow =
+//       DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+//
+//   // Filter diaries that should appear in history (started before tomorrow)
+//   final eligibleDiaries = unfilteredDiaries
+//       .where((diary) => diary.start.isBefore(tomorrow))
+//       .toList();
+//
+//   if (eligibleDiaries.isEmpty) return {};
+//
+//   // Update missed statuses
+//   _updateMissedStatuses(eligibleDiaries, now);
+//
+//   // Filter out diaries from studies with 0 goals (only for missed diaries)
+//   final validDiaries = _filterDiariesByStudyGoals(eligibleDiaries);
+//
+//   // Process diaries into individual entries with accurate date mapping
+//   final processedDiaries = _processDiariesIntoEntries(validDiaries, now);
+//
+//   // Load tags for all processed diaries
+//   for (var diary in processedDiaries) {
+//     diary.tags = _getTags(diary);
+//   }
+//
+//   // Group by date and sort
+//   return _groupAndSortDiaries(processedDiaries, now);
+// }
 
 /// Updates diary statuses to 'missed' where appropriate
 void _updateMissedStatuses(List<DiaryModel> diaries, DateTime now) {
