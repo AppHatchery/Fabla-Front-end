@@ -57,15 +57,15 @@ class _CustomCalenderState extends State<CustomCalender> {
           color: CustomColors.fillWhite,
           borderRadius: BorderRadius.circular(12),
           shape: BoxShape.rectangle,
-          border: Border.all(
-              color: CustomColors.productBorderNormal, width: 2)),
+          border:
+              Border.all(color: CustomColors.productBorderNormal, width: 2)),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
       child: TableCalendar(
         firstDay: DateTime.utc(2010, 10, 16),
         lastDay: DateTime.utc(2060, 3, 14),
         focusedDay: focusedDay,
         currentDay: today,
-        availableGestures: AvailableGestures.none,
+        availableGestures: AvailableGestures.horizontalSwipe,
         headerStyle: const HeaderStyle(
             titleCentered: false,
             formatButtonVisible: false,
@@ -95,30 +95,38 @@ class _CustomCalenderState extends State<CustomCalender> {
                     padding: const EdgeInsets.only(left: 20),
                     child: Text(
                       getMonthYear(day),
-                      style: CustomTypography().titleSmall(
-                          color: CustomColors.textSecondaryContent),
+                      style: CustomTypography()
+                          .titleSmall(color: CustomColors.textSecondaryContent),
                     ),
                   ),
                 ),
                 SizedBox(
                   child: Row(
                     children: [
-                      SizedBox(
-                        height: scaler.scale(24),
-                        width: scaler.scale(24),
-                        child: Icon(
-                            Icons.chevron_left_rounded,
-                            size: scaler.scale(24),
-                          ),
-                      ),
+                      GestureDetector(
+                          onTap: () => pageController?.previousPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.ease),
+                          child: SizedBox(
+                              height: scaler.scale(24),
+                              width: scaler.scale(24),
+                              child: Icon(
+                                Icons.chevron_left_rounded,
+                                size: scaler.scale(24),
+                              ))),
                       const SizedBox(width: 12),
-                      SizedBox(
-                        height: scaler.scale(24),
-                        width: scaler.scale(24),
-                        child: Icon(
-                            Icons.chevron_right_rounded,
-                            size: scaler.scale(24),
-                          ),
+                      const SizedBox(width: 12),
+                      GestureDetector(
+                        onTap: () => pageController?.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.ease),
+                        child: SizedBox(
+                            height: scaler.scale(24),
+                            width: scaler.scale(24),
+                            child: Icon(
+                              Icons.chevron_right_rounded,
+                              size: scaler.scale(24),
+                            )),
                       ),
                     ],
                   ),
@@ -157,8 +165,7 @@ class _CustomCalenderState extends State<CustomCalender> {
                 height: scaler.scale(33),
                 margin: const EdgeInsets.only(bottom: 4),
                 alignment: Alignment.center,
-                decoration:
-                    BoxDecoration(shape: BoxShape.circle, color: color),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color),
                 child: Text(
                   day.day.toString(),
                   style: CustomTypography().bodyMedium(color: textColor),
@@ -171,18 +178,16 @@ class _CustomCalenderState extends State<CustomCalender> {
                 ? CustomColors.productNormal
                 : CustomColors.productLightBackground;
 
-            final textColor =
-                (today == selectedDate || date == selectedDate)
-                    ? CustomColors.textWhite
-                    : CustomColors.textTertiaryContent;
+            final textColor = (today == selectedDate || date == selectedDate)
+                ? CustomColors.textWhite
+                : CustomColors.textTertiaryContent;
             return Center(
               child: Container(
                 width: scaler.scale(33),
                 height: scaler.scale(33),
                 margin: const EdgeInsets.only(bottom: 4),
                 alignment: Alignment.center,
-                decoration:
-                    BoxDecoration(shape: BoxShape.circle, color: color),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color),
                 child: Text(
                   date.day.toString(),
                   style: CustomTypography().bodyLarge(color: textColor),
@@ -195,12 +200,13 @@ class _CustomCalenderState extends State<CustomCalender> {
             isBeforeToday = date.isBefore(today);
             final color = isBeforeToday
                 ? CustomColors.textTertiaryContent
-                : goal ? CustomColors.productNormalActive : Colors.transparent;
+                : goal
+                    ? CustomColors.productNormalActive
+                    : Colors.transparent;
             return Container(
               width: 7.0,
               height: 7.0,
-              decoration:
-                  BoxDecoration(shape: BoxShape.circle, color: color),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: color),
               margin: EdgeInsets.symmetric(
                   vertical: scaler.scale(5.0), horizontal: 1.5),
             );
@@ -223,14 +229,13 @@ class _CustomCalenderState extends State<CustomCalender> {
 
     return [];
   }
-  
 
   List<DiaryModel> _getAllDiaries() {
     final list = repository.getAllDiaries();
     return list;
   }
 
-  List<StudyModel> _getAllStudies(){
+  List<StudyModel> _getAllStudies() {
     final list = repository.getAllStudies();
     return list;
   }
@@ -263,7 +268,7 @@ class _CustomCalenderState extends State<CustomCalender> {
     for (final diary in diariesForDate) {
       // Find the study that matches this diary
       final study = studies.firstWhere(
-            (s) => s.studyId == diary.studyID,
+        (s) => s.studyId == diary.studyID,
       );
 
       // If diary(s) is not optional display the dot
