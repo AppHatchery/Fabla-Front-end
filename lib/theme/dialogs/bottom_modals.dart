@@ -198,14 +198,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                       weight: FontWeight.w400,
                     ),
                   ),
-                  Text(
-                    widget.hint ??
-                        "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
-                    style: CustomTypography().bodyLarge(
-                      color: const Color(0x000000DB),
-                      weight: FontWeight.w400,
-                    ),
-                  ),
                   _riveAnimation(),
                 ],
               ),
@@ -892,11 +884,10 @@ class _BottomTextModalState extends State<BottomTextModal>
           const SizedBox(
             height: 16,
           ),
-          Text(
-            widget.hint ??
-                "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
+          widget.hint != null ? Text(
+            widget.hint!,
             style: CustomTypography().body(),
-          ),
+          ) : SizedBox.shrink(),
           const SizedBox(
             height: 16,
           ),
