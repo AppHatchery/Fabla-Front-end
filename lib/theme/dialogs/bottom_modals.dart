@@ -1250,13 +1250,29 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: CustomFlatButton(
               isDisabled: (completed == false),
-              onClick: () => save(),
+              onClick: () => popUp(),
               text: "Continue",
             ),
           )
         ],
       ),
     );
+  }
+
+  popUp() async {
+    if (!mounted) return;
+
+    final results = await showDialog<bool>(
+      context: context,
+      builder: (context) => CompletedPopUp(
+        title: "Have You Completed The Survey?",
+        onTap: (ctx) {
+          save();
+          Navigator.pop(ctx, true);
+        },
+      ),
+    );
+    dev.log('User Clicked Yes');
   }
 
   exit() async {
@@ -1275,6 +1291,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
       widget.respond("Item was skipped due to: $errorText");
     } else {
       widget.respond("Start: $start | End: $end");
+      dev.log('${widget.respond} "Start: $start | End: $end" ');
     }
     Navigator.pop(context);
   }

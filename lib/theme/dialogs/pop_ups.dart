@@ -1284,3 +1284,67 @@ class _UpdatePopUpState extends State<UpdatePopUp> {
     );
   }
 }
+
+class CompletedPopUp extends StatelessWidget {
+  final void Function(BuildContext) onTap;
+  final String title;
+
+  const CompletedPopUp({
+    super.key,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      backgroundColor: CustomColors.fillWhite,
+      contentPadding: const EdgeInsets.all(0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Colors.grey, width: 1),
+      ),
+      surfaceTintColor: CustomColors.fillWhite,
+      children: [
+        Container(
+          constraints: const BoxConstraints.tightFor(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                title,
+                style: CustomTypography().headlineMedium(),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomFlatButton(
+                      onClick: () => onTap(context),
+                      text: "Yes",
+                      textColor: CustomColors.fillWhite,
+                      color: CustomColors.productNormalActive,
+                      borderColor: CustomColors.productNormalActive,
+                    ),
+                  ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: CustomFlatButton(
+                      onClick: () => Navigator.pop(context, false),
+                      text: "No",
+                      color: CustomColors.fillWhite,
+                      textColor: CustomColors.warningActive,
+                      borderColor: CustomColors.warningActive,
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
