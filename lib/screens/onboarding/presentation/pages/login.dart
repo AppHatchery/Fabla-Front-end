@@ -250,15 +250,19 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   }
 
   void login() {
-    if (controller.text.isNotEmpty) {
       final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
       final text = controller.text.substring(0, lastNonSpaceIndex + 1);
       final code = text;
 
       if (code.isNotEmpty) {
         loginCubit.login(code);
-      } else {}
-    }
+      } else {
+        setState(() {
+          error = true;
+          message = 'Participant ID is required';
+        });
+        return;
+      }
   }
 
   track(int spent, String status) async {
