@@ -6,11 +6,11 @@ import 'package:flutter/material.dart';
 
 class OnboardingTimePicker extends StatefulWidget {
   final String? time;
-  final String subtitle;
+  final String title;
+  final String? subtitle;
   final ValueChanged<String> onChanged;
   const OnboardingTimePicker(
-      {super.key, this.time, required this.subtitle, required this.onChanged});
-
+      {super.key, this.time, required this.title, required this.subtitle, required this.onChanged});
   @override
   State<OnboardingTimePicker> createState() => _OnboardingTimePickerState();
 }
@@ -78,7 +78,8 @@ class _OnboardingTimePickerState extends State<OnboardingTimePicker> {
         builder: (context) => LayoutBuilder(builder: (context, constraints) {
               return SingleChildScrollView(
                 child: CustomTimePicker(
-                  title: widget.subtitle,
+                  title: widget.title,
+                  subtitle: widget.subtitle,
                   date: date,
                   onDelete: null,
                   minuteInterval: 1,
