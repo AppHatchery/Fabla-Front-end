@@ -49,14 +49,10 @@ class DailyGoalService {
     ShiftedDayBoundaries boundaries,
     DateTime logicalDay,
   ) {
-    final now = DateTime.now();
 
     return allDiaries.where((diary) {
       // Must belong to this study
       if (diary.studyID != studyId) return false;
-
-      // Must not be past due
-      if (diary.due.isBefore(now)) return false;
 
       // Must overlap with the shifted day window
       final overlapsWindow = diary.start.isBefore(boundaries.end) &&
