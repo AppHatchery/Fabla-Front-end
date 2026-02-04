@@ -156,7 +156,7 @@ class _DiaryListState extends State<DiaryList> with WidgetsBindingObserver {
                     DiaryCard(
                       diary: diaries[diaryIndex],
                       refresh: (value) => refresh(value),
-                      getPageName: () => "history_list",
+                      pageName: "history_list",
                     ),
                     const SizedBox(height: 12),
                   ],
