@@ -257,7 +257,7 @@ class _DiaryCardState extends State<DiaryCard> {
                   )
                 : bodyTag(
                     text: wording, color: colors[1], background: colors[0]),
-        if (widget.diary!.entries > 1 && widget.diary!.status != DiaryStatus.missed)
+        if (widget.diary!.entries > 1)
           bodyTag(
               text: "Multiple submissions allowed",
               color: CustomColors.midGrey,
