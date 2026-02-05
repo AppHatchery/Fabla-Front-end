@@ -1260,19 +1260,22 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   }
 
   popUp() async {
-    if (!mounted) return;
-
-    final results = await showDialog<bool>(
+    await showDialog<bool>(
       context: context,
       builder: (context) => CompletedPopUp(
         title: "Have You Completed The Survey?",
-        onTap: (ctx) {
+        onYes: (ctx) {
+          save();
+          Navigator.pop(ctx, true);
+        },
+        onSkip: (ctx) {
+          errorText = "survey skipped";
+          completed = null;
           save();
           Navigator.pop(ctx, true);
         },
       ),
     );
-    dev.log('User Clicked Yes');
   }
 
   exit() async {
@@ -1289,6 +1292,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
     end = DateTime.now();
     if (completed == null) {
       widget.respond("Item was skipped due to: $errorText");
+      dev.log('${widget.respond} Item was skipped due to: $errorText');
     } else {
       widget.respond("Start: $start | End: $end");
       dev.log('${widget.respond} "Start: $start | End: $end" ');

@@ -1286,13 +1286,15 @@ class _UpdatePopUpState extends State<UpdatePopUp> {
 }
 
 class CompletedPopUp extends StatelessWidget {
-  final void Function(BuildContext) onTap;
+  final void Function(BuildContext) onYes;
+  final void Function(BuildContext) onSkip;
   final String title;
 
   const CompletedPopUp({
     super.key,
     required this.title,
-    required this.onTap,
+    required this.onYes,
+    required this.onSkip,
   });
 
   @override
@@ -1308,7 +1310,7 @@ class CompletedPopUp extends StatelessWidget {
       children: [
         Container(
           constraints: const BoxConstraints.tightFor(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -1318,29 +1320,38 @@ class CompletedPopUp extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => onTap(context),
-                      text: "Yes",
-                      textColor: CustomColors.fillWhite,
-                      color: CustomColors.productNormalActive,
-                      borderColor: CustomColors.productNormalActive,
-                    ),
-                  ),
-                  const SizedBox(width: 18),
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, false),
-                      text: "No",
-                      color: CustomColors.fillWhite,
-                      textColor: CustomColors.warningActive,
-                      borderColor: CustomColors.warningActive,
-                    ),
-                  ),
-                ],
-              )
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: CustomFlatButton(
+                  onClick: () => onYes(context),
+                  text: "Yes, I’m done",
+                  textColor: CustomColors.fillWhite,
+                  color: CustomColors.productNormalActive,
+                  borderColor: CustomColors.productNormalActive,
+                ),
+              ),
+              const SizedBox(height: 9),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: CustomFlatButton(
+                  onClick: () => Navigator.pop(context, false),
+                  text: "No, take me back",
+                  color: CustomColors.fillWhite,
+                  textColor: CustomColors.productNormalActive,
+                  borderColor: CustomColors.productNormalActive,
+                ),
+              ),
+              const SizedBox(height: 42),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: CustomFlatButton(
+                  onClick: () => onSkip(context),
+                  text: "Skip survey",
+                  color: CustomColors.fillWhite,
+                  textColor: CustomColors.warningActive,
+                  borderColor: Colors.transparent,
+                ),
+              ),
             ],
           ),
         ),
