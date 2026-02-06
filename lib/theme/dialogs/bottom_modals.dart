@@ -884,7 +884,7 @@ class _BottomTextModalState extends State<BottomTextModal>
           const SizedBox(
             height: 16,
           ),
-          widget.hint != null ? Text(
+          widget.hint != null && widget.hint!.isNotEmpty ? Text(
             widget.hint!,
             style: CustomTypography().body(),
           ) : SizedBox.shrink(),
