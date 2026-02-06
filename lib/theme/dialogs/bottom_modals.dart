@@ -1263,7 +1263,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
     await showDialog<bool>(
       context: context,
       builder: (context) => CompletedPopUp(
-        title: "Have You Completed The Survey?",
+        title: "Have you completed the survey?",
         onYes: (ctx) {
           save();
           Navigator.pop(ctx, true);

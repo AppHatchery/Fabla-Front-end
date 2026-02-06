@@ -1303,8 +1303,7 @@ class CompletedPopUp extends StatelessWidget {
       backgroundColor: CustomColors.fillWhite,
       contentPadding: const EdgeInsets.all(0),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: const BorderSide(color: Colors.grey, width: 1),
+        borderRadius: BorderRadius.circular(25),
       ),
       surfaceTintColor: CustomColors.fillWhite,
       children: [
@@ -1316,7 +1315,7 @@ class CompletedPopUp extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: CustomTypography().headlineMedium(),
+                style: CustomTypography().titleLarge(),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
