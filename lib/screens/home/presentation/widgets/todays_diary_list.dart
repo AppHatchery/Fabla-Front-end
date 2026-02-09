@@ -9,7 +9,7 @@ import '../../../../theme/custom_typography.dart';
 class TodaysDiaryList extends StatelessWidget {
   final List<DiaryModel> diaries;
   final ValueChanged<bool> refresh;
-  final String Function() getPageName;
+  final String getPageName;
   const TodaysDiaryList(
       {super.key,
       required this.diaries,
@@ -50,7 +50,7 @@ class TodaysDiaryList extends StatelessWidget {
                     child: DiaryCard(
                       diary: _diaries[index],
                       refresh: (value) => refresh(value),
-                      getPageName: getPageName,
+                      pageName: getPageName,
                     ),
                   );
                 },

@@ -33,13 +33,13 @@ import '../resources/strings.dart';
 class DiaryCard extends StatefulWidget {
   final DiaryModel? diary;
   final ValueChanged<bool> refresh;
-  final String Function() getPageName;
+  final String pageName;
 
   const DiaryCard(
       {super.key,
       required this.diary,
       required this.refresh,
-      required this.getPageName});
+      required this.pageName});
 
   @override
   State<DiaryCard> createState() => _DiaryCardState();
@@ -95,16 +95,6 @@ class _DiaryCardState extends State<DiaryCard> {
   bool isDiaryCompleteAndOverdue() {
     return widget.diary!.status == DiaryStatus.complete &&
         widget.diary!.due.isBefore(now);
-  }
-
-  bool isDiaryOpen() {
-    return (widget.diary!.status == DiaryStatus.ongoing ||
-            widget.diary!.status == DiaryStatus.complete ||
-            widget.diary!.status == DiaryStatus.submitted ||
-            widget.diary!.status == DiaryStatus.missed ||
-            (widget.diary!.status == DiaryStatus.idle &&
-                widget.diary!.start.isBefore(now))) &&
-        widget.getPageName() == "history_list";
   }
 
   // Function to refresh the diary card
@@ -259,21 +249,35 @@ class _DiaryCardState extends State<DiaryCard> {
           widget.diary?.name ?? "",
           style: CustomTypography().titleSmall(),
         ),
-        isDiaryOpen()
+        widget.pageName != "home"
             ? DiaryCardTag(status: widget.diary!.status)
-            : Container(
-                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: ShapeDecoration(
-                  color: colors[0],
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4)),
-                ),
-                child: Text(
-                  wording,
-                  style: CustomTypography().titleRegular(color: colors[1]),
-                ),
-              )
+            : widget.diary!.currentEntry > 0
+                ? DiaryCardTag(
+                    status: DiaryStatus.submitted,
+                  )
+                : bodyTag(
+                    text: wording, color: colors[1], background: colors[0]),
+        if (widget.diary!.entries > 1)
+          bodyTag(
+              text: "Multiple submissions allowed",
+              color: CustomColors.midGrey,
+              background: CustomColors.productBorderNormal)
       ],
+    );
+  }
+
+  Widget bodyTag(
+      {required String text, required Color color, required Color background}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      decoration: ShapeDecoration(
+        color: background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      ),
+      child: Text(
+        text,
+        style: CustomTypography().titleRegular(color: color),
+      ),
     );
   }
 }
@@ -1595,7 +1599,8 @@ class WebViewErrorCard extends StatelessWidget {
     required this.showContactResearch,
     required this.icon,
     required this.skip,
-    required this.connection, required this.screenChange,
+    required this.connection,
+    required this.screenChange,
   });
 
   @override
@@ -1630,28 +1635,30 @@ class WebViewErrorCard extends StatelessWidget {
             children: [
               if (buttonText == "Try Again")
                 SizedBox(
-                width: MediaQuery.of(context).size.width * 0.38,
-                height: 52,
-                child: CustomOutlineButton(
-                  onClick: onRetry,
-                  color: Color(0xFFFF3B30),
-                  backgroundColor: Colors.transparent,
-                  children: Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    alignment: WrapAlignment.center,
-                    runAlignment: WrapAlignment.center,
-                    children: [
-                      Text(
-                        buttonText,
-                        style: TextStyle(fontSize: 12, color: Color(0xFFFF3B30)),
-                      ),
-                    ],
+                  width: MediaQuery.of(context).size.width * 0.38,
+                  height: 52,
+                  child: CustomOutlineButton(
+                    onClick: onRetry,
+                    color: Color(0xFFFF3B30),
+                    backgroundColor: Colors.transparent,
+                    children: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      alignment: WrapAlignment.center,
+                      runAlignment: WrapAlignment.center,
+                      children: [
+                        Text(
+                          buttonText,
+                          style:
+                              TextStyle(fontSize: 12, color: Color(0xFFFF3B30)),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
               SizedBox(
-                width: buttonText == "Try Again" ?
-                  MediaQuery.of(context).size.width * 0.38 : MediaQuery.of(context).size.width * 0.8,
+                width: buttonText == "Try Again"
+                    ? MediaQuery.of(context).size.width * 0.38
+                    : MediaQuery.of(context).size.width * 0.8,
                 child: CustomFlatButton(
                     color: Color(0xFFFF3B30),
                     borderColor: Color(0xFFFF3B30),

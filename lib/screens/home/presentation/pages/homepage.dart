@@ -187,7 +187,7 @@ class _HomePageState extends State<HomePage>
             TodaysDiaryList(
               diaries: state.todaysData.diaries,
               refresh: (value) => refresh(value),
-              getPageName: () => "home",
+              getPageName: "home",
             ),
           ] else if (state.shouldShowEndState) ...[
             Text(
