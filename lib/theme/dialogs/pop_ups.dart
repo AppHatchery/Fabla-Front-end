@@ -1284,3 +1284,77 @@ class _UpdatePopUpState extends State<UpdatePopUp> {
     );
   }
 }
+
+class CompletedPopUp extends StatelessWidget {
+  final void Function(BuildContext) onYes;
+  final void Function(BuildContext) onSkip;
+  final String title;
+
+  const CompletedPopUp({
+    super.key,
+    required this.title,
+    required this.onYes,
+    required this.onSkip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      backgroundColor: CustomColors.fillWhite,
+      contentPadding: const EdgeInsets.all(0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(25),
+      ),
+      surfaceTintColor: CustomColors.fillWhite,
+      children: [
+        Container(
+          constraints: const BoxConstraints.tightFor(),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                title,
+                style: CustomTypography().titleLarge(),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: CustomFlatButton(
+                  onClick: () => onYes(context),
+                  text: "Yes, I’m done",
+                  textColor: CustomColors.fillWhite,
+                  color: CustomColors.productNormalActive,
+                  borderColor: CustomColors.productNormalActive,
+                ),
+              ),
+              const SizedBox(height: 9),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: CustomFlatButton(
+                  onClick: () => Navigator.pop(context, false),
+                  text: "No, take me back",
+                  color: CustomColors.fillWhite,
+                  textColor: CustomColors.productNormalActive,
+                  borderColor: CustomColors.productNormalActive,
+                ),
+              ),
+              const SizedBox(height: 42),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: CustomFlatButton(
+                  onClick: () => onSkip(context),
+                  text: "Skip survey",
+                  color: CustomColors.fillWhite,
+                  textColor: CustomColors.warningActive,
+                  borderColor: Colors.transparent,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
