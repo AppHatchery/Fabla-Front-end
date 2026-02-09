@@ -86,7 +86,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
                   height: 16,
                 ),
                 Text(
-                    "Below is the study information associated with this study code.",
+                    "Below is the study information associated with this study string.",
                     style: CustomTypography()
                         .bodyLarge(color: CustomColors.textWhite)),
                 const SizedBox(
