@@ -238,14 +238,18 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   }
 
   void verify() {
-    if (controller.text.isNotEmpty) {
       final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
       final code = controller.text.substring(0, lastNonSpaceIndex + 1);
 
       if (code.isNotEmpty) {
         cubit.login(code);
-      } else {}
-    }
+      } else {
+        setState(() {
+          error = true;
+          message = 'Study String is required';
+        });
+        return;
+      }
   }
 
   Future<void> launchEmail() async {
