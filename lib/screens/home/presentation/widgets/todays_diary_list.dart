@@ -18,8 +18,11 @@ class TodaysDiaryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Filter diaries to exclude submitted and past due entries
     final _diaries = diaries
-        .where((diary) => diary.status != DiaryStatus.submitted)
+        .where((diary) =>
+            diary.status != DiaryStatus.submitted &&
+            diary.due.isAfter(DateTime.now()))
         .toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
