@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as dev;
 import 'dart:io';
 import 'dart:math';
 
@@ -664,7 +663,6 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
             ]
             else if (response.firstOrNull!.contains("Item was skipped due to: ")) ...[
               SizedBox(
-                width: 230,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -678,7 +676,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                       height: 24,
                     ),
                     Text(
-                      "Unable to Complete Web Survey",
+                      "Unable to Complete\nWeb Survey",
                       textAlign: TextAlign.center,
                       style: CustomTypography().headlineMedium(
                         color: Color(0xFFFF3B30),
@@ -693,7 +691,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                       style: CustomTypography().bodyLarge(),
                     ),
                     SizedBox(
-                      height: 100,
+                      height: 70,
                     ),
                     GestureDetector(
                       onTap: _launchEmail,
@@ -703,7 +701,48 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                         style:
                             CustomTypography().button(color: Color(0xFFFF3B30)),
                       ),
-                    )
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      spacing: 24,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          SizedBox(
+                              width: 65,
+                              child: Divider(
+                                color: Color(0xFFB0B0B0),
+                                thickness: 1,
+                              )),
+                          Text(
+                            "OR",
+                            style: CustomTypography().bodyLarge(
+                                weight: FontWeight.w500,
+                                color: Color(0xFFB0B0B0)),
+                          ),
+                          SizedBox(
+                              width: 65,
+                              child: Divider(
+                                color: Color(0xFFB0B0B0),
+                                thickness: 1,
+                              )),
+                        ]),
+                    SizedBox(height: 20),
+                    CustomOutlineButton(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+                        onClick:() => showModal(),
+                        color: Color(0xFFFF3B30),
+                        backgroundColor: Colors.transparent,
+                        children: Wrap(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text("Try Again",
+                                style: CustomTypography().button(color: Color(0xFFFF3B30))),
+                              ],
+                            )
+                          ],
+                        ))
                   ],
                 ),
               )
