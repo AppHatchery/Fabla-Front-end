@@ -189,7 +189,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     style: CustomTypography()
                         .titleLarge(color: const Color(0xFF000000)),
                   ),
-                  const SizedBox(height: 24),
+                  const  SizedBox(height:24),
                   Text(
                     widget.subtitle ?? "",
                     style: CustomTypography()
@@ -884,13 +884,10 @@ class _BottomTextModalState extends State<BottomTextModal>
           const SizedBox(
             height: 16,
           ),
-          widget.hint != null ? Text(
+          widget.hint != null && widget.hint!.isNotEmpty ? Text(
             widget.hint!,
             style: CustomTypography().body(),
           ) : SizedBox.shrink(),
-          const SizedBox(
-            height: 16,
-          ),
           // CustomOutlineButton(
           //   onClick: () => {},
           //   color: CustomColors.productNormal,
