@@ -488,7 +488,8 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
     if (question.type == 'time') {
       children.add(OnboardingTimePicker(
         time: question.answer,
-        subtitle: question.title,
+        title: question.title,
+        subtitle: question.subtitle,
         onChanged: (String time) {
           setState(() {
             answer = '$time:00'; // TODO Find better way of adding seconds
