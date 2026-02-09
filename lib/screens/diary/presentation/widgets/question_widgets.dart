@@ -728,6 +728,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                         ]),
                     SizedBox(height: 20),
                     CustomOutlineButton(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
                         onClick:() => showModal(),
                         color: Color(0xFFFF3B30),
                         backgroundColor: Colors.transparent,
