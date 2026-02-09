@@ -252,7 +252,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
         ),
       ),
       child: Text(
-        "Blue dots on the calendar indicate that there are submission surveys for the dates.",
+        "A blue dot on the calendar indicates at least one survey is scheduled for that date.",
         style: CustomTypography()
             .bodyLarge(color: CustomColors.textSecondaryContent),
         // textScaleFactor: 3.0,
