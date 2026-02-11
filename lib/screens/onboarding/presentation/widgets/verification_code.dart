@@ -1,7 +1,9 @@
 import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
+import 'package:popover/popover.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/database/dao/experiment_dao.dart';
@@ -49,9 +51,25 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.title,
-          style: CustomTypography().titleSmall(color: CustomColors.textWhite),
+        Row(
+          children: [
+            Text(
+              widget.title,
+              style: CustomTypography().titleSmall(color: CustomColors.textWhite),
+            ),
+            if (widget.title == "Study String")
+              IconButton(
+                iconSize: 20,
+                onPressed: () async => await showDialog(
+                    context: context,
+                    builder:(context) => StudyInfoPopUp()),
+                icon: const Icon(
+                  Icons.info_outline,
+                  color: CustomColors.textWhite,
+                ),
+                padding: EdgeInsets.zero,
+              ),
+          ],
         ),
         const SizedBox(
           height: 6,
