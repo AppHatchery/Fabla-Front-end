@@ -144,7 +144,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                       height: 24,
                     ),
                     Text(
-                        "Fabla is a tool for EMA, audio diary research and more ${Strings.telescope}",
+                        "Fabla is a tool for daily experience research, audio diaries and more ${Strings.telescope}",
                         style: CustomTypography()
                             .titleSmall(color: CustomColors.textWhite)),
                     const SizedBox(
@@ -177,7 +177,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                 children: [
                   Flexible(
                     child: Text(
-                      "Need help with the study code? ",
+                      "Need help with the study string? ",
                       style: CustomTypography()
                           .bodyMedium(color: CustomColors.textWhite),
                     ),
@@ -228,7 +228,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
             height: 12,
           ),
           Text(
-            "Hang tight while we verify the study code - \nalmost there!",
+            "Hang tight while we verify the study string - \nalmost there!",
             textAlign: TextAlign.center,
             style: CustomTypography().bodyLarge(color: CustomColors.textWhite),
           ),
@@ -238,14 +238,18 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   }
 
   void verify() {
-    if (controller.text.isNotEmpty) {
       final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
       final code = controller.text.substring(0, lastNonSpaceIndex + 1);
 
       if (code.isNotEmpty) {
         cubit.login(code);
-      } else {}
-    }
+      } else {
+        setState(() {
+          error = true;
+          message = 'Study String is required';
+        });
+        return;
+      }
   }
 
   Future<void> launchEmail() async {
@@ -253,7 +257,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
         scheme: "mailto",
         path: "fabla@emory.edu",
         query: encodeQueryParameters(<String, String>{
-          'subject': 'Need help with the study code',
+          'subject': 'Need help with the study string',
           'body': 'I have a problem with accessing the study: '
         }));
 

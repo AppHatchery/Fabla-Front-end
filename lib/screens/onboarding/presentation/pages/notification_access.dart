@@ -244,7 +244,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                 ),
                 Flexible(
                   child: Text(
-                    "Oops! We noticed your phone has a battery saving mode ON, this can impact receiving notifications to complete your diaries. To ensure the study runs smoothly for you we recommend you disable the power mode.",
+                    "Oops! It looks like your phone is in battery-saving mode. This may affect your ability to receive diary notifications. To ensure the study runs smoothly, we recommend turning off battery-saving mode.",
                     style: CustomTypography()
                         .bodyLarge(color: CustomColors.warningActive),
                   ),

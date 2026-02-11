@@ -9,7 +9,7 @@ import '../../../../theme/custom_typography.dart';
 class TodaysDiaryList extends StatelessWidget {
   final List<DiaryModel> diaries;
   final ValueChanged<bool> refresh;
-  final String Function() getPageName;
+  final String getPageName;
   const TodaysDiaryList(
       {super.key,
       required this.diaries,
@@ -18,8 +18,11 @@ class TodaysDiaryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Filter diaries to exclude submitted and past due entries
     final _diaries = diaries
-        .where((diary) => diary.status != DiaryStatus.submitted)
+        .where((diary) =>
+            diary.status != DiaryStatus.submitted &&
+            diary.due.isAfter(DateTime.now()))
         .toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,7 +50,7 @@ class TodaysDiaryList extends StatelessWidget {
                     child: DiaryCard(
                       diary: _diaries[index],
                       refresh: (value) => refresh(value),
-                      getPageName: getPageName,
+                      pageName: getPageName,
                     ),
                   );
                 },

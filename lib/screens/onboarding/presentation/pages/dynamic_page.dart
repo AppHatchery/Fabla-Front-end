@@ -488,7 +488,8 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
     if (question.type == 'time') {
       children.add(OnboardingTimePicker(
         time: question.answer,
-        subtitle: question.title,
+        title: question.title,
+        subtitle: question.subtitle,
         onChanged: (String time) {
           setState(() {
             answer = '$time:00'; // TODO Find better way of adding seconds
@@ -638,7 +639,7 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                                   padding: const EdgeInsets.only(
                                       left: 16.0, right: 16.0),
                                   child: Text(
-                                    "Welcome $name! Now a couple of extra questions to customize this study for you",
+                                    "You’re almost done! Just a few more questions to personalize your study",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
                                   ),
