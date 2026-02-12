@@ -6,12 +6,14 @@ import '../custom_colors.dart';
 
 class CustomTimePicker extends StatefulWidget {
   final String title;
+  final String? subtitle;
   final TimeOfDay? date;
   final VoidCallback? onDelete;
   final int minuteInterval;
   const CustomTimePicker(
       {super.key,
       this.title = "Reminder Time",
+      this.subtitle,
       this.date,
       this.onDelete,
       this.minuteInterval = 5});
@@ -78,6 +80,20 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                 )
               ],
             ),
+            if (widget.subtitle != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                        child: Text(
+                      widget.subtitle!,
+                      style: CustomTypography().titleSmall(),
+                    ))
+                  ],
+                ),
+              ),
             const SizedBox(
               height: 32,
             ),
@@ -560,7 +576,8 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
     final viewInsets = MediaQuery.of(context).viewInsets.bottom;
 
     // Adaptive height for entire picker
-    final adaptiveHeight = screenHeight * 0.45 + (textScale - 1.0) * screenHeight * 0.05;
+    final adaptiveHeight =
+        screenHeight * 0.45 + (textScale - 1.0) * screenHeight * 0.05;
 
     // Padding
     final horizontalPadding = screenWidth * 0.04;
@@ -570,12 +587,13 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
     final bottomSpacing = screenHeight * 0.02;
 
     // Wheel height increases with scaling
-    final wheelHeight = (screenHeight * 0.20) * (textScale > 1 ? textScale * 1.1 : 1);
+    final wheelHeight =
+        (screenHeight * 0.20) * (textScale > 1 ? textScale * 1.1 : 1);
     final itemExtent = (screenHeight * 0.06) * (textScale > 1 ? textScale : 1);
 
     // Cap label font size so it doesn't overflow
     final double labelFontSize =
-    (screenWidth * 0.05 * textScale).clamp(14.0, 22.0); // Min 14, Max 22
+        (screenWidth * 0.05 * textScale).clamp(14.0, 22.0); // Min 14, Max 22
     final closeIconSize = (screenWidth * 0.07 * textScale).clamp(20.0, 32.0);
 
     return SizedBox(

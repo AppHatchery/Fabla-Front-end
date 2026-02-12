@@ -189,7 +189,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     style: CustomTypography()
                         .titleLarge(color: const Color(0xFF000000)),
                   ),
-                  const SizedBox(height: 24),
+                  const  SizedBox(height:24),
                   Text(
                     widget.subtitle ?? "",
                     style: CustomTypography()
@@ -884,13 +884,10 @@ class _BottomTextModalState extends State<BottomTextModal>
           const SizedBox(
             height: 16,
           ),
-          widget.hint != null ? Text(
+          widget.hint != null && widget.hint!.isNotEmpty ? Text(
             widget.hint!,
             style: CustomTypography().body(),
           ) : SizedBox.shrink(),
-          const SizedBox(
-            height: 16,
-          ),
           // CustomOutlineButton(
           //   onClick: () => {},
           //   color: CustomColors.productNormal,
@@ -1250,11 +1247,30 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: CustomFlatButton(
               isDisabled: (completed == false),
-              onClick: () => save(),
+              onClick: () => popUp(),
               text: "Continue",
             ),
           )
         ],
+      ),
+    );
+  }
+
+  popUp() async {
+    await showDialog<bool>(
+      context: context,
+      builder: (context) => CompletedPopUp(
+        title: "Have you completed the survey?",
+        onYes: (ctx) {
+          save();
+          Navigator.pop(ctx, true);
+        },
+        onSkip: (ctx) {
+          errorText = "survey skipped";
+          completed = null;
+          save();
+          Navigator.pop(ctx, true);
+        },
       ),
     );
   }
@@ -1273,8 +1289,10 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
     end = DateTime.now();
     if (completed == null) {
       widget.respond("Item was skipped due to: $errorText");
+      dev.log('${widget.respond} Item was skipped due to: $errorText');
     } else {
       widget.respond("Start: $start | End: $end");
+      dev.log('${widget.respond} "Start: $start | End: $end" ');
     }
     Navigator.pop(context);
   }
