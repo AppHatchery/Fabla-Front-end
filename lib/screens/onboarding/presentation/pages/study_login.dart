@@ -246,7 +246,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
       } else {
         setState(() {
           error = true;
-          message = 'Study String is required';
+          message = 'Oops! We cannot access your study without a valid Study ID.';
         });
         return;
       }

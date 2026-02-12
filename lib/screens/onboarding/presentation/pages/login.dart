@@ -259,7 +259,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       } else {
         setState(() {
           error = true;
-          message = 'Participant ID is required';
+          message = 'Oops! We cannot access your study without a valid Participant ID.';
         });
         return;
       }
