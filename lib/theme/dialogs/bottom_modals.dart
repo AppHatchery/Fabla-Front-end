@@ -189,11 +189,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     style: CustomTypography()
                         .titleLarge(color: const Color(0xFF000000)),
                   ),
-                  const  SizedBox(height:24),
+                  const SizedBox(height: 24),
                   Text(
                     widget.subtitle ?? "",
-                    style: CustomTypography()
-                        .bodyLarge(
+                    style: CustomTypography().bodyLarge(
                       color: CustomColors.textNormalContent,
                       weight: FontWeight.w400,
                     ),
@@ -884,10 +883,12 @@ class _BottomTextModalState extends State<BottomTextModal>
           const SizedBox(
             height: 16,
           ),
-          widget.hint != null && widget.hint!.isNotEmpty ? Text(
-            widget.hint!,
-            style: CustomTypography().body(),
-          ) : SizedBox.shrink(),
+          widget.hint != null && widget.hint!.isNotEmpty
+              ? Text(
+                  widget.hint!,
+                  style: CustomTypography().body(),
+                )
+              : SizedBox.shrink(),
           // CustomOutlineButton(
           //   onClick: () => {},
           //   color: CustomColors.productNormal,
@@ -1172,7 +1173,7 @@ class BottomErrorModal extends StatelessWidget {
 class BottomWebViewModal extends StatefulWidget {
   final String url;
   final void Function(String) respond;
-   const BottomWebViewModal(
+  const BottomWebViewModal(
       {super.key, required this.url, required this.respond});
 
   @override
@@ -1328,6 +1329,15 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
   double feedHeight = 0;
   double feedWidth = 0;
 
+  double zoomScale = 1.0;
+  double minZoom = 1.0;
+  double maxZoom = 1.0;
+  double baseScale = 1.0;
+
+  int pointers = 0;
+
+  bool isFullscreen = false;
+
   @override
   void initState() {
     controller = CameraController(
@@ -1384,6 +1394,10 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
     });
     try {
       await controller.initialize();
+      await Future.wait([
+        controller.getMinZoomLevel().then((value) => minZoom = value),
+        controller.getMaxZoomLevel().then((value) => maxZoom = value)
+      ]);
     } on CameraException catch (e) {
       switch (e.code) {
         case 'CameraAccessDenied':
@@ -1421,26 +1435,28 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
       ),
       child: Column(
         children: [
-          const SizedBox(
-            height: 32,
-          ),
-          // Close Modal Button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(
-                    CupertinoIcons.clear_circled_solid,
-                    size: 26,
-                    color: CustomColors.textSecondaryContent,
-                  ),
-                )
-              ],
+          if (!isFullscreen)
+            const SizedBox(
+              height: 32,
             ),
-          ),
+          // Close Modal Button
+          if (!isFullscreen)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(
+                      CupertinoIcons.clear_circled_solid,
+                      size: 26,
+                      color: CustomColors.textSecondaryContent,
+                    ),
+                  )
+                ],
+              ),
+            ),
           Expanded(
             child: questionAndHints(),
           ),
@@ -1460,61 +1476,112 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.prompt.question,
-                      style: CustomTypography().titleLarge(),
+              if (!isFullscreen)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.prompt.question,
+                        style: CustomTypography().titleLarge(),
+                      ),
+                      const SizedBox(
+                        height: 32,
+                      ),
+                      SizedBox(
+                        height: 100,
+                        width: 100,
+                        child: r.RiveAnimation.asset(
+                          'assets/animations/ghosts.riv',
+                          onInit: _onInit,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        widget.prompt.subtitle ??
+                            "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
+                        style: CustomTypography().body(),
+                      ),
+                    ],
+                  ),
+                ),
+              if (!isFullscreen) SizedBox(height: 32),
+              // Recording Controls
+              Stack(
+                children: [
+                  Container(
+                    width: width,
+                    padding: const EdgeInsets.all(0),
+                    color: CustomColors.productNormal,
+                    child: Column(
+                      children: [
+                        if (!isFullscreen) const SizedBox(height: 16),
+                        file != null ? preview() : cameraFeed(),
+                        const SizedBox(height: 24),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 36.0),
+                          child: file != null
+                              ? playbackControls()
+                              : widget.isImage
+                                  ? pictureControls()
+                                  : recordingControls(),
+                        ),
+                        if (!isFullscreen)
+                          SizedBox(
+                            height: screenHeight > 850 ? 36 : 24,
+                          ),
+                      ],
                     ),
-                    const SizedBox(
-                      height: 32,
-                    ),
-                    SizedBox(
-                      height: 100,
-                      width: 100,
-                      child: r.RiveAnimation.asset(
-                        'assets/animations/ghosts.riv',
-                        onInit: _onInit,
+                  ),
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          // change the field view to full screen
+                          if (mounted) {
+                            if (isFullscreen) {
+                              setState(() {
+                                feedHeight =
+                                    controller.value.previewSize!.width / 3;
+                                feedWidth =
+                                    controller.value.previewSize!.height / 3;
+                                isFullscreen = false;
+                              });
+                            } else {
+                              setState(() {
+                                feedHeight = constraints.maxHeight - 30;
+                                feedWidth = constraints.maxWidth;
+                                isFullscreen = true;
+                              });
+                            }
+                          }
+                        },
+                        child: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: isFullscreen
+                                ? CustomColors.fillWhite.withValues(alpha: 0.5)
+                                : CustomColors.fillWhite,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isFullscreen
+                                ? Icons.close_fullscreen_rounded
+                                : Icons.fullscreen_rounded,
+                            size: 24,
+                            color: CustomColors.productNormalActive,
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    Text(
-                      widget.prompt.subtitle ??
-                          "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
-                      style: CustomTypography().body(),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 32),
-              // Recording Controls
-              Container(
-                width: width,
-                padding: const EdgeInsets.all(0),
-                color: CustomColors.productNormal,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    file != null ? preview() : cameraFeed(),
-                    const SizedBox(height: 24),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 36.0),
-                      child: file != null
-                          ? playbackControls()
-                          : widget.isImage
-                              ? pictureControls()
-                              : recordingControls(),
-                    ),
-                    SizedBox(
-                      height: screenHeight > 850 ? 36 : 24,
-                    ),
-                  ],
-                ),
+                  )
+                ],
               ),
             ],
           ),
@@ -1570,9 +1637,23 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                 children: [
                   Center(
                       child: SizedBox(
-                          width: controller.value.previewSize!.height / 3,
-                          height: controller.value.previewSize!.width / 3,
-                          child: CameraPreview(controller))),
+                          width: feedWidth,
+                          height: feedHeight,
+                          child: Listener(
+                            onPointerDown: (_) => pointers++,
+                            onPointerUp: (_) => pointers--,
+                            child: CameraPreview(
+                              controller,
+                              child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                return GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onScaleStart: _handleScaleStart,
+                                  onScaleUpdate: _handleScaleUpdate,
+                                );
+                              }),
+                            ),
+                          ))),
 
                   // Time
                   elapsed.inMilliseconds > 0
@@ -1849,6 +1930,29 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
         file = _file;
       });
     }
+  }
+
+  _handleScaleStart(ScaleStartDetails details) {
+    // Store the initial scale and focal point
+    if (mounted) {
+      setState(() {
+        baseScale = zoomScale;
+      });
+    }
+  }
+
+  Future<void> _handleScaleUpdate(ScaleUpdateDetails details) async {
+    if (!controller.value.isInitialized || pointers != 2) {
+      return;
+    }
+
+    // Update the zoom scale based on the pinch gesture
+    zoomScale = (baseScale * details.scale).clamp(
+      minZoom,
+      maxZoom,
+    );
+
+    await controller.setZoomLevel(zoomScale);
   }
 
   Future<String> getFilePath() async {
