@@ -132,7 +132,8 @@ class WebResourceErrorGroups {
   static const pageNotFoundErrors = [
     WebResourceErrorType.fileNotFound,
     WebResourceErrorType.unsupportedScheme,
-    WebResourceErrorType.unknown
+    WebResourceErrorType.unknown,
+    WebResourceErrorType.hostLookup
   ];
 
   static const slowOrLostConnectionErrors = [

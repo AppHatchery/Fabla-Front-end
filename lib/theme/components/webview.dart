@@ -80,6 +80,18 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
             if (error.description.toLowerCase().contains('cancelled')) return;
 
+            if (error.description.contains("net::ERR_INTERNET_DISCONNECTED")) {
+              if (mounted) {
+                setState(() {
+                  webViewError =
+                      WebResourceErrorGroups.getNoInternetWebViewError();
+                  loading = false;
+                });
+                _checkTimer?.cancel();
+                _startTimer?.cancel();
+              }
+              return;
+            }
             if (mounted) {
               setState(() {
                 webViewError = WebResourceErrorGroups.getWebViewError(
