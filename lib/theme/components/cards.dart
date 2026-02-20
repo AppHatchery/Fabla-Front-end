@@ -1628,19 +1628,24 @@ class WebViewErrorCard extends StatelessWidget {
             textAlign: TextAlign.center,
             style: CustomTypography().bodyLarge(),
           ),
+          if (!connection)
+            Text(
+              "Are you currently offline?",
+              style: CustomTypography().bodyLarge(),
+            ),
           Row(
             spacing: 12,
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (buttonText == "Try Again")
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.38,
-                  height: 52,
+                Expanded(
                   child: CustomOutlineButton(
                     onClick: onRetry,
                     color: Color(0xFFFF3B30),
                     backgroundColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 14.0),
                     children: Wrap(
                       crossAxisAlignment: WrapCrossAlignment.center,
                       alignment: WrapAlignment.center,
@@ -1648,35 +1653,33 @@ class WebViewErrorCard extends StatelessWidget {
                       children: [
                         Text(
                           buttonText,
-                          style:
-                              TextStyle(fontSize: 12, color: Color(0xFFFF3B30)),
+                          style: CustomTypography()
+                              .button(color: Color(0xFFFF3B30)),
                         ),
                       ],
                     ),
                   ),
                 ),
-              SizedBox(
-                width: buttonText == "Try Again"
-                    ? MediaQuery.of(context).size.width * 0.38
-                    : MediaQuery.of(context).size.width * 0.8,
+              Expanded(
                 child: CustomFlatButton(
                     color: Color(0xFFFF3B30),
                     borderColor: Color(0xFFFF3B30),
-                    onClick: connection ? screenChange : skip,
-                    text: connection ? "Yes, I'm Offline" : "Skip"),
+                    onClick: !connection ? screenChange : skip,
+                    text: !connection ? "Yes, I'm Offline" : "Skip"),
               )
             ],
           ),
-          SizedBox(
-            height: 142,
-          ),
+
           if (showContactResearch)
-            GestureDetector(
-              onTap: _launchEmail,
-              child: Text(
-                "Contact Researcher",
-                textAlign: TextAlign.center,
-                style: CustomTypography().button(color: Color(0xFFFF3B30)),
+            Padding(
+              padding: const EdgeInsets.only(top: 142.0),
+              child: GestureDetector(
+                onTap: _launchEmail,
+                child: Text(
+                  "Contact Researcher",
+                  textAlign: TextAlign.center,
+                  style: CustomTypography().button(color: Color(0xFFFF3B30)),
+                ),
               ),
             )
         ],
