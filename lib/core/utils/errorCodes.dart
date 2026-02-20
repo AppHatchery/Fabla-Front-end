@@ -242,15 +242,18 @@ class WebResourceErrorGroups {
         connected: getConnectionStatus(errorType));
   }
 
-  static WebViewError getNoInternetWebViewError() {
+  static WebViewError getNoInternetWebViewError({bool initial = false}) {
     return WebViewError(
-        title: "No Internet Connection",
-        message:
-            "We’re unable to load the survey due to no internet connection. Reconnect or skip to continue. If you skip, you won’t be able to submit the web survey later, but your remaining responses will still be recorded.",
-        icon: "assets/images/icons/android_wifi_3_bar_off.png",
+        title: initial ? "Connection Issue" : "No Internet Connection",
+        message: initial
+            ? "It looks like your internet might be slow or disconnected. Please check your connection. You need internet to start this entry."
+            : "We’re unable to load the survey due to no internet connection. Reconnect or skip to continue. If you skip, you won’t be able to submit the web survey later, but your remaining responses will still be recorded.",
+        icon: initial
+            ? "assets/images/icons/link_off.png"
+            : "assets/images/icons/android_wifi_3_bar_off.png",
         buttonText: "Try Again",
         contactResearcher: false,
-        connected: true);
+        connected: initial ? false : true);
   }
 }
 

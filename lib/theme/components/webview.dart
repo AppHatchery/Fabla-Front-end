@@ -84,7 +84,8 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
               if (mounted) {
                 setState(() {
                   webViewError =
-                      WebResourceErrorGroups.getNoInternetWebViewError();
+                      WebResourceErrorGroups.getNoInternetWebViewError(
+                          initial: true);
                   loading = false;
                 });
                 _checkTimer?.cancel();
