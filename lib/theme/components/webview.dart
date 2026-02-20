@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-import '../../core/utils/emailFunction.dart';
 import '../../core/utils/errorCodes.dart';
 
 class CustomWebViewWidget extends StatefulWidget {
@@ -14,14 +15,17 @@ class CustomWebViewWidget extends StatefulWidget {
   final Function(bool?) onComplete;
   final Function(dynamic) errorText;
   const CustomWebViewWidget(
-      {super.key, required this.url, required this.onComplete, required this.errorText});
+      {super.key,
+      required this.url,
+      required this.onComplete,
+      required this.errorText});
 
   @override
   State<CustomWebViewWidget> createState() => CustomWebViewWidgetState();
 }
 
 class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
-  late WebViewController controller;
+  WebViewController? controller;
 
   Timer? _checkTimer;
   Timer? _startTimer;
@@ -29,19 +33,8 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
   //ui elements
   bool loading = false;
-  bool networkError = false;
-  String errorTitle = '';
-  String errorMessage = '';
-  String errorButtonText = '';
-  String errorIcon = '';
-  bool connection = false;
+  WebViewError? webViewError;
   bool timeOut = true;
-
-  //variables to show different UI elements on the error card
-  bool showContactResearcher = false;
-
-  //Flag to prevent error callbacks from overwriting JS-detected errors
-  bool errorAlreadyHandled = false;
 
   late final uri = Uri.tryParse(widget.url);
 
@@ -53,163 +46,98 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setNavigationDelegate(NavigationDelegate(
           onPageStarted: (url) {
-            if (mounted) {
+            _checkTimer?.cancel();
+            if (mounted && webViewError == null) {
               setState(() {
                 loading = true;
-                errorAlreadyHandled = false;// Reset flag on new page load
+                timeOut = true;
               });
+              _startTimeout();
             }
-            _startTimeout();
           },
           onPageFinished: (url) async {
-
             if (!mounted) return;
+            if (webViewError != null) return;
 
-            final errorInfo = await _checkForErrorPage();
-
-            if (errorInfo != null) {
-              // Error detected - set flag FIRST, then update UI
-              errorAlreadyHandled = true;
-
-              if (mounted) {
-                setState(() {
-                  loading = false;
-                  networkError = true;
-                  errorTitle = errorInfo['title']!;
-                  errorMessage = errorInfo['message']!;
-                  errorButtonText = errorInfo['buttonText']!;
-                  errorIcon = errorInfo['icon']!;
-                  showContactResearcher = errorInfo['showContactResearcher'] == 'true';
-                  connection = false;
-                  timeOut = false;
-                });
-
-                // Cancel any survey checking
-                _checkTimer?.cancel();
-                _startTimer?.cancel();
-
-              }
-            } else {
-              // Success load - only update if no error was already set
-              if (mounted && !networkError) {
-                setState(() {
-                  loading = false;
-                  networkError = false;
-                  timeOut = false;
-                });
-                _startPeriodicCheck();
-              }
+            if (mounted) {
+              setState(() {
+                loading = false;
+                timeOut = false;
+              });
+              _startPeriodicCheck();
             }
           },
           onWebResourceError: (error) {
+            dev.log(
+                'onWebResourceError triggered: ${error.errorCode} | ${error.description} | ${error.errorType} | ${error.isForMainFrame}');
+            track({
+              "code": error.errorCode,
+              "description": error.description,
+              "type": error.errorType.toString(),
+              "main_frame": error.isForMainFrame,
+            });
+            if (error.isForMainFrame != true) return;
 
-            // CRITICAL: Don't overwrite errors already detected by JavaScript
-            if (errorAlreadyHandled) {
-              dev.log("Ignoring onWebResourceError - error already handled via JS");
+            if (error.description.toLowerCase().contains('cancelled')) return;
+
+            if (error.description.contains("net::ERR_INTERNET_DISCONNECTED")) {
+              if (mounted) {
+                setState(() {
+                  webViewError =
+                      WebResourceErrorGroups.getNoInternetWebViewError(
+                          initial: true);
+                  loading = false;
+                });
+                _checkTimer?.cancel();
+                _startTimer?.cancel();
+              }
               return;
             }
-
-            // CRITICAL FIX FOR iOS: IGNORE CANCELLED REQUESTS
-            // iOS throws "NSURLErrorDomain code -999" (Cancelled) when
-            // a redirect happens. This is NOT a real error.
-            if (error.description.toLowerCase().contains('cancelled') ||
-                error.description.contains('NSURLErrorDomain code -999')) {
-              return;
-            }
-
-            /// CRITICAL FIX FOR ORB BLOCKING
-            /// Android fix for 'net::ERR_BLOCKED_BY_ORB' errors
-            /// These errors occur when the OS blocks responses due to
-            /// the response headers not having proper CORS settings.
-            if (error.description.contains('net::ERR_BLOCKED_BY_ORB')) {
-                  errorAlreadyHandled = true;
-              return;
-            }
-
-
-            final errorType = error.errorType;
-            if (errorType == null) return;
-
-            errorAlreadyHandled = true; // Mark error as handled
-
             if (mounted) {
               setState(() {
-                networkError = true;
+                webViewError = WebResourceErrorGroups.getWebViewError(
+                    error.errorType ?? WebResourceErrorType.unknown);
                 loading = false;
-                errorTitle = WebResourceErrorGroups.getErrorTitle(errorType);
-                errorMessage = WebResourceErrorGroups.getErrorMessage(errorType);
-                errorButtonText = WebResourceErrorGroups.getErrorButtonText(errorType);
-                errorIcon = WebResourceErrorGroups.getErrorIcon(errorType);
-                connection = WebResourceErrorGroups.getConnectionStatus(errorType);
-                showContactResearcher = WebResourceErrorGroups.serverOrSystemFailureErrors.contains(errorType) ||
-                    WebResourceErrorGroups.pageNotFoundErrors.contains(errorType) ||
-                    WebResourceErrorGroups.loginOrPermissionErrors.contains(errorType);
               });
-
-              // Cancel any survey checking
               _checkTimer?.cancel();
               _startTimer?.cancel();
-
             }
-
-            dev.log(
-                "WebView resource error: ${error.description}, Type: $errorType");
           },
 
           // NOTE: onHttpError IS ANDROID ONLY
           onHttpError: (error) {
+            dev.log('onHttpError triggered: ${error.response?.statusCode}');
 
-            // CRITICAL: Don't overwrite errors already detected by JavaScript
-            if (errorAlreadyHandled) {
-              dev.log("Ignoring onHttpError - error already handled via JS");
+            if (webViewError != null) {
+              _checkTimer?.cancel();
+              _startTimer?.cancel();
               return;
             }
 
-            final statusCode = error.response?.statusCode;
-            if (statusCode == null) return;
-
-            errorAlreadyHandled = true; // Mark error as handled
-
+            track({
+              "code": error.response?.statusCode ?? 'unknown',
+              "type": 'HTTP Error',
+            });
             if (mounted) {
               setState(() {
-                networkError = true;
+                webViewError = HttpErrorGroups.getWebViewError(
+                    error.response?.statusCode ?? 404);
                 loading = false;
-                errorTitle = HttpErrorGroups.getErrorTitle(statusCode);
-                errorMessage = HttpErrorGroups.getErrorMessage(statusCode);
-                errorButtonText =
-                    HttpErrorGroups.getErrorButtonText(statusCode);
-                errorIcon = HttpErrorGroups.getErrorIcon(statusCode);
-                connection = HttpErrorGroups.getConnectionStatus(statusCode);
-                showContactResearcher =  HttpErrorGroups.serverOrSystemFailureErrors.contains(statusCode) ||
-                    HttpErrorGroups.pageNotFoundErrors.contains(statusCode) ||
-                    HttpErrorGroups.loginOrPermissionErrors.contains(statusCode);
-
               });
 
-              // Cancel any survey checking
               _checkTimer?.cancel();
-
               _startTimer?.cancel();
-
             }
-
-            dev.log("WebView server error: ${error.response?.statusCode}");
           },
         ))
         ..loadRequest(Uri.parse(widget.url));
     } else {
       // Handle invalid URL at start
-      networkError = true;
       loading = false;
-      errorTitle = HttpErrorGroups.getErrorTitle(404);
-      errorMessage = HttpErrorGroups.getErrorMessage(404);
-      errorButtonText = HttpErrorGroups.getErrorButtonText(404);
-      errorIcon = HttpErrorGroups.getErrorIcon(404);
-      connection = HttpErrorGroups.getConnectionStatus(404);
+      webViewError = HttpErrorGroups.getWebViewError(404);
 
       // Cancel any survey checking
       _checkTimer?.cancel();
-
       _startTimer?.cancel();
     }
   }
@@ -223,150 +151,37 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
   @override
   Widget build(BuildContext context) {
-    dev.log('WebView build - loading: $loading, networkError: $networkError, errorTitle: $errorTitle');
-
     if (loading) {
       return Center(
           child: CircularProgressIndicator(
-            color: CustomColors.productNormalActive,
-            strokeCap: StrokeCap.round,
-            strokeWidth: 8,
-          ));
+        color: CustomColors.productNormalActive,
+        strokeCap: StrokeCap.round,
+        strokeWidth: 8,
+      ));
     }
 
-    if (networkError) {
+    if (webViewError != null) {
       return Container(
         color: Colors.white,
         child: Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 19.0),
             child: WebViewErrorCard(
-                title: errorTitle,
-                message: errorMessage,
-                buttonText: errorButtonText,
-                icon: errorIcon,
-                showContactResearch: showContactResearcher,
+                title: webViewError!.title,
+                message: webViewError!.message,
+                buttonText: webViewError!.buttonText,
+                icon: webViewError!.icon,
+                showContactResearch: webViewError!.contactResearcher,
                 onRetry: _reTry,
                 skip: _skip,
-                connection: connection,
+                connection: webViewError!.connected,
                 screenChange: _screenChange),
           ),
         ),
       );
     }
-
-    return WebViewWidget(controller: controller);
-  }
-
-  // UPDATED JS CHECKER FOR iOS COMPATIBILITY
-  Future<Map<String, String>?> _checkForErrorPage() async {
-    try {
-      final result = await controller.runJavaScriptReturningResult('''
-        (function() {
-          // 1. Get basic info
-          const bodyText = document.body ? document.body.innerText : '';
-          const title = document.title ? document.title.toLowerCase() : '';
-          
-          // 2. iOS/Standard WebKit Checks (Since onHttpError doesn't work on iOS)
-          // Check for explicit status codes in title or body first
-          const statusCodeMatch = bodyText.match(/\\b(4\\d{2}|5\\d{2})\\b/) || title.match(/\\b(4\\d{2}|5\\d{2})\\b/);
-          if (statusCodeMatch) {
-            const code = parseInt(statusCodeMatch[1]);
-            if (code >= 400 && code < 600) {
-              return code;
-            }
-          }
-          
-          // Specific error page checks
-          if (title.includes('404') || bodyText.includes('404') || 
-              title.includes('not found') || bodyText.includes('Not Found')) {
-             return 404;
-          }
-          if (title.includes('500') || bodyText.includes('500') || 
-              title.includes('internal server error') || bodyText.includes('Internal Server Error')) {
-             return 500;
-          }
-          if (title.includes('403') || bodyText.includes('403') || 
-              title.includes('forbidden') || bodyText.includes('Forbidden')) {
-             return 403;
-          }
-          if (title.includes('401') || bodyText.includes('401') || 
-              title.includes('unauthorized') || bodyText.includes('Unauthorized')) {
-             return 401;
-          }
-          if (title.includes('400') || bodyText.includes('400') || 
-              title.includes('bad request') || bodyText.includes('Bad Request')) {
-             return 400;
-          }
-          if (title.includes('503') || bodyText.includes('503') || 
-              title.includes('service unavailable') || bodyText.includes('Service Unavailable')) {
-             return 503;
-          }
-
-          // 3. Chrome/Android specific checks
-          const errorPatterns = [
-            'ERR_HTTP_RESPONSE_CODE_FAILURE',
-            'ERR_NAME_NOT_RESOLVED',
-            'ERR_CONNECTION_REFUSED'
-          ];
-          
-          if (errorPatterns.some(pattern => bodyText.includes(pattern))) {
-             return 'connection';
-          }
-          
-          return null;
-        })();
-      ''');
-
-      if (result == null || result == 'null') {
-        return null;
-      }
-
-      int? statusCode;
-      if (result is int) {
-        statusCode = result;
-      } else if (result is String) {
-        // Try to parse as integer first
-        statusCode = int.tryParse(result);
-
-        // If it's the string 'connection', handle separately
-        if (statusCode == null && result == 'connection') {
-          return {
-            'title': 'Connection Issue',
-            'message': 'We could not connect to the server.',
-            'buttonText': 'Try Again',
-            'icon': 'assets/images/icons/paceError.png',
-            'showActionButton': 'true',
-            'showContactResearcher': 'false',
-          };
-        }
-      }
-
-      if (statusCode != null && statusCode >= 400 && statusCode < 600) {
-        dev.log('JavaScript detected HTTP error: $statusCode');
-
-        // Return mapped error info
-        return {
-          'title': HttpErrorGroups.getErrorTitle(statusCode),
-          'message': HttpErrorGroups.getErrorMessage(statusCode),
-          'buttonText': HttpErrorGroups.getErrorButtonText(statusCode),
-          'icon': HttpErrorGroups.getErrorIcon(statusCode),
-          'showActionButton':
-          (!HttpErrorGroups.pageNotFoundErrors.contains(statusCode))
-              .toString(),
-          'showContactResearcher': (
-              HttpErrorGroups.serverOrSystemFailureErrors.contains(statusCode) ||
-                  HttpErrorGroups.loginOrPermissionErrors.contains(statusCode) ||
-                  HttpErrorGroups.pageNotFoundErrors.contains(statusCode)
-          ).toString(),
-        };
-      }
-
-      return null;
-    } catch (e) {
-      dev.log('Error checking for error page: $e');
-      return null;
-    }
+    if (controller == null) return const SizedBox.shrink();
+    return WebViewWidget(controller: controller!);
   }
 
   void _reTry() async {
@@ -376,10 +191,10 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
     // Reset ALL state variables
     setState(() {
-      networkError = false;
       loading = true;
-      errorAlreadyHandled = false;
       timeOut = true;
+      webViewError = null;
+      surveyCompleted = false;
     });
 
     // Notify parent
@@ -394,7 +209,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
     );
 
     try {
-      await controller.loadRequest(cacheBustedUrl);
+      await controller?.loadRequest(cacheBustedUrl);
       // Give a moment for the page to start loading
       await Future.delayed(const Duration(milliseconds: 120));
       return;
@@ -403,49 +218,40 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
     }
   }
 
-
   void _startTimeout() async {
-
     _startTimer?.cancel();
-    _startTimer = Timer(Duration(seconds: 15),(){
-
+    _startTimer = Timer(Duration(seconds: 15), () {
       if (mounted && timeOut) {
-
-        errorAlreadyHandled = true;
         dev.log("connection Time Out");
-
+        final error = WebResourceErrorGroups.getWebViewError(
+            WebResourceErrorType.timeout);
         setState(() {
           loading = false;
-          errorTitle = "Connection Issue";
-          errorMessage =
-          "It looks like your internet might be slow or disconnected. Please check your connection. You need internet to start this entry.";
-          errorButtonText = "Try Again";
-          errorIcon = "assets/images/icons/link_off.png";
-          connection = true;
-          networkError = true;
+          timeOut = false;
+          webViewError = error;
         });
+
+        track({
+          "code": "timeout",
+          "type": error.errorType.toString(),
+        });
+        _checkTimer?.cancel();
+        _startTimer?.cancel();
       }
     });
   }
 
-  void _skip(){
-    setState(() {
-      widget.errorText(errorTitle);
-      widget.onComplete(null);
-    });
+  void _skip() {
     _startTimer?.cancel();
+    widget.errorText(webViewError?.title ?? '');
+    widget.onComplete(null);
   }
 
-  void _screenChange(){
+  void _screenChange() {
     setState(() {
-      errorTitle = "No Internet Connection";
-      errorMessage = "We’re unable to load the survey due to no internet connection. Reconnect or skip to continue. If you skip, you won’t be able to submit the web survey later, but your remaining responses will still be recorded.";
-      errorIcon = "assets/images/icons/android_wifi_3_bar_off.png";
-      errorButtonText = "Try Again";
-      connection = false;
+      webViewError = WebResourceErrorGroups.getNoInternetWebViewError();
     });
   }
-
 
   void _startPeriodicCheck() {
     _checkTimer?.cancel();
@@ -458,7 +264,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
   void detectSurveyFinish() async {
     // Don't run survey checks if there's an error
-    if (networkError || loading) {
+    if (controller == null || webViewError != null || loading) {
       _checkTimer?.cancel();
       return;
     }
@@ -629,7 +435,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
     ''';
 
     final data =
-        await controller.runJavaScriptReturningResult(javaScript).catchError(
+        await controller!.runJavaScriptReturningResult(javaScript).catchError(
       (error) {
         // Handle any errors that occur during JavaScript execution
         dev.log('Error running JavaScript: $error');
@@ -642,9 +448,16 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
       // Run the check one more time to confirm
       final confirmData =
-          await controller.runJavaScriptReturningResult(javaScript);
+          await controller?.runJavaScriptReturningResult(javaScript);
 
-      if (confirmData == true && !loading && mounted) {
+      if (confirmData == true &&
+          !loading &&
+          mounted &&
+          webViewError == null &&
+          !surveyCompleted) {
+        setState(() {
+          surveyCompleted = true;
+        });
         _checkTimer?.cancel();
         widget.onComplete(true);
       } else if (mounted) {
@@ -658,6 +471,12 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
       setState(() {
         surveyCompleted = false;
       });
+    }
+  }
+
+  Future<void> track(Map<String, dynamic> data) async {
+    if (kReleaseMode) {
+      await PendoService.track("Webview Error", data);
     }
   }
 }

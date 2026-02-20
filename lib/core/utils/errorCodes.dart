@@ -1,17 +1,40 @@
-import 'dart:ffi';
-
 import 'package:webview_flutter/webview_flutter.dart';
 
 // Error code groups and helper class
 
 //server side error codes
 class HttpErrorGroups {
-  static const inputOrFormErrors = [400, 406, 411, 412, 413, 414, 415, 416, 417, 422, 431];
+  static const inputOrFormErrors = [
+    400,
+    406,
+    411,
+    412,
+    413,
+    414,
+    415,
+    416,
+    417,
+    422,
+    431,
+  ];
   static const loginOrPermissionErrors = [401, 402, 403, 407, 511];
   static const pageNotFoundErrors = [404, 405, 410, 451];
   static const slowOrLostConnectionErrors = [408, 504];
   static const duplicateOrConflictErrors = [409, 423, 424, 425, 428, 429];
-  static const serverOrSystemFailureErrors = [421, 426, 500, 501, 502, 503, 505, 506, 507, 508, 509, 510];
+  static const serverOrSystemFailureErrors = [
+    421,
+    426,
+    500,
+    501,
+    502,
+    503,
+    505,
+    506,
+    507,
+    508,
+    509,
+    510
+  ];
 
   static String getErrorMessage(int statusCode) {
     if (inputOrFormErrors.contains(statusCode)) {
@@ -79,9 +102,23 @@ class HttpErrorGroups {
         slowOrLostConnectionErrors.contains(statusCode) ||
         duplicateOrConflictErrors.contains(statusCode) ||
         serverOrSystemFailureErrors.contains(statusCode)) {
-      return false;
+      return true;
     }
-    return true;
+    return false;
+  }
+
+  static WebViewError getWebViewError(int statusCode) {
+    return WebViewError(
+      code: statusCode,
+      title: getErrorTitle(statusCode),
+      message: getErrorMessage(statusCode),
+      icon: getErrorIcon(statusCode),
+      buttonText: getErrorButtonText(statusCode),
+      contactResearcher: loginOrPermissionErrors.contains(statusCode) ||
+          serverOrSystemFailureErrors.contains(statusCode) ||
+          pageNotFoundErrors.contains(statusCode),
+      connected: getConnectionStatus(statusCode),
+    );
   }
 }
 
@@ -95,7 +132,8 @@ class WebResourceErrorGroups {
   static const pageNotFoundErrors = [
     WebResourceErrorType.fileNotFound,
     WebResourceErrorType.unsupportedScheme,
-    WebResourceErrorType.unknown
+    WebResourceErrorType.unknown,
+    WebResourceErrorType.hostLookup
   ];
 
   static const slowOrLostConnectionErrors = [
@@ -179,15 +217,64 @@ class WebResourceErrorGroups {
     return "assets/images/icons/link_off.png";
   }
 
-  static bool getConnectionStatus(WebResourceErrorType errorType){
-    if(inputOrFormErrors.contains(errorType) ||
+  static bool getConnectionStatus(WebResourceErrorType errorType) {
+    if (inputOrFormErrors.contains(errorType) ||
         loginOrPermissionErrors.contains(errorType) ||
         pageNotFoundErrors.contains(errorType) ||
-        slowOrLostConnectionErrors.contains(errorType)||
+        slowOrLostConnectionErrors.contains(errorType) ||
         duplicateOrConflictErrors.contains(errorType) ||
-        serverOrSystemFailureErrors.contains(errorType)){
-      return false;
+        serverOrSystemFailureErrors.contains(errorType)) {
+      return true;
     }
-    return true;
+    return false;
   }
+
+  static WebViewError getWebViewError(WebResourceErrorType errorType) {
+    return WebViewError(
+        errorType: errorType,
+        title: getErrorTitle(errorType),
+        message: getErrorMessage(errorType),
+        icon: getErrorIcon(errorType),
+        buttonText: getErrorButtonText(errorType),
+        contactResearcher: loginOrPermissionErrors.contains(errorType) ||
+            serverOrSystemFailureErrors.contains(errorType) ||
+            pageNotFoundErrors.contains(errorType),
+        connected: getConnectionStatus(errorType));
+  }
+
+  static WebViewError getNoInternetWebViewError({bool initial = false}) {
+    return WebViewError(
+        title: initial ? "Connection Issue" : "No Internet Connection",
+        message: initial
+            ? "It looks like your internet might be slow or disconnected. Please check your connection. You need internet to start this entry."
+            : "We’re unable to load the survey due to no internet connection. Reconnect or skip to continue. If you skip, you won’t be able to submit the web survey later, but your remaining responses will still be recorded.",
+        icon: initial
+            ? "assets/images/icons/link_off.png"
+            : "assets/images/icons/android_wifi_3_bar_off.png",
+        buttonText: "Try Again",
+        contactResearcher: false,
+        connected: initial ? false : true);
+  }
+}
+
+class WebViewError {
+  final int? code;
+  final WebResourceErrorType? errorType;
+  final String title;
+  final String message;
+  final String icon;
+  final String buttonText;
+  final bool contactResearcher;
+  final bool connected;
+
+  WebViewError({
+    this.code,
+    this.errorType,
+    required this.title,
+    required this.message,
+    required this.icon,
+    required this.buttonText,
+    this.contactResearcher = false,
+    this.connected = true,
+  });
 }
