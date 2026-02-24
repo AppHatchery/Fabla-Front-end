@@ -4,7 +4,11 @@ import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
 import 'package:audio_diaries_flutter/core/usecases/diary_history.dart'
-    show getPaginatedHistoryDiariesUseCase, invalidateDiaryHistoryCache, PaginatedDiaryResult, getAllHistoryDiariesUseCase;
+    show
+        getPaginatedHistoryDiariesUseCase,
+        invalidateDiaryHistoryCache,
+        PaginatedDiaryResult,
+        getAllHistoryDiariesUseCase;
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -440,6 +444,7 @@ class DiaryRepository {
         .toList();
 
     final List<DiaryModel> diaries = [];
+    final List<DiaryModel> weeklyExpansionDiaries = [];
 
     // For weekly diaries add diaries to each of the active days
     for (final diary in filtered) {
@@ -471,7 +476,7 @@ class DiaryRepository {
                 ),
                 submissions: diary.submissions,
                 completions: diary.completions);
-            filtered.add(newDiary);
+            weeklyExpansionDiaries.add(newDiary);
           }
         }
       } else {
@@ -480,6 +485,7 @@ class DiaryRepository {
       }
     }
 
+    diaries.addAll(weeklyExpansionDiaries);
     // Sort the diaries by start date
     diaries.sort((a, b) => a.start.compareTo(b.start));
 
@@ -650,17 +656,16 @@ class DiaryRepository {
 
   // Removing all the diaries that start today and onwards
   Future<bool> removeDiariesFrom(DateTime now) async {
-
     try {
       // Get all diaries
       final all = getAllDiaries();
 
-      dev.log("Total diaries before deletion: ${all.length}", name: "Diary Deletion");
+      dev.log("Total diaries before deletion: ${all.length}",
+          name: "Diary Deletion");
 
       // Filter diaries that start today
-      final filtered = all
-          .where((diary) => !diary.start.isBefore(now))
-          .toList();
+      final filtered =
+          all.where((diary) => !diary.start.isBefore(now)).toList();
 
       dev.log("Diaries to delete: ${filtered.length}", name: "Diary Deletion");
 
@@ -679,21 +684,20 @@ class DiaryRepository {
       }
 
       // Convert to entities
-      final entitiesToDelete = filtered
-          .map((model) => Diary.fromModel(model))
-          .toList();
+      final entitiesToDelete =
+          filtered.map((model) => Diary.fromModel(model)).toList();
 
       // Delete in the database
       final result = _diaryDAO.deleteDiaries(entitiesToDelete);
 
-      dev.log("Deletion result: $result diaries deleted", name: "Diary Deletion");
+      dev.log("Deletion result: $result diaries deleted",
+          name: "Diary Deletion");
 
       if (result > 0) {
         invalidateDiaryHistoryCache();
       }
 
       return result > 0;
-
     } catch (e) {
       dev.log("Error in removeDiariesFrom: $e", name: "Diary Deletion");
       return false;
