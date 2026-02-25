@@ -834,7 +834,10 @@ class _TimerWidgetState extends State<TimerWidget>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   late Duration duration;
   late Duration remaining;
+
   Timer? _timer;
+  bool _isDisposed = false;
+  bool _isCompleting = false; // prevent double completion
 
   bool inProgress = false;
   bool paused = false;
@@ -847,6 +850,7 @@ class _TimerWidgetState extends State<TimerWidget>
 
   late TextEditingController minuteController;
   late TextEditingController secondsController;
+
   int pickerMinutes = 1;
   int pickerSeconds = 0;
 
@@ -858,9 +862,12 @@ class _TimerWidgetState extends State<TimerWidget>
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addObserver(this);
+
     duration = widget.time;
     remaining = widget.time;
+
     pickerMinutes = duration.inMinutes;
     pickerSeconds = duration.inSeconds.remainder(60);
 
@@ -878,12 +885,14 @@ class _TimerWidgetState extends State<TimerWidget>
 // Observe lifecycle to detect if timer elapsed while in background
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!mounted) return;
+    if (!mounted || _isDisposed) return;
+
     if (state == AppLifecycleState.resumed) {
       if (_expectedEndTime != null &&
           DateTime.now().isAfter(_expectedEndTime!)) {
+        _timer?.cancel();
+
         setState(() {
-          _timer?.cancel();
           inProgress = false;
           paused = false;
           complete = true;
@@ -893,6 +902,7 @@ class _TimerWidgetState extends State<TimerWidget>
           remaining = Duration.zero;
           _expectedEndTime = null;
         });
+
         stopAlarm();
         widget.respond("Complete");
       }
@@ -901,47 +911,71 @@ class _TimerWidgetState extends State<TimerWidget>
 
   @override
   void dispose() {
+    _isDisposed = true;
+
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
-    player?.dispose();
+    _timer = null;
+
+    _updateModalCallback = null;
+
     _shakeController.dispose();
     stopAlarm();
+
+    minuteController.dispose();
+    secondsController.dispose();
+
     super.dispose();
   }
 
   void _startTimer() {
     _timer?.cancel();
+
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      setState(() {
-        if (remaining.inSeconds > 0 && inProgress && !paused) {
+      if (!mounted || _isDisposed) return;
+      if (!inProgress || paused) return;
+
+      if (remaining.inSeconds > 0) {
+        setState(() {
           remaining -= const Duration(seconds: 1);
-          // Update expected end time on first tick after start/resume
-          _expectedEndTime ??= DateTime.now().add(remaining);
-          _refreshModal();
-        } else if (remaining.inSeconds <= 0) {
-          _timer?.cancel();
-          _onTimerComplete();
-        }
-      });
+        });
+        _refreshModal();
+      } else {
+        _timer?.cancel();
+        _timer = null;
+        _onTimerComplete();
+      }
     });
   }
 
   void _pauseTimer() {
-    setState(() => paused = true);
-    stopAlarm();
+    if (!mounted) return;
+
     _timer?.cancel();
+    _timer = null;
+
+    setState(() => paused = true);
+
+    stopAlarm();
+    _expectedEndTime = null;
   }
 
   void _resumeTimer() {
+    if (!mounted) return;
+
     setState(() => paused = false);
-    // Set alarm for remaining time when resuming
-    setAlarm(remaining);
+
     _expectedEndTime = DateTime.now().add(remaining);
+    setAlarm(remaining);
     _startTimer();
   }
 
   void _restartTimer() {
+    if (!mounted) return;
+
+    _timer?.cancel();
+    _timer = null;
+
     setState(() {
       remaining = duration;
       inProgress = true;
@@ -951,26 +985,35 @@ class _TimerWidgetState extends State<TimerWidget>
       showCompletionText = false; // Reset completion text visibility
     });
 
-    // Cancel existing timer if any
-    _timer?.cancel();
-
-    // Reset and handle audio/alarms
     Future.microtask(() async {
+      if (_isDisposed) return;
       await stopAlarm();
+      if (_isDisposed) return;
+
       _shakeController.reset();
       await _startSound();
       await setAlarm(duration);
-      _startTimer();
+
+      if (!_isDisposed) {
+        _expectedEndTime = DateTime.now().add(duration);
+        _startTimer();
+      }
     });
   }
 
   void _stopTimer() {
+    if (!mounted) return;
+
+    _timer?.cancel();
+    _timer = null;
+
     setState(() {
+      _expectedEndTime = null;
       inProgress = false;
       paused = false;
       showTimeUpOverlay = false;
     });
-    _timer?.cancel();
+
     stopAlarm();
     _shakeController.reset();
   }
@@ -980,27 +1023,40 @@ class _TimerWidgetState extends State<TimerWidget>
   void _playBlack() => widget.playbackControls ? _pauseResumeTimer() : null;
 
   void _onTimerComplete() {
+    if (_isCompleting || complete || _isDisposed) return;
+
+    _isCompleting = true;
+
     setState(() {
       inProgress = false;
       complete = true;
       showTimeUpOverlay = true;
       showCompletionText = false; // Don't show completion text immediately
     });
-    _shakeController.forward().then((_) => _shakeController.repeat());
+
+    _shakeController.forward().then((_) {
+      if (!_isDisposed) _shakeController.repeat();
+    });
+
     widget.respond("timer");
     _refreshModal();
 
-    // Delay showing the completion text until after modal animations are done
     Future.delayed(const Duration(milliseconds: 800), () {
-      if (mounted && complete) {
-        setState(() {
-          showCompletionText = true;
-        });
+      if (mounted && !_isDisposed && complete) {
+        setState(() => showCompletionText = true);
       }
+      _isCompleting = false;
     });
   }
 
   void _onTimerClose() {
+    if (!mounted) return;
+
+    _timer?.cancel();
+    _timer = null;
+
+    _updateModalCallback = null;
+
     setState(() {
       inProgress = false;
       paused = false;
@@ -1010,12 +1066,14 @@ class _TimerWidgetState extends State<TimerWidget>
       showCompletionText = false;
       _expectedEndTime = null;
     });
+
     _shakeController.reset();
     stopAlarm();
   }
 
   Future<void> _startAndShowModal({bool startPaused = false}) async {
     if (!await _seekPermission()) return;
+    if (!mounted) return;
 
     setState(() {
       inProgress = true;
@@ -1028,15 +1086,15 @@ class _TimerWidgetState extends State<TimerWidget>
     });
 
     if (!startPaused) {
-      await _startSound();
       await setAlarm(duration);
+      _expectedEndTime = DateTime.now().add(duration);
     }
 
-    _startSound();
+    await _startSound();
     _startTimer();
-    _expectedEndTime = DateTime.now().add(remaining);
 
     if (!mounted) return;
+
     showModalBottomSheet(
       backgroundColor: Colors.transparent,
       context: context,
@@ -1057,6 +1115,7 @@ class _TimerWidgetState extends State<TimerWidget>
               _updateModalCallback = () {
                 if (mounted) setModalState(() {});
               };
+
               return BottomTimerModal(
                   remaining: remaining,
                   isRunning: inProgress && !paused,
@@ -1077,7 +1136,6 @@ class _TimerWidgetState extends State<TimerWidget>
                   },
                   onStop: () {
                     _stopTimer();
-                    stopAlarm();
                     Navigator.of(context).pop();
                     if (mounted) {
                       setState(() {
@@ -1118,21 +1176,6 @@ class _TimerWidgetState extends State<TimerWidget>
 
     if (result != null && mounted) {
       _updateDuration(result);
-
-      // If timer is running, update it with new duration
-      if (inProgress && mounted) {
-        remaining = result;
-        stopAlarm(); // Stop current alarm
-
-        if (!paused) {
-          // If running, set new alarm immediately
-          stopAlarm();
-          setAlarm(remaining);
-        }
-        // If paused, alarm will be set when resumed
-      } else {
-        remaining = result;
-      }
     }
   }
 
@@ -1151,25 +1194,35 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   Future<void> stopAlarm() async {
-    await Alarm.stopAll();
-    if (player != null) {
-      await player?.stop();
-      final tempPlayer = player;
-      player = null; // Set to null first to prevent double disposal
-      await tempPlayer?.dispose();
+    if (_isDisposed) return;
+
+    try {
+      await Alarm.stopAll();
+    } catch (_) {}
+
+    final p = player;
+    player = null;  // Set to null first to prevent double disposal
+
+    if (p != null) {
+      try {
+        await p.stop();
+        await p.dispose();
+      } catch (_) {}
     }
   }
 
   Future<void> setAlarm(Duration time) async {
-    // Stop current alarm first
+    if (_isDisposed) return;
+
     await stopAlarm();
+    if (_isDisposed) return;
 
     currentAlarmId = Random().nextInt(1000);
-    final alarmTime = DateTime.now().add(time);
+
     await Alarm.set(
       alarmSettings: AlarmSettings(
         id: currentAlarmId!,
-        dateTime: alarmTime,
+        dateTime: DateTime.now().add(time),
         assetAudioPath: 'assets/audio/bowl.wav',
         loopAudio: false,
         vibrate: false,
@@ -1190,7 +1243,16 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   Future<void> _startSound() async {
-    player?.dispose();
+    if (_isDisposed) return;
+    final p = player;
+    player = null;
+    if (p != null) {
+      try {
+        await p.stop();
+        await p.dispose();
+      } catch (_) {}
+    }
+    if (_isDisposed) return;
     player = AudioPlayer();
     await player!.play(AssetSource('audio/bowl.wav'), volume: 1.0);
   }
@@ -1300,7 +1362,7 @@ class _TimerWidgetState extends State<TimerWidget>
   Widget _buildStartButton({bool isCompletion = false}) {
     final isDisabled = inProgress || paused;
     return Stack(children: [
-      //completetion check here then display either the start timer now button another button
+      //completion check here then display either the start timer now button another button
       CustomElevatedButton(
         color: (isDisabled
             ? CustomColors.fillDisabled
