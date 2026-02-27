@@ -2538,8 +2538,6 @@ class _BottomTimerModalState extends State<BottomTimerModal>
   late AnimationController _shakeController;
   r.StateMachineController? _controller;
 
-  bool _isDisposed = false;
-
   @override
   void initState() {
     super.initState();
@@ -2549,7 +2547,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     )..addStatusListener((status) {
-      if (!_isDisposed && status == AnimationStatus.completed) {
+      if (status == AnimationStatus.completed) {
         _shakeController.repeat();
       }
     });
@@ -2557,33 +2555,24 @@ class _BottomTimerModalState extends State<BottomTimerModal>
 
   @override
   void dispose() {
-    _isDisposed = true;
-
-    try {
-      _controller?.dispose();
-    } catch (_) {}
-
+    _controller?.dispose();
     _shakeController.dispose();
-
     super.dispose();
   }
 
   void _onRiveInit(r.Artboard art) {
-    if (_isDisposed) return;
 
-    final ctrl =
-    r.StateMachineController.fromArtboard(art, "Animation_12");
+    var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
 
     if (ctrl != null) {
       art.addController(ctrl);
       _controller = ctrl;
     }
 
-    if (!_isDisposed && mounted) {
-      setState(() {
-        animationHeight = art.height;
-      });
-    }
+    setState(() {
+      animationHeight = art.height;
+    });
+
   }
 
   @override
@@ -2631,10 +2620,11 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     final screenHeight = media.size.height;
     final textScale = media.textScaler.scale(1);
 
-    final double topPos =
-        (screenHeight * 0.12) * (textScale > 1 ? 0.8 : 1);
+    // Positioning: proportional + text scaling
+    final double topPos = (screenHeight * 0.12) * (textScale > 1 ? 0.8 : 1);
     final double sidePadding = screenWidth * 0.07;
 
+    // Icon size: scales but capped
     const double iconSize = 32;
 
     return Positioned(
@@ -2651,10 +2641,10 @@ class _BottomTimerModalState extends State<BottomTimerModal>
             height: iconSize,
             width: iconSize,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 8), // spacing proportional to width
           Flexible(
             child: FittedBox(
-              fit: BoxFit.scaleDown,
+              fit: BoxFit.scaleDown, // prevents clipping if space is tight
               child: Text(
                 widget.showTimeUpOverlay
                     ? "Time's Up!"
