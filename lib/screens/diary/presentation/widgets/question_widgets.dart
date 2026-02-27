@@ -913,9 +913,6 @@ class _TimerWidgetState extends State<TimerWidget>
     _timer?.cancel();
     _shakeController.dispose();
 
-    minuteController.dispose();
-    secondsController.dispose();
-
     final p = player;
     player = null; // Set to null first so no other methods can trigger it
     p?.dispose();
