@@ -167,7 +167,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                                 height: 12,
                               ),
                               Text(
-                                "All set ${participant.name}, here are your active dates",
+                                "All set ${participant.name}, here are your study schedule",
                                 style: CustomTypography().titleMedium(
                                     color: CustomColors.textNormalContent),
                               ),
