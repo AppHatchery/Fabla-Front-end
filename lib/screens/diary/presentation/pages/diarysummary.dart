@@ -524,7 +524,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                             style: CustomTypography().bodyMedium(
                               color: Color(0xFFFF3B30),
                             ),
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis),
                       ),
                     ]),
