@@ -42,11 +42,13 @@ class SliderQuestionCard extends StatefulWidget {
   final int scaleMax;
   final bool isSliderEnabled;
   final ValueChanged<double>? onSliderValueChanged;
+  final Color? colorFont;
   const SliderQuestionCard(
       {super.key,
       required this.value,
       required this.scaleMinText,
       required this.scaleMaxText,
+      this.colorFont,
       this.onSliderValueChanged,
       required this.scaleMin,
       required this.scaleMax,
@@ -77,6 +79,8 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
 
   @override
   Widget build(BuildContext context) {
+    final Color textColor =
+        widget.colorFont ?? Colors.black;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(5.0, 60.0, 5.0, 16.0),
@@ -89,7 +93,9 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
           children: [
             Text(
               widget.scaleMin.toString(),
-              style: CustomTypography().button(),
+              style: CustomTypography().button(
+                color: textColor
+              ),
             ),
             Expanded(
               child: Padding(
@@ -138,7 +144,9 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
             ),
             Text(
               widget.scaleMax.toString(),
-              style: CustomTypography().button(),
+              style: CustomTypography().button(
+                color: textColor
+              ),
             ),
           ],
         ),
@@ -153,14 +161,16 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
               child: Text(
                 widget.scaleMinText ?? '',
                 textAlign: TextAlign.start,
-                style: CustomTypography().bodyLarge(),
+                style: CustomTypography()
+                    .bodyLarge(color: textColor),
               ),
             ),
             Expanded(
               child: Text(
                 widget.scaleMaxText ?? '',
                 textAlign: TextAlign.end,
-                style: CustomTypography().bodyLarge(),
+                style: CustomTypography()
+                    .bodyLarge(color: textColor),
               ),
             ),
           ],

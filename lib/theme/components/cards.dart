@@ -1004,7 +1004,8 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
       child: Row(children: [
         Expanded(
           child: Text(widget.answer,
-              style: CustomTypography().bodyMedium(),
+              style: CustomTypography()
+                  .bodyLarge(color: CustomColors.textSecondaryContent),
               maxLines: 1,
               overflow: TextOverflow.ellipsis),
         ),

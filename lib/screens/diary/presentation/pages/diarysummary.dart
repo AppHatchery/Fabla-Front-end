@@ -358,6 +358,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
       case ResponseType.slider:
         return prompt.answer != null
             ? SliderQuestionCard(
+                colorFont: CustomColors.textSecondaryContent,
                 scaleMin: prompt.option!.minValue!,
                 scaleMax: prompt.option!.maxValue!,
                 scaleMinText: prompt.option?.minLabel,
@@ -521,7 +522,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                       ),
                       Expanded(
                         child: Text(prompt.answer?.response?.firstOrNull ?? "",
-                            style: CustomTypography().bodyMedium(
+                            style: CustomTypography().bodyLarge(
                               color: Color(0xFFFF3B30),
                             ),
                             maxLines: 1,
@@ -548,7 +549,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                       ),
                       Expanded(
                         child: Text("Survey response collected",
-                            style: CustomTypography().bodyMedium(),
+                            style: CustomTypography()
+                                .bodyLarge(color: CustomColors.textSecondaryContent),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis),
                       ),
@@ -579,7 +581,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   child: Row(children: [
                     Expanded(
                       child: Text("Completed the timer ✅",
-                          style: CustomTypography().bodyMedium(),
+                          style: CustomTypography()
+                              .bodyLarge(color: CustomColors.textSecondaryContent),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                     ),
@@ -605,7 +608,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     Expanded(
                       child: Text(
                           "${elapsed.inHours.toString().padLeft(2, '0')} h ${elapsed.inMinutes.remainder(60).toString().padLeft(2, '0')} min",
-                          style: CustomTypography().bodyMedium(),
+                          style: CustomTypography()
+                              .bodyLarge(color: CustomColors.textSecondaryContent),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                     ),
