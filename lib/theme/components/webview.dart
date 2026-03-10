@@ -37,15 +37,18 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   bool timeOut = true;
 
   late final uri = Uri.tryParse(widget.url);
+  String currentUrl = "";
 
   @override
   void initState() {
     super.initState();
+    currentUrl = widget.url;
     if (uri != null && uri!.hasScheme) {
       controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setNavigationDelegate(NavigationDelegate(
           onPageStarted: (url) {
+            currentUrl = url;
             _checkTimer?.cancel();
             if (mounted && webViewError == null) {
               setState(() {
@@ -103,9 +106,19 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
               _startTimer?.cancel();
             }
           },
-
-          // NOTE: onHttpError IS ANDROID ONLY
           onHttpError: (error) {
+            final errorUri = error.request?.uri;
+            final currentUri = Uri.tryParse(currentUrl);
+
+            if (errorUri == null || currentUri == null) return;
+
+            // Ensure the error is for the main page, not a sub-resource
+            final isMainPage = errorUri.host == currentUri.host &&
+                errorUri.path == currentUri.path &&
+                errorUri.query == currentUri.query;
+
+            if (!isMainPage) return;
+
             dev.log('onHttpError triggered: ${error.response?.statusCode}');
 
             if (webViewError != null) {
