@@ -522,10 +522,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                       Expanded(
                         child: Text(prompt.answer?.response?.firstOrNull ?? "",
                             style: CustomTypography().bodyMedium(
-                              color: Color(0xFFFF3B30),
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis),
+                              color: Color(0xFFFF3B30))
+                        ),
                       ),
                     ]),
                   )
