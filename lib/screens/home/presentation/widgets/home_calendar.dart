@@ -525,9 +525,20 @@ class HelpButton extends StatelessWidget {
             context: context,
             bodyBuilder: (context) => Container(
                   padding: EdgeInsets.all(16),
-                  child: Text(
-                    "Active: You have completed at least 1 entry during a day.",
-                    style: CustomTypography().titleRegular(),
+                  child: Text.rich(
+                    TextSpan(
+                      text: 'Active',
+                      style: CustomTypography().titleRegular().copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                      children: [
+                        TextSpan(
+                          text:
+                              ': You have submitted at least one entry on that day.',
+                          style: CustomTypography().titleRegular(),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
             direction: PopoverDirection.top,

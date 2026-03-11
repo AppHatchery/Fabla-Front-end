@@ -300,7 +300,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   ),
 
                   // Edit Button
-                  isEditable()
+                  isEditable(prompt)
                       ? GestureDetector(
                           onTap: () => editResponse(prompt, index + 1),
                           child: Row(
@@ -522,11 +522,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                       ),
                       Expanded(
                         child: Text(prompt.answer?.response?.firstOrNull ?? "",
-                            style: CustomTypography().bodyLarge(
-                              color: Color(0xFFFF3B30),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis),
+                            style: CustomTypography().bodyMedium(
+                              color: Color(0xFFFF3B30))
+                        ),
                       ),
                     ]),
                   )
@@ -766,11 +764,17 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     );
   }
 
-  bool isEditable() {
+  bool isEditable(PromptModel prompt) {
     final due = widget.diary.due;
     final now = DateTime.now();
 
-    //Is it past the due
-    return now.isBefore(due);
+    if (now.isAfter(due)) return false;
+
+    if (prompt.responseType == ResponseType.webview) {
+      final response = prompt.answer?.response?.firstOrNull;
+      return response == null || response.contains("Item was skipped due to:");
+    }
+
+    return true;
   }
 }
