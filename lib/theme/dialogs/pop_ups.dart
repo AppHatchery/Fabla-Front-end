@@ -2,8 +2,12 @@ import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/utils/emailFunction.dart';
 import '../components/buttons.dart';
 import '../components/checkboxes.dart';
 import '../custom_colors.dart';
@@ -1282,6 +1286,115 @@ class _UpdatePopUpState extends State<UpdatePopUp> {
         )
       ],
     );
+  }
+}
+
+//study info popup for the study login page
+class StudyInfoPopUp extends StatelessWidget {
+  const StudyInfoPopUp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+        backgroundColor: CustomColors.fillWhite,
+        contentPadding: const EdgeInsets.all(0),
+        title: Row(
+          spacing: 16,
+          children: [
+            Container(
+              decoration:
+                  BoxDecoration(shape: BoxShape.circle, color: Colors.black26),
+              child: Image.asset(
+                "assets/images/study_info.png",
+                height: 80,
+                width: 80,
+              ),
+            ),
+            Flexible(
+              child: Text(
+                "What’s my Study String?",
+                style: CustomTypography().custom(
+                    fontSize: 22.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xDB000000)),
+              ),
+            ),
+          ],
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 19, right: 30, bottom: 41),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 26,
+                ),
+                Text.rich(TextSpan(
+                    text: "Your ",
+                    style: CustomTypography().custom(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xA3000000)),
+                    children: [
+                      TextSpan(
+                        text: "Study String ",
+                        style: CustomTypography()
+                            .titleSmall(color: CustomColors.backgroundSecondary),
+                      ),
+                      TextSpan(
+                        text:
+                            "is an alphanumeric code shared by your researcher to grant you access to your study on Fabla",
+                        style: CustomTypography().custom(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xA3000000)),
+                      )
+                    ])),
+                SizedBox(
+                  height: 26.0,
+                ),
+                Text.rich(
+                  TextSpan(
+                    text: 'If you need help with your Study String, you may ',
+                    style: CustomTypography().custom(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xA3000000)),
+                    children: [
+                      TextSpan(
+                          text: "Contact Us",
+                          style: CustomTypography()
+                              .titleSmall(color: Color(0xA3000000))
+                              .copyWith(
+                                decoration: TextDecoration.underline,
+                              ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = launchEmail),
+                      TextSpan(
+                          text: ' or reach out to your researcher directly!',
+                          style: CustomTypography().custom(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0xA3000000))),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+        ]);
+  }
+
+  Future<void> launchEmail() async {
+    final uri = Uri(
+        scheme: "mailto",
+        path: "fabla@emory.edu",
+        query: encodeQueryParameters(<String, String>{
+          'subject': 'Need help with the study code',
+          'body': 'I have a problem with accessing the study: '
+        }));
+
+    await launchUrl(uri);
   }
 }
 
