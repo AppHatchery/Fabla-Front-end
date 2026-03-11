@@ -58,6 +58,7 @@ class SliderQuestionCard extends StatefulWidget {
 
 class _SliderQuestionCardState extends State<SliderQuestionCard> {
   double _value = 0;
+   late bool isDisabled = !widget.isSliderEnabled;
 
   @override
   void initState() {
@@ -96,41 +97,54 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
                 padding: const EdgeInsets.symmetric(horizontal: 5.0),
                 child: SliderTheme(
                   data: SliderThemeData(
-                      thumbColor: widget.value != null
-                          ? CustomColors.productNormal
-                          : CustomColors.fillDisabled,
-                      activeTrackColor: widget.value != null
-                          ? CustomColors.productNormal
-                          : CustomColors.fillDisabled,
-                      inactiveTrackColor: CustomColors.fillDisabled,
-                      activeTickMarkColor: CustomColors.productNormal,
-                      inactiveTickMarkColor:
-                          CustomColors.textNormalContent.withOpacity(0.35),
-                      overlayShape: SliderComponentShape.noOverlay,
-                      valueIndicatorColor: CustomColors.productNormal,
-                      trackHeight: 4,
-                      valueIndicatorTextStyle: CustomTypography()
-                          .bodyLarge(color: CustomColors.textWhite)),
+                    thumbColor: isDisabled
+                        ? CustomColors.fillDisabled
+                        : CustomColors.productNormal,
+
+                    activeTrackColor: isDisabled
+                        ? CustomColors.fillDisabled
+                        : CustomColors.productNormal,
+
+                    inactiveTrackColor: CustomColors.fillDisabled,
+
+                    activeTickMarkColor: isDisabled
+                        ? CustomColors.fillDisabled
+                        : CustomColors.productNormal,
+
+                    inactiveTickMarkColor: CustomColors.textNormalContent.withOpacity(0.35),
+
+                    overlayShape: SliderComponentShape.noOverlay,
+
+                    valueIndicatorColor: isDisabled
+                        ? Colors.transparent
+                        : CustomColors.productNormal,
+
+                    trackHeight: 4,
+
+                    valueIndicatorTextStyle: widget.isSliderEnabled ?
+                    CustomTypography().bodyLarge(color: CustomColors.fillWhite):
+                    CustomTypography().titleSmall(color: Colors.black),
+
+                    showValueIndicator: widget.isSliderEnabled
+                        ? ShowValueIndicator.onlyForDiscrete
+                        : ShowValueIndicator.alwaysVisible,
+                  ),
                   child: Slider(
                     value: _value,
                     min: widget.scaleMin.toDouble(),
                     max: widget.scaleMax.toDouble(),
                     divisions: widget.scaleMax - widget.scaleMin,
                     label: _value.round().toString(),
-                    onChangeEnd: widget.isSliderEnabled
-                        ? (double value) {
-                            if (widget.onSliderValueChanged != null) {
-                              widget.onSliderValueChanged!(value);
-                            }
-                          }
-                        : null,
-                    onChanged: widget.isSliderEnabled
-                        ? (val) {
-                            setState(() {
-                              _value = val;
-                            });
-                          }
-                        : null,
+                    onChanged: (double val) {
+                      if (!widget.isSliderEnabled) return;
+                      setState(() {
+                        _value = val;
+                      });
+                    },
+                    onChangeEnd: (double value) {
+                      if (!widget.isSliderEnabled) return;
+                      widget.onSliderValueChanged?.call(value);
+                    },
                     //overlayColor:CustomColors.newBlue,
                   ),
                 ),
