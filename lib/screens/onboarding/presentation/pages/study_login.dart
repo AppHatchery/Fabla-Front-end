@@ -238,8 +238,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   }
 
   void verify() {
-      final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
-      final code = controller.text.substring(0, lastNonSpaceIndex + 1);
+    final code = controller.text.trim();
 
       if (code.isNotEmpty) {
         cubit.login(code);

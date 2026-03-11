@@ -250,9 +250,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   }
 
   void login() {
-      final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
-      final text = controller.text.substring(0, lastNonSpaceIndex + 1);
-      final code = text;
+      final code = controller.text.trim();
 
       if (code.isNotEmpty) {
         loginCubit.login(code);
