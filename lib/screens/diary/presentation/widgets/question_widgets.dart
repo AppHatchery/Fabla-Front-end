@@ -1175,7 +1175,7 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   Future<void> setAlarm(Duration time) async {
-    currentAlarmId = Random().nextInt(1000);
+    currentAlarmId = Random().nextInt(1 << 31);
 
     await Alarm.set(
       alarmSettings: AlarmSettings(
