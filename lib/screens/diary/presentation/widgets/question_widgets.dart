@@ -43,11 +43,13 @@ class SliderQuestionCard extends StatefulWidget {
   final int scaleMax;
   final bool isSliderEnabled;
   final ValueChanged<double>? onSliderValueChanged;
+  final Color colorFont;
   const SliderQuestionCard(
       {super.key,
       required this.value,
       required this.scaleMinText,
       required this.scaleMaxText,
+      this.colorFont = Colors.black,
       this.onSliderValueChanged,
       required this.scaleMin,
       required this.scaleMax,
@@ -90,7 +92,9 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
           children: [
             Text(
               widget.scaleMin.toString(),
-              style: CustomTypography().button(),
+              style: CustomTypography().button(
+                color: widget.colorFont,
+              ),
             ),
             Expanded(
               child: Padding(
@@ -139,7 +143,9 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
             ),
             Text(
               widget.scaleMax.toString(),
-              style: CustomTypography().button(),
+              style: CustomTypography().button(
+                color: widget.colorFont,
+              ),
             ),
           ],
         ),
@@ -154,14 +160,16 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
               child: Text(
                 widget.scaleMinText ?? '',
                 textAlign: TextAlign.start,
-                style: CustomTypography().bodyLarge(),
+                style: CustomTypography()
+                    .bodyLarge(color: widget.colorFont),
               ),
             ),
             Expanded(
               child: Text(
                 widget.scaleMaxText ?? '',
                 textAlign: TextAlign.end,
-                style: CustomTypography().bodyLarge(),
+                style: CustomTypography()
+                    .bodyLarge(color: widget.colorFont),
               ),
             ),
           ],
