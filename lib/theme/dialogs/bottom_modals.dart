@@ -1279,8 +1279,17 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
     final results = await showDialog<bool>(
         context: context,
         builder: (context) => ExitPopUp(
-              title: "Exit Survey?",
-              subheader: "If you exit, your progress will not be saved.",
+              content: [
+                Text(
+                  "Exit Survey?",
+                  style: CustomTypography().headlineMedium(),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Text("If you exit, your progress will not be saved.",
+                    style: CustomTypography().bodyLarge(),
+                    textAlign: TextAlign.center),
+              ],
             ));
     if (results == true && mounted) Navigator.pop(context);
   }

@@ -149,12 +149,53 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
 
   leaveStudy(BuildContext context) async {
     final results = await showDialog<bool>(
-        context: context,
-        builder: (context) => ExitPopUp(
-              title: "Are you sure you want to leave this study?",
-              subheader:
-                  "This action will be final and all your data stored on this device will be lost. To have your data removed from the study, please contact the research team.",
-            ));
+      context: context,
+      builder: (context) => ExitPopUp(
+        content: [
+          Text(
+            "Are you sure you want to leave this study?",
+            style: CustomTypography().headlineMedium(),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Text.rich(
+            TextSpan(
+              text: "This action is final. All data stored on this device will be ",
+              style: CustomTypography().bodyLarge(),
+              children: [
+                TextSpan(
+                  text: " permanently removed.",
+                  style: CustomTypography().bodyLarge(color: Color(0xFFFC0909)),
+                ),
+              ],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Text.rich(
+            TextSpan(
+              text: "Note: ",
+              style: CustomTypography().bodyLarge(weight: FontWeight.w600),
+              children: [
+                TextSpan(
+                  text: "You are exiting the daily diary component ",
+                  style: CustomTypography().bodyLarge(),
+                ),
+                TextSpan(
+                  text: "only. ",
+                  style: CustomTypography().bodyLarge(weight: FontWeight.w600),
+                ),
+                TextSpan(
+                  text: "To completely withdraw from the research study and have your data removed, please contact the research team.",
+                  style: CustomTypography().bodyLarge(),
+                ),
+              ],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
 
     if (results == true && mounted) {
       await repository.leaveStudy();

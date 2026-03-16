@@ -1167,9 +1167,8 @@ class DeletePopUp extends StatelessWidget {
 }
 
 class ExitPopUp extends StatelessWidget {
-  final String title;
-  final String subheader;
-  const ExitPopUp({super.key, required this.title, required this.subheader});
+  final List<Widget> content;
+  const ExitPopUp({super.key, required this.content});
 
   @override
   Widget build(BuildContext context) {
@@ -1187,27 +1186,8 @@ class ExitPopUp extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Title
-              Text(
-                title,
-                style: CustomTypography().headlineMedium(),
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(
-                height: 24,
-              ),
-
-              // Message
-              Text(
-                subheader,
-                style: CustomTypography().bodyLarge(),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(
-                height: 24,
-              ),
-
+              ...content,
+              const SizedBox(height: 24),
               // Buttons
               Row(
                 children: [
@@ -1338,8 +1318,8 @@ class StudyInfoPopUp extends StatelessWidget {
                     children: [
                       TextSpan(
                         text: "Study String ",
-                        style: CustomTypography()
-                            .titleSmall(color: CustomColors.backgroundSecondary),
+                        style: CustomTypography().titleSmall(
+                            color: CustomColors.backgroundSecondary),
                       ),
                       TextSpan(
                         text:
