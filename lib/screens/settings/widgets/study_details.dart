@@ -164,7 +164,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
               style: CustomTypography().bodyLarge(),
               children: [
                 TextSpan(
-                  text: " permanently removed",
+                  text: " permanently removed.",
                   style: CustomTypography().bodyLarge(color: Color(0xFFFC0909)),
                 ),
               ],
