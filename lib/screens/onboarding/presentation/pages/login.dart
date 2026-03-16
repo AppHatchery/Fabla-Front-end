@@ -85,9 +85,6 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             color: CustomColors.textWhite,
           )),
       body: SafeArea(
-        top: true,
-        left: false,
-        right: false,
         bottom: false,
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
@@ -124,7 +121,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                   if (state is LoginInitial) {
                     return initialLogin();
                   } else if (state is LoginLoading) {
-                    return loading(height - 200);
+                    return Center(child: loading(height - 200));
                   }
                   return initialLogin();
                 }, listener: (context, state) {

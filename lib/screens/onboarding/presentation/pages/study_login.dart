@@ -104,7 +104,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
               Padding(
                 padding: EdgeInsets.fromLTRB(
                   16,
-                  120,
+                  70,
                   16,
                   bottomPadding > 0
                       ? bottomPadding + 34
