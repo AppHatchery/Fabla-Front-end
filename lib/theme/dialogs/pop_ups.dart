@@ -1169,7 +1169,8 @@ class DeletePopUp extends StatelessWidget {
 class ExitPopUp extends StatelessWidget {
   final String title;
   final String subheader;
-  const ExitPopUp({super.key, required this.title, required this.subheader});
+  final List<Widget>? content;
+  const ExitPopUp({super.key, required this.title, required this.subheader, this.content});
 
   @override
   Widget build(BuildContext context) {
@@ -1194,65 +1195,16 @@ class ExitPopUp extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(
-                height: 24,
-              ),
-
-              // Message
-              if (title == "Are you sure you want to leave this study?") ...[
-                Column(
-                  children: [
-                    Text.rich(
-                      TextSpan(
-                        text: subheader,
-                        style: CustomTypography().bodyLarge(),
-                        children: [
-                          TextSpan(
-                            text: " permanently removed",
-                            style: CustomTypography().bodyLarge(
-                              color: Color(0xFFFC0909),
-                            ),
-                          ),
-                        ],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(
-                      height: 24,
-                    ),
-                    Text.rich(
-                      TextSpan(
-                          text: "Note: ",
-                          style: CustomTypography()
-                              .bodyLarge(weight: FontWeight.w600),
-                          children: [
-                            TextSpan(
-                                text:
-                                    "You are exiting the daily diary component ",
-                                style: CustomTypography().bodyLarge()),
-                            TextSpan(
-                                text: "only. ",
-                                style: CustomTypography()
-                                    .bodyLarge(weight: FontWeight.w600)),
-                            TextSpan(
-                                text:
-                                    "To completely withdraw from the research study and have your data removed, please contact the research team.",
-                                style: CustomTypography().bodyLarge())
-                          ]),
+              const SizedBox(height: 24),
+              ...content ??
+                  [
+                    Text(
+                      subheader,
+                      style: CustomTypography().bodyLarge(),
                       textAlign: TextAlign.center,
                     ),
                   ],
-                )
-              ] else ...[
-                Text(
-                  subheader,
-                  style: CustomTypography().bodyLarge(),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-              const SizedBox(
-                height: 24,
-              ),
+              const SizedBox(height: 24),
 
               // Buttons
               Row(
