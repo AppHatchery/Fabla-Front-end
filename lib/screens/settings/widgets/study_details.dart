@@ -151,9 +151,13 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
     final results = await showDialog<bool>(
       context: context,
       builder: (context) => ExitPopUp(
-        title: "Are you sure you want to leave this study?",
-        subheader: "This action is final. All data stored on this device will be ",
         content: [
+          Text(
+            "Are you sure you want to leave this study?",
+            style: CustomTypography().headlineMedium(),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
           Text.rich(
             TextSpan(
               text: "This action is final. All data stored on this device will be ",
