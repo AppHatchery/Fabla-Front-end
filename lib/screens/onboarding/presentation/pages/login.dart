@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
@@ -5,10 +7,10 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/ve
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
-import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rive/rive.dart' hide Image;
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io' show Platform;
 
@@ -30,6 +32,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   bool warning = false;
   String message = '';
   String warnMessage = '';
+
+  late StateMachineController _controller;
 
   @override
   void initState() {
@@ -87,46 +91,64 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         bottom: false,
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
-          child: SizedBox(
-            height: height,
-            width: width,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                  16,
-                  16,
-                  16,
-                  bottomPadding > 0
-                      ? bottomPadding + 34
-                      : (isIos ? 34 + 34 : 34)),
-              child: BlocConsumer<LoginCubit, LoginState>(
-                  builder: (context, state) {
-                if (state is LoginInitial) {
+          child: Stack(
+            children: [
+              Positioned(
+                top: -223,
+                left: 0,
+                child: Transform.flip(
+                  flipX: true,
+                  flipY: true,
+                  child: SizedBox(
+                    height: 380,
+                    width: 380,
+                    child: RiveAnimation.asset(
+                      'assets/animations/onboarding/hide_peek.riv',
+                      fit: BoxFit.fitWidth,
+                      onInit: onInit,
+                    ),
+                  ),
+                ),
+              ),
+
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                    16,
+                    70,
+                    16,
+                    bottomPadding > 0
+                        ? bottomPadding + 34
+                        : (isIos ? 34 + 34 : 34)),
+                child: BlocConsumer<LoginCubit, LoginState>(
+                    builder: (context, state) {
+                  if (state is LoginInitial) {
+                    return initialLogin();
+                  } else if (state is LoginLoading) {
+                    return loading(height - 200);
+                  }
                   return initialLogin();
-                } else if (state is LoginLoading) {
-                  return loading(height - 200);
-                }
-                return initialLogin();
-              }, listener: (context, state) {
-                if (state is LoginSuccess) {
-                  error = false;
-                  warning = false;
-                  RouteService().navigate(null,
-                      context: context, current: 'participant_login');
-                } else if (state is LoginWarning) {
-                  setState(() {
+                }, listener: (context, state) {
+                  if (state is LoginSuccess) {
                     error = false;
-                    warning = true;
-                    warnMessage = state.message;
-                  });
-                } else if (state is LoginError) {
-                  setState(() {
-                    error = true;
                     warning = false;
-                    message = state.message;
-                  });
-                }
-              }),
-            ),
+                    RouteService().navigate(null,
+                        context: context, current: 'participant_login');
+                  } else if (state is LoginWarning) {
+                    setState(() {
+                      error = false;
+                      warning = true;
+                      warnMessage = state.message;
+                    });
+                  } else if (state is LoginError) {
+                    setState(() {
+                      error = true;
+                      warning = false;
+                      message = state.message;
+                    });
+                  }
+                }),
+              ),
+            ],
           ),
         ),
       ),
@@ -250,7 +272,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   }
 
   void login() {
-      final code = controller.text.trim();
+    final code = controller.text.trim();
 
       if (code.isNotEmpty) {
         loginCubit.login(code);
@@ -261,6 +283,20 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         });
         return;
       }
+  }
+
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, "Animation_8");
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
+    }
   }
 
   track(int spent, String status) async {
