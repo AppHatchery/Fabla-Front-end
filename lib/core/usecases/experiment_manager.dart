@@ -23,6 +23,10 @@ class ExperimentManager {
       final done = await _setupRepository.uploadOnBoardingQuestions(
           partialCleanDB: true);
 
+      if (done == null) {
+        return false;
+      }
+
       return done;
     } catch (e, stackTrace) {
       dev.log(e.toString(), name: 'Experiment Manager Update');
