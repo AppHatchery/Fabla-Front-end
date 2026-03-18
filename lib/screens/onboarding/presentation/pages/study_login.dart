@@ -73,6 +73,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
     final isIos = Platform.isIOS;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: CustomColors.backgroundSecondary,
       body: SafeArea(
         bottom: false,
@@ -114,7 +115,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                     if (state is StudyLoginInitial) {
                       return initialLogin();
                     } else if (state is StudyLoginLoading) {
-                      return loading(height - 100);
+                      return Center(child: loading(height - 100));
                     }
         
                     return initialLogin();
