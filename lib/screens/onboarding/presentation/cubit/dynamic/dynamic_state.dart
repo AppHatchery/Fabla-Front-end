@@ -22,11 +22,12 @@ final class DynamicLoaded extends DynamicState {
 final class DynamicNone extends DynamicState {}
 
 final class DynamicError extends DynamicState {
+  final int questionsLength;
   final String message;
-  const DynamicError(this.message);
+  const DynamicError(this.message, this.questionsLength);
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [message, questionsLength];
 }
 
 final class DynamicUploading extends DynamicState {}

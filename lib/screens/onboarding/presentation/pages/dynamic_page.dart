@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/utils/emailFunction.dart'
+    show launchEmail;
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
@@ -96,6 +98,12 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
               return loading();
             } else if (state is DynamicUploading) {
               return uploading(height, width);
+            } else if (state is DynamicError) {
+              return DynamicErrorPage(
+                message: state.message,
+                onRetry: () => _cubit.upload(state.questionsLength),
+                onBack: () => _cubit.load(),
+              );
             } else if (state is DynamicLoaded) {
               return PageView.builder(
                 physics: const NeverScrollableScrollPhysics(),
@@ -692,6 +700,144 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
         _controller = ctrl;
         art.addController(_controller);
         ctrl.isActive = true;
+      });
+    }
+  }
+}
+
+class DynamicErrorPage extends StatefulWidget {
+  final String message;
+  final VoidCallback onRetry;
+  final VoidCallback onBack;
+
+  const DynamicErrorPage(
+      {super.key,
+      required this.message,
+      required this.onRetry,
+      required this.onBack});
+
+  @override
+  State<DynamicErrorPage> createState() => _DynamicErrorPageState();
+}
+
+class _DynamicErrorPageState extends State<DynamicErrorPage> {
+  late StateMachineController _controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: CustomColors.fillWhite,
+        scrolledUnderElevation: 0.0,
+        leading: IconButton(
+            onPressed: () => widget.onBack(),
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: CustomColors.textNormalContent,
+              size: 32,
+            )),
+      ),
+      backgroundColor: CustomColors.fillWhite,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 25,
+                children: [
+                  SizedBox(
+                    height: width * 0.75,
+                    width: width * 0.75,
+                    child: RiveAnimation.asset(
+                      'assets/animations/ghosts.riv',
+                      onInit: _onInit,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                    child: Text(widget.message,
+                        textAlign: TextAlign.center,
+                        style: CustomTypography().headlineMedium(
+                            color: CustomColors.textNormalContent)),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(left: 32.0, right: 32.0, top: 40),
+                    child: CustomFlatButton(
+                      onClick: widget.onRetry,
+                      text: 'Try Again',
+                      color: CustomColors.fillWhite,
+                      textColor: CustomColors.warningActive,
+                      borderColor: CustomColors.warningActive,
+                    ),
+                  ),
+
+                  // or
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 24,
+                    children: [
+                      SizedBox(
+                        width: 65,
+                        child: Divider(
+                          color: const Color(0xFFB0B0B0),
+                          thickness: 1,
+                        ),
+                      ),
+                      Text(
+                        'OR',
+                        style: CustomTypography().bodyLarge(
+                            color: const Color(0xFFB0B0B0),
+                            weight: FontWeight.w500),
+                      ),
+                      SizedBox(
+                        width: 65,
+                        child: Divider(
+                          color: const Color(0xFFB0B0B0),
+                          thickness: 1,
+                        ),
+                      )
+                    ],
+                  ),
+
+                  CustomTextButton(
+                    onClick: () => launchEmail(
+                        subject: "Issue with Uploading Onboarding Questions",
+                        body:
+                            "Hi,\n\nI'm experiencing the following issue while trying to onboard:\n\n[Please describe the issue you're facing]\n\nThank you!"),
+                    text: 'Contact Researcher',
+                    textColor: CustomColors.warningActive,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _onInit(Artboard art) {
+    var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
+
+    ctrl?.isActive = false;
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+      });
+
+      Future.delayed(const Duration(milliseconds: 10), () {
+        final animation = _controller.findSMI('Searching_2');
+        if (animation != null && mounted) {
+          animation.value = true;
+        }
+        return;
       });
     }
   }
