@@ -8,9 +8,10 @@ import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/questions_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/network/request.dart';
+import 'package:audio_diaries_flutter/core/usecases/connectivity.dart'
+    show checkForInternet;
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
-import 'package:audio_diaries_flutter/core/utils/extensions.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
@@ -521,7 +522,10 @@ class SetupRepository {
   ///
   /// Returns:
   /// - A `Future` that resolves to a `bool` value indicating the success of the operation.
-  Future<bool> uploadOnBoardingQuestions({bool partialCleanDB = false}) async {
+  Future<bool?> uploadOnBoardingQuestions({bool partialCleanDB = false}) async {
+    final hasInternet = await checkForInternet();
+    if (!hasInternet) return null;
+
     final List<Questions> onboardingQuestions = _questionsDAO
         .getAllQuestions()
         .map((e) => Questions.fromEntity(e))
@@ -635,8 +639,8 @@ class SetupRepository {
 
     map.addAll(
       {
-        'participant_id': participant!.studyCode.toString(),
-        'login_code': experiment!.login,
+        'participant_id': participant.studyCode.toString(),
+        'login_code': experiment.login,
         'extras': jsonEncode(extras),
         'token': firebaseToken,
         'service': platformName,
