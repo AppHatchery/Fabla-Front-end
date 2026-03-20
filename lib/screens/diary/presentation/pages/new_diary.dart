@@ -620,7 +620,7 @@ class _QuestionPageState extends State<QuestionPage>
     } else if (prompt.responseType == ResponseType.text) {
       questionTip = prompt.subtitle ?? "Please type your answer:";
     } else if (prompt.responseType == ResponseType.webview) {
-      questionTip =
+      questionTip = prompt.subtitle ??
           "Close the pop-up window when you are done filling the survey.";
     } else if (prompt.responseType == ResponseType.timer) {
       questionTip =
