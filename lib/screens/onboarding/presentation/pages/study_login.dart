@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/study_login_cubit.dart';
@@ -9,6 +11,7 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rive/rive.dart' hide Image;
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io' show Platform;
 
@@ -28,6 +31,8 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   final TextEditingController controller = TextEditingController();
   bool error = false;
   String message = '';
+
+  late StateMachineController _controller;
 
   late StudyLoginCubit cubit;
 
@@ -68,16 +73,37 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
     final isIos = Platform.isIOS;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: CustomColors.backgroundSecondary,
       body: SafeArea(
         bottom: false,
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
-          child: SizedBox(
-            height: height,
-            width: width,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
+          child: Stack(
+            children: [
+              Positioned(
+                bottom: 20,
+                left: -182.5,
+                child: Transform.rotate(
+                  angle: pi * 5.4 / 4,
+                  child: Transform.flip(
+                    flipX: true,
+                    flipY: true,
+                    child: SizedBox(
+                      height: 340,
+                      width: 340,
+                      child: RiveAnimation.asset(
+                        'assets/animations/onboarding/hide_peek.riv',
+                        fit: BoxFit.fitWidth,
+                        onInit: onInit,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              Padding(
+                padding: EdgeInsets.fromLTRB(
                   16,
                   70,
                   16,
@@ -86,28 +112,34 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                       : (isIos ? 34 + 34 : 34)),
               child: BlocConsumer<StudyLoginCubit, StudyLoginState>(
                   builder: (context, state) {
-                if (state is StudyLoginInitial) {
-                  return initialLogin();
-                } else if (state is StudyLoginLoading) {
-                  return loading(height - 100);
-                }
-
-                return initialLogin();
-              }, listener: (context, state) {
-                if (state is StudyLoginError) {
-                  setState(() {
-                    error = true;
-                    message = state.message;
-                  });
-                } else if (state is StudyLoginSuccess) {
-                  error = false;
-                  int spent = timer.stop();
-                  track(spent, "Finished");
-                  RouteService().navigate(state.experiment,
-                      context: context, current: 'login');
-                }
-              }),
-            ),
+                    if (state is StudyLoginInitial) {
+                      return initialLogin();
+                    } else if (state is StudyLoginLoading) {
+                      return Center(child: loading(height - 100));
+                    }
+        
+                    return initialLogin();
+                  },
+                  listener: (context, state) {
+                    if (state is StudyLoginError) {
+                      setState(() {
+                        error = true;
+                        message = state.message;
+                      });
+                    } else if (state is StudyLoginSuccess) {
+                      error = false;
+                      int spent = timer.stop();
+                      track(spent, "Finished");
+                      RouteService().navigate(
+                        state.experiment,
+                        context: context,
+                        current: 'login',
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -115,6 +147,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   }
 
   Widget initialLogin() {
+    final width = MediaQuery.of(context).size.width;
     return LayoutBuilder(builder: (context, constraints) {
       return SingleChildScrollView(
         child: ConstrainedBox(
@@ -261,6 +294,20 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
         }));
 
     await launchUrl(uri);
+  }
+
+  onInit(Artboard art) async {
+    var ctrl = StateMachineController.fromArtboard(art, "Animation_8");
+    ctrl?.isActive = false;
+
+    if (ctrl != null) {
+      art.addController(ctrl);
+      setState(() {
+        _controller = ctrl;
+        art.addController(_controller);
+        ctrl.isActive = true;
+      });
+    }
   }
 
   track(int spent, String status) async {
