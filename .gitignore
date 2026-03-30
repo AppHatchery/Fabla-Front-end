@@ -73,3 +73,10 @@ amplifytools.xcconfig
 
 # Integration test related
 grant_permission.sh
+
+# OS generated files #
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store?
