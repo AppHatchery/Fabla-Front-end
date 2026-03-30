@@ -64,10 +64,10 @@ class NotificationsController {
       }
 
       await flutterLocalNotificationsPlugin.show(
-        message.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
+        id: message.hashCode,
+        title: notification.title,
+        body: notification.body,
+        notificationDetails:  NotificationDetails(
           android: AndroidNotificationDetails(
             'high_importance_channel', // Channel ID
             'High Importance Notifications', // Channel Name
@@ -125,7 +125,7 @@ class NotificationsController {
         InitializationSettings(
             android: initializationSettingsAndroid,
             iOS: initializationSettingsDarwin);
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+    await flutterLocalNotificationsPlugin.initialize(settings:  initializationSettings,
         onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
   }
 
