@@ -1540,12 +1540,13 @@ class _MediaPreviewState extends State<MediaPreview> {
   @override
   Widget build(BuildContext context) {
     return DottedBorder(
-      color: CustomColors.productNormalActive,
-      strokeWidth: 4,
-      radius: Radius.circular(4),
-      padding: const EdgeInsets.all(16),
-      dashPattern: [8, 8],
-      borderType: BorderType.RRect,
+      options: RoundedRectDottedBorderOptions(
+        radius: Radius.circular(4),
+        color: CustomColors.productNormalActive,
+        strokeWidth: 4,
+        padding: const EdgeInsets.all(16),
+        dashPattern: [8, 8],
+      ),
       child: Wrap(
         spacing: 6,
         runSpacing: 6,
