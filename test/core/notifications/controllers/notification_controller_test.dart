@@ -76,7 +76,7 @@ void main() {
           .thenAnswer((_) async => null);
 
       when(() => mockLocalNotifications.initialize(
-            any(),
+         settings: any(),
             onDidReceiveNotificationResponse:
                 any(named: 'onDidReceiveNotificationResponse'),
           )).thenAnswer((_) async => true);
@@ -85,7 +85,7 @@ void main() {
 
       verify(() => mockFirebaseMessaging.getInitialMessage()).called(1);
       verify(() => mockLocalNotifications.initialize(
-            any(),
+          settings: any(),
             onDidReceiveNotificationResponse:
                 any(named: 'onDidReceiveNotificationResponse'),
           )).called(1);
@@ -118,7 +118,7 @@ void main() {
             flush: any(named: 'flush', that: isA<bool>()),
           )).thenAnswer((_) async => mockFile);
 
-      when(() => mockLocalNotifications.show(any(), any(), any(), any()))
+      when(() => mockLocalNotifications.show(id: any(), title: any(), body: any(), notificationDetails: any()))
           .thenAnswer((_) async => {});
 
       // Use IOOverrides to intercept File creation
@@ -143,10 +143,10 @@ void main() {
           )).called(1);
 
       verify(() => mockLocalNotifications.show(
-            any(), // notification ID
-            title,
-            body,
-            any(that: predicate<NotificationDetails>((details) {
+           id: any(), // notification ID
+           title: title,
+           body: body,
+          notificationDetails: any(that: predicate<NotificationDetails>((details) {
               final androidDetails = details.android!;
               // Check largeIcon
               expect(androidDetails.largeIcon, isA<FilePathAndroidBitmap>());
@@ -232,7 +232,7 @@ void main() {
 
     test('setupNotificationPlugin initializes local notifications', () async {
       when(() => mockLocalNotifications.initialize(
-            any(),
+           settings: any(),
             onDidReceiveNotificationResponse:
                 any(named: 'onDidReceiveNotificationResponse'),
           )).thenAnswer((_) async => true);
@@ -240,7 +240,7 @@ void main() {
       await controller.setupNotificationPlugin();
 
       verify(() => mockLocalNotifications.initialize(
-            any(),
+           settings: any(),
             onDidReceiveNotificationResponse:
                 any(named: 'onDidReceiveNotificationResponse'),
           )).called(1);
