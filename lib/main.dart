@@ -33,6 +33,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pendo_sdk/pendo_sdk.dart';
+import 'package:rive/rive.dart' show RiveNative;
 import 'dart:io' show Platform;
 
 import 'core/database/object_box.dart';
@@ -61,6 +62,7 @@ void main() async {
   objectbox = await ObjectBox.create();
   cameras = await availableCameras();
   //await configureAmplify();
+  await RiveNative.init();
   await Alarm.init();
   await NotificationService.init();
   await PendoService.init();

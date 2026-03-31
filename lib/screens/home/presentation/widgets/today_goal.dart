@@ -29,18 +29,23 @@ class TodayGoalWidget extends StatefulWidget {
 }
 
 class _TodayGoalWidgetState extends State<TodayGoalWidget> {
-  late rive.StateMachineController _controller;
+  rive.File? _riveFile;
+  rive.RiveWidgetController? _riveController;
 
-  void _onInit(rive.Artboard art) {
-    var ctrl = rive.StateMachineController.fromArtboard(art, "Ghosts");
-
-    ctrl?.isActive = false;
-    if (ctrl != null) {
-      art.addController(ctrl);
+  Future<void> _loadRive() async {
+    final file = await rive.File.asset(
+      'assets/animations/ghosts.riv',
+      riveFactory: rive.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = rive.RiveWidgetController(
+        file,
+        stateMachineSelector: rive.StateMachineSelector.byName('Ghosts'),
+      );
       setState(() {
-        _controller = ctrl;
+        _riveFile = file;
+        _riveController = controller;
       });
-
       if (widget.isHomeTipClosed.value) {
         Future.delayed(
             const Duration(milliseconds: 10), () => determineAnimation());
@@ -53,13 +58,14 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     widget.isHomeTipClosed.addListener(() {
       if (widget.isHomeTipClosed.value) determineAnimation();
     });
-
+    _loadRive();
     super.initState();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     super.dispose();
   }
 
@@ -117,11 +123,12 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                         child: SizedBox(
                           height: 120,
                           width: 180,
-                          child: rive.RiveAnimation.asset(
-                            'assets/animations/ghosts.riv',
-                            onInit: _onInit,
-                            fit: BoxFit.cover,
-                          ),
+                          child: _riveController != null
+                              ? rive.RiveWidget(
+                                  controller: _riveController!,
+                                  fit: rive.Fit.cover,
+                                )
+                              : const SizedBox.shrink(),
                         ),
                       ),
                     ),
@@ -143,7 +150,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         await PreferenceService().getBoolPreference(key: 'cold_start') ?? true;
 
     if (coldStart) {
-      final arrival = _controller.findSMI('First arrival');
+      final arrival = _riveController?.stateMachine.boolean('First arrival');
       if (arrival != null && mounted) {
         arrival.value = true;
       }
@@ -161,7 +168,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
     // If no goals are available for today
     if (goalData.isEmpty) {
-      final animation = _controller.findSMI('Searching_2');
+      final animation = _riveController?.stateMachine.boolean('Searching_2');
       if (animation != null && mounted) {
         animation.value = true;
       }
@@ -242,8 +249,8 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
   /// Shows a random searching animation (50/50 chance between Searching_1 and Searching_2)
   void _showRandomSearchingAnimation() {
-    final searchingOne = _controller.findSMI('Searching_1');
-    final searchingTwo = _controller.findSMI('Searching_2');
+    final searchingOne = _riveController?.stateMachine.boolean('Searching_1');
+    final searchingTwo = _riveController?.stateMachine.boolean('Searching_2');
 
     final random = Random().nextInt(2);
     final animation = random == 0 ? searchingOne : searchingTwo;
@@ -255,7 +262,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
   /// Helper method to show a specific animation
   void _showAnimation(String animationName) {
-    final animation = _controller.findSMI(animationName);
+    final animation = _riveController?.stateMachine.boolean(animationName);
     if (animation != null && mounted) {
       animation.value = true;
     }

@@ -32,13 +32,12 @@ class _MicAccessPageState extends State<MicAccessPage>
   bool requested = false;
 
   //Animations
-  late StateMachineController _controller;
-  SMIBool? wearHeadphones;
-
-  SMITrigger? thumbsUp;
+  File? _riveFile;
+  RiveWidgetController? _riveController;
+  BooleanInput? _wearHeadphones;
+  TriggerInput? _thumbsUp;
+  TriggerInput? _headphonesAllow;
   bool hasTriggeredThumbsUp = false;
-
-  SMITrigger? headphonesAllow;
 
   final PageTimer timer = PageTimer();
   TextScaler? scaler; // Get the size of the text scaler
@@ -52,14 +51,39 @@ class _MicAccessPageState extends State<MicAccessPage>
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       scaler = await fontScaler(context);
     });
+    _loadRive();
     super.initState();
+  }
+
+  Future<void> _loadRive() async {
+    final file = await File.asset(
+      'assets/animations/onboarding/mic_access.riv',
+      riveFactory: Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = RiveWidgetController(
+        file,
+        stateMachineSelector: StateMachineSelector.byName('Animation_2'),
+      );
+      setState(() {
+        _riveFile = file;
+        _riveController = controller;
+        _wearHeadphones = controller.stateMachine.boolean('Puts the Headphones on');
+        _thumbsUp = controller.stateMachine.trigger('Thumbs Up');
+        _headphonesAllow = controller.stateMachine.trigger('Headphones_Allow');
+      });
+    }
   }
 
   @override
   void dispose() {
+    _wearHeadphones?.dispose();
+    _thumbsUp?.dispose();
+    _headphonesAllow?.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     timer.dispose();
     recorder.closeRecorder();
-    _controller.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -227,11 +251,12 @@ class _MicAccessPageState extends State<MicAccessPage>
                               SizedBox(
                                 height: 300,
                                 width: width,
-                                child: RiveAnimation.asset(
-                                  'assets/animations/onboarding/mic_access.riv',
-                                  fit: BoxFit.fitWidth,
-                                  onInit: onInit,
-                                ),
+                                child: _riveController != null
+                                    ? RiveWidget(
+                                        controller: _riveController!,
+                                        fit: Fit.fitWidth,
+                                      )
+                                    : const SizedBox.shrink(),
                               ),
                               // Visibility(
                               //   visible: permission,
@@ -275,23 +300,6 @@ class _MicAccessPageState extends State<MicAccessPage>
     );
   }
 
-  onInit(Artboard art) async {
-    var ctrl = StateMachineController.fromArtboard(art, "Animation_2");
-    ctrl?.isActive = false;
-
-    if (ctrl != null) {
-      art.addController(ctrl);
-      setState(() {
-        _controller = ctrl;
-        art.addController(_controller);
-        ctrl.isActive = true;
-        wearHeadphones = _controller.getBoolInput('Puts the Headphones on');
-        thumbsUp = _controller.getTriggerInput('Thumbs Up');
-        headphonesAllow = _controller.getTriggerInput('Headphones_Allow');
-      });
-    }
-  }
-
   void recorderInit() async {
     await recorder.openRecorder();
     final session = await AudioSession.instance;
@@ -327,7 +335,7 @@ class _MicAccessPageState extends State<MicAccessPage>
           event.decibels != null &&
           event.decibels! > 40) {
         //Thumbs up
-        thumbsUp?.fire();
+        _thumbsUp?.fire();
 
         if (mounted) {
           setState(() {
@@ -346,7 +354,7 @@ class _MicAccessPageState extends State<MicAccessPage>
     });
     await PendoService.track("OnBoardingMicAccess", {"state": results.name});
     if (permission) {
-      wearHeadphones?.value = true;
+      _wearHeadphones?.value = true;
       if (requested) {
         await PreferenceService()
             .setBoolPreference(key: 'microphone', value: requested);
@@ -359,7 +367,7 @@ class _MicAccessPageState extends State<MicAccessPage>
         startRecorder();
       }
     } else {
-      headphonesAllow?.fire();
+      _headphonesAllow?.fire();
     }
 
     if (mounted) requested = true;
@@ -392,7 +400,7 @@ class _MicAccessPageState extends State<MicAccessPage>
 
       if (permission) {
         startRecorder();
-        wearHeadphones?.value = true;
+        _wearHeadphones?.value = true;
       }
     }
   }
