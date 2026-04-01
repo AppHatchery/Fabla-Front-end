@@ -24,6 +24,8 @@ class Options {
   //Psychomotor
   int? stimuli;
   Duration? length;
+  // Reference
+  int? targetedQuestion;
 
   Options(
       {required this.type,
@@ -42,7 +44,8 @@ class Options {
       this.userInteraction,
       this.playbackControl,
       this.stimuli,
-      this.length});
+      this.length,
+      this.targetedQuestion});
 
   factory Options.fromJson(
     Map<String, dynamic> json,
@@ -77,6 +80,7 @@ class Options {
       length: json['length'] != null && (json['length'] as String).isNotEmpty
           ? formatStringToDuration(json['length'])
           : null,
+      targetedQuestion: json['targeted_question'],
     );
   }
 
@@ -102,7 +106,8 @@ class Options {
       'user_interaction': userInteraction,
       'playback_control': playbackControl,
       'number_of_stimulus': stimuli,
-      'length': length != null ? formatDurationToString(length!) : null
+      'length': length != null ? formatDurationToString(length!) : null,
+      'targeted_question': targetedQuestion,
     };
   }
 }

@@ -108,6 +108,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
 
     switch (prompt.responseType) {
       case ResponseType.instruction:
+      case ResponseType.reference:
         isValidResponse = true;
         break;
       case ResponseType.audio:
@@ -226,6 +227,11 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
             prompt: prompt,
             respond: (answer, [type]) =>
                 save(prompt, answer, type ?? 'image', null));
+      case ResponseType.reference:
+        return ReferenceResponseWidget(
+          diary: widget.diary,
+          prompt: prompt,
+        );
       case ResponseType.multiple:
         final selected = prompt.answer?.response != null
             ? prompt.answer?.response!.first.split("/ ")

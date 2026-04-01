@@ -314,7 +314,9 @@ final Map<String, ResponseType> _responseTypeMap = {
   'image': ResponseType.mediaImage,
   'video': ResponseType.mediaVideo,
   'psychomotor': ResponseType.psychomotor,
-  'timePicker': ResponseType.timePicker
+  'timePicker': ResponseType.timePicker,
+  'teleprompter': ResponseType.teleprompter,
+  'reference': ResponseType.reference,
 };
 
 /// Function that converts a string representation of a response type to its corresponding enum value.
@@ -344,7 +346,9 @@ final Map<ResponseType, String> _responseStringMap = {
   ResponseType.mediaImage: 'image',
   ResponseType.mediaVideo: 'video',
   ResponseType.psychomotor: 'psychomotor',
-  ResponseType.timePicker: 'timePicker'
+  ResponseType.timePicker: 'timePicker',
+  ResponseType.teleprompter: 'teleprompter',
+  ResponseType.reference: 'reference',
 };
 
 /// Function to convert ResponseType enum value to string

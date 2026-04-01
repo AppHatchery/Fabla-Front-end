@@ -347,6 +347,11 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                 )
               : const SizedBox.shrink(),
         );
+      case ResponseType.reference:
+        return ReferenceResponseWidget(
+          diary: widget.diary,
+          prompt: prompt,
+        );
       case ResponseType.timer:
         final width = MediaQuery.of(context).size.width;
         return Padding(

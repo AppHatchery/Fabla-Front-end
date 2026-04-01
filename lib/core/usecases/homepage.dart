@@ -8,7 +8,8 @@ final allMediaTypes = [
   ResponseType.textAudio,
   ResponseType.image,
   ResponseType.video,
-  ResponseType.imageVideo
+  ResponseType.imageVideo,
+  ResponseType.teleprompter,
 ];
 final diaryRepository = DiaryRepository();
 
@@ -23,7 +24,8 @@ String determineDiaryIcon(DiaryModel diary) {
 
   final hasCamera = responseTypes.contains(ResponseType.image) ||
       responseTypes.contains(ResponseType.video) ||
-      responseTypes.contains(ResponseType.imageVideo);
+      responseTypes.contains(ResponseType.imageVideo) ||
+      responseTypes.contains(ResponseType.teleprompter);
 
   final hasTimer = responseTypes.contains(ResponseType.timer);
 

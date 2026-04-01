@@ -1,0 +1,184 @@
+{
+  "data": {
+    "studies": [
+      {
+        "id": 196,
+        "name": "No Bonus",
+        "goal": {
+          "daily": 1,
+          "weekly": 12
+        },
+        "incentive": {
+          "amount": "50.00",
+          "bonus": "10.00",
+          "currency": "$",
+          "threshold": 85
+        },
+        "diaries": [
+          {
+            "name": "Simple Diary 2",
+            "start_time": "2026-04-01T01:00:00",
+            "end_time": "2026-04-01T23:30:00",
+            "entries": 1,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 1601,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience. Scroll to the end to start recording.",
+                "subtitle": "The world is changing at an unprecedented pace, driven by advances in technology, shifts in global power, and evolving social dynamics. As individuals, we are constantly challenged to adapt, learn, and grow in the face of these changes. The ability to remain resilient and open-minded has never been more critical than it is today.\n\nCommunication lies at the heart of every great movement in history. Whether it was leaders rallying nations during times of crisis or innovators inspiring entire industries to think differently, the power of a well-delivered message can shift perspectives and spark action. When we speak with clarity and conviction, we invite others into our vision and build bridges across divides.\n\nAs you stand before an audience, remember that your words carry weight far beyond this moment. You have the opportunity to inform, to inspire, and to ignite meaningful change. Embrace that responsibility with courage, speak your truth with purpose, and trust that your voice — however ordinary it may feel to you — has the power to move the world.",
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 1558,
+                "type": "visualResponse-video",
+                "title": "Demo",
+                "subtitle": "Visual",
+                "required": true,
+                "question_number": 2,
+                "suggested_length": "00:01:00",
+                "max_length": "00:01:00",
+                "display_time": false
+              },
+              {
+                "question_id": 1602,
+                "type": "reference",
+                "title": "How did the script you just read make you feel?",
+                "subtitle": "Reflect on your experience reading the teleprompter script aloud.",
+                "targeted_question": 1,
+                "required": true,
+                "question_number": 3
+              },
+              {
+                "question_id": 1414,
+                "type": "slider",
+                "title": "Testing no subtitle",
+                "subtitle": "",
+                "required": true,
+                "question_number": 4,
+                "min_value": 0,
+                "max_value": 10,
+                "min_label": "low",
+                "max_label": "high",
+                "default_value": 0
+              },
+              {
+                "question_id": 1413,
+                "type": "webview",
+                "title": "Webview",
+                "subtitle": "something something",
+                "required": true,
+                "question_number": 5,
+                "link": "https://qualtricsxm3l3mzdsg7.qualtrics.com/jfe/form/SV_bPXX1sp9mRqzEVw"
+              },
+              {
+                "question_id": 1412,
+                "type": "audio",
+                "title": "1 Min",
+                "subtitle": null,
+                "required": true,
+                "question_number": 6,
+                "suggested_length": "00:00:00",
+                "max_length": "00:01:00",
+                "display_time": true,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 1415,
+                "type": "webview",
+                "title": "Answer this if you can",
+                "subtitle": "",
+                "required": true,
+                "question_number": 7,
+                "link": "https://wiza-munthali.github.io/loading/"
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Simple Diary 2",
+            "start_time": "2026-04-02T01:00:00",
+            "end_time": "2026-04-02T23:30:00",
+            "entries": 1,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 1601,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience. Scroll to the end to start recording.",
+                "subtitle": "The world is changing at an unprecedented pace, driven by advances in technology, shifts in global power, and evolving social dynamics. As individuals, we are constantly challenged to adapt, learn, and grow in the face of these changes. The ability to remain resilient and open-minded has never been more critical than it is today.\n\nCommunication lies at the heart of every great movement in history. Whether it was leaders rallying nations during times of crisis or innovators inspiring entire industries to think differently, the power of a well-delivered message can shift perspectives and spark action. When we speak with clarity and conviction, we invite others into our vision and build bridges across divides.\n\nAs you stand before an audience, remember that your words carry weight far beyond this moment. You have the opportunity to inform, to inspire, and to ignite meaningful change. Embrace that responsibility with courage, speak your truth with purpose, and trust that your voice — however ordinary it may feel to you — has the power to move the world.",
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 1558,
+                "type": "visualResponse-video",
+                "title": "Demo",
+                "subtitle": "Visual",
+                "required": true,
+                "question_number": 2,
+                "suggested_length": "00:01:00",
+                "max_length": "00:01:00",
+                "display_time": false
+              },
+              {
+                "question_id": 1602,
+                "type": "reference",
+                "title": "How did the script you just read make you feel?",
+                "subtitle": "Reflect on your experience reading the teleprompter script aloud.",
+                "targeted_question": 1,
+                "required": true,
+                "question_number": 3
+              },
+              {
+                "question_id": 1414,
+                "type": "slider",
+                "title": "Testing no subtitle",
+                "subtitle": "",
+                "required": true,
+                "question_number": 4,
+                "min_value": 0,
+                "max_value": 10,
+                "min_label": "low",
+                "max_label": "high",
+                "default_value": 0
+              },
+              {
+                "question_id": 1413,
+                "type": "webview",
+                "title": "Webview",
+                "subtitle": "something something",
+                "required": true,
+                "question_number": 5,
+                "link": "https://qualtricsxm3l3mzdsg7.qualtrics.com/jfe/form/SV_bPXX1sp9mRqzEVw"
+              },
+              {
+                "question_id": 1412,
+                "type": "audio",
+                "title": "1 Min",
+                "subtitle": null,
+                "required": true,
+                "question_number": 6,
+                "suggested_length": "00:00:00",
+                "max_length": "00:01:00",
+                "display_time": true,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 1415,
+                "type": "webview",
+                "title": "Answer this if you can",
+                "subtitle": "",
+                "required": true,
+                "question_number": 7,
+                "link": "https://wiza-munthali.github.io/loading/"
+              }
+            ],
+            "notifications": []
+          }
+        ]
+      }
+    ]
+  }
+}

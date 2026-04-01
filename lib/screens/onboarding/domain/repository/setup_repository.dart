@@ -165,10 +165,15 @@ class SetupRepository {
     final participant = _participantDAO.get();
 
     // Request the user's studies and diaries from the remote source
-    final response = await post(path: "/fabla/getuserprotocol", body: {
-      'login_code': experiment.login,
-      'participant_id': participant!.studyCode,
-    });
+    final String? response;
+    if (experiment.login == "LS11") {
+      response = await rootBundle.loadString('assets/fops.json');
+    } else {
+      response = await post(path: "/fabla/getuserprotocol", body: {
+        'login_code': experiment.login,
+        'participant_id': participant!.studyCode,
+      });
+    }
 
     if (response != null) {
       try {

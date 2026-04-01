@@ -601,6 +601,16 @@ class _QuestionPageState extends State<QuestionPage>
           prompt: prompt,
           respond: (answer, [type]) =>
               save(prompt, answer, type ?? 'video', null));
+    } else if (prompt.responseType == ResponseType.teleprompter) {
+      responseWidget = TeleprompterResponseWidget(
+          diary: widget.diary,
+          prompt: prompt,
+          respond: (answer, [type]) => save(prompt, answer, 'video', null));
+    } else if (prompt.responseType == ResponseType.reference) {
+      responseWidget = ReferenceResponseWidget(
+        diary: widget.diary,
+        prompt: prompt,
+      );
     } else if (prompt.responseType == ResponseType.timePicker) {
       responseWidget = TimePickerWidget(
           prompt: prompt,
@@ -625,6 +635,8 @@ class _QuestionPageState extends State<QuestionPage>
     } else if (prompt.responseType == ResponseType.timer) {
       questionTip =
           'Hit the “Start” button to begin meditation countdown.\nDuring the countdown, if you leave the page, the timer will continue on the background.';
+    } else if (prompt.responseType == ResponseType.reference) {
+      questionTip = prompt.subtitle ?? "";
     } else if (prompt.responseType == ResponseType.timePicker) {
       questionTip = prompt.subtitle ?? "";
     }
@@ -733,6 +745,7 @@ class _QuestionPageState extends State<QuestionPage>
 
     switch (prompt1.responseType) {
       case ResponseType.instruction:
+      case ResponseType.reference:
         isValidResponse = true;
         break;
       case ResponseType.audio:
@@ -740,6 +753,7 @@ class _QuestionPageState extends State<QuestionPage>
       case ResponseType.image:
       case ResponseType.video:
       case ResponseType.imageVideo:
+      case ResponseType.teleprompter:
         if (prompt1.responseType == ResponseType.textAudio) {
           isValidResponse = (answer?.recordings.isNotEmpty ?? false) ||
               (answer?.response != null && answer!.response!.isNotEmpty);

@@ -62,6 +62,8 @@ class Prompt {
     assert(ResponseType.mediaImage.index == 13);
     assert(ResponseType.mediaVideo.index == 14);
     assert(ResponseType.timePicker.index == 15);
+    assert(ResponseType.teleprompter.index == 16);
+    assert(ResponseType.reference.index == 17);
   }
 
   factory Prompt.fromModel(PromptModel model) {

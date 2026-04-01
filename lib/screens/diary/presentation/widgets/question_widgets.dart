@@ -29,6 +29,7 @@ import '../../../../core/utils/statuses.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
+import '../../../diary/domain/repository/prompt_repository.dart';
 import 'my_responses.dart';
 
 ///These widgets are being used in the QuestionPage class
@@ -1472,6 +1473,171 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
                 );
               },
             ));
+  }
+}
+
+class TeleprompterResponseWidget extends StatefulWidget {
+  final void Function(String answer, [String? type]) respond;
+  final DiaryModel diary;
+  final PromptModel prompt;
+
+  const TeleprompterResponseWidget({
+    super.key,
+    required this.diary,
+    required this.prompt,
+    required this.respond,
+  });
+
+  @override
+  State<TeleprompterResponseWidget> createState() =>
+      _TeleprompterResponseWidgetState();
+}
+
+class _TeleprompterResponseWidgetState
+    extends State<TeleprompterResponseWidget> {
+  final ScrollController _scrollController = ScrollController();
+  bool _scrolledToEnd = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Unlock immediately if the user already has a recording
+    _scrolledToEnd = widget.prompt.answer?.recordings.isNotEmpty ?? false;
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrolledToEnd) return;
+    final max = _scrollController.position.maxScrollExtent;
+    if (_scrollController.offset >= max - 24) {
+      setState(() => _scrolledToEnd = true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        color: CustomColors.fillWhite,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CustomButton(
+            onClick: () => _showModal(),
+            children: [
+              Icon(
+                CupertinoIcons.camera_fill,
+                color: CustomColors.fillWhite,
+                size: 24,
+              ),
+              const SizedBox(
+                width: 8,
+              ),
+              Text('Take a Video',
+                style: CustomTypography()
+                    .button(color: CustomColors.textWhite),
+              )
+            ],
+          ),
+          const SizedBox(height: 32),
+          widget.prompt.answer?.recordings.isNotEmpty ?? false
+              ? Text("Thank you, 🎉", style: CustomTypography().headlineMedium(),)
+              : const SizedBox.shrink()
+        ],
+      ),
+    );
+  }
+
+  void _showModal() {
+    showModalBottomSheet(
+        backgroundColor: Colors.transparent,
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        elevation: 0,
+        useSafeArea: true,
+        routeSettings: const RouteSettings(name: "/CameraModal"),
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              minChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) {
+                return TeleprompterModal(
+                  respond: widget.respond,
+                  prompt: widget.prompt,
+                  isImage: false,
+                );
+              },
+            ));
+  }
+}
+
+// Reference response type — displays the video from the targeted question
+// (for context) and a text input for the user's reflective response.
+class ReferenceResponseWidget extends StatefulWidget {
+  final DiaryModel diary;
+  final PromptModel prompt;
+
+  const ReferenceResponseWidget({
+    super.key,
+    required this.diary,
+    required this.prompt,
+  });
+
+  @override
+  State<ReferenceResponseWidget> createState() =>
+      _ReferenceResponseWidgetState();
+}
+
+class _ReferenceResponseWidgetState extends State<ReferenceResponseWidget> {
+  List<Recording> _targetRecordings = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTargetRecordings();
+  }
+
+  void _loadTargetRecordings() {
+    final targetedQuestion = widget.prompt.option?.targetedQuestion;
+    if (targetedQuestion == null) return;
+
+    final idx = widget.diary.prompts
+        .indexWhere((p) => p.questionNumber == targetedQuestion);
+    if (idx == -1) return;
+
+    final targetPrompt = widget.diary.prompts[idx];
+    final loaded = PromptRepository().load(widget.diary, targetPrompt.id);
+    if (mounted) {
+      setState(() {
+        _targetRecordings = loaded.answer?.recordings ?? [];
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
+      child: _targetRecordings.isNotEmpty
+          ? MediaPreview(
+              recordings: _targetRecordings,
+              delete: (_) {},
+              interactions: false,
+            )
+          : const SizedBox.shrink(),
+    );
   }
 }
 

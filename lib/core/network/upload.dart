@@ -61,7 +61,8 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
           prompt.responseType == ResponseType.audio ||
           prompt.responseType == ResponseType.image ||
           prompt.responseType == ResponseType.video ||
-          prompt.responseType == ResponseType.imageVideo) {
+          prompt.responseType == ResponseType.imageVideo ||
+          prompt.responseType == ResponseType.teleprompter) {
         _addFileData(experiment.login, prompt, participantID, diary, dir, files,
             references);
 

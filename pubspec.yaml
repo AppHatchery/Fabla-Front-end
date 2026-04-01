@@ -170,6 +170,7 @@ flutter:
     - assets/animations/recording/
     - assets/protocol.json
     - assets/onboarding.json
+    - assets/fops.json
     - assets/audio/
 
   fonts:

@@ -122,7 +122,8 @@ class AnswerRepository {
         ResponseType.audio,
         ResponseType.image,
         ResponseType.video,
-        ResponseType.imageVideo
+        ResponseType.imageVideo,
+        ResponseType.teleprompter,
       ].contains(prompt.responseType);
 
       if (isMedia) {

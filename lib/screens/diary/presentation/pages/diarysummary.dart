@@ -567,6 +567,11 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                 ),
               )
             : const SizedBox.shrink();
+      case ResponseType.reference:
+        return ReferenceResponseWidget(
+          diary: widget.diary,
+          prompt: prompt,
+        );
 
       case ResponseType.timer:
         final width = MediaQuery.of(context).size.width;
@@ -774,6 +779,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
       final response = prompt.answer?.response?.firstOrNull;
       return response == null || response.contains("Item was skipped due to:");
     }
+
+    if (prompt.responseType == ResponseType.teleprompter || prompt.responseType == ResponseType.reference) return false;
 
     return true;
   }

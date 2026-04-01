@@ -139,6 +139,10 @@ class PromptRepository {
 
     // Media response with existing answer - add recording to existing answer
     if (recording != null) {
+      // Teleprompter only ever has one video — replace instead of accumulate
+      if (prompt.responseType == ResponseType.teleprompter) {
+        existingAnswer.recordings.clear();
+      }
       recording.answer.target = existingAnswer;
       existingAnswer.recordings.add(recording);
       return Prompt.fromModel(prompt.copyWith(answer: existingAnswer));
@@ -161,7 +165,8 @@ class PromptRepository {
         ResponseType.audio,
         ResponseType.image,
         ResponseType.video,
-        ResponseType.imageVideo
+        ResponseType.imageVideo,
+        ResponseType.teleprompter,
       ].contains(prompt.responseType);
 
       if (isMedia) {

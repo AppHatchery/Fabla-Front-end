@@ -192,8 +192,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   const  SizedBox(height:24),
                   Text(
                     widget.subtitle ?? "",
-                    style: CustomTypography()
-                        .bodyLarge(
+                    style: CustomTypography().bodyLarge(
                       color: CustomColors.textNormalContent,
                       weight: FontWeight.w400,
                     ),
@@ -1172,7 +1171,7 @@ class BottomErrorModal extends StatelessWidget {
 class BottomWebViewModal extends StatefulWidget {
   final String url;
   final void Function(String) respond;
-   const BottomWebViewModal(
+  const BottomWebViewModal(
       {super.key, required this.url, required this.respond});
 
   @override
@@ -2035,6 +2034,664 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
   }
 }
 
+class TeleprompterModal extends StatefulWidget {
+  final void Function(String p, [String? type]) respond;
+  final PromptModel prompt;
+  final bool isImage;
+  const TeleprompterModal(
+      {super.key,
+        required this.respond,
+        required this.prompt,
+        this.isImage = true});
+
+  @override
+  State<TeleprompterModal> createState() => _TeleprompterModalState();
+}
+
+class _TeleprompterModalState extends State<TeleprompterModal> {
+  late CameraController controller;
+  IconData flashIcon = CupertinoIcons.bolt_badge_a_fill;
+
+  XFile? file;
+
+  // Video Recording
+  Timer? _timer;
+  Duration elapsed = const Duration();
+  // "" Playback
+  VideoPlayerController? videoController;
+  bool videoPlaying = false;
+
+  double feedHeight = 0;
+  double feedWidth = 0;
+
+  @override
+  void initState() {
+    controller = CameraController(
+      cameras[0],
+      ResolutionPreset.high,
+    );
+    cameraInit();
+    super.initState();
+  }
+
+  @override
+  dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  cameraInit() async {
+    // If the controller is updated then update the UI.
+    controller.addListener(() {
+      if (mounted) {
+        setState(() {
+          if (controller.value.previewSize != null) {
+            // Reversed for portrait
+            feedWidth = controller.value.previewSize!.height / 3;
+            feedHeight = controller.value.previewSize!.width / 3;
+          }
+        });
+      }
+      if (controller.value.hasError) {
+        dev.log('Camera error ${controller.value.errorDescription}');
+      }
+    });
+    try {
+      await controller.initialize();
+    } on CameraException catch (e) {
+      switch (e.code) {
+        case 'CameraAccessDenied':
+          dev.log('You have denied camera access.');
+        case 'CameraAccessDeniedWithoutPrompt':
+        // iOS only
+          dev.log('Please go to Settings app to enable camera access.');
+        case 'CameraAccessRestricted':
+        // iOS only
+          dev.log('Camera access is restricted.');
+        case 'AudioAccessDenied':
+          dev.log('You have denied audio access.');
+        case 'AudioAccessDeniedWithoutPrompt':
+        // iOS only
+          dev.log('Please go to Settings app to enable audio access.');
+        case 'AudioAccessRestricted':
+        // iOS only
+          dev.log('Audio access is restricted.');
+        default:
+          dev.log(e.toString());
+          break;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return Container(
+      width: width,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF3F3F3),
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(14), topRight: Radius.circular(14)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 32,
+          ),
+          // Close Modal Button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(
+                    CupertinoIcons.clear_circled_solid,
+                    size: 26,
+                    color: CustomColors.textSecondaryContent,
+                  ),
+                )
+              ],
+            ),
+          ),
+          Expanded(
+            child: questionAndHints(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget questionAndHints() {
+    final width = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return LayoutBuilder(builder: (context, constraints) {
+      return SizedBox(
+          height: constraints.maxHeight,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Pinned top section ──────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text( widget.prompt.question,
+                      style: CustomTypography().titleLarge(),
+                    ),
+                    const SizedBox(height: 16),
+                    if (controller.value.isRecordingVideo)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Icon(Icons.fiber_manual_record,
+                              color: CustomColors.warningActive),
+                        ],
+                      ),
+                    const SizedBox(height: 10),
+                    // ── PINNED container ──────────────────────────────────
+                    Container(
+                      height: 180,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Center(
+                        child: Image.asset("assets/images/image 550.png",
+                          fit: BoxFit.fitWidth,),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // ── Scrollable script and camera content ────────────────────────────────
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                        child: Text( widget.prompt.subtitle!,
+                          style: CustomTypography().body(),
+                        ),
+                      ),
+                      const SizedBox(height: 50),
+                      // ── Recording controls (always at bottom) ───────────────────
+                      Container(
+                        width: width,
+                        color: CustomColors.productNormal,
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 16),
+                            file != null ? preview() : cameraFeed(),
+                            const SizedBox(height: 24),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 36.0),
+                              child: file != null
+                                  ? playbackControls()
+                                  : widget.isImage
+                                  ? pictureControls()
+                                  : recordingControls(),
+                            ),
+                            SizedBox(height: screenHeight > 850 ? 36 : 24),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ));
+    });
+  }
+
+  Widget preview() {
+    if (file != null) {
+      final _file = File(file!.path);
+      return Container(
+        height: feedHeight,
+        width: feedWidth,
+        decoration: BoxDecoration(
+          color: CustomColors.grey,
+          border: GradientBoxBorder(
+            gradient:
+            LinearGradient(colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
+            width: 4,
+          ),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: switch (widget.isImage) {
+          true => Image.file(_file),
+          false => videoController != null
+              ? VideoPreview(controller: videoController!)
+              : const SizedBox.shrink(),
+        },
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget cameraFeed() {
+    return Container(
+      width: feedWidth,
+      height: feedHeight,
+      decoration: BoxDecoration(
+        color: CustomColors.grey,
+        border: GradientBoxBorder(
+          gradient:
+          LinearGradient(colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
+          width: 4,
+        ),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: controller.value.isInitialized
+            ? Stack(
+          children: [
+            Center(
+                child: SizedBox(
+                    width: controller.value.previewSize!.height / 3,
+                    height: controller.value.previewSize!.width / 3,
+                    child: CameraPreview(controller))),
+
+            // Time
+            elapsed.inMilliseconds > 0
+                ? Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 9.0),
+                child: Container(
+                  width: 90,
+                  padding: EdgeInsets.symmetric(horizontal: 9),
+                  decoration: ShapeDecoration(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4)),
+                      color: controller.value.isRecordingPaused
+                          ? CustomColors.productNormal
+                          : CustomColors.warningActive),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        formatDurationtoHHMMSS(elapsed),
+                        style: CustomTypography().custom(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: CustomColors.textWhite),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+                : const SizedBox.shrink()
+          ],
+        )
+            : SizedBox(
+          height: feedHeight,
+          width: feedWidth,
+        ),
+      ),
+    );
+  }
+
+  Widget pictureControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const SizedBox(width: 50),
+        SizedBox(
+          height: 64,
+          width: 64,
+          child: Material(
+            color: Colors.transparent,
+            child: Ink(
+                decoration: BoxDecoration(
+                    border: Border.all(color: CustomColors.fillWhite, width: 5),
+                    borderRadius: BorderRadius.circular(68)),
+                child: InkWell(
+                  key: const Key("capture"),
+                  splashColor: CustomColors.fillWhiteShade,
+                  borderRadius: BorderRadius.circular(68),
+                  onTap: () => capture(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Container(
+                      height: 60,
+                      width: 60,
+                      decoration: BoxDecoration(
+                          color: CustomColors.fillWhite,
+                          borderRadius: BorderRadius.circular(60)),
+                    ),
+                  ),
+                )),
+          ),
+        ),
+        GestureDetector(
+          onTap: () => flip(),
+          child: Container(
+              height: 50,
+              width: 50,
+              decoration: BoxDecoration(
+                  color: CustomColors.fillWhite,
+                  borderRadius: BorderRadius.circular(68)),
+              padding: const EdgeInsets.all(4),
+              child: SizedBox(
+                height: 45,
+                width: 45,
+                child: Center(
+                  child: Icon(
+                    CupertinoIcons.switch_camera_solid,
+                    color: CustomColors.productNormal,
+                    size: 25,
+                  ),
+                ),
+              )),
+        )
+      ],
+    );
+  }
+
+  Widget recordingControls() {
+    final width = MediaQuery.of(context).size.width;
+    return SizedBox(
+      width: width,
+      height: 68,
+      child: SizedBox(
+        width: double.infinity,
+        height: 68,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Record — always centered
+            GestureDetector(
+              onTap: () => record(),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 100),
+                height: controller.value.isRecordingPaused ? 50 : 64,
+                width: controller.value.isRecordingPaused ? 50 : 64,
+                decoration: BoxDecoration(
+                  border: Border.all(color: CustomColors.fillWhite, width: 4),
+                  borderRadius: BorderRadius.circular(68),
+                ),
+                padding: EdgeInsets.all(
+                  controller.value.isRecordingPaused
+                      ? 10
+                      : controller.value.isRecordingVideo
+                      ? 15
+                      : 4,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: CustomColors.warningActive,
+                    shape: controller.value.isRecordingVideo
+                        ? BoxShape.rectangle
+                        : BoxShape.circle,
+                    borderRadius: controller.value.isRecordingVideo
+                        ? BorderRadius.circular(4)
+                        : null,
+                  ),
+                ),
+              ),
+            ),
+
+            // Flip — pinned to right
+            Positioned(
+              right: 0,
+              child: GestureDetector(
+                onTap: () => flip(),
+                child: Container(
+                  height: 50,
+                  width: 50,
+                  decoration: BoxDecoration(
+                    color: CustomColors.fillWhite,
+                    borderRadius: BorderRadius.circular(68),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: Center(
+                    child: Icon(
+                      CupertinoIcons.switch_camera_solid,
+                      color: CustomColors.productNormal,
+                      size: 25,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget playbackControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      spacing: 24,
+      children: [
+        GestureDetector(
+          onTap: () => redo(),
+          child: Container(
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+                shape: BoxShape.circle, color: CustomColors.fillWhite),
+            child: Icon(
+              CupertinoIcons.arrow_uturn_left,
+              color: CustomColors.productNormalActive,
+            ),
+          ),
+        ),
+        GestureDetector(
+          key: const Key("save"),
+          onTap: () => save(),
+          child: Container(
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+                shape: BoxShape.circle, color: CustomColors.fillWhite),
+            child: Icon(
+              CupertinoIcons.checkmark_alt,
+              color: CustomColors.productNormalActive,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  capture() async {
+    if (controller.value.isTakingPicture) return;
+
+    if (mounted) {
+      final _file = await controller.takePicture();
+      setState(() {
+        file = _file;
+      });
+    }
+  }
+
+  Future<String> getFilePath() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final dir = await Directory(
+        p.join(directory.path, widget.isImage ? 'images' : 'videos'))
+        .create(recursive: true);
+    final now = DateTime.now();
+    final fileName =
+        '${widget.prompt.id + 1}_${formatDate(now)}${widget.isImage ? ".jpg" : ".mp4"}';
+    final filePath = p.join(dir.path, fileName);
+    return filePath;
+  }
+
+  record() async {
+    if (controller.value.isRecordingVideo) {
+      stop();
+      return;
+    }
+
+    await controller.startVideoRecording();
+    startTimer();
+  }
+
+  // Used to play the video
+  play() async {
+    if (videoController?.value.isPlaying ?? false) {
+      await videoController?.pause();
+      if (mounted) {
+        setState(() {
+          videoPlaying = false;
+        });
+      }
+    } else {
+      await videoController?.play();
+      if (mounted) {
+        setState(() {
+          videoPlaying = true;
+        });
+      }
+    }
+  }
+
+  save() async {
+    try {
+      if (file != null) {
+        final path = await getFilePath();
+        await file!.saveTo(path);
+        final name = basePath(path);
+        widget.respond(name, widget.isImage ? "image" : "video");
+        if (mounted) Navigator.pop(context, true);
+      }
+    } catch (e) {
+      dev.log(e.toString(), name: "Camera Modal - Save");
+    }
+  }
+
+  redo() async {
+    setState(() {
+      file = null;
+      elapsed = const Duration();
+    });
+  }
+
+  pause() async {
+    if (controller.value.isRecordingVideo &&
+        !controller.value.isRecordingPaused) {
+      await controller.pauseVideoRecording();
+      if (mounted) {
+        setState(() {
+          stopTimer();
+        });
+      }
+      return;
+    }
+
+    await controller.resumeVideoRecording();
+    setState(() {
+      startTimer();
+    });
+  }
+
+  stop() async {
+    stopTimer();
+    final _file = await controller.stopVideoRecording();
+    if (mounted) {
+      setState(() {
+        file = _file;
+        videoController = VideoPlayerController.file(File(_file.path));
+        videoController?.addListener(() {
+          if (mounted) {
+            setState(() {
+              videoPlaying = videoController?.value.isPlaying ?? false;
+            });
+          }
+        });
+      });
+    }
+  }
+
+  flip() async {
+    final currentLensDirection = controller.description.lensDirection;
+    CameraDescription lens = cameras[0];
+
+    for (final camera in cameras) {
+      if (camera.lensDirection != currentLensDirection) {
+        lens = camera;
+        break;
+      }
+    }
+
+    controller.setDescription(lens);
+  }
+
+  flash() async {
+    final flashes = [FlashMode.auto, FlashMode.always, FlashMode.off];
+    final current = controller.value.flashMode;
+
+    // Get the index of the current mode
+    int currentIndex = flashes.indexOf(current);
+
+    // Calculate the next index (looping back to 0 if at the end)
+    int nextIndex = (currentIndex + 1) % flashes.length;
+
+    final mode = flashes[nextIndex];
+
+    // Set new flash
+    try {
+      await controller.setFlashMode(mode);
+    } catch (e) {
+      dev.log("Problem setting flash: $e");
+    }
+
+    switch (mode) {
+      case FlashMode.auto:
+        setState(() {
+          flashIcon = CupertinoIcons.bolt_badge_a_fill;
+        });
+        break;
+      case FlashMode.always:
+        setState(() {
+          flashIcon = CupertinoIcons.bolt_fill;
+        });
+        break;
+      case FlashMode.off:
+        setState(() {
+          flashIcon = CupertinoIcons.bolt_slash_fill;
+        });
+        break;
+      default:
+        setState(() {
+          flashIcon = CupertinoIcons.bolt;
+        });
+        break;
+    }
+  }
+
+  startTimer() {
+    _timer ??= Timer.periodic(const Duration(seconds: 1), (value) {
+      if (mounted) {
+        setState(() {
+          elapsed = const Duration(seconds: 1) + elapsed;
+        });
+      }
+    });
+  }
+
+  stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  pauseTimer() {
+    _timer?.cancel();
+  }
+}
+
 class VideoPreview extends StatefulWidget {
   final VideoPlayerController controller;
   const VideoPreview({super.key, required this.controller});
@@ -2556,10 +3213,10 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     )..addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        _shakeController.repeat();
-      }
-    });
+        if (status == AnimationStatus.completed) {
+          _shakeController.repeat();
+        }
+      });
   }
 
   @override
@@ -2570,7 +3227,6 @@ class _BottomTimerModalState extends State<BottomTimerModal>
   }
 
   void _onRiveInit(r.Artboard art) {
-
     var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
 
     if (ctrl != null) {
@@ -2581,7 +3237,6 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     setState(() {
       animationHeight = art.height;
     });
-
   }
 
   @override
@@ -2602,8 +3257,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
           end: Alignment.bottomCenter,
         ),
         image: const DecorationImage(
-          image: AssetImage(
-              'assets/images/Meditation_timer_background.png'),
+          image: AssetImage('assets/images/Meditation_timer_background.png'),
           fit: BoxFit.fitWidth,
           alignment: Alignment.topCenter,
         ),
@@ -2646,10 +3300,10 @@ class _BottomTimerModalState extends State<BottomTimerModal>
           widget.showTimeUpOverlay
               ? const SizedBox.shrink()
               : Image.asset(
-            'assets/images/icons/pace.png',
-            height: iconSize,
-            width: iconSize,
-          ),
+                  'assets/images/icons/pace.png',
+                  height: iconSize,
+                  width: iconSize,
+                ),
           const SizedBox(width: 8), // spacing proportional to width
           Flexible(
             child: FittedBox(
@@ -2661,15 +3315,15 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                 textAlign: TextAlign.center,
                 style: CustomTypography()
                     .custom(
-                  color: CustomColors.textWhite,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 48,
-                )
+                      color: CustomColors.textWhite,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 48,
+                    )
                     .copyWith(
-                  fontFeatures: widget.showTimeUpOverlay
-                      ? []
-                      : [const FontFeature.tabularFigures()],
-                ),
+                      fontFeatures: widget.showTimeUpOverlay
+                          ? []
+                          : [const FontFeature.tabularFigures()],
+                    ),
               ),
             ),
           ),
@@ -2710,31 +3364,30 @@ class _BottomTimerModalState extends State<BottomTimerModal>
         padding: const EdgeInsets.only(bottom: 100),
         child: widget.playbackControls || widget.showTimeUpOverlay
             ? Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _circleButton(
-              icon: Icons.close,
-              onTap: widget.onClose,
-              borderColor: CustomColors.fillWhite,
-            ),
-            const SizedBox(width: 37),
-            _mainControlButton(),
-            const SizedBox(width: 37),
-            widget.playbackControls
-                ? _circleButton(
-              icon: Icons.refresh_rounded,
-              onTap: widget.onRestart,
-              borderColor:
-              CustomColors.productLightBackground,
-            )
-                : const SizedBox(width: 64, height: 64),
-          ],
-        )
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _circleButton(
+                    icon: Icons.close,
+                    onTap: widget.onClose,
+                    borderColor: CustomColors.fillWhite,
+                  ),
+                  const SizedBox(width: 37),
+                  _mainControlButton(),
+                  const SizedBox(width: 37),
+                  widget.playbackControls
+                      ? _circleButton(
+                          icon: Icons.refresh_rounded,
+                          onTap: widget.onRestart,
+                          borderColor: CustomColors.productLightBackground,
+                        )
+                      : const SizedBox(width: 64, height: 64),
+                ],
+              )
             : _circleButton(
-          icon: Icons.close,
-          onTap: widget.onClose,
-          borderColor: CustomColors.fillWhite,
-        ),
+                icon: Icons.close,
+                onTap: widget.onClose,
+                borderColor: CustomColors.fillWhite,
+              ),
       ),
     );
   }
@@ -2760,9 +3413,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
 
   Widget _mainControlButton() {
     return GestureDetector(
-      onTap: widget.showTimeUpOverlay
-          ? widget.onStop
-          : widget.onPauseResume,
+      onTap: widget.showTimeUpOverlay ? widget.onStop : widget.onPauseResume,
       child: Container(
         width: 80,
         height: 80,
@@ -2773,21 +3424,21 @@ class _BottomTimerModalState extends State<BottomTimerModal>
         child: Center(
           child: widget.showTimeUpOverlay
               ? const Icon(
-            CupertinoIcons.checkmark_alt,
-            size: 40,
-            color: CustomColors.productNormal,
-          )
+                  CupertinoIcons.checkmark_alt,
+                  size: 40,
+                  color: CustomColors.productNormal,
+                )
               : (widget.isRunning && !widget.isPaused)
-              ? const Icon(
-            CupertinoIcons.pause_fill,
-            size: 40,
-            color: CustomColors.warningActive,
-          )
-              : const Icon(
-            CupertinoIcons.play_fill,
-            size: 40,
-            color: CustomColors.productNormal,
-          ),
+                  ? const Icon(
+                      CupertinoIcons.pause_fill,
+                      size: 40,
+                      color: CustomColors.warningActive,
+                    )
+                  : const Icon(
+                      CupertinoIcons.play_fill,
+                      size: 40,
+                      color: CustomColors.productNormal,
+                    ),
         ),
       ),
     );

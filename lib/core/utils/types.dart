@@ -14,7 +14,9 @@ enum ResponseType {
   psychomotor,
   mediaImage,
   mediaVideo,
-  timePicker
+  timePicker,
+  teleprompter,
+  reference,
 }
 
 enum OptionType {
