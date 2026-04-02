@@ -1248,7 +1248,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
             child: CustomFlatButton(
               isDisabled: (completed == false),
               onClick: () => popUp(),
-              text: "Continue",
+              text: "Finish",
             ),
           )
         ],

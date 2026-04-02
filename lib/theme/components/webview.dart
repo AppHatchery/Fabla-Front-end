@@ -271,7 +271,13 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
     // Check every 500 milliseconds
     _checkTimer = Timer.periodic(Duration(milliseconds: 500), (timer) {
-      detectSurveyFinish();
+      // detectSurveyFinish();
+      if (mounted) {
+        setState(() {
+          surveyCompleted = true;
+        });
+        widget.onComplete(true);
+      }
     });
   }
 
