@@ -8,6 +8,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -135,6 +136,7 @@ void _addFileData(
       final fileData =
           FileData(localDirectory: localPath, awsS3Directory: awsPath);
       data.add(fileData);
+      final env = kDebugMode ? "dev" : "Prod";
 
       // Adding references for audio question for transcription
       // if (record.type == 'audio') {
@@ -150,7 +152,7 @@ void _addFileData(
             questionsType: responseTypeValue(prompt.responseType!),
             required: prompt.required,
             reference:
-                "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}"),
+                "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}", environment: env),
       );
       // }
     }
@@ -161,6 +163,7 @@ void _addFileData(
 
 void _addPromptEntry(PromptModel prompt, String participantID,
     String experimentCode, String diaryID, List<PromptEntry> promptEntryList) {
+  final env = kDebugMode ? "dev" : "Prod";
   promptEntryList.add(
     PromptEntry(
       participantID: participantID,
@@ -172,6 +175,7 @@ void _addPromptEntry(PromptModel prompt, String participantID,
       respondedAt: prompt.answer?.date.toIso8601String() ?? "",
       questionsType: responseTypeValue(prompt.responseType!),
       required: prompt.required,
+      environment: env,
     ),
   );
 }
@@ -388,6 +392,7 @@ class PromptEntry {
   bool required;
   String transcript;
   String reference;
+  String environment;
 
   PromptEntry({
     required this.participantID,
@@ -401,6 +406,7 @@ class PromptEntry {
     required this.required,
     this.transcript = "",
     this.reference = "",
+    required this.environment,
   });
 
   static List<Map<String, dynamic>> promptListToMap(
@@ -419,7 +425,8 @@ class PromptEntry {
         "QuestionsType": entry.questionsType,
         "Required": entry.required.toString(), // Convert bool to string
         "Transcript": entry.transcript,
-        "Reference": entry.reference
+        "Reference": entry.reference,
+        "Environment": entry.environment
       };
       items.add(map);
     }

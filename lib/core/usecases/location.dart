@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:location/location.dart';
 
 /// Appends the current location to the diary entry.
@@ -47,6 +48,7 @@ Future<PromptEntry?> appendLocation({
     if (permission == PermissionStatus.granted) {
       // Updated to use injected location service
       final data = await locationService.getLocation();
+      final env = kDebugMode ? "dev" : "Prod";
 
       final response = PromptEntry(
           participantID: participantID,
@@ -57,9 +59,11 @@ Future<PromptEntry?> appendLocation({
           response: "latitude: ${data.latitude}, longitude: ${data.longitude}",
           respondedAt: "",
           questionsType: "location",
-          required: true);
+          required: true,
+          environment: env);
       return response;
     } else {
+      final env = kDebugMode ? "dev" : "Prod";
       final response = PromptEntry(
           participantID: participantID,
           experimentCode: experimentCode,
@@ -69,7 +73,8 @@ Future<PromptEntry?> appendLocation({
           response: "Location permission not granted",
           respondedAt: "",
           questionsType: "location",
-          required: true);
+          required: true,
+          environment: env);
       return response;
     }
   }
