@@ -26,6 +26,8 @@ class Options {
   Duration? length;
   // Reference
   int? targetedQuestion;
+  //MediaVideo
+  String? medialink;
 
   Options(
       {required this.type,
@@ -45,7 +47,8 @@ class Options {
       this.playbackControl,
       this.stimuli,
       this.length,
-      this.targetedQuestion});
+      this.targetedQuestion,
+      this.medialink});
 
   factory Options.fromJson(
     Map<String, dynamic> json,
@@ -81,6 +84,7 @@ class Options {
           ? formatStringToDuration(json['length'])
           : null,
       targetedQuestion: json['targeted_question'],
+      medialink: json['media_link']
     );
   }
 
@@ -108,6 +112,7 @@ class Options {
       'number_of_stimulus': stimuli,
       'length': length != null ? formatDurationToString(length!) : null,
       'targeted_question': targetedQuestion,
+      'media_link' : medialink,
     };
   }
 }

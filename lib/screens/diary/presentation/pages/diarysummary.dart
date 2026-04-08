@@ -572,7 +572,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           diary: widget.diary,
           prompt: prompt,
         );
-
       case ResponseType.timer:
         final width = MediaQuery.of(context).size.width;
         return prompt.answer != null
@@ -780,7 +779,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
       return response == null || response.contains("Item was skipped due to:");
     }
 
-    if (prompt.responseType == ResponseType.teleprompter || prompt.responseType == ResponseType.reference) return false;
+    if (prompt.responseType == ResponseType.teleprompter || prompt.responseType == ResponseType.reference || prompt.responseType == ResponseType.mediaVideo) return false;
 
     return true;
   }

@@ -155,6 +155,9 @@ class PromptRepository {
 
   Future<bool> removeResponse(Diary diary, PromptModel prompt, String? path,
       {int? index}) async {
+    // mediaVideo is view-only — no response is ever stored.
+    if (prompt.responseType == ResponseType.mediaVideo) return false;
+
     try {
       final answer = prompt.answer;
 

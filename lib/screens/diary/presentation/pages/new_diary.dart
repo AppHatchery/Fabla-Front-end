@@ -611,6 +611,8 @@ class _QuestionPageState extends State<QuestionPage>
         diary: widget.diary,
         prompt: prompt,
       );
+    } else if (prompt.responseType == ResponseType.mediaVideo) {
+      responseWidget = MediaVideoResponse(prompt: prompt);
     } else if (prompt.responseType == ResponseType.timePicker) {
       responseWidget = TimePickerWidget(
           prompt: prompt,
@@ -746,6 +748,7 @@ class _QuestionPageState extends State<QuestionPage>
     switch (prompt1.responseType) {
       case ResponseType.instruction:
       case ResponseType.reference:
+      case ResponseType.mediaVideo:
         isValidResponse = true;
         break;
       case ResponseType.audio:

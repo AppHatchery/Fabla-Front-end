@@ -62,7 +62,7 @@ flutter run
 ```
 famplify pull --appId d1f2k81mx528zu --envName fablapush
 ```
-7. Checkout dev enviroment
+7. Checkout dev environment
 ```
 amplify env checkout fablapush
 ```

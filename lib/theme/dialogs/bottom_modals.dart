@@ -189,7 +189,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     style: CustomTypography()
                         .titleLarge(color: const Color(0xFF000000)),
                   ),
-                  const  SizedBox(height:24),
+                  const SizedBox(height: 24),
                   Text(
                     widget.subtitle ?? "",
                     style: CustomTypography().bodyLarge(
@@ -883,10 +883,12 @@ class _BottomTextModalState extends State<BottomTextModal>
           const SizedBox(
             height: 16,
           ),
-          widget.hint != null && widget.hint!.isNotEmpty ? Text(
-            widget.hint!,
-            style: CustomTypography().body(),
-          ) : SizedBox.shrink(),
+          widget.hint != null && widget.hint!.isNotEmpty
+              ? Text(
+                  widget.hint!,
+                  style: CustomTypography().body(),
+                )
+              : SizedBox.shrink(),
           // CustomOutlineButton(
           //   onClick: () => {},
           //   color: CustomColors.productNormal,
@@ -2040,9 +2042,9 @@ class TeleprompterModal extends StatefulWidget {
   final bool isImage;
   const TeleprompterModal(
       {super.key,
-        required this.respond,
-        required this.prompt,
-        this.isImage = true});
+      required this.respond,
+      required this.prompt,
+      this.isImage = true});
 
   @override
   State<TeleprompterModal> createState() => _TeleprompterModalState();
@@ -2103,18 +2105,18 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
         case 'CameraAccessDenied':
           dev.log('You have denied camera access.');
         case 'CameraAccessDeniedWithoutPrompt':
-        // iOS only
+          // iOS only
           dev.log('Please go to Settings app to enable camera access.');
         case 'CameraAccessRestricted':
-        // iOS only
+          // iOS only
           dev.log('Camera access is restricted.');
         case 'AudioAccessDenied':
           dev.log('You have denied audio access.');
         case 'AudioAccessDeniedWithoutPrompt':
-        // iOS only
+          // iOS only
           dev.log('Please go to Settings app to enable audio access.');
         case 'AudioAccessRestricted':
-        // iOS only
+          // iOS only
           dev.log('Audio access is restricted.');
         default:
           dev.log(e.toString());
@@ -2179,7 +2181,8 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text( widget.prompt.question,
+                    Text(
+                      widget.prompt.question,
                       style: CustomTypography().titleLarge(),
                     ),
                     const SizedBox(height: 16),
@@ -2199,8 +2202,10 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Center(
-                        child: Image.asset("assets/images/image 550.png",
-                          fit: BoxFit.fitWidth,),
+                        child: Image.asset(
+                          "assets/images/image 550.png",
+                          fit: BoxFit.fitWidth,
+                        ),
                       ),
                     ),
                   ],
@@ -2215,7 +2220,8 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                        child: Text( widget.prompt.subtitle!,
+                        child: Text(
+                          widget.prompt.subtitle!,
                           style: CustomTypography().body(),
                         ),
                       ),
@@ -2230,12 +2236,13 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
                             file != null ? preview() : cameraFeed(),
                             const SizedBox(height: 24),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 36.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 36.0),
                               child: file != null
                                   ? playbackControls()
                                   : widget.isImage
-                                  ? pictureControls()
-                                  : recordingControls(),
+                                      ? pictureControls()
+                                      : recordingControls(),
                             ),
                             SizedBox(height: screenHeight > 850 ? 36 : 24),
                           ],
@@ -2260,7 +2267,7 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
           color: CustomColors.grey,
           border: GradientBoxBorder(
             gradient:
-            LinearGradient(colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
+                LinearGradient(colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
             width: 4,
           ),
           borderRadius: BorderRadius.circular(4),
@@ -2285,7 +2292,7 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
         color: CustomColors.grey,
         border: GradientBoxBorder(
           gradient:
-          LinearGradient(colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
+              LinearGradient(colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
           width: 4,
         ),
         borderRadius: BorderRadius.circular(4),
@@ -2294,50 +2301,50 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
         borderRadius: BorderRadius.circular(4),
         child: controller.value.isInitialized
             ? Stack(
-          children: [
-            Center(
-                child: SizedBox(
-                    width: controller.value.previewSize!.height / 3,
-                    height: controller.value.previewSize!.width / 3,
-                    child: CameraPreview(controller))),
+                children: [
+                  Center(
+                      child: SizedBox(
+                          width: controller.value.previewSize!.height / 3,
+                          height: controller.value.previewSize!.width / 3,
+                          child: CameraPreview(controller))),
 
-            // Time
-            elapsed.inMilliseconds > 0
-                ? Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 9.0),
-                child: Container(
-                  width: 90,
-                  padding: EdgeInsets.symmetric(horizontal: 9),
-                  decoration: ShapeDecoration(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4)),
-                      color: controller.value.isRecordingPaused
-                          ? CustomColors.productNormal
-                          : CustomColors.warningActive),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        formatDurationtoHHMMSS(elapsed),
-                        style: CustomTypography().custom(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: CustomColors.textWhite),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            )
-                : const SizedBox.shrink()
-          ],
-        )
+                  // Time
+                  elapsed.inMilliseconds > 0
+                      ? Align(
+                          alignment: Alignment.topCenter,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 9.0),
+                            child: Container(
+                              width: 90,
+                              padding: EdgeInsets.symmetric(horizontal: 9),
+                              decoration: ShapeDecoration(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4)),
+                                  color: controller.value.isRecordingPaused
+                                      ? CustomColors.productNormal
+                                      : CustomColors.warningActive),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    formatDurationtoHHMMSS(elapsed),
+                                    style: CustomTypography().custom(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: CustomColors.textWhite),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink()
+                ],
+              )
             : SizedBox(
-          height: feedHeight,
-          width: feedWidth,
-        ),
+                height: feedHeight,
+                width: feedWidth,
+              ),
       ),
     );
   }
@@ -2425,8 +2432,8 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
                   controller.value.isRecordingPaused
                       ? 10
                       : controller.value.isRecordingVideo
-                      ? 15
-                      : 4,
+                          ? 15
+                          : 4,
                 ),
                 child: Container(
                   decoration: BoxDecoration(
@@ -2520,7 +2527,7 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
   Future<String> getFilePath() async {
     final directory = await getApplicationDocumentsDirectory();
     final dir = await Directory(
-        p.join(directory.path, widget.isImage ? 'images' : 'videos'))
+            p.join(directory.path, widget.isImage ? 'images' : 'videos'))
         .create(recursive: true);
     final now = DateTime.now();
     final fileName =
@@ -3441,6 +3448,245 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                     ),
         ),
       ),
+    );
+  }
+}
+
+class VideoPlayerBottomModal extends StatefulWidget {
+  final String url;
+  const VideoPlayerBottomModal({super.key, required this.url});
+
+  @override
+  State<VideoPlayerBottomModal> createState() => _VideoPlayerBottomModalState();
+}
+
+class _VideoPlayerBottomModalState extends State<VideoPlayerBottomModal> {
+  late VideoPlayerController _controller;
+  PlaybackStatus _status = PlaybackStatus.stopped;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
+      ..initialize().then((_) {
+        setState(() {});
+      }).catchError((error) {
+        debugPrint('Controller init error: $error');
+      });
+
+    _controller.addListener(_onControllerUpdate);
+  }
+
+  void _onControllerUpdate() {
+    if (_controller.value.hasError) {
+      debugPrint('VideoPlayer error: ${_controller.value.errorDescription}');
+    }
+
+    // Detect natural playback completion
+    if (_status == PlaybackStatus.playing &&
+        _controller.value.isInitialized &&
+        !_controller.value.isPlaying &&
+        _controller.value.position >= _controller.value.duration) {
+      _onStop();
+      return;
+    }
+
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onControllerUpdate);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onPlay() {
+    _controller.play();
+    setState(() => _status = PlaybackStatus.playing);
+  }
+
+  void _onPause() {
+    _controller.pause();
+    setState(() => _status = PlaybackStatus.paused);
+  }
+
+  void _onStop() {
+    _controller.pause();
+    _controller.seekTo(Duration.zero);
+    setState(() => _status = PlaybackStatus.stopped);
+  }
+
+  void _onDone() {
+    _controller.pause();
+    _controller.seekTo(Duration.zero);
+    setState(() => _status = PlaybackStatus.done);
+    Navigator.pop(context);
+  }
+
+  Widget _controlButton({
+    required double size,
+    required double iconSize,
+    required Color color,
+    required Color iconColor,
+    required IconData icon,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: size,
+        width: size,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(size / 2),
+        ),
+        child: Icon(icon, size: iconSize, color: iconColor),
+      ),
+    );
+  }
+
+  Widget _widgetPlayback() {
+    final bool isPlaying = _status == PlaybackStatus.playing;
+    final bool isDone = _status == PlaybackStatus.done;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _controlButton(
+            size: 40,
+            iconSize: 20,
+            color: CustomColors.fillWhite,
+            icon: CupertinoIcons.stop_fill,
+            iconColor: isDone
+                ? CustomColors.productNormal.withOpacity(0.3)
+                : CustomColors.warningActive,
+            onTap: isDone ? null : _onStop,
+          ),
+          const SizedBox(width: 50),
+          _controlButton(
+            size: 68,
+            iconSize: 34,
+            color: CustomColors.fillWhite,
+            icon: isPlaying ? CupertinoIcons.pause_fill : Icons.play_arrow,
+            iconColor: isDone
+                ? CustomColors.productNormal.withOpacity(0.3)
+                : CustomColors.productNormal,
+            onTap: isDone ? null : (isPlaying ? _onPause : _onPlay),
+          ),
+          const SizedBox(width: 50),
+          _controlButton(
+            size: 40,
+            iconSize: 20,
+            color: isDone ? CustomColors.productNormal : CustomColors.fillWhite,
+            icon: CupertinoIcons.checkmark_alt,
+            iconColor: isDone ? CustomColors.fillWhite : CustomColors.productNormal,
+            onTap: isDone ? null : _onDone,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDuration(Duration d) {
+    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
+  Widget _widgetProgress() {
+    if (!_controller.value.isInitialized) return const SizedBox.shrink();
+
+    final position = _controller.value.position;
+    final duration = _controller.value.duration;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          VideoProgressIndicator(
+            _controller,
+            allowScrubbing: true,
+            colors: VideoProgressColors(
+              playedColor: CustomColors.fillWhite,
+              bufferedColor: CustomColors.fillWhite.withOpacity(0.3),
+              backgroundColor: CustomColors.fillWhite.withOpacity(0.15),
+            ),
+            padding: EdgeInsets.zero,
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _formatDuration(position),
+                style: const TextStyle(
+                  color: CustomColors.fillWhite,
+                  fontSize: 12,
+                ),
+              ),
+              Text(
+                _formatDuration(duration),
+                style: TextStyle(
+                  color: CustomColors.fillWhite.withOpacity(0.6),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+              color: CustomColors.productNormal
+          ),
+          child: Column(
+            spacing: 24,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Center(
+                child: _controller.value.isInitialized
+                    ? AspectRatio(
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: VideoPlayer(_controller),
+                )
+                    : const CircularProgressIndicator(),
+              ),
+              _widgetProgress(),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: _widgetPlayback(),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          top: 16,
+          right: 20,
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: const Icon(
+              CupertinoIcons.clear_circled_solid,
+              size: 26,
+              color: CustomColors.textSecondaryContent,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -352,6 +352,8 @@ class _ReviewDiaryState extends State<ReviewDiary> {
           diary: widget.diary,
           prompt: prompt,
         );
+      case ResponseType.mediaVideo:
+        return MediaVideoResponse(prompt: prompt);
       case ResponseType.timer:
         final width = MediaQuery.of(context).size.width;
         return Padding(

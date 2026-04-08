@@ -1,5 +1,7 @@
 enum DiaryStatus { idle, ongoing, complete, submitted, missed }
 
+enum PlaybackStatus {playing, paused, stopped, done}
+
 enum RecorderState {
   isStopped,
   isPaused,

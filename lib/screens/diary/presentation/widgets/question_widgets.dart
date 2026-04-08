@@ -62,7 +62,7 @@ class SliderQuestionCard extends StatefulWidget {
 
 class _SliderQuestionCardState extends State<SliderQuestionCard> {
   double _value = 0;
-   late bool isDisabled = !widget.isSliderEnabled;
+  late bool isDisabled = !widget.isSliderEnabled;
 
   @override
   void initState() {
@@ -106,31 +106,24 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
                     thumbColor: isDisabled
                         ? CustomColors.fillDisabled
                         : CustomColors.productNormal,
-
                     activeTrackColor: isDisabled
                         ? CustomColors.fillDisabled
                         : CustomColors.productNormal,
-
                     inactiveTrackColor: CustomColors.fillDisabled,
-
                     activeTickMarkColor: isDisabled
                         ? CustomColors.fillDisabled
                         : CustomColors.productNormal,
-
-                    inactiveTickMarkColor: CustomColors.textNormalContent.withOpacity(0.35),
-
+                    inactiveTickMarkColor:
+                        CustomColors.textNormalContent.withOpacity(0.35),
                     overlayShape: SliderComponentShape.noOverlay,
-
                     valueIndicatorColor: isDisabled
                         ? Colors.transparent
                         : CustomColors.productNormal,
-
                     trackHeight: 4,
-
-                    valueIndicatorTextStyle: widget.isSliderEnabled ?
-                    CustomTypography().bodyLarge(color: CustomColors.fillWhite):
-                    CustomTypography().titleSmall(color: Colors.black),
-
+                    valueIndicatorTextStyle: widget.isSliderEnabled
+                        ? CustomTypography()
+                            .bodyLarge(color: CustomColors.fillWhite)
+                        : CustomTypography().titleSmall(color: Colors.black),
                     showValueIndicator: widget.isSliderEnabled
                         ? ShowValueIndicator.onlyForDiscrete
                         : ShowValueIndicator.alwaysVisible,
@@ -175,16 +168,14 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
               child: Text(
                 widget.scaleMinText ?? '',
                 textAlign: TextAlign.start,
-                style: CustomTypography()
-                    .bodyLarge(color: widget.colorFont),
+                style: CustomTypography().bodyLarge(color: widget.colorFont),
               ),
             ),
             Expanded(
               child: Text(
                 widget.scaleMaxText ?? '',
                 textAlign: TextAlign.end,
-                style: CustomTypography()
-                    .bodyLarge(color: widget.colorFont),
+                style: CustomTypography().bodyLarge(color: widget.colorFont),
               ),
             ),
           ],
@@ -684,8 +675,8 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                 onClick: () => showModal(),
                 text: "Tap here to respond",
               )
-            ]
-            else if (response.firstOrNull!.contains("Item was skipped due to: ")) ...[
+            ] else if (response.firstOrNull!
+                .contains("Item was skipped due to: ")) ...[
               SizedBox(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -728,7 +719,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                     ),
                     SizedBox(height: 20),
                     Row(
-                      spacing: 24,
+                        spacing: 24,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           SizedBox(
@@ -752,8 +743,9 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                         ]),
                     SizedBox(height: 20),
                     CustomOutlineButton(
-                      padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                        onClick:() => showModal(),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 12.0),
+                        onClick: () => showModal(),
                         color: Color(0xFFFF3B30),
                         backgroundColor: Colors.transparent,
                         children: Wrap(
@@ -762,7 +754,8 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text("Try Again",
-                                style: CustomTypography().button(color: Color(0xFFFF3B30))),
+                                    style: CustomTypography()
+                                        .button(color: Color(0xFFFF3B30))),
                               ],
                             )
                           ],
@@ -860,7 +853,6 @@ class _TimerWidgetState extends State<TimerWidget>
   late Duration remaining;
 
   Timer? _timer;
-
 
   bool showTimeUpOverlay = false;
   bool showCompletionText = false;
@@ -1050,7 +1042,6 @@ class _TimerWidgetState extends State<TimerWidget>
           showCompletionText = true;
         });
       }
-
     });
   }
 
@@ -1276,7 +1267,9 @@ class _TimerWidgetState extends State<TimerWidget>
                 _buildEditableControls(),
                 const SizedBox(height: 36),
                 if (!isComplete) ...[_buildStartButton()],
-                if (isComplete && showCompletionText) ...[_buildCompletionView()],
+                if (isComplete && showCompletionText) ...[
+                  _buildCompletionView()
+                ],
               ],
             ),
           ],
@@ -1344,7 +1337,8 @@ class _TimerWidgetState extends State<TimerWidget>
   Widget _buildStartButton() {
     final isDisabled = inProgress;
     return CustomElevatedButton(
-      color: isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
+      color:
+          isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
       onClick: isDisabled ? null : _startAndShowModal,
       text: 'Start Timer',
     );
@@ -1543,15 +1537,18 @@ class _TeleprompterResponseWidgetState
               const SizedBox(
                 width: 8,
               ),
-              Text('Take a Video',
-                style: CustomTypography()
-                    .button(color: CustomColors.textWhite),
+              Text(
+                'Take a Video',
+                style: CustomTypography().button(color: CustomColors.textWhite),
               )
             ],
           ),
           const SizedBox(height: 32),
           widget.prompt.answer?.recordings.isNotEmpty ?? false
-              ? Text("Thank you, 🎉", style: CustomTypography().headlineMedium(),)
+              ? Text(
+                  "Thank you, 🎉",
+                  style: CustomTypography().headlineMedium(),
+                )
               : const SizedBox.shrink()
         ],
       ),
@@ -2260,6 +2257,72 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
       time: widget.prompt.answer?.response?.firstOrNull,
       subtitle: widget.prompt.subtitle ?? "",
       onChanged: (value) => widget.respond(value),
+    );
+  }
+}
+
+class MediaVideoResponse extends StatefulWidget {
+  final PromptModel prompt;
+
+  const MediaVideoResponse({super.key, required this.prompt});
+
+  @override
+  State<MediaVideoResponse> createState() => _MediaVideoResponseState();
+}
+
+class _MediaVideoResponseState extends State<MediaVideoResponse> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final url = widget.prompt.option?.medialink;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          child: CustomButton(
+            onClick: url != null && url.isNotEmpty ? _showVideoModal : null,
+            children: [
+              Text(
+                "Play Video",
+                style: CustomTypography().button(color: CustomColors.fillWhite),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showVideoModal() {
+    final url = widget.prompt.option?.medialink;
+    if (url == null || url.isEmpty) return;
+
+    showModalBottomSheet(
+      backgroundColor: Colors.transparent,
+      context: context,
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
+      elevation: 0,
+      useSafeArea: true,
+      routeSettings: const RouteSettings(name: "/VideoPlayerBottomModal"),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.8,
+        minChildSize: 0.65,
+        snap: true,
+        builder: (context, scrollController) {
+          return VideoPlayerBottomModal(url: url);
+        },
+      ),
     );
   }
 }
