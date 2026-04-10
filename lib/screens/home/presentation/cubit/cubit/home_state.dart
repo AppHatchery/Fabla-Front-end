@@ -22,6 +22,7 @@ class HomeLoaded extends HomeState {
   final int weeklyEntries;
   final bool isFinished;
   final Map<StudyModel, DailyGoalData> goalData;
+  final Map<int, SubmissionProgress> submissionProgress;
 
   const HomeLoaded({
     required this.todaysData,
@@ -30,6 +31,7 @@ class HomeLoaded extends HomeState {
     required this.weeklyEntries,
     required this.isFinished,
     required this.goalData,
+    required this.submissionProgress,
   });
 
   bool get hasAvailableDiaries => todaysData.diaries.isNotEmpty;
@@ -47,6 +49,7 @@ class HomeLoaded extends HomeState {
         weeklyEntries,
         isFinished,
         goalData,
+        submissionProgress,
       ];
 }
 

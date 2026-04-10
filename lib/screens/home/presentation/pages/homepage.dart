@@ -178,6 +178,7 @@ class _HomePageState extends State<HomePage>
               dailyGoal: state.goalData,
               weeklyEntries: state.weeklyEntries,
               isHomeTipClosed: isHomeTipClosed,
+              submissionProgress: state.submissionProgress,
             ),
             const SizedBox(height: 24),
           ],
