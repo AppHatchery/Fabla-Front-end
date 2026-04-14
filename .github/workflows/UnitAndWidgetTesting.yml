@@ -66,6 +66,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Free ~8GB by removing preinstalled software we don't need
+      - name: Free disk space
+        run: |
+          echo "=== Disk before cleanup ==="
+          df -h /
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android/sdk/ndk/27*
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+          echo "=== Disk after cleanup ==="
+          df -h /
+
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -77,11 +92,9 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # Accept Android SDK licenses BEFORE Gradle runs
       - name: Accept Android SDK licenses
         run: yes | flutter doctor --android-licenses || true
 
-      # Setup Ruby/Fastlane BEFORE anything that needs it
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
@@ -138,10 +151,11 @@ jobs:
         working-directory: android
         run: bundle exec fastlane bump_build_number
 
+      # Build arm64 only — no need for x86/x86_64 for Firebase testers
       - name: Build debug APK
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.vfs.watch=false"
-        run: flutter build apk --debug
+        run: flutter build apk --debug --target-platform android-arm64 --tree-shake-icons
 
       - name: Deploy to Firebase via Fastlane
         working-directory: android
