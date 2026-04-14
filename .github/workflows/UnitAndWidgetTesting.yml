@@ -80,6 +80,30 @@ jobs:
           const pendoKey = 'dummy';
           EOF
 
+      - name: Cache Android SDK licenses
+        uses: actions/cache@v3
+        with:
+          path: /usr/local/lib/android/sdk/licenses
+          key: android-sdk-licenses
+
+      - name: Cache Android SDK components
+        uses: actions/cache@v3
+        with:
+          path: |
+            /usr/local/lib/android/sdk/platforms
+            /usr/local/lib/android/sdk/cmake
+          key: ${{ runner.os }}-android-sdk-${{ hashFiles('android/app/build.gradle') }}
+          restore-keys: ${{ runner.os }}-android-sdk-
+
+      - name: Cache Gradle
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
       - name: Cache APK build output
         uses: actions/cache@v3
         id: apk-cache
