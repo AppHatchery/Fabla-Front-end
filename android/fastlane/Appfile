@@ -1,2 +1,4 @@
-json_key_file("") # Path to the json secret file - Follow https://docs.fastlane.tools/actions/supply/#setup to get one
-package_name("edu.emory.audio_diaries_flutter") # e.g. com.krausefx.app
+# Play Store service account key — set via PLAY_STORE_JSON_KEY env var when ready
+# json_key_file(ENV["PLAY_STORE_JSON_KEY"] || "")
+
+package_name("edu.emory.audio_diaries_flutter")

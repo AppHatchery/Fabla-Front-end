@@ -74,6 +74,13 @@ amplifytools.xcconfig
 # Integration test related
 grant_permission.sh
 
+# Signing & secrets
+android/key.properties
+android/app/upload-keystore.jks
+*.jks
+android/fastlane/.env
+android/fastlane/report.xml
+
 # OS generated files #
 ._*
 Thumbs.db
