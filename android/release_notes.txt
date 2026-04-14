@@ -1,0 +1,2 @@
+🚀 What's New:
+- Added FastLane automation to the project.

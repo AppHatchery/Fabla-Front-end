@@ -1,0 +1,47 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:android)
+
+platform :android do
+  desc "Build and Deploy to debug apk to Firebase App Distribution"
+  lane :deploy_to_firebase do
+    release_notes = generate_release_notes
+
+    sh("flutter build apk --debug --build-name=1.9.16 --build-number=#{ENV['GITHUB_RUN_NUMBER'] || '1'}")
+
+    firebase_app_distribution(
+      app: ENV["FIREBASE_APP_ID_Android"].strip,
+      groups: "testers",
+      firebase_cli_token: ENV["FIREBASE_CLI_TOKEN"].strip,
+#       service_credentials_json_data: ENV["CREDENTIAL_FILE_CONTENT"],  fixed: was service_credentials_file
+      android_artifact_path: "../build/app/outputs/flutter-apk/app-debug.apk",
+      android_artifact_type: "APK",
+      release_notes: release_notes
+    )
+  end
+
+  private_lane :generate_release_notes do
+    base_notes = File.exist?("../release_notes.txt") ? File.read("../release_notes.txt").strip : "No release notes provided."
+
+    build_info  = "\n\n🔨 Build Info:\n"
+    build_info += "- Branch: #{ENV['GITHUB_REF_NAME'] || 'unknown'}\n"
+    build_info += "- Commit: #{(ENV['GITHUB_SHA'] || 'unknown')[0, 7]}\n"
+    build_info += "- Build ##{ENV['GITHUB_RUN_NUMBER'] || '1'}\n"
+    build_info += "- Built on: #{Time.now.strftime('%Y-%m-%d %H:%M:%S UTC')}"
+
+    base_notes + build_info
+  end
+end
