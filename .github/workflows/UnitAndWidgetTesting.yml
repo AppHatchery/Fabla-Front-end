@@ -49,7 +49,7 @@ jobs:
         timeout-minutes: 10
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     needs: tests
     steps:
       - uses: actions/checkout@v4
@@ -100,7 +100,7 @@ jobs:
       - name: Build APK
         if: steps.apk-cache.outputs.cache-hit != 'true'
         run: |
-          flutter build apk --release \
+          flutter build apk --debug \
             --build-name=1.9.16 \
             --build-number=2
 

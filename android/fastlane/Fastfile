@@ -25,7 +25,7 @@ platform :android do
       groups: "testers",
       firebase_cli_token: ENV["FIREBASE_CLI_TOKEN"].strip,
 #       service_credentials_json_data: ENV["CREDENTIAL_FILE_CONTENT"],
-      android_artifact_path: "../build/app/outputs/flutter-apk/app-release.apk",
+      android_artifact_path: "../build/app/outputs/flutter-apk/app-debug.apk",
       android_artifact_type: "APK",
       release_notes: release_notes
     )
