@@ -61,6 +61,7 @@ jobs:
         timeout-minutes: 10
 
   deploy_debug:
+    if: contains(github.event.pull_request.title, '[deploy]')
     runs-on: ubuntu-latest
     needs: tests
     steps:
