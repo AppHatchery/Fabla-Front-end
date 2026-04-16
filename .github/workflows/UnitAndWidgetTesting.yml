@@ -67,20 +67,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Free ~8GB by removing preinstalled software we don't need
       - name: Free disk space
         run: |
-          echo "=== Disk before cleanup ==="
-          df -h /
-          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/share/swift "$AGENT_TOOLSDIRECTORY"
           sudo rm -rf /usr/local/lib/android/sdk/ndk/27*
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf /usr/share/swift
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           sudo apt-get clean
-          echo "=== Disk after cleanup ==="
-          df -h /
 
       - uses: actions/setup-java@v4
         with:
@@ -95,6 +86,30 @@ jobs:
 
       - name: Accept Android SDK licenses
         run: yes | flutter doctor --android-licenses || true
+
+      # Cache Android SDK platforms, NDK, cmake, and build-tools
+      - name: Cache Android SDK components
+        uses: actions/cache@v4
+        with:
+          path: |
+            /usr/local/lib/android/sdk/ndk/28.2.13676358
+            /usr/local/lib/android/sdk/platforms
+            /usr/local/lib/android/sdk/build-tools
+            /usr/local/lib/android/sdk/cmake
+          key: ${{ runner.os }}-android-sdk-v2
+          restore-keys: ${{ runner.os }}-android-sdk-
+
+      # Pre-install SDK components so Gradle doesn't download mid-build
+      - name: Install required SDK components
+        run: |
+          SDKMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager"
+          $SDKMANAGER --install \
+            "platforms;android-36" \
+            "platforms;android-33" \
+            "platforms;android-31" \
+            "build-tools;36.0.0" \
+            "cmake;3.22.1" \
+            "ndk;28.2.13676358" 2>/dev/null || true
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -121,24 +136,15 @@ jobs:
           const pendoKey = 'dummy';
           KEYS
 
-      - name: Cache Gradle
+      # Only cache Gradle dependencies, not build output
+      - name: Cache Gradle dependencies
         uses: actions/cache@v4
         with:
           path: |
-            ~/.gradle/caches
+            ~/.gradle/caches/modules-2
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
-
-      - name: Cache Android SDK components
-        uses: actions/cache@v4
-        with:
-          path: |
-            /usr/local/lib/android/sdk/ndk
-            /usr/local/lib/android/sdk/platforms/android-36
-            /usr/local/lib/android/sdk/build-tools
-          key: ${{ runner.os }}-android-sdk-ndk28-sdk36
-          restore-keys: ${{ runner.os }}-android-sdk-
+          key: ${{ runner.os }}-gradle-deps-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-deps-
 
       - name: Cache build_runner output
         uses: actions/cache@v4
@@ -152,7 +158,6 @@ jobs:
         working-directory: android
         run: bundle exec fastlane bump_build_number
 
-      # Build arm64 only — no need for x86/x86_64 for Firebase testers
       - name: Build debug APK
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.vfs.watch=false"
