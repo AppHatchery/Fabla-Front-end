@@ -58,7 +58,6 @@ Future<bool> calculateEarnedIncentivesForAWS(
   });
 
   dev.log("Earned: $earned", name: "Incentives - submitDiary");
-  final env = kDebugMode ? "dev" : "Prod";
   final entry = PromptEntry(
     participantID: participantID,
     experimentCode: experimentCode,
@@ -69,7 +68,6 @@ Future<bool> calculateEarnedIncentivesForAWS(
     respondedAt: "",
     questionsType: "Incentives",
     required: true,
-    environment: env,
   );
 
   return await uploadNonAudioData([entry]);

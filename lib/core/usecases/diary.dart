@@ -61,7 +61,6 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
   if (starts.containsKey(diaryID)) {
     // start
     final startValue = starts[diaryID] ?? "";
-    final env = kDebugMode ? "dev" : "Prod";
     final start = PromptEntry(
         participantID: participantID,
         experimentCode: experimentCode,
@@ -71,8 +70,7 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
         response: startValue,
         respondedAt: "",
         questionsType: "start_time",
-        required: true,
-        environment: env);
+        required: true,);
     entries.add(start);
 
     //Clean Up!
@@ -85,7 +83,6 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
   if (ends.containsKey(diaryID)) {
     // end
     final endValue = ends[diaryID] ?? "";
-    final env = kDebugMode ? "dev" : "Prod";
     final end = PromptEntry(
         participantID: participantID,
         experimentCode: experimentCode,
@@ -95,8 +92,7 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
         response: endValue,
         respondedAt: "",
         questionsType: "end_time",
-        required: true,
-        environment: env);
+        required: true,);
     entries.add(end);
 
     // Clean Up!

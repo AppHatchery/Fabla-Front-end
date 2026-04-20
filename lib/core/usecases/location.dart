@@ -48,7 +48,6 @@ Future<PromptEntry?> appendLocation({
     if (permission == PermissionStatus.granted) {
       // Updated to use injected location service
       final data = await locationService.getLocation();
-      final env = kDebugMode ? "dev" : "Prod";
 
       final response = PromptEntry(
           participantID: participantID,
@@ -59,11 +58,9 @@ Future<PromptEntry?> appendLocation({
           response: "latitude: ${data.latitude}, longitude: ${data.longitude}",
           respondedAt: "",
           questionsType: "location",
-          required: true,
-          environment: env);
+          required: true,);
       return response;
     } else {
-      final env = kDebugMode ? "dev" : "Prod";
       final response = PromptEntry(
           participantID: participantID,
           experimentCode: experimentCode,
@@ -73,8 +70,7 @@ Future<PromptEntry?> appendLocation({
           response: "Location permission not granted",
           respondedAt: "",
           questionsType: "location",
-          required: true,
-          environment: env);
+          required: true);
       return response;
     }
   }

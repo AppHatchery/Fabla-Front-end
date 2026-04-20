@@ -455,7 +455,6 @@ PromptEntry createTestPromptEntry({
     questionsType: questionsType,
     required: required,
     respondedAt: respondedAt,
-    environment: 'dev',
   );
 }
 

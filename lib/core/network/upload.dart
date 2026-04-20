@@ -152,7 +152,7 @@ void _addFileData(
             questionsType: responseTypeValue(prompt.responseType!),
             required: prompt.required,
             reference:
-                "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}", environment: env),
+                "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}"),
       );
       // }
     }
@@ -175,7 +175,6 @@ void _addPromptEntry(PromptModel prompt, String participantID,
       respondedAt: prompt.answer?.date.toIso8601String() ?? "",
       questionsType: responseTypeValue(prompt.responseType!),
       required: prompt.required,
-      environment: env,
     ),
   );
 }
@@ -392,7 +391,6 @@ class PromptEntry {
   bool required;
   String transcript;
   String reference;
-  String environment;
 
   PromptEntry({
     required this.participantID,
@@ -406,7 +404,6 @@ class PromptEntry {
     required this.required,
     this.transcript = "",
     this.reference = "",
-    required this.environment,
   });
 
   static List<Map<String, dynamic>> promptListToMap(
@@ -426,7 +423,7 @@ class PromptEntry {
         "Required": entry.required.toString(), // Convert bool to string
         "Transcript": entry.transcript,
         "Reference": entry.reference,
-        "Environment": entry.environment
+        "Environment": kDebugMode ? "Dev" : "Prod"
       };
       items.add(map);
     }
