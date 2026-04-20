@@ -1279,9 +1279,16 @@ class StudyInfoPopUp extends StatelessWidget {
         backgroundColor: CustomColors.fillWhite,
         contentPadding: const EdgeInsets.all(0),
         insetPadding: const EdgeInsets.symmetric(
-            horizontal: 16, vertical: 29),
-        title: Stack(
+            horizontal: 29),
+        title: Column(
           children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child:const Icon(Icons.close, size: 24),
+              ),
+            ),
             Row(
               spacing: 16,
               children: [
@@ -1304,14 +1311,6 @@ class StudyInfoPopUp extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-            Positioned(
-              top: 0,
-              right: 0,
-              child: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: const Icon(Icons.close, size: 24),
-              ),
             ),
           ],
         ),
