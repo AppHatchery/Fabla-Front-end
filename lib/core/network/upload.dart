@@ -136,7 +136,6 @@ void _addFileData(
       final fileData =
           FileData(localDirectory: localPath, awsS3Directory: awsPath);
       data.add(fileData);
-      final env = kDebugMode ? "dev" : "Prod";
 
       // Adding references for audio question for transcription
       // if (record.type == 'audio') {
@@ -163,7 +162,6 @@ void _addFileData(
 
 void _addPromptEntry(PromptModel prompt, String participantID,
     String experimentCode, String diaryID, List<PromptEntry> promptEntryList) {
-  final env = kDebugMode ? "dev" : "Prod";
   promptEntryList.add(
     PromptEntry(
       participantID: participantID,

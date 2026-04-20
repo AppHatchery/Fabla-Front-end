@@ -1,6 +1,5 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:location/location.dart';
 
 /// Appends the current location to the diary entry.
@@ -58,7 +57,7 @@ Future<PromptEntry?> appendLocation({
           response: "latitude: ${data.latitude}, longitude: ${data.longitude}",
           respondedAt: "",
           questionsType: "location",
-          required: true,);
+          required: true);
       return response;
     } else {
       final response = PromptEntry(

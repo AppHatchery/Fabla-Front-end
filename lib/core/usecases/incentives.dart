@@ -8,8 +8,6 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup
 
 import 'dart:developer' as dev;
 
-import 'package:flutter/foundation.dart';
-
 /// Function to calculate earned incentives based on diary submissions and completion rates.
 /// This function is triggered after a submission of entries
 ///
@@ -58,6 +56,7 @@ Future<bool> calculateEarnedIncentivesForAWS(
   });
 
   dev.log("Earned: $earned", name: "Incentives - submitDiary");
+
   final entry = PromptEntry(
     participantID: participantID,
     experimentCode: experimentCode,

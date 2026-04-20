@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
-import 'package:flutter/foundation.dart';
 
 final preferences = PreferenceService();
 
@@ -70,7 +69,7 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
         response: startValue,
         respondedAt: "",
         questionsType: "start_time",
-        required: true,);
+        required: true);
     entries.add(start);
 
     //Clean Up!
@@ -92,7 +91,7 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
         response: endValue,
         respondedAt: "",
         questionsType: "end_time",
-        required: true,);
+        required: true);
     entries.add(end);
 
     // Clean Up!
