@@ -200,6 +200,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
     );
 
     if (results == true && mounted) {
+      unawaited(repository.leaveStudy());
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
             context,
@@ -208,7 +209,6 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                 settings: RouteSettings(name: "/StudyLogin")),
             (route) => false);
       }
-      unawaited(repository.leaveStudy());
     }
   }
 }
