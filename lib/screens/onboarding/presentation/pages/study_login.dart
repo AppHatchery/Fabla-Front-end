@@ -69,7 +69,6 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
-    final width = MediaQuery.of(context).size.width;
     final isIos = Platform.isIOS;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
@@ -107,9 +106,12 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                   16,
                   70,
                   16,
-                  bottomPadding > 0
+                  MediaQuery.of(context).viewInsets.bottom > 0
+                      ? MediaQuery.of(context).viewInsets.bottom + 16
+                      : (bottomPadding > 0
                       ? bottomPadding + 34
-                      : (isIos ? 34 + 34 : 34)),
+                      : (isIos ? 68 : 34)),
+                ),
               child: BlocConsumer<StudyLoginCubit, StudyLoginState>(
                   builder: (context, state) {
                     if (state is StudyLoginInitial) {
@@ -117,7 +119,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                     } else if (state is StudyLoginLoading) {
                       return Center(child: loading(height - 100));
                     }
-        
+
                     return initialLogin();
                   },
                   listener: (context, state) {
@@ -147,7 +149,6 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   }
 
   Widget initialLogin() {
-    final width = MediaQuery.of(context).size.width;
     return LayoutBuilder(builder: (context, constraints) {
       return SingleChildScrollView(
         child: ConstrainedBox(
