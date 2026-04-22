@@ -89,7 +89,6 @@ class NotificationService {
       "scheduled_time":
           "${receivedAction.displayedDate?.hour}:${receivedAction.displayedDate?.minute}"
     });
-    debugPrint("Payload: ${receivedAction.payload}");
   }
 
   /// Callback method invoked when a dismiss action is received for a notification.
