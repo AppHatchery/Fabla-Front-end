@@ -1,9 +1,9 @@
-import 'package:audio_diaries_flutter/core/secrets/keys.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
     show CrashlyticsService;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:pendo_sdk/pendo_sdk.dart';
 import 'dart:developer' as dev;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 const String _testID = "Test";
 
@@ -71,7 +71,7 @@ class PendoService {
 
   static Future<void> init() async {
     try {
-      await _plugin.setup(pendoKey);
+      await _plugin.setup(dotenv.env['PENDOKEY']!);
     } catch (e, stackTrace) {
       CrashlyticsService().recordError(e, stackTrace,
           reason: 'Error initializing Pendo in init - PendoService');

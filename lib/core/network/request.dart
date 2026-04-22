@@ -1,6 +1,6 @@
-import 'package:audio_diaries_flutter/core/secrets/keys.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 const String devURL =
@@ -8,9 +8,9 @@ const String devURL =
 const String prodURL =
     "phy7427sobzzf3dbeevuvi6z4m0dehgx.lambda-url.us-east-1.on.aws";
 
-const Map<String, String> headers = {
+final Map<String, String> headers = {
   'Content-Type': 'application/x-www-form-urlencoded',
-  'x-api-key': apiKey
+  'x-api-key': dotenv.env['APIKEY']!
 };
 
 String base() {
