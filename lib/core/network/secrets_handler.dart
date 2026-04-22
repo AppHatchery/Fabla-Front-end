@@ -36,6 +36,8 @@ class SecureSave {
       );
 
       if (response.statusCode == 200) {
+        dev.log('Response body: ${response.body}',
+            name: 'Secrets Handler - Post Data');
         String jsonString = response.body;
         Map<String, dynamic> data = jsonDecode(jsonString);
         String authorization = data['message']['Authorization'];

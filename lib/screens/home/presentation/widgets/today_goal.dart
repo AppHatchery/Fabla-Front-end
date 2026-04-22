@@ -171,7 +171,8 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     // Calculate totals from goal data
     final goalStats = _calculateGoalStatistics(goalData);
 
-
+    // Debug logging
+    _logGoalProgress(goalData, goalStats);
 
     // Determine animation based on goal progress
     _setAnimationBasedOnProgress(goalStats);
@@ -258,6 +259,32 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
     if (animation != null && mounted) {
       animation.value = true;
     }
+  }
+
+  /// Logs goal progress for debugging
+  void _logGoalProgress(
+      Map<StudyModel, DailyGoalData> goalData, GoalStatistics stats) {
+    dev.log("=== Daily Goal Progress ===");
+
+    for (var entry in goalData.entries) {
+      final study = entry.key;
+      final data = entry.value;
+
+      dev.log(
+          "${study.name}: ${data.completed}/${data.target} (${(data.progress * 100).toStringAsFixed(1)}%)");
+
+      for (var diary in data.diaries) {
+        dev.log(
+            "  - ${diary.name} | Status: ${diary.status} | Submissions: ${diary.submissions?.length ?? 0}");
+      }
+    }
+
+    dev.log(
+        "Total Progress: ${stats.totalCompleted}/${stats.totalDailyGoal} daily, ${stats.totalCompleted}/${stats.totalWeeklyGoal} weekly");
+    dev.log("Daily Progress: ${(stats.dailyProgress * 100).toStringAsFixed(1)}%");
+    dev.log(
+        "Weekly Progress: ${(stats.weeklyProgress * 100).toStringAsFixed(1)}%");
+    dev.log("========================");
   }
 }
 

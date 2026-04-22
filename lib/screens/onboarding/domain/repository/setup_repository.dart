@@ -547,6 +547,7 @@ class SetupRepository {
       firebaseToken =
           kDebugMode ? "dev" : await FirebaseMessaging.instance.getToken();
       if (firebaseToken != null) {
+        debugPrint("Firebase Token: $firebaseToken");
       } else {
         debugPrint("Failed to fetch Firebase token: Token is null.");
       }
@@ -568,6 +569,13 @@ class SetupRepository {
       debugPrint("Running on an unsupported platform.");
     }
 
+    // Log the platform-specific name (optional)
+    debugPrint("Firebase Platform Name: $platformName");
+
+    var repo = _experimentDAO.getExperiment();
+    if (repo != null) {
+      dev.log("Experiment not found.....", name: repo.login);
+    }
 
     /////////////-------------------------------------------------/////////////
     getextrasmap.addAll(
@@ -639,6 +647,7 @@ class SetupRepository {
       },
     );
 
+    dev.log("map $map", name: "Uploading OnBoarding Questions");
 
     final result =
         await post(path: "/fabla/updateuserextras", body: map).then((value) {
