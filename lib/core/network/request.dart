@@ -68,7 +68,6 @@ Future<String?> post({
     if (response.statusCode == 200) {
       return response.body;
     } else {
-      debugPrint(response.body);
       CrashlyticsService().recordApiError(response.body, path,
           statusCode: response.statusCode, method: 'POST', requestData: body);
       throw Exception("Failed to post");

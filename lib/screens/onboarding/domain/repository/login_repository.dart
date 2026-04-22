@@ -210,7 +210,6 @@ class LoginRepository {
       if (response != null) {
         final result = json.decode(response);
         final data = result['data'];
-        debugPrint("$data.toString(), name: Study Verification");
         final experiment = ExperimentModel.fromJson(data);
 
         // Verify the code and save the experiment data to the database
