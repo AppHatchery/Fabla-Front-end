@@ -15,9 +15,6 @@ What problem does this feature solve?
 ## 💭 Proposed Solution
 Describe the solution you'd like.
 
-## 🔄 Alternative Solutions
-Describe any alternative solutions you've considered.
-
 ## 📱 Mockups/Examples
 Add any mockups, examples, or references.
 
