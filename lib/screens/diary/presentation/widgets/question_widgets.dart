@@ -1099,53 +1099,56 @@ class _TimerWidgetState extends State<TimerWidget>
       elevation: 0,
       useSafeArea: true,
       routeSettings: const RouteSettings(name: "/TimerModal"),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 1,
-        minChildSize: 1,
-        snap: true,
-        builder: (context, scrollController) {
-          return StatefulBuilder(
-            builder: (context, setModalState) {
-              // Capture a callback to refresh the modal with latest parent state
-              _updateModalCallback = () {
-                if (mounted) setModalState(() {});
-              };
+      builder: (context) => PopScope(
+        canPop: false,
+        child: DraggableScrollableSheet(
+          initialChildSize: 1,
+          minChildSize: 1,
+          snap: true,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+                // Capture a callback to refresh the modal with latest parent state
+                _updateModalCallback = () {
+                  if (mounted) setModalState(() {});
+                };
 
-              return BottomTimerModal(
-                  remaining: remaining,
-                  isRunning: isRunning,
-                  isPaused: isPaused,
-                  showTimeUpOverlay: showTimeUpOverlay,
-                  playbackControls: widget.playbackControls,
-                  onClose: () {
-                    Navigator.of(context).pop();
-                    _onTimerClose();
-                  },
-                  onRestart: () {
-                    if (widget.playbackControls) _restartTimer();
-                    _refreshModal();
-                  },
-                  onPauseResume: () {
-                    _playBack();
-                    _refreshModal();
-                  },
-                  onStop: () {
-                    _stopTimer();
-                    Navigator.of(context).pop();
-                    if (mounted) {
-                      setState(() {
-                        status = TimerStatus.complete;
-                        showTimeUpOverlay = false;
-                        showCompletionText = true;
-                        showPersistentSheet = false;
-                        _expectedEndTime = null;
-                      });
-                    }
-                    widget.respond("Complete");
-                  });
-            },
-          );
-        },
+                return BottomTimerModal(
+                    remaining: remaining,
+                    isRunning: isRunning,
+                    isPaused: isPaused,
+                    showTimeUpOverlay: showTimeUpOverlay,
+                    playbackControls: widget.playbackControls,
+                    onClose: () {
+                      Navigator.of(context).pop();
+                      _onTimerClose();
+                    },
+                    onRestart: () {
+                      if (widget.playbackControls) _restartTimer();
+                      _refreshModal();
+                    },
+                    onPauseResume: () {
+                      _playBack();
+                      _refreshModal();
+                    },
+                    onStop: () {
+                      _stopTimer();
+                      Navigator.of(context).pop();
+                      if (mounted) {
+                        setState(() {
+                          status = TimerStatus.complete;
+                          showTimeUpOverlay = false;
+                          showCompletionText = true;
+                          showPersistentSheet = false;
+                          _expectedEndTime = null;
+                        });
+                      }
+                      widget.respond("Complete");
+                    });
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -1317,6 +1320,7 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   Widget _buildStartButton() {
+    final isDisabled = inProgress;
     return showCompletionText ? CustomOutlineButton(
       onClick: () {
         _startAndShowModal();
@@ -1339,10 +1343,11 @@ class _TimerWidgetState extends State<TimerWidget>
       ),
     ) :
     CustomElevatedButton(
-      color: CustomColors.productNormal,
-      onClick: _startAndShowModal,
-      text: 'Start Timer',
+    color: isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
+    onClick: isDisabled ? null : _startAndShowModal,
+    text: 'Start Timer',
     );
+
   }
 }
 
