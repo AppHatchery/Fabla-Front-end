@@ -1274,8 +1274,7 @@ class _TimerWidgetState extends State<TimerWidget>
               children: [
                 _buildEditableControls(),
                 const SizedBox(height: 36),
-                if (!isComplete) ...[_buildStartButton()],
-                if (isComplete && showCompletionText) ...[_buildCompletionView()],
+                _buildStartButton(),
               ],
             ),
           ],
@@ -1284,29 +1283,6 @@ class _TimerWidgetState extends State<TimerWidget>
     );
   }
 
-  Widget _buildCompletionView() {
-    return CustomOutlineButton(
-      onClick: () {
-        _startAndShowModal();
-      },
-      backgroundColor: Colors.transparent,
-      color: CustomColors.productNormal,
-      children: Wrap(
-        children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(3.0),
-              child: Text(
-                "Restart Timer",
-                style: CustomTypography()
-                    .button(color: CustomColors.productNormal),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildEditableControls() {
     return Container(
@@ -1341,10 +1317,30 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   Widget _buildStartButton() {
-    final isDisabled = inProgress;
-    return CustomElevatedButton(
-      color: isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
-      onClick: isDisabled ? null : _startAndShowModal,
+    return showCompletionText ? CustomOutlineButton(
+      onClick: () {
+        _startAndShowModal();
+      },
+      backgroundColor: Colors.transparent,
+      color: CustomColors.productNormal,
+      children: Wrap(
+        children: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: Text(
+                "Restart Timer",
+                style: CustomTypography()
+                    .button(color: CustomColors.productNormal),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ) :
+    CustomElevatedButton(
+      color: CustomColors.productNormal,
+      onClick: _startAndShowModal,
       text: 'Start Timer',
     );
   }
