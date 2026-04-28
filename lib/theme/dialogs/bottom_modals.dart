@@ -1187,6 +1187,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   late DateTime start;
   late DateTime end;
   bool? completed = false;
+  bool? error = false;
   late String errorText;
 
   @override
@@ -1236,6 +1237,8 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
                 url: widget.url,
                 completionJSFunction: widget.completionJSFunction,
                 errorText: (value) => setState(() => errorText = value),
+                onError: (value) =>
+                    {print('hello'), setState(() => error = true)},
                 onComplete: (value) {
                   setState(() {
                     completed = value;
@@ -1251,9 +1254,15 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: CustomFlatButton(
-              isDisabled: (completed == false),
+              borderColor: error == true
+                  ? CustomColors.warningActive
+                  : CustomColors.productNormal,
+              color: error == true
+                  ? CustomColors.warningActive
+                  : CustomColors.productNormal,
+              isDisabled: completed == false && error != true,
               onClick: () => popUp(),
-              text: "Finish",
+              text: error == true ? "Skip and Report Error" : "Finish",
             ),
           )
         ],
@@ -1278,6 +1287,10 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
         },
       ),
     );
+  }
+
+  reportAndSkip() async {
+    setState(() {});
   }
 
   exit() async {

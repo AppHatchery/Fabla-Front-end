@@ -10,17 +10,23 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../core/utils/errorCodes.dart';
 
+/// Checkpoint: WebView Widget
+/// Leaving the implementation where we are switching the finish button to a skip and report error button when there's an error
+/// Revisit the injection of JS from backend.
+
 class CustomWebViewWidget extends StatefulWidget {
   final String url;
   final String? completionJSFunction;
   final Function(bool?) onComplete;
+  final Function(Map<String, dynamic>) onError;
   final Function(dynamic) errorText;
   const CustomWebViewWidget(
       {super.key,
       required this.url,
       this.completionJSFunction,
       required this.onComplete,
-      required this.errorText});
+      required this.errorText,
+      required this.onError});
 
   @override
   State<CustomWebViewWidget> createState() => CustomWebViewWidgetState();
@@ -45,7 +51,6 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   void initState() {
     super.initState();
     currentUrl = widget.url;
-    print('JS Function: ${widget.completionJSFunction}');
     if (uri != null && uri!.hasScheme) {
       controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -96,6 +101,10 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                 });
                 _checkTimer?.cancel();
                 _startTimer?.cancel();
+                widget.onError({
+                  "code": "no_internet",
+                  "type": "No Internet Connection",
+                });
               }
               return;
             }
@@ -107,6 +116,11 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
               });
               _checkTimer?.cancel();
               _startTimer?.cancel();
+              widget.onError({
+                "code": error.errorCode,
+                "description": error.description,
+                "type": error.errorType.toString(),
+              });
             }
           },
           onHttpError: (error) {
@@ -143,10 +157,14 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
               _checkTimer?.cancel();
               _startTimer?.cancel();
+              widget.onError({
+                "code": error.response?.statusCode ?? 'unknown',
+                "type": 'HTTP Error',
+              });
             }
           },
         ))
-        ..loadRequest(Uri.parse(widget.url));
+        ..loadRequest(Uri.parse("https://www.dafasfasf.com"));
     } else {
       // Handle invalid URL at start
       loading = false;
