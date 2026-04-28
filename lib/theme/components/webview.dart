@@ -10,15 +10,23 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../core/utils/errorCodes.dart';
 
+/// Checkpoint: WebView Widget
+/// Leaving the implementation where we are switching the finish button to a skip and report error button when there's an error
+/// Revisit the injection of JS from backend.
+
 class CustomWebViewWidget extends StatefulWidget {
   final String url;
+  final String? completionJSFunction;
   final Function(bool?) onComplete;
+  final Function(Map<String, dynamic>) onError;
   final Function(dynamic) errorText;
   const CustomWebViewWidget(
       {super.key,
       required this.url,
+      this.completionJSFunction,
       required this.onComplete,
-      required this.errorText});
+      required this.errorText,
+      required this.onError});
 
   @override
   State<CustomWebViewWidget> createState() => CustomWebViewWidgetState();
@@ -93,6 +101,10 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
                 });
                 _checkTimer?.cancel();
                 _startTimer?.cancel();
+                widget.onError({
+                  "code": "no_internet",
+                  "type": "No Internet Connection",
+                });
               }
               return;
             }
@@ -104,6 +116,11 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
               });
               _checkTimer?.cancel();
               _startTimer?.cancel();
+              widget.onError({
+                "code": error.errorCode,
+                "description": error.description,
+                "type": error.errorType.toString(),
+              });
             }
           },
           onHttpError: (error) {
@@ -140,10 +157,14 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
               _checkTimer?.cancel();
               _startTimer?.cancel();
+              widget.onError({
+                "code": error.response?.statusCode ?? 'unknown',
+                "type": 'HTTP Error',
+              });
             }
           },
         ))
-        ..loadRequest(Uri.parse(widget.url));
+        ..loadRequest(Uri.parse("https://www.dafasfasf.com"));
     } else {
       // Handle invalid URL at start
       loading = false;
@@ -268,196 +289,45 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
   void _startPeriodicCheck() {
     _checkTimer?.cancel();
+    final function = widget.completionJSFunction;
 
-    // Check every 500 milliseconds
-    _checkTimer = Timer.periodic(Duration(milliseconds: 500), (timer) {
-      // detectSurveyFinish();
+    if (function == null) {
+      dev.log(
+          'No completion JS function provided, skipping survey completion checks.');
       if (mounted) {
         setState(() {
           surveyCompleted = true;
         });
         widget.onComplete(true);
       }
+      return;
+    }
+    // Check every 500 milliseconds
+    _checkTimer = Timer.periodic(Duration(milliseconds: 500), (timer) {
+      detectSurveyFinish(function);
     });
   }
 
-  void detectSurveyFinish() async {
+  void detectSurveyFinish(String? function) async {
     // Don't run survey checks if there's an error
-    if (controller == null || webViewError != null || loading) {
+    if (controller == null ||
+        webViewError != null ||
+        loading ||
+        function == null) {
       _checkTimer?.cancel();
       return;
     }
 
-    final String javaScript = '''
-    (function() {
-
-    const completionSelectors = [
-        // Qualtrics completion
-        '.EndOfSurvey',
-        '#EndOfSurvey',
-        '.SurveyEnd',
-        '.CompleteMessage',
-        '[class*="complete"]',
-        '[class*="Complete"]',
-        '[class*="thank"]',
-        '[class*="Thank"]',
-
-        // SurveyMonkey completion
-        '.thank-you',
-        '.completion-message',
-        // Google Forms completion
-        '.freebirdFormviewerViewResponseConfirmationMessage',
-
-        // RedCap completion
-        '.surveyacknowledgment',
-        '#surveyacknowledgment',
-        '[data-mlm="survey-acknowledgment"]',
-        
-        // Generic completion messages
-        '[id*="complete"]',
-        '[id*="Complete"]',
-        '[id*="thank"]',
-        '[id*="Thank"]'
-      ];
-      
-      // If completion indicator found, survey is finished
-      for (let selector of completionSelectors) {
-        try {
-          const elements = document.querySelectorAll(selector);
-          for (let el of elements) {
-            const isVisible = el.offsetParent !== null &&
-              getComputedStyle(el).display !== 'none' &&
-              getComputedStyle(el).visibility !== 'hidden';
-            if (isVisible) {
-              return true; // Survey completed
-            }
-          }
-        } catch (e) {
-          // Continue checking other selectors
-        }
-      }
-
-    const nextButtonSelectors = [
-        'button:contains("Next")',
-        'input[type="button"][value*="Next"]',
-        'input[type="submit"][value*="Next"]',
-        'a:contains("Next")',
-        '.next-button',
-        '#nextButton',
-        '[aria-label*="next"]',
-        '[aria-label*="Next"]',
-        '[title*="next"]',
-        '[title*="Next"]',
-        '[data-action*="next"]',
-        '[data-action*="Next"]',
-        '[data-role="next"]',
-        '[data-role="Next"]',
-        '[data-navigate="next"]',
-        '[data-navigate="Next"]',
-        '[data-direction="next"]',
-        '[data-direction="Next"]',
-        '[data-step="next"]',
-        '[data-step="Next"]',
-        '[data-qa*="next"]',
-        '[data-qa*="Next"]',
-        '[data-testid*="next"]',
-        '[data-testid*="Next"]',
-        '[data-cy*="next"]',
-        '[data-cy*="Next"]',
-        '[data-automation*="next"]',
-        '[data-automation*="Next"]',
-
-        // Qualtrics
-        '.NextButton',
-        '#NextButton',
-        '[data-runtime-class*="NextButton"]',
-        '.QR-NextButton',
-
-        // SurveyMonkey
-        '.btn-next',
-        '.next',
-        '.sm-next',
-        '.surveymonkey-next',
-
-        // Google Forms
-        '.freebirdFormviewerViewNavigationNextButton',
-        '.quantumWizButtonPaperbuttonNext',
-
-        // Typeform
-        '.next-button-container button',
-        '[data-qa="next-button"]',
-
-        // LimeSurvey
-        '.ls-move-btn-next',
-        '.moveNextBtn',
-
-        // SurveyGizmo/Alchemer
-        '.sg-next-button',
-
-        // Generic patterns
-        '[id*="next"]',
-        '[class*="next"]',
-        '[name*="next"]',
-        '[onclick*="next"]',
-        '[onclick*="Next"]',
-        '[href*="next"]',
-        '[href*="Next"]',
-
-        // Common button patterns
-        'button[type="submit"]',
-        'input[type="submit"]',
-        'button, input[type="button"], input[type="submit"], a.button',
-
-        // Alternative text patterns
-        'button:contains("Continue")',
-        'input[value*="Continue"]',
-        '[aria-label*="continue"]',
-        '[aria-label*="Continue"]',
-        'button:contains("Proceed")',
-        'input[value*="Proceed"]',
-        'button:contains("Forward")',
-        'input[value*="Forward"]',
-        'button:contains("→")',
-        'button:contains("►")',
-        'button:contains(">")',
-        'button:contains(">>")'
-    ];
-
-    for (let selector of nextButtonSelectors) {
-        try {
-            const elements = document.querySelectorAll(selector);
-            for (let el of elements) {
-                const tag = el.tagName.toLowerCase();
-                if (!['button', 'input', 'a'].includes(tag)) continue;
-
-                const elementText = el.innerText || el.value || el.textContent || '';
-                const ariaLabel = el.getAttribute('aria-label') || '';
-                const isVisible = el.offsetParent !== null &&
-                                  getComputedStyle(el).display !== 'none' &&
-                                  getComputedStyle(el).visibility !== 'hidden';
-
-                if (isVisible && (
-                    elementText.toLowerCase().includes('next') ||
-                    ariaLabel.toLowerCase().includes('next')
-                )) {
-                    // Found a visible "Next" button
-                    return false;
-                }
-            }
-        } catch (e) {
-        }
-    }
-
-    // No "Next" button found
-    return true;
-})();
-    ''';
-
     final data =
-        await controller!.runJavaScriptReturningResult(javaScript).catchError(
+        await controller!.runJavaScriptReturningResult(function).catchError(
       (error) {
         // Handle any errors that occur during JavaScript execution
         dev.log('Error running JavaScript: $error');
+        track({
+          "code": "js_execution_error",
+          "type": "Confirmation JS Function Error",
+          "error": error.toString(),
+        });
         return false;
       },
     );
@@ -467,7 +337,17 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
       // Run the check one more time to confirm
       final confirmData =
-          await controller?.runJavaScriptReturningResult(javaScript);
+          await controller?.runJavaScriptReturningResult(function).catchError(
+        (error) {
+          dev.log('Error running confirmation JavaScript: $error');
+          track({
+            "code": "js_execution_error",
+            "type": "Confirmation JS Function Error",
+            "error": error.toString(),
+          });
+          return false;
+        },
+      );
 
       if (confirmData == true &&
           !loading &&

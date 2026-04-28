@@ -61,7 +61,7 @@ class SliderQuestionCard extends StatefulWidget {
 
 class _SliderQuestionCardState extends State<SliderQuestionCard> {
   double _value = 0;
-   late bool isDisabled = !widget.isSliderEnabled;
+  late bool isDisabled = !widget.isSliderEnabled;
 
   @override
   void initState() {
@@ -105,31 +105,24 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
                     thumbColor: isDisabled
                         ? CustomColors.fillDisabled
                         : CustomColors.productNormal,
-
                     activeTrackColor: isDisabled
                         ? CustomColors.fillDisabled
                         : CustomColors.productNormal,
-
                     inactiveTrackColor: CustomColors.fillDisabled,
-
                     activeTickMarkColor: isDisabled
                         ? CustomColors.fillDisabled
                         : CustomColors.productNormal,
-
-                    inactiveTickMarkColor: CustomColors.textNormalContent.withOpacity(0.35),
-
+                    inactiveTickMarkColor:
+                        CustomColors.textNormalContent.withOpacity(0.35),
                     overlayShape: SliderComponentShape.noOverlay,
-
                     valueIndicatorColor: isDisabled
                         ? Colors.transparent
                         : CustomColors.productNormal,
-
                     trackHeight: 4,
-
-                    valueIndicatorTextStyle: widget.isSliderEnabled ?
-                    CustomTypography().bodyLarge(color: CustomColors.fillWhite):
-                    CustomTypography().titleSmall(color: Colors.black),
-
+                    valueIndicatorTextStyle: widget.isSliderEnabled
+                        ? CustomTypography()
+                            .bodyLarge(color: CustomColors.fillWhite)
+                        : CustomTypography().titleSmall(color: Colors.black),
                     showValueIndicator: widget.isSliderEnabled
                         ? ShowValueIndicator.onlyForDiscrete
                         : ShowValueIndicator.alwaysVisible,
@@ -174,16 +167,14 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
               child: Text(
                 widget.scaleMinText ?? '',
                 textAlign: TextAlign.start,
-                style: CustomTypography()
-                    .bodyLarge(color: widget.colorFont),
+                style: CustomTypography().bodyLarge(color: widget.colorFont),
               ),
             ),
             Expanded(
               child: Text(
                 widget.scaleMaxText ?? '',
                 textAlign: TextAlign.end,
-                style: CustomTypography()
-                    .bodyLarge(color: widget.colorFont),
+                style: CustomTypography().bodyLarge(color: widget.colorFont),
               ),
             ),
           ],
@@ -683,8 +674,8 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                 onClick: () => showModal(),
                 text: "Tap here to respond",
               )
-            ]
-            else if (response.firstOrNull!.contains("Item was skipped due to: ")) ...[
+            ] else if (response.firstOrNull!
+                .contains("Item was skipped due to: ")) ...[
               SizedBox(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -727,7 +718,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                     ),
                     SizedBox(height: 20),
                     Row(
-                      spacing: 24,
+                        spacing: 24,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           SizedBox(
@@ -751,8 +742,9 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                         ]),
                     SizedBox(height: 20),
                     CustomOutlineButton(
-                      padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                        onClick:() => showModal(),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 12.0),
+                        onClick: () => showModal(),
                         color: Color(0xFFFF3B30),
                         backgroundColor: Colors.transparent,
                         children: Wrap(
@@ -761,7 +753,8 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text("Try Again",
-                                style: CustomTypography().button(color: Color(0xFFFF3B30))),
+                                    style: CustomTypography()
+                                        .button(color: Color(0xFFFF3B30))),
                               ],
                             )
                           ],
@@ -826,6 +819,8 @@ Participant ID: ''');
               builder: (context, scrollController) {
                 return BottomWebViewModal(
                   url: widget.prompt.option!.link!,
+                  completionJSFunction:
+                      widget.prompt.option?.completionJSFunction,
                   respond: widget.respond,
                 );
               },
@@ -859,7 +854,6 @@ class _TimerWidgetState extends State<TimerWidget>
   late Duration remaining;
 
   Timer? _timer;
-
 
   bool showTimeUpOverlay = false;
   bool showCompletionText = false;
@@ -1049,7 +1043,6 @@ class _TimerWidgetState extends State<TimerWidget>
           showCompletionText = true;
         });
       }
-
     });
   }
 
@@ -1275,7 +1268,9 @@ class _TimerWidgetState extends State<TimerWidget>
                 _buildEditableControls(),
                 const SizedBox(height: 36),
                 if (!isComplete) ...[_buildStartButton()],
-                if (isComplete && showCompletionText) ...[_buildCompletionView()],
+                if (isComplete && showCompletionText) ...[
+                  _buildCompletionView()
+                ],
               ],
             ),
           ],
@@ -1343,7 +1338,8 @@ class _TimerWidgetState extends State<TimerWidget>
   Widget _buildStartButton() {
     final isDisabled = inProgress;
     return CustomElevatedButton(
-      color: isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
+      color:
+          isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
       onClick: isDisabled ? null : _startAndShowModal,
       text: 'Start Timer',
     );

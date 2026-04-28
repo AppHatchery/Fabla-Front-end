@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/webview_formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 
 class Options {
@@ -17,6 +18,7 @@ class Options {
   bool? multipleAnswers;
   //WebView
   String? link;
+  String? completionJSFunction;
   //Timer
   Duration? timerLength;
   bool? userInteraction;
@@ -38,6 +40,7 @@ class Options {
       this.displayTime,
       this.multipleAnswers,
       this.link,
+      this.completionJSFunction,
       this.timerLength,
       this.userInteraction,
       this.playbackControl,
@@ -67,6 +70,7 @@ class Options {
       displayTime: json['display_time'],
       multipleAnswers: json['multiple_answers'],
       link: json['link'],
+      completionJSFunction: base64ToString(json['JS']),
       timerLength: json['timer_length'] != null &&
               (json['timer_length'] as String).isNotEmpty
           ? formatStringToDuration(json['timer_length'])
@@ -97,6 +101,7 @@ class Options {
       'display_time': displayTime,
       'multiple_answers': multipleAnswers,
       'link': link,
+      'JS': stringToBase64(completionJSFunction),
       'timer_length':
           timerLength != null ? formatDurationToString(timerLength!) : null,
       'user_interaction': userInteraction,

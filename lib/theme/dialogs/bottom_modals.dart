@@ -169,7 +169,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Widget questionAndHints() {
     final width = MediaQuery.of(context).size.width;
-    final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
     final isCompleted =
         recorderState == RecorderState.isStopped && elapsed.inSeconds > 0;
 
@@ -189,11 +188,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     style: CustomTypography()
                         .titleLarge(color: const Color(0xFF000000)),
                   ),
-                  const  SizedBox(height:24),
+                  const SizedBox(height: 24),
                   Text(
                     widget.subtitle ?? "",
-                    style: CustomTypography()
-                        .bodyLarge(
+                    style: CustomTypography().bodyLarge(
                       color: CustomColors.textNormalContent,
                       weight: FontWeight.w400,
                     ),
@@ -884,10 +882,12 @@ class _BottomTextModalState extends State<BottomTextModal>
           const SizedBox(
             height: 16,
           ),
-          widget.hint != null && widget.hint!.isNotEmpty ? Text(
-            widget.hint!,
-            style: CustomTypography().body(),
-          ) : SizedBox.shrink(),
+          widget.hint != null && widget.hint!.isNotEmpty
+              ? Text(
+                  widget.hint!,
+                  style: CustomTypography().body(),
+                )
+              : SizedBox.shrink(),
           // CustomOutlineButton(
           //   onClick: () => {},
           //   color: CustomColors.productNormal,
@@ -1171,9 +1171,13 @@ class BottomErrorModal extends StatelessWidget {
 
 class BottomWebViewModal extends StatefulWidget {
   final String url;
+  final String? completionJSFunction;
   final void Function(String) respond;
-   const BottomWebViewModal(
-      {super.key, required this.url, required this.respond});
+  const BottomWebViewModal(
+      {super.key,
+      required this.url,
+      this.completionJSFunction,
+      required this.respond});
 
   @override
   State<BottomWebViewModal> createState() => _BottomWebViewModalState();
@@ -1183,6 +1187,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   late DateTime start;
   late DateTime end;
   bool? completed = false;
+  bool? error = false;
   late String errorText;
 
   @override
@@ -1230,7 +1235,10 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
               color: CustomColors.greyTrack,
               child: CustomWebViewWidget(
                 url: widget.url,
+                completionJSFunction: widget.completionJSFunction,
                 errorText: (value) => setState(() => errorText = value),
+                onError: (value) =>
+                    {print('hello'), setState(() => error = true)},
                 onComplete: (value) {
                   setState(() {
                     completed = value;
@@ -1246,9 +1254,15 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: CustomFlatButton(
-              isDisabled: (completed == false),
+              borderColor: error == true
+                  ? CustomColors.warningActive
+                  : CustomColors.productNormal,
+              color: error == true
+                  ? CustomColors.warningActive
+                  : CustomColors.productNormal,
+              isDisabled: completed == false && error != true,
               onClick: () => popUp(),
-              text: "Finish",
+              text: error == true ? "Skip and Report Error" : "Finish",
             ),
           )
         ],
@@ -1273,6 +1287,10 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
         },
       ),
     );
+  }
+
+  reportAndSkip() async {
+    setState(() {});
   }
 
   exit() async {
@@ -2556,10 +2574,10 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     )..addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        _shakeController.repeat();
-      }
-    });
+        if (status == AnimationStatus.completed) {
+          _shakeController.repeat();
+        }
+      });
   }
 
   @override
@@ -2570,7 +2588,6 @@ class _BottomTimerModalState extends State<BottomTimerModal>
   }
 
   void _onRiveInit(r.Artboard art) {
-
     var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
 
     if (ctrl != null) {
@@ -2581,7 +2598,6 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     setState(() {
       animationHeight = art.height;
     });
-
   }
 
   @override
@@ -2602,8 +2618,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
           end: Alignment.bottomCenter,
         ),
         image: const DecorationImage(
-          image: AssetImage(
-              'assets/images/Meditation_timer_background.png'),
+          image: AssetImage('assets/images/Meditation_timer_background.png'),
           fit: BoxFit.fitWidth,
           alignment: Alignment.topCenter,
         ),
@@ -2646,10 +2661,10 @@ class _BottomTimerModalState extends State<BottomTimerModal>
           widget.showTimeUpOverlay
               ? const SizedBox.shrink()
               : Image.asset(
-            'assets/images/icons/pace.png',
-            height: iconSize,
-            width: iconSize,
-          ),
+                  'assets/images/icons/pace.png',
+                  height: iconSize,
+                  width: iconSize,
+                ),
           const SizedBox(width: 8), // spacing proportional to width
           Flexible(
             child: FittedBox(
@@ -2661,15 +2676,15 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                 textAlign: TextAlign.center,
                 style: CustomTypography()
                     .custom(
-                  color: CustomColors.textWhite,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 48,
-                )
+                      color: CustomColors.textWhite,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 48,
+                    )
                     .copyWith(
-                  fontFeatures: widget.showTimeUpOverlay
-                      ? []
-                      : [const FontFeature.tabularFigures()],
-                ),
+                      fontFeatures: widget.showTimeUpOverlay
+                          ? []
+                          : [const FontFeature.tabularFigures()],
+                    ),
               ),
             ),
           ),
@@ -2710,31 +2725,30 @@ class _BottomTimerModalState extends State<BottomTimerModal>
         padding: const EdgeInsets.only(bottom: 100),
         child: widget.playbackControls || widget.showTimeUpOverlay
             ? Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _circleButton(
-              icon: Icons.close,
-              onTap: widget.onClose,
-              borderColor: CustomColors.fillWhite,
-            ),
-            const SizedBox(width: 37),
-            _mainControlButton(),
-            const SizedBox(width: 37),
-            widget.playbackControls
-                ? _circleButton(
-              icon: Icons.refresh_rounded,
-              onTap: widget.onRestart,
-              borderColor:
-              CustomColors.productLightBackground,
-            )
-                : const SizedBox(width: 64, height: 64),
-          ],
-        )
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _circleButton(
+                    icon: Icons.close,
+                    onTap: widget.onClose,
+                    borderColor: CustomColors.fillWhite,
+                  ),
+                  const SizedBox(width: 37),
+                  _mainControlButton(),
+                  const SizedBox(width: 37),
+                  widget.playbackControls
+                      ? _circleButton(
+                          icon: Icons.refresh_rounded,
+                          onTap: widget.onRestart,
+                          borderColor: CustomColors.productLightBackground,
+                        )
+                      : const SizedBox(width: 64, height: 64),
+                ],
+              )
             : _circleButton(
-          icon: Icons.close,
-          onTap: widget.onClose,
-          borderColor: CustomColors.fillWhite,
-        ),
+                icon: Icons.close,
+                onTap: widget.onClose,
+                borderColor: CustomColors.fillWhite,
+              ),
       ),
     );
   }
@@ -2760,9 +2774,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
 
   Widget _mainControlButton() {
     return GestureDetector(
-      onTap: widget.showTimeUpOverlay
-          ? widget.onStop
-          : widget.onPauseResume,
+      onTap: widget.showTimeUpOverlay ? widget.onStop : widget.onPauseResume,
       child: Container(
         width: 80,
         height: 80,
@@ -2773,21 +2785,21 @@ class _BottomTimerModalState extends State<BottomTimerModal>
         child: Center(
           child: widget.showTimeUpOverlay
               ? const Icon(
-            CupertinoIcons.checkmark_alt,
-            size: 40,
-            color: CustomColors.productNormal,
-          )
+                  CupertinoIcons.checkmark_alt,
+                  size: 40,
+                  color: CustomColors.productNormal,
+                )
               : (widget.isRunning && !widget.isPaused)
-              ? const Icon(
-            CupertinoIcons.pause_fill,
-            size: 40,
-            color: CustomColors.warningActive,
-          )
-              : const Icon(
-            CupertinoIcons.play_fill,
-            size: 40,
-            color: CustomColors.productNormal,
-          ),
+                  ? const Icon(
+                      CupertinoIcons.pause_fill,
+                      size: 40,
+                      color: CustomColors.warningActive,
+                    )
+                  : const Icon(
+                      CupertinoIcons.play_fill,
+                      size: 40,
+                      color: CustomColors.productNormal,
+                    ),
         ),
       ),
     );
