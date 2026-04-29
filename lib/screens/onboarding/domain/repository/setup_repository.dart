@@ -221,10 +221,7 @@ class SetupRepository {
           return true;
         }
 
-        // Shift every diary so that the first one starts today while
-        // preserving each diary's duration (end - start) and the relative
-        // spacing between diaries. Only applied on fresh enrollment;
-        // partial updates keep their server-issued dates.
+        //diaries start on the same day user joins the study
         if (!partialCleanDB) {
           final now = DateTime.now();
           final today = DateTime(now.year, now.month, now.day);
