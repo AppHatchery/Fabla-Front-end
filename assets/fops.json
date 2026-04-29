@@ -18,7 +18,7 @@
         "diaries": [
           {
             "name": "Psychoeducation Module",
-            "start_time": "2026-04-29T08:00:00",
+            "start_time": "2026-04-28T08:00:00",
             "end_time": "2026-04-29T23:45:00",
             "entries": 3,
             "active_days": null,
@@ -116,7 +116,7 @@
               {
                 "question_id": 4957,
                 "type": "instruction",
-                "title": "<h3> a. When generating new thoughts, one helpful question to ask yourself is: ?What is the evidence??\n\nb. Assume you notice the thought, ?I will embarrass myself,? before an important public speaking task.</h3> ",
+                "title": "<h3>a. When generating new thoughts, one helpful question to ask yourself is: \"What is the evidence?\"\n\nb. Assume you notice the thought, \"I will embarrass myself,\" before an important public speaking task.</h3>",
                 "subtitle": "",
                 "required": true,
                 "question_number": 2
@@ -148,7 +148,7 @@
               {
                 "question_id": 4960,
                 "type": "instruction",
-                "title": "<h3>Imagine you are asked to speak at a school, work, or community setting. Now, ask yourself the following questions to identify your thoughts:\n \nWhat am I afraid will happen in this situation? \nWhat am I afraid the audience will think of me?</h3> ",
+                "title": "<h3>Imagine you are asked to speak at a school, work, or community setting. Now, ask yourself the following questions to identify your thoughts:\n \nWhat am I afraid will happen in this situation? \nWhat am I afraid the audience will think of me?</h3>",
                 "subtitle": "",
                 "required": true,
                 "question_number": 5
@@ -500,7 +500,7 @@
               {
                 "question_id": 5049,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n<h3>iii. Each approach is practice, not a test.</h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -712,7 +712,7 @@
               {
                 "question_id": 5049,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n<h3>iii. Each approach is practice, not a test.</h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -924,7 +924,7 @@
               {
                 "question_id": 5049,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n<h3>iii. Each approach is practice, not a test.</h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -942,7 +942,7 @@
               {
                 "question_id": 4986,
                 "type": "instruction",
-                "title": "<h2>Overview of approach: </h2>\n\n<h3>You will give a scripted 2-minute speech in front of a small audience of adults.</h3>",
+                "title": "<h2>Overview of approach:</h2>\n\n<h3>You will give a scripted 2-minute speech in front of a small audience of adults.</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 1
@@ -950,7 +950,7 @@
               {
                 "question_id": 4998,
                 "type": "instruction",
-                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "title": "<h3>It is important to recall the reminder you gave yourself during the last module. Do you remember it?</h3>\n\n<h3>i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
@@ -1144,7 +1144,7 @@
               {
                 "question_id": 5050,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n<h3>iii. Each approach is practice, not a test.</h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -1162,7 +1162,7 @@
               {
                 "question_id": 4986,
                 "type": "instruction",
-                "title": "<h2>Overview of approach: </h2>\n\n<h3>You will give a scripted 2-minute speech in front of a small audience of adults.</h3>",
+                "title": "<h2>Overview of approach:</h2>\n\n<h3>You will give a scripted 2-minute speech in front of a small audience of adults.</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 1
@@ -1170,7 +1170,7 @@
               {
                 "question_id": 4998,
                 "type": "instruction",
-                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "title": "<h3>It is important to recall the reminder you gave yourself during the last module. Do you remember it?</h3>\n\n<h3>i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
@@ -1364,7 +1364,7 @@
               {
                 "question_id": 5050,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n<h3>iii. Each approach is practice, not a test.</h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -1382,7 +1382,7 @@
               {
                 "question_id": 4986,
                 "type": "instruction",
-                "title": "<h2>Overview of approach: </h2>\n\n<h3>You will give a scripted 2-minute speech in front of a small audience of adults.</h3>",
+                "title": "<h2>Overview of approach:</h2>\n\n<h3>You will give a scripted 2-minute speech in front of a small audience of adults.</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 1
@@ -1390,7 +1390,7 @@
               {
                 "question_id": 4998,
                 "type": "instruction",
-                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "title": "<h3>It is important to recall the reminder you gave yourself during the last module. Do you remember it?</h3>\n\n<h3>i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
@@ -1584,7 +1584,7 @@
               {
                 "question_id": 5050,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n<h3>iii. Each approach is practice, not a test.</h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -1602,7 +1602,7 @@
               {
                 "question_id": 5005,
                 "type": "instruction",
-                "title": "<h2>Overview of approach: </h2>\n<h3>You will give a scripted 2-minute speech in front of a large audience of adults.</h3>",
+                "title": "<h2>Overview of approach:</h2>\n<h3>You will give a scripted 2-minute speech in front of a large audience of adults.</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 1
@@ -1610,7 +1610,7 @@
               {
                 "question_id": 5006,
                 "type": "instruction",
-                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "title": "<h3>It is important to recall the reminder you gave yourself during the last module. Do you remember it?</h3>\n\n<h3>i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
@@ -1804,7 +1804,7 @@
               {
                 "question_id": 5051,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n<h3>iii. Each approach is practice, not a test.</h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -1822,7 +1822,7 @@
               {
                 "question_id": 5005,
                 "type": "instruction",
-                "title": "<h2>Overview of approach: </h2>\n<h3>You will give a scripted 2-minute speech in front of a large audience of adults.</h3>",
+                "title": "<h2>Overview of approach:</h2>\n<h3>You will give a scripted 2-minute speech in front of a large audience of adults.</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 1
@@ -1830,7 +1830,7 @@
               {
                 "question_id": 5006,
                 "type": "instruction",
-                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "title": "<h3>It is important to recall the reminder you gave yourself during the last module. Do you remember it?</h3>\n\n<h3>i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
@@ -2024,7 +2024,7 @@
               {
                 "question_id": 5051,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n<h3>iii. Each approach is practice, not a test.</h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -2042,7 +2042,7 @@
               {
                 "question_id": 5005,
                 "type": "instruction",
-                "title": "<h2>Overview of approach: </h2>\n<h3>You will give a scripted 2-minute speech in front of a large audience of adults.</h3>",
+                "title": "<h2>Overview of approach:</h2>\n<h3>You will give a scripted 2-minute speech in front of a large audience of adults.</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 1
@@ -2050,7 +2050,7 @@
               {
                 "question_id": 5006,
                 "type": "instruction",
-                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "title": "<h3>It is important to recall the reminder you gave yourself during the last module. Do you remember it?</h3>\n\n<h3>i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
@@ -2244,7 +2244,7 @@
               {
                 "question_id": 5051,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n<h3>iii. Each approach is practice, not a test.</h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -2262,7 +2262,7 @@
               {
                 "question_id": 5024,
                 "type": "instruction",
-                "title": "<h2>Overview of approach: </h2>\n\n<h3>You will read an authority's opinion for 1-minute in front of a large audience of adults and then give an extemporaneous 1-minute speech on your own opinion in front of that large audience of adults.</h3>",
+                "title": "<h2>Overview of approach:</h2>\n\n<h3>You will read an authority's opinion for 1-minute in front of a large audience of adults and then give an extemporaneous 1-minute speech on your own opinion in front of that large audience of adults.</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 1
@@ -2270,7 +2270,7 @@
               {
                 "question_id": 5025,
                 "type": "instruction",
-                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "title": "<h3>It is important to recall the reminder you gave yourself during the last module. Do you remember it?</h3>\n\n<h3>i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
@@ -2464,7 +2464,7 @@
               {
                 "question_id": 5052,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n<h3>iii. Each approach is practice, not a test.</h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -2482,7 +2482,7 @@
               {
                 "question_id": 5024,
                 "type": "instruction",
-                "title": "<h2>Overview of approach: </h2>\n\n<h3>You will read an authority's opinion for 1-minute in front of a large audience of adults and then give an extemporaneous 1-minute speech on your own opinion in front of that large audience of adults.</h3>",
+                "title": "<h2>Overview of approach:</h2>\n\n<h3>You will read an authority's opinion for 1-minute in front of a large audience of adults and then give an extemporaneous 1-minute speech on your own opinion in front of that large audience of adults.</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 1
@@ -2490,7 +2490,7 @@
               {
                 "question_id": 5025,
                 "type": "instruction",
-                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "title": "<h3>It is important to recall the reminder you gave yourself during the last module. Do you remember it?</h3>\n\n<h3>i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
@@ -2684,7 +2684,7 @@
               {
                 "question_id": 5052,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n<h3>iii. Each approach is practice, not a test.</h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -2702,7 +2702,7 @@
               {
                 "question_id": 5024,
                 "type": "instruction",
-                "title": "<h2>Overview of approach: </h2>\n\n<h3>You will read an authority's opinion for 1-minute in front of a large audience of adults and then give an extemporaneous 1-minute speech on your own opinion in front of that large audience of adults.</h3>",
+                "title": "<h2>Overview of approach:</h2>\n\n<h3>You will read an authority's opinion for 1-minute in front of a large audience of adults and then give an extemporaneous 1-minute speech on your own opinion in front of that large audience of adults.</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 1
@@ -2710,7 +2710,7 @@
               {
                 "question_id": 5025,
                 "type": "instruction",
-                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "title": "<h3>It is important to recall the reminder you gave yourself during the last module. Do you remember it?</h3>\n\n<h3>i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
@@ -2904,7 +2904,7 @@
               {
                 "question_id": 5052,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n<h3>iii. Each approach is practice, not a test.</h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -2938,7 +2938,7 @@
               {
                 "question_id": 5053,
                 "type": "instruction",
-                "title": "<h2> 1. Immediate Support</h2>\n\n<h3>i. 988 Suicide & Crisis Lifeline </h3>\n<h3>Call or text 988, or chat at https://988lifeline.org </h3>\n<h3>Available 24/7 for emotional distress or crisis support. </h3>\n\n<h3>ii. Crisis Text Line </h3>\n<h3>Connect with a trained crisis counselor by text. </h3>\n<h3>Text HOME to 741741 </h3>\n\n<h3>iii. Emergency Services </h3>\n<h3>If you feel you may be in immediate danger, call 911 or go to the nearest emergency department. </h3> ",
+                "title": "<h2>1. Immediate Support</h2>\n\n<h3>i. 988 Suicide & Crisis Lifeline</h3>\n<h3>Call or text 988, or chat at https://988lifeline.org</h3>\n<h3>Available 24/7 for emotional distress or crisis support.</h3>\n\n<h3>ii. Crisis Text Line</h3>\n<h3>Connect with a trained crisis counselor by text.</h3>\n<h3>Text HOME to 741741</h3>\n\n<h3>iii. Emergency Services</h3>\n<h3>If you feel you may be in immediate danger, call 911 or go to the nearest emergency department.</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 1
@@ -2946,7 +2946,7 @@
               {
                 "question_id": 5054,
                 "type": "instruction",
-                "title": "<h2> 2. Finding Mental Health Care </h2>\n\n<h3>i. Association for Behavioral and Cognitive Therapies (ABCT) </h3>\n<h3>1. Find therapists trained in evidence-based treatments: </h3>\n<h3>2. https://www.abct.org </h3>\n\n<h3>ii. Anxiety & Depression Association of America (ADAA) </h3>\n<h3>1. Find clinicians and information about anxiety disorders: </h3>\n<h3>2. https://adaa.org </h3>\n\n<h3>iii. Local Treatment </h3>\n<h3>1. The Emory Clinic for Anxiety Resilience, Education, and Support (CARES) program is a psychotherapy consultation service specializing in diagnosis, psychoeducation, and treatment planning for anxiety conditions. </h3>\n<h3>2. https://outlook.office365.com/book/CARES2@mscloud.emory.net/ </h3> ",
+                "title": "<h2>2. Finding Mental Health Care</h2>\n\n<h3>i. Association for Behavioral and Cognitive Therapies (ABCT)</h3>\n<h3>1. Find therapists trained in evidence-based treatments:</h3>\n<h3>2. https://www.abct.org</h3>\n\n<h3>ii. Anxiety & Depression Association of America (ADAA)</h3>\n<h3>1. Find clinicians and information about anxiety disorders:</h3>\n<h3>2. https://adaa.org</h3>\n\n<h3>iii. Local Treatment</h3>\n<h3>1. The Emory Clinic for Anxiety Resilience, Education, and Support (CARES) program is a psychotherapy consultation service specializing in diagnosis, psychoeducation, and treatment planning for anxiety conditions.</h3>\n<h3>2. https://outlook.office365.com/book/CARES2@mscloud.emory.net/</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
@@ -2964,7 +2964,7 @@
               {
                 "question_id": 5053,
                 "type": "instruction",
-                "title": "<h2> 1. Immediate Support</h2>\n\n<h3>i. 988 Suicide & Crisis Lifeline </h3>\n<h3>Call or text 988, or chat at https://988lifeline.org </h3>\n<h3>Available 24/7 for emotional distress or crisis support. </h3>\n\n<h3>ii. Crisis Text Line </h3>\n<h3>Connect with a trained crisis counselor by text. </h3>\n<h3>Text HOME to 741741 </h3>\n\n<h3>iii. Emergency Services </h3>\n<h3>If you feel you may be in immediate danger, call 911 or go to the nearest emergency department. </h3> ",
+                "title": "<h2>1. Immediate Support</h2>\n\n<h3>i. 988 Suicide & Crisis Lifeline</h3>\n<h3>Call or text 988, or chat at https://988lifeline.org</h3>\n<h3>Available 24/7 for emotional distress or crisis support.</h3>\n\n<h3>ii. Crisis Text Line</h3>\n<h3>Connect with a trained crisis counselor by text.</h3>\n<h3>Text HOME to 741741</h3>\n\n<h3>iii. Emergency Services</h3>\n<h3>If you feel you may be in immediate danger, call 911 or go to the nearest emergency department.</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 1
@@ -2972,7 +2972,7 @@
               {
                 "question_id": 5054,
                 "type": "instruction",
-                "title": "<h2> 2. Finding Mental Health Care </h2>\n\n<h3>i. Association for Behavioral and Cognitive Therapies (ABCT) </h3>\n<h3>1. Find therapists trained in evidence-based treatments: </h3>\n<h3>2. https://www.abct.org </h3>\n\n<h3>ii. Anxiety & Depression Association of America (ADAA) </h3>\n<h3>1. Find clinicians and information about anxiety disorders: </h3>\n<h3>2. https://adaa.org </h3>\n\n<h3>iii. Local Treatment </h3>\n<h3>1. The Emory Clinic for Anxiety Resilience, Education, and Support (CARES) program is a psychotherapy consultation service specializing in diagnosis, psychoeducation, and treatment planning for anxiety conditions. </h3>\n<h3>2. https://outlook.office365.com/book/CARES2@mscloud.emory.net/ </h3> ",
+                "title": "<h2>2. Finding Mental Health Care</h2>\n\n<h3>i. Association for Behavioral and Cognitive Therapies (ABCT)</h3>\n<h3>1. Find therapists trained in evidence-based treatments:</h3>\n<h3>2. https://www.abct.org</h3>\n\n<h3>ii. Anxiety & Depression Association of America (ADAA)</h3>\n<h3>1. Find clinicians and information about anxiety disorders:</h3>\n<h3>2. https://adaa.org</h3>\n\n<h3>iii. Local Treatment</h3>\n<h3>1. The Emory Clinic for Anxiety Resilience, Education, and Support (CARES) program is a psychotherapy consultation service specializing in diagnosis, psychoeducation, and treatment planning for anxiety conditions.</h3>\n<h3>2. https://outlook.office365.com/book/CARES2@mscloud.emory.net/</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
@@ -2990,7 +2990,7 @@
               {
                 "question_id": 5053,
                 "type": "instruction",
-                "title": "<h2> 1. Immediate Support</h2>\n\n<h3>i. 988 Suicide & Crisis Lifeline </h3>\n<h3>Call or text 988, or chat at https://988lifeline.org </h3>\n<h3>Available 24/7 for emotional distress or crisis support. </h3>\n\n<h3>ii. Crisis Text Line </h3>\n<h3>Connect with a trained crisis counselor by text. </h3>\n<h3>Text HOME to 741741 </h3>\n\n<h3>iii. Emergency Services </h3>\n<h3>If you feel you may be in immediate danger, call 911 or go to the nearest emergency department. </h3> ",
+                "title": "<h2>1. Immediate Support</h2>\n\n<h3>i. 988 Suicide & Crisis Lifeline</h3>\n<h3>Call or text 988, or chat at https://988lifeline.org</h3>\n<h3>Available 24/7 for emotional distress or crisis support.</h3>\n\n<h3>ii. Crisis Text Line</h3>\n<h3>Connect with a trained crisis counselor by text.</h3>\n<h3>Text HOME to 741741</h3>\n\n<h3>iii. Emergency Services</h3>\n<h3>If you feel you may be in immediate danger, call 911 or go to the nearest emergency department.</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 1
@@ -2998,7 +2998,7 @@
               {
                 "question_id": 5054,
                 "type": "instruction",
-                "title": "<h2> 2. Finding Mental Health Care </h2>\n\n<h3>i. Association for Behavioral and Cognitive Therapies (ABCT) </h3>\n<h3>1. Find therapists trained in evidence-based treatments: </h3>\n<h3>2. https://www.abct.org </h3>\n\n<h3>ii. Anxiety & Depression Association of America (ADAA) </h3>\n<h3>1. Find clinicians and information about anxiety disorders: </h3>\n<h3>2. https://adaa.org </h3>\n\n<h3>iii. Local Treatment </h3>\n<h3>1. The Emory Clinic for Anxiety Resilience, Education, and Support (CARES) program is a psychotherapy consultation service specializing in diagnosis, psychoeducation, and treatment planning for anxiety conditions. </h3>\n<h3>2. https://outlook.office365.com/book/CARES2@mscloud.emory.net/ </h3> ",
+                "title": "<h2>2. Finding Mental Health Care</h2>\n\n<h3>i. Association for Behavioral and Cognitive Therapies (ABCT)</h3>\n<h3>1. Find therapists trained in evidence-based treatments:</h3>\n<h3>2. https://www.abct.org</h3>\n\n<h3>ii. Anxiety & Depression Association of America (ADAA)</h3>\n<h3>1. Find clinicians and information about anxiety disorders:</h3>\n<h3>2. https://adaa.org</h3>\n\n<h3>iii. Local Treatment</h3>\n<h3>1. The Emory Clinic for Anxiety Resilience, Education, and Support (CARES) program is a psychotherapy consultation service specializing in diagnosis, psychoeducation, and treatment planning for anxiety conditions.</h3>\n<h3>2. https://outlook.office365.com/book/CARES2@mscloud.emory.net/</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
