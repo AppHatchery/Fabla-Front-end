@@ -44,6 +44,7 @@ class SummaryRepository {
         final newPrompt = promptRepository.load(diary, prompt.id);
         final isInstruction =
             newPrompt.responseType == ResponseType.instruction;
+        //TODO:: add media video here
         newPrompt.id = prompt.id;
         if (!isInstruction) {
           cleanPrompts.add(newPrompt);

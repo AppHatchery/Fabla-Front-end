@@ -73,3 +73,6 @@ amplifytools.xcconfig
 
 # Integration test related
 grant_permission.sh
+
+# Video assets
+/assets/video/

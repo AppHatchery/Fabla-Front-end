@@ -1,75 +1,3007 @@
 {
+  "status": "success",
   "data": {
     "studies": [
       {
-        "id": 196,
-        "name": "No Bonus",
+        "id": 324,
+        "name": "Modules",
         "goal": {
-          "daily": 1,
-          "weekly": 12
+          "daily": 3,
+          "weekly": 3
         },
         "incentive": {
-          "amount": "50.00",
-          "bonus": "10.00",
+          "amount": "0.00",
+          "bonus": "0.00",
           "currency": "$",
-          "threshold": 85
+          "threshold": 0
         },
         "diaries": [
           {
-            "name": "Simple Diary 2",
-            "start_time": "2026-04-08T01:00:00",
-            "end_time": "2026-04-08T23:30:00",
-            "entries": 1,
+            "name": "Psychoeducation Module",
+            "start_time": "2026-04-29T08:00:00",
+            "end_time": "2026-04-29T23:45:00",
+            "entries": 3,
             "active_days": null,
             "questions": [
               {
-                "question_id": 1415,
+                "question_id": 4950,
                 "type": "media/Video",
-                "title": "Introduction Video",
-                "subtitle": "watch this before you start",
+                "title": "Understanding the Practice of Approach",
+                "subtitle": "",
                 "required": true,
                 "question_number": 1,
                 "answer_type": "media/Video",
-                "media_link": "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8"
+                "media_link": "video_01.mov"
               },
               {
-                "question_id": 1601,
-                "type": "teleprompter",
-                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience. Scroll to the end to start recording.",
-                "subtitle": "The world is changing at an unprecedented pace, driven by advances in technology, shifts in global power, and evolving social dynamics. As individuals, we are constantly challenged to adapt, learn, and grow in the face of these changes. The ability to remain resilient and open-minded has never been more critical than it is today.\n\nCommunication lies at the heart of every great movement in history. Whether it was leaders rallying nations during times of crisis or innovators inspiring entire industries to think differently, the power of a well-delivered message can shift perspectives and spark action. When we speak with clarity and conviction, we invite others into our vision and build bridges across divides.\n\nAs you stand before an audience, remember that your words carry weight far beyond this moment. You have the opportunity to inform, to inspire, and to ignite meaningful change. Embrace that responsibility with courage, speak your truth with purpose, and trust that your voice — however ordinary it may feel to you — has the power to move the world.",
+                "question_id": 4951,
+                "type": "radio",
+                "title": "The practice of approach includes:",
+                "subtitle": "",
+                "required": true,
+                "question_number": 2,
+                "options": [
+                  "Facing feared situations",
+                  "Not escaping the situation or discomfort",
+                  "Repetition",
+                  "All of the above"
+                ]
+              },
+              {
+                "question_id": 4952,
+                "type": "media/Video",
+                "title": "Understanding Unhelpful Avoidance",
+                "subtitle": "",
+                "required": true,
+                "question_number": 3,
+                "answer_type": "media/Video",
+                "media_link": "video_02.mov"
+              },
+              {
+                "question_id": 4953,
+                "type": "radio",
+                "title": "Which of the following is an example of avoidance:",
+                "subtitle": "",
+                "required": true,
+                "question_number": 4,
+                "options": [
+                  "Avoiding eye contact",
+                  "Speaking quickly",
+                  "Not speaking in public",
+                  "All of the above"
+                ]
+              },
+              {
+                "question_id": 4954,
+                "type": "media/Video",
+                "title": "How will this app help me?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 5,
+                "answer_type": "media/Video",
+                "media_link": "video_03.mov"
+              },
+              {
+                "question_id": 4955,
+                "type": "text",
+                "title": "Type why you want to address your fear of public speaking.",
+                "subtitle": "",
+                "required": true,
+                "question_number": 6,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Cognitive Restructuring Module",
+            "start_time": "2026-04-28T08:00:00",
+            "end_time": "2026-04-29T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 4956,
+                "type": "media/Video",
+                "title": "Understanding Unhelpful Thoughts",
+                "subtitle": "",
+                "required": true,
+                "question_number": 1,
+                "answer_type": "media/Video",
+                "media_link": "video_04.mov"
+              },
+              {
+                "question_id": 4957,
+                "type": "instruction",
+                "title": "<h3> a. When generating new thoughts, one helpful question to ask yourself is: ?What is the evidence??\n\nb. Assume you notice the thought, ?I will embarrass myself,? before an important public speaking task.</h3> ",
+                "subtitle": "",
                 "required": true,
                 "question_number": 2
               },
               {
-                "question_id": 1602,
-                "type": "reference",
-                "title": "How did the script you just read make you feel?",
-                "subtitle": "Reflect on your experience reading the teleprompter script aloud.",
-                "targeted_question": 2,
+                "question_id": 4958,
+                "type": "multiple",
+                "title": "Which two answers are examples of helpful thoughts using evidence?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 3,
+                "options": [
+                  "I stumbled over a few words during the speech.",
+                  "I noticed my voice shaking at the beginning.",
+                  "I was able to finish the speech and say what I planned to say.",
+                  "The audience?did not seem to?listen?closely."
+                ]
+              },
+              {
+                "question_id": 4959,
+                "type": "media/Video",
+                "title": "Identifying Unhelpful Thoughts",
+                "subtitle": "",
+                "required": true,
+                "question_number": 4,
+                "answer_type": "media/Video",
+                "media_link": "video_05.mov"
+              },
+              {
+                "question_id": 4960,
+                "type": "instruction",
+                "title": "<h3>Imagine you are asked to speak at a school, work, or community setting. Now, ask yourself the following questions to identify your thoughts:\n \nWhat am I afraid will happen in this situation? \nWhat am I afraid the audience will think of me?</h3> ",
+                "subtitle": "",
+                "required": true,
+                "question_number": 5
+              },
+              {
+                "question_id": 4961,
+                "type": "text",
+                "title": "In the space below, write one unhelpful thought that you identified:",
+                "subtitle": "",
+                "required": true,
+                "question_number": 6,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 4962,
+                "type": "media/Video",
+                "title": "Responding to Unhelpful Thoughts",
+                "subtitle": "",
+                "required": true,
+                "question_number": 7,
+                "answer_type": "media/Video",
+                "media_link": "video_06.mov"
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Approach Instructions Module",
+            "start_time": "2026-04-28T08:00:00",
+            "end_time": "2026-04-29T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 4964,
+                "type": "media/Video",
+                "title": "Instructions for Approach",
+                "subtitle": "",
+                "required": true,
+                "question_number": 1,
+                "answer_type": "media/Video",
+                "media_link": "video_07.mov"
+              },
+              {
+                "question_id": 4965,
+                "type": "radio",
+                "title": "Which of the following is an important rule during approach? ",
+                "subtitle": "",
+                "required": true,
+                "question_number": 2,
+                "options": [
+                  "Stop speaking when anxiety becomes strong",
+                  "Stay in the situation for the full amount of time",
+                  "End the speech early if you feel uncomfortable",
+                  "All of?the above"
+                ]
+              },
+              {
+                "question_id": 4966,
+                "type": "media/Video",
+                "title": "Progressing Through Approach",
+                "subtitle": "",
+                "required": true,
+                "question_number": 3,
+                "answer_type": "media/Video",
+                "media_link": "video_08.mov"
+              },
+              {
+                "question_id": 4968,
+                "type": "media/Video",
+                "title": "What to Do During Approach",
+                "subtitle": "",
+                "required": true,
+                "question_number": 5,
+                "answer_type": "media/Video",
+                "media_link": "video_09.mov"
+              },
+              {
+                "question_id": 4970,
+                "type": "media/Video",
+                "title": "Using Video Feedback",
+                "subtitle": "",
+                "required": true,
+                "question_number": 7,
+                "answer_type": "media/Video",
+                "media_link": "video_10.mov"
+              },
+              {
+                "question_id": 4971,
+                "type": "radio",
+                "title": "Why is video feedback used during this program?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 8,
+                "options": [
+                  "To help you see how you actually appear during speaking",
+                  "To collect evidence for and against unhelpful thoughts",
+                  "To identify strengths and good qualities",
+                  "All of the above"
+                ]
+              },
+              {
+                "question_id": 4972,
+                "type": "media/Video",
+                "title": "Addressing Difficulties in Approach",
+                "subtitle": "",
+                "required": true,
+                "question_number": 9,
+                "answer_type": "media/Video",
+                "media_link": "video_11.mov"
+              },
+              {
+                "question_id": 4973,
+                "type": "radio",
+                "title": "Feeling bored during repeated speeches may mean:",
+                "subtitle": "",
+                "required": true,
+                "question_number": 10,
+                "options": [
+                  "The exercise is not working",
+                  "Anxiety is beginning to decrease",
+                  "You should stop the exercise",
+                  "The speech should be skipped"
+                ]
+              }
+            ],
+            "notifications": []
+          }
+        ]
+      },
+      {
+        "id": 325,
+        "name": "Approach Modules",
+        "goal": {
+          "daily": 3,
+          "weekly": 9
+        },
+        "incentive": {
+          "amount": "2.50",
+          "bonus": "0.00",
+          "currency": "$",
+          "threshold": 0
+        },
+        "diaries": [
+          {
+            "name": "Approach #1 Module",
+            "start_time": "2026-04-28T08:00:00",
+            "end_time": "2026-04-28T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 4974,
+                "type": "instruction",
+                "title": "<h2>Overview of approach:</h2>\n\n<h3>In this approach, you will read a scripted 1-minute children's story in front of a child audience.</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 4975,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 2,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4976,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to an audience of children.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
                 "required": true,
                 "question_number": 3
               },
               {
-                "question_id": 1414,
+                "question_id": 4977,
                 "type": "slider",
-                "title": "Testing no subtitle",
-                "subtitle": "",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
                 "required": true,
                 "question_number": 4,
                 "min_value": 0,
-                "max_value": 10,
-                "min_label": "low",
-                "max_label": "high",
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
                 "default_value": 0
               },
               {
-                "question_id": 1413,
-                "type": "webview",
-                "title": "Webview",
-                "subtitle": "something something",
+                "question_id": 4978,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 3,
+                "required": true,
+                "question_number": 5
+              },
+              {
+                "question_id": 4979,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 6,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4980,
+                "type": "instruction",
+                "title": "<h3>Attempt the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to attempt the speech again",
+                "required": true,
+                "question_number": 7
+              },
+              {
+                "question_id": 4981,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to an audience of children.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 8
+              },
+              {
+                "question_id": 5043,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 9,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5047,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 8,
+                "required": true,
+                "question_number": 10
+              },
+              {
+                "question_id": 5045,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 11,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4982,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to an audience of children.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 12
+              },
+              {
+                "question_id": 5044,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 13,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5048,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 12,
+                "required": true,
+                "question_number": 14
+              },
+              {
+                "question_id": 5046,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 15,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4983,
+                "type": "audio",
+                "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 16,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 4984,
+                "type": "audio",
+                "title": "Self Reflection - What was helpful that you did that you could continue working on?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 17,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 4985,
+                "type": "text",
+                "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
+                "subtitle": "",
+                "required": true,
+                "question_number": 18,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5049,
+                "type": "instruction",
+                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 20
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Approach #1 Module",
+            "start_time": "2026-04-29T08:00:00",
+            "end_time": "2026-04-29T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 4974,
+                "type": "instruction",
+                "title": "<h2>Overview of approach:</h2>\n\n<h3>In this approach, you will read a scripted 1-minute children's story in front of a child audience.</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 4975,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 2,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4976,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to an audience of children.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
+                "required": true,
+                "question_number": 3
+              },
+              {
+                "question_id": 4977,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 4,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4978,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 3,
+                "required": true,
+                "question_number": 5
+              },
+              {
+                "question_id": 4979,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 6,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4980,
+                "type": "instruction",
+                "title": "<h3>Attempt the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to attempt the speech again",
+                "required": true,
+                "question_number": 7
+              },
+              {
+                "question_id": 4981,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to an audience of children.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 8
+              },
+              {
+                "question_id": 5043,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 9,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5047,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 8,
+                "required": true,
+                "question_number": 10
+              },
+              {
+                "question_id": 5045,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 11,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4982,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to an audience of children.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 12
+              },
+              {
+                "question_id": 5044,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 13,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5048,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 12,
+                "required": true,
+                "question_number": 14
+              },
+              {
+                "question_id": 5046,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 15,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4983,
+                "type": "audio",
+                "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 16,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 4984,
+                "type": "audio",
+                "title": "Self Reflection - What was helpful that you did that you could continue working on?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 17,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 4985,
+                "type": "text",
+                "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
+                "subtitle": "",
+                "required": true,
+                "question_number": 18,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5049,
+                "type": "instruction",
+                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 20
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Approach #1 Module",
+            "start_time": "2026-04-30T08:00:00",
+            "end_time": "2026-04-30T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 4974,
+                "type": "instruction",
+                "title": "<h2>Overview of approach:</h2>\n\n<h3>In this approach, you will read a scripted 1-minute children's story in front of a child audience.</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 4975,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 2,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4976,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to an audience of children.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
+                "required": true,
+                "question_number": 3
+              },
+              {
+                "question_id": 4977,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 4,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4978,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 3,
+                "required": true,
+                "question_number": 5
+              },
+              {
+                "question_id": 4979,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 6,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4980,
+                "type": "instruction",
+                "title": "<h3>Attempt the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to attempt the speech again",
+                "required": true,
+                "question_number": 7
+              },
+              {
+                "question_id": 4981,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to an audience of children.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 8
+              },
+              {
+                "question_id": 5043,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 9,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5047,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 8,
+                "required": true,
+                "question_number": 10
+              },
+              {
+                "question_id": 5045,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 11,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4982,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to an audience of children.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 12
+              },
+              {
+                "question_id": 5044,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 13,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5048,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 12,
+                "required": true,
+                "question_number": 14
+              },
+              {
+                "question_id": 5046,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 15,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4983,
+                "type": "audio",
+                "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 16,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 4984,
+                "type": "audio",
+                "title": "Self Reflection - What was helpful that you did that you could continue working on?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 17,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 4985,
+                "type": "text",
+                "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
+                "subtitle": "",
+                "required": true,
+                "question_number": 18,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5049,
+                "type": "instruction",
+                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 20
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Approach #2 Module",
+            "start_time": "2026-04-28T08:00:00",
+            "end_time": "2026-04-28T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 4986,
+                "type": "instruction",
+                "title": "<h2>Overview of approach: </h2>\n\n<h3>You will give a scripted 2-minute speech in front of a small audience of adults.</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 4998,
+                "type": "instruction",
+                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 2
+              },
+              {
+                "question_id": 4987,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 3,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4988,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to a small audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
+                "required": true,
+                "question_number": 4
+              },
+              {
+                "question_id": 4989,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
                 "required": true,
                 "question_number": 5,
-                "link": "https://qualtricsxm3l3mzdsg7.qualtrics.com/jfe/form/SV_bPXX1sp9mRqzEVw"
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4990,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 4,
+                "required": true,
+                "question_number": 6
+              },
+              {
+                "question_id": 4991,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 7,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4992,
+                "type": "instruction",
+                "title": "<h3>Attempt the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to attempt the speech again",
+                "required": true,
+                "question_number": 8
+              },
+              {
+                "question_id": 4993,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a small audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 9
+              },
+              {
+                "question_id": 4999,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 10,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5000,
+                "type": "reference",
+                "title": "Review this recording of your speech",
+                "subtitle": "Remember, review it objectively and not critically",
+                "targeted_question": 9,
+                "required": true,
+                "question_number": 11
+              },
+              {
+                "question_id": 5001,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 12,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4994,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a small audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 13
+              },
+              {
+                "question_id": 5002,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 14,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5004,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 13,
+                "required": true,
+                "question_number": 15
+              },
+              {
+                "question_id": 5003,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 16,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4995,
+                "type": "audio",
+                "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 17,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 4996,
+                "type": "audio",
+                "title": "Self Reflection - What was helpful that you did that you could continue working on?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 18,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 4997,
+                "type": "text",
+                "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
+                "subtitle": "",
+                "required": true,
+                "question_number": 19,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5050,
+                "type": "instruction",
+                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 20
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Approach #2 Module",
+            "start_time": "2026-04-29T08:00:00",
+            "end_time": "2026-04-29T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 4986,
+                "type": "instruction",
+                "title": "<h2>Overview of approach: </h2>\n\n<h3>You will give a scripted 2-minute speech in front of a small audience of adults.</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 4998,
+                "type": "instruction",
+                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 2
+              },
+              {
+                "question_id": 4987,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 3,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4988,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to a small audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
+                "required": true,
+                "question_number": 4
+              },
+              {
+                "question_id": 4989,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 5,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4990,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 4,
+                "required": true,
+                "question_number": 6
+              },
+              {
+                "question_id": 4991,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 7,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4992,
+                "type": "instruction",
+                "title": "<h3>Attempt the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to attempt the speech again",
+                "required": true,
+                "question_number": 8
+              },
+              {
+                "question_id": 4993,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a small audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 9
+              },
+              {
+                "question_id": 4999,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 10,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5000,
+                "type": "reference",
+                "title": "Review this recording of your speech",
+                "subtitle": "Remember, review it objectively and not critically",
+                "targeted_question": 9,
+                "required": true,
+                "question_number": 11
+              },
+              {
+                "question_id": 5001,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 12,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4994,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a small audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 13
+              },
+              {
+                "question_id": 5002,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 14,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5004,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 13,
+                "required": true,
+                "question_number": 15
+              },
+              {
+                "question_id": 5003,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 16,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4995,
+                "type": "audio",
+                "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 17,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 4996,
+                "type": "audio",
+                "title": "Self Reflection - What was helpful that you did that you could continue working on?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 18,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 4997,
+                "type": "text",
+                "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
+                "subtitle": "",
+                "required": true,
+                "question_number": 19,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5050,
+                "type": "instruction",
+                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 20
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Approach #2 Module",
+            "start_time": "2026-04-30T08:00:00",
+            "end_time": "2026-04-30T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 4986,
+                "type": "instruction",
+                "title": "<h2>Overview of approach: </h2>\n\n<h3>You will give a scripted 2-minute speech in front of a small audience of adults.</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 4998,
+                "type": "instruction",
+                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 2
+              },
+              {
+                "question_id": 4987,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 3,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4988,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to a small audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
+                "required": true,
+                "question_number": 4
+              },
+              {
+                "question_id": 4989,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 5,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4990,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 4,
+                "required": true,
+                "question_number": 6
+              },
+              {
+                "question_id": 4991,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 7,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4992,
+                "type": "instruction",
+                "title": "<h3>Attempt the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to attempt the speech again",
+                "required": true,
+                "question_number": 8
+              },
+              {
+                "question_id": 4993,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a small audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 9
+              },
+              {
+                "question_id": 4999,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 10,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5000,
+                "type": "reference",
+                "title": "Review this recording of your speech",
+                "subtitle": "Remember, review it objectively and not critically",
+                "targeted_question": 9,
+                "required": true,
+                "question_number": 11
+              },
+              {
+                "question_id": 5001,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 12,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4994,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a small audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 13
+              },
+              {
+                "question_id": 5002,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 14,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5004,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 13,
+                "required": true,
+                "question_number": 15
+              },
+              {
+                "question_id": 5003,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 16,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4995,
+                "type": "audio",
+                "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 17,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 4996,
+                "type": "audio",
+                "title": "Self Reflection - What was helpful that you did that you could continue working on?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 18,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 4997,
+                "type": "text",
+                "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
+                "subtitle": "",
+                "required": true,
+                "question_number": 19,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5050,
+                "type": "instruction",
+                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 20
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Approach #3 Module",
+            "start_time": "2026-04-28T08:00:00",
+            "end_time": "2026-04-28T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 5005,
+                "type": "instruction",
+                "title": "<h2>Overview of approach: </h2>\n<h3>You will give a scripted 2-minute speech in front of a large audience of adults.</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 5006,
+                "type": "instruction",
+                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 2
+              },
+              {
+                "question_id": 5007,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 3,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5008,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
+                "required": true,
+                "question_number": 4
+              },
+              {
+                "question_id": 5009,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 5,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5010,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 4,
+                "required": true,
+                "question_number": 6
+              },
+              {
+                "question_id": 5011,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 7,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5012,
+                "type": "instruction",
+                "title": "<h3>Attempt the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to attempt the speech again",
+                "required": true,
+                "question_number": 8
+              },
+              {
+                "question_id": 5013,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 9
+              },
+              {
+                "question_id": 5014,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 10,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5015,
+                "type": "reference",
+                "title": "Review this recording of your speech",
+                "subtitle": "Remember, review it objectively and not critically",
+                "targeted_question": 9,
+                "required": true,
+                "question_number": 11
+              },
+              {
+                "question_id": 5016,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 12,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5017,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 13
+              },
+              {
+                "question_id": 5018,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 14,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5019,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 13,
+                "required": true,
+                "question_number": 15
+              },
+              {
+                "question_id": 5020,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 16,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5021,
+                "type": "audio",
+                "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 17,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5022,
+                "type": "audio",
+                "title": "Self Reflection - What was helpful that you did that you could continue working on?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 18,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5023,
+                "type": "text",
+                "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
+                "subtitle": "",
+                "required": true,
+                "question_number": 19,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5051,
+                "type": "instruction",
+                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 20
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Approach #3 Module",
+            "start_time": "2026-04-29T08:00:00",
+            "end_time": "2026-04-29T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 5005,
+                "type": "instruction",
+                "title": "<h2>Overview of approach: </h2>\n<h3>You will give a scripted 2-minute speech in front of a large audience of adults.</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 5006,
+                "type": "instruction",
+                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 2
+              },
+              {
+                "question_id": 5007,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 3,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5008,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
+                "required": true,
+                "question_number": 4
+              },
+              {
+                "question_id": 5009,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 5,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5010,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 4,
+                "required": true,
+                "question_number": 6
+              },
+              {
+                "question_id": 5011,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 7,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5012,
+                "type": "instruction",
+                "title": "<h3>Attempt the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to attempt the speech again",
+                "required": true,
+                "question_number": 8
+              },
+              {
+                "question_id": 5013,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 9
+              },
+              {
+                "question_id": 5014,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 10,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5015,
+                "type": "reference",
+                "title": "Review this recording of your speech",
+                "subtitle": "Remember, review it objectively and not critically",
+                "targeted_question": 9,
+                "required": true,
+                "question_number": 11
+              },
+              {
+                "question_id": 5016,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 12,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5017,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 13
+              },
+              {
+                "question_id": 5018,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 14,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5019,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 13,
+                "required": true,
+                "question_number": 15
+              },
+              {
+                "question_id": 5020,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 16,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5021,
+                "type": "audio",
+                "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 17,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5022,
+                "type": "audio",
+                "title": "Self Reflection - What was helpful that you did that you could continue working on?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 18,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5023,
+                "type": "text",
+                "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
+                "subtitle": "",
+                "required": true,
+                "question_number": 19,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5051,
+                "type": "instruction",
+                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 20
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Approach #3 Module",
+            "start_time": "2026-04-30T08:00:00",
+            "end_time": "2026-04-30T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 5005,
+                "type": "instruction",
+                "title": "<h2>Overview of approach: </h2>\n<h3>You will give a scripted 2-minute speech in front of a large audience of adults.</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 5006,
+                "type": "instruction",
+                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 2
+              },
+              {
+                "question_id": 5007,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 3,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5008,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
+                "required": true,
+                "question_number": 4
+              },
+              {
+                "question_id": 5009,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 5,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5010,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 4,
+                "required": true,
+                "question_number": 6
+              },
+              {
+                "question_id": 5011,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 7,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5012,
+                "type": "instruction",
+                "title": "<h3>Attempt the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to attempt the speech again",
+                "required": true,
+                "question_number": 8
+              },
+              {
+                "question_id": 5013,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 9
+              },
+              {
+                "question_id": 5014,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 10,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5015,
+                "type": "reference",
+                "title": "Review this recording of your speech",
+                "subtitle": "Remember, review it objectively and not critically",
+                "targeted_question": 9,
+                "required": true,
+                "question_number": 11
+              },
+              {
+                "question_id": 5016,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 12,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5017,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 13
+              },
+              {
+                "question_id": 5018,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 14,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5019,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 13,
+                "required": true,
+                "question_number": 15
+              },
+              {
+                "question_id": 5020,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 16,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5021,
+                "type": "audio",
+                "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 17,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5022,
+                "type": "audio",
+                "title": "Self Reflection - What was helpful that you did that you could continue working on?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 18,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5023,
+                "type": "text",
+                "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
+                "subtitle": "",
+                "required": true,
+                "question_number": 19,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5051,
+                "type": "instruction",
+                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 20
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Approach #4 Module [Optional]",
+            "start_time": "2026-04-28T08:00:00",
+            "end_time": "2026-04-28T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 5024,
+                "type": "instruction",
+                "title": "<h2>Overview of approach: </h2>\n\n<h3>You will read an authority's opinion for 1-minute in front of a large audience of adults and then give an extemporaneous 1-minute speech on your own opinion in front of that large audience of adults.</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 5025,
+                "type": "instruction",
+                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 2
+              },
+              {
+                "question_id": 5026,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 3,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5027,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\nFor this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
+                "required": true,
+                "question_number": 4
+              },
+              {
+                "question_id": 5028,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 5,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5029,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 4,
+                "required": true,
+                "question_number": 6
+              },
+              {
+                "question_id": 5030,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 7,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5031,
+                "type": "instruction",
+                "title": "<h3>Attempt the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to attempt the speech again",
+                "required": true,
+                "question_number": 8
+              },
+              {
+                "question_id": 5032,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\nFor this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 9
+              },
+              {
+                "question_id": 5033,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 10,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5034,
+                "type": "reference",
+                "title": "Review this recording of your speech",
+                "subtitle": "Remember, review it objectively and not critically",
+                "targeted_question": 9,
+                "required": true,
+                "question_number": 11
+              },
+              {
+                "question_id": 5035,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 12,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5036,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\nFor this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 13
+              },
+              {
+                "question_id": 5037,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 14,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5038,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 13,
+                "required": true,
+                "question_number": 15
+              },
+              {
+                "question_id": 5039,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 16,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5040,
+                "type": "audio",
+                "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 17,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5041,
+                "type": "audio",
+                "title": "Self Reflection - What was helpful that you did that you could continue working on?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 18,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5042,
+                "type": "text",
+                "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
+                "subtitle": "",
+                "required": true,
+                "question_number": 19,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5052,
+                "type": "instruction",
+                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 20
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Approach #4 Module [Optional]",
+            "start_time": "2026-04-29T08:00:00",
+            "end_time": "2026-04-29T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 5024,
+                "type": "instruction",
+                "title": "<h2>Overview of approach: </h2>\n\n<h3>You will read an authority's opinion for 1-minute in front of a large audience of adults and then give an extemporaneous 1-minute speech on your own opinion in front of that large audience of adults.</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 5025,
+                "type": "instruction",
+                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 2
+              },
+              {
+                "question_id": 5026,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 3,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5027,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\nFor this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
+                "required": true,
+                "question_number": 4
+              },
+              {
+                "question_id": 5028,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 5,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5029,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 4,
+                "required": true,
+                "question_number": 6
+              },
+              {
+                "question_id": 5030,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 7,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5031,
+                "type": "instruction",
+                "title": "<h3>Attempt the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to attempt the speech again",
+                "required": true,
+                "question_number": 8
+              },
+              {
+                "question_id": 5032,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\nFor this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 9
+              },
+              {
+                "question_id": 5033,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 10,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5034,
+                "type": "reference",
+                "title": "Review this recording of your speech",
+                "subtitle": "Remember, review it objectively and not critically",
+                "targeted_question": 9,
+                "required": true,
+                "question_number": 11
+              },
+              {
+                "question_id": 5035,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 12,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5036,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\nFor this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 13
+              },
+              {
+                "question_id": 5037,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 14,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5038,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 13,
+                "required": true,
+                "question_number": 15
+              },
+              {
+                "question_id": 5039,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 16,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5040,
+                "type": "audio",
+                "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 17,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5041,
+                "type": "audio",
+                "title": "Self Reflection - What was helpful that you did that you could continue working on?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 18,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5042,
+                "type": "text",
+                "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
+                "subtitle": "",
+                "required": true,
+                "question_number": 19,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5052,
+                "type": "instruction",
+                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 20
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Approach #4 Module [Optional]",
+            "start_time": "2026-04-30T08:00:00",
+            "end_time": "2026-04-30T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 5024,
+                "type": "instruction",
+                "title": "<h2>Overview of approach: </h2>\n\n<h3>You will read an authority's opinion for 1-minute in front of a large audience of adults and then give an extemporaneous 1-minute speech on your own opinion in front of that large audience of adults.</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 5025,
+                "type": "instruction",
+                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "subtitle": null,
+                "required": true,
+                "question_number": 2
+              },
+              {
+                "question_id": 5026,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 3,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5027,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\nFor this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
+                "required": true,
+                "question_number": 4
+              },
+              {
+                "question_id": 5028,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 5,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5029,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 4,
+                "required": true,
+                "question_number": 6
+              },
+              {
+                "question_id": 5030,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 7,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5031,
+                "type": "instruction",
+                "title": "<h3>Attempt the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to attempt the speech again",
+                "required": true,
+                "question_number": 8
+              },
+              {
+                "question_id": 5032,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\nFor this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 9
+              },
+              {
+                "question_id": 5033,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 10,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5034,
+                "type": "reference",
+                "title": "Review this recording of your speech",
+                "subtitle": "Remember, review it objectively and not critically",
+                "targeted_question": 9,
+                "required": true,
+                "question_number": 11
+              },
+              {
+                "question_id": 5035,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 12,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5036,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\nFor this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 13
+              },
+              {
+                "question_id": 5037,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 14,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5038,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 13,
+                "required": true,
+                "question_number": 15
+              },
+              {
+                "question_id": 5039,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 16,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5040,
+                "type": "audio",
+                "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 17,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5041,
+                "type": "audio",
+                "title": "Self Reflection - What was helpful that you did that you could continue working on?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 18,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5042,
+                "type": "text",
+                "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
+                "subtitle": "",
+                "required": true,
+                "question_number": 19,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
+                "question_id": 5052,
+                "type": "instruction",
+                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 20
+              }
+            ],
+            "notifications": []
+          }
+        ]
+      },
+      {
+        "id": 383,
+        "name": "Local Resources Module",
+        "goal": {
+          "daily": 3,
+          "weekly": 3
+        },
+        "incentive": {
+          "amount": "0.00",
+          "bonus": "0.00",
+          "currency": "$",
+          "threshold": 0
+        },
+        "diaries": [
+          {
+            "name": "Local Resources Module",
+            "start_time": "2026-04-28T08:00:00",
+            "end_time": "2026-04-28T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 5053,
+                "type": "instruction",
+                "title": "<h2> 1. Immediate Support</h2>\n\n<h3>i. 988 Suicide & Crisis Lifeline </h3>\n<h3>Call or text 988, or chat at https://988lifeline.org </h3>\n<h3>Available 24/7 for emotional distress or crisis support. </h3>\n\n<h3>ii. Crisis Text Line </h3>\n<h3>Connect with a trained crisis counselor by text. </h3>\n<h3>Text HOME to 741741 </h3>\n\n<h3>iii. Emergency Services </h3>\n<h3>If you feel you may be in immediate danger, call 911 or go to the nearest emergency department. </h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 5054,
+                "type": "instruction",
+                "title": "<h2> 2. Finding Mental Health Care </h2>\n\n<h3>i. Association for Behavioral and Cognitive Therapies (ABCT) </h3>\n<h3>1. Find therapists trained in evidence-based treatments: </h3>\n<h3>2. https://www.abct.org </h3>\n\n<h3>ii. Anxiety & Depression Association of America (ADAA) </h3>\n<h3>1. Find clinicians and information about anxiety disorders: </h3>\n<h3>2. https://adaa.org </h3>\n\n<h3>iii. Local Treatment </h3>\n<h3>1. The Emory Clinic for Anxiety Resilience, Education, and Support (CARES) program is a psychotherapy consultation service specializing in diagnosis, psychoeducation, and treatment planning for anxiety conditions. </h3>\n<h3>2. https://outlook.office365.com/book/CARES2@mscloud.emory.net/ </h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 2
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Local Resources Module",
+            "start_time": "2026-04-29T08:00:00",
+            "end_time": "2026-04-29T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 5053,
+                "type": "instruction",
+                "title": "<h2> 1. Immediate Support</h2>\n\n<h3>i. 988 Suicide & Crisis Lifeline </h3>\n<h3>Call or text 988, or chat at https://988lifeline.org </h3>\n<h3>Available 24/7 for emotional distress or crisis support. </h3>\n\n<h3>ii. Crisis Text Line </h3>\n<h3>Connect with a trained crisis counselor by text. </h3>\n<h3>Text HOME to 741741 </h3>\n\n<h3>iii. Emergency Services </h3>\n<h3>If you feel you may be in immediate danger, call 911 or go to the nearest emergency department. </h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 5054,
+                "type": "instruction",
+                "title": "<h2> 2. Finding Mental Health Care </h2>\n\n<h3>i. Association for Behavioral and Cognitive Therapies (ABCT) </h3>\n<h3>1. Find therapists trained in evidence-based treatments: </h3>\n<h3>2. https://www.abct.org </h3>\n\n<h3>ii. Anxiety & Depression Association of America (ADAA) </h3>\n<h3>1. Find clinicians and information about anxiety disorders: </h3>\n<h3>2. https://adaa.org </h3>\n\n<h3>iii. Local Treatment </h3>\n<h3>1. The Emory Clinic for Anxiety Resilience, Education, and Support (CARES) program is a psychotherapy consultation service specializing in diagnosis, psychoeducation, and treatment planning for anxiety conditions. </h3>\n<h3>2. https://outlook.office365.com/book/CARES2@mscloud.emory.net/ </h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 2
+              }
+            ],
+            "notifications": []
+          },
+          {
+            "name": "Local Resources Module",
+            "start_time": "2026-04-30T08:00:00",
+            "end_time": "2026-04-30T23:45:00",
+            "entries": 3,
+            "active_days": null,
+            "questions": [
+              {
+                "question_id": 5053,
+                "type": "instruction",
+                "title": "<h2> 1. Immediate Support</h2>\n\n<h3>i. 988 Suicide & Crisis Lifeline </h3>\n<h3>Call or text 988, or chat at https://988lifeline.org </h3>\n<h3>Available 24/7 for emotional distress or crisis support. </h3>\n\n<h3>ii. Crisis Text Line </h3>\n<h3>Connect with a trained crisis counselor by text. </h3>\n<h3>Text HOME to 741741 </h3>\n\n<h3>iii. Emergency Services </h3>\n<h3>If you feel you may be in immediate danger, call 911 or go to the nearest emergency department. </h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 1
+              },
+              {
+                "question_id": 5054,
+                "type": "instruction",
+                "title": "<h2> 2. Finding Mental Health Care </h2>\n\n<h3>i. Association for Behavioral and Cognitive Therapies (ABCT) </h3>\n<h3>1. Find therapists trained in evidence-based treatments: </h3>\n<h3>2. https://www.abct.org </h3>\n\n<h3>ii. Anxiety & Depression Association of America (ADAA) </h3>\n<h3>1. Find clinicians and information about anxiety disorders: </h3>\n<h3>2. https://adaa.org </h3>\n\n<h3>iii. Local Treatment </h3>\n<h3>1. The Emory Clinic for Anxiety Resilience, Education, and Support (CARES) program is a psychotherapy consultation service specializing in diagnosis, psychoeducation, and treatment planning for anxiety conditions. </h3>\n<h3>2. https://outlook.office365.com/book/CARES2@mscloud.emory.net/ </h3> ",
+                "subtitle": null,
+                "required": true,
+                "question_number": 2
               }
             ],
             "notifications": []

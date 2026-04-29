@@ -48,16 +48,18 @@ pod install
 ```
 3. Install the database
 ```
+dart run build_runner build
+```
+
 4. Set up pre-commit hooks (required for all developers)
 ```bash
 dart run scripts/setup-bootstrapper.dart
 ```
-dart run build_runner build
-```
 5. Run the application
-```
+```bash
 flutter run
 ```
+
 6. Setup amplify project
 ```
 famplify pull --appId d1f2k81mx528zu --envName fablapush

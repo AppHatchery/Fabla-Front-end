@@ -166,7 +166,7 @@ class SetupRepository {
 
     // Request the user's studies and diaries from the remote source
     final String? response;
-    if (experiment.login == "LS11") {
+    if (experiment.login == "FOPS") {
       response = await rootBundle.loadString('assets/fops.json');
     } else {
       response = await post(path: "/fabla/getuserprotocol", body: {

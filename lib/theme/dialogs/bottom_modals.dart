@@ -3467,7 +3467,7 @@ class _VideoPlayerBottomModalState extends State<VideoPlayerBottomModal> {
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
+    _controller = VideoPlayerController.asset('assets/video/${widget.url}')
       ..initialize().then((_) {
         setState(() {});
       }).catchError((error) {
