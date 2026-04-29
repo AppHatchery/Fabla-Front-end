@@ -166,14 +166,7 @@ class SetupRepository {
 
     // Request the user's studies and diaries from the remote source
     final String? response;
-    if (experiment.login == "FOPS") {
-      response = await rootBundle.loadString('assets/fops.json');
-    } else {
-      response = await post(path: "/fabla/getuserprotocol", body: {
-        'login_code': experiment.login,
-        'participant_id': participant!.studyCode,
-      });
-    }
+    response = await rootBundle.loadString('assets/fops.json');
 
     if (response != null) {
       try {
@@ -226,6 +219,27 @@ class SetupRepository {
         if (diariesToAdd.isEmpty) {
           dev.log("No diaries to add", name: "Get Studies");
           return true;
+        }
+
+        // Shift every diary so that the first one starts today while
+        // preserving each diary's duration (end - start) and the relative
+        // spacing between diaries. Only applied on fresh enrollment;
+        // partial updates keep their server-issued dates.
+        if (!partialCleanDB) {
+          final now = DateTime.now();
+          final today = DateTime(now.year, now.month, now.day);
+          final first = diariesToAdd.first.start;
+          final offset = today.difference(DateTime(first.year, first.month, first.day));
+
+          if (offset != Duration.zero) {
+            diariesToAdd = diariesToAdd
+                .map((d) => d.copyWith(
+              id: d.id,
+              studyID: d.studyID,
+              start: d.start.add(offset),
+              due: d.end.add(offset),
+            )).toList();
+          }
         }
 
         // Convert diaries to entities and map prompts to their models
