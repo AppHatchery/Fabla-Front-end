@@ -116,7 +116,7 @@
               {
                 "question_id": 4957,
                 "type": "instruction",
-                "title": "<h3>a. When generating new thoughts, one helpful question to ask yourself is: \"What is the evidence?\"\n\nb. Assume you notice the thought, \"I will embarrass myself,\" before an important public speaking task.</h3>",
+                "title": "<h3>a. When generating new thoughts, one helpful question to ask yourself is: \"What is the evidence?\" </h3>\n\n<h3>b. Assume you notice the thought, \"I will embarrass myself,\" before an important public speaking task.</h3>",
                 "subtitle": "",
                 "required": true,
                 "question_number": 2
@@ -148,7 +148,7 @@
               {
                 "question_id": 4960,
                 "type": "instruction",
-                "title": "<h3>Imagine you are asked to speak at a school, work, or community setting. Now, ask yourself the following questions to identify your thoughts:\n \nWhat am I afraid will happen in this situation? \nWhat am I afraid the audience will think of me?</h3>",
+                "title": "<h3>Imagine you are asked to speak at a school, work, or community setting. Now, ask yourself the following questions to identify your thoughts:</h3> \n\n<h3>What am I afraid will happen in this situation?</h3> \n<h3>What am I afraid the audience will think of me?</h3>",
                 "subtitle": "",
                 "required": true,
                 "question_number": 5
