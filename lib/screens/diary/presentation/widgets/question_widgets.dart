@@ -93,9 +93,10 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
           children: [
             widget.isSliderEnabled
                 ? SizedBox.shrink()
-                : Text("Selected value: ${_value.round().toString()}",
-              style: CustomTypography().titleSmall(),
-            ),
+                : Text(
+                    "Selected value: ${_value.round().toString()}",
+                    style: CustomTypography().titleSmall(),
+                  ),
           ],
         ),
         Row(
@@ -103,7 +104,9 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
           children: [
             Text(
               widget.scaleMin.toString(),
-              style: CustomTypography().button(),
+              style: CustomTypography().button(
+                color: widget.colorFont,
+              ),
             ),
             Expanded(
               child: Padding(
@@ -152,7 +155,9 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
             ),
             Text(
               widget.scaleMax.toString(),
-              style: CustomTypography().button(),
+              style: CustomTypography().button(
+                color: widget.colorFont,
+              ),
             ),
           ],
         ),
