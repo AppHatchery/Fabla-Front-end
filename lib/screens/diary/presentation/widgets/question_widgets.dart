@@ -169,14 +169,14 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
               child: Text(
                 widget.scaleMinText ?? '',
                 textAlign: TextAlign.start,
-                style: CustomTypography().bodyLarge(),
+                style: CustomTypography().bodyLarge(color: widget.colorFont),
               ),
             ),
             Expanded(
               child: Text(
                 widget.scaleMaxText ?? '',
                 textAlign: TextAlign.end,
-                style: CustomTypography().bodyLarge(),
+                style: CustomTypography().bodyLarge(color: widget.colorFont),
               ),
             ),
           ],
