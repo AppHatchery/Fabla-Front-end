@@ -1270,14 +1270,7 @@ class _TimerWidgetState extends State<TimerWidget>
               children: [
                 _buildEditableControls(),
                 const SizedBox(height: 36),
-<<<<<<< 840-bug-timer-start-button-in-the-timer-question
                 _buildStartButton(),
-=======
-                if (!isComplete) ...[_buildStartButton()],
-                if (isComplete && showCompletionText) ...[
-                  _buildCompletionView()
-                ],
->>>>>>> main
               ],
             ),
           ],
@@ -1321,7 +1314,6 @@ class _TimerWidgetState extends State<TimerWidget>
 
   Widget _buildStartButton() {
     final isDisabled = inProgress;
-<<<<<<< 840-bug-timer-start-button-in-the-timer-question
     return showCompletionText ? CustomOutlineButton(
       onClick: () {
         _startAndShowModal();
@@ -1347,15 +1339,7 @@ class _TimerWidgetState extends State<TimerWidget>
     color: isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
     onClick: isDisabled ? null : _startAndShowModal,
     text: 'Start Timer',
-=======
-    return CustomElevatedButton(
-      color:
-          isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
-      onClick: isDisabled ? null : _startAndShowModal,
-      text: 'Start Timer',
->>>>>>> main
     );
-
   }
 }
 
