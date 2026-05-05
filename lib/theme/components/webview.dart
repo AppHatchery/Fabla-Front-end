@@ -30,6 +30,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   Timer? _checkTimer;
   Timer? _startTimer;
   bool surveyCompleted = false;
+  int _embedKey = 0;
 
   //ui elements
   bool loading = false;
@@ -194,7 +195,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
       );
     }
     if (controller == null) return const SizedBox.shrink();
-    return WebViewWidget(controller: controller!);
+    return WebViewWidget(key: ValueKey(_embedKey), controller: controller!);
   }
 
   void _reTry() async {
@@ -264,6 +265,18 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
     setState(() {
       webViewError = WebResourceErrorGroups.getNoInternetWebViewError();
     });
+  }
+
+  void resetSurvey() {
+    if (!mounted) return;
+    _checkTimer?.cancel();
+    setState(() {
+      surveyCompleted = false;
+      _embedKey++;
+    });
+    if (!loading && webViewError == null) {
+      _startPeriodicCheck();
+    }
   }
 
   void _startPeriodicCheck() {
