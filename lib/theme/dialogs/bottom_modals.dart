@@ -1184,6 +1184,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   late DateTime end;
   bool? completed = false;
   late String errorText;
+  final _webViewKey = GlobalKey<CustomWebViewWidgetState>();
 
   @override
   void initState() {
@@ -1229,6 +1230,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
               width: width,
               color: CustomColors.greyTrack,
               child: CustomWebViewWidget(
+                key: _webViewKey,
                 url: widget.url,
                 errorText: (value) => setState(() => errorText = value),
                 onComplete: (value) {
@@ -1257,7 +1259,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   }
 
   popUp() async {
-    await showDialog<bool>(
+    final result = await showDialog<bool>(
       context: context,
       builder: (context) => CompletedPopUp(
         title: "Have you completed the survey?",
@@ -1273,6 +1275,11 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
         },
       ),
     );
+
+    if (result != true && mounted) {
+      setState(() => completed = false);
+      _webViewKey.currentState?.resetSurvey();
+    }
   }
 
   exit() async {
