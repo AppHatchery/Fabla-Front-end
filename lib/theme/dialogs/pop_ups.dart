@@ -1441,17 +1441,17 @@ class CompletedPopUp extends StatelessWidget {
                   borderColor: CustomColors.productNormalActive,
                 ),
               ),
-              const SizedBox(height: 42),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: CustomFlatButton(
-                  onClick: () => onSkip(context),
-                  text: "Skip survey",
-                  color: CustomColors.fillWhite,
-                  textColor: CustomColors.warningActive,
-                  borderColor: Colors.transparent,
-                ),
-              ),
+              // const SizedBox(height: 42),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 10),
+              //   child: CustomFlatButton(
+              //     onClick: () => onSkip(context),
+              //     text: "Skip survey",
+              //     color: CustomColors.fillWhite,
+              //     textColor: CustomColors.warningActive,
+              //     borderColor: Colors.transparent,
+              //   ),
+              // ),
             ],
           ),
         ),
