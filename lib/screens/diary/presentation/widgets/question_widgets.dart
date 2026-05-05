@@ -1546,7 +1546,7 @@ class _TeleprompterResponseWidgetState
           const SizedBox(height: 32),
           widget.prompt.answer?.recordings.isNotEmpty ?? false
               ? Text(
-                  "Thank you, 🎉",
+                  "Thank you - your recording has been saved and will be available for review later",
                   style: CustomTypography().headlineMedium(),
                 )
               : const SizedBox.shrink()
