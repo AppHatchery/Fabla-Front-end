@@ -120,48 +120,51 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     final width = MediaQuery.of(context).size.width;
     final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
 
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        width: width,
-        height: textScaleFactor >= 1.8
-            ? MediaQuery.of(context).size.height * 1
-            : textScaleFactor >= 1.2
-                ? MediaQuery.of(context).size.height * .85
-                : MediaQuery.of(context).size.height * .75,
-        decoration: const BoxDecoration(
-          color: Color(0xFFF3F3F3),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        child: Column(
-          children: [
-            // Close Modal Button
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  GestureDetector(
-                    onTap: () => {
-                      Navigator.pop(context),
-                    },
-                    child: Icon(
-                      CupertinoIcons.clear_circled_solid,
-                      size: 32,
-                      color: CustomColors.textSecondaryContent,
-                    ),
-                  ),
-                ],
-              ),
+    return SafeArea(
+      bottom: true,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          width: width,
+          height: textScaleFactor >= 1.8
+              ? MediaQuery.of(context).size.height * 1
+              : textScaleFactor >= 1.2
+                  ? MediaQuery.of(context).size.height * .85
+                  : MediaQuery.of(context).size.height * .75,
+          decoration: const BoxDecoration(
+            color: Color(0xFFF3F3F3),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
             ),
-            Expanded(child: questionAndHints()),
-          ],
+          ),
+          child: Column(
+            children: [
+              // Close Modal Button
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: () => {
+                        Navigator.pop(context),
+                      },
+                      child: Icon(
+                        CupertinoIcons.clear_circled_solid,
+                        size: 32,
+                        color: CustomColors.textSecondaryContent,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(child: questionAndHints()),
+            ],
+          ),
         ),
       ),
     );
@@ -2128,39 +2131,42 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return Container(
-      width: width,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF3F3F3),
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(14), topRight: Radius.circular(14)),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(
-            height: 32,
-          ),
-          // Close Modal Button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(
-                    CupertinoIcons.clear_circled_solid,
-                    size: 26,
-                    color: CustomColors.textSecondaryContent,
-                  ),
-                )
-              ],
+    return SafeArea(
+      bottom: true,
+      child: Container(
+        width: width,
+        decoration: const BoxDecoration(
+          color: Color(0xFFF3F3F3),
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(14), topRight: Radius.circular(14)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(
+              height: 32,
             ),
-          ),
-          Expanded(
-            child: questionAndHints(),
-          ),
-        ],
+            // Close Modal Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(
+                      CupertinoIcons.clear_circled_solid,
+                      size: 26,
+                      color: CustomColors.textSecondaryContent,
+                    ),
+                  )
+                ],
+              ),
+            ),
+            Expanded(
+              child: questionAndHints(),
+            ),
+          ],
+        ),
       ),
     );
   }
