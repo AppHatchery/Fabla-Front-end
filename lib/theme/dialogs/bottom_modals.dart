@@ -2421,6 +2421,7 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
               ),
             ),
           ),
+          controller.value.isRecordingVideo ? SizedBox.shrink() :
           Positioned(
             right: 0,
             child: GestureDetector(
