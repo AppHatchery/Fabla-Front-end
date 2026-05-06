@@ -2042,12 +2042,12 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
 class TeleprompterModal extends StatefulWidget {
   final void Function(String p, [String? type]) respond;
   final PromptModel prompt;
-  final bool isImage;
-  const TeleprompterModal(
-      {super.key,
-      required this.respond,
-      required this.prompt,
-      this.isImage = true});
+
+  const TeleprompterModal({
+    super.key,
+    required this.respond,
+    required this.prompt,
+  });
 
   @override
   State<TeleprompterModal> createState() => _TeleprompterModalState();
@@ -2056,13 +2056,15 @@ class TeleprompterModal extends StatefulWidget {
 class _TeleprompterModalState extends State<TeleprompterModal> {
   late CameraController controller;
   IconData flashIcon = CupertinoIcons.bolt_badge_a_fill;
+  final ScrollController _scrollController = ScrollController();
 
   XFile? file;
 
   // Video Recording
   Timer? _timer;
   Duration elapsed = const Duration();
-  // "" Playback
+
+  // Playback
   VideoPlayerController? videoController;
   bool videoPlaying = false;
 
@@ -2079,19 +2081,39 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
     super.initState();
   }
 
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void _scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.minScrollExtent,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
   @override
-  dispose() {
+  void dispose() {
     controller.dispose();
+    _scrollController.dispose();
+    videoController?.dispose();
     super.dispose();
   }
 
-  cameraInit() async {
-    // If the controller is updated then update the UI.
+  Future<void> cameraInit() async {
     controller.addListener(() {
       if (mounted) {
         setState(() {
           if (controller.value.previewSize != null) {
-            // Reversed for portrait
             feedWidth = controller.value.previewSize!.height / 3;
             feedHeight = controller.value.previewSize!.width / 3;
           }
@@ -2101,8 +2123,13 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
         dev.log('Camera error ${controller.value.errorDescription}');
       }
     });
+
     try {
       await controller.initialize();
+      if (!mounted) return;
+      // Scroll AFTER camera is initialized so feedWidth/feedHeight are non-zero
+      // and maxScrollExtent reflects the full content (including the controls).
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } on CameraException catch (e) {
       switch (e.code) {
         case 'CameraAccessDenied':
@@ -2138,7 +2165,9 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
         decoration: const BoxDecoration(
           color: Color(0xFFF3F3F3),
           borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(14), topRight: Radius.circular(14)),
+            topLeft: Radius.circular(14),
+            topRight: Radius.circular(14),
+          ),
         ),
         child: Column(
           children: [
@@ -2158,13 +2187,11 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
                       size: 26,
                       color: CustomColors.textSecondaryContent,
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
-            Expanded(
-              child: questionAndHints(),
-            ),
+            Expanded(child: questionAndHints()),
           ],
         ),
       ),
@@ -2177,117 +2204,110 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
 
     return LayoutBuilder(builder: (context, constraints) {
       return SizedBox(
-          height: constraints.maxHeight,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Pinned top section ──────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
+        height: constraints.maxHeight,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Pinned top section ──────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.prompt.question,
+                    style: CustomTypography().titleLarge(),
+                  ),
+                  const SizedBox(height: 16),
+                  if (controller.value.isRecordingVideo)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Icon(Icons.fiber_manual_record,
+                            color: CustomColors.warningActive),
+                      ],
+                    ),
+                  const SizedBox(height: 10),
+                  Container(
+                    height: 180,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Center(
+                      child: Image.asset(
+                        "assets/images/image 550.png",
+                        fit: BoxFit.fitWidth,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // ── Scrollable script and camera content ────────────────────
+            Expanded(
+              child: SingleChildScrollView(
+                controller: _scrollController,
                 child: Column(
+                  spacing: 20,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.prompt.question,
-                      style: CustomTypography().titleLarge(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                      child: Text(
+                        widget.prompt.subtitle!,
+                        style: CustomTypography().body(),
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    if (controller.value.isRecordingVideo)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Icon(Icons.fiber_manual_record,
-                              color: CustomColors.warningActive),
-                        ],
-                      ),
-                    const SizedBox(height: 10),
-                    // ── PINNED container ──────────────────────────────────
+                    // ── Recording controls (always at bottom) ───────────
                     Container(
-                      height: 180,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Center(
-                        child: Image.asset(
-                          "assets/images/image 550.png",
-                          fit: BoxFit.fitWidth,
-                        ),
+                      width: width,
+                      color: CustomColors.productNormal,
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 16),
+                          file != null ? preview() : cameraFeed(),
+                          const SizedBox(height: 24),
+                          Padding(
+                            padding:
+                            const EdgeInsets.symmetric(horizontal: 36.0),
+                            child: file != null
+                                ? playbackControls()
+                                : recordingControls(),
+                          ),
+                          SizedBox(height: screenHeight > 850 ? 36 : 24),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              // ── Scrollable script and camera content ────────────────────────────────
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                        child: Text(
-                          widget.prompt.subtitle!,
-                          style: CustomTypography().body(),
-                        ),
-                      ),
-                      const SizedBox(height: 50),
-                      // ── Recording controls (always at bottom) ───────────────────
-                      Container(
-                        width: width,
-                        color: CustomColors.productNormal,
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 16),
-                            file != null ? preview() : cameraFeed(),
-                            const SizedBox(height: 24),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 36.0),
-                              child: file != null
-                                  ? playbackControls()
-                                  : widget.isImage
-                                      ? pictureControls()
-                                      : recordingControls(),
-                            ),
-                            SizedBox(height: screenHeight > 850 ? 36 : 24),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ));
+            ),
+          ],
+        ),
+      );
     });
   }
 
   Widget preview() {
-    if (file != null) {
-      final _file = File(file!.path);
-      return Container(
-        height: feedHeight,
-        width: feedWidth,
-        decoration: BoxDecoration(
-          color: CustomColors.grey,
-          border: GradientBoxBorder(
-            gradient:
-                LinearGradient(colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
-            width: 4,
-          ),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: switch (widget.isImage) {
-          true => Image.file(_file),
-          false => videoController != null
-              ? VideoPreview(controller: videoController!)
-              : const SizedBox.shrink(),
-        },
-      );
-    }
+    if (file == null) return const SizedBox.shrink();
 
-    return const SizedBox.shrink();
+    return Container(
+      height: feedHeight,
+      width: feedWidth,
+      decoration: BoxDecoration(
+        color: CustomColors.grey,
+        border: GradientBoxBorder(
+          gradient: const LinearGradient(
+              colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
+          width: 4,
+        ),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: videoController != null
+          ? VideoPreview(controller: videoController!)
+          : const SizedBox.shrink(),
+    );
   }
 
   Widget cameraFeed() {
@@ -2297,8 +2317,8 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
       decoration: BoxDecoration(
         color: CustomColors.grey,
         border: GradientBoxBorder(
-          gradient:
-              LinearGradient(colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
+          gradient: const LinearGradient(
+              colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
           width: 4,
         ),
         borderRadius: BorderRadius.circular(4),
@@ -2307,108 +2327,50 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
         borderRadius: BorderRadius.circular(4),
         child: controller.value.isInitialized
             ? Stack(
-                children: [
-                  Center(
-                      child: SizedBox(
-                          width: controller.value.previewSize!.height / 3,
-                          height: controller.value.previewSize!.width / 3,
-                          child: CameraPreview(controller))),
-
-                  // Time
-                  elapsed.inMilliseconds > 0
-                      ? Align(
-                          alignment: Alignment.topCenter,
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 9.0),
-                            child: Container(
-                              width: 90,
-                              padding: EdgeInsets.symmetric(horizontal: 9),
-                              decoration: ShapeDecoration(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(4)),
-                                  color: controller.value.isRecordingPaused
-                                      ? CustomColors.productNormal
-                                      : CustomColors.warningActive),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    formatDurationtoHHMMSS(elapsed),
-                                    style: CustomTypography().custom(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                        color: CustomColors.textWhite),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        )
-                      : const SizedBox.shrink()
-                ],
-              )
-            : SizedBox(
-                height: feedHeight,
-                width: feedWidth,
+          children: [
+            Center(
+              child: SizedBox(
+                width: controller.value.previewSize!.height / 3,
+                height: controller.value.previewSize!.width / 3,
+                child: CameraPreview(controller),
               ),
-      ),
-    );
-  }
-
-  Widget pictureControls() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const SizedBox(width: 50),
-        SizedBox(
-          height: 64,
-          width: 64,
-          child: Material(
-            color: Colors.transparent,
-            child: Ink(
-                decoration: BoxDecoration(
-                    border: Border.all(color: CustomColors.fillWhite, width: 5),
-                    borderRadius: BorderRadius.circular(68)),
-                child: InkWell(
-                  key: const Key("capture"),
-                  splashColor: CustomColors.fillWhiteShade,
-                  borderRadius: BorderRadius.circular(68),
-                  onTap: () => capture(),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Container(
-                      height: 60,
-                      width: 60,
-                      decoration: BoxDecoration(
-                          color: CustomColors.fillWhite,
-                          borderRadius: BorderRadius.circular(60)),
+            ),
+            if (elapsed.inMilliseconds > 0)
+              Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 9.0),
+                  child: Container(
+                    width: 90,
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 9),
+                    decoration: ShapeDecoration(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4)),
+                      color: controller.value.isRecordingPaused
+                          ? CustomColors.productNormal
+                          : CustomColors.warningActive,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          formatDurationtoHHMMSS(elapsed),
+                          style: CustomTypography().custom(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: CustomColors.textWhite,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                )),
-          ),
-        ),
-        GestureDetector(
-          onTap: () => flip(),
-          child: Container(
-              height: 50,
-              width: 50,
-              decoration: BoxDecoration(
-                  color: CustomColors.fillWhite,
-                  borderRadius: BorderRadius.circular(68)),
-              padding: const EdgeInsets.all(4),
-              child: SizedBox(
-                height: 45,
-                width: 45,
-                child: Center(
-                  child: Icon(
-                    CupertinoIcons.switch_camera_solid,
-                    color: CustomColors.productNormal,
-                    size: 25,
-                  ),
                 ),
-              )),
+              ),
+          ],
         )
-      ],
+            : SizedBox(height: feedHeight, width: feedWidth),
+      ),
     );
   }
 
@@ -2417,69 +2379,62 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
     return SizedBox(
       width: width,
       height: 68,
-      child: SizedBox(
-        width: double.infinity,
-        height: 68,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Record — always centered
-            GestureDetector(
-              onTap: () => record(),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 100),
-                height: controller.value.isRecordingPaused ? 50 : 64,
-                width: controller.value.isRecordingPaused ? 50 : 64,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          GestureDetector(
+            onTap: () => record(),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 100),
+              height: controller.value.isRecordingPaused ? 50 : 64,
+              width: controller.value.isRecordingPaused ? 50 : 64,
+              decoration: BoxDecoration(
+                border: Border.all(color: CustomColors.fillWhite, width: 4),
+                borderRadius: BorderRadius.circular(68),
+              ),
+              padding: EdgeInsets.all(
+                controller.value.isRecordingPaused
+                    ? 10
+                    : controller.value.isRecordingVideo
+                    ? 15
+                    : 4,
+              ),
+              child: Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: CustomColors.fillWhite, width: 4),
+                  color: CustomColors.warningActive,
+                  shape: controller.value.isRecordingVideo
+                      ? BoxShape.rectangle
+                      : BoxShape.circle,
+                  borderRadius: controller.value.isRecordingVideo
+                      ? BorderRadius.circular(4)
+                      : null,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 0,
+            child: GestureDetector(
+              onTap: () => flip(),
+              child: Container(
+                height: 50,
+                width: 50,
+                decoration: BoxDecoration(
+                  color: CustomColors.fillWhite,
                   borderRadius: BorderRadius.circular(68),
                 ),
-                padding: EdgeInsets.all(
-                  controller.value.isRecordingPaused
-                      ? 10
-                      : controller.value.isRecordingVideo
-                          ? 15
-                          : 4,
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: CustomColors.warningActive,
-                    shape: controller.value.isRecordingVideo
-                        ? BoxShape.rectangle
-                        : BoxShape.circle,
-                    borderRadius: controller.value.isRecordingVideo
-                        ? BorderRadius.circular(4)
-                        : null,
+                padding: const EdgeInsets.all(4),
+                child: Center(
+                  child: Icon(
+                    CupertinoIcons.switch_camera_solid,
+                    color: CustomColors.productNormal,
+                    size: 25,
                   ),
                 ),
               ),
             ),
-
-            // Flip — pinned to right
-            Positioned(
-              right: 0,
-              child: GestureDetector(
-                onTap: () => flip(),
-                child: Container(
-                  height: 50,
-                  width: 50,
-                  decoration: BoxDecoration(
-                    color: CustomColors.fillWhite,
-                    borderRadius: BorderRadius.circular(68),
-                  ),
-                  padding: const EdgeInsets.all(4),
-                  child: Center(
-                    child: Icon(
-                      CupertinoIcons.switch_camera_solid,
-                      color: CustomColors.productNormal,
-                      size: 25,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -2495,7 +2450,9 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
           child: Container(
             padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
-                shape: BoxShape.circle, color: CustomColors.fillWhite),
+              shape: BoxShape.circle,
+              color: CustomColors.fillWhite,
+            ),
             child: Icon(
               CupertinoIcons.arrow_uturn_left,
               color: CustomColors.productNormalActive,
@@ -2508,7 +2465,9 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
           child: Container(
             padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
-                shape: BoxShape.circle, color: CustomColors.fillWhite),
+              shape: BoxShape.circle,
+              color: CustomColors.fillWhite,
+            ),
             child: Icon(
               CupertinoIcons.checkmark_alt,
               color: CustomColors.productNormalActive,
@@ -2519,65 +2478,31 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
     );
   }
 
-  capture() async {
-    if (controller.value.isTakingPicture) return;
-
-    if (mounted) {
-      final _file = await controller.takePicture();
-      setState(() {
-        file = _file;
-      });
-    }
-  }
-
   Future<String> getFilePath() async {
     final directory = await getApplicationDocumentsDirectory();
-    final dir = await Directory(
-            p.join(directory.path, widget.isImage ? 'images' : 'videos'))
+    final dir = await Directory(p.join(directory.path, 'videos'))
         .create(recursive: true);
     final now = DateTime.now();
-    final fileName =
-        '${widget.prompt.id + 1}_${formatDate(now)}${widget.isImage ? ".jpg" : ".mp4"}';
-    final filePath = p.join(dir.path, fileName);
-    return filePath;
+    final fileName = '${widget.prompt.id + 1}_${formatDate(now)}.mp4';
+    return p.join(dir.path, fileName);
   }
 
-  record() async {
+  Future<void> record() async {
     if (controller.value.isRecordingVideo) {
-      stop();
+      await stop();
       return;
     }
-
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToTop());
     await controller.startVideoRecording();
     startTimer();
   }
 
-  // Used to play the video
-  play() async {
-    if (videoController?.value.isPlaying ?? false) {
-      await videoController?.pause();
-      if (mounted) {
-        setState(() {
-          videoPlaying = false;
-        });
-      }
-    } else {
-      await videoController?.play();
-      if (mounted) {
-        setState(() {
-          videoPlaying = true;
-        });
-      }
-    }
-  }
-
-  save() async {
+  Future<void> save() async {
     try {
       if (file != null) {
         final path = await getFilePath();
         await file!.saveTo(path);
-        final name = basePath(path);
-        widget.respond(name, widget.isImage ? "image" : "video");
+        widget.respond(basePath(path), "video");
         if (mounted) Navigator.pop(context, true);
       }
     } catch (e) {
@@ -2585,123 +2510,62 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
     }
   }
 
-  redo() async {
+  void redo() {
     setState(() {
       file = null;
       elapsed = const Duration();
     });
   }
 
-  pause() async {
+  Future<void> pause() async {
     if (controller.value.isRecordingVideo &&
         !controller.value.isRecordingPaused) {
       await controller.pauseVideoRecording();
-      if (mounted) {
-        setState(() {
-          stopTimer();
-        });
-      }
+      if (mounted) setState(() => stopTimer());
       return;
     }
-
     await controller.resumeVideoRecording();
+    if (mounted) setState(() => startTimer());
+  }
+
+  Future<void> stop() async {
+    stopTimer();
+    final captured = await controller.stopVideoRecording();
+    if (!mounted) return;
     setState(() {
-      startTimer();
+      file = captured;
+      videoController = VideoPlayerController.file(File(captured.path));
+      videoController?.addListener(() {
+        if (mounted) {
+          setState(() {
+            videoPlaying = videoController?.value.isPlaying ?? false;
+          });
+        }
+      });
     });
   }
 
-  stop() async {
-    stopTimer();
-    final _file = await controller.stopVideoRecording();
-    if (mounted) {
-      setState(() {
-        file = _file;
-        videoController = VideoPlayerController.file(File(_file.path));
-        videoController?.addListener(() {
-          if (mounted) {
-            setState(() {
-              videoPlaying = videoController?.value.isPlaying ?? false;
-            });
-          }
-        });
-      });
-    }
-  }
-
-  flip() async {
+  Future<void> flip() async {
     final currentLensDirection = controller.description.lensDirection;
     CameraDescription lens = cameras[0];
-
     for (final camera in cameras) {
       if (camera.lensDirection != currentLensDirection) {
         lens = camera;
         break;
       }
     }
-
-    controller.setDescription(lens);
+    await controller.setDescription(lens);
   }
 
-  flash() async {
-    final flashes = [FlashMode.auto, FlashMode.always, FlashMode.off];
-    final current = controller.value.flashMode;
-
-    // Get the index of the current mode
-    int currentIndex = flashes.indexOf(current);
-
-    // Calculate the next index (looping back to 0 if at the end)
-    int nextIndex = (currentIndex + 1) % flashes.length;
-
-    final mode = flashes[nextIndex];
-
-    // Set new flash
-    try {
-      await controller.setFlashMode(mode);
-    } catch (e) {
-      dev.log("Problem setting flash: $e");
-    }
-
-    switch (mode) {
-      case FlashMode.auto:
-        setState(() {
-          flashIcon = CupertinoIcons.bolt_badge_a_fill;
-        });
-        break;
-      case FlashMode.always:
-        setState(() {
-          flashIcon = CupertinoIcons.bolt_fill;
-        });
-        break;
-      case FlashMode.off:
-        setState(() {
-          flashIcon = CupertinoIcons.bolt_slash_fill;
-        });
-        break;
-      default:
-        setState(() {
-          flashIcon = CupertinoIcons.bolt;
-        });
-        break;
-    }
-  }
-
-  startTimer() {
+  void startTimer() {
     _timer ??= Timer.periodic(const Duration(seconds: 1), (value) {
-      if (mounted) {
-        setState(() {
-          elapsed = const Duration(seconds: 1) + elapsed;
-        });
-      }
+      if (mounted) setState(() => elapsed += const Duration(seconds: 1));
     });
   }
 
-  stopTimer() {
+  void stopTimer() {
     _timer?.cancel();
     _timer = null;
-  }
-
-  pauseTimer() {
-    _timer?.cancel();
   }
 }
 

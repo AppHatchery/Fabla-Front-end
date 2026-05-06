@@ -1573,7 +1573,6 @@ class _TeleprompterResponseWidgetState
                 return TeleprompterModal(
                   respond: widget.respond,
                   prompt: widget.prompt,
-                  isImage: false,
                 );
               },
             ));
