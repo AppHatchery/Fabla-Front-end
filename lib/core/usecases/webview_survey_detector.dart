@@ -28,7 +28,8 @@ const String qualtricsDetector = '''
     '#EndOfSurvey',
     '.SurveyEnd',
     '.CompletedSurvey',
-    '#SurveyEngineBody .SurveyEnd'
+    '#SurveyEngineBody .SurveyEnd',
+    '#end-of-survey',
   ];
   for (const s of selectors) {
     try {
