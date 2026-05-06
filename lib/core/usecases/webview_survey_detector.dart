@@ -5,7 +5,7 @@ String detectSurveyPlatform(String url) {
   final host = uri.host.toLowerCase();
   final path = uri.path.toLowerCase();
 
-  if (host.contains('qualtrics.com')) return qualitricsDetector;
+  if (host.contains('qualtrics')) return qualitricsDetector;
 
   if (host.contains('redcap') ||
       path.contains('/redcap/') ||
