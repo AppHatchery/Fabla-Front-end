@@ -2074,11 +2074,20 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
   @override
   void initState() {
     controller = CameraController(
-      cameras[0],
+      _frontCamera(),
       ResolutionPreset.high,
     );
     cameraInit();
     super.initState();
+  }
+
+  /// Returns the front-facing camera if available, otherwise falls back to
+  /// the first available camera.
+  CameraDescription _frontCamera() {
+    return cameras.firstWhere(
+      (c) => c.lensDirection == CameraLensDirection.front,
+      orElse: () => cameras[0],
+    );
   }
 
   void _scrollToBottom() {
