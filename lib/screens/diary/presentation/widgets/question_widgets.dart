@@ -2095,23 +2095,28 @@ class _VideoViewerState extends State<VideoViewer> {
 
   @override
   Widget build(BuildContext context) {
-    return controller != null
-        ? SizedBox(
-            height: widget.height,
-            width: widget.width,
-            child: Column(children: [
-              Expanded(
-                child: Container(
-                  width: widget.width,
-                  decoration: const BoxDecoration(
-                    color: CustomColors.greyLight,
-                  ),
-                  child: Center(
+    return SafeArea(
+      child: controller != null
+          ? SizedBox(
+              height: widget.height,
+              width: widget.width,
+              child: Column(children: [
+                Expanded(
+                  child: Container(
+                    width: widget.width,
+                    decoration: const BoxDecoration(
+                      color: CustomColors.greyLight,
+                    ),
                     child: Stack(
                       children: [
-                        AspectRatio(
-                          aspectRatio: controller!.value.aspectRatio,
-                          child: VideoPlayer(controller!),
+                        Positioned(
+                          bottom: 200,
+                          left: 8,
+                          right: 8,
+                          child: AspectRatio(
+                            aspectRatio: controller!.value.aspectRatio,
+                            child: VideoPlayer(controller!),
+                          ),
                         ),
                         Positioned(
                           bottom: 15,
@@ -2160,44 +2165,44 @@ class _VideoViewerState extends State<VideoViewer> {
                     ),
                   ),
                 ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 28.5),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () => play(),
-                      child: Container(
-                        height: 64,
-                        width: 64,
-                        decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: CustomColors.fillWhite),
-                        child: Center(
-                          child: Padding(
-                            padding:
-                                EdgeInsets.only(left: videoPlaying ? 0 : 4.0),
-                            child: Icon(
-                              videoPlaying
-                                  ? CupertinoIcons.pause_fill
-                                  : CupertinoIcons.play_arrow_solid,
-                              color: CustomColors.productNormalActive,
-                              size: 32,
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 28.5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: () => play(),
+                        child: Container(
+                          height: 64,
+                          width: 64,
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: CustomColors.fillWhite),
+                          child: Center(
+                            child: Padding(
+                              padding:
+                                  EdgeInsets.only(left: videoPlaying ? 0 : 4.0),
+                              child: Icon(
+                                videoPlaying
+                                    ? CupertinoIcons.pause_fill
+                                    : CupertinoIcons.play_arrow_solid,
+                                color: CustomColors.productNormalActive,
+                                size: 32,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    )
-                  ],
-                ),
-              )
-            ]),
-          )
-        : Center(
-            child: CircularProgressIndicator(),
-          );
+                      )
+                    ],
+                  ),
+                )
+              ]),
+            )
+          : Center(
+              child: CircularProgressIndicator(),
+            ),
+    );
   }
 
   init() async {
