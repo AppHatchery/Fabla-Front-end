@@ -5,7 +5,7 @@ String detectSurveyPlatform(String url) {
   final host = uri.host.toLowerCase();
   final path = uri.path.toLowerCase();
 
-  if (host.contains('qualtrics')) return qualitricsDetector;
+  if (host.contains('qualtrics')) return qualtricsDetector;
 
   if (host.contains('redcap') ||
       path.contains('/redcap/') ||
@@ -21,7 +21,7 @@ String detectSurveyPlatform(String url) {
 ''';
 }
 
-const String qualitricsDetector = '''
+const String qualtricsDetector = '''
 (function() {
   const selectors = [
     '.EndOfSurvey',
