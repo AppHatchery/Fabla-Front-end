@@ -28,6 +28,8 @@ class Options {
   int? targetedQuestion;
   //MediaVideo
   String? medialink;
+  //Teleprompter
+  String? teleprompterUrl;
 
   Options(
       {required this.type,
@@ -48,7 +50,8 @@ class Options {
       this.stimuli,
       this.length,
       this.targetedQuestion,
-      this.medialink});
+      this.medialink,
+      this.teleprompterUrl});
 
   factory Options.fromJson(
     Map<String, dynamic> json,
@@ -84,7 +87,8 @@ class Options {
           ? formatStringToDuration(json['length'])
           : null,
       targetedQuestion: json['targeted_question'],
-      medialink: json['media_link']
+      medialink: json['media_link'],
+      teleprompterUrl: json['teleprompter_url']
     );
   }
 
@@ -113,6 +117,7 @@ class Options {
       'length': length != null ? formatDurationToString(length!) : null,
       'targeted_question': targetedQuestion,
       'media_link' : medialink,
+      'teleprompter_url': teleprompterUrl
     };
   }
 }

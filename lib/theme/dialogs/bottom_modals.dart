@@ -2244,7 +2244,7 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
                     ),
                     child: Center(
                       child: Image.asset(
-                        "assets/images/image 550.png",
+                        "assets/images/${widget.prompt.option?.teleprompterUrl}",
                         fit: BoxFit.fitWidth,
                       ),
                     ),
