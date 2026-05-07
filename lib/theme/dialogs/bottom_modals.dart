@@ -1277,7 +1277,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
     );
 
     if (result != true && mounted) {
-      setState(() => completed = false);
+      // setState(() => completed = false); //! Commented out not to reset the end of survey detection 
       _webViewKey.currentState?.resetSurvey();
     }
   }

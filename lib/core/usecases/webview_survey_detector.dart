@@ -55,6 +55,7 @@ const String redcapDetector = '''
       if (el && getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden') return true;
     } catch(e) {}
   }
+  if (document.body && document.body.innerText.includes('You may now close this tab/window')) return true;
   return false;
 })()
 ''';

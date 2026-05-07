@@ -283,8 +283,8 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   void _startPeriodicCheck() {
     _checkTimer?.cancel();
 
-    // Check every 500 milliseconds
-    _checkTimer = Timer.periodic(Duration(milliseconds: 500), (timer) {
+    // Check every 250 milliseconds
+    _checkTimer = Timer.periodic(Duration(milliseconds: 250), (timer) {
       detectSurveyFinish();
     });
   }
@@ -308,7 +308,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
     );
     if (data == true && mounted) {
       // Add a small delay to double-check, preventing false positives during transitions
-      await Future.delayed(Duration(milliseconds: 1000));
+      await Future.delayed(Duration(milliseconds: 500));
 
       // Run the check one more time to confirm
       final confirmData =
