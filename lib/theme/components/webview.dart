@@ -268,6 +268,23 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
     });
   }
 
+  // One-shot end-string check called at the moment the user taps Finish or Close.
+  // Uses plain text matching (getEndStringDetector) rather than the DOM selector
+  // polling logic (detectSurveyPlatform) — a simpler, independent failsafe.
+  // Returns null for unknown platforms so analytics can distinguish
+  // "no detector" from a confirmed false-negative.
+  Future<bool?> checkEndString() async {
+    if (controller == null) return null;
+    final js = getEndStringDetector(widget.url);
+    if (js == null) return null;
+    try {
+      final result = await controller!.runJavaScriptReturningResult(js);
+      return result == true;
+    } catch (e) {
+      return null;
+    }
+  }
+
   void resetSurvey() {
     if (!mounted) return;
     _checkTimer?.cancel();
@@ -303,6 +320,10 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
       (error) {
         // Handle any errors that occur during JavaScript execution
         dev.log('Error running JavaScript: $error');
+        track({
+          "code": "js_execution_error",
+          "description": error.toString(),
+        });
         return false;
       },
     );

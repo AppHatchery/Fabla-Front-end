@@ -822,6 +822,8 @@ Participant ID: ''');
                 return BottomWebViewModal(
                   url: widget.prompt.option!.link!,
                   respond: widget.respond,
+                  diaryId: widget.diary.id,
+                  promptId: widget.prompt.id,
                 );
               },
             ));
