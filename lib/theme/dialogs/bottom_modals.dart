@@ -1228,8 +1228,8 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   //
   // finish + yes + end → detection_submission   finish + yes + no end → failed_skipped
   // finish + no  + end → detection_return        finish + no  + no end → failed_continued
-  // close + exit + end → detection_exit          close + exit + no end → failed_exit
-  // close + dismiss + end → detection_exitattempt  close + dismiss + no end → failed_return
+  // close + yes + end → detection_exit           close + yes + no end → unknown_exit
+  // close + no  + end → detection_exitattempt    close + no  + no end → unknown_return
   String? _afterLabel(String button, String action, bool? end) {
     if (end == null) return null;
     if (button == 'finish') {
@@ -1239,8 +1239,8 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
       return end ? 'detection_return' : 'failed_continued';
     }
     if (button == 'close') {
-      if (action == 'exit') return end ? 'detection_exit' : 'failed_exit';
-      return end ? 'detection_exitattempt' : 'failed_return';
+      if (action == 'yes') return end ? 'detection_exit' : 'unknown_exit';
+      return end ? 'detection_exitattempt' : 'unknown_return';
     }
     return null;
   }
@@ -1387,7 +1387,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
               ],
             ));
 
-    final action = results == true ? 'exit' : 'dismiss';
+    final action = results == true ? 'yes' : 'no';
     _track({
       'event': 'webview_close',
       'time_in_survey_seconds': _timeInSurveySeconds,
