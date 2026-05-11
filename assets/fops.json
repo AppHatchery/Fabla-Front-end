@@ -322,7 +322,8 @@
                 "question_number": 3,
                 "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
-                "display_time": false
+                "display_time": false,
+                "teleprompter_url": "pic1.png"
               },
               {
                 "question_id": 4977,
@@ -376,7 +377,8 @@
                 "question_number": 8,
                 "suggested_length": "00:00:00",
                 "max_length": "00:00:00",
-                "display_time": false
+                "display_time": false,
+                "teleprompter_url": "pic1.png"
               },
               {
                 "question_id": 5043,
@@ -422,7 +424,8 @@
                 "question_number": 12,
                 "suggested_length": "00:00:00",
                 "max_length": "00:00:00",
-                "display_time": false
+                "display_time": false,
+                "teleprompter_url": "pic1.png"
               },
               {
                 "question_id": 5044,
@@ -679,7 +682,8 @@
                 "question_number": 4,
                 "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
-                "display_time": false
+                "display_time": false,
+                "teleprompter_url": "pic1.png"
               },
               {
                 "question_id": 5079,
@@ -733,7 +737,8 @@
                 "question_number": 9,
                 "suggested_length": "00:00:00",
                 "max_length": "00:00:00",
-                "display_time": false
+                "display_time": false,
+                "teleprompter_url": "pic1.png"
               },
               {
                 "question_id": 5084,
@@ -779,7 +784,8 @@
                 "question_number": 13,
                 "suggested_length": "00:00:00",
                 "max_length": "00:00:00",
-                "display_time": false
+                "display_time": false,
+                "teleprompter_url": "pic1.png"
               },
               {
                 "question_id": 5088,
@@ -942,7 +948,8 @@
                 "question_number": 4,
                 "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
-                "display_time": false
+                "display_time": false,
+                "teleprompter_url": "pic1.png"
               },
               {
                 "question_id": 5159,
@@ -996,7 +1003,8 @@
                 "question_number": 9,
                 "suggested_length": "00:00:00",
                 "max_length": "00:00:00",
-                "display_time": false
+                "display_time": false,
+                "teleprompter_url": "pic1.png"
               },
               {
                 "question_id": 5164,
@@ -1042,7 +1050,8 @@
                 "question_number": 13,
                 "suggested_length": "00:00:00",
                 "max_length": "00:00:00",
-                "display_time": false
+                "display_time": false,
+                "teleprompter_url": "pic1.png"
               },
               {
                 "question_id": 5168,
@@ -1205,7 +1214,8 @@
                 "question_number": 4,
                 "suggested_length": "00:02:00",
                 "max_length": "00:00:00",
-                "display_time": false
+                "display_time": false,
+                "teleprompter_url": "pic1.png"
               },
               {
                 "question_id": 5219,
@@ -1259,7 +1269,8 @@
                 "question_number": 9,
                 "suggested_length": "00:00:00",
                 "max_length": "00:00:00",
-                "display_time": false
+                "display_time": false,
+                "teleprompter_url": "pic1.png"
               },
               {
                 "question_id": 5224,
@@ -1305,7 +1316,8 @@
                 "question_number": 13,
                 "suggested_length": "00:00:00",
                 "max_length": "00:00:00",
-                "display_time": false
+                "display_time": false,
+                "teleprompter_url": "pic1.png"
               },
               {
                 "question_id": 5228,
