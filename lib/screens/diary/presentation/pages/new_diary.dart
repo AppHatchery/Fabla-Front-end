@@ -632,8 +632,8 @@ class _QuestionPageState extends State<QuestionPage>
     } else if (prompt.responseType == ResponseType.text) {
       questionTip = prompt.subtitle ?? "Please type your answer:";
     } else if (prompt.responseType == ResponseType.webview) {
-      questionTip =
-          "Close the pop-up window when you are done filling the survey.";
+      questionTip = prompt.subtitle ??
+          "Tap ‘Finish’ when you’ve completed the survey";
     } else if (prompt.responseType == ResponseType.timer) {
       questionTip =
           'Hit the “Start” button to begin meditation countdown.\nDuring the countdown, if you leave the page, the timer will continue on the background.';

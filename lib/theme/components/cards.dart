@@ -842,13 +842,16 @@ class _NewAudioCardState extends State<NewAudioCard> {
                 shape: BoxShape.circle,
                 color: CustomColors.productNormalActive,
               ),
-              child: IconButton(
-                onPressed: () => play(),
-                icon: Icon(isPlaying
-                    ? CupertinoIcons.pause_fill
-                    : CupertinoIcons.play_arrow_solid),
-                color: CustomColors.fillWhite,
-                iconSize: 10,
+              child: Transform.translate(
+                offset: isPlaying ? const Offset(0, -1) : const Offset(1, -1),
+                child: IconButton(
+                  onPressed: () => play(),
+                  icon: Icon(isPlaying
+                      ? CupertinoIcons.pause_fill
+                      : CupertinoIcons.play_arrow_solid),
+                  color: CustomColors.fillWhite,
+                  iconSize: 10,
+                ),
               )),
           const SizedBox(width: 3),
           Expanded(

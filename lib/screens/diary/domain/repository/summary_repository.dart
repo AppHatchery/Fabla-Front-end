@@ -156,7 +156,7 @@ class SummaryRepository {
               submissions: submissions);
         }
 
-        diaryRepository.updateDiary(newDiary);
+       await diaryRepository.updateDiary(newDiary);
 
         // Cancel notifications if diary is complete
         // Schedule daily goal notifications if diary is not complete

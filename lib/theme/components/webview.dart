@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 
+import 'package:audio_diaries_flutter/core/usecases/webview_survey_detector.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -30,6 +31,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
   Timer? _checkTimer;
   Timer? _startTimer;
   bool surveyCompleted = false;
+  int _embedKey = 0;
 
   //ui elements
   bool loading = false;
@@ -194,7 +196,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
       );
     }
     if (controller == null) return const SizedBox.shrink();
-    return WebViewWidget(controller: controller!);
+    return WebViewWidget(key: ValueKey(_embedKey), controller: controller!);
   }
 
   void _reTry() async {
@@ -266,11 +268,40 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
     });
   }
 
+  // One-shot end-string check called at the moment the user taps Finish or Close.
+  // Uses plain text matching (getEndStringDetector) rather than the DOM selector
+  // polling logic (detectSurveyPlatform) — a simpler, independent failsafe.
+  // Returns null for unknown platforms so analytics can distinguish
+  // "no detector" from a confirmed false-negative.
+  Future<bool?> checkEndString() async {
+    if (controller == null) return null;
+    final js = getEndStringDetector(widget.url);
+    if (js == null) return null;
+    try {
+      final result = await controller!.runJavaScriptReturningResult(js);
+      return result == true;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void resetSurvey() {
+    if (!mounted) return;
+    _checkTimer?.cancel();
+    setState(() {
+      surveyCompleted = false;
+      _embedKey++;
+    });
+    if (!loading && webViewError == null) {
+      _startPeriodicCheck();
+    }
+  }
+
   void _startPeriodicCheck() {
     _checkTimer?.cancel();
 
-    // Check every 500 milliseconds
-    _checkTimer = Timer.periodic(Duration(milliseconds: 500), (timer) {
+    // Check every 250 milliseconds
+    _checkTimer = Timer.periodic(Duration(milliseconds: 250), (timer) {
       detectSurveyFinish();
     });
   }
@@ -282,182 +313,23 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
       return;
     }
 
-    final String javaScript = '''
-    (function() {
-
-    const completionSelectors = [
-        // Qualtrics completion
-        '.EndOfSurvey',
-        '#EndOfSurvey',
-        '.SurveyEnd',
-        '.CompleteMessage',
-        '[class*="complete"]',
-        '[class*="Complete"]',
-        '[class*="thank"]',
-        '[class*="Thank"]',
-
-        // SurveyMonkey completion
-        '.thank-you',
-        '.completion-message',
-        // Google Forms completion
-        '.freebirdFormviewerViewResponseConfirmationMessage',
-
-        // RedCap completion
-        '.surveyacknowledgment',
-        '#surveyacknowledgment',
-        '[data-mlm="survey-acknowledgment"]',
-        
-        // Generic completion messages
-        '[id*="complete"]',
-        '[id*="Complete"]',
-        '[id*="thank"]',
-        '[id*="Thank"]'
-      ];
-      
-      // If completion indicator found, survey is finished
-      for (let selector of completionSelectors) {
-        try {
-          const elements = document.querySelectorAll(selector);
-          for (let el of elements) {
-            const isVisible = el.offsetParent !== null &&
-              getComputedStyle(el).display !== 'none' &&
-              getComputedStyle(el).visibility !== 'hidden';
-            if (isVisible) {
-              return true; // Survey completed
-            }
-          }
-        } catch (e) {
-          // Continue checking other selectors
-        }
-      }
-
-    const nextButtonSelectors = [
-        'button:contains("Next")',
-        'input[type="button"][value*="Next"]',
-        'input[type="submit"][value*="Next"]',
-        'a:contains("Next")',
-        '.next-button',
-        '#nextButton',
-        '[aria-label*="next"]',
-        '[aria-label*="Next"]',
-        '[title*="next"]',
-        '[title*="Next"]',
-        '[data-action*="next"]',
-        '[data-action*="Next"]',
-        '[data-role="next"]',
-        '[data-role="Next"]',
-        '[data-navigate="next"]',
-        '[data-navigate="Next"]',
-        '[data-direction="next"]',
-        '[data-direction="Next"]',
-        '[data-step="next"]',
-        '[data-step="Next"]',
-        '[data-qa*="next"]',
-        '[data-qa*="Next"]',
-        '[data-testid*="next"]',
-        '[data-testid*="Next"]',
-        '[data-cy*="next"]',
-        '[data-cy*="Next"]',
-        '[data-automation*="next"]',
-        '[data-automation*="Next"]',
-
-        // Qualtrics
-        '.NextButton',
-        '#NextButton',
-        '[data-runtime-class*="NextButton"]',
-        '.QR-NextButton',
-
-        // SurveyMonkey
-        '.btn-next',
-        '.next',
-        '.sm-next',
-        '.surveymonkey-next',
-
-        // Google Forms
-        '.freebirdFormviewerViewNavigationNextButton',
-        '.quantumWizButtonPaperbuttonNext',
-
-        // Typeform
-        '.next-button-container button',
-        '[data-qa="next-button"]',
-
-        // LimeSurvey
-        '.ls-move-btn-next',
-        '.moveNextBtn',
-
-        // SurveyGizmo/Alchemer
-        '.sg-next-button',
-
-        // Generic patterns
-        '[id*="next"]',
-        '[class*="next"]',
-        '[name*="next"]',
-        '[onclick*="next"]',
-        '[onclick*="Next"]',
-        '[href*="next"]',
-        '[href*="Next"]',
-
-        // Common button patterns
-        'button[type="submit"]',
-        'input[type="submit"]',
-        'button, input[type="button"], input[type="submit"], a.button',
-
-        // Alternative text patterns
-        'button:contains("Continue")',
-        'input[value*="Continue"]',
-        '[aria-label*="continue"]',
-        '[aria-label*="Continue"]',
-        'button:contains("Proceed")',
-        'input[value*="Proceed"]',
-        'button:contains("Forward")',
-        'input[value*="Forward"]',
-        'button:contains("→")',
-        'button:contains("►")',
-        'button:contains(">")',
-        'button:contains(">>")'
-    ];
-
-    for (let selector of nextButtonSelectors) {
-        try {
-            const elements = document.querySelectorAll(selector);
-            for (let el of elements) {
-                const tag = el.tagName.toLowerCase();
-                if (!['button', 'input', 'a'].includes(tag)) continue;
-
-                const elementText = el.innerText || el.value || el.textContent || '';
-                const ariaLabel = el.getAttribute('aria-label') || '';
-                const isVisible = el.offsetParent !== null &&
-                                  getComputedStyle(el).display !== 'none' &&
-                                  getComputedStyle(el).visibility !== 'hidden';
-
-                if (isVisible && (
-                    elementText.toLowerCase().includes('next') ||
-                    ariaLabel.toLowerCase().includes('next')
-                )) {
-                    // Found a visible "Next" button
-                    return false;
-                }
-            }
-        } catch (e) {
-        }
-    }
-
-    // No "Next" button found
-    return true;
-})();
-    ''';
+    final String javaScript = detectSurveyPlatform(widget.url);
 
     final data =
         await controller!.runJavaScriptReturningResult(javaScript).catchError(
       (error) {
         // Handle any errors that occur during JavaScript execution
         dev.log('Error running JavaScript: $error');
+        track({
+          "code": "js_execution_error",
+          "description": error.toString(),
+        });
         return false;
       },
     );
     if (data == true && mounted) {
       // Add a small delay to double-check, preventing false positives during transitions
-      await Future.delayed(Duration(milliseconds: 1000));
+      await Future.delayed(Duration(milliseconds: 500));
 
       // Run the check one more time to confirm
       final confirmData =

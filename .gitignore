@@ -88,3 +88,9 @@ assets/video/Video_08.mov
 assets/video/Video_09.mov
 assets/video/Video_10.mov
 assets/video/Video_11.mov
+# OS generated files #
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store?
