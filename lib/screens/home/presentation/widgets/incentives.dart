@@ -166,7 +166,7 @@ class _StudyIncentivesState extends State<StudyIncentives> {
         Padding(
           padding:EdgeInsets.only(bottom: 24),
           child: Container(
-            height: 81,
+            // height: 81,
             width: 440,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
@@ -174,8 +174,8 @@ class _StudyIncentivesState extends State<StudyIncentives> {
             ),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
                 children: [
                   Text(
                     "Total Compensation",
@@ -425,24 +425,19 @@ class _StudyIncentiveState extends State<StudyIncentive> {
   }
 
   Widget previewTotal() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          decoration: ShapeDecoration(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
-            ),
-            color: widget.study.color?.withAlpha(90),
-          ),
-          padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-          child: Text(
-            "${formatMoney(acquired, currency: currency)}/${formatMoney(total, currency: currency)}",
-            style: CustomTypography()
-                .titleSmall(color: CustomColors.textNormalContent),
-          ),
+    return Container(
+      decoration: ShapeDecoration(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4),
         ),
-      ],
+        color: widget.study.color?.withAlpha(90),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: Text(
+        "${formatMoney(acquired, currency: currency)}/${formatMoney(total, currency: currency)}",
+        style: CustomTypography()
+            .titleSmall(color: CustomColors.textNormalContent),
+      ),
     );
   }
 
@@ -603,10 +598,12 @@ class _StudyIncentiveState extends State<StudyIncentive> {
           children: [
             Icon(Icons.help_outline_rounded,
                 color: CustomColors.textSecondaryContent),
-            Text(
-              "How are the incentives calculated?",
-              style: CustomTypography()
-                  .bodyMedium(color: CustomColors.textSecondaryContent),
+            Flexible(
+              child: Text(
+                "How are the incentives calculated?",
+                style: CustomTypography()
+                    .bodyMedium(color: CustomColors.textSecondaryContent),
+              ),
             ),
           ],
         ),
