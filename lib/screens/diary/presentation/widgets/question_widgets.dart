@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 import 'dart:io';
 import 'dart:math';
 
@@ -2288,6 +2289,7 @@ class _MediaVideoResponseState extends State<MediaVideoResponse> {
   @override
   Widget build(BuildContext context) {
     final url = widget.prompt.option?.medialink;
+    dev.log("$url");
     return Column(
       children: [
         Padding(

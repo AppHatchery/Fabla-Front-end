@@ -76,3 +76,15 @@ grant_permission.sh
 
 # Video assets
 /assets/video/
+*.mov
+assets/video/Video_01.mov
+assets/video/Video_02.mov
+assets/video/Video_03.mov
+assets/video/Video_04.mov
+assets/video/Video_05.mov
+assets/video/Video_06.mov
+assets/video/Video_07.mov
+assets/video/Video_08.mov
+assets/video/Video_09.mov
+assets/video/Video_10.mov
+assets/video/Video_11.mov
