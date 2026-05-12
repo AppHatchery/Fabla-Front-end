@@ -78,7 +78,7 @@ dependencies:
   shared_preferences: ^2.5.2
 
   #Database
-  objectbox: ^4.1.0
+  objectbox: ^5.3.1
   objectbox_flutter_libs: any
 
   #Animations
