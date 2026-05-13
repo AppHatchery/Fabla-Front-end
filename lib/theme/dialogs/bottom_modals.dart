@@ -1403,10 +1403,8 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
     end = DateTime.now();
     if (completed == null) {
       widget.respond("Item was skipped due to: $errorText");
-      dev.log('${widget.respond} Item was skipped due to: $errorText');
     } else {
       widget.respond("Start: $start | End: $end");
-      dev.log('${widget.respond} "Start: $start | End: $end" ');
     }
     Navigator.pop(context);
   }
