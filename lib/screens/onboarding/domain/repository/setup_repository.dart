@@ -547,7 +547,6 @@ class SetupRepository {
       firebaseToken =
           kDebugMode ? "dev" : await FirebaseMessaging.instance.getToken();
       if (firebaseToken != null) {
-        debugPrint("Firebase Token: $firebaseToken");
       } else {
         debugPrint("Failed to fetch Firebase token: Token is null.");
       }
@@ -646,8 +645,6 @@ class SetupRepository {
         'service': platformName,
       },
     );
-
-    dev.log("map $map", name: "Uploading OnBoarding Questions");
 
     final result =
         await post(path: "/fabla/updateuserextras", body: map).then((value) {

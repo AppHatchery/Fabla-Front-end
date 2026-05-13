@@ -292,9 +292,6 @@ Future<String?> getPresignedUrl(
           statusCode: response.statusCode,
           method: 'POST',
           requestData: {'filename': filename});
-      dev.log(
-          'Failed to get presigned URL: ${response.statusCode}, ${response.body}',
-          name: 'Upload - Get Presigned URL');
       return null;
     }
   } catch (e, stackTrace) {
