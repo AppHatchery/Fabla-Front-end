@@ -9,7 +9,7 @@ import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
-import 'package:rive/rive.dart' as rive;
+import 'package:rive/rive.dart';
 
 import 'dart:developer' as dev;
 
@@ -29,18 +29,18 @@ class TodayGoalWidget extends StatefulWidget {
 }
 
 class _TodayGoalWidgetState extends State<TodayGoalWidget> {
-  rive.File? _riveFile;
-  rive.RiveWidgetController? _riveController;
+  File? _riveFile;
+  RiveWidgetController? _riveController;
 
   Future<void> _loadRive() async {
-    final file = await rive.File.asset(
+    final file = await File.asset(
       'assets/animations/ghosts.riv',
-      riveFactory: rive.Factory.rive,
+      riveFactory: Factory.rive,
     );
     if (file != null && mounted) {
-      final controller = rive.RiveWidgetController(
+      final controller = RiveWidgetController(
         file,
-        stateMachineSelector: rive.StateMachineSelector.byName('Ghosts'),
+        stateMachineSelector: StateMachineSelector.byName('Ghosts'),
       );
       setState(() {
         _riveFile = file;
@@ -124,9 +124,9 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                           height: 120,
                           width: 180,
                           child: _riveController != null
-                              ? rive.RiveWidget(
+                              ? RiveWidget(
                                   controller: _riveController!,
-                                  fit: rive.Fit.cover,
+                                  fit: Fit.cover,
                                 )
                               : const SizedBox.shrink(),
                         ),
@@ -150,9 +150,9 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
         await PreferenceService().getBoolPreference(key: 'cold_start') ?? true;
 
     if (coldStart) {
-      final arrival = _riveController?.stateMachine.boolean('First arrival');
+      final arrival = _riveController?.stateMachine.trigger('First arrival');
       if (arrival != null && mounted) {
-        arrival.value = true;
+        arrival.fire();
       }
 
       //set cold start in shared pref
@@ -168,9 +168,9 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
     // If no goals are available for today
     if (goalData.isEmpty) {
-      final animation = _riveController?.stateMachine.boolean('Searching_2');
+      final animation = _riveController?.stateMachine.trigger('Searching_2');
       if (animation != null && mounted) {
-        animation.value = true;
+        animation.fire();
       }
       return;
     }
@@ -249,22 +249,22 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
   /// Shows a random searching animation (50/50 chance between Searching_1 and Searching_2)
   void _showRandomSearchingAnimation() {
-    final searchingOne = _riveController?.stateMachine.boolean('Searching_1');
-    final searchingTwo = _riveController?.stateMachine.boolean('Searching_2');
+    final searchingOne = _riveController?.stateMachine.trigger('Searching_1');
+    final searchingTwo = _riveController?.stateMachine.trigger('Searching_2');
 
     final random = Random().nextInt(2);
     final animation = random == 0 ? searchingOne : searchingTwo;
 
     if (animation != null && mounted) {
-      animation.value = true;
+      animation.fire();
     }
   }
 
   /// Helper method to show a specific animation
   void _showAnimation(String animationName) {
-    final animation = _riveController?.stateMachine.boolean(animationName);
+    final animation = _riveController?.stateMachine.trigger(animationName);
     if (animation != null && mounted) {
-      animation.value = true;
+      animation.fire();
     }
   }
 

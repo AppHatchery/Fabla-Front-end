@@ -58,9 +58,9 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
 
   void determineAnimation() {
     final achieving =
-        _riveController?.stateMachine.boolean('Achieving the goal ');
+        _riveController?.stateMachine.trigger('Achieving the goal ');
     if (achieving != null && mounted) {
-      achieving.value = true;
+      achieving.fire();
     }
   }
 

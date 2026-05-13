@@ -269,7 +269,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           child: Transform(
             transform: Matrix4.translationValues(
                 -140, textScaleFactor >= 1.6 ? 0 : 20, 0)
-              ..scale(-1.0, 1.0),
+              ..multiply(Matrix4.diagonal3Values(-1.0, 1.0, 1.0)),
             alignment: Alignment.center,
             child: _riveController != null
                 ? r.RiveWidget(
@@ -738,9 +738,9 @@ class _BottomTextModalState extends State<BottomTextModal>
         _riveController = controller;
       });
       Future.delayed(const Duration(milliseconds: 10), () {
-        final searchingOne = controller.stateMachine.boolean('Searching_1');
+        final searchingOne = controller.stateMachine.trigger('Searching_1');
         if (searchingOne != null && mounted) {
-          searchingOne.value = true;
+          searchingOne.fire();
         }
       });
     }
@@ -1482,7 +1482,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
   //Animation
   r.File? _riveFile;
   r.RiveWidgetController? _riveController;
-  r.BooleanInput? _searchingOne;
+  r.TriggerInput? _searchingOne;
 
   Future<void> _loadRive() async {
     final file = await r.File.asset(
@@ -1497,10 +1497,10 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
       setState(() {
         _riveFile = file;
         _riveController = controller;
-        _searchingOne = controller.stateMachine.boolean('Searching_1');
+        _searchingOne = controller.stateMachine.trigger('Searching_1');
       });
       Future.delayed(const Duration(milliseconds: 10), () {
-        if (mounted) _searchingOne?.value = true;
+        if (mounted) _searchingOne?.fire();
       });
     }
   }
@@ -2680,6 +2680,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
   @override
   void initState() {
     super.initState();
+    _loadRive();
 
     // Initialize animation controller
     _shakeController = AnimationController(
@@ -2692,25 +2693,30 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       });
   }
 
+  Future<void> _loadRive() async {
+    final file = await r.File.asset(
+      'assets/animations/onboarding/floats_in.riv',
+      riveFactory: r.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = r.RiveWidgetController(
+        file,
+        stateMachineSelector: r.StateMachineSelector.byName('Animation_12'),
+      );
+      setState(() {
+        _riveFile = file;
+        _riveController = controller;
+        animationHeight = controller.artboard.height;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _riveController?.dispose();
     _riveFile?.dispose();
     _shakeController.dispose();
     super.dispose();
-  }
-
-  void _onRiveInit(r.Artboard art) {
-    var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
-
-    if (ctrl != null) {
-      art.addController(ctrl);
-      _controller = ctrl;
-    }
-
-    setState(() {
-      animationHeight = art.height;
-    });
   }
 
   @override
@@ -2817,8 +2823,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
           width: media.size.width,
           child: Transform(
             transform: Matrix4.translationValues(5, -animationHeight / 5, 0)
-              ..scale(-1.7,
-                  1.7), // Scale up by 1.5x and flip horizontally with negative x
+              ..multiply(Matrix4.diagonal3Values(-1.7, 1.7, 1.0)),
             alignment: Alignment.center,
             child: _riveController != null
                 ? r.RiveWidget(
