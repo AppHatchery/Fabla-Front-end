@@ -1547,10 +1547,20 @@ class _TeleprompterResponseWidgetState
           ),
           const SizedBox(height: 32),
           widget.prompt.answer?.recordings.isNotEmpty ?? false
-              ? Text(
-                  "Thank you - your recording has been saved and will be available for review later",
-                  style: CustomTypography().headlineMedium(),
-                )
+              ? RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: "Thank you 🎉\n",
+                    style: CustomTypography().headlineLarge(),
+                  ),
+                  TextSpan(
+                    text: "Your recording has been saved and will be available for review later",
+                    style: CustomTypography().bodyLarge(),
+                  ),
+                ]
+              ))
               : const SizedBox.shrink()
         ],
       ),

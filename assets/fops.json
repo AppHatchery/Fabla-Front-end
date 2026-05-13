@@ -30,6 +30,7 @@
                 "subtitle": "",
                 "required": true,
                 "question_number": 1,
+                "answer_type": "media/Video",
                 "media_link": "Video_01.mov"
               },
               {
@@ -53,6 +54,7 @@
                 "subtitle": "",
                 "required": true,
                 "question_number": 3,
+                "answer_type": "media/Video",
                 "media_link": "Video_02.mov"
               },
               {
@@ -70,12 +72,25 @@
                 ]
               },
               {
+                "question_id": 5236,
+                "type": "text",
+                "title": "Which bodily sensation do you notice the most when you get anxious when speaking publicly?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 5,
+                "suggested_length": "00:00:00",
+                "max_length": "00:00:00",
+                "display_time": false,
+                "multiple_answers": false
+              },
+              {
                 "question_id": 4954,
                 "type": "media/Video",
                 "title": "How will this app help me?",
                 "subtitle": "",
                 "required": true,
-                "question_number": 5,
+                "question_number": 6,
+                "answer_type": "media/Video",
                 "media_link": "Video_03.mov"
               },
               {
@@ -84,7 +99,7 @@
                 "title": "Type why you want to address your fear of public speaking.",
                 "subtitle": "",
                 "required": true,
-                "question_number": 6,
+                "question_number": 7,
                 "suggested_length": "00:00:00",
                 "max_length": "00:00:00",
                 "display_time": false,
@@ -107,12 +122,13 @@
                 "subtitle": "",
                 "required": true,
                 "question_number": 1,
+                "answer_type": "media/Video",
                 "media_link": "Video_04.mov"
               },
               {
                 "question_id": 4957,
                 "type": "instruction",
-                "title": "<h3> a. When generating new thoughts, one helpful question to ask yourself is: ?What is the evidence??\n\nb. Assume you notice the thought, ?I will embarrass myself,? before an important public speaking task.</h3> ",
+                "title": "<h3>a. When generating new thoughts, one helpful question to ask yourself is: \"What is the evidence?\" </h3>\n\n<h3>b. Assume you notice the thought, \"I will embarrass myself,\" before an important public speaking task.</h3>",
                 "subtitle": "",
                 "required": true,
                 "question_number": 2
@@ -128,7 +144,7 @@
                   "I stumbled over a few words during the speech.",
                   "I noticed my voice shaking at the beginning.",
                   "I was able to finish the speech and say what I planned to say.",
-                  "The audience?did not seem to?listen?closely."
+                  "The audience did not seem to listen closely."
                 ]
               },
               {
@@ -138,12 +154,13 @@
                 "subtitle": "",
                 "required": true,
                 "question_number": 4,
+                "answer_type": "media/Video",
                 "media_link": "Video_05.mov"
               },
               {
                 "question_id": 4960,
                 "type": "instruction",
-                "title": "<h3>Imagine you are asked to speak at a school, work, or community setting. Now, ask yourself the following questions to identify your thoughts:\n \nWhat am I afraid will happen in this situation? \nWhat am I afraid the audience will think of me?</h3> ",
+                "title": "<h3>Imagine you are asked to speak at a school, work, or community setting. Now, ask yourself the following questions to identify your thoughts:</h3> \n\n<h3>What am I afraid will happen in this situation?</h3> \n<h3>What am I afraid the audience will think of me?</h3>",
                 "subtitle": "",
                 "required": true,
                 "question_number": 5
@@ -167,7 +184,22 @@
                 "subtitle": "",
                 "required": true,
                 "question_number": 7,
+                "answer_type": "media/Video",
                 "media_link": "Video_06.mov"
+              },
+              {
+                "question_id": 5237,
+                "type": "radio",
+                "title": "Select one of the following reminders that you want to practice during approach:",
+                "subtitle": "",
+                "required": true,
+                "question_number": 8,
+                "options": [
+                  "I can feel anxious and still do it.",
+                  "I don't need to be perfect.",
+                  "Focus on the talk, not on how I feel.",
+                  "If I didn't feel anxiety, the practice of approach wouldn't be working."
+                ]
               }
             ],
             "notifications": []
@@ -186,6 +218,7 @@
                 "subtitle": "",
                 "required": true,
                 "question_number": 1,
+                "answer_type": "media/Video",
                 "media_link": "Video_07.mov"
               },
               {
@@ -199,7 +232,7 @@
                   "Stop speaking when anxiety becomes strong",
                   "Stay in the situation for the full amount of time",
                   "End the speech early if you feel uncomfortable",
-                  "All of?the above"
+                  "All of the above"
                 ]
               },
               {
@@ -209,7 +242,22 @@
                 "subtitle": "",
                 "required": true,
                 "question_number": 3,
+                "answer_type": "media/Video",
                 "media_link": "Video_08.mov"
+              },
+              {
+                "question_id": 5238,
+                "type": "radio",
+                "title": "Which of the following is an example of gradually increasing difficulty?",
+                "subtitle": "",
+                "required": true,
+                "question_number": 4,
+                "options": [
+                  "Slowly increasing eye contact",
+                  "Starting with a small audience and then moving to a large one",
+                  "Leaving a speaking situation once you've \"hit your limit\"",
+                  "All of the above"
+                ]
               },
               {
                 "question_id": 4968,
@@ -218,7 +266,22 @@
                 "subtitle": "",
                 "required": true,
                 "question_number": 5,
+                "answer_type": "media/Video",
                 "media_link": "Video_09.mov"
+              },
+              {
+                "question_id": 5239,
+                "type": "radio",
+                "title": "Select one reminder you want to practice during approach:",
+                "subtitle": "",
+                "required": true,
+                "question_number": 6,
+                "options": [
+                  "I can feel anxious and still do it.",
+                  "I don't need to be perfect.",
+                  "Focus on the talk, not on how I feel.",
+                  "If I didn't feel anxiety, the practice of approach wouldn't be working."
+                ]
               },
               {
                 "question_id": 4970,
@@ -227,6 +290,7 @@
                 "subtitle": "",
                 "required": true,
                 "question_number": 7,
+                "answer_type": "media/Video",
                 "media_link": "Video_10.mov"
               },
               {
@@ -250,6 +314,7 @@
                 "subtitle": "",
                 "required": true,
                 "question_number": 9,
+                "answer_type": "media/Video",
                 "media_link": "Video_11.mov"
               },
               {
@@ -279,7 +344,7 @@
           "weekly": 1
         },
         "incentive": {
-          "amount": "2.50",
+          "amount": "0.00",
           "bonus": "0.00",
           "currency": "$",
           "threshold": 0
@@ -288,7 +353,7 @@
           {
             "name": "Approach #1 Module",
             "start_time": "2026-04-29T08:00:00",
-            "end_time": "2026-04-29T23:45:00",
+            "end_time": "2026-05-05T23:45:00",
             "entries": 1,
             "active_days": null,
             "questions": [
@@ -320,10 +385,7 @@
                 "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
                 "required": true,
                 "question_number": 3,
-                "suggested_length": "00:01:00",
-                "max_length": "00:00:00",
-                "display_time": false,
-                "teleprompter_url": "pic1.png"
+                "teleprompter_url": "Audience_Children_Small.png"
               },
               {
                 "question_id": 4977,
@@ -375,10 +437,7 @@
                 "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
                 "required": true,
                 "question_number": 8,
-                "suggested_length": "00:00:00",
-                "max_length": "00:00:00",
-                "display_time": false,
-                "teleprompter_url": "pic1.png"
+                "teleprompter_url": "Audience_Children_Small.png"
               },
               {
                 "question_id": 5043,
@@ -422,10 +481,7 @@
                 "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
                 "required": true,
                 "question_number": 12,
-                "suggested_length": "00:00:00",
-                "max_length": "00:00:00",
-                "display_time": false,
-                "teleprompter_url": "pic1.png"
+                "teleprompter_url": "Audience_Children_Small.png"
               },
               {
                 "question_id": 5044,
@@ -501,7 +557,7 @@
               {
                 "question_id": 5049,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n \n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n \n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n \n<h3>iii. Each approach is practice, not a test.</h3>\n \n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -546,60 +602,8 @@
           {
             "name": "Local Resources Module",
             "start_time": "2026-04-29T00:00:00",
-            "end_time": "2026-04-29T23:45:00",
-            "entries": 3,
-            "active_days": null,
-            "questions": [
-              {
-                "question_id": 5053,
-                "type": "instruction",
-                "title": "<h2> 1. Immediate Support</h2>\n\n<h3>i. 988 Suicide & Crisis Lifeline </h3>\n<h3>Call or text 988, or chat at https://988lifeline.org </h3>\n<h3>Available 24/7 for emotional distress or crisis support. </h3>\n\n<h3>ii. Crisis Text Line </h3>\n<h3>Connect with a trained crisis counselor by text. </h3>\n<h3>Text HOME to 741741 </h3>\n\n<h3>iii. Emergency Services </h3>\n<h3>If you feel you may be in immediate danger, call 911 or go to the nearest emergency department. </h3> ",
-                "subtitle": null,
-                "required": true,
-                "question_number": 1
-              },
-              {
-                "question_id": 5054,
-                "type": "instruction",
-                "title": "<h2> 2. Finding Mental Health Care </h2>\n\n<h3>i. Association for Behavioral and Cognitive Therapies (ABCT) </h3>\n<h3>1. Find therapists trained in evidence-based treatments: </h3>\n<h3>2. https://www.abct.org </h3>\n\n<h3>ii. Anxiety & Depression Association of America (ADAA) </h3>\n<h3>1. Find clinicians and information about anxiety disorders: </h3>\n<h3>2. https://adaa.org </h3>\n\n<h3>iii. Local Treatment </h3>\n<h3>1. The Emory Clinic for Anxiety Resilience, Education, and Support (CARES) program is a psychotherapy consultation service specializing in diagnosis, psychoeducation, and treatment planning for anxiety conditions. </h3>\n<h3>2. https://outlook.office365.com/book/CARES2@mscloud.emory.net/ </h3> ",
-                "subtitle": null,
-                "required": true,
-                "question_number": 2
-              }
-            ],
-            "notifications": []
-          },
-          {
-            "name": "Local Resources Module",
-            "start_time": "2026-04-30T00:00:00",
-            "end_time": "2026-04-30T23:45:00",
-            "entries": 3,
-            "active_days": null,
-            "questions": [
-              {
-                "question_id": 5053,
-                "type": "instruction",
-                "title": "<h2> 1. Immediate Support</h2>\n\n<h3>i. 988 Suicide & Crisis Lifeline </h3>\n<h3>Call or text 988, or chat at https://988lifeline.org </h3>\n<h3>Available 24/7 for emotional distress or crisis support. </h3>\n\n<h3>ii. Crisis Text Line </h3>\n<h3>Connect with a trained crisis counselor by text. </h3>\n<h3>Text HOME to 741741 </h3>\n\n<h3>iii. Emergency Services </h3>\n<h3>If you feel you may be in immediate danger, call 911 or go to the nearest emergency department. </h3> ",
-                "subtitle": null,
-                "required": true,
-                "question_number": 1
-              },
-              {
-                "question_id": 5054,
-                "type": "instruction",
-                "title": "<h2> 2. Finding Mental Health Care </h2>\n\n<h3>i. Association for Behavioral and Cognitive Therapies (ABCT) </h3>\n<h3>1. Find therapists trained in evidence-based treatments: </h3>\n<h3>2. https://www.abct.org </h3>\n\n<h3>ii. Anxiety & Depression Association of America (ADAA) </h3>\n<h3>1. Find clinicians and information about anxiety disorders: </h3>\n<h3>2. https://adaa.org </h3>\n\n<h3>iii. Local Treatment </h3>\n<h3>1. The Emory Clinic for Anxiety Resilience, Education, and Support (CARES) program is a psychotherapy consultation service specializing in diagnosis, psychoeducation, and treatment planning for anxiety conditions. </h3>\n<h3>2. https://outlook.office365.com/book/CARES2@mscloud.emory.net/ </h3> ",
-                "subtitle": null,
-                "required": true,
-                "question_number": 2
-              }
-            ],
-            "notifications": []
-          },
-          {
-            "name": "Local Resources Module",
-            "start_time": "2026-05-01T00:00:00",
-            "end_time": "2026-05-01T23:45:00",
-            "entries": 3,
+            "end_time": "2026-05-05T23:45:00",
+            "entries": 10,
             "active_days": null,
             "questions": [
               {
@@ -631,7 +635,7 @@
           "weekly": 1
         },
         "incentive": {
-          "amount": "2.50",
+          "amount": "0.00",
           "bonus": "0.00",
           "currency": "$",
           "threshold": 0
@@ -640,7 +644,7 @@
           {
             "name": "Approach #2 Module",
             "start_time": "2026-04-30T08:00:00",
-            "end_time": "2026-04-30T23:45:00",
+            "end_time": "2026-05-05T23:45:00",
             "entries": 1,
             "active_days": null,
             "questions": [
@@ -655,7 +659,7 @@
               {
                 "question_id": 5076,
                 "type": "instruction",
-                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "title": "<h3>It is important to recall the reminder you gave yourself during the last module. Do you remember it?</h3>\n\n<h3>i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
@@ -677,13 +681,10 @@
                 "question_id": 5078,
                 "type": "teleprompter",
                 "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to a small audience of adults.\n\nYou can re-record the video in case of any interruptions. You'll have two more recording attempts as you continue through this module, so don't worry about making it perfect.",
-                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
+                "subtitle": "\"Gettysburg Address\" by Abraham Lincoln\n\nFour score and seven years ago our fathers brought forth on this continent a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battlefield of that war.\n\nWe have come to dedicate a portion of that field, as a final resting-place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this. But, in a larger sense, we cannot dedicate \u2013 we cannot consecrate \u2013 we cannot hallow \u2013 this ground. The brave men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract.\n\nThe world will little note, nor long remember what we say here, but it can never forget what they did here. It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us \u2013 that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion \u2013 that we here highly resolve that these dead shall not have died in vain \u2013 that this nation, under God, shall have a new birth of freedom \u2013 and that government of the people, by the people, for the people, shall not perish from the earth.",
                 "required": true,
                 "question_number": 4,
-                "suggested_length": "00:01:00",
-                "max_length": "00:00:00",
-                "display_time": false,
-                "teleprompter_url": "pic1.png"
+                "teleprompter_url": "Audience_Adults_Small.png"
               },
               {
                 "question_id": 5079,
@@ -732,13 +733,10 @@
                 "question_id": 5083,
                 "type": "teleprompter",
                 "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a small audience of adults.",
-                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "subtitle": "\"Gettysburg Address\" by Abraham Lincoln\n\nFour score and seven years ago our fathers brought forth on this continent a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battlefield of that war.\n\nWe have come to dedicate a portion of that field, as a final resting-place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this. But, in a larger sense, we cannot dedicate \u2013 we cannot consecrate \u2013 we cannot hallow \u2013 this ground. The brave men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract.\n\nThe world will little note, nor long remember what we say here, but it can never forget what they did here. It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us \u2013 that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion \u2013 that we here highly resolve that these dead shall not have died in vain \u2013 that this nation, under God, shall have a new birth of freedom \u2013 and that government of the people, by the people, for the people, shall not perish from the earth.",
                 "required": true,
                 "question_number": 9,
-                "suggested_length": "00:00:00",
-                "max_length": "00:00:00",
-                "display_time": false,
-                "teleprompter_url": "pic1.png"
+                "teleprompter_url": "Audience_Adults_Small.png"
               },
               {
                 "question_id": 5084,
@@ -779,13 +777,10 @@
                 "question_id": 5087,
                 "type": "teleprompter",
                 "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a small audience of adults.",
-                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "subtitle": "\"Gettysburg Address\" by Abraham Lincoln\n\nFour score and seven years ago our fathers brought forth on this continent a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battlefield of that war.\n\nWe have come to dedicate a portion of that field, as a final resting-place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this. But, in a larger sense, we cannot dedicate \u2013 we cannot consecrate \u2013 we cannot hallow \u2013 this ground. The brave men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract.\n\nThe world will little note, nor long remember what we say here, but it can never forget what they did here. It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us \u2013 that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion \u2013 that we here highly resolve that these dead shall not have died in vain \u2013 that this nation, under God, shall have a new birth of freedom \u2013 and that government of the people, by the people, for the people, shall not perish from the earth.",
                 "required": true,
                 "question_number": 13,
-                "suggested_length": "00:00:00",
-                "max_length": "00:00:00",
-                "display_time": false,
-                "teleprompter_url": "pic1.png"
+                "teleprompter_url": "Audience_Adults_Small.png"
               },
               {
                 "question_id": 5088,
@@ -861,7 +856,7 @@
               {
                 "question_id": 5094,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title":"<h2>Congrats on completing the approach!</h2>\n \n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n \n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n \n<h3>iii. Each approach is practice, not a test.</h3>\n \n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -897,7 +892,7 @@
           "weekly": 1
         },
         "incentive": {
-          "amount": "2.50",
+          "amount": "0.00",
           "bonus": "0.00",
           "currency": "$",
           "threshold": 0
@@ -906,7 +901,7 @@
           {
             "name": "Approach #3 Module",
             "start_time": "2026-05-01T08:00:00",
-            "end_time": "2026-05-01T23:45:00",
+            "end_time": "2026-05-05T23:45:00",
             "entries": 1,
             "active_days": null,
             "questions": [
@@ -921,7 +916,7 @@
               {
                 "question_id": 5156,
                 "type": "instruction",
-                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "title": "<h3>It is important to recall the reminder you gave yourself during the last module. Do you remember it?</h3>\n\n<h3>i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
@@ -943,13 +938,10 @@
                 "question_id": 5158,
                 "type": "teleprompter",
                 "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to a large audience of adults.\n\nYou can re-record the video in case of any interruptions. You'll have two more recording attempts as you continue through this module, so don't worry about making it perfect.",
-                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
+                "subtitle": "Franklin D. Roosevelt - Inaugural Address\n\nI am certain that my fellow Americans expect that on my induction into the Presidency I will address them with a candor and a decision which the present situation of our Nation impels. This is preeminently the time to speak the truth, the whole truth, frankly and boldly. Nor need we shrink from honestly facing conditions in our country today. This great Nation will endure as it has endured, will revive and will prosper.\n\nSo, first of all, let me assert my firm belief that the only thing we have to fear is fear itself \u2014 nameless, unreasoning, unjustified terror which paralyzes needed efforts to convert retreat into advance. In every dark hour of our national life a leadership of frankness and vigor has met with that understanding and support of the people themselves which is essential to victory.\n\nI am convinced that you will again give that support to leadership in these critical days. In such a spirit on my part and on yours we face our common difficulties. They concern, thank God, only material things. Values have shrunken to fantastic levels; taxes have risen; our ability to pay has fallen; government of all kinds is faced by serious curtailment of income; the means of exchange are frozen in the currents of trade; the withered leaves of industrial enterprise lie on every side; farmers find no markets for their produce; the savings of many years in thousands of families are gone. More important, a host of unemployed citizens face the grim problem of existence, and an equally great number toil with little return. Only a foolish optimist can deny the dark realities of the moment.",
                 "required": true,
                 "question_number": 4,
-                "suggested_length": "00:01:00",
-                "max_length": "00:00:00",
-                "display_time": false,
-                "teleprompter_url": "pic1.png"
+                "teleprompter_url": "Audience_Adults_Large.png"
               },
               {
                 "question_id": 5159,
@@ -998,13 +990,10 @@
                 "question_id": 5163,
                 "type": "teleprompter",
                 "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience of adults.",
-                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "subtitle": "Franklin D. Roosevelt - Inaugural Address\n\nI am certain that my fellow Americans expect that on my induction into the Presidency I will address them with a candor and a decision which the present situation of our Nation impels. This is preeminently the time to speak the truth, the whole truth, frankly and boldly. Nor need we shrink from honestly facing conditions in our country today. This great Nation will endure as it has endured, will revive and will prosper.\n\nSo, first of all, let me assert my firm belief that the only thing we have to fear is fear itself \u2014 nameless, unreasoning, unjustified terror which paralyzes needed efforts to convert retreat into advance. In every dark hour of our national life a leadership of frankness and vigor has met with that understanding and support of the people themselves which is essential to victory.\n\nI am convinced that you will again give that support to leadership in these critical days. In such a spirit on my part and on yours we face our common difficulties. They concern, thank God, only material things. Values have shrunken to fantastic levels; taxes have risen; our ability to pay has fallen; government of all kinds is faced by serious curtailment of income; the means of exchange are frozen in the currents of trade; the withered leaves of industrial enterprise lie on every side; farmers find no markets for their produce; the savings of many years in thousands of families are gone. More important, a host of unemployed citizens face the grim problem of existence, and an equally great number toil with little return. Only a foolish optimist can deny the dark realities of the moment.",
                 "required": true,
                 "question_number": 9,
-                "suggested_length": "00:00:00",
-                "max_length": "00:00:00",
-                "display_time": false,
-                "teleprompter_url": "pic1.png"
+                "teleprompter_url": "Audience_Adults_Large.png"
               },
               {
                 "question_id": 5164,
@@ -1045,13 +1034,10 @@
                 "question_id": 5167,
                 "type": "teleprompter",
                 "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience of adults.",
-                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "subtitle": "Franklin D. Roosevelt - Inaugural Address\n\nI am certain that my fellow Americans expect that on my induction into the Presidency I will address them with a candor and a decision which the present situation of our Nation impels. This is preeminently the time to speak the truth, the whole truth, frankly and boldly. Nor need we shrink from honestly facing conditions in our country today. This great Nation will endure as it has endured, will revive and will prosper.\n\nSo, first of all, let me assert my firm belief that the only thing we have to fear is fear itself \u2014 nameless, unreasoning, unjustified terror which paralyzes needed efforts to convert retreat into advance. In every dark hour of our national life a leadership of frankness and vigor has met with that understanding and support of the people themselves which is essential to victory.\n\nI am convinced that you will again give that support to leadership in these critical days. In such a spirit on my part and on yours we face our common difficulties. They concern, thank God, only material things. Values have shrunken to fantastic levels; taxes have risen; our ability to pay has fallen; government of all kinds is faced by serious curtailment of income; the means of exchange are frozen in the currents of trade; the withered leaves of industrial enterprise lie on every side; farmers find no markets for their produce; the savings of many years in thousands of families are gone. More important, a host of unemployed citizens face the grim problem of existence, and an equally great number toil with little return. Only a foolish optimist can deny the dark realities of the moment.",
                 "required": true,
                 "question_number": 13,
-                "suggested_length": "00:00:00",
-                "max_length": "00:00:00",
-                "display_time": false,
-                "teleprompter_url": "pic1.png"
+                "teleprompter_url": "Audience_Adults_Large.png"
               },
               {
                 "question_id": 5168,
@@ -1127,7 +1113,7 @@
               {
                 "question_id": 5174,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n \n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n \n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n \n<h3>iii. Each approach is practice, not a test.</h3>\n \n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 20
@@ -1172,14 +1158,14 @@
           {
             "name": "Approach #4 Module [Optional]",
             "start_time": "2026-05-01T08:00:00",
-            "end_time": "2026-05-01T23:45:00",
+            "end_time": "2026-05-05T23:45:00",
             "entries": 1,
             "active_days": null,
             "questions": [
               {
                 "question_id": 5215,
                 "type": "instruction",
-                "title": "<h2>Overview of approach: </h2>\n\n<h3>You will read an authority's opinion for 1-minute in front of a large audience of adults and then give an extemporaneous 1-minute speech on your own opinion in front of that large audience of adults.</h3>",
+                "title": "<h2>Overview of approach:</h2>\n\n<h3>You will read an authority's opinion for 1-minute in front of a large audience of adults and then give an extemporaneous 1-minute speech on your own opinion in front of that large audience of adults.</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 1
@@ -1187,7 +1173,7 @@
               {
                 "question_id": 5216,
                 "type": "instruction",
-                "title": "<h3> It is important to recall the reminder you gave yourself during the last module. Do you remember it? </h3>\n\n<h3> i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
+                "title": "<h3>It is important to recall the reminder you gave yourself during the last module. Do you remember it?</h3>\n\n<h3>i. Yes - Tell it to yourself</h3>\n<h3>ii. No - You may check the last module in the 'History' tab to review it</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 2
@@ -1209,13 +1195,19 @@
                 "question_id": 5218,
                 "type": "teleprompter",
                 "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\n\nFor this activity, imagine you are speaking to a large audience of adults.\n\nYou can re-record the video in case of any interruptions. You'll have two more recording attempts as you continue through this module, so don't worry about making it perfect.",
-                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
+                "subtitle": "\"What is the point of poetry, if any?\"\n(Scene from Dead Poets Society written by Tom Schulman)\n\nWe don't read and write poetry because it's cute. We read and write poetry because we are members of the human race. And the human race is filled with passion. And medicine, law, business, engineering, these are noble pursuits and necessary to sustain life. But poetry, beauty, romance, love, these are what we stay alive for.\n\nTo quote from Whitman, \"O me! O life!... of the questions of these recurring; of the endless trains of the faithless... of cities filled with the foolish; what good amid these, O me, O life?\" The answer: That you are here, that life exists \u2013 and identity; that the powerful play goes on and you may contribute a verse. That the powerful play goes on and you may contribute a verse. What will your verse be?",
                 "required": true,
                 "question_number": 4,
-                "suggested_length": "00:02:00",
-                "max_length": "00:00:00",
-                "display_time": false,
-                "teleprompter_url": "pic1.png"
+                "teleprompter_url": "Audience_Adults_Large.png"
+              },
+              {
+                "question_id": 5240,
+                "type": "teleprompter",
+                "title": "Now record yourself speaking on the following topic.",
+                "subtitle": "Now speak for one minute on what is the point of poetry, if any.",
+                "required": true,
+                "question_number": 5,
+                "teleprompter_url": "Audience_Adults_Large.png"
               },
               {
                 "question_id": 5219,
@@ -1223,7 +1215,7 @@
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
                 "required": true,
-                "question_number": 5,
+                "question_number": 6,
                 "min_value": 0,
                 "max_value": 100,
                 "min_label": "Totally relaxed",
@@ -1237,7 +1229,16 @@
                 "subtitle": "Remember, review it objectively and not critically.",
                 "targeted_question": 4,
                 "required": true,
-                "question_number": 6
+                "question_number": 7
+              },
+              {
+                "question_id": 5241,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 5,
+                "required": true,
+                "question_number": 8
               },
               {
                 "question_id": 5221,
@@ -1245,7 +1246,7 @@
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
                 "required": true,
-                "question_number": 7,
+                "question_number": 9,
                 "min_value": 0,
                 "max_value": 100,
                 "min_label": "Totally relaxed",
@@ -1258,19 +1259,25 @@
                 "title": "<h3>Record the speech two more times before this module's Self-Reflection</h3>",
                 "subtitle": "Click 'Next' to record the speech again",
                 "required": true,
-                "question_number": 8
+                "question_number": 10
               },
               {
                 "question_id": 5223,
                 "type": "teleprompter",
                 "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\nFor this activity, imagine you are speaking to a large audience of adults.",
-                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "subtitle": "\"What is the point of poetry, if any?\"\n(Scene from Dead Poets Society written by Tom Schulman)\n\nWe don't read and write poetry because it's cute. We read and write poetry because we are members of the human race. And the human race is filled with passion. And medicine, law, business, engineering, these are noble pursuits and necessary to sustain life. But poetry, beauty, romance, love, these are what we stay alive for.\n\nTo quote from Whitman, \"O me! O life!... of the questions of these recurring; of the endless trains of the faithless... of cities filled with the foolish; what good amid these, O me, O life?\" The answer: That you are here, that life exists \u2013 and identity; that the powerful play goes on and you may contribute a verse. That the powerful play goes on and you may contribute a verse. What will your verse be?",
                 "required": true,
-                "question_number": 9,
-                "suggested_length": "00:00:00",
-                "max_length": "00:00:00",
-                "display_time": false,
-                "teleprompter_url": "pic1.png"
+                "question_number": 11,
+                "teleprompter_url": "Audience_Adults_Large.png"
+              },
+              {
+                "question_id": 5242,
+                "type": "teleprompter",
+                "title": "Now record yourself speaking on the following topic.",
+                "subtitle": "Now speak for one minute on what is the point of poetry, if any.",
+                "required": true,
+                "question_number": 12,
+                "teleprompter_url": "Audience_Adults_Large.png"
               },
               {
                 "question_id": 5224,
@@ -1278,7 +1285,7 @@
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
                 "required": true,
-                "question_number": 10,
+                "question_number": 13,
                 "min_value": 0,
                 "max_value": 100,
                 "min_label": "Totally relaxed",
@@ -1290,59 +1297,21 @@
                 "type": "reference",
                 "title": "Review this recording of your speech",
                 "subtitle": "Remember, review it objectively and not critically",
-                "targeted_question": 9,
+                "targeted_question": 11,
                 "required": true,
-                "question_number": 11
+                "question_number": 14
               },
               {
-                "question_id": 5226,
-                "type": "slider",
-                "title": "On a scale of 0-100, how stressed are you feeling right now?",
-                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
-                "required": true,
-                "question_number": 12,
-                "min_value": 0,
-                "max_value": 100,
-                "min_label": "Totally relaxed",
-                "max_label": "Highest distress I have ever felt",
-                "default_value": 0
-              },
-              {
-                "question_id": 5227,
-                "type": "teleprompter",
-                "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\nFor this activity, imagine you are speaking to a large audience of adults.",
-                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
-                "required": true,
-                "question_number": 13,
-                "suggested_length": "00:00:00",
-                "max_length": "00:00:00",
-                "display_time": false,
-                "teleprompter_url": "pic1.png"
-              },
-              {
-                "question_id": 5228,
-                "type": "slider",
-                "title": "On a scale of 0-100, how stressed are you feeling right now?",
-                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
-                "required": true,
-                "question_number": 14,
-                "min_value": 0,
-                "max_value": 100,
-                "min_label": "Totally relaxed",
-                "max_label": "Highest distress I have ever felt",
-                "default_value": 0
-              },
-              {
-                "question_id": 5038,
+                "question_id": 5243,
                 "type": "reference",
-                "title": "Review this recording of your speech.",
-                "subtitle": "Remember, review it objectively and not critically.",
-                "targeted_question": 13,
+                "title": "Review this recording of your speech",
+                "subtitle": "Remember, review it objectively and not critically",
+                "targeted_question": 12,
                 "required": true,
                 "question_number": 15
               },
               {
-                "question_id": 5230,
+                "question_id": 5226,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
@@ -1355,13 +1324,75 @@
                 "default_value": 0
               },
               {
+                "question_id": 5227,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\nFor this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "\"What is the point of poetry, if any?\"\n(Scene from Dead Poets Society written by Tom Schulman)\n\nWe don't read and write poetry because it's cute. We read and write poetry because we are members of the human race. And the human race is filled with passion. And medicine, law, business, engineering, these are noble pursuits and necessary to sustain life. But poetry, beauty, romance, love, these are what we stay alive for.\n\nTo quote from Whitman, \"O me! O life!... of the questions of these recurring; of the endless trains of the faithless... of cities filled with the foolish; what good amid these, O me, O life?\" The answer: That you are here, that life exists \u2013 and identity; that the powerful play goes on and you may contribute a verse. That the powerful play goes on and you may contribute a verse. What will your verse be?",
+                "required": true,
+                "question_number": 17,
+                "teleprompter_url": "Audience_Adults_Large.png"
+              },
+              {
+                "question_id": 5244,
+                "type": "teleprompter",
+                "title": "Now record yourself speaking on the following topic.",
+                "subtitle": "Now speak for one minute on what is the point of poetry, if any.",
+                "required": true,
+                "question_number": 18,
+                "teleprompter_url": "Audience_Adults_Large.png"
+              },
+              {
+                "question_id": 5228,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 19,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5229,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 17,
+                "required": true,
+                "question_number": 20
+              },
+              {
+                "question_id": 5245,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 18,
+                "required": true,
+                "question_number": 21
+              },
+              {
+                "question_id": 5230,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": "0: Totally relaxed, 100: Highest distress I have ever felt",
+                "required": true,
+                "question_number": 22,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
                 "question_id": 5231,
                 "type": "audio",
                 "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
                 "subtitle": "",
                 "required": true,
-                "question_number": 17,
-                "suggested_length": "00:00:00",
+                "question_number": 23,
+                "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
                 "display_time": false,
                 "multiple_answers": false
@@ -1372,7 +1403,7 @@
                 "title": "Self Reflection - What did you do that was helpful that you could continue doing?",
                 "subtitle": null,
                 "required": true,
-                "question_number": 18,
+                "question_number": 24,
                 "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
                 "display_time": false,
@@ -1384,7 +1415,7 @@
                 "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
                 "subtitle": null,
                 "required": true,
-                "question_number": 19,
+                "question_number": 25,
                 "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
                 "display_time": false,
@@ -1393,10 +1424,10 @@
               {
                 "question_id": 5234,
                 "type": "instruction",
-                "title": "<h2> Congrats on completing the approach! </h2>\n\n<h3>i. Notice that you stayed in the situation even though you felt anxious. </h3>\n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed. </h3>\n<h3>iii. Each approach is practice, not a test. </h3>\n<h3>iv. Progress comes from repetition and staying engaged!</h3> ",
+                "title": "<h2>Congrats on completing the approach!</h2>\n \n<h3>i. Notice that you stayed in the situation even though you felt anxious.</h3>\n \n<h3>ii. Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n \n<h3>iii. Each approach is practice, not a test.</h3>\n \n<h3>iv. Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
-                "question_number": 20
+                "question_number": 26
               }
             ],
             "notifications": []

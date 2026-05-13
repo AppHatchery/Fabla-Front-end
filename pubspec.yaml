@@ -165,6 +165,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/icons/
+    - assets/images/fops/
     - assets/animations/
     - assets/animations/onboarding/
     - assets/animations/recording/

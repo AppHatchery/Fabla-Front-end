@@ -2175,6 +2175,12 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
   double feedHeight = 0;
   double feedWidth = 0;
 
+  // Floating image (sticky-bottom while script scrolls).
+  static const double _floatingImageHeight = 250.0;
+  static const double _floatingImageGap = 16.0;
+  final GlobalKey _scriptKey = GlobalKey();
+  double _scriptHeight = 0;
+
   @override
   void initState() {
     controller = CameraController(
@@ -2183,6 +2189,19 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
     );
     cameraInit();
     super.initState();
+  }
+
+  /// Measures the rendered script height once layout is complete so the
+  /// floating image knows when to release from its sticky position.
+  /// Called from a post-frame callback — O(1).
+  void _measureScriptHeight() {
+    if (!mounted) return;
+    final box = _scriptKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return;
+    final h = box.size.height;
+    if (h != _scriptHeight) {
+      setState(() => _scriptHeight = h);
+    }
   }
 
   /// Returns the front-facing camera if available, otherwise falls back to
@@ -2240,8 +2259,12 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
     try {
       await controller.initialize();
       if (!mounted) return;
-      // Scroll AFTER camera is initialized so feedWidth/feedHeight are non-zero
-      // and maxScrollExtent reflects the full content (including the controls).
+      // Defer scroll-to-bottom until AFTER the rebuild that picks up the
+      // inflated camera feed dimensions (feedWidth/feedHeight are set in
+      // the listener via setState during initialize(), but the rebuild
+      // doesn't happen until the next frame). Without this, maxScrollExtent
+      // is computed against a 0x0 camera feed and the scroll stops short
+      // of the recording controls.
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } on CameraException catch (e) {
       switch (e.code) {
@@ -2291,8 +2314,16 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  SizedBox(
+                    child: controller.value.isRecordingVideo
+                        ? const Icon(
+                      Icons.fiber_manual_record,
+                      color: CustomColors.warningActive,
+                    )
+                        : null,
+                  ),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: const Icon(
@@ -2314,89 +2345,115 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
   Widget questionAndHints() {
     final width = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final teleprompterUrl = widget.prompt.option?.teleprompterUrl;
 
     return LayoutBuilder(builder: (context, constraints) {
+      // Re-measure script height each layout pass (handles font scaling,
+      // orientation, etc.). The callback is cheap and idempotent.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _measureScriptHeight());
+
+      final viewportHeight = constraints.maxHeight;
+
       return SizedBox(
-        height: constraints.maxHeight,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        height: viewportHeight,
+        width: constraints.maxWidth,
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-            // ── Pinned top section ──────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.prompt.question,
-                    style: CustomTypography().titleLarge(),
+            // ── Single scroll region: script → reserved image space → controls
+            SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Script (measured via GlobalKey to drive the floating image).
+                Padding(
+                  key: _scriptKey,
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(
+                    widget.prompt.subtitle ?? '',
+                    style: CustomTypography().body(),
                   ),
-                  const SizedBox(height: 16),
-                  if (controller.value.isRecordingVideo)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Icon(Icons.fiber_manual_record,
-                            color: CustomColors.warningActive),
-                      ],
-                    ),
-                  const SizedBox(height: 10),
-                  Container(
-                    height: 180,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Center(
-                      child: Image.asset(
-                        "assets/images/${widget.prompt.option?.teleprompterUrl}",
-                        fit: BoxFit.fitWidth,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            // ── Scrollable script and camera content ────────────────────
-            Expanded(
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                child: Column(
-                  spacing: 20,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                      child: Text(
-                        widget.prompt.subtitle!,
-                        style: CustomTypography().body(),
-                      ),
-                    ),
-                    // ── Recording controls (always at bottom) ───────────
-                    Container(
-                      width: width,
-                      color: CustomColors.productNormal,
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 16),
-                          file != null ? preview() : cameraFeed(),
-                          const SizedBox(height: 24),
-                          Padding(
-                            padding:
-                            const EdgeInsets.symmetric(horizontal: 36.0),
-                            child: file != null
-                                ? playbackControls()
-                                : recordingControls(),
-                          ),
-                          SizedBox(height: screenHeight > 850 ? 36 : 24),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
-              ),
+                // Reserves the layout space the floating image occupies so
+                // the scroll height accounts for it even though the image
+                // itself is rendered as a Positioned overlay above.
+                const SizedBox(
+                  height: _floatingImageHeight + _floatingImageGap,
+                ),
+                // Recording controls — revealed after the user scrolls past
+                // the image at the end of the script.
+                Container(
+                  width: width,
+                  color: CustomColors.productNormal,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      file != null ? preview() : cameraFeed(),
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 36.0),
+                        child: file != null
+                            ? playbackControls()
+                            : recordingControls(),
+                      ),
+                      SizedBox(height: screenHeight > 850 ? 36 : 24),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
+          // ── Floating image: sticky to viewport bottom while there's still script above;
+            // releases and scrolls up naturally once the script is fully scrolled past.
+            // IgnorePointer so the user can still drag the scroll through it.
+          if (teleprompterUrl != null &&
+              teleprompterUrl.isNotEmpty &&
+              _scriptHeight > 0)
+            AnimatedBuilder(
+              animation: _scrollController,
+              builder: (context, _) {
+                final scrollOffset = _scrollController.hasClients
+                    ? _scrollController.offset
+                    : 0.0;
+                // Natural top: where the image would be if it were a normal
+                // child of the scroll content, sitting just after the script.
+                final naturalTop = _scriptHeight + 6 - scrollOffset;
+                // Sticky top: anchored to viewport bottom.
+                final stickyTop = viewportHeight - _floatingImageHeight;
+                // While natural is below sticky → pin. Once natural rises
+                // above sticky → scroll naturally with content.
+                final top = min(stickyTop, naturalTop);
+                return Positioned(
+                  left: 0,
+                  right: 0,
+                  top: top,
+                  height: _floatingImageHeight,
+                  // Opaque, full-bleed block so the script behind it is fully
+                  child: IgnorePointer(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: double.infinity,
+                      height: _floatingImageHeight,
+                      color: const Color(0xFFF3F3F3),
+                      child: Image.asset(
+                        "assets/images/fops/$teleprompterUrl",
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: _floatingImageHeight,
+                      ),
+                    ),
+                  ),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+        ],
         ),
       );
     });
