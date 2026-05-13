@@ -16,8 +16,6 @@ import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 
-import 'package:audio_diaries_flutter/core/utils/types.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/tag.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
@@ -621,23 +619,23 @@ class DiaryRepository {
     invalidateDiaryHistoryCache();
   }
 
-  List<Tag> _getTags(DiaryModel diary) {
-    List<Tag> tags = [];
+  // List<Tag> _getTags(DiaryModel diary) {
+  //   List<Tag> tags = [];
 
-    if (diary.status == DiaryStatus.submitted) {
-      tags.add(const Tag(text: "Done", type: TagType.time));
-      // } else if (diary.status == DiaryStatus.missed) {
-      //   tags.add(const Tag(text: "Missed", type: TagType.time));
-    } else if (diary.status == DiaryStatus.complete) {
-      tags.add(const Tag(text: "Awaiting Submission", type: TagType.time));
-    } else if (diary.status == DiaryStatus.ongoing) {
-      tags.add(const Tag(text: "Ongoing", type: TagType.time));
-    } else if (diary.status == DiaryStatus.idle) {
-      tags.add(const Tag(text: "Ready to Start", type: TagType.time));
-    }
+  //   if (diary.status == DiaryStatus.submitted) {
+  //     tags.add(const Tag(text: "Done", type: TagType.time));
+  //     // } else if (diary.status == DiaryStatus.missed) {
+  //     //   tags.add(const Tag(text: "Missed", type: TagType.time));
+  //   } else if (diary.status == DiaryStatus.complete) {
+  //     tags.add(const Tag(text: "Awaiting Submission", type: TagType.time));
+  //   } else if (diary.status == DiaryStatus.ongoing) {
+  //     tags.add(const Tag(text: "Ongoing", type: TagType.time));
+  //   } else if (diary.status == DiaryStatus.idle) {
+  //     tags.add(const Tag(text: "Ready to Start", type: TagType.time));
+  //   }
 
-    return tags;
-  }
+  //   return tags;
+  // }
 
   Future<int> getIndexOfLastAnsweredPrompt(DiaryModel diary) async {
     final promptRepository = PromptRepository();

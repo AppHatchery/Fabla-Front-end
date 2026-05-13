@@ -36,6 +36,7 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
+// ignore_for_file: invalid_use_of_internal_member
 
 class _FakeDiaryRepository_0 extends _i1.SmartFake
     implements _i2.DiaryRepository {
@@ -315,16 +316,6 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
       ) as _i7.Future<bool>);
 
   @override
-  _i7.Future<void> cleanupBeforeUpdate() => (super.noSuchMethod(
-        Invocation.method(
-          #cleanupBeforeUpdate,
-          [],
-        ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
-
-  @override
   _i5.ExperimentModel getExperiment() => (super.noSuchMethod(
         Invocation.method(
           #getExperiment,
@@ -396,15 +387,15 @@ class MockSetupRepository extends _i1.Mock implements _i8.SetupRepository {
       );
 
   @override
-  _i7.Future<bool> uploadOnBoardingQuestions({bool? partialCleanDB = false}) =>
+  _i7.Future<bool?> uploadOnBoardingQuestions({bool? partialCleanDB = false}) =>
       (super.noSuchMethod(
         Invocation.method(
           #uploadOnBoardingQuestions,
           [],
           {#partialCleanDB: partialCleanDB},
         ),
-        returnValue: _i7.Future<bool>.value(false),
-      ) as _i7.Future<bool>);
+        returnValue: _i7.Future<bool?>.value(),
+      ) as _i7.Future<bool?>);
 
   @override
   void clearStudies() => super.noSuchMethod(

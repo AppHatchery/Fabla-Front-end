@@ -6,7 +6,6 @@ import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
 
 import '../../../../services/preference_service.dart';
@@ -26,10 +25,6 @@ class ActiveDatesPage extends StatefulWidget {
 class _ActiveDatesPageState extends State<ActiveDatesPage>
     with WidgetsBindingObserver {
   late SetupCubit setupCubit;
-
-  //Animations
-  late StateMachineController _controller;
-  double animationHeight = 0;
 
   final PageTimer timer = PageTimer();
   TextScaler? scaler; // Get the size of the text scaler
@@ -62,7 +57,6 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
 
   @override
   void dispose() {
-    _controller.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -154,9 +148,8 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                             animation:
                                 "assets/animations/onboarding/active_dates.riv",
                             scrollable: false,
-                            animationHeight: animationHeight,
+                            stateMachineName: 'Animation_12',
                             foregroundHeight: 0.6,
-                            onInit: onInit,
                             onContinue: () => navigateToNextPage(context),
                             children: [
                               Text(
@@ -202,25 +195,6 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
         ),
       ),
     );
-  }
-
-  onInit(Artboard art) async {
-    var ctrl = StateMachineController.fromArtboard(art, 'Animation_12');
-    ctrl?.isActive = false;
-
-    //height of animation
-    setState(() {
-      animationHeight = art.height;
-    });
-
-    if (ctrl != null) {
-      art.addController(ctrl);
-      setState(() {
-        _controller = ctrl;
-        art.addController(_controller);
-        ctrl.isActive = true;
-      });
-    }
   }
 
   void navigateToNextPage(BuildContext context) async {

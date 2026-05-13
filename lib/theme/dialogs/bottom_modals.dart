@@ -73,19 +73,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   ScrollController scrollController = ScrollController();
 
   //Animation
-  late r.StateMachineController _controller;
+  r.File? _riveFile;
+  r.RiveWidgetController? _riveController;
   double animationHeight = 0;
-
-  void _onInit(r.Artboard art) {
-    var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
-    if (ctrl != null) {
-      art.addController(ctrl);
-      _controller = ctrl;
-    }
-    setState(() {
-      animationHeight = art.height;
-    });
-  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -106,13 +96,33 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   void initState() {
     recorderInit();
     WidgetsBinding.instance.addObserver(this);
+    _loadRive();
     super.initState();
+  }
+
+  Future<void> _loadRive() async {
+    final file = await r.File.asset(
+      'assets/animations/onboarding/floats_in.riv',
+      riveFactory: r.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = r.RiveWidgetController(
+        file,
+        stateMachineSelector: r.StateMachineSelector.byName('Animation_12'),
+      );
+      setState(() {
+        _riveFile = file;
+        _riveController = controller;
+        animationHeight = controller.artboard.height;
+      });
+    }
   }
 
   @override
   void dispose() {
     recorder.closeRecorder();
-    _controller.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -259,13 +269,14 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           child: Transform(
             transform: Matrix4.translationValues(
                 -140, textScaleFactor >= 1.6 ? 0 : 20, 0)
-              ..scale(-1.0, 1.0),
+              ..multiply(Matrix4.diagonal3Values(-1.0, 1.0, 1.0)),
             alignment: Alignment.center,
-            child: r.RiveAnimation.asset(
-              'assets/animations/onboarding/floats_in.riv',
-              fit: BoxFit.scaleDown,
-              onInit: _onInit,
-            ),
+            child: _riveController != null
+                ? r.RiveWidget(
+                    controller: _riveController!,
+                    fit: r.Fit.scaleDown,
+                  )
+                : const SizedBox.shrink(),
           ),
         ),
       ),
@@ -680,31 +691,14 @@ class _BottomTextModalState extends State<BottomTextModal>
   bool disabled = true;
 
   //Animation
-  late r.StateMachineController _controller;
-
-  void _onInit(r.Artboard art) {
-    var ctrl = r.StateMachineController.fromArtboard(art, "Ghosts");
-
-    ctrl?.isActive = false;
-    if (ctrl != null) {
-      art.addController(ctrl);
-      setState(() {
-        _controller = ctrl;
-      });
-
-      Future.delayed(const Duration(milliseconds: 10), () {
-        final searchingOne = _controller.findSMI('Searching_1');
-        if (searchingOne != null && mounted) {
-          searchingOne.value = true;
-        }
-      });
-    }
-  }
+  r.File? _riveFile;
+  r.RiveWidgetController? _riveController;
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     textFocusNode = FocusNode();
+    _loadRiveText();
     if (widget.index != null) {
       textController = TextEditingController(
           text: widget.prompt.answer?.response?.elementAtOrNull(widget.index!));
@@ -729,11 +723,35 @@ class _BottomTextModalState extends State<BottomTextModal>
     super.initState();
   }
 
+  Future<void> _loadRiveText() async {
+    final file = await r.File.asset(
+      'assets/animations/ghosts.riv',
+      riveFactory: r.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = r.RiveWidgetController(
+        file,
+        stateMachineSelector: r.StateMachineSelector.byName('Ghosts'),
+      );
+      setState(() {
+        _riveFile = file;
+        _riveController = controller;
+      });
+      Future.delayed(const Duration(milliseconds: 10), () {
+        final searchingOne = controller.stateMachine.trigger('Searching_1');
+        if (searchingOne != null && mounted) {
+          searchingOne.fire();
+        }
+      });
+    }
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     textController.dispose();
-    _controller.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     hideOverlay();
     super.dispose();
   }
@@ -877,10 +895,9 @@ class _BottomTextModalState extends State<BottomTextModal>
           SizedBox(
             height: 100,
             width: 100,
-            child: r.RiveAnimation.asset(
-              'assets/animations/ghosts.riv',
-              onInit: _onInit,
-            ),
+            child: _riveController != null
+                ? r.RiveWidget(controller: _riveController!)
+                : const SizedBox.shrink(),
           ),
           const SizedBox(
             height: 16,
@@ -1447,33 +1464,41 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
       ResolutionPreset.high,
     );
     cameraInit();
+    _loadRive();
     super.initState();
   }
 
   @override
   dispose() {
+    _searchingOne?.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     controller.dispose();
     super.dispose();
   }
 
   //Animation
-  late r.StateMachineController _controller;
+  r.File? _riveFile;
+  r.RiveWidgetController? _riveController;
+  r.TriggerInput? _searchingOne;
 
-  void _onInit(r.Artboard art) {
-    var ctrl = r.StateMachineController.fromArtboard(art, "Ghosts");
-
-    ctrl?.isActive = false;
-    if (ctrl != null) {
-      art.addController(ctrl);
+  Future<void> _loadRive() async {
+    final file = await r.File.asset(
+      'assets/animations/ghosts.riv',
+      riveFactory: r.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = r.RiveWidgetController(
+        file,
+        stateMachineSelector: r.StateMachineSelector.byName('Ghosts'),
+      );
       setState(() {
-        _controller = ctrl;
+        _riveFile = file;
+        _riveController = controller;
+        _searchingOne = controller.stateMachine.trigger('Searching_1');
       });
-
       Future.delayed(const Duration(milliseconds: 10), () {
-        final searchingThree = _controller.findSMI('Searching_1');
-        if (searchingThree != null && mounted) {
-          searchingThree.value = true;
-        }
+        if (mounted) _searchingOne?.fire();
       });
     }
   }
@@ -1587,10 +1612,9 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                     SizedBox(
                       height: 100,
                       width: 100,
-                      child: r.RiveAnimation.asset(
-                        'assets/animations/ghosts.riv',
-                        onInit: _onInit,
-                      ),
+                      child: _riveController != null
+                          ? r.RiveWidget(controller: _riveController!)
+                          : const SizedBox.shrink(),
                     ),
                     const SizedBox(
                       height: 16,
@@ -2648,11 +2672,13 @@ class _BottomTimerModalState extends State<BottomTimerModal>
   double animationHeight = 0;
   // Icon Shake animation
   late AnimationController _shakeController;
-  r.StateMachineController? _controller;
+  r.File? _riveFile;
+  r.RiveWidgetController? _riveController;
 
   @override
   void initState() {
     super.initState();
+    _loadRive();
 
     // Initialize animation controller
     _shakeController = AnimationController(
@@ -2665,24 +2691,30 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       });
   }
 
-  @override
-  void dispose() {
-    _controller?.dispose();
-    _shakeController.dispose();
-    super.dispose();
+  Future<void> _loadRive() async {
+    final file = await r.File.asset(
+      'assets/animations/onboarding/floats_in.riv',
+      riveFactory: r.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = r.RiveWidgetController(
+        file,
+        stateMachineSelector: r.StateMachineSelector.byName('Animation_12'),
+      );
+      setState(() {
+        _riveFile = file;
+        _riveController = controller;
+        animationHeight = controller.artboard.height;
+      });
+    }
   }
 
-  void _onRiveInit(r.Artboard art) {
-    var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
-
-    if (ctrl != null) {
-      art.addController(ctrl);
-      _controller = ctrl;
-    }
-
-    setState(() {
-      animationHeight = art.height;
-    });
+  @override
+  void dispose() {
+    _riveController?.dispose();
+    _riveFile?.dispose();
+    _shakeController.dispose();
+    super.dispose();
   }
 
   @override
@@ -2789,14 +2821,14 @@ class _BottomTimerModalState extends State<BottomTimerModal>
           width: media.size.width,
           child: Transform(
             transform: Matrix4.translationValues(5, -animationHeight / 5, 0)
-              ..scale(-1.7,
-                  1.7), // Scale up by 1.5x and flip horizontally with negative x
+              ..multiply(Matrix4.diagonal3Values(-1.7, 1.7, 1.0)),
             alignment: Alignment.center,
-            child: r.RiveAnimation.asset(
-              'assets/animations/onboarding/floats_in.riv',
-              fit: BoxFit.contain,
-              onInit: _onRiveInit,
-            ),
+            child: _riveController != null
+                ? r.RiveWidget(
+                    controller: _riveController!,
+                    fit: r.Fit.contain,
+                  )
+                : const SizedBox.shrink(),
           ),
         ),
       ),
