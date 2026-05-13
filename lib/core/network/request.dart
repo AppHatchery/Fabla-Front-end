@@ -10,7 +10,7 @@ const String prodURL =
 
 final Map<String, String> headers = {
   'Content-Type': 'application/x-www-form-urlencoded',
-  'x-api-key': dotenv.env['APIKEY']!
+  'x-api-key': dotenv.env['APIKEY'] ?? ''
 };
 
 String base() {

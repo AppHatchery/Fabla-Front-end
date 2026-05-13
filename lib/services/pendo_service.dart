@@ -71,7 +71,7 @@ class PendoService {
 
   static Future<void> init() async {
     try {
-      await _plugin.setup(dotenv.env['PENDOKEY']!);
+      await _plugin.setup(dotenv.env['PENDOKEY'] ?? '');
     } catch (e, stackTrace) {
       CrashlyticsService().recordError(e, stackTrace,
           reason: 'Error initializing Pendo in init - PendoService');
