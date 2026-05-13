@@ -4,8 +4,86 @@ on:
   pull_request:
     branches:
       - main
+      - Dev
 
 jobs:
+  Qaulity_and_test_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: set up flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-cache-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Code Quality Checks
+      - name: Format Dart files (fix in place)
+        run: dart format .
+
+      - name: Check formatting (fail if incorrect)
+        run: dart format --set-exit-if-changed .
+
+      - name: Security Analysis
+        run: |
+          # Check for hardcoded secrets (basic check)
+          if grep -r "password\|secret\|key\|token" --include="*.dart" lib/ --exclude-dir=secrets; then
+            echo "⚠️ Potential hardcoded secrets found"
+            # Don't fail the build, just warn
+          fi
+          # Check dependencies for known vulnerabilities
+          flutter pub deps --json > deps.json
+          echo "✅ Dependency check completed"
+
+  tests:
+    needs: Qaulity_and_test_check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-cache-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Create DUMMY KEYS.dart for CI
+        run: |
+          mkdir -p lib/core/secrets
+          echo "// Dummy API keys for CI" > lib/core/secrets/keys.dart
+          echo "const apiKey = 'dummy';" >> lib/core/secrets/keys.dart
+          echo "const pendoKey = 'dummy';" >> lib/core/secrets/keys.dart
+
+      - name: install the database
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Run tests
+        run: flutter test test/
+        timeout-minutes: 10
+
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -31,34 +109,6 @@ jobs:
 
       - name: Create .env from secrets
         run: |
-          # Check for hardcoded secrets (basic check)
-          if grep -r "password\|secret\|key\|token" --include="*.dart" lib/ --exclude-dir=secrets; then
-            echo "⚠️ Potential hardcoded secrets found"
-            # Don't fail the build, just warn
-          fi 
-          # Check dependencies for known vulnerabilities
-          flutter pub deps --json > deps.json
-          echo "✅ Dependency check completed"
-
-  tests:
-    needs: Qaulity_and_test_check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.41.9'
-          channel: 'stable'
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-cache-
           echo "APIKEY=${{ secrets.APIKEY }}" > .env
           echo "PENDOKEY=${{ secrets.PENDOKEY }}" >> .env
 
