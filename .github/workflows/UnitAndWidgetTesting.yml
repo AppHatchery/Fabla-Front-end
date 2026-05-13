@@ -77,6 +77,11 @@ jobs:
           echo "const apiKey = 'dummy';" >> lib/core/secrets/keys.dart
           echo "const pendoKey = 'dummy';" >> lib/core/secrets/keys.dart
 
+      - name: Create dummy .env for CI
+        run: |
+          echo "APIKEY=dummy" > .env
+          echo "PENDOKEY=dummy" >> .env
+
       - name: install the database
         run: dart run build_runner build --delete-conflicting-outputs
 
