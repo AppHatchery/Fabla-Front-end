@@ -73,20 +73,39 @@ class DailyGoalService {
       List<DiaryModel> diaries, ShiftedDayBoundaries boundaries) {
     int completedCount = 0;
 
-    for (var diary in diaries) {
-      // Check if this diary has submissions within the shifted day window
-      if (diary.submissions != null && diary.submissions!.isNotEmpty) {
-        // Count submissions that fall within the shifted day boundaries
-        final submissionsInWindow = diary.submissions!.where((submission) {
-          return submission.isAfter(boundaries.start) &&
-              submission.isBefore(boundaries.end);
-        }).length;
+    for (final diary in diaries) {
+      final submissions = diary.submissions;
+      if (submissions == null || submissions.isEmpty) continue;
 
-        completedCount += submissionsInWindow;
+      final int contribution;
+
+      if (_isRecurringDiary(diary)) {
+        // Per-day diary: only today's submissions count toward today's goal.
+        contribution = submissions.where((s) =>
+        s.isAfter(boundaries.start) && s.isBefore(boundaries.end)
+        ).length;
+      } else {
+        // One-shot multi-day diary: any submission in the diary's window counts.
+        // (Already constrained because submissions can only happen while open.)
+        contribution = submissions.length;
       }
+
+      completedCount += contribution.clamp(0, diary.entries);
     }
 
     return completedCount;
+  }
+
+  bool _isRecurringDiary(DiaryModel diary) {
+    // activeDays implies the diary repeats on specific weekdays.
+    if (diary.activeDays != null && diary.activeDays!.isNotEmpty) return true;
+
+    // Future-proof: a multi-day diary asking for more entries than one day fits
+    // is per-day-recurring. Today this is a no-op (all multi-day diaries have entries=1).
+    // Comment out if you want strict "activeDays-only" recurrence.
+    // return false;
+
+    return false;
   }
 
   /// Calculates progress percentage (0.0 to 1.0)
