@@ -1278,26 +1278,39 @@ class StudyInfoPopUp extends StatelessWidget {
     return SimpleDialog(
         backgroundColor: CustomColors.fillWhite,
         contentPadding: const EdgeInsets.all(0),
-        title: Row(
-          spacing: 16,
+        insetPadding: const EdgeInsets.symmetric(
+            horizontal: 29),
+        title: Column(
           children: [
-            Container(
-              decoration:
-                  BoxDecoration(shape: BoxShape.circle, color: Colors.black26),
-              child: Image.asset(
-                "assets/images/study_info.png",
-                height: 80,
-                width: 80,
+            Align(
+              alignment: Alignment.topRight,
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child:const Icon(Icons.close, size: 24),
               ),
             ),
-            Flexible(
-              child: Text(
-                "What’s my Study String?",
-                style: CustomTypography().custom(
-                    fontSize: 22.sp,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xDB000000)),
-              ),
+            Row(
+              spacing: 16,
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                      shape: BoxShape.circle, color: Colors.black26),
+                  child: Image.asset(
+                    "assets/images/study_info.png",
+                    height: 80,
+                    width: 80,
+                  ),
+                ),
+                Flexible(
+                  child: Text(
+                    "What's my Study String?",
+                    style: CustomTypography().custom(
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xDB000000)),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -1306,15 +1319,13 @@ class StudyInfoPopUp extends StatelessWidget {
             padding: const EdgeInsets.only(left: 19, right: 30, bottom: 41),
             child: Column(
               children: [
-                SizedBox(
-                  height: 26,
-                ),
+                const SizedBox(height: 26),
                 Text.rich(TextSpan(
                     text: "Your ",
                     style: CustomTypography().custom(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.w400,
-                        color: Color(0xA3000000)),
+                        color: const Color(0xA3000000)),
                     children: [
                       TextSpan(
                         text: "Study String ",
@@ -1323,31 +1334,27 @@ class StudyInfoPopUp extends StatelessWidget {
                       ),
                       TextSpan(
                         text:
-                            "is an alphanumeric code shared by your researcher to grant you access to your study on Fabla",
+                            "is an alphanumeric code (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla",
                         style: CustomTypography().custom(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.w400,
-                            color: Color(0xA3000000)),
+                            color: const Color(0xA3000000)),
                       )
                     ])),
-                SizedBox(
-                  height: 26.0,
-                ),
+                const SizedBox(height: 26),
                 Text.rich(
                   TextSpan(
                     text: 'If you need help with your Study String, you may ',
                     style: CustomTypography().custom(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.w400,
-                        color: Color(0xA3000000)),
+                        color: const Color(0xA3000000)),
                     children: [
                       TextSpan(
                           text: "Contact Us",
                           style: CustomTypography()
-                              .titleSmall(color: Color(0xA3000000))
-                              .copyWith(
-                                decoration: TextDecoration.underline,
-                              ),
+                              .titleSmall(color: const Color(0xA3000000))
+                              .copyWith(decoration: TextDecoration.underline),
                           recognizer: TapGestureRecognizer()
                             ..onTap = launchEmail),
                       TextSpan(
@@ -1355,14 +1362,15 @@ class StudyInfoPopUp extends StatelessWidget {
                           style: CustomTypography().custom(
                               fontSize: 18.sp,
                               fontWeight: FontWeight.w400,
-                              color: Color(0xA3000000))),
+                              color: const Color(0xA3000000))),
                     ],
                   ),
                 )
               ],
             ),
           ),
-        ]);
+        ]
+    );
   }
 
   Future<void> launchEmail() async {
@@ -1433,17 +1441,17 @@ class CompletedPopUp extends StatelessWidget {
                   borderColor: CustomColors.productNormalActive,
                 ),
               ),
-              const SizedBox(height: 42),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: CustomFlatButton(
-                  onClick: () => onSkip(context),
-                  text: "Skip survey",
-                  color: CustomColors.fillWhite,
-                  textColor: CustomColors.warningActive,
-                  borderColor: Colors.transparent,
-                ),
-              ),
+              // const SizedBox(height: 42),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 10),
+              //   child: CustomFlatButton(
+              //     onClick: () => onSkip(context),
+              //     text: "Skip survey",
+              //     color: CustomColors.fillWhite,
+              //     textColor: CustomColors.warningActive,
+              //     borderColor: Colors.transparent,
+              //   ),
+              // ),
             ],
           ),
         ),

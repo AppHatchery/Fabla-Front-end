@@ -40,50 +40,57 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     double totalWidth = width - 32;
+    //fixed height for the container to avoid infinite bounds
+    double maxHeight = height * 0.5;
 
     return Container(
+      constraints: BoxConstraints(maxHeight: maxHeight),
       width: width,
       color: CustomColors.fillWhite,
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            //THIS WEEK
-            Wrap(
-              children: [
-                Text(
-                  thisWeek,
-                  style: CustomTypography().caption(),
-                ),
-              ],
-            ),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+      //allowing scrolling
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              //THIS WEEK
+              Wrap(
+                children: [
+                  Text(
+                    thisWeek,
+                    style: CustomTypography().bodyLarge(),
+                  ),
+                ],
+              ),
 
-            const SizedBox(
-              height: 6,
-            ),
-            Column(
-                children: data.entries.isNotEmpty
-                    ? data.entries.toList().asMap().entries.map((e) {
-                        final value = e.value;
-                        if (value.key.goals.weekly == 0) {
-                          return const SizedBox();
-                        }
-                        return goalWidget(
-                            width,
-                            totalWidth,
-                            value.key,
-                            value.value,
-                            e.value.key.color ?? CustomColors.productNormal);
-                      }).toList()
-                    : [
-                        Text("No entries needed this week",
-                            style: CustomTypography().titleMedium())
-                      ]),
-          ],
+              const SizedBox(
+                height: 6,
+              ),
+              Column(
+                  children: data.entries.isNotEmpty
+                      ? data.entries.toList().asMap().entries.map((e) {
+                          final value = e.value;
+                          if (value.key.goals.weekly == 0) {
+                            return const SizedBox();
+                          }
+                          return goalWidget(
+                              width,
+                              totalWidth,
+                              value.key,
+                              value.value,
+                              e.value.key.color ?? CustomColors.productNormal);
+                        }).toList()
+                      : [
+                          Text("No entries needed this week",
+                              style: CustomTypography().titleMedium())
+                        ]),
+            ],
+          ),
         ),
       ),
     );
@@ -133,7 +140,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
             const SizedBox(width: 6),
             Text(
               study.name,
-              style: CustomTypography().bodyMedium(),
+              style: CustomTypography().bodyLarge(),
             )
           ],
         ),
@@ -149,7 +156,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                 padding: const EdgeInsets.only(right: 8.0),
                 child: Text(
                   "Submit at least $lowerGoal ${goal > 1 ? "entries" : "entry"} this week to complete your goal.",
-                  style: CustomTypography().caption(),
+                  style: CustomTypography().bodyMedium(),
                   softWrap: true,
                 ),
               ),

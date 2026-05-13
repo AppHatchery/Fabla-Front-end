@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/study_login.dart';
@@ -198,7 +200,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
     );
 
     if (results == true && mounted) {
-      await repository.leaveStudy();
+      unawaited(repository.leaveStudy());
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
             context,

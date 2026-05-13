@@ -463,10 +463,13 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   getActiveDates(List<DiaryModel> diaries) {
-    // get dates of submitted diaries
+    // get dates of submitted diaries, normalized to day only so multiple
+    // submissions on the same day count as a single active day
     for (final diary in diaries) {
       if (diary.status == DiaryStatus.submitted) {
-        activeDates.add(diary.start);
+        activeDates.add(
+          DateTime(diary.start.year, diary.start.month, diary.start.day),
+        );
       }
     }
   }
