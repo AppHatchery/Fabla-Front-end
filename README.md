@@ -119,8 +119,8 @@ PENDOKEY=your_pendo_integration_key   # optional — remove if not using Pendo
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/fabla-flutter.git
-cd fabla-flutter
+git clone https://github.com/AppHatchery/Fabla-Front-end.git
+cd Fabla-Front-end
 
 # 2. Install Flutter dependencies
 flutter pub get
