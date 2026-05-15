@@ -85,13 +85,6 @@ dependencies:
   rive: ^0.14.6
   lottie: ^3.3.3
 
-  #Amplify
-  # amplify_flutter: ^2.6.0
-  # amplify_auth_cognito: ^2.6.0
-  # amplify_storage_s3: ^2.6.0
-  # amplify_datastore: ^2.6.0
-  # amplify_api: ^2.6.0
-
   # amplify_analytics_pinpoint: ^2.6.0
   firebase_messaging: ^16.2.1
   flutter_local_notifications: ^21.0.0

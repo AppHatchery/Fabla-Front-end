@@ -1,4 +1,3 @@
-
 import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -28,7 +27,8 @@ import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show SystemChrome, SystemUiOverlayStyle, SystemUiMode;
+import 'package:flutter/services.dart'
+    show SystemChrome, SystemUiOverlayStyle, SystemUiMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -63,7 +63,6 @@ void main() async {
   await CrashlyticsService().initialize();
   objectbox = await ObjectBox.create();
   cameras = await availableCameras();
-  //await configureAmplify();
   await RiveNative.init();
   await Alarm.init();
   await NotificationService.init();
@@ -139,7 +138,7 @@ class _MyAppState extends State<MyApp> {
               ],
               child: PendoActionListener(
                 child: MaterialApp(
-                  title: 'Audio Diaries',
+                  title: 'Fabla',
                   theme: ThemeData(
                       primaryColor: CustomColors.productNormal,
                       useMaterial3: true),
@@ -306,7 +305,8 @@ class _HubState extends State<Hub>
                   indicator: null,
                   padding: EdgeInsets.only(
                     top: 8,
-                    bottom: bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 8),
+                    bottom:
+                        bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 8),
                   ),
                   dividerColor: Colors.transparent,
                 ),
