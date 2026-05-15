@@ -947,10 +947,10 @@ packages:
     dependency: transitive
     description:
       name: location_platform_interface
-      sha256: a3404ea6d74e89b121630be62ed8edcc7b39fd108bd19805d0ae55c397135dd7
+      sha256: ca8700bb3f6b1e8b2afbd86bd78b2280d116c613ca7bfa1d4d7b64eba357d749
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.0"
+    version: "6.0.1"
   location_web:
     dependency: transitive
     description:
