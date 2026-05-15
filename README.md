@@ -16,6 +16,7 @@ Fabla is an open-source Flutter mobile app for collecting qualitative and quanti
   - [Code Generation](#code-generation)
   - [Running the App](#running-the-app)
 - [Backend Integration](#backend-integration)
+  - [Credentials Flow](#credentials-flow)
   - [Study Protocol JSON Format](#study-protocol-json-format)
 - [Project Structure](#project-structure)
 - [Testing](#testing)
@@ -97,7 +98,7 @@ Data flows: **Backend API → Repository → Cubit/Bloc → UI**. All persistenc
 
 ### Environment Variables
 
-The app reads credentials from a `.env` file at the project root. Neither file is committed to version control.
+The app reads credentials from a `.env` file at the project root. The file is not to be committed to version control.
 
 1. Copy the example env file:
 
@@ -164,10 +165,47 @@ The key files to touch when wiring up your own backend are:
 
 **`lib/core/network/upload.dart`** — Handles uploading completed diary entries (survey responses, audio, images, and video) to a backend store. The current implementation targets AWS S3 (presigned URLs) and a DynamoDB-backed endpoint. Replace the upload functions here to route data to your own storage and database.
 
+**`lib/core/network/secrets_handler.dart`** — Manages the upload credentials that the app fetches during onboarding. See [Credentials Flow](#credentials-flow) below.
+
 Additional integration points:
 
 - `lib/screens/*/data/` — Per-feature data sources and models
 - `lib/screens/*/domain/repositories/` — Repository interfaces (implement these against your backend)
+
+### Credentials Flow
+
+When a participant logs in with their study code, the app calls a credentials endpoint (currently a Lambda function) to exchange the study code for upload credentials. Those credentials are persisted to encrypted on-device storage (`flutter_secure_storage`) and read back automatically on every diary submission — the participant never sees them.
+
+```
+Participant enters study code
+        │
+        ▼
+SecureSave.postData(studyCode)
+        │  POST { StudyCode: "…" }
+        ▼
+Credentials endpoint
+        │  { "message": { "Authorization": "…", "x-api-key": "…",
+        │                  "dynamo_url": "…", "presigned_url": "…" } }
+        ▼
+SecureSave.save()  →  encrypted device storage
+        │
+        ▼
+upload.dart reads credentials on each submission
+```
+
+**To replace with your own backend:**
+
+1. In `lib/core/network/secrets_handler.dart`, replace the Lambda URL inside `SecureSave.postData()` with your own credentials endpoint.
+2. Your endpoint must accept a `StudyCode` form field and return a JSON body with a `message` object containing these four keys:
+
+| Key | Used by |
+|---|---|
+| `Authorization` | Auth header on every upload request |
+| `x-api-key` | API key header on every upload request |
+| `dynamo_url` | Endpoint that receives survey response JSON |
+| `presigned_url` | Endpoint that returns presigned URLs for file (audio/video/image) uploads |
+
+3. If your backend uses a different credential shape, update `CredentialsModel` in the same file and adjust how `upload.dart` reads those values.
 
 ### Study Protocol JSON Format
 
@@ -203,6 +241,10 @@ The study protocol endpoint must return a JSON response with the following top-l
 | `active_days` | array \| null | Days of the week this diary is active, or `null` for one day diaries |
 | `questions` | array | Ordered list of question objects (see below) |
 | `notifications` | array | Push notification schedules for this diary |
+
+> **Day boundary — 4 AM shift:** The app defines a calendar day as **4:00 AM to 3:59 AM** the following morning, and a week as **Monday 4:00 AM to Sunday 3:59 AM**. This means a diary with `start_time` of `2025-06-16T00:00:00` belongs to the previous calendar day from the participant's perspective. When scheduling diaries and setting `start_time`/`end_time`, treat 4:00 AM as midnight. Daily and weekly goal counts (`goal.daily`, `goal.weekly`) are also tallied against these shifted boundaries.
+>
+> To change the boundary, edit `_getWeekBoundaries()` in `lib/screens/home/presentation/cubit/cubit/home_cubit.dart` — adjust the hour value in the two `DateTime(…, hour, …)` constructors (currently `4` for the week start and `3` / minute `59` for the week end).
 
 #### Question objects
 

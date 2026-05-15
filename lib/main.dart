@@ -63,7 +63,6 @@ void main() async {
   await CrashlyticsService().initialize();
   objectbox = await ObjectBox.create();
   cameras = await availableCameras();
-  //await configureAmplify();
   await RiveNative.init();
   await Alarm.init();
   await NotificationService.init();
@@ -139,7 +138,7 @@ class _MyAppState extends State<MyApp> {
               ],
               child: PendoActionListener(
                 child: MaterialApp(
-                  title: 'Audio Diaries',
+                  title: 'Fabla',
                   theme: ThemeData(
                       primaryColor: CustomColors.productNormal,
                       useMaterial3: true),

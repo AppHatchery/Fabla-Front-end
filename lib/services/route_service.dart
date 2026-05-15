@@ -40,7 +40,15 @@ class RouteService {
   })  : _preferenceService = preferenceService ?? PreferenceService(),
         _setupRepository = setupRepository ?? SetupRepository();
 
-  // Main Flow for the onboarding process without any extra permissions
+  // Base onboarding sequence. Each step declares its own next/previous so the
+  // flow can be traversed forward (navigate) and backward (navigateBack) without
+  // a navigation stack.
+  //
+  // Steps marked type='permission' act as injection points: any strings stored
+  // in the 'extra_permissions' preference (e.g. ['microphone', 'camera',
+  // 'location']) are inserted immediately after 'notification_access' at
+  // runtime. The base flow therefore contains only the one required permission
+  // step; optional ones are assembled dynamically in navigate() / navigateBack().
   final List<Map<String, String>> _flow = [
     {'route': 'login', 'next': 'confirm', 'type': 'login', 'previous': ''},
     {
@@ -150,6 +158,9 @@ class RouteService {
 
     final participant = _setupRepository.getParticipant();
 
+    // Priority cascade: each condition represents an incomplete onboarding step.
+    // The order matches the _flow sequence — whichever step is not yet marked
+    // complete in preferences is where the participant resumes.
     if (setup) {
       return const Hub();
     }
