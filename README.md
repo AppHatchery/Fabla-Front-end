@@ -18,6 +18,7 @@ Fabla is an open-source Flutter mobile app for collecting qualitative and quanti
 - [Backend Integration](#backend-integration)
   - [Credentials Flow](#credentials-flow)
   - [Study Protocol JSON Format](#study-protocol-json-format)
+  - [Notification Scheduling](#notification-scheduling)
 - [Project Structure](#project-structure)
 - [Testing](#testing)
   - [Unit & Widget Tests](#unit--widget-tests)
@@ -275,6 +276,18 @@ Type-specific fields:
 | `webview` | `link` | Embedded web page (e.g. REDCap survey) |
 | `visualResponse-imageVideo` | `media_type` | Photo or video capture response |
 
+#### Notification objects
+
+Each object in a diary's `notifications` array schedules a local push notification for that diary window:
+
+| Field | Type | Description |
+|---|---|---|
+| `title` | string | Notification title |
+| `content` | string | Notification body text |
+| `time` | ISO 8601 datetime | When the notification fires |
+
+The app reads `content` (not `body`) as the notification body — match that key exactly. Multiple objects in the array schedule multiple notifications for the same diary.
+
 #### Minimal example
 
 ```json
@@ -325,6 +338,42 @@ Type-specific fields:
   }
 }
 ```
+
+### Notification Scheduling
+
+The app runs three parallel notification tracks. Understanding them matters if you're changing the study protocol or the reminder UX.
+
+#### 1. Protocol notifications (from your backend)
+
+Each diary object in the study protocol can include a `notifications` array. These are loaded into the local database at onboarding and scheduled as local device notifications by `NotificationManager` (`lib/core/usecases/notification_manager.dart`).
+
+**OS notification cap:** iOS allows at most 64 scheduled local notifications; the app self-limits to **50** (`threshold` constant in `notification_manager.dart`). Because a long study can have more than 50 future notification slots, the app uses a two-step strategy:
+
+- `scheduleLimit()` — called once after the protocol is loaded during onboarding. Clears all existing notifications and fills the device queue up to 50, ordered by diary start date.
+- `scheduleAdditional()` — called every time the app returns to the foreground. Checks how many notifications are currently queued and tops up to 50 without duplicating already-scheduled ones.
+
+For **weekly diaries** (those with `active_days` set), the manager expands each notification time across every active weekday between the diary's `start_time` and `end_time`, so a single protocol notification entry fans out into one device notification per active day.
+
+#### 2. User reminder notifications (participant-set)
+
+Participants set their preferred reminder times from the **Settings page**. These are stored in the `reminder_times` preference and scheduled by `createNotifications()` in `setup_repository.dart`. The scheduling logic:
+
+- One notification per diary per chosen time.
+- If the latest chosen time is at or after 7 PM and adding 3 hours doesn't cross midnight, an automatic **late reminder** fires 3 hours after that last time.
+- If the participant chose no late-evening time, a fixed **9 PM fallback** reminder is always added.
+- A **"study starts tomorrow"** notification fires the day before the first diary at the participant's first chosen time (or 5 PM if none set).
+
+Each time the participant saves new reminder times in Settings, `reScheduleAllNotifications()` is called and the full schedule is replaced.
+
+#### 3. Automatic in-session notifications
+
+These fire based on participant behaviour and require no backend configuration:
+
+| Type | Trigger | Time |
+|---|---|---|
+| **Continue** | Participant opens but doesn't finish a diary | 30 minutes later (only before 7 PM) |
+| **Submit** | Participant completes all questions but hasn't submitted | 10 minutes later (only before 7 PM, requires internet) |
+| **Daily goal** | Participant hasn't met their `goal.daily` target | Between 3 PM and 7 PM, up to once per hour |
 
 ---
 
