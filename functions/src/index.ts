@@ -44,6 +44,82 @@ function githubHeaders(token: string) {
   };
 }
 
+type IssueType = "fatal" | "non-fatal" | "anr" | "regression" | "velocity";
+
+interface IssueBodyParams {
+  type: IssueType;
+  subtitle: string;
+  appVersion: string;
+  appId: string;
+  issueId: string;
+  extra?: {
+    resolvedAt?: string;
+    issueKind?: string;
+    crashCount?: number;
+    crashPercentage?: string;
+    firstVersion?: string;
+  };
+}
+
+/**
+ * Formats a GitHub issue body using the project bug report template,
+ * populated with data from a Crashlytics alert event.
+ * @param {IssueBodyParams} params - Crashlytics issue data to populate the template.
+ * @return {string} A formatted markdown string for the GitHub issue body.
+ */
+function buildIssueBody(params: IssueBodyParams): string {
+  const {type, subtitle, appVersion, appId, issueId, extra = {}} = params;
+  const consoleUrl = crashlyticsUrl(appId, issueId);
+
+  const actualBehaviorMap: Record<IssueType, string> = {
+    "fatal": `Fatal crash in version \`${appVersion}\`.`,
+    "non-fatal": `Non-fatal error recorded in version \`${appVersion}\`.`,
+    "anr": `App became unresponsive (ANR) in version \`${appVersion}\`.`,
+    "regression": [
+      `Previously resolved issue reappeared in version \`${appVersion}\`.`,
+      extra.resolvedAt ? `Last resolved: ${extra.resolvedAt}.` : "",
+      extra.issueKind ? `Type: ${extra.issueKind}.` : "",
+    ].filter(Boolean).join(" "),
+    "velocity": [
+      `Crash rate spiked in version \`${appVersion}\`.`,
+      extra.crashCount !== undefined ?
+        `${extra.crashCount} sessions affected` +
+        (extra.crashPercentage ? ` (${extra.crashPercentage}%)` : "") + "." :
+        "",
+      extra.firstVersion ?
+        `Issue first seen in v${extra.firstVersion}.` : "",
+    ].filter(Boolean).join(" "),
+  };
+
+  const expectedBehavior = type === "anr" ?
+    "App should remain responsive at all times." :
+    "App should operate without crashing.";
+
+  return `
+## 🐛 Bug Description
+${subtitle}
+
+## 🔄 Steps to Reproduce
+*Automatically detected by Firebase Crashlytics — steps unknown.*
+*See the [Crashlytics console](${consoleUrl}) for stack traces and session details.*
+
+## ✅ Expected Behavior
+${expectedBehavior}
+
+## ❌ Actual Behavior
+${actualBehaviorMap[type]}
+
+## 📱 Environment
+- **App Version:** \`${appVersion}\`
+- **App ID:** \`${appId}\`
+- **Device / OS:** *See [Crashlytics console](${consoleUrl}) for device details*
+
+## 📎 Additional Context
+- **Crashlytics Issue ID:** \`${issueId}\`
+- [🔗 View crash details in Firebase console](${consoleUrl})
+  `.trim();
+}
+
 /**
  * Searches for an open GitHub issue whose body contains the given
  * Crashlytics issue ID. Returns the issue number and node_id if found,
@@ -70,9 +146,9 @@ async function findExistingIssue(
   }
 
   const data = (await response.json()) as {
-        total_count: number;
-        items: { number: number; node_id: string }[];
-    };
+    total_count: number;
+    items: { number: number; node_id: string }[];
+  };
   return data.total_count > 0 ? data.items[0] : null;
 }
 
@@ -117,11 +193,14 @@ async function commentOnIssue(
   body: string,
   token: string,
 ): Promise<void> {
-  const response = await fetch(`${GITHUB_API}/issues/${issueNumber}/comments`, {
-    method: "POST",
-    headers: githubHeaders(token),
-    body: JSON.stringify({body}),
-  });
+  const response = await fetch(
+    `${GITHUB_API}/issues/${issueNumber}/comments`,
+    {
+      method: "POST",
+      headers: githubHeaders(token),
+      body: JSON.stringify({body}),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.text();
@@ -171,28 +250,18 @@ export const onFatalCrash = onNewFatalIssuePublished(
     try {
       const issue = event.data.payload.issue;
 
-      const title = `🔴 [Fatal Crash] ${issue.title}`;
-      const body = `
-## Fatal Crash Detected
-
-| Field        | Value |
-|--------------|-------|
-| **App ID**   | ${event.appId} |
-| **Version**  | ${issue.appVersion} |
-| **Issue ID** | ${issue.id} |
-
-### Subtitle
-${issue.subtitle}
-
----
-*Detected by Firebase Crashlytics. [View in console](${crashlyticsUrl(event.appId, issue.id)})*
-      `.trim();
-
-      await createGithubIssue(title, body, githubToken.value(), [
-        "bug",
-        "crash",
-        "fatal",
-      ]);
+      await createGithubIssue(
+        `🔴 [BUG] ${issue.title}`,
+        buildIssueBody({
+          type: "fatal",
+          subtitle: issue.subtitle,
+          appVersion: issue.appVersion,
+          appId: event.appId,
+          issueId: issue.id,
+        }),
+        githubToken.value(),
+        ["bug", "crash", "fatal"],
+      );
     } catch (err) {
       logger.error("onFatalCrash: failed to create GitHub issue", err);
     }
@@ -209,28 +278,18 @@ export const onNonfatalCrash = onNewNonfatalIssuePublished(
     try {
       const issue = event.data.payload.issue;
 
-      const title = `🟡 [Non-Fatal] ${issue.title}`;
-      const body = `
-## Non-Fatal Issue Detected
-
-| Field        | Value |
-|--------------|-------|
-| **App ID**   | ${event.appId} |
-| **Version**  | ${issue.appVersion} |
-| **Issue ID** | ${issue.id} |
-
-### Subtitle
-${issue.subtitle}
-
----
-*Detected by Firebase Crashlytics. [View in console](${crashlyticsUrl(event.appId, issue.id)})*
-      `.trim();
-
-      await createGithubIssue(title, body, githubToken.value(), [
-        "bug",
-        "crash",
-        "non-fatal",
-      ]);
+      await createGithubIssue(
+        `🟡 [BUG] ${issue.title}`,
+        buildIssueBody({
+          type: "non-fatal",
+          subtitle: issue.subtitle,
+          appVersion: issue.appVersion,
+          appId: event.appId,
+          issueId: issue.id,
+        }),
+        githubToken.value(),
+        ["bug", "crash", "non-fatal"],
+      );
     } catch (err) {
       logger.error("onNonfatalCrash: failed to create GitHub issue", err);
     }
@@ -247,28 +306,18 @@ export const onAnrIssue = onNewAnrIssuePublished(
     try {
       const issue = event.data.payload.issue;
 
-      const title = `🟠 [ANR] ${issue.title}`;
-      const body = `
-## ANR (App Not Responding) Detected
-
-| Field        | Value |
-|--------------|-------|
-| **App ID**   | ${event.appId} |
-| **Version**  | ${issue.appVersion} |
-| **Issue ID** | ${issue.id} |
-
-### Subtitle
-${issue.subtitle}
-
----
-*Detected by Firebase Crashlytics. [View in console](${crashlyticsUrl(event.appId, issue.id)})*
-      `.trim();
-
-      await createGithubIssue(title, body, githubToken.value(), [
-        "bug",
-        "anr",
-        "android",
-      ]);
+      await createGithubIssue(
+        `🟠 [BUG] ${issue.title}`,
+        buildIssueBody({
+          type: "anr",
+          subtitle: issue.subtitle,
+          appVersion: issue.appVersion,
+          appId: event.appId,
+          issueId: issue.id,
+        }),
+        githubToken.value(),
+        ["bug", "anr", "android"],
+      );
     } catch (err) {
       logger.error("onAnrIssue: failed to create GitHub issue", err);
     }
@@ -290,46 +339,32 @@ export const onCrashRegression = onRegressionAlertPublished(
       const {issue, resolveTime, type} = event.data.payload;
       const token = githubToken.value();
       const resolvedAt = new Date(resolveTime).toUTCString();
+      const consoleUrl = crashlyticsUrl(event.appId, issue.id);
 
       const comment = `
-## 🔁 Regression Detected
+## 🔁 Regression — This issue has reappeared
 
-This issue has reappeared after being resolved.
+| Field           | Value |
+|-----------------|-------|
+| **Version**     | \`${issue.appVersion}\` |
+| **Type**        | ${type} |
+| **Resolved At** | ${resolvedAt} |
 
-| Field             | Value |
-|-------------------|-------|
-| **Version**       | ${issue.appVersion} |
-| **Issue Type**    | ${type} |
-| **Resolved At**   | ${resolvedAt} |
-
-*Detected by Firebase Crashlytics. [View in console](${crashlyticsUrl(event.appId, issue.id)})*
-      `.trim();
-
-      const newIssueTitle = `🔁 [Regression] ${issue.title}`;
-      const newIssueBody = `
-## Regression Detected
-
-A previously resolved issue has reappeared.
-
-| Field             | Value |
-|-------------------|-------|
-| **App ID**        | ${event.appId} |
-| **Version**       | ${issue.appVersion} |
-| **Issue ID**      | ${issue.id} |
-| **Resolved At**   | ${resolvedAt} |
-
-### Subtitle
-${issue.subtitle}
-
----
-*Detected by Firebase Crashlytics. [View in console](${crashlyticsUrl(event.appId, issue.id)})*
+[🔗 View in Crashlytics console](${consoleUrl})
       `.trim();
 
       await findAndCommentOrCreate(
         issue.id,
         comment,
-        newIssueTitle,
-        newIssueBody,
+        `🔁 [BUG] ${issue.title}`,
+        buildIssueBody({
+          type: "regression",
+          subtitle: issue.subtitle,
+          appVersion: issue.appVersion,
+          appId: event.appId,
+          issueId: issue.id,
+          extra: {resolvedAt, issueKind: type},
+        }),
         token,
         ["bug", "crash", "regression"],
       );
@@ -348,53 +383,43 @@ export const onCrashVelocity = onVelocityAlertPublished(
   async (event) => {
     try {
       const {issue, crashCount, crashPercentage, firstVersion} =
-                event.data.payload;
+        event.data.payload;
       const token = githubToken.value();
 
       // crashCount may be a protobuf Long at runtime — Number() safely coerces either form.
       const count = Number(crashCount);
       const percentage = Number(crashPercentage).toFixed(1);
+      const consoleUrl = crashlyticsUrl(event.appId, issue.id);
 
       const comment = `
-## ⚡ Crash Spike Detected
+## ⚡ Crash Spike — This issue is spiking
 
-Another crash was recorded — this issue is spiking.
+| Field                 | Value |
+|-----------------------|-------|
+| **Version**           | \`${issue.appVersion}\` |
+| **Sessions Affected** | ${count} |
+| **Crash Rate**        | ${percentage}% |
+| **First Seen**        | v${firstVersion} |
 
-| Field                  | Value |
-|------------------------|-------|
-| **Version**            | ${issue.appVersion} |
-| **Sessions Affected**  | ${count} |
-| **Crash Rate**         | ${percentage}% |
-| **First Seen**         | v${firstVersion} |
-
-*Detected by Firebase Crashlytics. [View in console](${crashlyticsUrl(event.appId, issue.id)})*
-      `.trim();
-
-      const newIssueTitle = `⚡ [Velocity] ${issue.title}`;
-      const newIssueBody = `
-## Crash Spike Detected
-
-| Field                  | Value |
-|------------------------|-------|
-| **App ID**             | ${event.appId} |
-| **Version**            | ${issue.appVersion} |
-| **Issue ID**           | ${issue.id} |
-| **Sessions Affected**  | ${count} |
-| **Crash Rate**         | ${percentage}% |
-| **First Seen**         | v${firstVersion} |
-
-### Subtitle
-${issue.subtitle}
-
----
-*Detected by Firebase Crashlytics. [View in console](${crashlyticsUrl(event.appId, issue.id)})*
+[🔗 View in Crashlytics console](${consoleUrl})
       `.trim();
 
       await findAndCommentOrCreate(
         issue.id,
         comment,
-        newIssueTitle,
-        newIssueBody,
+        `⚡ [BUG] ${issue.title}`,
+        buildIssueBody({
+          type: "velocity",
+          subtitle: issue.subtitle,
+          appVersion: issue.appVersion,
+          appId: event.appId,
+          issueId: issue.id,
+          extra: {
+            crashCount: count,
+            crashPercentage: percentage,
+            firstVersion,
+          },
+        }),
         token,
         ["bug", "crash", "velocity"],
       );
