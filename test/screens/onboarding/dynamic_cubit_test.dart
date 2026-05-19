@@ -82,8 +82,8 @@ void main() {
       });
 
       test('DynamicError instances with same message are equal', () {
-        const state1 = DynamicError('Test error');
-        const state2 = DynamicError('Test error');
+        const state1 = DynamicError('Test error', 5);
+        const state2 = DynamicError('Test error', 5);
         expect(state1, equals(state2));
       });
 
@@ -103,7 +103,7 @@ void main() {
         final initial = DynamicInitial();
         final loading = DynamicLoading();
         const loaded = DynamicLoaded(questions: []);
-        const error = DynamicError('Test error');
+        const error = DynamicError('Test error', 5);
         final uploading = DynamicUploading();
         const uploaded = DynamicUploaded(5);
 
@@ -203,13 +203,18 @@ class TestableDynamicCubit extends Cubit<DynamicState> {
     emit(DynamicUploading());
     try {
       final result = await setupRepository.uploadOnBoardingQuestions();
+
+      if (result == null) {
+        return emit(const DynamicError("Failed to upload answers", 5));
+      }
+
       if (result) {
         await preferenceService.setStringPreference(
             key: "onboardingSurveyCompletedDate",
             value: DateTime.now().toString());
         emit(DynamicUploaded(length));
       } else {
-        emit(const DynamicError("Failed to upload answers"));
+        emit(const DynamicError("Failed to upload answers", 5));
       }
     } catch (e) {
       // debugPrint("Error uploading Onboarding Answers: $e");

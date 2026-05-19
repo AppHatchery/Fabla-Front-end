@@ -8,9 +8,10 @@ import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/questions_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/network/request.dart';
+import 'package:audio_diaries_flutter/core/usecases/connectivity.dart'
+    show checkForInternet;
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
-import 'package:audio_diaries_flutter/core/utils/extensions.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
@@ -189,28 +190,42 @@ class SetupRepository {
           }
         }
 
-        // Fetch all diaries from the local database
-        // Filter out duplicates from the new diaries
-        // For fresh installs it will be empty and result in all diaries being fetched
-        final localDiaries = diaryRepository.getAllDiaries();
-
-        // Merge using clean rules (fresh installs work as intended)
-        final mergedDiaries = _mergeDiaries(fetchedDiaries, localDiaries);
-
         // If no diaries are found, return true
-        if (mergedDiaries.isEmpty) {
-          dev.log("No new or changed diaries to update", name: "Get Studies");
+        if (fetchedDiaries.isEmpty) {
+          dev.log("No diaries fetched from server", name: "Get Studies");
           return true;
         }
-        //delete duplicated diaries from the local database to avoid duplicates
-        final keysToDelete = mergedDiaries
-            .map((d) =>
-                '${d.studyID}_${d.name}_${d.start.toIso8601String()}_${d.end.toIso8601String()}')
-            .toSet();
-        diaryRepository.deleteDiariesByKey(keysToDelete, localDiaries);
+
+        // Determine which diaries to add based on whether this is a fresh install or not
+        List<DiaryModel> diariesToAdd;
+
+        if (partialCleanDB) {
+          // NOT a fresh install - only add today and future diaries
+          final now = DateTime.now();
+          final today = DateTime(now.year, now.month, now.day);
+
+          diariesToAdd = fetchedDiaries
+              .where((diary) => !diary.start.isBefore(today))
+              .toList();
+
+          dev.log(
+              "Partial update: Total fetched: ${fetchedDiaries.length}, Future only: ${diariesToAdd.length}",
+              name: "Get Studies");
+        } else {
+          // Fresh install - add ALL diaries
+          diariesToAdd = fetchedDiaries;
+          dev.log("Fresh install: Adding all ${diariesToAdd.length} diaries",
+              name: "Get Studies");
+        }
+
+        // If no diaries to add, return true
+        if (diariesToAdd.isEmpty) {
+          dev.log("No diaries to add", name: "Get Studies");
+          return true;
+        }
 
         // Convert diaries to entities and map prompts to their models
-        final entities = mergedDiaries.map((model) {
+        final entities = diariesToAdd.map((model) {
           final prompts =
               model.prompts.map((prompt) => Prompt.fromModel(prompt)).toList();
           final entity = Diary.fromModel(model);
@@ -224,14 +239,21 @@ class SetupRepository {
         setColorForStudy(studies);
 
         // if partialCleanDB is true, clear the database partially
-        // by removing diaries from now till last diary
         if (partialCleanDB) {
           // Partially clear the database not to lose the old data
           // Get rid of all the data from now till last while keeping all the old data
           final now = DateTime.now();
-          final DiaryRepository repository = DiaryRepository();
-          repository.removeDiariesFrom(now);
-          _studyDAO.deleteAllStudies();
+          //get today's date
+          final today = DateTime(now.year, now.month, now.day);
+
+          dev.log("Partial clean: Deleting diaries from today onwards",
+              name: "Get Studies");
+
+          await Future.microtask(() async {
+            final DiaryRepository repository = DiaryRepository();
+            repository.removeDiariesFrom(today);
+            _studyDAO.deleteAllStudies();
+          });
         } else {
           clearStudies();
         }
@@ -255,80 +277,7 @@ class SetupRepository {
         return false;
       }
     }
-
     return false;
-  }
-
-  /// Cleans up any existing notifications and pending notifications before updating the experiment.
-  Future<void> cleanupBeforeUpdate() async {
-    try {
-      // Cancel existing notifications first
-      await NotificationService.cancelAllNotifications();
-      //delay before exiting
-      await Future.delayed(const Duration(milliseconds: 300));
-    } catch (e, stackTrace) {
-      dev.log("Cleanup error: $e", name: "Setup Repository");
-      CrashlyticsService().recordError(e, stackTrace,
-          reason: 'Error during cleanupBeforeUpdate');
-    }
-  }
-
-  /// Merges new diaries with existing diaries based on specific rules.
-  List<DiaryModel> _mergeDiaries(
-      List<DiaryModel> newDiaries, List<DiaryModel> existingDiaries) {
-    // Create a composite key for unique diary identification
-    String getDiaryKey(DiaryModel d) =>
-        '${d.studyID}_${d.name}_${d.start.toIso8601String()}_${d.end.toIso8601String()}';
-
-    // Create hash maps for O(1) lookups
-    final existingDiariesMap = {
-      for (var diary in existingDiaries) getDiaryKey(diary): diary
-    };
-
-    final result = <DiaryModel>[];
-
-    // Process incoming diaries first - O(n)
-    for (final newDiary in newDiaries) {
-      final key = getDiaryKey(newDiary);
-      final existingDiary = existingDiariesMap[key];
-
-      if (existingDiary != null) {
-        // Update existing diary if there are changes
-        if (!newDiary.isEffectivelyEqual(existingDiary)) {
-          result.add(_mergeDiaryContents(newDiary, existingDiary));
-          dev.log("Updated diary: ${newDiary.name}", name: "Diary Merge");
-        } else {
-          result.add(existingDiary);
-          dev.log("Kept existing diary: ${newDiary.name}", name: "Diary Merge");
-        }
-      } else {
-        // Add new diary
-        result.add(newDiary);
-        dev.log("Added new diary: ${newDiary.name}", name: " Diary Merge");
-      }
-    }
-    return result;
-  }
-
-  /// Merges the contents of a new diary with an existing diary.
-  DiaryModel _mergeDiaryContents(
-      DiaryModel newDiary, DiaryModel existingDiary) {
-    return DiaryModel(
-        id: newDiary.id,
-        studyID: newDiary.studyID,
-        name: newDiary.name,
-        prompts: newDiary.prompts,
-        tags: newDiary.tags,
-        status: existingDiary.status,
-        due: newDiary.due,
-        start: newDiary.start,
-        end: newDiary.end,
-        entries: newDiary.entries,
-        currentEntry: existingDiary.currentEntry,
-        notifications: newDiary.notifications,
-        activeDays: newDiary.activeDays,
-        submissions: existingDiary.submissions,
-        completions: existingDiary.completions);
   }
 
   ExperimentModel getExperiment() {
@@ -574,7 +523,10 @@ class SetupRepository {
   ///
   /// Returns:
   /// - A `Future` that resolves to a `bool` value indicating the success of the operation.
-  Future<bool> uploadOnBoardingQuestions({bool partialCleanDB = false}) async {
+  Future<bool?> uploadOnBoardingQuestions({bool partialCleanDB = false}) async {
+    final hasInternet = await checkForInternet();
+    if (!hasInternet) return null;
+
     final List<Questions> onboardingQuestions = _questionsDAO
         .getAllQuestions()
         .map((e) => Questions.fromEntity(e))
@@ -596,7 +548,6 @@ class SetupRepository {
       firebaseToken =
           kDebugMode ? "dev" : await FirebaseMessaging.instance.getToken();
       if (firebaseToken != null) {
-        debugPrint("Firebase Token: $firebaseToken");
       } else {
         debugPrint("Failed to fetch Firebase token: Token is null.");
       }
@@ -688,15 +639,13 @@ class SetupRepository {
 
     map.addAll(
       {
-        'participant_id': participant!.studyCode.toString(),
-        'login_code': experiment!.login,
+        'participant_id': participant.studyCode.toString(),
+        'login_code': experiment.login,
         'extras': jsonEncode(extras),
         'token': firebaseToken,
         'service': platformName,
       },
     );
-
-    dev.log("map $map", name: "Uploading OnBoarding Questions");
 
     final result =
         await post(path: "/fabla/updateuserextras", body: map).then((value) {

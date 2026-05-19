@@ -2,8 +2,12 @@ import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/utils/emailFunction.dart';
 import '../components/buttons.dart';
 import '../components/checkboxes.dart';
 import '../custom_colors.dart';
@@ -1163,9 +1167,8 @@ class DeletePopUp extends StatelessWidget {
 }
 
 class ExitPopUp extends StatelessWidget {
-  final String title;
-  final String subheader;
-  const ExitPopUp({super.key, required this.title, required this.subheader});
+  final List<Widget> content;
+  const ExitPopUp({super.key, required this.content});
 
   @override
   Widget build(BuildContext context) {
@@ -1183,27 +1186,8 @@ class ExitPopUp extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Title
-              Text(
-                title,
-                style: CustomTypography().headlineMedium(),
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(
-                height: 24,
-              ),
-
-              // Message
-              Text(
-                subheader,
-                style: CustomTypography().bodyLarge(),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(
-                height: 24,
-              ),
-
+              ...content,
+              const SizedBox(height: 24),
               // Buttons
               Row(
                 children: [
@@ -1280,6 +1264,197 @@ class _UpdatePopUpState extends State<UpdatePopUp> {
             ),
           ),
         )
+      ],
+    );
+  }
+}
+
+//study info popup for the study login page
+class StudyInfoPopUp extends StatelessWidget {
+  const StudyInfoPopUp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+        backgroundColor: CustomColors.fillWhite,
+        contentPadding: const EdgeInsets.all(0),
+        insetPadding: const EdgeInsets.symmetric(
+            horizontal: 29),
+        title: Column(
+          children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child:const Icon(Icons.close, size: 24),
+              ),
+            ),
+            Row(
+              spacing: 16,
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                      shape: BoxShape.circle, color: Colors.black26),
+                  child: Image.asset(
+                    "assets/images/study_info.png",
+                    height: 80,
+                    width: 80,
+                  ),
+                ),
+                Flexible(
+                  child: Text(
+                    "What's my Study String?",
+                    style: CustomTypography().custom(
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xDB000000)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 19, right: 30, bottom: 41),
+            child: Column(
+              children: [
+                const SizedBox(height: 26),
+                Text.rich(TextSpan(
+                    text: "Your ",
+                    style: CustomTypography().custom(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xA3000000)),
+                    children: [
+                      TextSpan(
+                        text: "Study String ",
+                        style: CustomTypography().titleSmall(
+                            color: CustomColors.backgroundSecondary),
+                      ),
+                      TextSpan(
+                        text:
+                            "is an alphanumeric code (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla",
+                        style: CustomTypography().custom(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.w400,
+                            color: const Color(0xA3000000)),
+                      )
+                    ])),
+                const SizedBox(height: 26),
+                Text.rich(
+                  TextSpan(
+                    text: 'If you need help with your Study String, you may ',
+                    style: CustomTypography().custom(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xA3000000)),
+                    children: [
+                      TextSpan(
+                          text: "Contact Us",
+                          style: CustomTypography()
+                              .titleSmall(color: const Color(0xA3000000))
+                              .copyWith(decoration: TextDecoration.underline),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = launchEmail),
+                      TextSpan(
+                          text: ' or reach out to your researcher directly!',
+                          style: CustomTypography().custom(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w400,
+                              color: const Color(0xA3000000))),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+        ]
+    );
+  }
+
+  Future<void> launchEmail() async {
+    final uri = Uri(
+        scheme: "mailto",
+        path: "fabla@emory.edu",
+        query: encodeQueryParameters(<String, String>{
+          'subject': 'Need help with the study code',
+          'body': 'I have a problem with accessing the study: '
+        }));
+
+    await launchUrl(uri);
+  }
+}
+
+class CompletedPopUp extends StatelessWidget {
+  final void Function(BuildContext) onYes;
+  final void Function(BuildContext) onSkip;
+  final String title;
+
+  const CompletedPopUp({
+    super.key,
+    required this.title,
+    required this.onYes,
+    required this.onSkip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      backgroundColor: CustomColors.fillWhite,
+      contentPadding: const EdgeInsets.all(0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(25),
+      ),
+      surfaceTintColor: CustomColors.fillWhite,
+      children: [
+        Container(
+          constraints: const BoxConstraints.tightFor(),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                title,
+                style: CustomTypography().titleLarge(),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: CustomFlatButton(
+                  onClick: () => onYes(context),
+                  text: "Yes, I’m done",
+                  textColor: CustomColors.fillWhite,
+                  color: CustomColors.productNormalActive,
+                  borderColor: CustomColors.productNormalActive,
+                ),
+              ),
+              const SizedBox(height: 9),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: CustomFlatButton(
+                  onClick: () => Navigator.pop(context, false),
+                  text: "No, take me back",
+                  color: CustomColors.fillWhite,
+                  textColor: CustomColors.productNormalActive,
+                  borderColor: CustomColors.productNormalActive,
+                ),
+              ),
+              // const SizedBox(height: 42),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 10),
+              //   child: CustomFlatButton(
+              //     onClick: () => onSkip(context),
+              //     text: "Skip survey",
+              //     color: CustomColors.fillWhite,
+              //     textColor: CustomColors.warningActive,
+              //     borderColor: Colors.transparent,
+              //   ),
+              // ),
+            ],
+          ),
+        ),
       ],
     );
   }

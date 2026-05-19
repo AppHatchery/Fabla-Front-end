@@ -27,9 +27,9 @@
         {
           "id": "4:5873510534198742419",
           "name": "promptId",
+          "indexId": "1:4791128831704768824",
           "type": 11,
           "flags": 520,
-          "indexId": "1:4791128831704768824",
           "relationTarget": "Prompt"
         }
       ],
@@ -226,9 +226,9 @@
         {
           "id": "6:4681877718501396308",
           "name": "diaryId",
+          "indexId": "2:6631521764056071387",
           "type": 11,
           "flags": 520,
-          "indexId": "2:6631521764056071387",
           "relationTarget": "Diary"
         },
         {
@@ -327,9 +327,9 @@
         {
           "id": "6:5997037681344134171",
           "name": "answerId",
+          "indexId": "3:6458972295195859441",
           "type": 11,
           "flags": 520,
-          "indexId": "3:6458972295195859441",
           "relationTarget": "Answer"
         },
         {

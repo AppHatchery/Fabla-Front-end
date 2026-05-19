@@ -540,6 +540,7 @@
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 3RQHVA7936;
 				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Fabla;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -575,8 +576,6 @@
 					"\"objectbox_flutter_libs\"",
 					"-framework",
 					"\"package_info_plus\"",
-					"-framework",
-					"\"path_provider_foundation\"",
 					"-framework",
 					"\"permission_handler_apple\"",
 					"-framework",
@@ -770,6 +769,7 @@
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 3RQHVA7936;
 				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Fabla;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -805,8 +805,6 @@
 					"\"objectbox_flutter_libs\"",
 					"-framework",
 					"\"package_info_plus\"",
-					"-framework",
-					"\"path_provider_foundation\"",
 					"-framework",
 					"\"permission_handler_apple\"",
 					"-framework",
@@ -841,6 +839,7 @@
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 3RQHVA7936;
 				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Fabla;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -876,8 +875,6 @@
 					"\"objectbox_flutter_libs\"",
 					"-framework",
 					"\"package_info_plus\"",
-					"-framework",
-					"\"path_provider_foundation\"",
 					"-framework",
 					"\"permission_handler_apple\"",
 					"-framework",

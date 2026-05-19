@@ -278,26 +278,61 @@ class _ReviewDiaryState extends State<ReviewDiary> {
         final width = MediaQuery.of(context).size.width;
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 6.0),
-          child: prompt.answer != null
+          child:prompt.answer == null
+              ? const SizedBox.shrink()
+              : prompt.answer?.response?.firstOrNull?.contains("Item was skipped due to:") ?? true
               ? Container(
-                  width: width,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: CustomColors.grey,
-                    borderRadius: BorderRadius.circular(12),
-                    shape: BoxShape.rectangle,
-                  ),
-                  child: Row(children: [
-                    Expanded(
-                      child: Text("Response recorded externally",
-                          style: CustomTypography().bodyMedium(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis),
+            width: width,
+            padding:
+            const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              shape: BoxShape.rectangle,
+            ),
+            child: Row(children: [
+              Image.asset(
+                "assets/images/icons/block.png",
+                height: 16,
+                width: 16,
+              ),
+              SizedBox(
+                width: 5,
+              ),
+              Expanded(
+                child: Text(prompt.answer?.response?.firstOrNull ?? "",
+                    style: CustomTypography().bodyMedium(
+                      color: Color(0xFFFF3B30)
                     ),
-                  ]),
-                )
-              : const SizedBox.shrink(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ),
+            ]),
+          )
+              : Container(
+            width: width,
+            padding:
+            const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              shape: BoxShape.rectangle,
+            ),
+            child: Row(children: [
+              Image.asset(
+                "assets/images/icons/task_alt.png",
+                height: 16,
+                width: 16,
+              ),
+              SizedBox(
+                width: 5,
+              ),
+              Expanded(
+                child: Text("Survey response collected",
+                    style: CustomTypography().bodyMedium(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ),
+            ]),
+          ),
         );
       case ResponseType.image:
       case ResponseType.video:

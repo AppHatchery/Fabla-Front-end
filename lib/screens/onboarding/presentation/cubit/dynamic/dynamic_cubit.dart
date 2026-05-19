@@ -56,13 +56,20 @@ class DynamicCubit extends Cubit<DynamicState> {
     emit(DynamicUploading());
     try {
       final result = await setupRepository.uploadOnBoardingQuestions();
+
+      if (result == null) {
+        return emit(DynamicError(
+            "Uh oh, looks like your internet might be slow or disconnected!",
+            length));
+      }
+
       if (result) {
         await PreferenceService().setStringPreference(
             key: "onboardingSurveyCompletedDate",
             value: DateTime.now().toString());
         emit(DynamicUploaded(length));
       } else {
-        emit(const DynamicError("Failed to upload answers"));
+        emit(DynamicError("Uh oh, looks like something went wrong!", length));
       }
     } catch (e, stackTrace) {
       CrashlyticsService().recordError(e, stackTrace,

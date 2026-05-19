@@ -9,6 +9,8 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:math' show pi;
+import 'package:rive/rive.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io' show Platform;
 
@@ -29,6 +31,9 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   bool error = false;
   String message = '';
 
+  File? _riveFile;
+  RiveWidgetController? _riveController;
+
   late StudyLoginCubit cubit;
 
   @override
@@ -39,11 +44,30 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       scaler = await fontScaler(context);
     });
+    _loadRive();
     super.initState();
+  }
+
+  Future<void> _loadRive() async {
+    final file = await File.asset(
+      'assets/animations/onboarding/hide_peek.riv',
+      riveFactory: Factory.rive,
+    );
+    if (file != null && mounted) {
+      setState(() {
+        _riveFile = file;
+        _riveController = RiveWidgetController(
+          file,
+          stateMachineSelector: StateMachineSelector.byName('Animation_8'),
+        );
+      });
+    }
   }
 
   @override
   void dispose() {
+    _riveController?.dispose();
+    _riveFile?.dispose();
     controller.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
@@ -64,50 +88,80 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
-    final width = MediaQuery.of(context).size.width;
     final isIos = Platform.isIOS;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: CustomColors.backgroundSecondary,
       body: SafeArea(
         bottom: false,
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
-          child: SizedBox(
-            height: height,
-            width: width,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
+          child: Stack(
+            children: [
+              Positioned(
+                bottom: 20,
+                left: -182.5,
+                child: Transform.rotate(
+                  angle: pi * 5.4 / 4,
+                  child: Transform.flip(
+                    flipX: true,
+                    flipY: true,
+                    child: SizedBox(
+                      height: 340,
+                      width: 340,
+                      child: _riveController != null
+                          ? RiveWidget(
+                              controller: _riveController!,
+                              fit: Fit.fitWidth,
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ),
+                ),
+              ),
+
+              Padding(
+                padding: EdgeInsets.fromLTRB(
                   16,
                   70,
                   16,
-                  bottomPadding > 0
+                  MediaQuery.of(context).viewInsets.bottom > 0
+                      ? MediaQuery.of(context).viewInsets.bottom + 16
+                      : (bottomPadding > 0
                       ? bottomPadding + 34
-                      : (isIos ? 34 + 34 : 34)),
+                      : (isIos ? 68 : 34)),
+                ),
               child: BlocConsumer<StudyLoginCubit, StudyLoginState>(
                   builder: (context, state) {
-                if (state is StudyLoginInitial) {
-                  return initialLogin();
-                } else if (state is StudyLoginLoading) {
-                  return loading(height - 100);
-                }
+                    if (state is StudyLoginInitial) {
+                      return initialLogin();
+                    } else if (state is StudyLoginLoading) {
+                      return Center(child: loading(height - 100));
+                    }
 
-                return initialLogin();
-              }, listener: (context, state) {
-                if (state is StudyLoginError) {
-                  setState(() {
-                    error = true;
-                    message = state.message;
-                  });
-                } else if (state is StudyLoginSuccess) {
-                  error = false;
-                  int spent = timer.stop();
-                  track(spent, "Finished");
-                  RouteService().navigate(state.experiment,
-                      context: context, current: 'login');
-                }
-              }),
-            ),
+                    return initialLogin();
+                  },
+                  listener: (context, state) {
+                    if (state is StudyLoginError) {
+                      setState(() {
+                        error = true;
+                        message = state.message;
+                      });
+                    } else if (state is StudyLoginSuccess) {
+                      error = false;
+                      int spent = timer.stop();
+                      track(spent, "Finished");
+                      RouteService().navigate(
+                        state.experiment,
+                        context: context,
+                        current: 'login',
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -144,7 +198,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                       height: 24,
                     ),
                     Text(
-                        "Fabla is a tool for EMA, audio diary research and more ${Strings.telescope}",
+                        "Fabla is a tool for daily experience research, audio diaries and more ${Strings.telescope}",
                         style: CustomTypography()
                             .titleSmall(color: CustomColors.textWhite)),
                     const SizedBox(
@@ -177,7 +231,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                 children: [
                   Flexible(
                     child: Text(
-                      "Need help with the study code? ",
+                      "Need help with the study string? ",
                       style: CustomTypography()
                           .bodyMedium(color: CustomColors.textWhite),
                     ),
@@ -228,7 +282,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
             height: 12,
           ),
           Text(
-            "Hang tight while we verify the study code - \nalmost there!",
+            "Hang tight while we verify the study string - \nalmost there!",
             textAlign: TextAlign.center,
             style: CustomTypography().bodyLarge(color: CustomColors.textWhite),
           ),
@@ -238,14 +292,17 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   }
 
   void verify() {
-    if (controller.text.isNotEmpty) {
-      final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
-      final code = controller.text.substring(0, lastNonSpaceIndex + 1);
+    final code = controller.text.trim();
 
       if (code.isNotEmpty) {
         cubit.login(code);
-      } else {}
-    }
+      } else {
+        setState(() {
+          error = true;
+          message = 'Oops! We cannot access your study without a valid Study ID.';
+        });
+        return;
+      }
   }
 
   Future<void> launchEmail() async {
@@ -253,14 +310,14 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
         scheme: "mailto",
         path: "fabla@emory.edu",
         query: encodeQueryParameters(<String, String>{
-          'subject': 'Need help with the study code',
+          'subject': 'Need help with the study string',
           'body': 'I have a problem with accessing the study: '
         }));
 
     await launchUrl(uri);
   }
 
-  track(int spent, String status) async {
+  Future<void> track(int spent, String status) async {
     await PendoService.track("Study Login",
         {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }

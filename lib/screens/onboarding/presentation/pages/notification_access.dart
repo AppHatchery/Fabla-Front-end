@@ -33,8 +33,9 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   bool? granted;
 
   //Animations
-  late rive.StateMachineController _controller;
-  rive.SMITrigger? showTip;
+  rive.File? _riveFile;
+  rive.RiveWidgetController? _riveController;
+  rive.TriggerInput? _showTip;
 
   final PageTimer timer = PageTimer();
   TextScaler? scaler; // Get the size of the text scaler
@@ -47,7 +48,26 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       scaler = await fontScaler(context);
     });
+    _loadRive();
     super.initState();
+  }
+
+  Future<void> _loadRive() async {
+    final file = await rive.File.asset(
+      'assets/animations/onboarding/notification_access.riv',
+      riveFactory: rive.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = rive.RiveWidgetController(
+        file,
+        stateMachineSelector: rive.StateMachineSelector.byName('Animation_3'),
+      );
+      setState(() {
+        _riveFile = file;
+        _riveController = controller;
+        _showTip = controller.stateMachine.trigger('tip');
+      });
+    }
   }
 
   @override
@@ -65,7 +85,9 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _showTip?.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -126,11 +148,12 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                     SizedBox(
                       height: height >= 700 ? 300 : height * 0.65,
                       width: width,
-                      child: rive.RiveAnimation.asset(
-                        'assets/animations/onboarding/notification_access.riv',
-                        fit: BoxFit.fitWidth,
-                        onInit: onInit,
-                      ),
+                      child: _riveController != null
+                          ? rive.RiveWidget(
+                              controller: _riveController!,
+                              fit: rive.Fit.fitWidth,
+                            )
+                          : const SizedBox.shrink(),
                     ),
                   ],
                 ),
@@ -244,7 +267,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                 ),
                 Flexible(
                   child: Text(
-                    "Oops! We noticed your phone has a battery saving mode ON, this can impact receiving notifications to complete your diaries. To ensure the study runs smoothly for you we recommend you disable the power mode.",
+                    "Oops! It looks like your phone is in battery-saving mode. This may affect your ability to receive diary notifications. To ensure the study runs smoothly, we recommend turning off battery-saving mode.",
                     style: CustomTypography()
                         .bodyLarge(color: CustomColors.warningActive),
                   ),
@@ -283,28 +306,13 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
     return const SizedBox.shrink();
   }
 
-  onInit(rive.Artboard art) async {
-    var ctrl = rive.StateMachineController.fromArtboard(art, "Animation_3");
-    ctrl?.isActive = false;
-
-    if (ctrl != null) {
-      art.addController(ctrl);
-      setState(() {
-        _controller = ctrl;
-        art.addController(_controller);
-        ctrl.isActive = true;
-        showTip = _controller.getTriggerInput('tip');
-      });
-    }
-  }
-
   void navigateToNextPage(BuildContext context) async {
     final results = await Permission.notification.request();
 
     await PendoService.track("NotificationAccess", {"state": results.name});
     if (mounted) setState(() => granted = results.isGranted);
     if (granted != null && granted == true) {
-      showTip?.fire();
+      _showTip?.fire();
     }
     checkBattery();
     if (requested) {

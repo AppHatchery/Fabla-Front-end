@@ -344,6 +344,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
                   return BottomRecordingModal(
                     promptId: prompt.id,
                     question: prompt.question,
+                    subtitle: prompt.subtitle,
                     hint: hint,
                     limit: prompt.option?.maxLength,
                     suggested: prompt.option?.suggestedLength,

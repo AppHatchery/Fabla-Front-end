@@ -4,23 +4,38 @@ import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
     show CrashlyticsService;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'dart:developer' as dev;
 
+/// Manages backend credentials for the app.
+///
+/// On first login, [postData] exchanges the study code for a [CredentialsModel]
+/// via a credentials Lambda endpoint. The returned credentials are persisted to
+/// encrypted device storage and read back by the upload layer on every submission.
+///
+/// **To swap in your own backend:** replace the Lambda URL in [postData] with
+/// your own credentials endpoint. The endpoint must accept a `StudyCode` form
+/// field and return JSON matching:
+/// ```json
+/// {
+///   "message": {
+///     "Authorization": "…",
+///     "x-api-key": "…",
+///     "dynamo_url": "https://…",
+///     "presigned_url": "https://…"
+///   }
+/// }
+/// ```
 class SecureSave {
-  // Modified to support dependency injection for better testability
-  // Added constructor parameters for storage and http client
-  // Default values maintain backward compatibility
   final FlutterSecureStorage _storage;
   final http.Client _client;
 
-  // Constructor with optional dependency injection
-  // If not provided, uses default implementations for production use
   SecureSave({
     FlutterSecureStorage? storage,
     http.Client? client,
   })  : _storage = storage ?? const FlutterSecureStorage(),
         _client = client ?? http.Client();
 
+  /// Fetches credentials from the backend using [st] as the study code,
+  /// then persists them via [save]. Call this once during onboarding login.
   Future<String> postData(String st) async {
     try {
       // Updated to use injected http client instead of static http.post
@@ -36,8 +51,6 @@ class SecureSave {
       );
 
       if (response.statusCode == 200) {
-        dev.log('Response body: ${response.body}',
-            name: 'Secrets Handler - Post Data');
         String jsonString = response.body;
         Map<String, dynamic> data = jsonDecode(jsonString);
         String authorization = data['message']['Authorization'];
@@ -82,6 +95,12 @@ class SecureSave {
   }
 }
 
+/// Holds the backend credentials used by the upload layer.
+///
+/// - [authorization]: Bearer / AWS auth header value passed to DynamoDB and S3 endpoints.
+/// - [xapikey]: API Gateway key attached to every upload request as `x-api-key`.
+/// - [dynamo_url]: Endpoint that receives survey response JSON (see [uploadNonAudioData]).
+/// - [presigned_url]: Endpoint that returns S3 presigned URLs for file uploads (see [getPresignedUrl]).
 class CredentialsModel {
   String? authorization;
   String? xapikey;

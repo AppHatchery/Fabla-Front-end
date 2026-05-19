@@ -5,10 +5,10 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/ve
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
-import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rive/rive.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io' show Platform;
 
@@ -31,6 +31,9 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   String message = '';
   String warnMessage = '';
 
+  File? _riveFile;
+  RiveWidgetController? _riveController;
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -39,11 +42,30 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       scaler = await fontScaler(context);
     });
+    _loadRive();
     super.initState();
+  }
+
+  Future<void> _loadRive() async {
+    final file = await File.asset(
+      'assets/animations/onboarding/hide_peek.riv',
+      riveFactory: Factory.rive,
+    );
+    if (file != null && mounted) {
+      setState(() {
+        _riveFile = file;
+        _riveController = RiveWidgetController(
+          file,
+          stateMachineSelector: StateMachineSelector.byName('Animation_8'),
+        );
+      });
+    }
   }
 
   @override
   void dispose() {
+    _riveController?.dispose();
+    _riveFile?.dispose();
     WidgetsBinding.instance.removeObserver(this);
     timer.dispose();
     super.dispose();
@@ -63,7 +85,6 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
-    final width = MediaQuery.of(context).size.width;
     final isIos = Platform.isIOS;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
@@ -81,52 +102,68 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             color: CustomColors.textWhite,
           )),
       body: SafeArea(
-        top: true,
-        left: false,
-        right: false,
         bottom: false,
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
-          child: SizedBox(
-            height: height,
-            width: width,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                  16,
-                  16,
-                  16,
-                  bottomPadding > 0
-                      ? bottomPadding + 34
-                      : (isIos ? 34 + 34 : 34)),
-              child: BlocConsumer<LoginCubit, LoginState>(
-                  builder: (context, state) {
-                if (state is LoginInitial) {
+          child: Stack(
+            children: [
+              Positioned(
+                top: -223,
+                left: 0,
+                child: Transform.flip(
+                  flipX: true,
+                  flipY: true,
+                  child: SizedBox(
+                    height: 380,
+                    width: 380,
+                    child: _riveController != null
+                        ? RiveWidget(
+                            controller: _riveController!,
+                            fit: Fit.fitWidth,
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ),
+              ),
+
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                    16,
+                    70,
+                    16,
+                    bottomPadding > 0
+                        ? bottomPadding + 34
+                        : (isIos ? 34 + 34 : 34)),
+                child: BlocConsumer<LoginCubit, LoginState>(
+                    builder: (context, state) {
+                  if (state is LoginInitial) {
+                    return initialLogin();
+                  } else if (state is LoginLoading) {
+                    return Center(child: loading(height - 200));
+                  }
                   return initialLogin();
-                } else if (state is LoginLoading) {
-                  return loading(height - 200);
-                }
-                return initialLogin();
-              }, listener: (context, state) {
-                if (state is LoginSuccess) {
-                  error = false;
-                  warning = false;
-                  RouteService().navigate(null,
-                      context: context, current: 'participant_login');
-                } else if (state is LoginWarning) {
-                  setState(() {
+                }, listener: (context, state) {
+                  if (state is LoginSuccess) {
                     error = false;
-                    warning = true;
-                    warnMessage = state.message;
-                  });
-                } else if (state is LoginError) {
-                  setState(() {
-                    error = true;
                     warning = false;
-                    message = state.message;
-                  });
-                }
-              }),
-            ),
+                    RouteService().navigate(null,
+                        context: context, current: 'participant_login');
+                  } else if (state is LoginWarning) {
+                    setState(() {
+                      error = false;
+                      warning = true;
+                      warnMessage = state.message;
+                    });
+                  } else if (state is LoginError) {
+                    setState(() {
+                      error = true;
+                      warning = false;
+                      message = state.message;
+                    });
+                  }
+                }),
+              ),
+            ],
           ),
         ),
       ),
@@ -250,18 +287,20 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   }
 
   void login() {
-    if (controller.text.isNotEmpty) {
-      final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
-      final text = controller.text.substring(0, lastNonSpaceIndex + 1);
-      final code = text;
+    final code = controller.text.trim();
 
       if (code.isNotEmpty) {
         loginCubit.login(code);
-      } else {}
-    }
+      } else {
+        setState(() {
+          error = true;
+          message = 'Oops! We cannot access your study without a valid Participant ID.';
+        });
+        return;
+      }
   }
 
-  track(int spent, String status) async {
+  Future<void> track(int spent, String status) async {
     await PendoService.track("Participant Login",
         {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }

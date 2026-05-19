@@ -55,6 +55,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
   late MaterialLocalizations localizations = MaterialLocalizations.of(context);
 
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -159,7 +160,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           pendoEvent();
           track(timer.stop(), "Submitted");
           Navigator.of(context).pushReplacement(_completionRoute()).then((_) {
-            summaryCubit.loadSummary(widget.diary);
+            Future.delayed(Duration(seconds: 1), (){
+              summaryCubit.loadSummary(widget.diary);
+            });
           });
         } else if (state is SummaryLoaded) {
           // If the user reaches the submission page for the first time add to the completion list
@@ -299,7 +302,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   ),
 
                   // Edit Button
-                  isEditable()
+                  isEditable(prompt)
                       ? GestureDetector(
                           onTap: () => editResponse(prompt, index + 1),
                           child: Row(
@@ -357,6 +360,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
       case ResponseType.slider:
         return prompt.answer != null
             ? SliderQuestionCard(
+                colorFont: CustomColors.textSecondaryContent,
                 scaleMin: prompt.option!.minValue!,
                 scaleMax: prompt.option!.maxValue!,
                 scaleMinText: prompt.option?.minLabel,
@@ -498,23 +502,60 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             });
       case ResponseType.webview:
         final width = MediaQuery.of(context).size.width;
-        return prompt.answer != null
-            ? Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                child: Container(
-                  width: width,
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: Row(children: [
-                    Expanded(
-                      child: Text("Response recorded externally",
-                          style: CustomTypography().bodyMedium(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis),
+        return prompt.answer == null
+            ? const SizedBox.shrink()
+            : prompt.answer?.response?.firstOrNull?.contains("Item was skipped due to:") ?? true
+                ? Container(
+                    width: width,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      shape: BoxShape.rectangle,
                     ),
-                  ]),
-                ),
-              )
-            : const SizedBox.shrink();
+                    child: Row(children: [
+                      Image.asset(
+                        "assets/images/icons/block.png",
+                        height: 16,
+                        width: 16,
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Expanded(
+                        child: Text(prompt.answer?.response?.firstOrNull ?? "",
+                            style: CustomTypography().bodyMedium(
+                              color: Color(0xFFFF3B30))
+                        ),
+                      ),
+                    ]),
+                  )
+                : Container(
+                    width: width,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      shape: BoxShape.rectangle,
+                    ),
+                    child: Row(children: [
+                      Image.asset(
+                        "assets/images/icons/task_alt.png",
+                        height: 16,
+                        width: 16,
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Expanded(
+                        child: Text("Survey response collected",
+                            style: CustomTypography()
+                                .bodyLarge(color: CustomColors.textSecondaryContent),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
+                      ),
+                    ]),
+                  );
       case ResponseType.image:
       case ResponseType.video:
       case ResponseType.imageVideo:
@@ -540,7 +581,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   child: Row(children: [
                     Expanded(
                       child: Text("Completed the timer ✅",
-                          style: CustomTypography().bodyMedium(),
+                          style: CustomTypography()
+                              .bodyLarge(color: CustomColors.textSecondaryContent),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                     ),
@@ -566,7 +608,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     Expanded(
                       child: Text(
                           "${elapsed.inHours.toString().padLeft(2, '0')} h ${elapsed.inMinutes.remainder(60).toString().padLeft(2, '0')} min",
-                          style: CustomTypography().bodyMedium(),
+                          style: CustomTypography()
+                              .bodyLarge(color: CustomColors.textSecondaryContent),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                     ),
@@ -620,6 +663,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
               return BottomRecordingModal(
                 promptId: prompt.id,
                 question: prompt.question,
+                subtitle: prompt.subtitle,
                 limit: prompt.option?.maxLength,
                 suggested: prompt.option?.suggestedLength,
                 hint: hint,
@@ -722,11 +766,17 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     );
   }
 
-  bool isEditable() {
+  bool isEditable(PromptModel prompt) {
     final due = widget.diary.due;
     final now = DateTime.now();
 
-    //Is it past the due
-    return now.isBefore(due);
+    if (now.isAfter(due)) return false;
+
+    if (prompt.responseType == ResponseType.webview) {
+      final response = prompt.answer?.response?.firstOrNull;
+      return response == null || response.contains("Item was skipped due to:");
+    }
+
+    return true;
   }
 }

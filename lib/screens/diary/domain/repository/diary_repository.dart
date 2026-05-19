@@ -1,8 +1,14 @@
+import 'dart:developer' as dev;
+
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
 import 'package:audio_diaries_flutter/core/usecases/diary_history.dart'
-    show getAllHistoryDiariesUseCase;
+    show
+        getPaginatedHistoryDiariesUseCase,
+        invalidateDiaryHistoryCache,
+        PaginatedDiaryResult,
+        getAllHistoryDiariesUseCase;
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -10,8 +16,6 @@ import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 
-import 'package:audio_diaries_flutter/core/utils/types.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/tag.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
@@ -59,6 +63,13 @@ class DiaryRepository {
       return _diaryDAO.getAllDiaries();
     }
     return diaries;
+  }
+
+  PaginatedDiaryResult getPaginatedHistoryDiaries({
+    required int page,
+    required int limit,
+  }) {
+    return getPaginatedHistoryDiariesUseCase(page: page, limit: limit);
   }
 
   /// Retrieves a DiaryEntity object from the data source based on a specified due date.
@@ -431,6 +442,7 @@ class DiaryRepository {
         .toList();
 
     final List<DiaryModel> diaries = [];
+    final List<DiaryModel> weeklyExpansionDiaries = [];
 
     // For weekly diaries add diaries to each of the active days
     for (final diary in filtered) {
@@ -462,7 +474,7 @@ class DiaryRepository {
                 ),
                 submissions: diary.submissions,
                 completions: diary.completions);
-            filtered.add(newDiary);
+            weeklyExpansionDiaries.add(newDiary);
           }
         }
       } else {
@@ -471,6 +483,7 @@ class DiaryRepository {
       }
     }
 
+    diaries.addAll(weeklyExpansionDiaries);
     // Sort the diaries by start date
     diaries.sort((a, b) => a.start.compareTo(b.start));
 
@@ -587,6 +600,7 @@ class DiaryRepository {
   ///
   Future<void> addDiaries(List<Diary> diaries) async {
     _diaryDAO.addDiaries(diaries);
+    invalidateDiaryHistoryCache();
   }
 
   /// Asynchronous method to update a Diary object in the data source.
@@ -602,25 +616,26 @@ class DiaryRepository {
   Future<void> updateDiary(DiaryModel diary) async {
     final entity = Diary.fromModel(diary);
     _diaryDAO.updateDiary(entity);
+    invalidateDiaryHistoryCache();
   }
 
-  List<Tag> _getTags(DiaryModel diary) {
-    List<Tag> tags = [];
+  // List<Tag> _getTags(DiaryModel diary) {
+  //   List<Tag> tags = [];
 
-    if (diary.status == DiaryStatus.submitted) {
-      tags.add(const Tag(text: "Done", type: TagType.time));
-      // } else if (diary.status == DiaryStatus.missed) {
-      //   tags.add(const Tag(text: "Missed", type: TagType.time));
-    } else if (diary.status == DiaryStatus.complete) {
-      tags.add(const Tag(text: "Awaiting Submission", type: TagType.time));
-    } else if (diary.status == DiaryStatus.ongoing) {
-      tags.add(const Tag(text: "Ongoing", type: TagType.time));
-    } else if (diary.status == DiaryStatus.idle) {
-      tags.add(const Tag(text: "Ready to Start", type: TagType.time));
-    }
+  //   if (diary.status == DiaryStatus.submitted) {
+  //     tags.add(const Tag(text: "Done", type: TagType.time));
+  //     // } else if (diary.status == DiaryStatus.missed) {
+  //     //   tags.add(const Tag(text: "Missed", type: TagType.time));
+  //   } else if (diary.status == DiaryStatus.complete) {
+  //     tags.add(const Tag(text: "Awaiting Submission", type: TagType.time));
+  //   } else if (diary.status == DiaryStatus.ongoing) {
+  //     tags.add(const Tag(text: "Ongoing", type: TagType.time));
+  //   } else if (diary.status == DiaryStatus.idle) {
+  //     tags.add(const Tag(text: "Ready to Start", type: TagType.time));
+  //   }
 
-    return tags;
-  }
+  //   return tags;
+  // }
 
   Future<int> getIndexOfLastAnsweredPrompt(DiaryModel diary) async {
     final promptRepository = PromptRepository();
@@ -637,45 +652,53 @@ class DiaryRepository {
     return _diaryDAO.deleteAllDiaries();
   }
 
-  /// Removing all the diaries that start after now
-  bool removeDiariesFrom(DateTime now) {
-    final all = getAllDiaries();
+  // Removing all the diaries that start today and onwards
+  Future<bool> removeDiariesFrom(DateTime now) async {
+    try {
+      // Get all diaries
+      final all = getAllDiaries();
 
-    // filter
-    // ! What if there is a change in the current diary the user is replying to
-    final filtered = all
-        .where((diary) =>
-            diary.start.isAfter(now) &&
-            (diary.status != DiaryStatus.submitted &&
-                diary.status != DiaryStatus.ongoing &&
-                diary.status != DiaryStatus.complete))
-        .map((model) => Diary.fromModel(model))
-        .toList();
+      dev.log("Total diaries before deletion: ${all.length}",
+          name: "Diary Deletion");
 
-    // Cancel all notifications
-    for (var diary in filtered) {
-      NotificationManager().cancelDiaryNotifications(diary.id);
+      // Filter diaries that start today
+      final filtered =
+          all.where((diary) => !diary.start.isBefore(now)).toList();
+
+      dev.log("Diaries to delete: ${filtered.length}", name: "Diary Deletion");
+
+      if (filtered.isEmpty) {
+        return true;
+      }
+
+      // Cancel notifications in batches to avoid blocking
+      for (int i = 0; i < filtered.length; i++) {
+        NotificationManager().cancelDiaryNotifications(filtered[i].id);
+
+        // Yield to prevent blocking UI
+        if (i % 10 == 0) {
+          await Future.delayed(Duration.zero);
+        }
+      }
+
+      // Convert to entities
+      final entitiesToDelete =
+          filtered.map((model) => Diary.fromModel(model)).toList();
+
+      // Delete in the database
+      final result = _diaryDAO.deleteDiaries(entitiesToDelete);
+
+      dev.log("Deletion result: $result diaries deleted",
+          name: "Diary Deletion");
+
+      if (result > 0) {
+        invalidateDiaryHistoryCache();
+      }
+
+      return result > 0;
+    } catch (e) {
+      dev.log("Error in removeDiariesFrom: $e", name: "Diary Deletion");
+      return false;
     }
-
-    final result = _diaryDAO.deleteDiaries(filtered);
-    return result > 0 ? true : false;
-  }
-
-  /// Deletes all diaries that match any of the composite keys provided
-  void deleteDiariesByKey(Set<String> keysToDelete, List<DiaryModel> all) {
-    final toDelete = all
-        .where((diary) {
-          final key =
-              '${diary.studyID}_${diary.name}_${diary.start.toIso8601String()}_${diary.end.toIso8601String()}';
-          return keysToDelete.contains(key);
-        })
-        .map((model) => Diary.fromModel(model))
-        .toList();
-
-    for (final diary in toDelete) {
-      NotificationManager().cancelDiaryNotifications(diary.id);
-    }
-
-    _diaryDAO.deleteDiaries(toDelete);
   }
 }

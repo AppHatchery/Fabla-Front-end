@@ -620,8 +620,8 @@ class _QuestionPageState extends State<QuestionPage>
     } else if (prompt.responseType == ResponseType.text) {
       questionTip = prompt.subtitle ?? "Please type your answer:";
     } else if (prompt.responseType == ResponseType.webview) {
-      questionTip =
-          "Close the pop-up window when you are done filling the survey.";
+      questionTip = prompt.subtitle ??
+          "Tap ‘Finish’ when you’ve completed the survey";
     } else if (prompt.responseType == ResponseType.timer) {
       questionTip =
           'Hit the “Start” button to begin meditation countdown.\nDuring the countdown, if you leave the page, the timer will continue on the background.';
@@ -687,8 +687,10 @@ class _QuestionPageState extends State<QuestionPage>
                           Expanded(
                             child: Text(
                               questionTip,
-                              style: const TextStyle(
-                                  color: CustomColors.textTertiaryContent),
+                              style:CustomTypography().bodyLarge(
+                                color: CustomColors.textNormalContent,
+                                weight: FontWeight.w400
+                              )
                             ),
                           )
                         ],
@@ -774,6 +776,7 @@ class _QuestionPageState extends State<QuestionPage>
                   return BottomRecordingModal(
                     promptId: prompt.id,
                     question: prompt.question,
+                    subtitle: prompt.subtitle,
                     hint: hint,
                     limit: prompt.option?.maxLength,
                     suggested: prompt.option?.suggestedLength,

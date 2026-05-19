@@ -15,17 +15,17 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/ti
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
-import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../../core/utils/emailFunction.dart';
+import '../../../../core/utils/statuses.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
@@ -43,11 +43,13 @@ class SliderQuestionCard extends StatefulWidget {
   final int scaleMax;
   final bool isSliderEnabled;
   final ValueChanged<double>? onSliderValueChanged;
+  final Color colorFont;
   const SliderQuestionCard(
       {super.key,
       required this.value,
       required this.scaleMinText,
       required this.scaleMaxText,
+      this.colorFont = Colors.black,
       this.onSliderValueChanged,
       required this.scaleMin,
       required this.scaleMax,
@@ -59,6 +61,7 @@ class SliderQuestionCard extends StatefulWidget {
 
 class _SliderQuestionCardState extends State<SliderQuestionCard> {
   double _value = 0;
+  late bool isDisabled = !widget.isSliderEnabled;
 
   @override
   void initState() {
@@ -84,13 +87,26 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
       decoration: BoxDecoration(
           color: CustomColors.productLightPrimaryNormalWhite,
           borderRadius: BorderRadius.circular(14.0)),
-      child: Column(children: [
+      child: Column(spacing: 12, children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            widget.isSliderEnabled
+                ? SizedBox.shrink()
+                : Text(
+                    "Selected value: ${_value.round().toString()}",
+                    style: CustomTypography().titleSmall(),
+                  ),
+          ],
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               widget.scaleMin.toString(),
-              style: CustomTypography().button(),
+              style: CustomTypography().button(
+                color: widget.colorFont,
+              ),
             ),
             Expanded(
               child: Padding(
@@ -139,30 +155,28 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
             ),
             Text(
               widget.scaleMax.toString(),
-              style: CustomTypography().button(),
+              style: CustomTypography().button(
+                color: widget.colorFont,
+              ),
             ),
           ],
         ),
-        const SizedBox(
-          height: 12,
-        ),
         Row(
+          spacing: 40,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SizedBox(
-              width: 87,
+            Expanded(
               child: Text(
-                widget.scaleMinText!,
+                widget.scaleMinText ?? '',
                 textAlign: TextAlign.start,
-                style: CustomTypography().bodyLarge(),
+                style: CustomTypography().bodyLarge(color: widget.colorFont),
               ),
             ),
-            SizedBox(
-              width: 87,
+            Expanded(
               child: Text(
-                widget.scaleMaxText!,
+                widget.scaleMaxText ?? '',
                 textAlign: TextAlign.end,
-                style: CustomTypography().bodyLarge(),
+                style: CustomTypography().bodyLarge(color: widget.colorFont),
               ),
             ),
           ],
@@ -651,23 +665,143 @@ class WebViewResponseCard extends StatefulWidget {
 class _WebViewResponseCardState extends State<WebViewResponseCard> {
   @override
   Widget build(BuildContext context) {
+    final response = widget.prompt.answer?.response;
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            widget.prompt.answer?.response?.isEmpty ?? true
-                ? CustomFlatButton(
-                    onClick: () => showModal(),
-                    text: "Tap here to respond",
-                  )
-                : Text(
-                    "✅ Thank you, please click 'Continue' to proceed.",
-                    style: CustomTypography()
-                        .bodyLarge(color: CustomColors.textTertiaryContent),
+            if (response == null || response.isEmpty) ...[
+              CustomFlatButton(
+                onClick: () => showModal(),
+                text: "Tap here to respond",
+              )
+            ] else if (response.firstOrNull!
+                .contains("Item was skipped due to: ")) ...[
+              SizedBox(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      "assets/images/icons/link_off.png",
+                      width: 80,
+                      height: 80,
+                    ),
+                    SizedBox(
+                      height: 24,
+                    ),
+                    Text(
+                      "Unable to Complete\nWeb Survey",
+                      textAlign: TextAlign.center,
+                      style: CustomTypography().headlineMedium(
+                        color: Color(0xFFFF3B30),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 4,
+                    ),
+                    Text(
+                      "You can reach out to the researcher to complete it.",
+                      textAlign: TextAlign.center,
+                      style: CustomTypography().bodyLarge(),
+                    ),
+                    SizedBox(
+                      height: 70,
+                    ),
+                    GestureDetector(
+                      onTap: _launchEmail,
+                      child: Text(
+                        "Contact Researcher",
+                        textAlign: TextAlign.center,
+                        style:
+                            CustomTypography().button(color: Color(0xFFFF3B30)),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                        spacing: 24,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          SizedBox(
+                              width: 65,
+                              child: Divider(
+                                color: Color(0xFFB0B0B0),
+                                thickness: 1,
+                              )),
+                          Text(
+                            "OR",
+                            style: CustomTypography().bodyLarge(
+                                weight: FontWeight.w500,
+                                color: Color(0xFFB0B0B0)),
+                          ),
+                          SizedBox(
+                              width: 65,
+                              child: Divider(
+                                color: Color(0xFFB0B0B0),
+                                thickness: 1,
+                              )),
+                        ]),
+                    SizedBox(height: 20),
+                    CustomOutlineButton(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 12.0),
+                        onClick: () => showModal(),
+                        color: Color(0xFFFF3B30),
+                        backgroundColor: Colors.transparent,
+                        children: Wrap(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text("Try Again",
+                                    style: CustomTypography()
+                                        .button(color: Color(0xFFFF3B30))),
+                              ],
+                            )
+                          ],
+                        ))
+                  ],
+                ),
+              )
+            ] else
+              Column(
+                spacing: 24,
+                children: [
+                  SizedBox(
+                    height: 160,
+                    width: 160,
+                    child: Image.asset("assets/images/icons/check_circle.png"),
                   ),
+                  RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: "Thank you\n",
+                          style: CustomTypography().titleSmall(
+                            color: CustomColors.productNormal,
+                          ),
+                        ),
+                        TextSpan(
+                            text: "Please click ‘Next’ to proceed",
+                            style: CustomTypography().titleSmall()),
+                      ],
+                    ),
+                  )
+                ],
+              ),
           ],
         ));
+  }
+
+  _launchEmail() async {
+    launchEmail(
+        subject: 'Web Survey – Assistance Needed',
+        body: '''Error encountered. Please investigate and advise on next steps.
+        
+        
+Participant ID: ''');
   }
 
   void showModal() {
@@ -688,6 +822,8 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                 return BottomWebViewModal(
                   url: widget.prompt.option!.link!,
                   respond: widget.respond,
+                  diaryId: widget.diary.id,
+                  promptId: widget.prompt.id,
                 );
               },
             ));
@@ -718,11 +854,9 @@ class _TimerWidgetState extends State<TimerWidget>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   late Duration duration;
   late Duration remaining;
+
   Timer? _timer;
 
-  bool inProgress = false;
-  bool paused = false;
-  bool complete = false;
   bool showTimeUpOverlay = false;
   bool showCompletionText = false;
 
@@ -731,6 +865,7 @@ class _TimerWidgetState extends State<TimerWidget>
 
   late TextEditingController minuteController;
   late TextEditingController secondsController;
+
   int pickerMinutes = 1;
   int pickerSeconds = 0;
 
@@ -742,9 +877,14 @@ class _TimerWidgetState extends State<TimerWidget>
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addObserver(this);
+
+    player = AudioPlayer();
+
     duration = widget.time;
     remaining = widget.time;
+
     pickerMinutes = duration.inMinutes;
     pickerSeconds = duration.inSeconds.remainder(60);
 
@@ -766,17 +906,18 @@ class _TimerWidgetState extends State<TimerWidget>
     if (state == AppLifecycleState.resumed) {
       if (_expectedEndTime != null &&
           DateTime.now().isAfter(_expectedEndTime!)) {
+        _timer?.cancel();
+        _timer = null;
+
         setState(() {
-          _timer?.cancel();
-          inProgress = false;
-          paused = false;
-          complete = true;
+          status = TimerStatus.complete;
           showTimeUpOverlay = false;
           showCompletionText = true;
           showPersistentSheet = false;
           remaining = Duration.zero;
           _expectedEndTime = null;
         });
+
         stopAlarm();
         widget.respond("Complete");
       }
@@ -786,87 +927,110 @@ class _TimerWidgetState extends State<TimerWidget>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+
     _timer?.cancel();
-    player?.dispose();
     _shakeController.dispose();
-    stopAlarm();
+
+    final p = player;
+    player = null; // Set to null first so no other methods can trigger it
+    p?.dispose();
+
     super.dispose();
   }
 
   void _startTimer() {
     _timer?.cancel();
+
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
-      setState(() {
-        if (remaining.inSeconds > 0 && inProgress && !paused) {
+      if (!isRunning) return;
+
+      if (remaining.inSeconds > 0) {
+        setState(() {
           remaining -= const Duration(seconds: 1);
-          // Update expected end time on first tick after start/resume
-          _expectedEndTime ??= DateTime.now().add(remaining);
-          _refreshModal();
-        } else if (remaining.inSeconds <= 0) {
-          _timer?.cancel();
-          _onTimerComplete();
-        }
-      });
+        });
+        _refreshModal();
+      } else {
+        _timer?.cancel();
+        _timer = null;
+        _onTimerComplete();
+      }
     });
   }
 
   void _pauseTimer() {
-    setState(() => paused = true);
-    stopAlarm();
+    if (!mounted) return;
+
     _timer?.cancel();
+    _timer = null;
+
+    setState(() => status = TimerStatus.paused);
+
+    stopAlarm();
+    _expectedEndTime = null;
   }
 
   void _resumeTimer() {
-    setState(() => paused = false);
-    // Set alarm for remaining time when resuming
-    setAlarm(remaining);
+    if (!mounted) return;
+
+    setState(() => status = TimerStatus.running);
+
     _expectedEndTime = DateTime.now().add(remaining);
+    setAlarm(remaining);
     _startTimer();
   }
 
-  void _restartTimer() {
+  Future<void> _restartTimer() async {
+    if (!mounted) return;
+
+    _timer?.cancel();
+    _timer = null;
+
     setState(() {
       remaining = duration;
-      inProgress = true;
-      paused = false;
-      complete = false;
+      status = TimerStatus.running;
       showTimeUpOverlay = false;
       showCompletionText = false; // Reset completion text visibility
     });
 
-    // Cancel existing timer if any
-    _timer?.cancel();
+    await stopAlarm();
+    if (!mounted) return;
 
-    // Reset and handle audio/alarms
-    Future.microtask(() async {
-      await stopAlarm();
-      _shakeController.reset();
-      await _startSound();
-      await setAlarm(duration);
-      _startTimer();
-    });
+    _shakeController.reset();
+
+    await _startSound();
+    if (!mounted) return;
+
+    await setAlarm(duration);
+    if (!mounted) return;
+
+    _expectedEndTime = DateTime.now().add(duration);
+    _startTimer();
   }
 
   void _stopTimer() {
+    if (!mounted) return;
+
+    _timer?.cancel();
+    _timer = null;
+
     setState(() {
-      inProgress = false;
-      paused = false;
+      _expectedEndTime = null;
+      status = TimerStatus.idle;
       showTimeUpOverlay = false;
     });
-    _timer?.cancel();
+
     stopAlarm();
     _shakeController.reset();
   }
 
-  void _pauseResumeTimer() => paused ? _resumeTimer() : _pauseTimer();
+  void _pauseResumeTimer() => isPaused ? _resumeTimer() : _pauseTimer();
 
-  void _playBlack() => widget.playbackControls ? _pauseResumeTimer() : null;
+  void _playBack() => widget.playbackControls ? _pauseResumeTimer() : null;
 
   void _onTimerComplete() {
     setState(() {
-      inProgress = false;
-      complete = true;
+      status = TimerStatus.complete;
       showTimeUpOverlay = true;
       showCompletionText = false; // Don't show completion text immediately
     });
@@ -876,7 +1040,7 @@ class _TimerWidgetState extends State<TimerWidget>
 
     // Delay showing the completion text until after modal animations are done
     Future.delayed(const Duration(milliseconds: 800), () {
-      if (mounted && complete) {
+      if (mounted && isComplete) {
         setState(() {
           showCompletionText = true;
         });
@@ -886,25 +1050,24 @@ class _TimerWidgetState extends State<TimerWidget>
 
   void _onTimerClose() {
     setState(() {
-      inProgress = false;
-      paused = false;
-      complete = false;
+      status = TimerStatus.idle;
       showTimeUpOverlay = false;
       showPersistentSheet = false;
       showCompletionText = false;
       _expectedEndTime = null;
     });
+
+    _updateModalCallback = null;
     _shakeController.reset();
     stopAlarm();
   }
 
   Future<void> _startAndShowModal({bool startPaused = false}) async {
     if (!await _seekPermission()) return;
+    if (!mounted) return;
 
     setState(() {
-      inProgress = true;
-      paused = startPaused;
-      complete = false;
+      status = startPaused ? TimerStatus.paused : TimerStatus.running;
       remaining = duration;
       showTimeUpOverlay = false;
       showPersistentSheet = true;
@@ -912,15 +1075,16 @@ class _TimerWidgetState extends State<TimerWidget>
     });
 
     if (!startPaused) {
-      await _startSound();
       await setAlarm(duration);
+      if (!mounted) return;
+      _expectedEndTime = DateTime.now().add(duration);
     }
 
-    _startSound();
+    await _startSound();
     _startTimer();
-    _expectedEndTime = DateTime.now().add(remaining);
 
     if (!mounted) return;
+
     showModalBottomSheet(
       backgroundColor: Colors.transparent,
       context: context,
@@ -929,56 +1093,57 @@ class _TimerWidgetState extends State<TimerWidget>
       enableDrag: false,
       elevation: 0,
       useSafeArea: true,
-      routeSettings: RouteSettings(name: "/TimerModal"),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 1,
-        minChildSize: 1,
-        snap: true,
-        builder: (context, scrollController) {
-          return StatefulBuilder(
-            builder: (context, setModalState) {
-              // Capture a callback to refresh the modal with latest parent state
-              _updateModalCallback = () {
-                if (mounted) setModalState(() {});
-              };
-              return BottomTimerModal(
-                  remaining: remaining,
-                  isRunning: inProgress && !paused,
-                  isPaused: paused,
-                  showTimeUpOverlay: showTimeUpOverlay,
-                  playbackControls: widget.playbackControls,
-                  onClose: () {
-                    Navigator.of(context).pop();
-                    _onTimerClose();
-                  },
-                  onRestart: () {
-                    if (widget.playbackControls) _restartTimer();
-                    _refreshModal();
-                  },
-                  onPauseResume: () {
-                    _playBlack();
-                    _refreshModal();
-                  },
-                  onStop: () {
-                    _stopTimer();
-                    stopAlarm();
-                    Navigator.of(context).pop();
-                    if (mounted) {
-                      setState(() {
-                        inProgress = false;
-                        paused = false;
-                        complete = true;
-                        showTimeUpOverlay = false;
-                        showCompletionText = true;
-                        showPersistentSheet = false;
-                        _expectedEndTime = null;
-                      });
-                    }
-                    widget.respond("Complete");
-                  });
-            },
-          );
-        },
+      routeSettings: const RouteSettings(name: "/TimerModal"),
+      builder: (context) => PopScope(
+        canPop: false,
+        child: DraggableScrollableSheet(
+          initialChildSize: 1,
+          minChildSize: 1,
+          snap: true,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+                // Capture a callback to refresh the modal with latest parent state
+                _updateModalCallback = () {
+                  if (mounted) setModalState(() {});
+                };
+
+                return BottomTimerModal(
+                    remaining: remaining,
+                    isRunning: isRunning,
+                    isPaused: isPaused,
+                    showTimeUpOverlay: showTimeUpOverlay,
+                    playbackControls: widget.playbackControls,
+                    onClose: () {
+                      Navigator.of(context).pop();
+                      _onTimerClose();
+                    },
+                    onRestart: () {
+                      if (widget.playbackControls) _restartTimer();
+                      _refreshModal();
+                    },
+                    onPauseResume: () {
+                      _playBack();
+                      _refreshModal();
+                    },
+                    onStop: () {
+                      _stopTimer();
+                      Navigator.of(context).pop();
+                      if (mounted) {
+                        setState(() {
+                          status = TimerStatus.complete;
+                          showTimeUpOverlay = false;
+                          showCompletionText = true;
+                          showPersistentSheet = false;
+                          _expectedEndTime = null;
+                        });
+                      }
+                      widget.respond("Complete");
+                    });
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -1002,21 +1167,6 @@ class _TimerWidgetState extends State<TimerWidget>
 
     if (result != null && mounted) {
       _updateDuration(result);
-
-      // If timer is running, update it with new duration
-      if (inProgress && mounted) {
-        remaining = result;
-        stopAlarm(); // Stop current alarm
-
-        if (!paused) {
-          // If running, set new alarm immediately
-          stopAlarm();
-          setAlarm(remaining);
-        }
-        // If paused, alarm will be set when resumed
-      } else {
-        remaining = result;
-      }
     }
   }
 
@@ -1035,25 +1185,22 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   Future<void> stopAlarm() async {
-    await Alarm.stopAll();
-    if (player != null) {
+    try {
+      await Alarm.stopAll();
+      if (!mounted) return;
       await player?.stop();
-      final tempPlayer = player;
-      player = null; // Set to null first to prevent double disposal
-      await tempPlayer?.dispose();
+    } catch (e) {
+      debugPrint("Alarm/Player stop error: $e");
     }
   }
 
   Future<void> setAlarm(Duration time) async {
-    // Stop current alarm first
-    await stopAlarm();
+    currentAlarmId = Random().nextInt(1 << 31);
 
-    currentAlarmId = Random().nextInt(1000);
-    final alarmTime = DateTime.now().add(time);
     await Alarm.set(
       alarmSettings: AlarmSettings(
         id: currentAlarmId!,
-        dateTime: alarmTime,
+        dateTime: DateTime.now().add(time),
         assetAudioPath: 'assets/audio/bowl.wav',
         loopAudio: false,
         vibrate: false,
@@ -1074,9 +1221,19 @@ class _TimerWidgetState extends State<TimerWidget>
   }
 
   Future<void> _startSound() async {
-    player?.dispose();
-    player = AudioPlayer();
-    await player!.play(AssetSource('audio/bowl.wav'), volume: 1.0);
+    if (!mounted) return;
+
+    try {
+      await player?.stop();
+      if (!mounted) return;
+
+      await player?.play(
+        AssetSource('audio/bowl.wav'),
+        volume: 1.0,
+      );
+    } catch (e) {
+      debugPrint("AudioPlayer play error: $e");
+    }
   }
 
   Future<bool> _seekPermission() async {
@@ -1115,8 +1272,7 @@ class _TimerWidgetState extends State<TimerWidget>
               children: [
                 _buildEditableControls(),
                 const SizedBox(height: 36),
-                if (!complete) ...[_buildStartButton()],
-                if (complete && showCompletionText) ...[_buildCompletionView()],
+                _buildStartButton(),
               ],
             ),
           ],
@@ -1125,29 +1281,6 @@ class _TimerWidgetState extends State<TimerWidget>
     );
   }
 
-  Widget _buildCompletionView() {
-    return CustomOutlineButton(
-      onClick: () {
-        _startAndShowModal();
-      },
-      backgroundColor: Colors.transparent,
-      color: CustomColors.productNormal,
-      children: Wrap(
-        children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(3.0),
-              child: Text(
-                "Restart Timer",
-                style: CustomTypography()
-                    .button(color: CustomColors.productNormal),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildEditableControls() {
     return Container(
@@ -1181,31 +1314,34 @@ class _TimerWidgetState extends State<TimerWidget>
     );
   }
 
-  Widget _buildStartButton({bool isCompletion = false}) {
-    final isDisabled = inProgress || paused;
-    return Stack(children: [
-      //completetion check here then display either the start timer now button another button
-      CustomElevatedButton(
-        color: (isDisabled
-            ? CustomColors.fillDisabled
-            : CustomColors.productNormal),
-        onClick: isDisabled
-            ? null
-            : () {
-                if (isCompletion) {
-                  _shakeController.reset();
-                  stopAlarm();
-                  setState(() {
-                    inProgress = true;
-                    complete = false;
-                    remaining = duration;
-                  });
-                }
-                _startAndShowModal();
-              },
-        text: 'Start Timer',
+  Widget _buildStartButton() {
+    final isDisabled = inProgress;
+    return showCompletionText ? CustomOutlineButton(
+      onClick: () {
+        _startAndShowModal();
+      },
+      backgroundColor: Colors.transparent,
+      color: CustomColors.productNormal,
+      children: Wrap(
+        children: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: Text(
+                "Restart Timer",
+                style: CustomTypography()
+                    .button(color: CustomColors.productNormal),
+              ),
+            ),
+          ),
+        ],
       ),
-    ]);
+    ) :
+    CustomElevatedButton(
+    color: isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
+    onClick: isDisabled ? null : _startAndShowModal,
+    text: 'Start Timer',
+    );
   }
 }
 
@@ -1399,12 +1535,13 @@ class _MediaPreviewState extends State<MediaPreview> {
   @override
   Widget build(BuildContext context) {
     return DottedBorder(
-      color: CustomColors.productNormalActive,
-      strokeWidth: 4,
-      radius: Radius.circular(4),
-      padding: const EdgeInsets.all(16),
-      dashPattern: [8, 8],
-      borderType: BorderType.RRect,
+      options: RoundedRectDottedBorderOptions(
+        radius: Radius.circular(4),
+        color: CustomColors.productNormalActive,
+        strokeWidth: 4,
+        padding: const EdgeInsets.all(16),
+        dashPattern: [8, 8],
+      ),
       child: Wrap(
         spacing: 6,
         runSpacing: 6,

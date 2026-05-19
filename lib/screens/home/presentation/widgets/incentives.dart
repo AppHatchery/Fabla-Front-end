@@ -163,6 +163,42 @@ class _StudyIncentivesState extends State<StudyIncentives> {
           textAlign: TextAlign.left,
         ),
         const SizedBox(height: 6),
+        Padding(
+          padding:EdgeInsets.only(bottom: 24),
+          child: Container(
+            // height: 81,
+            width: 440,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: CustomColors.fillWhite,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Total Compensation",
+                    style: CustomTypography().headlineSmall(),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                        color: CustomColors.yellowTertiary,
+                        borderRadius: BorderRadius.circular(4)),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                      child: Text(
+                        formatMoney(total, currency: widget.studies.first.incentive.currency),
+                        style: CustomTypography().headlineSmall(),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
         SingleChildScrollView(
           child: SizedBox(
             width: width,
@@ -183,7 +219,7 @@ class _StudyIncentivesState extends State<StudyIncentives> {
                   return StudyIncentive(
                     study: widget.studies[index],
                     diaries: diaries,
-                    addToAcquired: (amount) => addToAcquired(amount),
+                    addToAcquired: (amount, studyTotal) => addToAcquired(amount, studyTotal),
                   );
                 },
                 separatorBuilder: (context, index) =>
@@ -196,13 +232,16 @@ class _StudyIncentivesState extends State<StudyIncentives> {
   }
 
   // Having all the studies calculate their own incentives and acquired
-  void addToAcquired(double amount) => setState(() => acquired += amount);
+  void addToAcquired(double amount, double studyTotal) => setState(() {
+    acquired += amount;
+    total += studyTotal;
+  });
 }
 
 class StudyIncentive extends StatefulWidget {
   final StudyModel study;
   final List<DiaryModel> diaries;
-  final Function(double) addToAcquired;
+  final Function(double acquired, double total) addToAcquired;
   const StudyIncentive(
       {super.key,
       required this.study,
@@ -231,7 +270,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
     super.initState();
     calculations();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.addToAcquired(acquired);
+      widget.addToAcquired(acquired, total);
     });
   }
 
@@ -386,24 +425,19 @@ class _StudyIncentiveState extends State<StudyIncentive> {
   }
 
   Widget previewTotal() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          decoration: ShapeDecoration(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
-            ),
-            color: widget.study.color?.withAlpha(90),
-          ),
-          padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-          child: Text(
-            "${formatMoney(acquired, currency: currency)}/${formatMoney(total, currency: currency)}",
-            style: CustomTypography()
-                .titleSmall(color: CustomColors.textNormalContent),
-          ),
+    return Container(
+      decoration: ShapeDecoration(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4),
         ),
-      ],
+        color: widget.study.color?.withAlpha(90),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: Text(
+        "${formatMoney(acquired, currency: currency)}/${formatMoney(total, currency: currency)}",
+        style: CustomTypography()
+            .titleSmall(color: CustomColors.textNormalContent),
+      ),
     );
   }
 
@@ -564,10 +598,12 @@ class _StudyIncentiveState extends State<StudyIncentive> {
           children: [
             Icon(Icons.help_outline_rounded,
                 color: CustomColors.textSecondaryContent),
-            Text(
-              "How are the incentives calculated?",
-              style: CustomTypography()
-                  .bodyMedium(color: CustomColors.textSecondaryContent),
+            Flexible(
+              child: Text(
+                "How are the incentives calculated?",
+                style: CustomTypography()
+                    .bodyMedium(color: CustomColors.textSecondaryContent),
+              ),
             ),
           ],
         ),

@@ -127,10 +127,11 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
           const SizedBox(height: 6),
           if (isAfter)
             DottedBorder(
-              borderType: BorderType.Circle,
-              strokeWidth: 2,
-              color: CustomColors.productBorderNormal,
-              dashPattern: const [6],
+              options: CircularDottedBorderOptions(
+                strokeWidth: 2,
+                color: CustomColors.productBorderNormal,
+                dashPattern: const [6],
+              ),
               child: const SizedBox(height: 30, width: 30),
             )
           else

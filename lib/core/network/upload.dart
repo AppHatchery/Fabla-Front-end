@@ -8,6 +8,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -291,9 +292,6 @@ Future<String?> getPresignedUrl(
           statusCode: response.statusCode,
           method: 'POST',
           requestData: {'filename': filename});
-      dev.log(
-          'Failed to get presigned URL: ${response.statusCode}, ${response.body}',
-          name: 'Upload - Get Presigned URL');
       return null;
     }
   } catch (e, stackTrace) {
@@ -419,7 +417,8 @@ class PromptEntry {
         "QuestionsType": entry.questionsType,
         "Required": entry.required.toString(), // Convert bool to string
         "Transcript": entry.transcript,
-        "Reference": entry.reference
+        "Reference": entry.reference,
+        "Environment": kDebugMode ? "Dev" : "Prod"
       };
       items.add(map);
     }

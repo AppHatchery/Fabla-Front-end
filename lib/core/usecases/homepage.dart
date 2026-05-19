@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
@@ -28,9 +27,16 @@ String determineDiaryIcon(DiaryModel diary) {
 
   final hasTimer = responseTypes.contains(ResponseType.timer);
 
+  final hasWebView = responseTypes.contains(ResponseType.webview);
+
   // Doesn’t have audio/video/timer questions
   if (!hasAudio && !hasCamera && !hasTimer) {
     return "assets/images/icons/survey.png";
+  }
+
+  //has webview only question
+  if (hasWebView) {
+    return "assets/images/icons/webview.png";
   }
 
   // has audio question(s), doesn’t have video/timer questions.
@@ -131,37 +137,22 @@ List<DiaryModel> getDiariesUseCase(
 /// Determines if a diary should be available on the specified day
 bool _isDiaryAvailableOnDay(Diary diary, DateTime targetDay, DateTime dayStart,
     DateTime dayEnd, DateTime now) {
-  // RULE 1: Diary must have started by the target day
+  // RULE 1: Diary must have started by the end of the target day
   if (diary.start.isAfter(dayEnd)) {
     return false;
   }
 
-  // RULE 2: Diary must not be past its due date
-  if (diary.due.isBefore(now)) {
-    return false;
-  }
-
-  // RULE 3: Diary must be due on or after the target day
+  // RULE 2: Diary must be due on or after the start of the target day
   if (diary.due.isBefore(dayStart)) {
     return false;
   }
 
-  // RULE 4: ~~Exclude already submitted diaries~~ | Including submitted diaries for daily goal
-  if (diary.status == DiaryStatus.submitted) {
-    return true;
-  }
-
-  // RULE 5: Exclude missed diaries
-  if (diary.status == DiaryStatus.missed) {
-    return false;
-  }
-
-  // RULE 6: Check active days constraint for weekly diaries
+  // RULE 3: Check active days constraint for weekly diaries
   if (diary.activeDays != null && diary.activeDays!.isNotEmpty) {
     return _isDiaryActiveOnDay(diary, targetDay);
   }
 
-  // RULE 7: For daily diaries (no active days), check if it's within the active period
+  // RULE 4: For daily diaries (no active days), check if it overlaps with the day
   return _isDailyDiaryAvailable(diary, dayStart, dayEnd);
 }
 
