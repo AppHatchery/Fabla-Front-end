@@ -1194,7 +1194,7 @@ class ExitPopUp extends StatelessWidget {
                   Expanded(
                     child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, true),
-                      text: "Exit",
+                      text: "Yes, Leave Study",
                       textColor: CustomColors.warningActive,
                       color: CustomColors.fillWhite,
                       borderColor: CustomColors.warningActive,
@@ -1206,7 +1206,7 @@ class ExitPopUp extends StatelessWidget {
                   Expanded(
                     child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, false),
-                      text: "Dismiss",
+                      text: "No, Take Me Back",
                       color: CustomColors.productNormal,
                       borderColor: CustomColors.productNormal,
                     ),
