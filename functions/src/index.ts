@@ -19,6 +19,13 @@ const GITHUB_REPO = "Fabla-Front-end";
 
 const FIREBASE_PROJECT_ID = "audio-diaries";
 
+// Maps Firebase App IDs (event.appId) to the package-name format the console URL expects.
+// Firebase App IDs look like "1:projectNumber:platform:hash" and don't work in console URLs.
+const APP_ID_TO_CONSOLE_ID: Record<string, string> = {
+  "1:645895584054:android:9a8fa3e27b5aab0b4a5b97": "android:edu.emory.audio_diaries_flutter",
+  "1:645895584054:ios:aa3ccda0502986ff4a5b97": "ios:edu.emory.audio.diaries",
+};
+
 /**
  * Builds a deep link to a specific issue in the Firebase Crashlytics console.
  * @param {string} appId - The Firebase app ID from the alert event.
@@ -26,7 +33,8 @@ const FIREBASE_PROJECT_ID = "audio-diaries";
  * @return {string} The full console URL for the issue.
  */
 function crashlyticsUrl(appId: string, issueId: string) {
-  return `https://console.firebase.google.com/project/${FIREBASE_PROJECT_ID}/crashlytics/app/${appId}/issues/${issueId}`;
+  const consoleAppId = APP_ID_TO_CONSOLE_ID[appId] ?? appId;
+  return `https://console.firebase.google.com/project/${FIREBASE_PROJECT_ID}/crashlytics/app/${consoleAppId}/issues/${issueId}`;
 }
 
 const GITHUB_API = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}`;
