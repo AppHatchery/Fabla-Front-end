@@ -1581,6 +1581,103 @@ class NoInternetCard extends StatelessWidget {
   }
 }
 
+class ResponseChangedBanner extends StatelessWidget {
+  final int currentIndex;
+  final int total;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+
+  const ResponseChangedBanner({
+    super.key,
+    required this.currentIndex,
+    required this.total,
+    this.onPrevious,
+    this.onNext,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    const color = Color(0xFFD26B00);
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(16),
+      decoration: ShapeDecoration(
+        color: Color(0xFFFFF8DE),
+        shape: RoundedRectangleBorder(
+          side: BorderSide(width: 2, color: color),
+          borderRadius: BorderRadius.circular(11),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            CupertinoIcons.exclamationmark_triangle,
+            size: 24,
+            color: color,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "Some Questions Have Changed",
+                          style: CustomTypography().titleSmallCustom(color: color),
+                        ),
+                      ),
+                      
+                    ],
+                  ),
+                  Text(
+                    "A response you changed has affected other questions in this diary. Please review and answer any unanswered required questions before submitting.",
+                    style: CustomTypography().bodyLarge(color: color),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          GestureDetector(
+                            onTap: onPrevious,
+                            child: Icon(
+                              CupertinoIcons.chevron_up,
+                              size: 18,
+                              color: onPrevious != null ? color : color.withValues(alpha: 0.35),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: Text(
+                              "$currentIndex of $total",
+                              style: CustomTypography().bodyLarge(color: color),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: onNext,
+                            child: Icon(
+                              CupertinoIcons.chevron_down,
+                              size: 18,
+                              color: onNext != null ? color : color.withValues(alpha: 0.35),
+                            ),
+                          ),
+                        ],
+                      ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class WebViewErrorCard extends StatelessWidget {
   final String title;
   final String message;
@@ -1691,7 +1788,7 @@ class WebViewErrorCard extends StatelessWidget {
     );
   }
 
-  _launchEmail() async {
+  Future<void> _launchEmail() async {
     launchEmail(
         subject: '$title – Assistance Needed',
         body:

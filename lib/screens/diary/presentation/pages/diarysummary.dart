@@ -50,6 +50,8 @@ class DiarySummaryPage extends StatefulWidget {
 class _DiarySummaryPageState extends State<DiarySummaryPage>
     with WidgetsBindingObserver {
   late SummaryCubit summaryCubit;
+  List<GlobalKey> _promptKeys = [];
+  int _focusedUnansweredIndex = 0;
 
   final PageTimer timer = PageTimer();
 
@@ -167,6 +169,10 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         } else if (state is SummaryLoaded) {
           // If the user reaches the submission page for the first time add to the completion list
           summaryCubit.updateDiaryCompletion(widget.diary);
+          setState(() {
+            _promptKeys = List.generate(state.diary.prompts.length, (_) => GlobalKey());
+            _focusedUnansweredIndex = 0;
+          });
         } else if (state is SubmitNoInternet) {
           track(timer.stop(), "Submission Failed");
           Navigator.of(context)
@@ -236,22 +242,45 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   }
 
   Widget content(DiaryModel diary, BuildContext context) {
+    final hasUnansweredRequired = diary.prompts.any(_isRequiredAndUnanswered);
+    final unansweredIndices = diary.prompts
+        .asMap()
+        .entries
+        .where((e) => _isRequiredAndUnanswered(e.value))
+        .map((e) => e.key)
+        .toList();
     return Stack(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 100.0),
           child: Column(
             children: [
+              if (hasUnansweredRequired)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: ResponseChangedBanner(
+                    currentIndex: _focusedUnansweredIndex + 1,
+                    total: unansweredIndices.length,
+                    onPrevious: _focusedUnansweredIndex > 0
+                        ? () => _scrollToUnanswered(unansweredIndices, _focusedUnansweredIndex - 1)
+                        : null,
+                    onNext: _focusedUnansweredIndex < unansweredIndices.length - 1
+                        ? () => _scrollToUnanswered(unansweredIndices, _focusedUnansweredIndex + 1)
+                        : null,
+                  ),
+                ),
               Expanded(
                   child: SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: diary.prompts.length,
-                      itemBuilder: (context, index) =>
-                          buildPrompt(diary.prompts[index], index)),
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: diary.prompts.length,
+                          itemBuilder: (context, index) => buildPrompt(
+                              diary.prompts[index],
+                              index,
+                              index < _promptKeys.length ? _promptKeys[index] : null)),
                 ),
               )),
             ],
@@ -267,6 +296,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                 const EdgeInsets.only(bottom: 34, top: 24, left: 16, right: 16),
             alignment: Alignment.bottomCenter,
             child: CustomFlatButton(
+              isDisabled: hasUnansweredRequired,
               onClick: () => submitDiary(diary),
               text: "Submit My Response",
               color: CustomColors.productNormal,
@@ -278,15 +308,59 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     );
   }
 
-  Widget buildPrompt(PromptModel prompt, int index) {
+  bool _isRequiredAndUnanswered(PromptModel prompt) {
+    // if (!prompt.required) return false;
+    final answer = prompt.answer;
+    switch (prompt.responseType) {
+      case ResponseType.timer:
+      case ResponseType.instruction:
+        return false;
+      case ResponseType.textAudio:
+        return (answer?.recordings.isEmpty ?? true) &&
+            (answer?.response?.isEmpty ?? true);
+      case ResponseType.audio:
+      case ResponseType.image:
+      case ResponseType.video:
+      case ResponseType.imageVideo:
+        return answer?.recordings.isEmpty ?? true;
+      default:
+        return answer?.response?.isEmpty ?? true;
+    }
+  }
+
+  Widget _buildUnansweredIndicator() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12.0),
+      child: Row(
+        children: [
+          const Icon(Icons.warning_amber_rounded,
+              color: Color(0xFFF5A623), size: 16),
+          const SizedBox(width: 6),
+          Text(
+            "Not answered yet — tap Edit to respond",
+            style: CustomTypography()
+                .bodyMedium(color: const Color(0xFFF5A623)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildPrompt(PromptModel prompt, int index, [GlobalKey? promptKey]) {
+    final isUnanswered = _isRequiredAndUnanswered(prompt);
+
     return Column(
+      key: promptKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4.0),
-              color: CustomColors.fillWhite),
+              color: CustomColors.fillWhite,
+              border: isUnanswered
+                  ? Border.all(color: const Color(0xFFF5A623), width: 1.5)
+                  : null),
           child: Column(
             children: [
               Row(
@@ -319,14 +393,13 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                       : const SizedBox.shrink()
                 ],
               ),
-              getResponseWidget(prompt),
+              isUnanswered
+                  ? _buildUnansweredIndicator()
+                  : getResponseWidget(prompt),
             ],
           ),
         ),
 
-        // const AudioDiaryCard(
-        //   path: "",
-        // ),
         const SizedBox(height: 12),
         // Visibility(
         //   visible: prompt.responseType == ResponseType.recording,
@@ -624,6 +697,20 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
   void loadDiary(BuildContext context) {
     summaryCubit.loadSummary(widget.diary);
+  }
+
+  void _scrollToUnanswered(List<int> unansweredIndices, int newFocusIndex) {
+    setState(() => _focusedUnansweredIndex = newFocusIndex);
+    final key = _promptKeys[unansweredIndices[newFocusIndex]];
+    if (key.currentContext != null) {
+      Scrollable.ensureVisible(
+        key.currentContext!,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOut,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
+        alignment: 0.1,
+      );
+    }
   }
 
   void editResponse(PromptModel _prompt, int index) async {

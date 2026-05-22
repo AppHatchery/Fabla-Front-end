@@ -14,6 +14,7 @@ import '../../../../core/usecases/notifications.dart';
 import '../../../../core/utils/statuses.dart';
 import '../../data/diary.dart';
 import '../../data/prompt.dart';
+import '../entities/answer.dart';
 import 'answer_repository.dart';
 import 'diary_repository.dart';
 
@@ -39,23 +40,37 @@ class SummaryRepository {
   ///
   Future<DiaryModel> loadSummary(DiaryModel diary) async {
     try {
-      final List<PromptModel> cleanPrompts = [];
-      for (final prompt in diary.prompts) {
-        final newPrompt = promptRepository.load(diary, prompt.id);
-        final isInstruction =
-            newPrompt.responseType == ResponseType.instruction;
-        newPrompt.id = prompt.id;
-        if (!isInstruction) {
-          cleanPrompts.add(newPrompt);
+      // Load ALL prompts with their current-entry answers, sorted by question_number.
+      final allPrompts = promptRepository.loadAllWithAnswers(diary);
+
+      // Walk prompts in order so that earlier answers inform later conditions
+      // (mirrors the question-flow evaluation order).
+      final Map<int, Answer> answersMap = {};
+      final List<PromptModel> visiblePrompts = [];
+
+      for (final prompt in allPrompts) {
+        if (prompt.responseType == ResponseType.instruction) continue;
+
+        final shouldShow = prompt.shouldShow(answersMap);
+
+        if (shouldShow) {
+          visiblePrompts.add(prompt);
+          if (prompt.answer != null) {
+            answersMap[prompt.questionNumber] = prompt.answer!;
+          }
+        } else if (prompt.answer != null) {
+          // Prompt is on a stale branch — clear its answer so it is not
+          // submitted and does not pollute future condition checks.
+          await promptRepository.clearAnswer(diary, prompt);
         }
       }
-      final newDiary = diary.copyWith(
+
+      return diary.copyWith(
           id: diary.id,
           studyID: diary.studyID,
-          prompts: cleanPrompts,
+          prompts: visiblePrompts,
           activeDays: diary.activeDays,
           submissions: diary.submissions);
-      return newDiary;
     } catch (e, stackTrace) {
       dev.log("Error loading summary: $e",
           name: "SummaryRepository - loadSummary");

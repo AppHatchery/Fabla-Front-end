@@ -8,6 +8,7 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/dia
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/diary_history_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/session/diary_session_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.dart';
 import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.dart';
@@ -125,6 +126,8 @@ class _MyAppState extends State<MyApp> {
                 BlocProvider<SetupCubit>(create: (context) => SetupCubit()),
                 BlocProvider<DiaryCubit>(create: (context) => DiaryCubit()),
                 BlocProvider<PromptCubit>(create: (context) => PromptCubit()),
+                BlocProvider<DiarySessionCubit>(
+                    create: (context) => DiarySessionCubit()),
                 BlocProvider<DiaryHistoryCubit>(
                     create: (context) => DiaryHistoryCubit()),
                 BlocProvider<CompletionCubit>(

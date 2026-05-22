@@ -93,6 +93,35 @@ class PromptRepository {
     return answersMap;
   }
 
+  /// Loads all prompts for a diary in one pass, returning models and an answers
+  /// map keyed by question number for the current entry. Used by DiarySessionCubit
+  /// to build the in-memory session cache.
+  ({List<PromptModel> prompts, Map<int, Answer> answers}) loadSession(
+      DiaryModel diary) {
+    final entities = _promptDAO.getPrompts(id: diary.id);
+    final Map<int, Answer> answers = {};
+    final List<PromptModel> models = [];
+
+    for (var entity in entities) {
+      final answer = entity.answers.elementAtOrNull(diary.currentEntry);
+      final model = PromptModel.fromEntity(entity).copyWith(answer: answer);
+      models.add(model);
+      if (answer != null) {
+        answers[entity.questionNumber] = answer;
+      }
+    }
+
+    return (prompts: models, answers: answers);
+  }
+
+  /// Fetches a single prompt by its ObjectBox ID and attaches the current
+  /// entry's answer. Used to refresh the cache after a save or remove.
+  PromptModel loadPromptWithAnswer(DiaryModel diary, int promptId) {
+    final entity = _promptDAO.getPrompt(promptId);
+    final answer = entity.answers.elementAtOrNull(diary.currentEntry);
+    return PromptModel.fromEntity(entity).copyWith(answer: answer);
+  }
+
   Future<List<PromptModel>> loadAll(DiaryModel diary) async {
     final prompts = _promptDAO.getPrompts(id: diary.id);
     final models =
@@ -199,6 +228,31 @@ class PromptRepository {
     // Text response - update existing answer's response
     return Prompt.fromModel(prompt.copyWith(
         answer: existingAnswer.copyWith(response: newAnswer.response)));
+  }
+
+  /// Loads all prompts for a diary with their current entry's answers attached.
+  /// Sorted by question_number (guaranteed by DAO query order).
+  List<PromptModel> loadAllWithAnswers(DiaryModel diary) {
+    final entities = _promptDAO.getPrompts(id: diary.id);
+    return entities.map((entity) {
+      final answer = entity.answers.elementAtOrNull(diary.currentEntry);
+      return PromptModel.fromEntity(entity).copyWith(answer: answer);
+    }).toList();
+  }
+
+  /// Clears all responses and recordings for a prompt at the current diary entry.
+  Future<void> clearAnswer(DiaryModel diary, PromptModel prompt) async {
+    final answer = prompt.answer;
+    if (answer == null) return;
+
+    final recordingBox = Box<Recording>(objectbox.store);
+    for (final recording in answer.recordings.toList()) {
+      _deleteFile(recording.path);
+      if (recording.id != 0) recordingBox.remove(recording.id);
+    }
+
+    answer.response = null;
+    Box<Answer>(objectbox.store).put(answer);
   }
 
   Future<bool> removeResponse(Diary diary, PromptModel prompt, String? path,
