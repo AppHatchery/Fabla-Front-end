@@ -469,11 +469,8 @@ GitHub Actions runs on every pull request targeting `main` or `Dev`.
 
 | Job | What it does |
 |---|---|
-| `Qaulity_and_test_check` | Formats Dart code, checks for formatting regressions, runs a basic secrets scan |
-| `tests` | Generates ObjectBox bindings, runs the full test suite with dummy credentials |
 | `test` | Runs the full test suite using repository secrets (for branches with access) |
 
-The `tests` job creates a dummy `.env` and `lib/core/secrets/keys.dart` so tests can run without real credentials.
 
 ---
 
