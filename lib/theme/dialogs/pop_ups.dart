@@ -1166,6 +1166,60 @@ class DeletePopUp extends StatelessWidget {
   }
 }
 
+// class ExitPopUp extends StatelessWidget {
+//   final List<Widget> content;
+//   const ExitPopUp({super.key, required this.content});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return SimpleDialog(
+//       backgroundColor: CustomColors.fillWhite,
+//       contentPadding: const EdgeInsets.all(0),
+//       shape: RoundedRectangleBorder(
+//           borderRadius: BorderRadius.circular(14),
+//           side: const BorderSide(color: Colors.grey, width: 1)),
+//       surfaceTintColor: CustomColors.fillWhite,
+//       children: [
+//         Container(
+//           constraints: const BoxConstraints.tightFor(),
+//           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+//           child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.center,
+//             children: [
+//               ...content,
+//               const SizedBox(height: 24),
+//               // Buttons
+//               Row(
+//                 children: [
+//                   Expanded(
+//                     child: CustomFlatButton(
+//                       onClick: () => Navigator.pop(context, true),
+//                       text: "Yes, Leave Study",
+//                       textColor: CustomColors.warningActive,
+//                       color: CustomColors.fillWhite,
+//                       borderColor: CustomColors.warningActive,
+//                     ),
+//                   ),
+//                   const SizedBox(
+//                     width: 18,
+//                   ),
+//                   Expanded(
+//                     child: CustomFlatButton(
+//                       onClick: () => Navigator.pop(context, false),
+//                       text: "No, Take Me Back",
+//                       color: CustomColors.productNormal,
+//                       borderColor: CustomColors.productNormal,
+//                     ),
+//                   ),
+//                 ],
+//               )
+//             ],
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+// }
 class ExitPopUp extends StatelessWidget {
   final List<Widget> content;
   const ExitPopUp({super.key, required this.content});
@@ -1195,6 +1249,7 @@ class ExitPopUp extends StatelessWidget {
                     child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, true),
                       text: "Yes, Leave Study",
+                      buttonFontSize: 13,
                       textColor: CustomColors.warningActive,
                       color: CustomColors.fillWhite,
                       borderColor: CustomColors.warningActive,
@@ -1207,6 +1262,7 @@ class ExitPopUp extends StatelessWidget {
                     child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, false),
                       text: "No, Take Me Back",
+                      buttonFontSize: 13,
                       color: CustomColors.productNormal,
                       borderColor: CustomColors.productNormal,
                     ),
@@ -1220,6 +1276,7 @@ class ExitPopUp extends StatelessWidget {
     );
   }
 }
+
 
 class UpdatePopUp extends StatefulWidget {
   const UpdatePopUp({super.key});
