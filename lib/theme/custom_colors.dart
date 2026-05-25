@@ -7,6 +7,8 @@ class CustomColors {
   static const Color productLightPrimaryActive = Color(0xFFB4D5FF);
   static const Color productLightSecondaryNormal = Color(0xFF8EC0FE);
   static const Color productLightSecondaryActive = Color(0xFF69ABFE);
+  static const Color errorRed = Color(0xFFF83448);
+
 
   //Normal
   static const Color productNormal = Color(0xFF4396FE);
