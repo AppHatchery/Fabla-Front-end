@@ -1203,7 +1203,7 @@ class ExitPopUp extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(
-                    width: 8,
+                    width: 18,
                   ),
                   Expanded(
                     child: CustomFlatButton(
