@@ -177,7 +177,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
                 },
                 text: "This isn’t right - take me back",
                 color: CustomColors.fillWhite,
-                textColor: CustomColors.errorRed,
+                textColor: CustomColors.warningActive,
 
               ),
 
