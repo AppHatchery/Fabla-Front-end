@@ -353,8 +353,6 @@ class CustomTextButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 18.0),
           child: Text(
             text.toString(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: CustomTypography().button(color: textColor),
           ),
         ));
