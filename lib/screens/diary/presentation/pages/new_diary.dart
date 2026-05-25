@@ -219,7 +219,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(left: 8, right: 8, bottom: 12),
+                padding: const EdgeInsets.only(bottom: 12),
                 child: PageView(
                   key: const PageStorageKey('diaryPageView'),
                   physics: const NeverScrollableScrollPhysics(),
@@ -242,28 +242,26 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               child: Column(
                 children: [
                   Row(
+                    spacing: 12,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Visibility(
-                          visible: currentPage != 0,
-                          child: CustomElevatedIconButton(
-                            onClick: () {
-                              track(timer.reset(), "Previous");
-                              previousPage();
-                            },
-                            icon: Icons.arrow_back,
-                            //iconSize: 25.0,
-                            iconColor: CustomColors.productNormal,
-                            color: CustomColors.fillWhite,
-                            shadowColor: Colors.transparent,
-                            border: Border.all(
-                              color: CustomColors.productBorderNormal,
-                              width: 2,
-                            ),
-                          )),
-                      const SizedBox(
-                        width: 12,
-                      ),
+                      if (currentPage != 0)
+                        CustomElevatedIconButton(
+                          onClick: () {
+                            track(timer.reset(), "Previous");
+                            previousPage();
+                          },
+                          icon: Icons.arrow_back,
+                          iconColor: CustomColors.productNormal,
+                          color: CustomColors.fillWhite,
+                          shadowColor: Colors.transparent,
+                          border: Border.all(
+                            color: CustomColors.productBorderNormal,
+                            width: 2,
+                          ),
+                        ),
+                      if (currentPage != 0)
+                      SizedBox(),
                       Expanded(
                         flex: 3,
                         child: CustomFlatButton(
