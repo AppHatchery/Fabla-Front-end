@@ -260,8 +260,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                             width: 2,
                           ),
                         ),
-                      if (currentPage != 0)
-                      SizedBox(),
                       Expanded(
                         flex: 3,
                         child: CustomFlatButton(
