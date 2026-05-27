@@ -184,7 +184,10 @@ PODS:
     - ObjectBox (= 5.3.0-beta.4)
   - package_info_plus (0.4.5):
     - Flutter
-  - Pendo (3.13.0.11707)
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - Pendo (3.13.1.11743)
   - pendo_sdk (3.13.0):
     - Flutter
     - Pendo (~> 3.13.0)
@@ -233,6 +236,7 @@ DEPENDENCIES:
   - location (from `.symlinks/plugins/location/ios`)
   - objectbox_flutter_libs (from `.symlinks/plugins/objectbox_flutter_libs/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - pendo_sdk (from `.symlinks/plugins/pendo_sdk/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - rive_native (from `.symlinks/plugins/rive_native/ios`)
@@ -310,6 +314,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/objectbox_flutter_libs/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/darwin"
   pendo_sdk:
     :path: ".symlinks/plugins/pendo_sdk/ios"
   permission_handler_apple:
@@ -369,16 +375,17 @@ SPEC CHECKSUMS:
   ObjectBox: eccb95ea2054c39d81dfa2d4ccc5f1e31187228a
   objectbox_flutter_libs: ed1510f71602e4a0d3f2a721324e468d066fdbb9
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
-  Pendo: 15c97a5e5ab42ccb5299cc665de8dbf1b069ebdf
+  path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
+  Pendo: 76c1634082c47fa9a2b4de9c2e593ed28b562d0a
   pendo_sdk: 583a1f423590133e211f08dee4cb17eb6abf988a
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   rive_native: c9ed76ccf380f38205edcb8f552121aac8ec39da
-  shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
-  url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
+  shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
+  url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
   video_compress: f2133a07762889d67f0711ac831faa26f956980e
-  video_player_avfoundation: dd410b52df6d2466a42d28550e33e4146928280a
+  video_player_avfoundation: 3453f792138786248960ca029747fcd9f318ef52
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
   webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
 
