@@ -242,7 +242,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               child: Column(
                 children: [
                   Row(
-                    spacing: 12,
+                    spacing: 16,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       if (currentPage != 0)
