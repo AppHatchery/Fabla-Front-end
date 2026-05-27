@@ -1166,7 +1166,6 @@ class DeletePopUp extends StatelessWidget {
   }
 }
 
-
 class ExitPopUp extends StatelessWidget {
   final List<Widget> content;
   const ExitPopUp({super.key, required this.content});
@@ -1223,7 +1222,6 @@ class ExitPopUp extends StatelessWidget {
     );
   }
 }
-
 
 class UpdatePopUp extends StatefulWidget {
   const UpdatePopUp({super.key});
@@ -1282,15 +1280,14 @@ class StudyInfoPopUp extends StatelessWidget {
     return SimpleDialog(
         backgroundColor: CustomColors.fillWhite,
         contentPadding: const EdgeInsets.all(0),
-        insetPadding: const EdgeInsets.symmetric(
-            horizontal: 29),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 29),
         title: Column(
           children: [
             Align(
               alignment: Alignment.topRight,
               child: GestureDetector(
                 onTap: () => Navigator.of(context).pop(),
-                child:const Icon(Icons.close, size: 24),
+                child: const Icon(Icons.close, size: 24),
               ),
             ),
             Row(
@@ -1373,8 +1370,7 @@ class StudyInfoPopUp extends StatelessWidget {
               ],
             ),
           ),
-        ]
-    );
+        ]);
   }
 
   Future<void> launchEmail() async {
@@ -1461,5 +1457,344 @@ class CompletedPopUp extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+enum _UpdateDialogPhase { initial, updating, success, error }
+
+class ScheduleUpdatePopUp extends StatefulWidget {
+  final int pendingCount;
+  final ValueNotifier<bool?> completeNotifier;
+  final VoidCallback onUpdateNow;
+
+  const ScheduleUpdatePopUp({
+    super.key,
+    required this.pendingCount,
+    required this.completeNotifier,
+    required this.onUpdateNow,
+  });
+
+  @override
+  State<ScheduleUpdatePopUp> createState() => _ScheduleUpdatePopUpState();
+}
+
+class _ScheduleUpdatePopUpState extends State<ScheduleUpdatePopUp> {
+  _UpdateDialogPhase _phase = _UpdateDialogPhase.initial;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.completeNotifier.addListener(_onComplete);
+  }
+
+  @override
+  void dispose() {
+    widget.completeNotifier.removeListener(_onComplete);
+    super.dispose();
+  }
+
+  void _onComplete() {
+    final value = widget.completeNotifier.value;
+    if (value == null) return;
+    setState(() {
+      _phase = value ? _UpdateDialogPhase.success : _UpdateDialogPhase.error;
+    });
+    if (value) {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) Navigator.pop(context, 'success');
+      });
+    }
+  }
+
+  void _startUpdate() {
+    setState(() => _phase = _UpdateDialogPhase.updating);
+    widget.onUpdateNow();
+  }
+
+  void _retry() {
+    widget.completeNotifier.value = null;
+    setState(() => _phase = _UpdateDialogPhase.updating);
+    widget.onUpdateNow();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      contentPadding: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: CustomColors.fillDisabled, width: 2),
+      ),
+      surfaceTintColor: CustomColors.fillWhite,
+      children: [
+        Container(
+          constraints: const BoxConstraints.tightFor(),
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: CustomColors.fillWhite,
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+          child: Center(
+            child: Column(
+              spacing: 12,
+              children: _buildContent(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildContent() {
+    return switch (_phase) {
+      _UpdateDialogPhase.initial => _buildInitial(),
+      _UpdateDialogPhase.updating => _buildUpdating(),
+      _UpdateDialogPhase.success => _buildSuccess(),
+      _UpdateDialogPhase.error => _buildError(),
+    };
+  }
+
+  List<Widget> _buildInitial() {
+    final hasPending = widget.pendingCount > 0;
+    return [
+      Container(
+        width: 60,
+        height: 60,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: CustomColors.productLightPrimaryActive,
+        ),
+        child: const Center(
+          child: Icon(Icons.sync_rounded,
+              size: 40, color: CustomColors.productNormal),
+        ),
+      ),
+      Text(
+        "Your study has an update",
+        style: CustomTypography().headlineMedium(),
+        textAlign: TextAlign.center,
+      ),
+      RichText(
+        textAlign: TextAlign.center,
+        text: TextSpan(
+          style: CustomTypography().bodyMedium(),
+          children: [
+            const TextSpan(
+                text:
+                    "Your researcher has made changes to this study. You can update the study under "),
+            TextSpan(
+              text: "Settings > Study Details",
+              style: CustomTypography()
+                  .bodyMedium()
+                  .copyWith(fontStyle: FontStyle.italic),
+            ),
+            const TextSpan(text: "."),
+          ],
+        ),
+      ),
+      if (hasPending)
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: CustomColors.yellowLight,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: CustomColors.pumpkinOrange, width: 2),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.warning_rounded,
+                  color: CustomColors.pumpkinOrange, size: 24),
+              const SizedBox(width: 8),
+              Expanded(
+                child: RichText(
+                  text: TextSpan(
+                    style: CustomTypography()
+                        .bodyMedium()
+                        .copyWith(color: CustomColors.pumpkinOrange),
+                    children: [
+                      const TextSpan(text: "You have "),
+                      TextSpan(
+                        text:
+                            "${widget.pendingCount} ${widget.pendingCount == 1 ? 'diary' : 'diaries'} pending",
+                        style: CustomTypography().bodyMedium().copyWith(
+                              color: CustomColors.pumpkinOrange,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const TextSpan(
+                          text:
+                              " submission. To avoid losing your progress, please submit them before updating."),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      if (hasPending)
+        Row(
+          children: [
+            Expanded(
+              child: CustomFlatButton(
+                onClick: () => Navigator.pop(context, 'view_pending'),
+                text: "View Pending Diaries",
+                color: CustomColors.fillWhite,
+                textColor: CustomColors.productNormalActive,
+                borderColor: CustomColors.productNormalActive,
+              ),
+            ),
+          ],
+        ),
+      Row(
+        children: [
+          Expanded(
+            child: CustomFlatButton(
+              onClick: _startUpdate,
+              text: "Update Now",
+              color: CustomColors.productNormal,
+              textColor: CustomColors.fillWhite,
+              borderColor: CustomColors.productNormal,
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  List<Widget> _buildUpdating() {
+    return [
+      const SizedBox(
+        width: 40,
+        height: 40,
+        child: CircularProgressIndicator(
+          strokeWidth: 5,
+          color: CustomColors.productNormal,
+          strokeCap: StrokeCap.round,
+        ),
+      ),
+      Text(
+        "Updating Study",
+        style: CustomTypography().headlineMedium(),
+        textAlign: TextAlign.center,
+      ),
+      Text(
+        "Hang tight! We're updating the experiment content. This won't take long!",
+        style: CustomTypography().bodyMedium(),
+        textAlign: TextAlign.center,
+      ),
+    ];
+  }
+
+  List<Widget> _buildSuccess() {
+    return [
+      Container(
+        width: 60,
+        height: 60,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Color(0xFFD4F0DA),
+        ),
+        child: const Center(
+          child: Icon(Icons.check_rounded,
+              size: 40, color: CustomColors.darkGreen),
+        ),
+      ),
+      Text(
+        "Update Successful",
+        style: CustomTypography().headlineMedium(),
+        textAlign: TextAlign.center,
+      ),
+      Text(
+        "Your study has been updated successfully",
+        style: CustomTypography().bodyMedium(),
+        textAlign: TextAlign.center,
+      ),
+    ];
+  }
+
+  List<Widget> _buildError() {
+    return [
+      Container(
+        width: 60,
+        height: 60,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: CustomColors.warningFill,
+        ),
+        child: const Center(
+          child: Icon(Icons.close_rounded,
+              size: 40, color: CustomColors.warningNormal),
+        ),
+      ),
+      Text(
+        "Update Failed",
+        style: CustomTypography().headlineMedium(),
+        textAlign: TextAlign.center,
+      ),
+      RichText(
+        textAlign: TextAlign.center,
+        text: TextSpan(
+          style: CustomTypography().bodyMedium(),
+          children: [
+            const TextSpan(
+                text:
+                    "Your study was not updated. Retry update or try later under "),
+            TextSpan(
+              text: "Settings > Study Details",
+              style: CustomTypography()
+                  .bodyMedium()
+                  .copyWith(fontStyle: FontStyle.italic),
+            ),
+            const TextSpan(text: "."),
+          ],
+        ),
+      ),
+      Row(
+        children: [
+          Expanded(
+            child: CustomFlatButton(
+              onClick: () => Navigator.pop(context, 'update_later'),
+              text: "Update Later",
+              color: CustomColors.fillWhite,
+              textColor: CustomColors.productNormalActive,
+              borderColor: CustomColors.productNormalActive,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: CustomFlatButton(
+              onClick: _retry,
+              text: "Retry Update",
+              color: CustomColors.productNormal,
+              textColor: CustomColors.fillWhite,
+              borderColor: CustomColors.productNormal,
+            ),
+          ),
+        ],
+      ),
+      GestureDetector(
+        onTap: () => launchEmail(
+          subject: "Study Update Issue",
+          body: "I encountered an issue while updating my study.",
+        ),
+        child: RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            style: CustomTypography().bodyMedium(),
+            children: [
+              const TextSpan(text: "If the issue persists, "),
+              TextSpan(
+                text: "contact researcher",
+                style: CustomTypography().bodyMedium().copyWith(
+                      color: CustomColors.productNormalActive,
+                      decoration: TextDecoration.underline,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ];
   }
 }

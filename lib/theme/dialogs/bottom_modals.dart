@@ -585,12 +585,12 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Future<void> record() async {
     //if recording is active return
-    if(_recordingCheck) return;
+    if (_recordingCheck) return;
 
     // set recoding to true
     _recordingCheck = true;
 
-    try{
+    try {
       final hasPermission = await checkAndRequestPermission();
       //TODO:: add a show permission error when recorder has no permission
       if (!hasPermission) return;
@@ -627,14 +627,12 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               : RecorderState.isPaused;
         });
       }
-
-    } on Exception catch(e) {
+    } on Exception catch (e) {
       debugPrint('record() failed: $e');
 
       //reset state to stopped state
       if (mounted) setState(() => recorderState = RecorderState.isStopped);
-    }
-    finally {
+    } finally {
       //set recording check back to false
       _recordingCheck = false;
     }

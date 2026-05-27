@@ -24,3 +24,5 @@ class HubUpdated extends HubState {
   @override
   List<Object> get props => [complete];
 }
+
+class HubUpdateAvailable extends HubState {}

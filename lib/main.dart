@@ -23,6 +23,7 @@ import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -201,6 +202,8 @@ class _HubState extends State<Hub>
   // used to refresh the page for updating
   Key key = UniqueKey();
   final ValueNotifier<bool?> completeNotifier = ValueNotifier(null);
+  final ValueNotifier<bool?> completeUpdateNotifier = ValueNotifier(null);
+  bool _isScheduleUpdateDialogOpen = false;
 
   late HubCubit cubit;
   late TabController tabController;
@@ -237,6 +240,9 @@ class _HubState extends State<Hub>
       NotificationManager()
           .scheduleAdditional(); // Ensure that this also trigger when the app has just started
       NotificationManager().scheduleUserReminders(); // Schedule user reminders
+
+      // Check for experiment updates after the first frame is rendered
+      cubit.checkForUpdates();
     });
     super.initState();
   }
@@ -266,11 +272,13 @@ class _HubState extends State<Hub>
       child: BlocConsumer<HubCubit, HubState>(
         listener: (context, state) {
           if (state is HubUpdating) {
-            showUpdateDialog();
+            if (!_isScheduleUpdateDialogOpen) showUpdateDialog();
           } else if (state is HubUpdated) {
             completeUpdate(state.complete);
           } else if (state is HubRefreshing) {
             refresh();
+          } else if (state is HubUpdateAvailable) {
+            showScheduleUpdateDialog();
           }
         },
         builder: (context, state) {
@@ -359,14 +367,16 @@ class _HubState extends State<Hub>
 
   void completeUpdate(bool completed) {
     if (mounted) {
-      setState(() => completeNotifier.value = completed);
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          Navigator.pop(context);
-        }
-      }).then((_) {
-        Future.delayed(const Duration(seconds: 1), () => refresh());
-      });
+      if (_isScheduleUpdateDialogOpen) {
+        completeUpdateNotifier.value = completed;
+      } else {
+        setState(() => completeNotifier.value = completed);
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) Navigator.pop(context);
+        }).then((_) {
+          Future.delayed(const Duration(seconds: 1), () => refresh());
+        });
+      }
     }
   }
 
@@ -398,5 +408,41 @@ class _HubState extends State<Hub>
                 ),
               ],
             ));
+  }
+
+  void showScheduleUpdateDialog() async {
+    _isScheduleUpdateDialogOpen = true;
+    completeUpdateNotifier.value = null;
+
+    final pendingCount = DiaryRepository()
+        .getAllDiaries()
+        .where((d) => d.status == DiaryStatus.complete)
+        .length;
+
+    if (!mounted) {
+      _isScheduleUpdateDialogOpen = false;
+      return;
+    }
+
+    final result = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => ScheduleUpdatePopUp(
+        pendingCount: pendingCount,
+        completeNotifier: completeUpdateNotifier,
+        onUpdateNow: cubit.update,
+      ),
+    );
+
+    _isScheduleUpdateDialogOpen = false;
+
+    if (result == 'success') {
+      Future.delayed(const Duration(milliseconds: 500), () => refresh());
+    } else if (result == 'view_pending') {
+      cubit.scheduleForLater();
+      tabController.animateTo(1);
+    } else if (result == 'update_later') {
+      cubit.scheduleForLater();
+    }
   }
 }

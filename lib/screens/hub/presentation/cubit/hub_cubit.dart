@@ -17,16 +17,33 @@ class HubCubit extends Cubit<HubState> {
       : _experimentManager = experimentManager ?? ExperimentManager(),
         super(const HubInitial());
 
-  update() async {
+  void update() async {
     emit(HubUpdating());
     final done = await _experimentManager.update();
+
+    if (done) {
+      await _experimentManager.setUpdateStatus(UpdateStatus.none);
+    }
 
     emit(HubUpdated(done));
 
     emit(const HubInitial());
   }
 
-  refresh() {
+  void scheduleForLater() async {
+    await _experimentManager.setUpdateStatus(UpdateStatus.pending);
+  }
+
+  void refresh() {
     emit(HubRefreshing());
+  }
+
+  void checkForUpdates() async {
+    final state = await _experimentManager.checkForUpdates();
+    if (state == UpdateStatus.available) {
+      emit(HubUpdateAvailable());
+    } else if (state == UpdateStatus.pending) {
+      // TODO: cross-check scheduled job
+    }
   }
 }
