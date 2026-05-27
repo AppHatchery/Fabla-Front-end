@@ -1166,6 +1166,7 @@ class DeletePopUp extends StatelessWidget {
   }
 }
 
+
 class ExitPopUp extends StatelessWidget {
   final List<Widget> content;
   const ExitPopUp({super.key, required this.content});
@@ -1194,7 +1195,8 @@ class ExitPopUp extends StatelessWidget {
                   Expanded(
                     child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, true),
-                      text: "Exit",
+                      text: "Yes, Leave Study",
+                      buttonFontSize: 13,
                       textColor: CustomColors.warningActive,
                       color: CustomColors.fillWhite,
                       borderColor: CustomColors.warningActive,
@@ -1206,7 +1208,8 @@ class ExitPopUp extends StatelessWidget {
                   Expanded(
                     child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, false),
-                      text: "Dismiss",
+                      text: "No, Take Me Back",
+                      buttonFontSize: 13,
                       color: CustomColors.productNormal,
                       borderColor: CustomColors.productNormal,
                     ),
@@ -1220,6 +1223,7 @@ class ExitPopUp extends StatelessWidget {
     );
   }
 }
+
 
 class UpdatePopUp extends StatefulWidget {
   const UpdatePopUp({super.key});
