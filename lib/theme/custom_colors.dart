@@ -8,6 +8,8 @@ class CustomColors {
   static const Color productLightSecondaryNormal = Color(0xFF8EC0FE);
   static const Color productLightSecondaryActive = Color(0xFF69ABFE);
 
+
+
   //Normal
   static const Color productNormal = Color(0xFF4396FE);
   static const Color productNormalActive = Color(0xFF016BEF);

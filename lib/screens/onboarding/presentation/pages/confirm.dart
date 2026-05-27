@@ -177,7 +177,8 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
                 },
                 text: "This isn’t right - take me back",
                 color: CustomColors.fillWhite,
-                textColor: CustomColors.productNormalActive,
+                textColor: CustomColors.warningActive,
+
               ),
 
               //CustomTextButton(onClick: ()=> null, text: "I HAVE A PROBLEM JOINING THE STUDY", textColor: CustomColors.textWhite,)
