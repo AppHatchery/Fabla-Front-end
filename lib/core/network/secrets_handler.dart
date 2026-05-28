@@ -80,18 +80,29 @@ class SecureSave {
   }
 
   Future<CredentialsModel?> read() async {
-    // Now uses injected storage instead of hardcoded _storage
-    final credentialsModel = await _storage.read(key: 'credentials');
-    if (credentialsModel?.isNotEmpty ?? false) {
-      return CredentialsModel.fromJson(json.decode(credentialsModel!));
+    try {
+      final credentialsModel = await _storage.read(key: 'credentials');
+      if (credentialsModel?.isNotEmpty ?? false) {
+        return CredentialsModel.fromJson(json.decode(credentialsModel!));
+      }
+      return null;
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason:
+              'Failed to read/decode credentials from secure storage — all upload auth will be empty');
+      return null;
     }
-    return null;
   }
 
   Future<void> save(CredentialsModel credentialsModel) async {
-    // Now uses injected storage instead of hardcoded _storage
-    await _storage.write(
-        key: 'credentials', value: json.encode(credentialsModel.toJson()));
+    try {
+      await _storage.write(
+          key: 'credentials', value: json.encode(credentialsModel.toJson()));
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason:
+              'Failed to write credentials to secure storage — next submission will have no auth');
+    }
   }
 }
 
