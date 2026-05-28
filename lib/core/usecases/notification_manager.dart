@@ -16,9 +16,35 @@ import 'package:flutter/material.dart' show TimeOfDay;
 /// The threshold is the number of notification allowed to be scheduled at a time
 const int threshold = 50;
 
+const String _timezoneOffsetKey = 'notification_timezone_offset';
+
 class NotificationManager {
   final DiaryRepository diaryRepository = DiaryRepository();
   static final AwesomeNotifications _awesomeNotifications = AwesomeNotifications();
+
+  /// Checks if the device timezone offset has changed since notifications were last scheduled.
+  /// If so, cancels all scheduled notifications so they can be rescheduled with the correct
+  /// UTC times for the new timezone.
+  Future<void> _checkAndHandleTimezoneChange() async {
+    final currentOffset = DateTime.now().timeZoneOffset.inMinutes;
+    final prefs = PreferenceService();
+    final storedOffset = await prefs.getIntPreference(key: _timezoneOffsetKey);
+
+    if (storedOffset == null) {
+      await prefs.setIntPreference(key: _timezoneOffsetKey, value: currentOffset);
+      return;
+    }
+
+    if (storedOffset != currentOffset) {
+      dev.log('Timezone offset changed from $storedOffset to $currentOffset minutes. Cancelling all notifications for reschedule.');
+      await NotificationService.cancelAllNotifications();
+      await prefs.setIntPreference(key: _timezoneOffsetKey, value: currentOffset);
+      await PendoService.track("TimezoneChange", {
+        "previous_offset_minutes": storedOffset,
+        "new_offset_minutes": currentOffset,
+      });
+    }
+  }
 
   /// Schedule additional notifications
   /// This method schedules additional notifications for diaries that are due
@@ -31,6 +57,8 @@ class NotificationManager {
 
     final hasPermission = await _awesomeNotifications.isNotificationAllowed();
     if(!hasPermission) return;
+
+    await _checkAndHandleTimezoneChange();
 
     try {
       final now = DateTime.now();
@@ -364,6 +392,10 @@ class NotificationManager {
           }
         }
         dev.log('Scheduled $scheduledCount notifications');
+        await PreferenceService().setIntPreference(
+          key: _timezoneOffsetKey,
+          value: DateTime.now().timeZoneOffset.inMinutes,
+        );
       } catch (e) {
         dev.log('scheduleLimit has no Permissions');
       }
