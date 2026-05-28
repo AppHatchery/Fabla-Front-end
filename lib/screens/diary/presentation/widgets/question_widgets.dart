@@ -83,7 +83,7 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(5.0, 60.0, 5.0, 16.0),
+      padding: const EdgeInsets.fromLTRB(5.0, 0.0, 5.0, 16.0),
       decoration: BoxDecoration(
           color: CustomColors.productLightPrimaryNormalWhite,
           borderRadius: BorderRadius.circular(14.0)),

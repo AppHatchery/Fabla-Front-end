@@ -59,6 +59,7 @@ class AudioQuestionsWidget extends StatelessWidget {
                   ),
                 ],
               ),
+              if (questionTip.isNotEmpty)
               Row(
                 children: [
                   Expanded(
@@ -70,7 +71,7 @@ class AudioQuestionsWidget extends StatelessWidget {
                   )
                 ],
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 48),
               Center(child: responseWidget),
               bottomSheetController == null
                   ? Container()
