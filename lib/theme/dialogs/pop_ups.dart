@@ -1114,7 +1114,7 @@ class DeletePopUp extends StatelessWidget {
             children: [
               // Title
               Text(
-                title ?? "Delete your response?",
+                title ?? "Do you want to delete your response?",
                 style: CustomTypography().headlineMedium(),
                 textAlign: TextAlign.center,
               ),
@@ -1126,7 +1126,7 @@ class DeletePopUp extends StatelessWidget {
               // Message
               Text(
                 subheader ??
-                    "Deleting a reply only deletes the recording on the device. Continue deleting?",
+                    "You won't be able to undo this action",
                 style: CustomTypography().bodyLarge(),
                 textAlign: TextAlign.center,
               ),
@@ -1139,23 +1139,24 @@ class DeletePopUp extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, false),
-                      text: "Cancel",
-                      color: CustomColors.greyLight,
-                      borderColor: CustomColors.greyLight,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 18,
-                  ),
-                  Expanded(
-                    child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, true),
                       text: "Delete",
-                      color: CustomColors.warningActive,
+                      color: CustomColors.fillWhite,
                       borderColor: CustomColors.warningActive,
+                      textColor: CustomColors.warningActive,
                     ),
                   ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: CustomFlatButton(
+                      onClick: () => Navigator.pop(context, false),
+                      text: "Cancel",
+                      color: CustomColors.productNormal,
+                      borderColor: CustomColors.productNormal,
+                      textColor: CustomColors.fillWhite,
+                    ),
+                  ),
+
                 ],
               )
             ],
