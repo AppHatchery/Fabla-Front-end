@@ -8,6 +8,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
@@ -97,7 +98,31 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
     promptEntryList.addAll(
         references); // Adding the references to the list going to Dynamo
 
+    CrashlyticsService().setCustomKeys({
+      'submitting_diary': diary.name.toString(),
+      'submitting_diary_id': diary.id.toString(),
+      'submitting_participant_id': participantID,
+      'submitting_entry': diary.currentEntry.toString(),
+      'submitting_file_count': files.length.toString(),
+    });
+
+    await PendoService.track('Submission Started', {
+      'Diary': diary.name.toString(),
+      'DiaryID': diary.id.toString(),
+      'Entry': diary.currentEntry.toString(),
+      'FileCount': files.length.toString(),
+      'HasFiles': files.isNotEmpty.toString(),
+    });
+
     final uploaded = await awsUploadResponses(promptEntryList, files);
+
+    await PendoService.track('Submission Completed', {
+      'Diary': diary.name.toString(),
+      'DiaryID': diary.id.toString(),
+      'Entry': diary.currentEntry.toString(),
+      'Success': uploaded.toString(),
+    });
+
     return uploaded;
   } catch (e, stackTrace) {
     dev.log("Failed to upload data: $e", name: "Upload");
@@ -105,7 +130,9 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
     CrashlyticsService().recordError(e, stackTrace,
         context: {
           'ParticipantID': participantID,
-          'DiaryID': diary.id.toString()
+          'Diary': diary.name.toString(),
+          'DiaryID': diary.id.toString(),
+          'CurrentEntry': diary.currentEntry.toString(),
         },
         reason: 'Failed to upload data in upload function');
     return false;
@@ -213,12 +240,31 @@ Future<bool> uploadNonAudioData(
     // Updated to use injected http client instead of static http.post
     var response = await httpClient.post(url, headers: headers, body: jsonBody);
 
-    return response.statusCode == 200;
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      dev.log(
+          'DynamoDB upload failed: status=${response.statusCode} body=${response.body}',
+          name: 'Upload - Non-Audio Data');
+      CrashlyticsService().recordApiError(
+          'DynamoDB upload failed: ${response.body}', url.toString(),
+          statusCode: response.statusCode,
+          method: 'POST',
+          requestData: {'entry_count': promptEntryList.length.toString()});
+      await PendoService.track('Upload Error', {
+        'event': 'Upload to DynamoDB',
+        'response': response.body,
+        'status': response.statusCode
+      });
+      return false;
+    }
   } catch (e, stackTrace) {
     // An error occurred
     dev.log('Error sending request: $e', name: 'Upload - Non-Audio Data');
     CrashlyticsService().recordError(e, stackTrace,
         reason: 'Error sending request in uploadNonAudioData');
+    await PendoService.track('Upload Error',
+        {'event': 'Upload to DynamoDB', 'reason': e.toString()});
     return false; // Submission failed due to error
   }
 }
@@ -292,6 +338,11 @@ Future<String?> getPresignedUrl(
           statusCode: response.statusCode,
           method: 'POST',
           requestData: {'filename': filename});
+      await PendoService.track('Upload Error', {
+        'event': 'Get Presigned URL',
+        'response': response.body,
+        'status': response.statusCode
+      });
       return null;
     }
   } catch (e, stackTrace) {
@@ -299,6 +350,8 @@ Future<String?> getPresignedUrl(
         name: 'Upload - Get Presigned URL');
     CrashlyticsService().recordError(e, stackTrace,
         reason: 'Error getting presigned URL in getPresignedUrl');
+    await PendoService.track(
+        'Upload Error', {'event': 'Get Presigned URL', 'reason': e.toString()});
     return null;
   }
 }
@@ -322,12 +375,31 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
 
     var response = await http.Client().send(request);
 
-    return response.statusCode == 200;
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      dev.log('S3 upload failed: status=${response.statusCode} file=$filePath',
+          name: 'Upload - S3 Storage');
+      CrashlyticsService().recordApiError(
+          'S3 upload failed with status ${response.statusCode}', presignedUrl,
+          statusCode: response.statusCode,
+          method: 'PUT',
+          requestData: {'file_path': filePath});
+      await PendoService.track('Upload Error', {
+        'event': 'Upload to S3',
+        'reason': response.reasonPhrase ?? 'unknown',
+        'status': response.statusCode
+      });
+      return false;
+    }
   } catch (e, stackTrace) {
     dev.log('S3 Storage: Error uploading file: $e',
         name: 'Upload - S3 Storage');
     CrashlyticsService().recordError(e, stackTrace,
+        context: {'file_path': filePath},
         reason: 'Error uploading file in uploadFileToS3');
+    await PendoService.track(
+        'Upload Error', {'event': 'Upload to S3', 'reason': e.toString()});
     return false; // Return false if an error occurred
   }
 }
@@ -357,9 +429,16 @@ Future<bool> uploadFiles(List<FileData> files) async {
           'File uploaded: $result | File: ${file.awsS3Directory} | Time: ${DateTime.now()}',
           name: 'Upload - Upload Files');
       results.add(result);
+    } else {
+      dev.log('Failed to get presigned URL for: ${file.awsS3Directory}',
+          name: 'Upload - Upload Files');
+      CrashlyticsService().recordApiError('Presigned URL returned null', apiUrl,
+          method: 'POST', requestData: {'filename': file.awsS3Directory});
+      results.add(false);
     }
   }
-  // Return true if all files were uploaded successfully
+  // Return false explicitly if no files were processed (guards against vacuous truth on empty list)
+  if (results.isEmpty) return false;
   return results.every((element) => element);
 }
 
@@ -432,6 +511,14 @@ Future<bool> awsUploadResponses(
   try {
     final filesResult = files.isNotEmpty ? await uploadFiles(files) : true;
     final dataSent = await uploadNonAudioData(promptEntryList);
+
+    if (!filesResult || !dataSent) {
+      dev.log('awsUploadResponses failed — s3=$filesResult dynamo=$dataSent',
+          name: 'Upload - AWS Upload Responses');
+      CrashlyticsService().log(
+          'Submission failed — S3: $filesResult | DynamoDB: $dataSent | Files: ${files.length} | Entries: ${promptEntryList.length}');
+    }
+
     return filesResult && dataSent;
   } catch (e, stackTrace) {
     dev.log("EXCEPTION: $e", name: "Upload - AWS Upload Responses");
