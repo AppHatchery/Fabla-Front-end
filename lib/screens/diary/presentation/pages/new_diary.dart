@@ -620,8 +620,8 @@ class _QuestionPageState extends State<QuestionPage>
     } else if (prompt.responseType == ResponseType.text) {
       questionTip = prompt.subtitle ?? "Please type your answer:";
     } else if (prompt.responseType == ResponseType.webview) {
-      questionTip = prompt.subtitle ??
-          "Tap ‘Finish’ when you’ve completed the survey";
+      questionTip =
+          prompt.subtitle ?? "Tap ‘Finish’ when you’ve completed the survey";
     } else if (prompt.responseType == ResponseType.timer) {
       questionTip =
           'Hit the “Start” button to begin meditation countdown.\nDuring the countdown, if you leave the page, the timer will continue on the background.';
@@ -685,20 +685,20 @@ class _QuestionPageState extends State<QuestionPage>
                       Row(
                         children: [
                           Expanded(
-                            child: Text(
-                              questionTip,
-                              style:CustomTypography().bodyLarge(
-                                color: CustomColors.textNormalContent,
-                                weight: FontWeight.w400
-                              )
-                            ),
+                            child: Text(questionTip,
+                                style: CustomTypography().bodyLarge(
+                                    color: CustomColors.textNormalContent,
+                                    weight: FontWeight.w400)),
                           )
                         ],
                       ),
                       SizedBox(
                           height: prompt.responseType == ResponseType.text
                               ? 24
-                              : 112),
+                              : (prompt.responseType == ResponseType.radio ||
+                                 prompt.responseType == ResponseType.multiple)
+                                  ? 48
+                                  : 112),
                       responseWidget,
                       if (widget.diary.status != DiaryStatus.submitted &&
                           widget.diary.status != DiaryStatus.missed &&
