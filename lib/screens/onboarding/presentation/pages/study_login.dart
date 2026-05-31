@@ -14,6 +14,7 @@ import 'package:rive/rive.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io' show Platform;
 
+import '../../../../core/utils/emailFunction.dart';
 import '../../../../services/pendo_service.dart';
 
 class StudyLogin extends StatefulWidget {
@@ -305,16 +306,21 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
       }
   }
 
-  Future<void> launchEmail() async {
-    final uri = Uri(
-        scheme: "mailto",
-        path: "fabla@emory.edu",
-        query: encodeQueryParameters(<String, String>{
-          'subject': 'Need help with the study string',
-          'body': 'I have a problem with accessing the study: '
-        }));
+  // Future<void> launchEmail() async {
+  //   final uri = Uri(
+  //       scheme: "mailto",
+  //       path: "fabla@emory.edu",
+  //       query: encodeQueryParameters(<String, String>{
+  //         'subject': 'Need help with the study string',
+  //         'body': 'I have a problem with accessing the study: '
+  //       }));
+  //
+  //   await launchUrl(uri);
+  // }
 
-    await launchUrl(uri);
+
+  Future<void> launchEmail() async {
+    await EmailLauncher.launchLoginEmail();
   }
 
   Future<void> track(int spent, String status) async {
@@ -322,10 +328,10 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
         {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
-  String? encodeQueryParameters(Map<String, String> params) {
-    return params.entries
-        .map((MapEntry<String, String> e) =>
-            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-        .join('&');
-  }
+  // String? encodeQueryParameters(Map<String, String> params) {
+  //   return params.entries
+  //       .map((MapEntry<String, String> e) =>
+  //           '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+  //       .join('&');
+  // }
 }

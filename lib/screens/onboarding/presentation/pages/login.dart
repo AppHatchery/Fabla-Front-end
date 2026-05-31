@@ -8,10 +8,12 @@ import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rive/rive.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io' show Platform;
 
+import '../../../../core/utils/emailFunction.dart';
 import '../../../../theme/custom_colors.dart';
 
 class LoginPage extends StatefulWidget {
@@ -30,6 +32,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   bool warning = false;
   String message = '';
   String warnMessage = '';
+  String version = "1.0";
 
   File? _riveFile;
   RiveWidgetController? _riveController;
@@ -305,22 +308,36 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
-  Future<void> launchEmail() async {
-    final uri = Uri(
-        scheme: "mailto",
-        path: "fabla@emory.edu",
-        query: encodeQueryParameters(<String, String>{
-          'subject': 'Need help with the participant ID',
-          'body': 'I have a problem with my participant ID:'
-        }));
-
-    await launchUrl(uri);
+  // Future<void> launchEmail() async {
+  //   final uri = Uri(
+  //       scheme: "mailto",
+  //       path: "fabla@emory.edu",
+  //       query: encodeQueryParameters(<String, String>{
+  //         'subject': 'Fabla Participant Login Issue',
+  //         'body': 'Describe the issue you are facing:'
+  //             'App version: $version'
+  //             ''
+  //       }));
+  //
+  //   await launchUrl(uri);
+  // }
+  Future<void> launchEmail() async{
+    await EmailLauncher.launchLoginEmail();
   }
 
-  String? encodeQueryParameters(Map<String, String> params) {
-    return params.entries
-        .map((MapEntry<String, String> e) =>
-            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-        .join('&');
+  void getAppVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    final version = packageInfo.version;
+
+    if (mounted) {
+      this.version = version;
+    }
   }
+
+  // String? encodeQueryParameters(Map<String, String> params) {
+  //   return params.entries
+  //       .map((MapEntry<String, String> e) =>
+  //           '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+  //       .join('&');
+  // }
 }

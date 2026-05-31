@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/utils/emailFunction.dart';
 import '../../../../main.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
+import '../../../onboarding/domain/repository/setup_repository.dart';
 
 class SubmitErrorPage extends StatefulWidget {
   const SubmitErrorPage({super.key});
@@ -94,22 +96,35 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                 ))));
   }
 
+  // Future<void> launchEmail() async {
+  //   final uri = Uri(
+  //       scheme: "mailto",
+  //       path: "fabla@emory.edu",
+  //       query: encodeQueryParameters(<String, String>{
+  //         'subject': 'Had an error submitting my diary',
+  //         'body': 'I had a problem submitting my diary on day: '
+  //       }));
+  //
+  //   await launchUrl(uri);
+  // }
+
+
+
   Future<void> launchEmail() async {
-    final uri = Uri(
-        scheme: "mailto",
-        path: "fabla@emory.edu",
-        query: encodeQueryParameters(<String, String>{
-          'subject': 'Had an error submitting my diary',
-          'body': 'I had a problem submitting my diary on day: '
-        }));
-
-    await launchUrl(uri);
+      await EmailLauncher.launchParticipantEmail(
+        studyString: 'Unknown',
+        participantId: 'Unknown',
+        dateJoined: 'Unknown',
+        dateLastUpdated: null,
+        //issueDescription: controller.text.trim(),
+      );
+      }
   }
 
-  String? encodeQueryParameters(Map<String, String> params) {
-    return params.entries
-        .map((MapEntry<String, String> e) =>
-            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-        .join('&');
-  }
-}
+  // String? encodeQueryParameters(Map<String, String> params) {
+  //   return params.entries
+  //       .map((MapEntry<String, String> e) =>
+  //           '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+  //       .join('&');
+  // }
+
