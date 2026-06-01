@@ -13,7 +13,7 @@ class Notification {
     return Notification(
       title: json['title'],
       body: json['content'],
-      date: DateTime.parse(json['time']).toLocal(),
+      date: DateTime.parse(json['time']).toUtc(),
     );
   }
 
@@ -21,13 +21,13 @@ class Notification {
     return Notification(
       title: entity['title'],
       body: entity['content'],
-      date: DateTime.parse(entity['date']),
+      date: DateTime.parse(entity['date']).toUtc(),
     );
   }
 
   toJson() => {
         'title': title,
         'content': body,
-        'date': date.toString(),
+        'date': date.toUtc().toIso8601String(),
       };
 }

@@ -31,11 +31,12 @@ String base() {
 /// Returns the response body as a String on success, or null on failure.
 Future<String?> get({
   required String path,
-  http.Client? client, // Optional parameter for dependency injection (testing)
+  http.Client? client,
 }) async {
+  final bool ownClient = client == null;
+  final httpClient = client ?? http.Client();
+
   try {
-    // Using injected client for testing, or default client for production
-    final httpClient = client ?? http.Client();
     final url = Uri.https(base(), path);
     final response = await httpClient.get(url, headers: headers);
     return response.body;
@@ -44,6 +45,8 @@ Future<String?> get({
         stackTrace: stackTrace, method: 'GET', requestData: null);
     debugPrint(e.toString());
     return null;
+  } finally {
+    if (ownClient) httpClient.close();
   }
 }
 
@@ -58,11 +61,12 @@ Future<String?> get({
 Future<String?> post({
   required String path,
   required Map<String, dynamic> body,
-  http.Client? client, // Optional parameter for dependency injection (testing)
+  http.Client? client,
 }) async {
+  final bool ownClient = client == null;
+  final httpClient = client ?? http.Client();
+
   try {
-    // Use injected client for testing, or default client for production
-    final httpClient = client ?? http.Client();
     final url = Uri.https(base(), path);
     final response = await httpClient.post(url, headers: headers, body: body);
     if (response.statusCode == 200) {
@@ -77,5 +81,7 @@ Future<String?> post({
     CrashlyticsService().recordApiError(e, path,
         stackTrace: stackTrace, method: 'POST', requestData: body);
     return null;
+  } finally {
+    if (ownClient) httpClient.close();
   }
 }

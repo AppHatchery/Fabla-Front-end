@@ -110,8 +110,8 @@ class NotificationManager {
               for (final notification in diaryNotifications) {
                 // Stop if the required number of notifications have been scheduled
                 if (scheduledCount >= notificationsToSchedule) break;
-                final time = TimeOfDay.fromDateTime(notification.date);
-                final notificationDate = DateTime(
+                final time = TimeOfDay.fromDateTime(notification.date.toUtc());
+                final notificationDate = DateTime.utc(
                   date.year,
                   date.month,
                   date.day,
@@ -276,8 +276,8 @@ class NotificationManager {
               // get the times from the original notifications
               for (final notification in diaryNotifications) {
                 if (scheduledCount >= threshold) break;
-                final time = TimeOfDay.fromDateTime(notification.date);
-                final notificationDate = DateTime(
+                final time = TimeOfDay.fromDateTime(notification.date.toUtc());
+                final notificationDate = DateTime.utc(
                   date.year,
                   date.month,
                   date.day,

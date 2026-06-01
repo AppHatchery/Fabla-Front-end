@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:location/location.dart';
 
@@ -45,20 +46,33 @@ Future<PromptEntry?> appendLocation({
     // Updated to use injected location service instead of global instance
     final permission = await locationService.hasPermission();
     if (permission == PermissionStatus.granted) {
-      // Updated to use injected location service
-      final data = await locationService.getLocation();
-
-      final response = PromptEntry(
-          participantID: participantID,
-          experimentCode: experimentCode,
-          questionTitle: "Current location",
-          diaryID: diaryID,
-          promptID: (promptLength + 1).toString(),
-          response: "latitude: ${data.latitude}, longitude: ${data.longitude}",
-          respondedAt: "",
-          questionsType: "location",
-          required: true);
-      return response;
+      try {
+        final data = await locationService.getLocation();
+        return PromptEntry(
+            participantID: participantID,
+            experimentCode: experimentCode,
+            questionTitle: "Current location",
+            diaryID: diaryID,
+            promptID: (promptLength + 1).toString(),
+            response: "latitude: ${data.latitude}, longitude: ${data.longitude}",
+            respondedAt: "",
+            questionsType: "location",
+            required: true);
+      } catch (e, stackTrace) {
+        CrashlyticsService().recordError(e, stackTrace,
+            context: {'DiaryID': diaryID, 'ParticipantID': participantID},
+            reason: 'Location fetch failed during submission — submission will continue without location');
+        return PromptEntry(
+            participantID: participantID,
+            experimentCode: experimentCode,
+            questionTitle: "Current location",
+            diaryID: diaryID,
+            promptID: (promptLength + 1).toString(),
+            response: "Location fetch failed: ${e.runtimeType}",
+            respondedAt: "",
+            questionsType: "location",
+            required: true);
+      }
     } else {
       final response = PromptEntry(
           participantID: participantID,
