@@ -36,6 +36,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/database/dao/participant_dao.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
@@ -253,6 +254,16 @@ class SetupRepository {
             repository.removeDiariesFrom(today);
             _studyDAO.deleteAllStudies();
           });
+
+          //store the date the person last updated.
+          final SharedPreferences lastUpdated =
+              await SharedPreferences.getInstance();
+
+          final lastUpdatedDate = DateFormat('yyyy/MM/dd').format(today);
+
+          await lastUpdated.setString(
+              'last_Updated', "$lastUpdatedDate"); // store today's date
+          dev.log('Value added successfully!');
         } else {
           clearStudies();
         }
@@ -604,6 +615,7 @@ class SetupRepository {
 
     final date = DateTime.now();
     final formatted = DateFormat('yyyy-MM-dd').format(date);
+    final SharedPreferences dateJoined = await SharedPreferences.getInstance();
 
     if (getdbextras == null || getdbextras.isEmpty) {
       dev.log(">>>>>>>>>>>No users found in response.");
@@ -619,6 +631,15 @@ class SetupRepository {
                   ? extra!['date_adjuster']
                   : formatted;
           dev.log(">>>>>>>>>>>date_adjuster: ${extras['date_adjuster']}");
+
+          //store the date the person has finished onboarding, we will use this as date joined
+          if (!dateJoined.containsKey('date_joined')) {
+            await dateJoined.setString(
+                'date_joined', formatted); // store formatted, not extras map
+            dev.log('Value added successfully!');
+          } else {
+            dev.log('Key already exists. No value was added.');
+          }
         } catch (e, stackTrace) {
           CrashlyticsService().recordError(e, stackTrace,
               reason: "Decoding 'extra' field failed");

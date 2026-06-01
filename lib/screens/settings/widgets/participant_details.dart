@@ -1,11 +1,18 @@
+import 'dart:developer' as dev;
+
 import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/settings/cubit/settings_cubit.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/settings_onboarding.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../home/data/experiment.dart';
+import '../../onboarding/domain/entities/participant.dart';
 
 class ParticipantDetails extends StatefulWidget {
   const ParticipantDetails({super.key});
@@ -18,33 +25,73 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
   late SettingsCubit cubit;
   late HubCubit _hubCubit;
 
+  final SetupRepository _repository = SetupRepository();
+
+  ExperimentModel? experiment;
+  Participant? participant;
+
+  String? dateJoined;
+
   @override
   void initState() {
+    super.initState();
     cubit = context.read<SettingsCubit>();
     _hubCubit = context.read<HubCubit>();
     cubit.load();
-    super.initState();
+    _loadDetails();
+  }
+
+  void _loadDetails() async {
+    final loadedExperiment = _repository.getExperiment();
+    final loadedParticipant = _repository.getParticipant();
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      experiment = loadedExperiment;
+      participant = loadedParticipant;
+      dateJoined = prefs.getString('date_joined');
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+
+    // Hold the frame until participant + experiment are hydrated.
+    // loaded() asserts both are non-null, so this guard is the single
+    // gate that lets the rest of the tree dereference them safely.
+    if (participant == null || experiment == null) {
+      return _placeholder(width);
+    }
+
     return BlocConsumer<SettingsCubit, SettingsState>(
       listener: (context, state) {
         // TODO: implement listener
       },
       builder: (context, state) {
         if (state is SettingsLoaded) {
-          return loaded(width, state.completedDate, state.onboardingQuestion);
+          return loaded(
+            width,
+            date: state.completedDate,
+            questions: state.onboardingQuestion,
+          );
         }
-
-        return initial(width);
+        return loaded(width);
       },
     );
   }
 
-  Widget initial(double width) {
+  Widget _placeholder(double width) {
+    return SizedBox(
+      width: width,
+      height: 220,
+      child: const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  Widget loaded(double width, {String? date, List<Questions>? questions}) {
     return Column(
+      spacing: 12,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -59,123 +106,143 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
         Container(
           width: width,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
             border:
                 Border.all(color: CustomColors.productBorderNormal, width: 1),
             color: CustomColors.fillWhite,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Onboarding Survey",
-                          style: CustomTypography()
-                              .bodyLarge(color: CustomColors.textNormalContent),
-                        ),
-                        Text(
-                          "",
-                          style: CustomTypography().bodyMedium(
-                              color: CustomColors.textTertiaryContent),
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: Icon(
-                        Icons.chevron_right_rounded,
-                        size: 24,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget loaded(double width, String date, List<Questions> questions) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Text(
-              "Participant Details",
-              style: CustomTypography()
-                  .titleLarge(color: CustomColors.textNormalContent),
-            ),
-          ],
-        ),
-        InkWell(
-          onTap: () => update(questions),
-          child: Container(
-            width: width,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border:
-                  Border.all(color: CustomColors.productBorderNormal, width: 1),
-              color: CustomColors.fillWhite,
-            ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Onboarding Survey",
-                            style: CustomTypography().bodyLarge(
-                                color: CustomColors.textNormalContent),
+                Column(
+                  spacing: 8,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Participant ID",
+                          style: CustomTypography().bodyLarge(
+                            weight: FontWeight.w500,
                           ),
-                          Text(
-                            "Completed $date",
-                            style: CustomTypography().bodyMedium(
-                                color: CustomColors.textTertiaryContent),
-                          ),
-                          const SizedBox(height: 12),
-                        ],
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: Icon(
-                          Icons.chevron_right_rounded,
-                          size: 24,
                         ),
-                      ),
-                    ],
-                  ),
+                        Text(
+                          participant!.studyCode,
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textTertiaryContent),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Study String",
+                          style: CustomTypography().bodyLarge(
+                            weight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          experiment!.login,
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textTertiaryContent),
+                        ),
+                      ],
+                    ),
+                    (dateJoined != null)
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Date Joined",
+                                style: CustomTypography().bodyLarge(
+                                  weight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                dateJoined ?? "-",
+                                style: CustomTypography().bodyMedium(
+                                    color:
+                                        CustomColors.textTertiaryContent),
+                              ),
+                            ],
+                          )
+                        : const SizedBox.shrink(),
+                  ],
                 ),
               ],
             ),
           ),
         ),
+        surveyTile(width, date: date, questions: questions),
       ],
     );
   }
 
+  Widget surveyTile(double width,
+      {String? date, List<Questions>? questions}) {
+    final hasSurvey = date != null && questions != null;
+
+    final tile = Container(
+      width: width,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: CustomColors.productBorderNormal, width: 1),
+        color: CustomColors.fillWhite,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Onboarding Survey",
+                      style: CustomTypography()
+                          .bodyLarge(color: CustomColors.productNormalActive),
+                    ),
+                    Text(
+                      hasSurvey ? "Completed $date" : "",
+                      style: CustomTypography()
+                          .bodyMedium(color: CustomColors.textTertiaryContent),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    size: 24,
+                    color: CustomColors.productNormalActive,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (!hasSurvey) return tile;
+    return InkWell(onTap: () => update(questions), child: tile);
+  }
+
   update(List<Questions> questions) async {
     if (mounted) {
+      dev.log('$dateJoined');
       final result = await Navigator.push(
           context,
           MaterialPageRoute(
