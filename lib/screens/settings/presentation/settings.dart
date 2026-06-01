@@ -347,14 +347,12 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                 SizedBox(
                   height: 24,
                 ),
-                SizedBox(
-                  child: CustomFlatButton(
-                      borderColor: CustomColors.warningActive,
-                      color: CustomColors.fillWhite,
-                      textColor: CustomColors.warningActive,
-                      onClick: () => leaveStudy(context),
-                      text: "Leave Study"),
-                ),
+                CustomFlatButton(
+                    borderColor: CustomColors.warningActive,
+                    color: CustomColors.fillWhite,
+                    textColor: CustomColors.warningActive,
+                    onClick: () => leaveStudy(context),
+                    text: "Leave Study"),
                 SizedBox(
                   height: 24,
                 ),

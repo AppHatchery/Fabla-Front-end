@@ -116,20 +116,22 @@ class _ActiveRemindersState extends State<ActiveReminders> {
                 const SizedBox(
                   height: 12,
                 ),
-                CustomOutlineButton(
-                  onClick: () => pickDate(),
-                  backgroundColor: CustomColors.productNormal,
-                  color: CustomColors.productNormal,
-                  borderRadius: 100,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12.0, vertical: 4.0),
-                  children: Wrap(children: [
-                    Text(
-                      "+ Add Reminder",
-                      style: CustomTypography()
-                          .title(color: CustomColors.textWhite),
-                    )
-                  ]),
+                Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0, vertical: 4.0),
+                  child: CustomOutlineButton(
+                    onClick: () => pickDate(),
+                    backgroundColor: CustomColors.productNormal,
+                    color: CustomColors.productNormal,
+                    borderRadius: 100,
+                    children: Wrap(children: [
+                      Text(
+                        "+ Add Reminder",
+                        style: CustomTypography()
+                            .title(color: CustomColors.textWhite),
+                      )
+                    ]),
+                  ),
                 )
               ],
             ),

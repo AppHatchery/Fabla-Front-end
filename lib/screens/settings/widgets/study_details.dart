@@ -128,7 +128,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                             color: CustomColors.productNormal,
                             borderRadius: 200,
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12.0, vertical: 4.0),
+                                horizontal: 24.0, vertical: 8.0),
                             children: Wrap(children: [
                               Center(
                                 child: Text(
@@ -148,7 +148,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                             color: CustomColors.productNormal,
                             borderRadius: 200,
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12.0, vertical: 4.0),
+                                horizontal: 24.0, vertical: 8.0),
                             children: Wrap(children: [
                               Center(
                                 child: Text("Update Study",
