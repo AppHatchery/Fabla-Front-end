@@ -48,7 +48,11 @@ class _CustomCalenderState extends State<CustomCalender> {
   Widget build(BuildContext context) {
     final scaler = MediaQuery.of(context).textScaler;
     final scaled = scaler.scale(56);
-    final rowHeight = scaled < 100 ? 60.0 : scaled < 130 ? 72.0 : 80.0;
+    final rowHeight = scaled < 100
+        ? 60.0
+        : scaled < 130
+            ? 72.0
+            : 80.0;
 
     final today =
         DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
@@ -156,9 +160,13 @@ class _CustomCalenderState extends State<CustomCalender> {
             final color =
                 selectedDate == day ? CustomColors.productNormal : null;
 
+            final isPast = day.isBefore(today);
+
             final textColor = selectedDate == day
                 ? CustomColors.textWhite
-                : CustomColors.textTertiaryContent;
+                : isPast
+                    ? CustomColors.textTertiaryContent
+                    : CustomColors.textNormalContent;
             return Center(
               child: Container(
                 width: scaler.scale(33),
