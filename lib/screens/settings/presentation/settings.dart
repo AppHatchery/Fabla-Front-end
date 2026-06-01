@@ -8,10 +8,10 @@ import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/utils/getDeviceAndAppInfor.dart';
 import '../../../services/preference_service.dart';
 import '../../../theme/dialogs/pop_ups.dart';
 import '../../onboarding/domain/repository/setup_repository.dart';
@@ -33,7 +33,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
 
   final repository = SetupRepository();
 
-  String version = "1.0";
+  String version = '';
 
   @override
   void initState() {
@@ -42,6 +42,16 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
     checkNotificationPermission();
     checkMicrophonePermission();
     getAppVersion();
+    _loadInfo();
+  }
+
+  Future<void> _loadInfo() async {
+    final v = await getAppVersion();
+    if (mounted) {
+      setState(() {
+        version = v;
+      });
+    }
   }
 
   @override
@@ -453,15 +463,6 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                 settings: RouteSettings(name: "/StudyLogin")),
             (route) => false);
       }
-    }
-  }
-
-  void getAppVersion() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    final version = packageInfo.version;
-
-    if (mounted) {
-      this.version = version;
     }
   }
 }

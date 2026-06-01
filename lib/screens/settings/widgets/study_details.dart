@@ -8,10 +8,10 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/utils/emailFunction.dart';
+import '../../../core/utils/getDeviceAndAppInfor.dart';
 import '../../hub/presentation/cubit/hub_cubit.dart';
 import '../../onboarding/domain/entities/participant.dart';
 
@@ -27,7 +27,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
   ExperimentModel? experiment;
   Participant? participant;
 
-  String version = "1.0";
+  String version = '';
   String? lastUpdated;
   String? dateJoined;
 
@@ -40,6 +40,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
     _hubCubit = context.read<HubCubit>();
     getAppVersion();
     getLastUpdated();
+    _loadInfo();
   }
 
   void getLastUpdated() async {
@@ -48,6 +49,14 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
       lastUpdated = prefs.getString('last_Updated');
       dateJoined = prefs.getString('date_joined');
     });
+  }
+  Future<void> _loadInfo() async {
+    final v = await getAppVersion();
+    if (mounted) {
+      setState(() {
+        version = v;
+      });
+    }
   }
 
   @override
@@ -172,32 +181,27 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
     );
   }
 
-  void launchEmailMethod() {
-    final dateJoinedEmail = (dateJoined != null) ? dateJoined : "";
-    final lastUpdateEmail = (lastUpdated != null) ? lastUpdated : "";
+  Future<void> launchEmailMethod() async {
+    final dateJoinedEmail = dateJoined ?? '';
+    final lastUpdateEmail = lastUpdated ?? '';
+    final deviceInfo = await getDeviceInfo();
+
     launchEmail(
-        subject:
-            'Fabla Participant Issue ${experiment!.login} ${participant!.studyCode}',
-        body: '''
+      subject:
+          'Fabla Participant Issue ${experiment!.login} ${participant!.studyCode}',
+      body: '''
 Describe the issue you are facing:
-            
+
 Study String: ${experiment!.login}
-Participant ID: ${participant!.studyCode},
+Participant ID: ${participant!.studyCode}
 Date Joined: $dateJoinedEmail
 Date last updated: $lastUpdateEmail
 App Version: $version
-Device and OS: <device OS>
-''');
+Device and OS: $deviceInfo
+''',
+    );
   }
 
-  void getAppVersion() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    final version = packageInfo.version;
-
-    if (mounted) {
-      this.version = version;
-    }
-  }
 
   void viewStudyDetails() async {
     if (experiment != null) {
