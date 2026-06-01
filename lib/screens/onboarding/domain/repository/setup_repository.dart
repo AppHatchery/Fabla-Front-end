@@ -259,7 +259,7 @@ class SetupRepository {
           final SharedPreferences lastUpdated =
               await SharedPreferences.getInstance();
 
-          final lastUpdatedDate = DateFormat('yyyy/MM/dd').format(today);
+          final lastUpdatedDate = DateFormat('yyyy-MM-dd').format(today);
 
           await lastUpdated.setString(
               'last_Updated', "$lastUpdatedDate"); // store today's date
