@@ -167,16 +167,11 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
             ],
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: SizedBox(
-            child: CustomFlatButton(
-                color: CustomColors.fillWhite,
-                textColor: CustomColors.productNormalActive,
-                onClick: launchEmailMethod,
-                text: "Contact Researcher"),
-          ),
-        ),
+        CustomFlatButton(
+            color: CustomColors.fillWhite,
+            textColor: CustomColors.productNormalActive,
+            onClick: launchEmailMethod,
+            text: "Contact Researcher"),
       ],
     );
   }

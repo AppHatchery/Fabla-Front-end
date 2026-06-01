@@ -87,38 +87,40 @@ class _ActiveRemindersState extends State<ActiveReminders> {
                 SizedBox(
                   child: widget.times.isNotEmpty
                       ? ListView.builder(
-                    padding: const EdgeInsets.all(0),
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: widget.times.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: EdgeInsets.only(
-                            bottom: index == widget.times.length - 1 ? 0 : 10.0),
-                        child: ActiveTimeTile(
-                          time: widget.times[index],
-                          delete: () => {
-                            deleteTime(widget.times[index]),
+                          padding: const EdgeInsets.all(0),
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: widget.times.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                  bottom: index == widget.times.length - 1
+                                      ? 0
+                                      : 10.0),
+                              child: ActiveTimeTile(
+                                time: widget.times[index],
+                                delete: () => {
+                                  deleteTime(widget.times[index]),
+                                },
+                                edit: (value) => editTime(index, value),
+                                isEnabled: widget.isEnabled,
+                              ),
+                            );
                           },
-                          edit: (value) => editTime(index, value),
-                          isEnabled: widget.isEnabled,
-                        ),
-                      );
-                    },
-                  )
+                        )
                       : Text(
-                    noReminderText,
-                    style: CustomTypography()
-                        .titleSmall(color: CustomColors.textTertiaryContent),
-                    textAlign: TextAlign.start,
-                  ),
+                          noReminderText,
+                          style: CustomTypography().titleSmall(
+                              color: CustomColors.textTertiaryContent),
+                          textAlign: TextAlign.start,
+                        ),
                 ),
                 const SizedBox(
                   height: 12,
                 ),
                 Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12.0, vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 4.0),
                   child: CustomOutlineButton(
                     onClick: () => pickDate(),
                     backgroundColor: CustomColors.productNormal,
