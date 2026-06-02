@@ -168,24 +168,21 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
   /// Shows the manual-update warning. The user must confirm before any
   /// gating check or update runs.
   void _showUpdateWarning() {
+    // The popup shows the blocker layout when there are pending/submitted
+    // diaries today, otherwise the warning layout with a Proceed button.
     showDialog(
       context: context,
-      builder: (_) => StudyUpdatePopUp(onProceed: _onUpdateProceed),
+      builder: (_) => StudyUpdatePopUp(
+        onProceed: _onUpdateProceed,
+        pendingOrSubmitted: _hubCubit.hasPendingOrSubmittedToday(),
+      ),
     );
   }
 
-  /// Runs after the user confirms the warning. Blocks the update when today
-  /// already has submitted or pending diaries; otherwise triggers the update.
-  void _onUpdateProceed() {
-    if (_hubCubit.hasPendingOrSubmittedToday()) {
-      showDialog(
-        context: context,
-        builder: (_) => const StudyUpdatingPopUp(pendingOrSubmitted: true),
-      );
-      return;
-    }
-    _hubCubit.update();
-  }
+  /// Runs only when the user confirms the warning (Proceed is shown solely
+  /// when there are no pending/submitted diaries), so it just triggers the
+  /// update. The progress/result popups are driven by the Hub's BlocConsumer.
+  void _onUpdateProceed() => _hubCubit.update();
 
   void viewStudyDetails() async {
     if (experiment != null) {

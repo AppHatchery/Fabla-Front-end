@@ -394,7 +394,7 @@ class _HubState extends State<Hub>
       context: context,
       barrierDismissible: false,
       routeSettings: const RouteSettings(name: "/UpdateModal"),
-      builder: (_) => const StudyUpdatingPopUp(pendingOrSubmitted: false),
+      builder: (_) => const StudyUpdatingPopUp(),
     );
   }
 }
