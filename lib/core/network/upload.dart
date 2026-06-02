@@ -217,55 +217,56 @@ Future<bool> uploadNonAudioData(
   SecureSave? secureSave,
   http.Client? client,
 }) async {
-  // Use injected dependencies or create default instances
   final secureStorage = secureSave ?? SecureSave();
+  final bool ownClient = client == null;
   final httpClient = client ?? http.Client();
 
-  final cred = await secureStorage.read();
-  // List of items to be sent in the request body
-  List<Map<String, dynamic>> promptListItems =
-      PromptEntry.promptListToMap(promptEntryList);
-  // Encode the list of items to JSON
-  String jsonBody = json.encode(promptListItems);
-
-  var url = Uri.parse(cred?.dynamo_url ?? "");
-
-  var headers = {
-    'Content-Type': 'application/json',
-    'Authorization': "${cred?.authorization ?? ""}[0]",
-    'x-api-key': cred?.xapikey ?? ""
-  };
-
   try {
-    // Updated to use injected http client instead of static http.post
-    var response = await httpClient.post(url, headers: headers, body: jsonBody);
+    final cred = await secureStorage.read();
+    List<Map<String, dynamic>> promptListItems =
+        PromptEntry.promptListToMap(promptEntryList);
+    String jsonBody = json.encode(promptListItems);
 
-    if (response.statusCode == 200) {
-      return true;
-    } else {
-      dev.log(
-          'DynamoDB upload failed: status=${response.statusCode} body=${response.body}',
-          name: 'Upload - Non-Audio Data');
-      CrashlyticsService().recordApiError(
-          'DynamoDB upload failed: ${response.body}', url.toString(),
-          statusCode: response.statusCode,
-          method: 'POST',
-          requestData: {'entry_count': promptEntryList.length.toString()});
-      await PendoService.track('Upload Error', {
-        'event': 'Upload to DynamoDB',
-        'response': response.body,
-        'status': response.statusCode
-      });
+    var url = Uri.parse(cred?.dynamo_url ?? "");
+
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': "${cred?.authorization ?? ""}[0]",
+      'x-api-key': cred?.xapikey ?? ""
+    };
+
+    try {
+      var response =
+          await httpClient.post(url, headers: headers, body: jsonBody);
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        dev.log(
+            'DynamoDB upload failed: status=${response.statusCode} body=${response.body}',
+            name: 'Upload - Non-Audio Data');
+        CrashlyticsService().recordApiError(
+            'DynamoDB upload failed: ${response.body}', url.toString(),
+            statusCode: response.statusCode,
+            method: 'POST',
+            requestData: {'entry_count': promptEntryList.length.toString()});
+        await PendoService.track('Upload Error', {
+          'event': 'Upload to DynamoDB',
+          'response': response.body,
+          'status': response.statusCode
+        });
+        return false;
+      }
+    } catch (e, stackTrace) {
+      dev.log('Error sending request: $e', name: 'Upload - Non-Audio Data');
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error sending request in uploadNonAudioData');
+      await PendoService.track('Upload Error',
+          {'event': 'Upload to DynamoDB', 'reason': e.toString()});
       return false;
     }
-  } catch (e, stackTrace) {
-    // An error occurred
-    dev.log('Error sending request: $e', name: 'Upload - Non-Audio Data');
-    CrashlyticsService().recordError(e, stackTrace,
-        reason: 'Error sending request in uploadNonAudioData');
-    await PendoService.track('Upload Error',
-        {'event': 'Upload to DynamoDB', 'reason': e.toString()});
-    return false; // Submission failed due to error
+  } finally {
+    if (ownClient) httpClient.close();
   }
 }
 
@@ -302,15 +303,14 @@ Future<String?> getPresignedUrl(
   SecureSave? secureSave,
   http.Client? client,
 }) async {
-  // Use injected dependencies or create default instances
   final secureStorage = secureSave ?? SecureSave();
+  final bool ownClient = client == null;
   final httpClient = client ?? http.Client();
 
-  final cred = await secureStorage.read();
   try {
+    final cred = await secureStorage.read();
     var requestBody = jsonEncode({'filename': filename});
 
-    // Updated to use injected http client instead of static http.post
     var response = await httpClient.post(
       Uri.parse(apiUrl),
       headers: {
@@ -323,13 +323,9 @@ Future<String?> getPresignedUrl(
     );
 
     if (response.statusCode == 200) {
-      // Parse the response body (which is a string containing JSON)
       var responseBody = response.body;
       var jsonResponse = jsonDecode(responseBody);
-      // Parse the 'body' field from the JSON response
       var body = jsonDecode(jsonResponse['body']);
-
-      // Extract the 'uploadURL' from the parsed 'body' JSON
       var uploadUrl = body['uploadURL'];
       return uploadUrl;
     } else {
@@ -353,6 +349,8 @@ Future<String?> getPresignedUrl(
     await PendoService.track(
         'Upload Error', {'event': 'Get Presigned URL', 'reason': e.toString()});
     return null;
+  } finally {
+    if (ownClient) httpClient.close();
   }
 }
 
@@ -373,7 +371,13 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
     // Set the body bytes of the request
     request.bodyBytes = bytes;
 
-    var response = await http.Client().send(request);
+    final s3Client = http.Client();
+    http.StreamedResponse response;
+    try {
+      response = await s3Client.send(request);
+    } finally {
+      s3Client.close();
+    }
 
     if (response.statusCode == 200) {
       return true;
