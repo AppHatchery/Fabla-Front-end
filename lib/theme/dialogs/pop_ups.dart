@@ -1661,6 +1661,14 @@ class StudyUpdatingPopUp extends StatelessWidget {
                 child: Column(
                   spacing: 12,
                   children: [
+                    SizedBox(
+                      height: 30,
+                      width: 30,
+                      child: CircularProgressIndicator(
+                        color: CustomColors.productNormal,
+                        strokeCap: StrokeCap.round,
+                      ),
+                    ),
                     Padding(
                       padding: const EdgeInsets.only(top: 24.0),
                       child: Text(
@@ -1673,16 +1681,10 @@ class StudyUpdatingPopUp extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 50),
                       child: Text(
                         "Hang tight! We're updating the experiment content. This won’t take long!",
-                        style: CustomTypography().bodyLarge(),
+                        style: CustomTypography().bodyLarge(
+                          color: CustomColors.textSecondaryContent
+                        ),
                         textAlign: TextAlign.center,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 30,
-                      width: 30,
-                      child: CircularProgressIndicator(
-                        color: CustomColors.productNormal,
-                        strokeCap: StrokeCap.round,
                       ),
                     ),
                   ],
