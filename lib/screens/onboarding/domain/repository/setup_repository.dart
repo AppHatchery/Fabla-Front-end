@@ -631,15 +631,6 @@ class SetupRepository {
                   ? extra!['date_adjuster']
                   : formatted;
           dev.log(">>>>>>>>>>>date_adjuster: ${extras['date_adjuster']}");
-
-          //store the date the person has finished onboarding, we will use this as date joined
-          if (!dateJoined.containsKey('date_joined')) {
-            await dateJoined.setString(
-                'date_joined', formatted); // store formatted, not extras map
-            dev.log('Value added successfully!');
-          } else {
-            dev.log('Key already exists. No value was added.');
-          }
         } catch (e, stackTrace) {
           CrashlyticsService().recordError(e, stackTrace,
               reason: "Decoding 'extra' field failed");
@@ -650,6 +641,15 @@ class SetupRepository {
         dev.log(">>>>>>>>>>>Missing or invalid 'extra' field for first user.");
         extras['date_adjuster'] = formatted;
       }
+    }
+
+    //store the date the person has finished onboarding, we will use this as date joined
+    if (!dateJoined.containsKey('date_joined')) {
+      await dateJoined.setString(
+          'date_joined', formatted); // store formatted, not extras map
+      dev.log('Value added successfully!');
+    } else {
+      dev.log('Key already exists. No value was added.');
     }
 
     //dev.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>: $jsonString");
