@@ -1488,8 +1488,8 @@ class StudyUpdatePopUp extends StatelessWidget {
               Center(
                 child: Image.asset(
                   'assets/images/icons/studyUpateWarning.png',
-                  height: 100,
-                  width: 100,
+                  height: 60,
+                  width: 60,
                 ),
               ),
               Text(
