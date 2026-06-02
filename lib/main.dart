@@ -22,7 +22,7 @@ import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
-import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -200,7 +200,6 @@ class _HubState extends State<Hub>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   // used to refresh the page for updating
   Key key = UniqueKey();
-  final ValueNotifier<bool?> completeNotifier = ValueNotifier(null);
 
   late HubCubit cubit;
   late TabController tabController;
@@ -358,16 +357,27 @@ class _HubState extends State<Hub>
   }
 
   void completeUpdate(bool completed) {
-    if (mounted) {
-      setState(() => completeNotifier.value = completed);
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          Navigator.pop(context);
-        }
-      }).then((_) {
-        Future.delayed(const Duration(seconds: 1), () => refresh());
-      });
-    }
+    if (!mounted) return;
+
+    // Close the in-progress "Updating Study" spinner.
+    Navigator.of(context).pop();
+
+    // Show the terminal result popup.
+    showDialog(
+      context: context,
+      builder: (dialogContext) => completed
+          ? const StudyUpdateCompleted()
+          : StudyUpdateFailed(
+              onUpdateLater: () => Navigator.of(dialogContext).pop(),
+              onRetry: () {
+                Navigator.of(dialogContext).pop();
+                cubit.update();
+              },
+            ),
+    );
+
+    // Only the content tree needs rebuilding when the update succeeded.
+    if (completed) refresh();
   }
 
   void refresh() {
@@ -380,21 +390,11 @@ class _HubState extends State<Hub>
   }
 
   void showUpdateDialog() {
-    if (mounted) {
-      setState(() {
-        completeNotifier.value = null;
-      });
-    }
-    showModalBottomSheet(
-        context: context,
-        isDismissible: false,
-        enableDrag: false,
-        useSafeArea: true,
-        routeSettings: RouteSettings(name: "/UpdateModal"),
-        builder: (context) => Wrap(
-              children: [
-
-              ],
-            ));
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      routeSettings: const RouteSettings(name: "/UpdateModal"),
+      builder: (_) => const StudyUpdatingPopUp(pendingOrSubmitted: false),
+    );
   }
 }

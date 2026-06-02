@@ -6,12 +6,13 @@ import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/utils/emailFunction.dart';
 import '../../../core/utils/getDeviceAndAppInfor.dart';
+import '../../../core/utils/participantAndExperimentDetails.dart';
 import '../../hub/presentation/cubit/hub_cubit.dart';
 import '../../onboarding/domain/entities/participant.dart';
 
@@ -143,7 +144,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                         Expanded(
                           child: CustomOutlineButton(
                             key: Key("update_study"),
-                            onClick: () => _hubCubit.update(),
+                            onClick: _showUpdateWarning,
                             backgroundColor: Colors.transparent,
                             color: CustomColors.productNormal,
                             borderRadius: 200,
@@ -176,27 +177,31 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
     );
   }
 
-  Future<void> launchEmailMethod() async {
-    final dateJoinedEmail = dateJoined ?? '';
-    final lastUpdateEmail = lastUpdated ?? '';
-    final deviceInfo = await getDeviceInfo();
+  Future<void> launchEmailMethod() =>
+      ParticipantAndExperimentDetails().launchSupportEmail();
 
-    launchEmail(
-      subject:
-          'Fabla Participant Issue ${experiment!.login} ${participant!.studyCode}',
-      body: '''
-Describe the issue you are facing:
 
-Study String: ${experiment!.login}
-Participant ID: ${participant!.studyCode}
-Date Joined: $dateJoinedEmail
-Date last updated: $lastUpdateEmail
-App Version: $version
-Device and OS: $deviceInfo
-''',
+  /// Shows the manual-update warning. The user must confirm before any
+  /// gating check or update runs.
+  void _showUpdateWarning() {
+    showDialog(
+      context: context,
+      builder: (_) => StudyUpdatePopUp(onProceed: _onUpdateProceed),
     );
   }
 
+  /// Runs after the user confirms the warning. Blocks the update when today
+  /// already has submitted or pending diaries; otherwise triggers the update.
+  void _onUpdateProceed() {
+    if (_hubCubit.hasPendingOrSubmittedToday()) {
+      showDialog(
+        context: context,
+        builder: (_) => const StudyUpdatingPopUp(pendingOrSubmitted: true),
+      );
+      return;
+    }
+    _hubCubit.update();
+  }
 
   void viewStudyDetails() async {
     if (experiment != null) {
