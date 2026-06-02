@@ -1555,7 +1555,9 @@ class StudyUpdatingPopUp extends StatelessWidget {
     final width = MediaQuery.of(context).size.width;
 
     return pendingOrSubmitted
-        ? SimpleDialog(
+        ?
+        //diaries are pending or submitted
+        SimpleDialog(
             backgroundColor: CustomColors.fillWhite,
             contentPadding: const EdgeInsets.all(0),
             shape: RoundedRectangleBorder(
@@ -1563,13 +1565,6 @@ class StudyUpdatingPopUp extends StatelessWidget {
                 side: const BorderSide(color: Colors.grey, width: 2)),
             surfaceTintColor: CustomColors.fillWhite,
             children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: const Icon(Icons.close, size: 24),
-                ),
-              ),
               Container(
                 constraints: const BoxConstraints.tightFor(),
                 padding:
@@ -1578,11 +1573,18 @@ class StudyUpdatingPopUp extends StatelessWidget {
                   spacing: 12,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(context).pop(),
+                        child: const Icon(Icons.close, size: 24),
+                      ),
+                    ),
                     Center(
                       child: Image.asset(
                         'assets/images/icons/StudyUpdate.png',
-                        height: 100,
-                        width: 100,
+                        height: 60,
+                        width: 60,
                       ),
                     ),
                     Text(
@@ -1600,39 +1602,37 @@ class StudyUpdatingPopUp extends StatelessWidget {
                           borderRadius: BorderRadius.circular(11),
                         ),
                       ),
-                      child: Column(
+                      child: Row(
+                        spacing: 8,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            spacing: 8,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Image.asset(
-                                'assets/images/icons/warning.png',
-                                height: 24,
-                                width: 24,
-                                color: CustomColors.pumpkinOrange,
-                              ),
-                              Text.rich(TextSpan(
-                                  text: "You have ",
-                                  style: CustomTypography().bodyLarge(
-                                      color: CustomColors.pumpkinOrange),
-                                  children: [
-                                    TextSpan(
-                                      text:
-                                          "diaries submitted or pending submissions ",
-                                      style: CustomTypography().bodyLarge(
-                                          color: CustomColors.pumpkinOrange,
-                                          weight: FontWeight.bold),
-                                    ),
-                                    TextSpan(
-                                      text:
-                                          "for the day. You cannot update the study right now. Please check again at the start of tomorrow.",
-                                      style: CustomTypography().bodyLarge(
-                                          color: CustomColors.pumpkinOrange),
-                                    )
-                                  ])),
-                            ],
+                          Image.asset(
+                            'assets/images/icons/warning.png',
+                            height: 24,
+                            width: 24,
+                            color: CustomColors.pumpkinOrange,
+                          ),
+                          Expanded(
+                            child: Text.rich(
+                                TextSpan(
+                                text: "You have ",
+                                style: CustomTypography().bodyLarge(
+                                    color: CustomColors.pumpkinOrange),
+                                children: [
+                                  TextSpan(
+                                    text:
+                                    "diaries submitted or pending submissions ",
+                                    style: CustomTypography().bodyLarge(
+                                        color: CustomColors.pumpkinOrange,
+                                        weight: FontWeight.bold),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                    "for the day. You cannot update the study right now. Please check again at the start of tomorrow.",
+                                    style: CustomTypography().bodyLarge(
+                                        color: CustomColors.pumpkinOrange),
+                                  )
+                                ])),
                           ),
                         ],
                       ),
@@ -1645,6 +1645,7 @@ class StudyUpdatingPopUp extends StatelessWidget {
               ),
             ],
           )
+        //Updating the study
         : SimpleDialog(
             backgroundColor: CustomColors.fillWhite,
             contentPadding: const EdgeInsets.all(0),
@@ -1816,19 +1817,18 @@ class StudyUpdateFailed extends StatelessWidget {
               const SizedBox(height: 12),
               Text.rich(TextSpan(
                   text: "If the issue persists ",
-                  style: CustomTypography()
-                      .bodyLarge(),
+                  style: CustomTypography().bodyLarge(),
                   children: [
                     TextSpan(
                       text: "contact researcher",
                       style: CustomTypography()
                           .bodyLarge(color: CustomColors.productNormal)
-                          .copyWith(decoration: TextDecoration.underline,
-                          decorationColor: CustomColors.productNormal),
+                          .copyWith(
+                              decoration: TextDecoration.underline,
+                              decorationColor: CustomColors.productNormal),
                       recognizer: TapGestureRecognizer()
-                        ..onTap = () =>
-                            ParticipantAndExperimentDetails()
-                                .launchSupportEmail(),
+                        ..onTap = () => ParticipantAndExperimentDetails()
+                            .launchSupportEmail(),
                     )
                   ])),
             ],
