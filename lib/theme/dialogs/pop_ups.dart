@@ -1103,7 +1103,8 @@ class DeletePopUp extends StatelessWidget {
       contentPadding: const EdgeInsets.all(0),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: Colors.grey, width: 1)),
+          side: const BorderSide(color: Colors.grey, width: 2)),
+      backgroundColor: CustomColors.fillWhite,
       surfaceTintColor: CustomColors.fillWhite,
       children: [
         Container(
@@ -1127,7 +1128,8 @@ class DeletePopUp extends StatelessWidget {
               Text(
                 subheader ??
                     "You won't be able to undo this action",
-                style: CustomTypography().bodyLarge(),
+                style: CustomTypography().bodyLarge().copyWith(
+                color: CustomColors.textTertiaryContent),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(
