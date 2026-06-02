@@ -379,7 +379,7 @@ class _HubState extends State<Hub>
     }
   }
 
-  showUpdateDialog() {
+  void showUpdateDialog() {
     if (mounted) {
       setState(() {
         completeNotifier.value = null;
@@ -393,9 +393,7 @@ class _HubState extends State<Hub>
         routeSettings: RouteSettings(name: "/UpdateModal"),
         builder: (context) => Wrap(
               children: [
-                BottomUpdateModal(
-                  completeNotifier: completeNotifier,
-                ),
+
               ],
             ));
   }

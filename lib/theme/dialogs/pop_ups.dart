@@ -1166,7 +1166,6 @@ class DeletePopUp extends StatelessWidget {
   }
 }
 
-
 class ExitPopUp extends StatelessWidget {
   final List<Widget> content;
   const ExitPopUp({super.key, required this.content});
@@ -1223,7 +1222,6 @@ class ExitPopUp extends StatelessWidget {
     );
   }
 }
-
 
 class UpdatePopUp extends StatefulWidget {
   const UpdatePopUp({super.key});
@@ -1282,15 +1280,14 @@ class StudyInfoPopUp extends StatelessWidget {
     return SimpleDialog(
         backgroundColor: CustomColors.fillWhite,
         contentPadding: const EdgeInsets.all(0),
-        insetPadding: const EdgeInsets.symmetric(
-            horizontal: 29),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 29),
         title: Column(
           children: [
             Align(
               alignment: Alignment.topRight,
               child: GestureDetector(
                 onTap: () => Navigator.of(context).pop(),
-                child:const Icon(Icons.close, size: 24),
+                child: const Icon(Icons.close, size: 24),
               ),
             ),
             Row(
@@ -1373,8 +1370,7 @@ class StudyInfoPopUp extends StatelessWidget {
               ],
             ),
           ),
-        ]
-    );
+        ]);
   }
 
   Future<void> launchEmail() async {
@@ -1461,5 +1457,177 @@ class CompletedPopUp extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+//updating study
+class StudyUpdatePopUp extends StatelessWidget {
+  final ValueNotifier<bool?> completeNotifier;
+  const StudyUpdatePopUp({super.key, required this.completeNotifier});
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      backgroundColor: CustomColors.fillWhite,
+      contentPadding: const EdgeInsets.all(0),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Colors.grey, width: 2)),
+      surfaceTintColor: CustomColors.fillWhite,
+      children: [
+        Container(
+          constraints: const BoxConstraints.tightFor(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+          child: Column(
+            spacing: 12,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Center(
+                child: Image.asset(
+                  'assets/images/icons/studyUpateWarning.png',
+                  height: 100,
+                  width: 100,
+                ),
+              ),
+              Text(
+                'Warning',
+                style: CustomTypography()
+                    .headlineMedium(color: CustomColors.warningActive),
+              ),
+              Text(
+                'You are trying to make a manual update to the study. Only proceed if you have received a request from your researcher to update your study.',
+                style: CustomTypography()
+                    .bodyLarge(color: CustomColors.textSecondaryContent),
+              ),
+              SizedBox(
+                height: 12,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CustomFlatButton(
+                    onClick: StudyUpdatePopUp(completeNotifier: completeNotifier,),
+                    text: 'Proceed',
+                    textColor: CustomColors.fillWhite,
+                    color: CustomColors.warningActive,
+                  ),
+                  CustomFlatButton(
+                    onClick: () => Navigator.pop(context),
+                    text: 'Take Me Back',
+                    textColor: CustomColors.backgroundPrimary,
+                    color: CustomColors.fillWhite,
+                    borderColor: CustomColors.backgroundPrimary,
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class StudyUpdatingPopUp extends StatelessWidget {
+  final ValueNotifier<bool?> completeNotifier;
+  const StudyUpdatingPopUp({super.key, required this.completeNotifier});
+
+  @override
+  Widget build(BuildContext context) {
+    bool pendingOrSubmitted = false;
+    final width = MediaQuery.of(context).size.width;
+
+    //TODO:: add a void fuction to check if diaries are submitted or pending then assign the bool value to pendingOrSubmitted
+
+    return pendingOrSubmitted ? SimpleDialog(
+      backgroundColor: CustomColors.fillWhite,
+      contentPadding: const EdgeInsets.all(0),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Colors.grey, width: 2)),
+      surfaceTintColor: CustomColors.fillWhite,
+      children: [
+        Align(
+          alignment: Alignment.topRight,
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: const Icon(Icons.close, size: 24),
+          ),
+        ),
+        Container(
+          constraints: const BoxConstraints.tightFor(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+          child: Column(
+            spacing: 12,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+
+              Center(
+                child: Image.asset(
+                  'assets/images/icons/StudyUpdate.png',
+                  height: 100,
+                  width: 100,
+                ),
+              ),
+              Text(
+                'Update Study',
+                style: CustomTypography().headlineMedium(),
+              ),
+              Container(
+                width: width,
+                padding: const EdgeInsets.all(16),
+                decoration: ShapeDecoration(
+                  color: const Color(0xFFFFF8DE),
+                  shape: RoundedRectangleBorder(
+                    side: const BorderSide(
+                        width: 2, color: CustomColors.pumpkinOrange),
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      spacing: 8,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Image.asset(
+                          'assets/images/icons/warning.png',
+                          height: 24,
+                          width: 24,
+                          color: CustomColors.pumpkinOrange,
+                        ),
+                        Text.rich(TextSpan(
+                            text: "You have ",
+                            style: CustomTypography()
+                                .bodyLarge(color: CustomColors.pumpkinOrange),
+                            children: [
+                              TextSpan(
+                                text:
+                                    "diaries submitted or pending submissions ",
+                                style: CustomTypography().bodyLarge(
+                                    color: CustomColors.pumpkinOrange,
+                                    weight: FontWeight.bold),
+                              ),
+                              TextSpan(
+                                text:
+                                    "for the day. You cannot update the study right now. Please check again at the start of tomorrow.",
+                                style: CustomTypography().bodyLarge(
+                                    color: CustomColors.pumpkinOrange),
+                              )
+                            ])),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 12,
+              ),
+            ],
+          ),
+        ),
+      ],
+    ) : SimpleDialog();
   }
 }
