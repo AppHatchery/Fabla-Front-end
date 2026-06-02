@@ -45,11 +45,10 @@ import 'secrets_handler.dart';
 /// }
 /// ```
 Future<bool> upload(String participantID, DiaryModel diary) async {
-  final dir = await getApplicationDocumentsDirectory();
-  final repository = SetupRepository();
-  final experiment = repository.getExperiment();
-
   try {
+    final dir = await getApplicationDocumentsDirectory();
+    final repository = SetupRepository();
+    final experiment = repository.getExperiment();
     final promptEntryList = <PromptEntry>[];
     final files = <FileData>[];
     final references =
@@ -175,7 +174,7 @@ void _addFileData(
             promptID: prompt.id.toString(),
             response: "",
             respondedAt: record.date.toIso8601String(),
-            questionsType: responseTypeValue(prompt.responseType!),
+            questionsType: responseTypeValue(prompt.responseType),
             required: prompt.required,
             reference:
                 "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}"),
@@ -198,7 +197,7 @@ void _addPromptEntry(PromptModel prompt, String participantID,
       promptID: prompt.id.toString(),
       response: prompt.answer?.response?.join(' | ') ?? "",
       respondedAt: prompt.answer?.date.toIso8601String() ?? "",
-      questionsType: responseTypeValue(prompt.responseType!),
+      questionsType: responseTypeValue(prompt.responseType),
       required: prompt.required,
     ),
   );
@@ -223,21 +222,38 @@ Future<bool> uploadNonAudioData(
 
   try {
     final cred = await secureStorage.read();
+
+    if (cred == null) {
+      CrashlyticsService().log('Upload failed: credentials are null');
+      return false; // or null
+    }
     List<Map<String, dynamic>> promptListItems =
         PromptEntry.promptListToMap(promptEntryList);
     String jsonBody = json.encode(promptListItems);
 
-    var url = Uri.parse(cred?.dynamo_url ?? "");
+    var url = Uri.parse(cred.dynamo_url ?? "");
 
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization': "${cred?.authorization ?? ""}[0]",
-      'x-api-key': cred?.xapikey ?? ""
+      'Authorization': "${cred.authorization ?? ""}[0]",
+      'x-api-key': cred.xapikey ?? ""
     };
 
     try {
+      final stopwatch = Stopwatch()..start();
       var response =
           await httpClient.post(url, headers: headers, body: jsonBody);
+      stopwatch.stop();
+
+      if (stopwatch.elapsed > const Duration(minutes: 2)) {
+        CrashlyticsService().log(
+            'Slow DynamoDB upload: ${stopwatch.elapsedMilliseconds}ms | prompts=${promptEntryList.length}');
+        await PendoService.track('Slow Upload', {
+          'event': 'Upload to DynamoDB',
+          'duration_ms': stopwatch.elapsedMilliseconds.toString(),
+          'prompt_count': promptEntryList.length.toString(),
+        });
+      }
 
       if (response.statusCode == 200) {
         return true;
@@ -249,7 +265,7 @@ Future<bool> uploadNonAudioData(
             'DynamoDB upload failed: ${response.body}', url.toString(),
             statusCode: response.statusCode,
             method: 'POST',
-            requestData: {'entry_count': promptEntryList.length.toString()});
+            requestData: {'prompt_count': promptEntryList.length.toString()});
         await PendoService.track('Upload Error', {
           'event': 'Upload to DynamoDB',
           'response': response.body,
@@ -309,6 +325,11 @@ Future<String?> getPresignedUrl(
 
   try {
     final cred = await secureStorage.read();
+    if (cred == null) {
+      CrashlyticsService().log('Upload failed: credentials are null');
+      return null;
+    }
+
     var requestBody = jsonEncode({'filename': filename});
 
     var response = await httpClient.post(
@@ -316,8 +337,8 @@ Future<String?> getPresignedUrl(
       headers: {
         'Content-Type': 'application/json',
         'Authorization':
-            "${cred?.authorization ?? ""}[1]", // password [ AWS ARN FOR THE CALL ]
-        'x-api-key': cred?.xapikey ?? ""
+            "${cred.authorization ?? ""}[1]", // password [ AWS ARN FOR THE CALL ]
+        'x-api-key': cred.xapikey ?? ""
       },
       body: requestBody,
     );
@@ -372,29 +393,28 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
     request.bodyBytes = bytes;
 
     final s3Client = http.Client();
-    http.StreamedResponse response;
     try {
-      response = await s3Client.send(request);
+      final response = await s3Client.send(request);
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        dev.log(
+            'S3 upload failed: status=${response.statusCode} file=$filePath',
+            name: 'Upload - S3 Storage');
+        CrashlyticsService().recordApiError(
+            'S3 upload failed with status ${response.statusCode}', presignedUrl,
+            statusCode: response.statusCode,
+            method: 'PUT',
+            requestData: {'file_path': filePath});
+        await PendoService.track('Upload Error', {
+          'event': 'Upload to S3',
+          'reason': response.reasonPhrase ?? 'unknown',
+          'status': response.statusCode
+        });
+        return false;
+      }
     } finally {
       s3Client.close();
-    }
-
-    if (response.statusCode == 200) {
-      return true;
-    } else {
-      dev.log('S3 upload failed: status=${response.statusCode} file=$filePath',
-          name: 'Upload - S3 Storage');
-      CrashlyticsService().recordApiError(
-          'S3 upload failed with status ${response.statusCode}', presignedUrl,
-          statusCode: response.statusCode,
-          method: 'PUT',
-          requestData: {'file_path': filePath});
-      await PendoService.track('Upload Error', {
-        'event': 'Upload to S3',
-        'reason': response.reasonPhrase ?? 'unknown',
-        'status': response.statusCode
-      });
-      return false;
     }
   } catch (e, stackTrace) {
     dev.log('S3 Storage: Error uploading file: $e',
@@ -428,10 +448,24 @@ Future<bool> uploadFiles(List<FileData> files) async {
   for (var file in files) {
     var presignedUrl = await getPresignedUrl(apiUrl, file.awsS3Directory);
     if (presignedUrl != null) {
+      final stopwatch = Stopwatch()..start();
       final result = await uploadFileToS3(presignedUrl, file.localDirectory);
+      stopwatch.stop();
+
       dev.log(
-          'File uploaded: $result | File: ${file.awsS3Directory} | Time: ${DateTime.now()}',
+          'File uploaded: $result | Duration: ${stopwatch.elapsedMilliseconds}ms | File: ${file.awsS3Directory}',
           name: 'Upload - Upload Files');
+
+      if (stopwatch.elapsed > const Duration(minutes: 2)) {
+        CrashlyticsService().log(
+            'Slow S3 upload: ${file.awsS3Directory} took ${stopwatch.elapsedMilliseconds}ms');
+        await PendoService.track('Slow Upload', {
+          'event': 'Upload to S3',
+          'file': file.awsS3Directory,
+          'duration_ms': stopwatch.elapsedMilliseconds.toString(),
+        });
+      }
+
       results.add(result);
     } else {
       dev.log('Failed to get presigned URL for: ${file.awsS3Directory}',
@@ -520,7 +554,13 @@ Future<bool> awsUploadResponses(
       dev.log('awsUploadResponses failed — s3=$filesResult dynamo=$dataSent',
           name: 'Upload - AWS Upload Responses');
       CrashlyticsService().log(
-          'Submission failed — S3: $filesResult | DynamoDB: $dataSent | Files: ${files.length} | Entries: ${promptEntryList.length}');
+          'Submission failed — S3: $filesResult | DynamoDB: $dataSent | Files: ${files.length} | Prompts: ${promptEntryList.length}');
+      await PendoService.track('Submission Failed', {
+        'S3 Upload Success': filesResult.toString(),
+        'DynamoDB Upload Success': dataSent.toString(),
+        'File Count': files.length.toString(),
+        'Prompt Count': promptEntryList.length.toString(),
+      });
     }
 
     return filesResult && dataSent;
