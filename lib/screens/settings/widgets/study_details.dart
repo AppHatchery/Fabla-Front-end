@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -9,12 +8,9 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/utils/getDeviceAndAppInfor.dart';
 import '../../../core/utils/participantAndExperimentDetails.dart';
 import '../../hub/presentation/cubit/hub_cubit.dart';
-import '../../onboarding/domain/entities/participant.dart';
 
 class SettingsStudyDetails extends StatefulWidget {
   const SettingsStudyDetails({super.key});
@@ -26,38 +22,27 @@ class SettingsStudyDetails extends StatefulWidget {
 class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
   late HubCubit _hubCubit;
   ExperimentModel? experiment;
-  Participant? participant;
 
-  String version = '';
   String? lastUpdated;
-  String? dateJoined;
 
-  final repository = SetupRepository();
+  final ParticipantAndExperimentDetails _details =
+      ParticipantAndExperimentDetails();
 
   @override
-  initState() {
+  void initState() {
     super.initState();
-    getStudyDetails();
     _hubCubit = context.read<HubCubit>();
-    getAppVersion();
-    getLastUpdated();
-    _loadInfo();
+    _loadDetails();
   }
 
-  void getLastUpdated() async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<void> _loadDetails() async {
+    final loadedExperiment = _details.experiment;
+    final dates = await _details.getStudyDates();
+    if (!mounted) return;
     setState(() {
-      lastUpdated = prefs.getString('last_Updated');
-      dateJoined = prefs.getString('date_joined');
+      experiment = loadedExperiment;
+      lastUpdated = dates.lastUpdated;
     });
-  }
-  Future<void> _loadInfo() async {
-    final v = await getAppVersion();
-    if (mounted) {
-      setState(() {
-        version = v;
-      });
-    }
   }
 
   @override
@@ -177,8 +162,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
     );
   }
 
-  Future<void> launchEmailMethod() =>
-      ParticipantAndExperimentDetails().launchSupportEmail();
+  Future<void> launchEmailMethod() => _details.launchSupportEmail();
 
 
   /// Shows the manual-update warning. The user must confirm before any
@@ -210,19 +194,10 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
   }
 
   Future<void> pendoTrack(String login) async {
-    final setupRepository = SetupRepository();
-    final pendoID = setupRepository.getParticipant()!.studyCode;
+    final pendoID = _details.participant?.studyCode;
+    if (pendoID == null) return;
 
     await PendoService.start(pendoID, login);
     await PendoService.track("StudyDetails", null);
-  }
-
-  Future<void> getStudyDetails() async {
-    final experiment = repository.getExperiment();
-    final loadedParticipant = repository.getParticipant();
-    setState(() {
-      this.experiment = experiment;
-      participant = loadedParticipant;
-    });
   }
 }

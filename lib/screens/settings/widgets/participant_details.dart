@@ -2,15 +2,14 @@ import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/settings/cubit/settings_cubit.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/settings_onboarding.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/utils/participantAndExperimentDetails.dart';
 import '../../home/data/experiment.dart';
 import '../../onboarding/domain/entities/participant.dart';
 
@@ -25,7 +24,8 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
   late SettingsCubit cubit;
   late HubCubit _hubCubit;
 
-  final SetupRepository _repository = SetupRepository();
+  final ParticipantAndExperimentDetails _details =
+      ParticipantAndExperimentDetails();
 
   ExperimentModel? experiment;
   Participant? participant;
@@ -42,14 +42,14 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
   }
 
   void _loadDetails() async {
-    final loadedExperiment = _repository.getExperiment();
-    final loadedParticipant = _repository.getParticipant();
-    final prefs = await SharedPreferences.getInstance();
+    final loadedExperiment = _details.experiment;
+    final loadedParticipant = _details.participant;
+    final dates = await _details.getStudyDates();
     if (!mounted) return;
     setState(() {
       experiment = loadedExperiment;
       participant = loadedParticipant;
-      dateJoined = prefs.getString('date_joined');
+      dateJoined = dates.dateJoined;
     });
   }
 
