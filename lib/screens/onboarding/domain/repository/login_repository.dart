@@ -124,7 +124,12 @@ class LoginRepository {
         try {
           final extra = jsonDecode(extraString) as Map<String, dynamic>?;
           if (extra != null && extra.isNotEmpty) {
-            isAlreadyLoggedIn = true;
+            // clean extras remove acknowledgment fields to check if there are any other extras
+            final cleanedExtras = Map<String, dynamic>.from(extra)
+              ..remove('protocol_acknowledged')
+              ..remove('protocol_acknowledged_at');
+
+            if (cleanedExtras.isNotEmpty) isAlreadyLoggedIn = true;
           }
         } catch (e) {
           debugPrint("Failed to decode 'extra': $e");

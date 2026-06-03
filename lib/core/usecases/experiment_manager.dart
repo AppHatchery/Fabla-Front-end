@@ -1,3 +1,7 @@
+import 'dart:convert' show jsonDecode;
+
+import 'package:audio_diaries_flutter/core/network/request.dart' show post;
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 
 import 'dart:developer' as dev;
@@ -15,8 +19,6 @@ class ExperimentManager {
 
   static String updateKey = 'experiment_update_available';
 
-  // Constructor with optional dependency injection
-  // If not provided, uses default implementation for production use
   ExperimentManager({
     SetupRepository? setupRepository,
     PreferenceService? preferenceService,
@@ -53,20 +55,41 @@ class ExperimentManager {
 
   /// Check for updates
   Future<UpdateStatus> checkForUpdates() async {
-    // get shared preferences stored bool
-    final available =
-        await _preferenceService.getStringPreference(key: updateKey) ?? 'available';
+    try {
+      final stored =
+          await _preferenceService.getStringPreference(key: updateKey);
 
-    if (available == 'available') {
-      // trigger the update pop up in the UI
+      if (stored == UpdateStatus.available.name) return UpdateStatus.available;
+      if (stored == UpdateStatus.pending.name) return UpdateStatus.pending;
+
+      final code = _setupRepository.getExperiment();
+      final participant = _setupRepository.getParticipant();
+
+      final getdbextras = await post(path: "/fabla/getuserextras", body: {
+        'participant_id': participant?.studyCode,
+        'login_code': code.login,
+      });
+
+      final Map<String, dynamic> json = jsonDecode(getdbextras ?? '{}');
+      final List<dynamic>? data = json['data'] as List<dynamic>?;
+
+      if (data == null || data.isEmpty) return UpdateStatus.none;
+
+      final Map<String, dynamic> extra = jsonDecode(data[0]['extra'] as String);
+      final acknowledged = extra['protocol_acknowledged'];
+
+      if (acknowledged == null || acknowledged == true) {
+        return UpdateStatus.none;
+      }
+
+      await setUpdateStatus(UpdateStatus.available);
       return UpdateStatus.available;
-    } else if (available == 'pending') {
-      // Handle pending update
-      return UpdateStatus.pending;
+    } catch (e, stackTrace) {
+      dev.log(e.toString(), name: 'Experiment Manager CheckForUpdates');
+      CrashlyticsService().recordError(e, stackTrace,
+          reason:
+              'Error checking for updates in ExperimentManager.checkForUpdates');
+      return UpdateStatus.none;
     }
-
-    return UpdateStatus.none;
   }
 }
-
-enum UpdateStatus { none, available, pending }

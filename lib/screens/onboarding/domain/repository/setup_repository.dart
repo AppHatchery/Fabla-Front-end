@@ -631,6 +631,11 @@ class SetupRepository {
       }
     }
 
+    // append acknowledgment of protocol to extras
+    extras['protocol_acknowledged'] = true;
+    extras['protocol_acknowledged_at'] =
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+
     //dev.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>: $jsonString");
 
     // Check if date_adjuster is already in extras from onboarding questions

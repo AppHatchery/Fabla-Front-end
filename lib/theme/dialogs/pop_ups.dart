@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
@@ -1463,13 +1464,11 @@ class CompletedPopUp extends StatelessWidget {
 enum _UpdateDialogPhase { initial, updating, success, error }
 
 class ScheduleUpdatePopUp extends StatefulWidget {
-  final int pendingCount;
-  final ValueNotifier<bool?> completeNotifier;
+  final ValueNotifier<UpdateState?> completeNotifier;
   final VoidCallback onUpdateNow;
 
   const ScheduleUpdatePopUp({
     super.key,
-    required this.pendingCount,
     required this.completeNotifier,
     required this.onUpdateNow,
   });
@@ -1497,9 +1496,16 @@ class _ScheduleUpdatePopUpState extends State<ScheduleUpdatePopUp> {
     final value = widget.completeNotifier.value;
     if (value == null) return;
     setState(() {
-      _phase = value ? _UpdateDialogPhase.success : _UpdateDialogPhase.error;
+      _phase = switch (value) {
+        UpdateState.complete => _UpdateDialogPhase.success,
+        UpdateState.failed ||
+        UpdateState.connectionError =>
+          _UpdateDialogPhase.error,
+        UpdateState.updating => _UpdateDialogPhase.updating,
+        UpdateState.pending => _UpdateDialogPhase.initial,
+      };
     });
-    if (value) {
+    if (value == UpdateState.complete) {
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) Navigator.pop(context, 'success');
       });
@@ -1519,6 +1525,7 @@ class _ScheduleUpdatePopUpState extends State<ScheduleUpdatePopUp> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
     return SimpleDialog(
       contentPadding: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
@@ -1528,8 +1535,9 @@ class _ScheduleUpdatePopUpState extends State<ScheduleUpdatePopUp> {
       surfaceTintColor: CustomColors.fillWhite,
       children: [
         Container(
+          width: width - 70,
           constraints: const BoxConstraints.tightFor(),
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 32),
           decoration: BoxDecoration(
             color: CustomColors.fillWhite,
             borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -1555,7 +1563,6 @@ class _ScheduleUpdatePopUpState extends State<ScheduleUpdatePopUp> {
   }
 
   List<Widget> _buildInitial() {
-    final hasPending = widget.pendingCount > 0;
     return [
       Container(
         width: 60,
@@ -1574,78 +1581,16 @@ class _ScheduleUpdatePopUpState extends State<ScheduleUpdatePopUp> {
         style: CustomTypography().headlineMedium(),
         textAlign: TextAlign.center,
       ),
-      RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan(
-          style: CustomTypography().bodyMedium(),
-          children: [
-            const TextSpan(
-                text:
-                    "Your researcher has made changes to this study. You can update the study under "),
-            TextSpan(
-              text: "Settings > Study Details",
-              style: CustomTypography()
-                  .bodyMedium()
-                  .copyWith(fontStyle: FontStyle.italic),
-            ),
-            const TextSpan(text: "."),
-          ],
-        ),
-      ),
-      if (hasPending)
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: CustomColors.yellowLight,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: CustomColors.pumpkinOrange, width: 2),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.warning_rounded,
-                  color: CustomColors.pumpkinOrange, size: 24),
-              const SizedBox(width: 8),
-              Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    style: CustomTypography()
-                        .bodyMedium()
-                        .copyWith(color: CustomColors.pumpkinOrange),
-                    children: [
-                      const TextSpan(text: "You have "),
-                      TextSpan(
-                        text:
-                            "${widget.pendingCount} ${widget.pendingCount == 1 ? 'diary' : 'diaries'} pending",
-                        style: CustomTypography().bodyMedium().copyWith(
-                              color: CustomColors.pumpkinOrange,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      const TextSpan(
-                          text:
-                              " submission. To avoid losing your progress, please submit them before updating."),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      if (hasPending)
-        Row(
-          children: [
-            Expanded(
-              child: CustomFlatButton(
-                onClick: () => Navigator.pop(context, 'view_pending'),
-                text: "View Pending Diaries",
-                color: CustomColors.fillWhite,
-                textColor: CustomColors.productNormalActive,
-                borderColor: CustomColors.productNormalActive,
-              ),
-            ),
-          ],
-        ),
+      Text(
+          'Your researcher has made an update to the study, which may include changes to wording or instructions. Please update to continue with the latest version.',
+          style: CustomTypography()
+              .bodyMedium(color: CustomColors.textSecondaryContent),
+          textAlign: TextAlign.center),
+      Text(
+          'If you have questions about the changes, please contact your researcher.',
+          style: CustomTypography()
+              .bodyMedium(color: CustomColors.textSecondaryContent),
+          textAlign: TextAlign.center),
       Row(
         children: [
           Expanded(
@@ -1667,10 +1612,15 @@ class _ScheduleUpdatePopUpState extends State<ScheduleUpdatePopUp> {
       const SizedBox(
         width: 40,
         height: 40,
-        child: CircularProgressIndicator(
-          strokeWidth: 5,
-          color: CustomColors.productNormal,
-          strokeCap: StrokeCap.round,
+        child: Padding(
+          padding: EdgeInsets.all(5.0),
+          child: Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 5,
+              color: CustomColors.productNormal,
+              strokeCap: StrokeCap.round,
+            ),
+          ),
         ),
       ),
       Text(
@@ -1680,7 +1630,8 @@ class _ScheduleUpdatePopUpState extends State<ScheduleUpdatePopUp> {
       ),
       Text(
         "Hang tight! We're updating the experiment content. This won't take long!",
-        style: CustomTypography().bodyMedium(),
+        style: CustomTypography()
+            .bodyMedium(color: CustomColors.textSecondaryContent),
         textAlign: TextAlign.center,
       ),
     ];
@@ -1707,13 +1658,16 @@ class _ScheduleUpdatePopUpState extends State<ScheduleUpdatePopUp> {
       ),
       Text(
         "Your study has been updated successfully",
-        style: CustomTypography().bodyMedium(),
+        style: CustomTypography()
+            .bodyMedium(color: CustomColors.textSecondaryContent),
         textAlign: TextAlign.center,
       ),
     ];
   }
 
   List<Widget> _buildError() {
+    final connectivityError =
+        widget.completeNotifier.value == UpdateState.connectionError;
     return [
       Container(
         width: 60,
@@ -1732,24 +1686,46 @@ class _ScheduleUpdatePopUpState extends State<ScheduleUpdatePopUp> {
         style: CustomTypography().headlineMedium(),
         textAlign: TextAlign.center,
       ),
-      RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan(
-          style: CustomTypography().bodyMedium(),
-          children: [
-            const TextSpan(
-                text:
-                    "Your study was not updated. Retry update or try later under "),
-            TextSpan(
-              text: "Settings > Study Details",
-              style: CustomTypography()
-                  .bodyMedium()
-                  .copyWith(fontStyle: FontStyle.italic),
-            ),
-            const TextSpan(text: "."),
-          ],
+      if (connectivityError)
+        RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            style: CustomTypography()
+                .bodyMedium(color: CustomColors.textSecondaryContent),
+            children: [
+              const TextSpan(
+                  text:
+                      "Your study was not updated. Please check your internet connection and try again or update later under "),
+              TextSpan(
+                text: "Settings > Study Details",
+                style: CustomTypography()
+                    .bodyMedium(color: CustomColors.textSecondaryContent)
+                    .copyWith(fontStyle: FontStyle.italic),
+              ),
+              const TextSpan(text: "."),
+            ],
+          ),
+        )
+      else
+        RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            style: CustomTypography()
+                .bodyMedium(color: CustomColors.textSecondaryContent),
+            children: [
+              const TextSpan(
+                  text:
+                      "Your study was not updated. Retry update or try later under "),
+              TextSpan(
+                text: "Settings > Study Details",
+                style: CustomTypography()
+                    .bodyMedium(color: CustomColors.textSecondaryContent)
+                    .copyWith(fontStyle: FontStyle.italic),
+              ),
+              const TextSpan(text: "."),
+            ],
+          ),
         ),
-      ),
       Row(
         children: [
           Expanded(
@@ -1773,26 +1749,25 @@ class _ScheduleUpdatePopUpState extends State<ScheduleUpdatePopUp> {
           ),
         ],
       ),
-      GestureDetector(
-        onTap: () => launchEmail(
-          subject: "Study Update Issue",
-          body: "I encountered an issue while updating my study.",
-        ),
-        child: RichText(
-          textAlign: TextAlign.center,
-          text: TextSpan(
-            style: CustomTypography().bodyMedium(),
-            children: [
-              const TextSpan(text: "If the issue persists, "),
-              TextSpan(
-                text: "contact researcher",
-                style: CustomTypography().bodyMedium().copyWith(
-                      color: CustomColors.productNormalActive,
-                      decoration: TextDecoration.underline,
+      RichText(
+        textAlign: TextAlign.center,
+        text: TextSpan(
+          style: CustomTypography().bodyMedium(),
+          children: [
+            const TextSpan(text: "If the issue persists, "),
+            TextSpan(
+              text: "contact researcher",
+              recognizer: TapGestureRecognizer()
+                ..onTap = () => launchEmail(
+                      subject: "Study Update Issue",
+                      body: "I encountered an issue while updating my study.",
                     ),
-              ),
-            ],
-          ),
+              style: CustomTypography().bodyMedium().copyWith(
+                    color: CustomColors.productNormalActive,
+                    decoration: TextDecoration.underline,
+                  ),
+            ),
+          ],
         ),
       ),
     ];

@@ -202,7 +202,7 @@ class _HubState extends State<Hub>
   // used to refresh the page for updating
   Key key = UniqueKey();
   final ValueNotifier<bool?> completeNotifier = ValueNotifier(null);
-  final ValueNotifier<bool?> completeUpdateNotifier = ValueNotifier(null);
+  final ValueNotifier<UpdateState?> updateNotifier = ValueNotifier(null);
   bool _isScheduleUpdateDialogOpen = false;
 
   late HubCubit cubit;
@@ -258,6 +258,7 @@ class _HubState extends State<Hub>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       NotificationManager().scheduleAdditional();
+      cubit.checkForUpdates();
     }
     super.didChangeAppLifecycleState(state);
   }
@@ -368,9 +369,11 @@ class _HubState extends State<Hub>
   void completeUpdate(bool completed) {
     if (mounted) {
       if (_isScheduleUpdateDialogOpen) {
-        completeUpdateNotifier.value = completed;
+        updateNotifier.value =
+            completed ? UpdateState.complete : UpdateState.failed;
       } else {
-        setState(() => completeNotifier.value = completed);
+        setState(() => completeNotifier.value =
+            completed); // Trigger the update completion dialog
         Future.delayed(const Duration(seconds: 2), () {
           if (mounted) Navigator.pop(context);
         }).then((_) {
@@ -412,12 +415,7 @@ class _HubState extends State<Hub>
 
   void showScheduleUpdateDialog() async {
     _isScheduleUpdateDialogOpen = true;
-    completeUpdateNotifier.value = null;
-
-    final pendingCount = DiaryRepository()
-        .getAllDiaries()
-        .where((d) => d.status == DiaryStatus.complete)
-        .length;
+    updateNotifier.value = null;
 
     if (!mounted) {
       _isScheduleUpdateDialogOpen = false;
@@ -428,8 +426,7 @@ class _HubState extends State<Hub>
       context: context,
       barrierDismissible: false,
       builder: (context) => ScheduleUpdatePopUp(
-        pendingCount: pendingCount,
-        completeNotifier: completeUpdateNotifier,
+        completeNotifier: updateNotifier,
         onUpdateNow: cubit.update,
       ),
     );
