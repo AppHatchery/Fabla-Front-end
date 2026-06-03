@@ -14,6 +14,7 @@ import 'package:audio_diaries_flutter/main.dart' as app;
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/experiment.dart';
 import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/settings/cubit/settings_cubit.dart';
@@ -33,11 +34,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // ── Cubit mocks ──────────────────────────────────────────────────────────────
 class MockSettingsCubit extends Mock implements SettingsCubit {
+  // Defaults to SettingsInitial; individual tests can override via [stubbedState]
+  // to drive the loaded UI (e.g. the onboarding survey tile).
+  SettingsState stubbedState = SettingsInitial();
+
   @override
   Stream<SettingsState> get stream => Stream<SettingsState>.empty();
 
   @override
-  SettingsState get state => SettingsInitial();
+  SettingsState get state => stubbedState;
 }
 
 class MockHubCubit extends Mock implements HubCubit {
@@ -257,6 +262,28 @@ void main() {
   });
 
   testWidgets('Renders participant details', (tester) async {
+    // Drive the loaded state so the onboarding survey tile is shown. The tile
+    // is now only rendered when onboarding questions exist.
+    mockSettingsCubit.stubbedState = const SettingsLoaded(
+      onboardingQuestion: [
+        Questions(
+          id: 1,
+          title: 'Sample question',
+          subtitle: null,
+          options: null,
+          type: 'text',
+          min: null,
+          max: null,
+          defaultValue: null,
+          minLabel: null,
+          maxLabel: null,
+          variable: 'sample',
+          answer: null,
+        ),
+      ],
+      completedDate: '01 Jan 2025',
+    );
+
     await tester.pumpWidget(
         createTestableWidget(mockSettingsCubit, mockSetupRepository));
     await tester.pumpAndSettle();
