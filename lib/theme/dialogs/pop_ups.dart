@@ -1485,83 +1485,83 @@ class StudyUpdatePopUp extends StatelessWidget {
                 side: const BorderSide(color: Colors.grey, width: 2)),
             surfaceTintColor: CustomColors.fillWhite,
             children: [
-              Container(
-                constraints: const BoxConstraints.tightFor(),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-                child: Column(
-                  spacing: 12,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: const Icon(Icons.close, size: 24),
-                      ),
-                    ),
-                    Center(
-                      child: Image.asset(
-                        'assets/images/icons/StudyUpdate.png',
-                        height: 60,
-                        width: 60,
-                      ),
-                    ),
-                    Text(
-                      'Update Study',
-                      style: CustomTypography().headlineMedium(),
-                    ),
-                    Container(
-                      width: width,
-                      padding: const EdgeInsets.all(16),
-                      decoration: ShapeDecoration(
-                        color: const Color(0xFFFFF8DE),
-                        shape: RoundedRectangleBorder(
-                          side: const BorderSide(
-                              width: 2, color: CustomColors.pumpkinOrange),
-                          borderRadius: BorderRadius.circular(11),
+              Stack(children: [
+                Positioned(
+                  right: 15,
+                  top: 15,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: const Icon(Icons.close, size: 24),
+                  ),
+                ),
+                Container(
+                  constraints: const BoxConstraints.tightFor(),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+                  child: Column(
+                    spacing: 12,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Center(
+                        child: Image.asset(
+                          'assets/images/icons/StudyUpdate.png',
+                          height: 60,
+                          width: 60,
                         ),
                       ),
-                      child: Row(
-                        spacing: 8,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Image.asset(
-                            'assets/images/icons/warning.png',
-                            height: 24,
-                            width: 24,
-                            color: CustomColors.pumpkinOrange,
-                          ),
-                          Expanded(
-                            child: Text.rich(TextSpan(
-                                text: "You have ",
-                                style: CustomTypography().bodyLarge(
-                                    color: CustomColors.pumpkinOrange),
-                                children: [
-                                  TextSpan(
-                                    text:
-                                        "diaries submitted or pending submissions ",
-                                    style: CustomTypography().bodyLarge(
-                                        color: CustomColors.pumpkinOrange,
-                                        weight: FontWeight.bold),
-                                  ),
-                                  TextSpan(
-                                    text:
-                                        "for the day. You cannot update the study right now. Please check again at the start of tomorrow.",
-                                    style: CustomTypography().bodyLarge(
-                                        color: CustomColors.pumpkinOrange),
-                                  )
-                                ])),
-                          ),
-                        ],
+                      Text(
+                        'Update Study',
+                        style: CustomTypography().headlineMedium(),
                       ),
-                    ),
-                    SizedBox(
-                      height: 12,
-                    ),
-                  ],
+                      Container(
+                        width: width,
+                        padding: const EdgeInsets.all(16),
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFFFF8DE),
+                          shape: RoundedRectangleBorder(
+                            side: const BorderSide(
+                                width: 2, color: CustomColors.pumpkinOrange),
+                            borderRadius: BorderRadius.circular(11),
+                          ),
+                        ),
+                        child: Row(
+                          spacing: 8,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Image.asset(
+                              'assets/images/icons/warning.png',
+                              height: 24,
+                              width: 24,
+                              color: CustomColors.pumpkinOrange,
+                            ),
+                            Expanded(
+                              child: Text.rich(TextSpan(
+                                  text: "You have ",
+                                  style: CustomTypography().bodyLarge(
+                                      color: CustomColors.pumpkinOrange),
+                                  children: [
+                                    TextSpan(
+                                      text:
+                                          "diaries submitted or pending submissions ",
+                                      style: CustomTypography().bodyLarge(
+                                          color: CustomColors.pumpkinOrange,
+                                          weight: FontWeight.bold),
+                                    ),
+                                    TextSpan(
+                                      text:
+                                          "for the day. You cannot update the study right now. Please check again at the start of tomorrow.",
+                                      style: CustomTypography().bodyLarge(
+                                          color: CustomColors.pumpkinOrange),
+                                    )
+                                  ])),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ]),
             ],
           )
         :
@@ -1703,39 +1703,44 @@ class StudyUpdateCompleted extends StatelessWidget {
           side: const BorderSide(color: Colors.grey, width: 2)),
       surfaceTintColor: CustomColors.fillWhite,
       children: [
-        Container(
-          constraints: const BoxConstraints.tightFor(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            spacing: 12,
-            children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: const Icon(Icons.close, size: 24),
-                ),
+        Stack(
+          children: [
+            Positioned(
+              right: 15,
+              top: 15,
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: const Icon(Icons.close, size: 24),
               ),
-              Image.asset(
-                'assets/images/icons/studyUpdateCompleted.png',
-                height: 60,
-                width: 60,
+            ),
+            Container(
+              constraints: const BoxConstraints.tightFor(),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                spacing: 12,
+                children: [
+                  Image.asset(
+                    'assets/images/icons/studyUpdateCompleted.png',
+                    height: 60,
+                    width: 60,
+                  ),
+                  Text(
+                    textAlign: TextAlign.center,
+                    'Study Update Successful',
+                    style: CustomTypography().headlineMedium(),
+                  ),
+                  Text(
+                    textAlign: TextAlign.center,
+                    'Your study has been updated to the latest version.',
+                    style: CustomTypography()
+                        .bodyLarge(color: CustomColors.textSecondaryContent),
+                  )
+                ],
               ),
-              Text(
-                textAlign: TextAlign.center,
-                'Study Update Successful',
-                style: CustomTypography().headlineMedium(),
-              ),
-              Text(
-                textAlign: TextAlign.center,
-                'Your study has been updated to the latest version.',
-                style: CustomTypography()
-                    .bodyLarge(color: CustomColors.textSecondaryContent),
-              )
-            ],
-          ),
+            ),
+          ],
         )
       ],
     );
@@ -1766,8 +1771,8 @@ class _StudyUpdateFailedState extends State<StudyUpdateFailed> {
   void initState() {
     super.initState();
     _contactResearcherRecognizer = TapGestureRecognizer()
-      ..onTap = () =>
-          ParticipantAndExperimentDetails().launchSupportEmail("Study Update failed");
+      ..onTap = () => ParticipantAndExperimentDetails()
+          .launchSupportEmail("Study Update failed");
   }
 
   @override
@@ -1833,20 +1838,21 @@ class _StudyUpdateFailedState extends State<StudyUpdateFailed> {
                 ],
               ),
               const SizedBox(height: 12),
-              Text.rich(TextSpan(
-                  text: "If the issue persists ",
-                  style: CustomTypography().bodyLarge(),
-                  children: [
-                    TextSpan(
-                      text: "contact researcher",
-                      style: CustomTypography()
-                          .bodyLarge(color: CustomColors.productNormal)
-                          .copyWith(
-                              decoration: TextDecoration.underline,
-                              decorationColor: CustomColors.productNormal),
-                      recognizer: _contactResearcherRecognizer,
-                    )
-                  ]),
+              Text.rich(
+                TextSpan(
+                    text: "If the issue persists ",
+                    style: CustomTypography().bodyLarge(),
+                    children: [
+                      TextSpan(
+                        text: "contact researcher",
+                        style: CustomTypography()
+                            .bodyLarge(color: CustomColors.productNormal)
+                            .copyWith(
+                                decoration: TextDecoration.underline,
+                                decorationColor: CustomColors.productNormal),
+                        recognizer: _contactResearcherRecognizer,
+                      )
+                    ]),
               ),
             ],
           ),
