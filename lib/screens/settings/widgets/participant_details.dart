@@ -1,5 +1,3 @@
-import 'dart:developer' as dev;
-
 import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/settings/cubit/settings_cubit.dart';
@@ -90,6 +88,7 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
   }
 
   Widget loaded(double width, {String? date, List<Questions>? questions}) {
+    final bool hasNoOBQuestions = questions == null || questions.isEmpty;
     return Column(
       spacing: 12,
       children: [
@@ -179,7 +178,8 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
             ),
           ),
         ),
-        surveyTile(width, date: date, questions: questions),
+        if (!hasNoOBQuestions)
+        surveyTile(width, date: date, questions: questions)
       ],
     );
   }
@@ -242,7 +242,6 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
 
   update(List<Questions> questions) async {
     if (mounted) {
-      dev.log('$dateJoined');
       final result = await Navigator.push(
           context,
           MaterialPageRoute(
