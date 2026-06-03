@@ -222,20 +222,21 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                             height: 24,
                           ),
                           Center(
-                            child: CustomOutlineButton(
-                              onClick: () => openAppSettings().then((_) {}),
-                              backgroundColor: CustomColors.productNormal,
-                              color: CustomColors.productNormal,
-                              borderRadius: 200,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12.0, vertical: 4.0),
-                              children: Wrap(children: [
-                                Text(
-                                  "Open Settings",
-                                  style: CustomTypography()
-                                      .title(color: CustomColors.textWhite),
-                                )
-                              ]),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                              child: CustomOutlineButton(
+                                onClick: () => openAppSettings().then((_) {}),
+                                backgroundColor: CustomColors.productNormal,
+                                color: CustomColors.productNormal,
+                                borderRadius: 200,
+                                children: Wrap(children: [
+                                  Text(
+                                    "Open Settings",
+                                    style: CustomTypography()
+                                        .title(color: CustomColors.textWhite),
+                                  )
+                                ]),
+                              ),
                             ),
                           ),
                           SizedBox(
