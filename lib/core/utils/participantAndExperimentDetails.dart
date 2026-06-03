@@ -44,7 +44,7 @@ class ParticipantAndExperimentDetails {
   /// Builds and launches the prefilled support email. Consolidates the
   /// participant, experiment, date, version and device details so callers do
   /// not duplicate this logic.
-  Future<void> launchSupportEmail() async {
+  Future<void> launchSupportEmail(String subject) async {
     final exp = experiment;
     final studyCode = participant?.studyCode ?? '';
     final dates = await getStudyDates();
@@ -52,9 +52,9 @@ class ParticipantAndExperimentDetails {
     final deviceInfo = await getDeviceInfo();
 
     await launchEmail(
-      subject: 'Fabla Participant Issue ${exp.login} $studyCode',
+      subject: '$subject ${exp.login} $studyCode',
       body: '''
-Describe the issue you are facing:
+Describe the issue you are facing: i.e I am having troubles updating Study.
 
 Study String: ${exp.login}
 Participant ID: $studyCode
@@ -62,6 +62,8 @@ Date Joined: ${dates.dateJoined ?? ''}
 Date last updated: ${dates.lastUpdated ?? ''}
 App Version: $appVersion
 Device and OS: $deviceInfo
+
+Please attach a screenshot of the issue you are encountering if possible:
 ''',
     );
   }

@@ -162,7 +162,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
     );
   }
 
-  Future<void> launchEmailMethod() => _details.launchSupportEmail();
+  Future<void> launchEmailMethod() => _details.launchSupportEmail("Fabla Participant Issue");
 
 
   /// Shows the manual-update warning. The user must confirm before any

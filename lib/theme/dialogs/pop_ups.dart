@@ -1742,7 +1742,7 @@ class StudyUpdateCompleted extends StatelessWidget {
   }
 }
 
-class StudyUpdateFailed extends StatelessWidget {
+class StudyUpdateFailed extends StatefulWidget {
   /// Dismisses the popup without retrying.
   final VoidCallback onUpdateLater;
 
@@ -1754,6 +1754,27 @@ class StudyUpdateFailed extends StatelessWidget {
     required this.onUpdateLater,
     required this.onRetry,
   });
+
+  @override
+  State<StudyUpdateFailed> createState() => _StudyUpdateFailedState();
+}
+
+class _StudyUpdateFailedState extends State<StudyUpdateFailed> {
+  late final TapGestureRecognizer _contactResearcherRecognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _contactResearcherRecognizer = TapGestureRecognizer()
+      ..onTap = () =>
+          ParticipantAndExperimentDetails().launchSupportEmail("Study Update failed");
+  }
+
+  @override
+  void dispose() {
+    _contactResearcherRecognizer.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1796,7 +1817,7 @@ class StudyUpdateFailed extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CustomFlatButton(
-                      onClick: onUpdateLater,
+                      onClick: widget.onUpdateLater,
                       text: 'Update Later',
                       color: CustomColors.fillWhite,
                       textColor: CustomColors.productNormalActive,
@@ -1805,7 +1826,7 @@ class StudyUpdateFailed extends StatelessWidget {
                   ),
                   Expanded(
                     child: CustomFlatButton(
-                      onClick: onRetry,
+                      onClick: widget.onRetry,
                       text: 'Retry Update',
                     ),
                   ),
@@ -1823,11 +1844,10 @@ class StudyUpdateFailed extends StatelessWidget {
                           .copyWith(
                               decoration: TextDecoration.underline,
                               decorationColor: CustomColors.productNormal),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () => ParticipantAndExperimentDetails()
-                            .launchSupportEmail(),
+                      recognizer: _contactResearcherRecognizer,
                     )
-                  ])),
+                  ]),
+              ),
             ],
           ),
         )
