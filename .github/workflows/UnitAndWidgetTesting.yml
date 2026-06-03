@@ -5,6 +5,15 @@ on:
     branches:
       - main
 
+#least privilege — this job only reads the repo.
+permissions:
+  contents: read
+
+#cancel superseded runs on the same PR instead of stacking them.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -19,20 +28,23 @@ jobs:
           channel: 'stable'
           cache: true # caches the Flutter SDK itself between runs
 
-      - name: Cache pub & dart_tool
+      # cache ONLY ~/.pub-cache. .dart_tool holds build_runner's asset graph and is regenerated cheaply; caching it causes stale/flaky codegen.
+      - name: Cache pub
         uses: actions/cache@v5
         with:
-          path: |
-            ~/.pub-cache
-            .dart_tool
+          path: ~/.pub-cache
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-pub-
 
+      # pass secrets via env + printf so special chars (" $ ` newline) can't break the file or inject into the script.
       - name: Create .env from secrets
+        env:
+          APIKEY: ${{ secrets.APIKEY }}
+          PENDOKEY: ${{ secrets.PENDOKEY }}
         run: |
-          echo "APIKEY=${{ secrets.APIKEY }}" > .env
-          echo "PENDOKEY=${{ secrets.PENDOKEY }}" >> .env
+          printf 'APIKEY=%s\n' "$APIKEY" > .env
+          printf 'PENDOKEY=%s\n' "$PENDOKEY" >> .env
 
       - name: Install dependencies
         run: flutter pub get
@@ -46,7 +58,11 @@ jobs:
 
       - name: Enforce coverage threshold
         run: |
+          set -euo pipefail
+
+          sudo apt-get update
           sudo apt-get install -y lcov
+
           lcov --remove coverage/lcov.info \
             'lib/**/*.g.dart' \
             'lib/**/*.freezed.dart' \
@@ -58,6 +74,18 @@ jobs:
             'lib/core/utils/errorCodes.dart' \
             'lib/core/utils/emailFunction.dart' \
             -o coverage/lcov.info --ignore-errors unused
-          COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep -oP 'lines.*: \K[0-9.]+(?=%)')
+
+          # compute coverage directly from the filtered lcov.info instead of parsing `lcov --summary` text, which changes between lcov 1.x/2.x.
+          COVERAGE=$(awk -F: '/^LF:/{f+=$2} /^LH:/{h+=$2} END{if(f>0) printf "%.1f", h/f*100; else print 0}' coverage/lcov.info)
+
+          if [ -z "$COVERAGE" ]; then
+            echo "Failed to compute coverage"
+            exit 1
+          fi
+
           echo "Coverage: $COVERAGE%"
-          awk "BEGIN {exit !($COVERAGE >= 17)}" || { echo "Coverage below 17%"; exit 1; }
+
+          awk "BEGIN {exit !($COVERAGE >= 18)}" || {
+            echo "Coverage below 18%"
+            exit 1
+          }
