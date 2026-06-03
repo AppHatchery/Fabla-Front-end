@@ -187,7 +187,7 @@ PODS:
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - Pendo (3.13.0.11707)
+  - Pendo (3.13.1.11743)
   - pendo_sdk (3.13.0):
     - Flutter
     - Pendo (~> 3.13.0)
@@ -376,7 +376,7 @@ SPEC CHECKSUMS:
   objectbox_flutter_libs: ed1510f71602e4a0d3f2a721324e468d066fdbb9
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
-  Pendo: 15c97a5e5ab42ccb5299cc665de8dbf1b069ebdf
+  Pendo: 76c1634082c47fa9a2b4de9c2e593ed28b562d0a
   pendo_sdk: 583a1f423590133e211f08dee4cb17eb6abf988a
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47

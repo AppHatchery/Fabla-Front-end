@@ -15,7 +15,6 @@ import 'package:popover/popover.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:rive/rive.dart' as rive;
 
-
 class StudyCalendar extends StatefulWidget {
   final List<StudyModel> studies;
   final ValueChanged<bool> refresh;
@@ -87,6 +86,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
       height: height,
       width: width,
       child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
         controller: controller,
         child: Column(
           children: [
@@ -194,12 +194,15 @@ class _StudyCalendarState extends State<StudyCalendar> {
   void determineAnimationWords() {
     final artboard = _riveController?.artboard;
     if (artboard == null) return;
-    artboard.setText('Days', Intl.plural(activeDates.length,
-        other:
-            "${activeDates.length} days active - You're doing GREAT! Keep working towards the goals",
-        one: "1 day active - You're doing GOOD! Keep working towards the goals",
-        zero:
-            "No days logged yet - Make sure to look out for your upcoming diaries"));
+    artboard.setText(
+        'Days',
+        Intl.plural(activeDates.length,
+            other:
+                "${activeDates.length} days active - You're doing GREAT! Keep working towards the goals",
+            one:
+                "1 day active - You're doing GOOD! Keep working towards the goals",
+            zero:
+                "No days logged yet - Make sure to look out for your upcoming diaries"));
     artboard.setText('Cheer', "");
     artboard.setText('Encouragement', "");
   }
@@ -317,9 +320,13 @@ class _StudyCalendarState extends State<StudyCalendar> {
                     ? CustomColors.productNormalActive
                     : null;
 
+                final isPast = day.isBefore(today);
+
                 final textColor = selectedDate == day
                     ? CustomColors.textWhite
-                    : CustomColors.textTertiaryContent;
+                    : isPast
+                        ? CustomColors.textTertiaryContent
+                        : CustomColors.textNormalContent;
                 return Center(
                   child: Container(
                     width: 33,
@@ -368,7 +375,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
                     ? isDiaryOnEventSubmitted
                         ? CustomColors.productLightPrimaryActive
                         : CustomColors.productBorderNormal
-                    : goal ? CustomColors.productNormalActive : Colors.transparent;
+                    : goal
+                        ? CustomColors.productNormalActive
+                        : Colors.transparent;
                 return Container(
                   width: 7.0,
                   height: 7.0,
@@ -473,6 +482,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
       }
     }
   }
+
   //function to check if the diaries belong to a study with a goal or not
   bool studyGoalCheck(DateTime date) {
     // Get diaries for the specific date
@@ -493,7 +503,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
     for (final diary in diariesForDate) {
       // Find the study that matches this diary
       final study = studies.firstWhere(
-            (s) => s.studyId == diary.studyID,
+        (s) => s.studyId == diary.studyID,
       );
 
       // If diary(s) is not optional display the dot

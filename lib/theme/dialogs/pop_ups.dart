@@ -1103,7 +1103,8 @@ class DeletePopUp extends StatelessWidget {
       contentPadding: const EdgeInsets.all(0),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: Colors.grey, width: 1)),
+          side: const BorderSide(color: Colors.grey, width: 2)),
+      backgroundColor: CustomColors.fillWhite,
       surfaceTintColor: CustomColors.fillWhite,
       children: [
         Container(
@@ -1114,7 +1115,7 @@ class DeletePopUp extends StatelessWidget {
             children: [
               // Title
               Text(
-                title ?? "Delete your response?",
+                title ?? "Do you want to delete your response?",
                 style: CustomTypography().headlineMedium(),
                 textAlign: TextAlign.center,
               ),
@@ -1126,8 +1127,9 @@ class DeletePopUp extends StatelessWidget {
               // Message
               Text(
                 subheader ??
-                    "Deleting a reply only deletes the recording on the device. Continue deleting?",
-                style: CustomTypography().bodyLarge(),
+                    "You won't be able to undo this action",
+                style: CustomTypography().bodyLarge().copyWith(
+                color: CustomColors.textTertiaryContent),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(
@@ -1139,23 +1141,24 @@ class DeletePopUp extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, false),
-                      text: "Cancel",
-                      color: CustomColors.greyLight,
-                      borderColor: CustomColors.greyLight,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 18,
-                  ),
-                  Expanded(
-                    child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, true),
                       text: "Delete",
-                      color: CustomColors.warningActive,
+                      color: CustomColors.fillWhite,
                       borderColor: CustomColors.warningActive,
+                      textColor: CustomColors.warningActive,
                     ),
                   ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: CustomFlatButton(
+                      onClick: () => Navigator.pop(context, false),
+                      text: "Cancel",
+                      color: CustomColors.productNormal,
+                      borderColor: CustomColors.productNormal,
+                      textColor: CustomColors.fillWhite,
+                    ),
+                  ),
+
                 ],
               )
             ],
@@ -1165,6 +1168,7 @@ class DeletePopUp extends StatelessWidget {
     );
   }
 }
+
 
 class ExitPopUp extends StatelessWidget {
   final List<Widget> content;
@@ -1194,7 +1198,8 @@ class ExitPopUp extends StatelessWidget {
                   Expanded(
                     child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, true),
-                      text: "Exit",
+                      text: "Yes, Leave Study",
+                      buttonFontSize: 13,
                       textColor: CustomColors.warningActive,
                       color: CustomColors.fillWhite,
                       borderColor: CustomColors.warningActive,
@@ -1206,7 +1211,8 @@ class ExitPopUp extends StatelessWidget {
                   Expanded(
                     child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, false),
-                      text: "Dismiss",
+                      text: "No, Take Me Back",
+                      buttonFontSize: 13,
                       color: CustomColors.productNormal,
                       borderColor: CustomColors.productNormal,
                     ),
@@ -1220,6 +1226,7 @@ class ExitPopUp extends StatelessWidget {
     );
   }
 }
+
 
 class UpdatePopUp extends StatefulWidget {
   const UpdatePopUp({super.key});

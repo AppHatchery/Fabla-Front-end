@@ -1,5 +1,7 @@
 import 'dart:developer' as dev;
 
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
@@ -614,9 +616,23 @@ class DiaryRepository {
   /// A Future indicating that the operation may be asynchronous and requires awaiting.
   ///
   Future<void> updateDiary(DiaryModel diary) async {
-    final entity = Diary.fromModel(diary);
-    _diaryDAO.updateDiary(entity);
-    invalidateDiaryHistoryCache();
+    try {
+      final entity = Diary.fromModel(diary);
+      _diaryDAO.updateDiary(entity);
+      invalidateDiaryHistoryCache();
+    } catch (e, stackTrace) {
+      dev.log('Failed to update diary: $e', name: 'DiaryRepository - updateDiary');
+      CrashlyticsService().recordError(e, stackTrace,
+          context: {
+            'Diary': diary.name.toString(),
+            'DiaryID': diary.id.toString(),
+            'NewStatus': diary.status.toString(),
+            'CurrentEntry': diary.currentEntry.toString(),
+          },
+          reason:
+              'Failed to persist diary state after successful upload — user may resubmit an already-uploaded diary');
+      rethrow;
+    }
   }
 
   // List<Tag> _getTags(DiaryModel diary) {

@@ -69,6 +69,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   RecorderState recorderState = RecorderState.isStopped;
   final ValueNotifier<bool> _erase = ValueNotifier<bool>(false);
   String? tempUrl;
+  // a flag to check if the recording is active or not
+  bool _recordingCheck = false;
 
   ScrollController scrollController = ScrollController();
 
@@ -162,7 +164,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 children: [
                   GestureDetector(
                     onTap: () => {
-                      Navigator.pop(context),
+                      //setting the tap to null when recording is on to avoid accidental closes
+                      recorder.isRecording ? null : Navigator.pop(context),
                     },
                     child: Icon(
                       CupertinoIcons.clear_circled_solid,
@@ -565,7 +568,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         }
 
         await Future.delayed(const Duration(milliseconds: 150));
-        record();
+        await record();
 
         if (mounted) {
           setState(() {
@@ -581,28 +584,38 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Future<void> record() async {
-    final hasPermission = await checkAndRequestPermission();
-    //Check if scroll controller is already at the bottom
-    if (mounted) {
+    //if recording is active return
+    if(_recordingCheck) return;
+
+    // set recoding to true
+    _recordingCheck = true;
+
+    try{
+      final hasPermission = await checkAndRequestPermission();
+      //TODO:: add a show permission error when recorder has no permission
+      if (!hasPermission) return;
+
+      if (!mounted) return;
+
+      //Check if scroll controller is already at the bottom
       scrollController.animateTo(
         scrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeIn,
       );
-    }
 
-    if (hasPermission) {
-      WakelockPlus.enable();
       if (recorder.isRecording) {
         WakelockPlus.disable();
-        await recorder.pauseRecorder();
         _timer?.cancel();
+        await recorder.pauseRecorder();
       } else if (recorder.isPaused) {
         WakelockPlus.enable();
         await recorder.resumeRecorder();
         startTimer();
       } else {
+        //start fresh
         final path = await getFilePath();
+        WakelockPlus.enable();
         await recorder.startRecorder(toFile: path);
         startTimer();
       }
@@ -614,8 +627,16 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               : RecorderState.isPaused;
         });
       }
-    } else {
-      /* TODO: Show Permission Error */ null;
+
+    } on Exception catch(e) {
+      debugPrint('record() failed: $e');
+
+      //reset state to stopped state
+      if (mounted) setState(() => recorderState = RecorderState.isStopped);
+    }
+    finally {
+      //set recording check back to false
+      _recordingCheck = false;
     }
   }
 
