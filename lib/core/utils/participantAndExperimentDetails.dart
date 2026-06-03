@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../screens/home/data/experiment.dart';
@@ -50,11 +51,12 @@ class ParticipantAndExperimentDetails {
     final dates = await getStudyDates();
     final appVersion = await getAppVersion();
     final deviceInfo = await getDeviceInfo();
+    const String example = "The audio recording stops after 3 seconds and I'm unable to complete the task. This happens every time I try on the second task of the diary.";
 
     await launchEmail(
       subject: '$subject ${exp.login} $studyCode',
       body: '''
-Describe the issue you are facing: i.e I am having troubles updating Study.
+Describe the issue you are facing: e.g. "$example"   
 
 Study String: ${exp.login}
 Participant ID: $studyCode
@@ -63,7 +65,7 @@ Date last updated: ${dates.lastUpdated ?? ''}
 App Version: $appVersion
 Device and OS: $deviceInfo
 
-Please attach a screenshot of the issue you are encountering if possible:
+Please attach screenshots of the error or the screen where you got stuck:
 ''',
     );
   }
