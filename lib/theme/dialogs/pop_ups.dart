@@ -1193,31 +1193,23 @@ class ExitPopUp extends StatelessWidget {
               ...content,
               const SizedBox(height: 24),
               // Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, true),
-                      text: "Yes, Leave Study",
-                      buttonFontSize: 13,
-                      textColor: CustomColors.warningActive,
-                      color: CustomColors.fillWhite,
-                      borderColor: CustomColors.warningActive,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 18,
-                  ),
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, false),
-                      text: "No, Take Me Back",
-                      buttonFontSize: 13,
-                      color: CustomColors.productNormal,
-                      borderColor: CustomColors.productNormal,
-                    ),
-                  ),
-                ],
+              CustomFlatButton(
+                onClick: () => Navigator.pop(context, true),
+                text: "Yes, Leave Study",
+                buttonFontSize: 13,
+                textColor: CustomColors.warningActive,
+                color: CustomColors.fillWhite,
+                borderColor: CustomColors.warningActive,
+              ),
+              const SizedBox(
+                width: 18,
+              ),
+              CustomFlatButton(
+                onClick: () => Navigator.pop(context, false),
+                text: "No, Take Me Back",
+                buttonFontSize: 13,
+                color: CustomColors.productNormal,
+                borderColor: CustomColors.productNormal,
               )
             ],
           ),
