@@ -693,12 +693,11 @@ class _QuestionPageState extends State<QuestionPage>
                         ],
                       ),
                       SizedBox(
-                          height: prompt.responseType == ResponseType.text
-                              ? 24
-                              : (prompt.responseType == ResponseType.radio ||
-                                 prompt.responseType == ResponseType.multiple)
-                                  ? 48
-                                  : 112),
+                          height: (prompt.responseType == ResponseType.text ||
+                                   prompt.responseType == ResponseType.radio ||
+                                   prompt.responseType == ResponseType.multiple)
+                              ? 48
+                              : 112),
                       responseWidget,
                       if (widget.diary.status != DiaryStatus.submitted &&
                           widget.diary.status != DiaryStatus.missed &&
