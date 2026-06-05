@@ -4,7 +4,7 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 
-class AudioQuestionsWidget extends StatefulWidget {
+class AudioQuestionsWidget extends StatelessWidget {
   final DiaryModel diary;
   final PromptModel prompt;
   final int currentPage;
@@ -23,12 +23,8 @@ class AudioQuestionsWidget extends StatefulWidget {
   });
 
   @override
-  State<AudioQuestionsWidget> createState() => _AudioQuestionsWidgetState();
-}
-  class _AudioQuestionsWidgetState extends State<AudioQuestionsWidget> {
-  @override
   Widget build(BuildContext context) {
-    String questionTip = widget.prompt.subtitle ?? "";
+    String questionTip = prompt.subtitle ?? "";
 
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -38,7 +34,7 @@ class AudioQuestionsWidget extends StatefulWidget {
           color: CustomColors.fillWhite,
         ),
         child: SingleChildScrollView(
-          controller: widget.scrollController,
+          controller: scrollController,
           child: Column(
             children: [
               Row(
@@ -47,7 +43,7 @@ class AudioQuestionsWidget extends StatefulWidget {
                   Container(
                       alignment: Alignment.topLeft,
                       child: Text(
-                        "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
+                        "Question ${currentPage + 1}/${diary.prompts.length}",
                         style: CustomTypography().button(),
                       )),
                   const SizedBox(height: 15),
@@ -60,7 +56,7 @@ class AudioQuestionsWidget extends StatefulWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      widget.prompt.question.toString(),
+                      prompt.question.toString(),
                       style: CustomTypography().titleLarge(),
                     ),
                   ),
@@ -78,12 +74,15 @@ class AudioQuestionsWidget extends StatefulWidget {
                 ],
               ),
               const SizedBox(height: 50),
-              Center(child: widget.responseWidget),
-              widget.bottomSheetController == null
+              Center(child: responseWidget),
+              bottomSheetController == null
                   ? Container()
                   : const SizedBox(height: 240),
             ],
           ),
-        ));
+        ),
+
+    );
+
   }
 }

@@ -451,6 +451,7 @@ class _QuestionPageState extends State<QuestionPage>
 
   @override
   void dispose() {
+    _scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
