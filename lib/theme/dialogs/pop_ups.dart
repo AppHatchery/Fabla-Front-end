@@ -1579,12 +1579,11 @@ class StudyUpdatePopUp extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
                 child: Column(
-                  spacing: 12,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Center(
                       child: Image.asset(
-                        'assets/images/icons/studyUpateWarning.png',
+                        'assets/images/icons/studyUpdateWarning.png',
                         height: 60,
                         width: 60,
                       ),
@@ -1594,6 +1593,7 @@ class StudyUpdatePopUp extends StatelessWidget {
                       style: CustomTypography()
                           .headlineMedium(color: CustomColors.warningActive),
                     ),
+                    SizedBox(height: 12,),
                     Text(
                       textAlign: TextAlign.center,
                       'You are trying to make a manual update to the study. Only proceed if you have received a request from your researcher to update your study.',
@@ -1601,7 +1601,7 @@ class StudyUpdatePopUp extends StatelessWidget {
                           .bodyLarge(color: CustomColors.textSecondaryContent),
                     ),
                     SizedBox(
-                      height: 12,
+                      height: 24,
                     ),
                     Row(
                       spacing: 24,
@@ -1797,7 +1797,6 @@ class _StudyUpdateFailedState extends State<StudyUpdateFailed> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
-            spacing: 12,
             children: [
               Image.asset(
                 'assets/images/icons/studyUpdateFailed.png',
@@ -1815,7 +1814,7 @@ class _StudyUpdateFailedState extends State<StudyUpdateFailed> {
                 style: CustomTypography()
                     .bodyLarge(color: CustomColors.textSecondaryContent),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 24),
               Row(
                 spacing: 24,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1837,7 +1836,7 @@ class _StudyUpdateFailedState extends State<StudyUpdateFailed> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 24),
               Text.rich(
                 TextSpan(
                     text: "If the issue persists ",
