@@ -1,5 +1,7 @@
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/calendar_widget.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -11,6 +13,7 @@ import 'dart:io' show Platform;
 import '../../../../services/preference_service.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
+import '../../../home/data/study.dart';
 import '../../domain/entities/participant.dart';
 import '../cubit/setup/setup_cubit.dart';
 import '../widgets/avatar_background.dart';
@@ -32,6 +35,11 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
   late bool isIos;
   late double bottomPadding;
 
+  DateTime _selectedDate = DateTime.now();
+  List<DiaryModel> _diaries = [];
+  List<StudyModel> _studies = [];
+  DiaryModel? _selectedDiary;
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -39,6 +47,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
     setupCubit = BlocProvider.of<SetupCubit>(context);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       scaler = await fontScaler(context);
+      await loadData();
     });
     load();
     super.initState();
@@ -171,10 +180,25 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                               const SizedBox(
                                 height: 12,
                               ),
-                              const CustomCalender(),
+                              CustomCalender(
+                                onDaySelected: (DateTime date) {
+                                  setState(() {
+                                    _selectedDate = date;
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              if (_diaries.isNotEmpty && _selectedDiary != null)
+                                CompleteCalendarWidget(
+                                    diary: _selectedDiary!,
+                                    diaries: _diaries,
+                                    studies: _studies,
+                                    selectedDate: _selectedDate,
+                                ),
                             ]),
                       ),
                     ],
+
                   ),
                 );
               }),
@@ -214,6 +238,16 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
 
   void load() {
     setupCubit.load();
+  }
+
+  Future<void> loadData() async{
+    setState(() {
+      _diaries = [];
+      _studies = [];
+      if (_diaries.isNotEmpty){
+        _selectedDiary = _diaries.first;
+      }
+    });
   }
 
   Widget description() {

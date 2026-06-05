@@ -10,8 +10,10 @@ import '../../../home/data/study.dart';
 import '../../data/diary.dart';
 
 class CustomCalender extends StatefulWidget {
+  final ValueChanged<DateTime>? onDaySelected;
   const CustomCalender({
     super.key,
+    required this.onDaySelected,
   });
 
   @override
@@ -69,6 +71,8 @@ class _CustomCalenderState extends State<CustomCalender> {
         lastDay: DateTime.utc(2060, 3, 14),
         focusedDay: focusedDay,
         currentDay: today,
+        //selectedDay: selectedDate,
+        selectedDayPredicate: (day) => isSameDay(selectedDate, day),
         availableGestures: AvailableGestures.horizontalSwipe,
         headerStyle: const HeaderStyle(
             titleCentered: false,
@@ -84,9 +88,18 @@ class _CustomCalenderState extends State<CustomCalender> {
         startingDayOfWeek: StartingDayOfWeek.monday,
         daysOfWeekHeight: scaler.scale(45),
         rowHeight: rowHeight,
+        onDaySelected: (selectedDay, focusedDay) {
+          setState(() {
+            selectedDate = selectedDay;
+            focusedDay = focusedDay;
+            diaries = fetchDiaries(selectedDay);
+          });
+          widget.onDaySelected?.call(selectedDay);
+        },
         onCalendarCreated: (controller) {
           pageController = controller;
         },
+
         eventLoader: getDiariesForDay,
         calendarBuilders: CalendarBuilders(
           headerTitleBuilder: (context, day) => Padding(

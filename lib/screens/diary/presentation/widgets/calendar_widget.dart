@@ -5,16 +5,19 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class CompleteCalendarWidget extends StatefulWidget {
   final DiaryModel diary;
   final List<DiaryModel> diaries;
   final List<StudyModel> studies;
+  final DateTime selectedDate;
   const CompleteCalendarWidget(
       {super.key,
       required this.diary,
       required this.diaries,
-      required this.studies});
+      required this.studies,
+      required this.selectedDate});
 
   @override
   State<CompleteCalendarWidget> createState() => _CompleteCalendarWidgetState();
@@ -55,18 +58,58 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
           const SizedBox(
             height: 12,
           ),
+          //dynamic title based on the selected date
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: CustomColors.productLightBackground,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    getTitleForSelectedDate(),
+                    textAlign: TextAlign.center,
+                    style: CustomTypography()
+                        .titleSmall(color: CustomColors.productNormal),
+                    ),
+                  ),
+                const SizedBox(height: 12),
+              Text(
               message(),
               textAlign: TextAlign.center,
               style: CustomTypography()
                   .body(color: CustomColors.textSecondaryContent),
             ),
-          )
+        ],
+          ),
+          ),
         ],
       ),
     );
+  }
+
+  String getTitleForSelectedDate() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selected = DateTime(
+        widget.selectedDate.year,
+        widget.selectedDate.month,
+        widget.selectedDate.day
+    );
+
+    final DateFormat formatter = DateFormat('MMM d, yyyy');
+    final formattedDate = formatter.format(selected);
+
+    if (selected.isBefore(today)) {
+      return "Past entries";
+    } else if (selected.isAtSameMomentAs(today)) {
+      return "Today's entries";
+    } else {
+      return "Upcoming entries";
+    }
   }
 
   String message() {
