@@ -1466,7 +1466,11 @@ class CompletedPopUp extends StatelessWidget {
 
 //updating study
 class StudyUpdatePopUp extends StatefulWidget {
-  const StudyUpdatePopUp({super.key});
+  /// When true, the dialog skips the warning and starts in the updating phase,
+  /// triggering the update immediately. Used by flows that already confirmed the update (e.g. after editing onboarding answers).
+  final bool startUpdating;
+
+  const StudyUpdatePopUp({super.key, this.startUpdating = false});
 
   @override
   State<StudyUpdatePopUp> createState() => _StudyUpdatePopUpState();
@@ -1474,16 +1478,24 @@ class StudyUpdatePopUp extends StatefulWidget {
 
 class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
   // pending == the initial warning; the others mirror the update result.
-  UpdateState _phase = UpdateState.pending;
+  late UpdateState _phase;
 
   late final TapGestureRecognizer _contactResearcherRecognizer;
 
   @override
   void initState() {
     super.initState();
+    _phase = widget.startUpdating ? UpdateState.updating : UpdateState.pending;
     _contactResearcherRecognizer = TapGestureRecognizer()
       ..onTap = () => ParticipantAndExperimentDetails()
           .launchSupportEmail("Study Update failed");
+    if (widget.startUpdating) {
+      // Trigger after the first frame so the BlocListener is subscribed and
+      // captures the terminal HubUpdated state.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.read<HubCubit>().update();
+      });
+    }
   }
 
   @override

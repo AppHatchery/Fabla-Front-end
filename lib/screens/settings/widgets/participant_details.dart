@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/utils/participantAndExperimentDetails.dart';
+import '../../../theme/dialogs/pop_ups.dart';
 import '../../home/data/experiment.dart';
 import '../../onboarding/domain/entities/participant.dart';
 
@@ -241,17 +242,30 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
   }
 
   update(List<Questions> questions) async {
-    if (mounted) {
-      final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => SettingsOnboarding(questions: questions),
-              settings: RouteSettings(name: "/SettingsOnboarding")));
+    if (!mounted) return;
 
-      if (result == true) {
-        // Update
-        _hubCubit.update();
-      }
+    final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => SettingsOnboarding(questions: questions),
+            settings: RouteSettings(name: "/SettingsOnboarding")));
+
+    if (result != true || !mounted) return;
+
+    // Editing the answers already confirms intent, so skip the warning: block
+    // if there are pending/submitted diaries today, otherwise go straight to
+    // the updating phase.
+    if (_hubCubit.hasPendingOrSubmittedToday()) {
+      showDialog(
+        context: context,
+        builder: (_) => const StudyUpdateBlockedPopUp(),
+      );
+      return;
     }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const StudyUpdatePopUp(startUpdating: true),
+    );
   }
 }
