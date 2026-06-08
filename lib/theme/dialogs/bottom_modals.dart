@@ -564,9 +564,16 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
         if (tempUrl != null) {
           final file = File(tempUrl!);
-          await file.delete();
+          if (await file.exists()) {
+            try {
+              await file.delete();
+            } catch (e) {
+              dev.log("Error deleting file: $e");
+            }
+          }
         }
 
+        if (!mounted) return;
         await Future.delayed(const Duration(milliseconds: 150));
         await record();
 
@@ -585,12 +592,12 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Future<void> record() async {
     //if recording is active return
-    if(_recordingCheck) return;
+    if (_recordingCheck) return;
 
     // set recoding to true
     _recordingCheck = true;
 
-    try{
+    try {
       final hasPermission = await checkAndRequestPermission();
       //TODO:: add a show permission error when recorder has no permission
       if (!hasPermission) return;
@@ -627,14 +634,12 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               : RecorderState.isPaused;
         });
       }
-
-    } on Exception catch(e) {
+    } on Exception catch (e) {
       debugPrint('record() failed: $e');
 
       //reset state to stopped state
       if (mounted) setState(() => recorderState = RecorderState.isStopped);
-    }
-    finally {
+    } finally {
       //set recording check back to false
       _recordingCheck = false;
     }
