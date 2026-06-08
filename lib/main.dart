@@ -22,7 +22,6 @@ import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
-import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -264,10 +263,9 @@ class _HubState extends State<Hub>
       key: key,
       child: BlocConsumer<HubCubit, HubState>(
         listener: (context, state) {
-          if (state is HubUpdating) {
-            showUpdateDialog();
-          } else if (state is HubUpdated) {
-            completeUpdate(state.complete);
+          //only refresh the content tree once an update succeeds or a refresh is requested.
+          if (state is HubUpdated && state.complete) {
+            refresh();
           } else if (state is HubRefreshing) {
             refresh();
           }
@@ -356,30 +354,6 @@ class _HubState extends State<Hub>
     ]);
   }
 
-  void completeUpdate(bool completed) {
-    if (!mounted) return;
-
-    // Close the in-progress "Updating Study" spinner.
-    Navigator.of(context).pop();
-
-    // Show the terminal result popup.
-    showDialog(
-      context: context,
-      builder: (dialogContext) => completed
-          ? const StudyUpdateCompleted()
-          : StudyUpdateFailed(
-              onUpdateLater: () => Navigator.of(dialogContext).pop(),
-              onRetry: () {
-                Navigator.of(dialogContext).pop();
-                cubit.update();
-              },
-            ),
-    );
-
-    // Only the content tree needs rebuilding when the update succeeded.
-    if (completed) refresh();
-  }
-
   void refresh() {
     if (mounted) {
       setState(() {
@@ -389,12 +363,4 @@ class _HubState extends State<Hub>
     }
   }
 
-  void showUpdateDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      routeSettings: const RouteSettings(name: "/UpdateModal"),
-      builder: (_) => const StudyUpdatingPopUp(),
-    );
-  }
 }

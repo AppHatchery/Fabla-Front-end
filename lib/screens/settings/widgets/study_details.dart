@@ -165,24 +165,23 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
   Future<void> launchEmailMethod() => _details.launchSupportEmail("Fabla Participant Issue");
 
 
-  /// Shows the manual-update warning. The user must confirm before any
-  /// gating check or update runs.
+  /// Entry point for the manual study update. Blocks first when there are
+  /// pending/submitted diaries today; otherwise opens the single morphing
+  /// dialog, which drives the update itself and shows progress/result.
   void _showUpdateWarning() {
-    // The popup shows the blocker layout when there are pending/submitted
-    // diaries today, otherwise the warning layout with a Proceed button.
+    if (_hubCubit.hasPendingOrSubmittedToday()) {
+      showDialog(
+        context: context,
+        builder: (_) => const StudyUpdateBlockedPopUp(),
+      );
+      return;
+    }
     showDialog(
       context: context,
-      builder: (_) => StudyUpdatePopUp(
-        onProceed: _onUpdateProceed,
-        pendingOrSubmitted: _hubCubit.hasPendingOrSubmittedToday(),
-      ),
+      barrierDismissible: false,
+      builder: (_) => const StudyUpdatePopUp(),
     );
   }
-
-  /// Runs only when the user confirms the warning (Proceed is shown solely
-  /// when there are no pending/submitted diaries), so it just triggers the
-  /// update. The progress/result popups are driven by the Hub's BlocConsumer.
-  void _onUpdateProceed() => _hubCubit.update();
 
   void viewStudyDetails() async {
     if (experiment != null) {
