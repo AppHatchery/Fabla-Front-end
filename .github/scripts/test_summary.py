@@ -106,7 +106,7 @@ def main():
                 cov_icon = " ✅" if float(coverage) >= float(threshold) else " ❌"
             except ValueError:
                 cov_icon = ""
-        lines.append(f"**In-scope line coverage: {coverage}%{gate}**{cov_icon}")
+        lines.append(f"**Test Coverage: {coverage}%{gate}**{cov_icon}")
         lines.append("")
 
     if failures:
