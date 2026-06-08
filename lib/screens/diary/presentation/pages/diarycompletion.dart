@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/ghost_widget.dart';
+import 'package:audio_diaries_flutter/services/review_service.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart'
     show FailedSubmissionCard;
 import 'package:flutter/material.dart';
@@ -48,6 +49,9 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage>
                 builder: (context) => const Hub(),
                 settings: RouteSettings(name: "/Hub")),
             (route) => false);
+        if (widget.submissionFailed != true) {
+          InAppReviewService().maybeRequestReview();
+        }
       },
       child: Scaffold(
         backgroundColor: CustomColors.fillWhite,
@@ -139,6 +143,9 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage>
                             builder: (context) => const Hub(),
                             settings: RouteSettings(name: "/Hub")),
                         (route) => false);
+                    if (widget.submissionFailed != true) {
+                      InAppReviewService().maybeRequestReview();
+                    }
                   },
                   text: "Return Home",
                   color: CustomColors.productNormal,

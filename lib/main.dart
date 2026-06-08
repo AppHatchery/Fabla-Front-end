@@ -20,6 +20,7 @@ import 'package:audio_diaries_flutter/screens/settings/cubit/settings_cubit.dart
 import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
+import 'package:audio_diaries_flutter/services/review_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
@@ -67,6 +68,7 @@ void main() async {
   await Alarm.init();
   await NotificationService.init();
   await PendoService.init();
+  await InAppReviewService().recordActiveDay();
   final route = await RouteService().getRoute();
   await _configureFirebase();
   runApp(MyApp(

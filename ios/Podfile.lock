@@ -168,6 +168,8 @@ PODS:
   - GoogleUtilities/UserDefaults (8.1.0):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
+  - in_app_review (2.0.0):
+    - Flutter
   - integration_test (0.0.1):
     - Flutter
   - IosAwnCore (0.11.0)
@@ -232,6 +234,7 @@ DEPENDENCIES:
   - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
   - flutter_secure_storage_darwin (from `.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
   - flutter_sound (from `.symlinks/plugins/flutter_sound/ios`)
+  - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - location (from `.symlinks/plugins/location/ios`)
   - objectbox_flutter_libs (from `.symlinks/plugins/objectbox_flutter_libs/ios`)
@@ -306,6 +309,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_secure_storage_darwin/darwin"
   flutter_sound:
     :path: ".symlinks/plugins/flutter_sound/ios"
+  in_app_review:
+    :path: ".symlinks/plugins/in_app_review/ios"
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
   location:
@@ -368,6 +373,7 @@ SPEC CHECKSUMS:
   GoogleAppMeasurement: 3b4687de50ab25ee2d4d541849f10ca8df862a12
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
+  in_app_review: 7dd1ea365263f834b8464673f9df72c80c17c937
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
   IosAwnCore: 32019505f4a4909fa9079ee401b2c82aeeab78a8
   location: 155caecf9da4f280ab5fe4a55f94ceccfab838f8
