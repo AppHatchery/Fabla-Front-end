@@ -10,10 +10,8 @@ import '../../../home/data/study.dart';
 import '../../data/diary.dart';
 
 class CustomCalender extends StatefulWidget {
-  final ValueChanged<DateTime>? onDaySelected;
   const CustomCalender({
     super.key,
-    required this.onDaySelected,
   });
 
   @override
@@ -50,29 +48,23 @@ class _CustomCalenderState extends State<CustomCalender> {
   Widget build(BuildContext context) {
     final scaler = MediaQuery.of(context).textScaler;
     final scaled = scaler.scale(56);
-    final rowHeight = scaled < 100
-        ? 60.0
-        : scaled < 130
-            ? 72.0
-            : 80.0;
+    final rowHeight = scaled < 100 ? 60.0 : scaled < 130 ? 72.0 : 80.0;
 
     final today =
-        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     return Container(
       decoration: BoxDecoration(
           color: CustomColors.fillWhite,
           borderRadius: BorderRadius.circular(12),
           shape: BoxShape.rectangle,
           border:
-              Border.all(color: CustomColors.productBorderNormal, width: 2)),
+          Border.all(color: CustomColors.productBorderNormal, width: 2)),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
       child: TableCalendar(
         firstDay: DateTime.utc(2010, 10, 16),
         lastDay: DateTime.utc(2060, 3, 14),
         focusedDay: focusedDay,
         currentDay: today,
-        //selectedDay: selectedDate,
-        selectedDayPredicate: (day) => isSameDay(selectedDate, day),
         availableGestures: AvailableGestures.horizontalSwipe,
         headerStyle: const HeaderStyle(
             titleCentered: false,
@@ -88,18 +80,9 @@ class _CustomCalenderState extends State<CustomCalender> {
         startingDayOfWeek: StartingDayOfWeek.monday,
         daysOfWeekHeight: scaler.scale(45),
         rowHeight: rowHeight,
-        onDaySelected: (selectedDay, focusedDay) {
-          setState(() {
-            selectedDate = selectedDay;
-            focusedDay = focusedDay;
-            diaries = fetchDiaries(selectedDay);
-          });
-          widget.onDaySelected?.call(selectedDay);
-        },
         onCalendarCreated: (controller) {
           pageController = controller;
         },
-
         eventLoader: getDiariesForDay,
         calendarBuilders: CalendarBuilders(
           headerTitleBuilder: (context, day) => Padding(
@@ -171,15 +154,11 @@ class _CustomCalenderState extends State<CustomCalender> {
           },
           defaultBuilder: (context, day, focusedDay) {
             final color =
-                selectedDate == day ? CustomColors.productNormal : null;
-
-            final isPast = day.isBefore(today);
+            selectedDate == day ? CustomColors.productNormal : null;
 
             final textColor = selectedDate == day
                 ? CustomColors.textWhite
-                : isPast
-                    ? CustomColors.textTertiaryContent
-                    : CustomColors.textNormalContent;
+                : CustomColors.textTertiaryContent;
             return Center(
               child: Container(
                 width: scaler.scale(33),
@@ -222,8 +201,8 @@ class _CustomCalenderState extends State<CustomCalender> {
             final color = isBeforeToday
                 ? CustomColors.textTertiaryContent
                 : goal
-                    ? CustomColors.productNormalActive
-                    : Colors.transparent;
+                ? CustomColors.productNormalActive
+                : Colors.transparent;
             return Container(
               width: 7.0,
               height: 7.0,
@@ -289,7 +268,7 @@ class _CustomCalenderState extends State<CustomCalender> {
     for (final diary in diariesForDate) {
       // Find the study that matches this diary
       final study = studies.firstWhere(
-        (s) => s.studyId == diary.studyID,
+            (s) => s.studyId == diary.studyID,
       );
 
       // If diary(s) is not optional display the dot

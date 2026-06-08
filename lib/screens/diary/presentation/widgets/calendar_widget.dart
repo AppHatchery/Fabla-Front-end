@@ -5,19 +5,16 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class CompleteCalendarWidget extends StatefulWidget {
   final DiaryModel diary;
   final List<DiaryModel> diaries;
   final List<StudyModel> studies;
-  final DateTime selectedDate;
   const CompleteCalendarWidget(
       {super.key,
-      required this.diary,
-      required this.diaries,
-      required this.studies,
-      required this.selectedDate});
+        required this.diary,
+        required this.diaries,
+        required this.studies});
 
   @override
   State<CompleteCalendarWidget> createState() => _CompleteCalendarWidgetState();
@@ -58,72 +55,32 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
           const SizedBox(
             height: 12,
           ),
-          //dynamic title based on the selected date
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: CustomColors.productLightBackground,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    getTitleForSelectedDate(),
-                    textAlign: TextAlign.center,
-                    style: CustomTypography()
-                        .titleSmall(color: CustomColors.productNormal),
-                    ),
-                  ),
-                const SizedBox(height: 12),
-              Text(
+            child: Text(
               message(),
               textAlign: TextAlign.center,
               style: CustomTypography()
                   .body(color: CustomColors.textSecondaryContent),
             ),
-        ],
-          ),
-          ),
+          )
         ],
       ),
     );
   }
 
-  String getTitleForSelectedDate() {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final selected = DateTime(
-        widget.selectedDate.year,
-        widget.selectedDate.month,
-        widget.selectedDate.day
-    );
-
-    final DateFormat formatter = DateFormat('MMM d, yyyy');
-    final formattedDate = formatter.format(selected);
-
-    if (selected.isBefore(today)) {
-      return "Past entries";
-    } else if (selected.isAtSameMomentAs(today)) {
-      return "Today's entries";
-    } else {
-      return "Upcoming entries";
-    }
-  }
-
   String message() {
     final allEntries =
-        widget.diaries.fold(0, (sum, diary) => sum + diary.currentEntry);
+    widget.diaries.fold(0, (sum, diary) => sum + diary.currentEntry);
 
     final weeklyGoals =
-        widget.studies.fold(0, (sum, study) => sum + study.goals.weekly);
+    widget.studies.fold(0, (sum, study) => sum + study.goals.weekly);
 
     final diariesForToday = widget.diaries
         .where((element) =>
-            element.due.year == widget.diary.due.year &&
-            element.due.month == widget.diary.due.month &&
-            element.due.day == widget.diary.due.day)
+    element.due.year == widget.diary.due.year &&
+        element.due.month == widget.diary.due.month &&
+        element.due.day == widget.diary.due.day)
         .toList();
 
     final diaryIds = diariesForToday.map((diary) => diary.studyID).toSet();
@@ -133,7 +90,7 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
         .toList();
 
     final goal =
-        studiesForTheDay.fold(0, (sum, study) => sum + study.goals.daily);
+    studiesForTheDay.fold(0, (sum, study) => sum + study.goals.daily);
 
     final entriesLeftToday = goal - currentEntryCount;
 
@@ -196,24 +153,24 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
     DateTime monday = now.subtract(Duration(days: now.weekday - 1));
 
     final List<DateTime> _days =
-        List.generate(7, (index) => monday.add(Duration(days: index)));
+    List.generate(7, (index) => monday.add(Duration(days: index)));
 
     for (final d in _days) {
       final isToday = d.weekday == today;
       final diaries = widget.diaries
           .where(
             (element) => element.start.day == d.day,
-          )
+      )
           .toList();
       final diaryIds = diaries.map((diary) => diary.studyID).toSet();
       final studies =
-          widget.studies.where((study) => diaryIds.contains(study.studyId));
+      widget.studies.where((study) => diaryIds.contains(study.studyId));
 
       final max = studies.fold(0, (sum, study) => sum + study.goals.daily);
       final current = diaries.isNotEmpty
           ? diaries
-              .where((diary) => diary.status == DiaryStatus.submitted)
-              .length
+          .where((diary) => diary.status == DiaryStatus.submitted)
+          .length
           : 0;
       final isAfter = d.isAfter(now);
 
@@ -222,8 +179,8 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
       final percentage = max <= 0
           ? current / 1.0
           : (current / max).isNaN || (current / max).isInfinite
-              ? 0.0
-              : current / max;
+          ? 0.0
+          : current / max;
 
       if (d.day == now.day && mounted) {
         setState(() {
