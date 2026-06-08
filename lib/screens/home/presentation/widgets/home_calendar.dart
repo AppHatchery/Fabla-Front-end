@@ -430,7 +430,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
           ),
           Text(
             DateFormat("MMM d, yyyy").format(selectedDate),
-            style: CustomTypography().titleLarge(),
+            style: CustomTypography().titleMedium(),
           ),
         ],
       ),
