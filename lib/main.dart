@@ -263,10 +263,7 @@ class _HubState extends State<Hub>
       key: key,
       child: BlocConsumer<HubCubit, HubState>(
         listener: (context, state) {
-          //only refresh the content tree once an update succeeds or a refresh is requested.
-          if (state is HubUpdated && state.complete) {
-            refresh();
-          } else if (state is HubRefreshing) {
+          if (state is HubRefreshing) {
             refresh();
           }
         },

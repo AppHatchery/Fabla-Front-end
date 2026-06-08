@@ -1514,6 +1514,12 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
     context.read<HubCubit>().update();
   }
 
+  // Closes the success dialog and refreshes the Hub.
+  void _exit() {
+    context.read<HubCubit>().refresh();
+    Navigator.pop(context);
+  }
+
   // Maps Hub states to phases. HubInitial (emitted right after HubUpdated) and
   // HubRefreshing are ignored so a finished result is not reset. The success
   // state stays open until the user closes it via the X.
@@ -1559,7 +1565,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       UpdateState.pending => _buildInitial(),
       UpdateState.updating => _buildUpdating(),
       UpdateState.complete => _buildSuccess(),
-      UpdateState.failed  => _buildError(),
+      UpdateState.failed => _buildError(),
     };
   }
 
@@ -1646,11 +1652,9 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
   List<Widget> _buildSuccess() {
     return [
       Align(
-        alignment: Alignment.lerp(Alignment.topRight,
-            Alignment.bottomLeft,
-            0)!,
+        alignment: Alignment.lerp(Alignment.topRight, Alignment.bottomLeft, 0)!,
         child: GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: _exit,
           child: const Icon(Icons.close, size: 24),
         ),
       ),
@@ -1807,8 +1811,7 @@ class StudyUpdateBlockedPopUp extends StatelessWidget {
                               .bodyLarge(color: CustomColors.pumpkinOrange),
                           children: [
                             TextSpan(
-                              text:
-                                  "diaries submitted or pending submissions ",
+                              text: "diaries submitted or pending submissions ",
                               style: CustomTypography().bodyLarge(
                                   color: CustomColors.pumpkinOrange,
                                   weight: FontWeight.bold),
