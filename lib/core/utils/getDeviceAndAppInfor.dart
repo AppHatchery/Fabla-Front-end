@@ -13,7 +13,7 @@ Future<String> getDeviceInfo() async {
     return '${info.model} Android ${info.version.release}';
   } else if (Platform.isIOS) {
     final info = await plugin.iosInfo;
-    return '${info.utsname.machine} iOS ${info.systemVersion}';
+    return '${info.modelName} iOS ${info.systemVersion}';
   }
 
   return 'Unknown';
