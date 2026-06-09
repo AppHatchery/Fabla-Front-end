@@ -20,12 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      # Honest baseline: test/coverage_helper_test.dart forces every lib file
-      # into the report, so this % is lower than the old (inflated) 17. Baseline
-      # was 16.96%; now ~40.7% after repo + formatter + cubit + widget tests +
-      # pure-logic usecases + onboarding pages/widgets + settings_onboarding +
-      # diary summary/goal paths (seeded-store harness). Kept ~one point below
-      # actual for cushion. Ratchet up as more lands: -> 50 -> 75.
       MIN_COVERAGE: "18"
     steps:
       - uses: actions/checkout@v6
