@@ -259,10 +259,10 @@ class SetupRepository {
           final SharedPreferences lastUpdated =
               await SharedPreferences.getInstance();
 
-          final lastUpdatedDate = DateFormat('yyyy-MM-dd').format(today);
+          final lastUpdatedDate = DateFormat('dd/MM/yyyy').format(today);
 
           await lastUpdated.setString(
-              'last_Updated', "$lastUpdatedDate"); // store today's date
+              'last_Updated', lastUpdatedDate); // store today's date
           dev.log('Value added successfully!');
         } else {
           clearStudies();
@@ -643,7 +643,8 @@ class SetupRepository {
       }
     }
 
-    final String finalDate = extras['date_adjuster'].toString();
+    final finalDate = DateFormat('dd/MM/yyyy').format(date);
+    extras['date_adjuster'] = finalDate;
     //store the date the person has finished onboarding, we will use this as date joined
     if (!dateJoined.containsKey('date_joined')) {
       await dateJoined.setString(
