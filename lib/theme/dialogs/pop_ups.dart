@@ -8,8 +8,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../core/utils/emailFunction.dart';
-import '../../core/utils/participantAndExperimentDetails.dart';
+import '../../core/utils/email_function.dart';
+import '../../core/utils/participant_experiment_details.dart';
 import '../../core/utils/statuses.dart';
 import '../../screens/hub/presentation/cubit/hub_cubit.dart';
 import '../components/buttons.dart';

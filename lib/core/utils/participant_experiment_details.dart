@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../screens/home/data/experiment.dart';
 import '../../screens/onboarding/domain/entities/participant.dart';
 import '../../screens/onboarding/domain/repository/setup_repository.dart';
-import 'emailFunction.dart';
-import 'getDeviceAndAppInfor.dart';
+import 'email_function.dart';
+import 'device_appInfo.dart';
 
 /// Immutable holder for the study dates persisted in shared preferences.
 class StudyDates {
