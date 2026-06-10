@@ -1127,10 +1127,10 @@ class DeletePopUp extends StatelessWidget {
 
               // Message
               Text(
-                subheader ?? "You won't be able to undo this action",
-                style: CustomTypography()
-                    .bodyLarge()
-                    .copyWith(color: CustomColors.textTertiaryContent),
+                subheader ??
+                    "You won't be able to undo this action",
+                style: CustomTypography().bodyLarge().copyWith(
+                color: CustomColors.textTertiaryContent),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(
@@ -1159,6 +1159,7 @@ class DeletePopUp extends StatelessWidget {
                       textColor: CustomColors.fillWhite,
                     ),
                   ),
+
                 ],
               )
             ],
@@ -1763,16 +1764,12 @@ class StudyUpdateBlockedPopUp extends StatelessWidget {
                   width: 60,
                 ),
               ),
-              SizedBox(
-                height: 12,
-              ),
+              SizedBox(height: 12,),
               Text(
                 'Update Study',
                 style: CustomTypography().headlineMedium(),
               ),
-              SizedBox(
-                height: 12,
-              ),
+              SizedBox(height: 12,),
               Container(
                 width: width,
                 padding: const EdgeInsets.all(16),

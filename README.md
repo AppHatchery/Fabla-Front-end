@@ -503,3 +503,5 @@ Contributions are welcome. To get started:
 5. Open a pull request against `main`; CI must pass before review
 
 For larger changes, open an issue first to discuss the approach.
+
+Changes to sensitive paths (CI workflows, Firebase config, and CODEOWNERS itself) will automatically request a maintainer review — see [`.github/CODEOWNERS`](.github/CODEOWNERS) for the full list.

@@ -24,7 +24,13 @@ class ObjectBox {
   /// ```
   static Future<ObjectBox> create() async {
     final dir = await getApplicationDocumentsDirectory();
-    final store = await openStore(directory: p.join(dir.path, "database"));
+    final path = p.join(dir.path, "database");
+    // Use attach() if a store is already open at this path (e.g. when a
+    // Firebase background message isolate calls main() while the foreground
+    // isolate already holds the store open).
+    final store = Store.isOpen(path)
+        ? Store.attach(getObjectBoxModel(), path)
+        : await openStore(directory: path);
     return ObjectBox._create(store);
   }
 }
