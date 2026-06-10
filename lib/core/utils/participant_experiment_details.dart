@@ -68,4 +68,22 @@ Please attach screenshots of the error or the screen where you got stuck:
 ''',
     );
   }
+
+  Future<void> loginSupportEmail() async {
+    final appVersion = await getAppVersion();
+    final deviceInfo = await getDeviceInfo();
+    const String example = "The audio recording stops after 3 seconds and I'm unable to complete the task. This happens every time I try on the second task of the diary.";
+
+    await launchEmail(
+      subject: 'Fabla Participant Login Issue',
+      body: '''
+Describe the issue you are facing: e.g. "$example"   
+
+App Version: $appVersion
+Device and OS: $deviceInfo
+
+Please attach screenshots of the error or the screen where you got stuck:
+''',
+    );
+  }
 }
