@@ -156,7 +156,7 @@ class SummaryRepository {
               submissions: submissions);
         }
 
-       await diaryRepository.updateDiary(newDiary);
+        await diaryRepository.updateDiary(newDiary);
 
         // Cancel notifications if diary is complete
         // Schedule daily goal notifications if diary is not complete
@@ -171,9 +171,16 @@ class SummaryRepository {
       } else {
         return false;
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       dev.log("Error submitting diary: $e",
           name: "SummaryRepository - submitDiary");
+      CrashlyticsService().recordError(e, stackTrace,
+          context: {
+            'Diary': diary.name.toString(),
+            'DiaryID': diary.id.toString(),
+            'CurrentEntry': diary.currentEntry.toString(),
+          },
+          reason: 'Unhandled exception in submitDiary - SummaryRepository');
       return false;
     }
   }

@@ -51,14 +51,14 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
             children: [
               Text(
                 period,
-                style: CustomTypography().titleLarge(
+                style: CustomTypography().button(
                     color: widget.isEnabled
                         ? CustomColors.textNormalContent
                         : CustomColors.textTertiaryContent),
               ),
               Text(
                 localizations.formatTimeOfDay(timeOfDay),
-                style: CustomTypography().titleMedium(
+                style: CustomTypography().bodyMedium(
                     color: widget.isEnabled
                         ? CustomColors.textNormalContent
                         : CustomColors.textTertiaryContent),
@@ -73,7 +73,7 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
                   icon: Icon(
                     Icons.edit_outlined,
                     color: widget.isEnabled
-                        ? CustomColors.productNormal
+                        ? CustomColors.textSecondaryContent
                         : CustomColors.textTertiaryContent,
                     size: 24,
                   )),

@@ -5,10 +5,14 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../core/utils/emailFunction.dart';
+import '../../core/utils/email_function.dart';
+import '../../core/utils/participant_experiment_details.dart';
+import '../../core/utils/statuses.dart';
+import '../../screens/hub/presentation/cubit/hub_cubit.dart';
 import '../components/buttons.dart';
 import '../components/checkboxes.dart';
 import '../custom_colors.dart';
@@ -1104,7 +1108,8 @@ class DeletePopUp extends StatelessWidget {
       contentPadding: const EdgeInsets.all(0),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: Colors.grey, width: 1)),
+          side: const BorderSide(color: Colors.grey, width: 2)),
+      backgroundColor: CustomColors.fillWhite,
       surfaceTintColor: CustomColors.fillWhite,
       children: [
         Container(
@@ -1115,7 +1120,7 @@ class DeletePopUp extends StatelessWidget {
             children: [
               // Title
               Text(
-                title ?? "Delete your response?",
+                title ?? "Do you want to delete your response?",
                 style: CustomTypography().headlineMedium(),
                 textAlign: TextAlign.center,
               ),
@@ -1127,8 +1132,9 @@ class DeletePopUp extends StatelessWidget {
               // Message
               Text(
                 subheader ??
-                    "Deleting a reply only deletes the recording on the device. Continue deleting?",
-                style: CustomTypography().bodyLarge(),
+                    "You won't be able to undo this action",
+                style: CustomTypography().bodyLarge().copyWith(
+                color: CustomColors.textTertiaryContent),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(
@@ -1140,23 +1146,24 @@ class DeletePopUp extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, false),
-                      text: "Cancel",
-                      color: CustomColors.greyLight,
-                      borderColor: CustomColors.greyLight,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 18,
-                  ),
-                  Expanded(
-                    child: CustomFlatButton(
                       onClick: () => Navigator.pop(context, true),
                       text: "Delete",
-                      color: CustomColors.warningActive,
+                      color: CustomColors.fillWhite,
                       borderColor: CustomColors.warningActive,
+                      textColor: CustomColors.warningActive,
                     ),
                   ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: CustomFlatButton(
+                      onClick: () => Navigator.pop(context, false),
+                      text: "Cancel",
+                      color: CustomColors.productNormal,
+                      borderColor: CustomColors.productNormal,
+                      textColor: CustomColors.fillWhite,
+                    ),
+                  ),
+
                 ],
               )
             ],
@@ -1190,31 +1197,23 @@ class ExitPopUp extends StatelessWidget {
               ...content,
               const SizedBox(height: 24),
               // Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, true),
-                      text: "Yes, Leave Study",
-                      buttonFontSize: 13,
-                      textColor: CustomColors.warningActive,
-                      color: CustomColors.fillWhite,
-                      borderColor: CustomColors.warningActive,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 18,
-                  ),
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, false),
-                      text: "No, Take Me Back",
-                      buttonFontSize: 13,
-                      color: CustomColors.productNormal,
-                      borderColor: CustomColors.productNormal,
-                    ),
-                  ),
-                ],
+              CustomFlatButton(
+                onClick: () => Navigator.pop(context, true),
+                text: "Yes, Leave Study",
+                buttonFontSize: 13,
+                textColor: CustomColors.warningActive,
+                color: CustomColors.fillWhite,
+                borderColor: CustomColors.warningActive,
+              ),
+              const SizedBox(
+                width: 18,
+              ),
+              CustomFlatButton(
+                onClick: () => Navigator.pop(context, false),
+                text: "No, Take Me Back",
+                buttonFontSize: 13,
+                color: CustomColors.productNormal,
+                borderColor: CustomColors.productNormal,
               )
             ],
           ),
@@ -1461,145 +1460,154 @@ class CompletedPopUp extends StatelessWidget {
   }
 }
 
-enum _UpdateDialogPhase { initial, updating, success, error }
+//updating study
+class StudyUpdatePopUp extends StatefulWidget {
+  /// When true, the dialog skips the warning and starts in the updating phase,
+  /// triggering the update immediately. Used by flows that already confirmed the update (e.g. after editing onboarding answers).
+  final bool startUpdating;
 
-class ScheduleUpdatePopUp extends StatefulWidget {
-  final ValueNotifier<UpdateState?> completeNotifier;
-  final VoidCallback onUpdateNow;
-
-  const ScheduleUpdatePopUp({
-    super.key,
-    required this.completeNotifier,
-    required this.onUpdateNow,
-  });
+  const StudyUpdatePopUp({super.key, this.startUpdating = false});
 
   @override
-  State<ScheduleUpdatePopUp> createState() => _ScheduleUpdatePopUpState();
+  State<StudyUpdatePopUp> createState() => _StudyUpdatePopUpState();
 }
 
-class _ScheduleUpdatePopUpState extends State<ScheduleUpdatePopUp> {
-  _UpdateDialogPhase _phase = _UpdateDialogPhase.initial;
+class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
+  // pending == the initial warning; the others mirror the update result.
+  late UpdateState _phase;
+
+  late final TapGestureRecognizer _contactResearcherRecognizer;
 
   @override
   void initState() {
     super.initState();
-    widget.completeNotifier.addListener(_onComplete);
-  }
-
-  @override
-  void dispose() {
-    widget.completeNotifier.removeListener(_onComplete);
-    super.dispose();
-  }
-
-  void _onComplete() {
-    final value = widget.completeNotifier.value;
-    if (value == null) return;
-    setState(() {
-      _phase = switch (value) {
-        UpdateState.complete => _UpdateDialogPhase.success,
-        UpdateState.failed ||
-        UpdateState.connectionError =>
-          _UpdateDialogPhase.error,
-        UpdateState.updating => _UpdateDialogPhase.updating,
-        UpdateState.pending => _UpdateDialogPhase.initial,
-      };
-    });
-    if (value == UpdateState.complete) {
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) Navigator.pop(context, 'success');
+    _phase = widget.startUpdating ? UpdateState.updating : UpdateState.pending;
+    _contactResearcherRecognizer = TapGestureRecognizer()
+      ..onTap = () => ParticipantAndExperimentDetails()
+          .launchSupportEmail("Study Update failed");
+    if (widget.startUpdating) {
+      // Trigger after the first frame so the BlocListener is subscribed and
+      // captures the terminal HubUpdated state.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.read<HubCubit>().update();
       });
     }
   }
 
+  @override
+  void dispose() {
+    _contactResearcherRecognizer.dispose();
+    super.dispose();
+  }
+
   void _startUpdate() {
-    setState(() => _phase = _UpdateDialogPhase.updating);
-    widget.onUpdateNow();
+    setState(() => _phase = UpdateState.updating);
+    context.read<HubCubit>().update();
   }
 
   void _retry() {
-    widget.completeNotifier.value = null;
-    setState(() => _phase = _UpdateDialogPhase.updating);
-    widget.onUpdateNow();
+    setState(() => _phase = UpdateState.updating);
+    context.read<HubCubit>().update();
+  }
+
+  // Closes the success dialog and refreshes the Hub.
+  void _exit() {
+    context.read<HubCubit>().refresh();
+    Navigator.pop(context);
+  }
+
+  // Maps Hub states to phases. HubInitial (emitted right after HubUpdated) and
+  // HubRefreshing are ignored so a finished result is not reset. The success
+  // state stays open until the user closes it via the X.
+  void _onHubState(BuildContext context, HubState state) {
+    if (state is HubUpdating) {
+      setState(() => _phase = UpdateState.updating);
+    } else if (state is HubUpdated) {
+      setState(() =>
+          _phase = state.complete ? UpdateState.complete : UpdateState.failed);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    return SimpleDialog(
-      contentPadding: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: const BorderSide(color: CustomColors.fillDisabled, width: 2),
-      ),
-      surfaceTintColor: CustomColors.fillWhite,
-      children: [
-        Container(
-          width: width - 70,
-          constraints: const BoxConstraints.tightFor(),
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 32),
-          decoration: BoxDecoration(
-            color: CustomColors.fillWhite,
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-          ),
-          child: Center(
-            child: Column(
-              spacing: 12,
-              children: _buildContent(),
+    return BlocListener<HubCubit, HubState>(
+      listener: _onHubState,
+      child: SimpleDialog(
+        backgroundColor: CustomColors.fillWhite,
+        contentPadding: const EdgeInsets.all(0),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: Colors.grey, width: 2)),
+        surfaceTintColor: CustomColors.fillWhite,
+        children: [
+          Container(
+            width: width - 70,
+            constraints: const BoxConstraints.tightFor(),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+            child: Center(
+              child: Column(
+                children: _buildContent(),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   List<Widget> _buildContent() {
     return switch (_phase) {
-      _UpdateDialogPhase.initial => _buildInitial(),
-      _UpdateDialogPhase.updating => _buildUpdating(),
-      _UpdateDialogPhase.success => _buildSuccess(),
-      _UpdateDialogPhase.error => _buildError(),
+      UpdateState.pending => _buildInitial(),
+      UpdateState.updating => _buildUpdating(),
+      UpdateState.complete => _buildSuccess(),
+      UpdateState.failed => _buildError(),
     };
   }
 
   List<Widget> _buildInitial() {
     return [
-      Container(
-        width: 60,
-        height: 60,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: CustomColors.productLightPrimaryActive,
-        ),
-        child: const Center(
-          child: Icon(Icons.sync_rounded,
-              size: 40, color: CustomColors.productNormal),
+      Center(
+        child: Image.asset(
+          'assets/images/icons/studyUpdateWarning.png',
+          height: 60,
+          width: 60,
         ),
       ),
+      const SizedBox(height: 12),
       Text(
-        "Your study has an update",
-        style: CustomTypography().headlineMedium(),
+        'Warning',
+        style: CustomTypography()
+            .headlineMedium(color: CustomColors.warningActive),
+      ),
+      const SizedBox(height: 12),
+      Text(
+        'You are trying to make a manual update to the study. Only proceed if you have received a request from your researcher to update your study.',
         textAlign: TextAlign.center,
+        style: CustomTypography()
+            .bodyLarge(color: CustomColors.textSecondaryContent),
       ),
-      Text(
-          'Your researcher has made an update to the study, which may include changes to wording or instructions. Please update to continue with the latest version.',
-          style: CustomTypography()
-              .bodyMedium(color: CustomColors.textSecondaryContent),
-          textAlign: TextAlign.center),
-      Text(
-          'If you have questions about the changes, please contact your researcher.',
-          style: CustomTypography()
-              .bodyMedium(color: CustomColors.textSecondaryContent),
-          textAlign: TextAlign.center),
+      const SizedBox(height: 24),
       Row(
+        spacing: 24,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: CustomFlatButton(
               onClick: _startUpdate,
-              text: "Update Now",
-              color: CustomColors.productNormal,
+              text: 'Proceed',
               textColor: CustomColors.fillWhite,
-              borderColor: CustomColors.productNormal,
+              color: CustomColors.warningActive,
+              borderColor: CustomColors.warningActive,
+            ),
+          ),
+          Expanded(
+            child: CustomFlatButton(
+              onClick: () => Navigator.pop(context),
+              text: 'Take Me Back',
+              textColor: CustomColors.backgroundPrimary,
+              color: CustomColors.fillWhite,
+              borderColor: CustomColors.backgroundPrimary,
             ),
           ),
         ],
@@ -1614,162 +1622,211 @@ class _ScheduleUpdatePopUpState extends State<ScheduleUpdatePopUp> {
         height: 40,
         child: Padding(
           padding: EdgeInsets.all(5.0),
-          child: Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 5,
-              color: CustomColors.productNormal,
-              strokeCap: StrokeCap.round,
-            ),
+          child: CircularProgressIndicator(
+            strokeWidth: 5,
+            color: CustomColors.productNormal,
+            strokeCap: StrokeCap.round,
           ),
         ),
       ),
+      const SizedBox(height: 12),
       Text(
-        "Updating Study",
-        style: CustomTypography().headlineMedium(),
+        'Updating Study',
         textAlign: TextAlign.center,
+        style: CustomTypography().headlineMedium(),
       ),
+      const SizedBox(height: 12),
       Text(
         "Hang tight! We're updating the experiment content. This won't take long!",
+        textAlign: TextAlign.center,
         style: CustomTypography()
             .bodyMedium(color: CustomColors.textSecondaryContent),
-        textAlign: TextAlign.center,
       ),
     ];
   }
 
   List<Widget> _buildSuccess() {
     return [
-      Container(
-        width: 60,
-        height: 60,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Color(0xFFD4F0DA),
-        ),
-        child: const Center(
-          child: Icon(Icons.check_rounded,
-              size: 40, color: CustomColors.darkGreen),
+      Align(
+        alignment: Alignment.lerp(Alignment.topRight, Alignment.bottomLeft, 0)!,
+        child: GestureDetector(
+          onTap: _exit,
+          child: const Icon(Icons.close, size: 24),
         ),
       ),
+      Center(
+        child: Image.asset(
+          'assets/images/icons/studyUpdateCompleted.png',
+          height: 60,
+          width: 60,
+        ),
+      ),
+      const SizedBox(height: 12),
       Text(
-        "Update Successful",
+        'Study Update Successful',
+        textAlign: TextAlign.center,
         style: CustomTypography().headlineMedium(),
-        textAlign: TextAlign.center,
       ),
+      const SizedBox(height: 12),
       Text(
-        "Your study has been updated successfully",
-        style: CustomTypography()
-            .bodyMedium(color: CustomColors.textSecondaryContent),
+        'Your study has been updated to the latest version.',
         textAlign: TextAlign.center,
+        style: CustomTypography()
+            .bodyLarge(color: CustomColors.textSecondaryContent),
       ),
     ];
   }
 
   List<Widget> _buildError() {
-    final connectivityError =
-        widget.completeNotifier.value == UpdateState.connectionError;
     return [
-      Container(
-        width: 60,
+      Image.asset(
+        'assets/images/icons/studyUpdateFailed.png',
         height: 60,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: CustomColors.warningFill,
-        ),
-        child: const Center(
-          child: Icon(Icons.close_rounded,
-              size: 40, color: CustomColors.warningNormal),
-        ),
+        width: 60,
       ),
+      const SizedBox(height: 12),
       Text(
-        "Update Failed",
-        style: CustomTypography().headlineMedium(),
+        'Study Update Failed',
         textAlign: TextAlign.center,
+        style: CustomTypography().headlineMedium(),
       ),
-      if (connectivityError)
-        RichText(
-          textAlign: TextAlign.center,
-          text: TextSpan(
-            style: CustomTypography()
-                .bodyMedium(color: CustomColors.textSecondaryContent),
-            children: [
-              const TextSpan(
-                  text:
-                      "Your study was not updated. Please check your internet connection and try again or update later under "),
-              TextSpan(
-                text: "Settings > Study Details",
-                style: CustomTypography()
-                    .bodyMedium(color: CustomColors.textSecondaryContent)
-                    .copyWith(fontStyle: FontStyle.italic),
-              ),
-              const TextSpan(text: "."),
-            ],
-          ),
-        )
-      else
-        RichText(
-          textAlign: TextAlign.center,
-          text: TextSpan(
-            style: CustomTypography()
-                .bodyMedium(color: CustomColors.textSecondaryContent),
-            children: [
-              const TextSpan(
-                  text:
-                      "Your study was not updated. Retry update or try later under "),
-              TextSpan(
-                text: "Settings > Study Details",
-                style: CustomTypography()
-                    .bodyMedium(color: CustomColors.textSecondaryContent)
-                    .copyWith(fontStyle: FontStyle.italic),
-              ),
-              const TextSpan(text: "."),
-            ],
-          ),
-        ),
+      const SizedBox(height: 12),
+      Text(
+        'Your study was not updated. Check your internet connection and retry update or try again later through settings.',
+        textAlign: TextAlign.center,
+        style: CustomTypography()
+            .bodyLarge(color: CustomColors.textSecondaryContent),
+      ),
+      const SizedBox(height: 24),
       Row(
+        spacing: 24,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: CustomFlatButton(
-              onClick: () => Navigator.pop(context, 'update_later'),
-              text: "Update Later",
+              onClick: () => Navigator.pop(context),
+              text: 'Update Later',
               color: CustomColors.fillWhite,
               textColor: CustomColors.productNormalActive,
               borderColor: CustomColors.productNormalActive,
             ),
           ),
-          const SizedBox(width: 8),
           Expanded(
             child: CustomFlatButton(
               onClick: _retry,
-              text: "Retry Update",
-              color: CustomColors.productNormal,
-              textColor: CustomColors.fillWhite,
-              borderColor: CustomColors.productNormal,
+              text: 'Retry Update',
             ),
           ),
         ],
       ),
-      RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan(
-          style: CustomTypography().bodyMedium(),
+      const SizedBox(height: 24),
+      Text.rich(TextSpan(
+          text: "If the issue persists ",
+          style: CustomTypography().bodyLarge(),
           children: [
-            const TextSpan(text: "If the issue persists, "),
             TextSpan(
               text: "contact researcher",
-              recognizer: TapGestureRecognizer()
-                ..onTap = () => launchEmail(
-                      subject: "Study Update Issue",
-                      body: "I encountered an issue while updating my study.",
-                    ),
-              style: CustomTypography().bodyMedium().copyWith(
-                    color: CustomColors.productNormalActive,
-                    decoration: TextDecoration.underline,
-                  ),
-            ),
-          ],
-        ),
-      ),
+              style: CustomTypography()
+                  .bodyLarge(color: CustomColors.productNormal)
+                  .copyWith(
+                      decoration: TextDecoration.underline,
+                      decorationColor: CustomColors.productNormal),
+              recognizer: _contactResearcherRecognizer,
+            )
+          ])),
     ];
+  }
+}
+
+// submitted or pending submission for the day.
+class StudyUpdateBlockedPopUp extends StatelessWidget {
+  const StudyUpdateBlockedPopUp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    return SimpleDialog(
+      backgroundColor: CustomColors.fillWhite,
+      contentPadding: const EdgeInsets.all(0),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Colors.grey, width: 2)),
+      surfaceTintColor: CustomColors.fillWhite,
+      children: [
+        Container(
+          constraints: const BoxConstraints.tightFor(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: const Icon(Icons.close, size: 24),
+                ),
+              ),
+              Center(
+                child: Image.asset(
+                  'assets/images/icons/StudyUpdate.png',
+                  height: 60,
+                  width: 60,
+                ),
+              ),
+              SizedBox(height: 12,),
+              Text(
+                'Update Study',
+                style: CustomTypography().headlineMedium(),
+              ),
+              SizedBox(height: 12,),
+              Container(
+                width: width,
+                padding: const EdgeInsets.all(16),
+                decoration: ShapeDecoration(
+                  color: const Color(0xFFFFF8DE),
+                  shape: RoundedRectangleBorder(
+                    side: const BorderSide(
+                        width: 2, color: CustomColors.pumpkinOrange),
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                ),
+                child: Row(
+                  spacing: 8,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.asset(
+                      'assets/images/icons/warning.png',
+                      height: 24,
+                      width: 24,
+                      color: CustomColors.pumpkinOrange,
+                    ),
+                    Expanded(
+                      child: Text.rich(TextSpan(
+                          text: "You have ",
+                          style: CustomTypography()
+                              .bodyLarge(color: CustomColors.pumpkinOrange),
+                          children: [
+                            TextSpan(
+                              text: "diaries submitted or pending submissions ",
+                              style: CustomTypography().bodyLarge(
+                                  color: CustomColors.pumpkinOrange,
+                                  weight: FontWeight.bold),
+                            ),
+                            TextSpan(
+                              text:
+                                  "for the day. You cannot update the study right now. Please check again at the start of tomorrow.",
+                              style: CustomTypography()
+                                  .bodyLarge(color: CustomColors.pumpkinOrange),
+                            )
+                          ])),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }

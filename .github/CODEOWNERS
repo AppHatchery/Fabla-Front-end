@@ -1,0 +1,7 @@
+# CI / build pipeline
+/.github/workflows/     @BuchiNy
+/.github/ISSUE_TEMPLATE/   @BuchiNy
+/.github/PULL_REQUEST_TEMPLATE/   @BuchiNy
+/.github/CODEOWNERS   @Wiza-Munthali
+
+/lib/firebase_options.dart   @Wiza-Munthali
