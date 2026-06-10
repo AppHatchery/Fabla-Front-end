@@ -41,10 +41,28 @@ class ParticipantAndExperimentDetails {
     );
   }
 
+  ///saves the date joined (only if not already saved)
+  Future<void> saveDateJoined() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getString('date_joined') == null) {
+      final now = DateTime.now();
+      final dateOnly = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+      await prefs.setString('date_joined', dateOnly);
+    }
+  }
+
+  ///saves the last updated date (overwrites previous value)
+  Future<void> saveLastUpdated() async {
+    final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now();
+    final dateOnly = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    await prefs.setString('last_Updated', dateOnly);
+  }
+
   /// Builds and launches the prefilled support email. Consolidates the
   /// participant, experiment, date, version and device details so callers do
   /// not duplicate this logic.
-  Future<void> launchSupportEmail(String subject) async {
+  Future<void> launchSupportEmail(String subject, String body) async {
     final exp = experiment;
     final studyCode = participant?.studyCode ?? '';
     final dates = await getStudyDates();
@@ -55,7 +73,7 @@ class ParticipantAndExperimentDetails {
     await launchEmail(
       subject: '$subject ${exp.login} $studyCode',
       body: '''
-Describe the issue you are facing: e.g. "$example"   
+$body: e.g. "$example"
 
 Study String: ${exp.login}
 Participant ID: $studyCode
@@ -69,15 +87,18 @@ Please attach screenshots of the error or the screen where you got stuck:
     );
   }
 
-  Future<void> loginSupportEmail() async {
+  Future<void> loginSupportEmail(String? subject, String body, String example) async {
     final appVersion = await getAppVersion();
     final deviceInfo = await getDeviceInfo();
-    const String example = "The audio recording stops after 3 seconds and I'm unable to complete the task. This happens every time I try on the second task of the diary.";
+
+    if (subject == null || subject.isEmpty) {
+      subject = "Fabla Participant Login Issue";
+    }
 
     await launchEmail(
-      subject: 'Fabla Participant Login Issue',
+      subject: subject,
       body: '''
-Describe the issue you are facing: e.g. "$example"   
+$body: e.g. $example
 
 App Version: $appVersion
 Device and OS: $deviceInfo

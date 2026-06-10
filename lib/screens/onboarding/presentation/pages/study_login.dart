@@ -11,10 +11,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:math' show pi;
 import 'package:rive/rive.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io' show Platform;
-
-import '../../../../core/utils/emailFunction.dart';
+import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../services/pendo_service.dart';
 
 class StudyLogin extends StatefulWidget {
@@ -143,7 +142,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
 
                     return initialLogin();
                   },
-                  listener: (context, state) {
+                  listener: (context, state) async{
                     if (state is StudyLoginError) {
                       setState(() {
                         error = true;
@@ -151,6 +150,11 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                       });
                     } else if (state is StudyLoginSuccess) {
                       error = false;
+                      //save study data
+                      final details = ParticipantAndExperimentDetails();
+                      await details.saveDateJoined();
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('study_string', controller.text.trim());
                       int spent = timer.stop();
                       track(spent, "Finished");
                       RouteService().navigate(
@@ -306,32 +310,16 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
       }
   }
 
-  // Future<void> launchEmail() async {
-  //   final uri = Uri(
-  //       scheme: "mailto",
-  //       path: "fabla@emory.edu",
-  //       query: encodeQueryParameters(<String, String>{
-  //         'subject': 'Need help with the study string',
-  //         'body': 'I have a problem with accessing the study: '
-  //       }));
-  //
-  //   await launchUrl(uri);
-  // }
-
-
   Future<void> launchEmail() async {
-    await EmailLauncher.launchLoginEmail();
+    await ParticipantAndExperimentDetails().loginSupportEmail(
+        "Fabla Participant Login Issue",
+        "Describe the issue you are facing:",
+        "I do not know my study string"
+    );
   }
 
   Future<void> track(int spent, String status) async {
     await PendoService.track("Study Login",
         {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
-
-  // String? encodeQueryParameters(Map<String, String> params) {
-  //   return params.entries
-  //       .map((MapEntry<String, String> e) =>
-  //           '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-  //       .join('&');
-  // }
 }

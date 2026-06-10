@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/utils/participant_experiment_details.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/verification_code.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -10,10 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rive/rive.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io' show Platform;
-
-import '../../../../core/utils/emailFunction.dart';
 import '../../../../theme/custom_colors.dart';
 
 class LoginPage extends StatefulWidget {
@@ -145,10 +144,15 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                     return Center(child: loading(height - 200));
                   }
                   return initialLogin();
-                }, listener: (context, state) {
+                }, listener: (context, state) async {
                   if (state is LoginSuccess) {
                     error = false;
                     warning = false;
+                    ///save participant data
+                    final details = ParticipantAndExperimentDetails();
+                    await details.saveDateJoined();
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setString('participant_id', controller.text.trim());
                     RouteService().navigate(null,
                         context: context, current: 'participant_login');
                   } else if (state is LoginWarning) {
@@ -308,22 +312,15 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
-  // Future<void> launchEmail() async {
-  //   final uri = Uri(
-  //       scheme: "mailto",
-  //       path: "fabla@emory.edu",
-  //       query: encodeQueryParameters(<String, String>{
-  //         'subject': 'Fabla Participant Login Issue',
-  //         'body': 'Describe the issue you are facing:'
-  //             'App version: $version'
-  //             ''
-  //       }));
-  //
-  //   await launchUrl(uri);
-  // }
+
   Future<void> launchEmail() async{
-    await EmailLauncher.launchLoginEmail();
+    await ParticipantAndExperimentDetails().loginSupportEmail(
+      "Fabla Participant Login Issue",
+      "Describe the issue you are facing",
+      "I do not know my participant ID"
+    );
   }
+
 
   void getAppVersion() async {
     final packageInfo = await PackageInfo.fromPlatform();
@@ -334,10 +331,5 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     }
   }
 
-  // String? encodeQueryParameters(Map<String, String> params) {
-  //   return params.entries
-  //       .map((MapEntry<String, String> e) =>
-  //           '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-  //       .join('&');
-  // }
+
 }

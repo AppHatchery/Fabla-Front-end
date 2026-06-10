@@ -22,6 +22,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 import '../../core/utils/formatter.dart';
+import '../../core/utils/participant_experiment_details.dart';
 import '../../core/utils/statuses.dart';
 import '../../screens/diary/data/diary.dart';
 import '../custom_icons.dart';
@@ -1691,13 +1692,12 @@ class WebViewErrorCard extends StatelessWidget {
     );
   }
 
-  _launchEmail() async {
-    launchEmail(
-        subject: '$title – Assistance Needed',
-        body:
-            '''$title was encountered. Please investigate and advise on next steps.
-        
-        
+  Future<void> _launchEmail() async {
+    await ParticipantAndExperimentDetails().launchSupportEmail(
+        '$title – Assistance Needed',
+'''$title was encountered. Please investigate and advise on next steps.
+
+
 Participant ID: ''');
   }
 }

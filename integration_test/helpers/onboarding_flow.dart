@@ -15,16 +15,17 @@ Future<void> onboardingFlow(WidgetTester tester) async {
   await tester.tap(find.byType(CustomFlatButton).at(0));
   await tester.pumpAndSettle();
 
-  // Study Information page
-  await tester.tap(find.byType(CustomFlatButton).at(0));
-  await tester.pumpAndSettle();
-  await Future.delayed(const Duration(seconds: 2));
-
   // Participant login page
   await tester.enterText(find.byType(VerificationCodeTextField), '54');
   await Future.delayed(const Duration(seconds: 2));
   await tester.tap(find.byType(CustomFlatButton).at(0));
   await tester.pump(const Duration(seconds: 2));
+
+  // Study Information page
+  await tester.tap(find.byType(CustomFlatButton).at(0));
+  await tester.pumpAndSettle();
+  await Future.delayed(const Duration(seconds: 2));
+
 
   // Welcome page
   for (int i = 0; i < 5; i++) {

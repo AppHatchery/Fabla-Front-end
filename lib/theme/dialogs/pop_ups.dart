@@ -6,9 +6,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import '../../core/utils/email_function.dart';
 import '../../core/utils/participant_experiment_details.dart';
 import '../../core/utils/statuses.dart';
 import '../../screens/hub/presentation/cubit/hub_cubit.dart';
@@ -1130,10 +1127,10 @@ class DeletePopUp extends StatelessWidget {
 
               // Message
               Text(
-                subheader ??
-                    "You won't be able to undo this action",
-                style: CustomTypography().bodyLarge().copyWith(
-                color: CustomColors.textTertiaryContent),
+                subheader ?? "You won't be able to undo this action",
+                style: CustomTypography()
+                    .bodyLarge()
+                    .copyWith(color: CustomColors.textTertiaryContent),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(
@@ -1162,7 +1159,6 @@ class DeletePopUp extends StatelessWidget {
                       textColor: CustomColors.fillWhite,
                     ),
                   ),
-
                 ],
               )
             ],
@@ -1373,15 +1369,10 @@ class StudyInfoPopUp extends StatelessWidget {
   }
 
   Future<void> launchEmail() async {
-    final uri = Uri(
-        scheme: "mailto",
-        path: "fabla@emory.edu",
-        query: encodeQueryParameters(<String, String>{
-          'subject': 'Need help with the study code',
-          'body': 'I have a problem with accessing the study: '
-        }));
-
-    await launchUrl(uri);
+    await ParticipantAndExperimentDetails().loginSupportEmail(
+        "Fabla Participant Login Issue",
+        "Describe the issue you are facing:",
+        "I do not know my study string");
   }
 }
 
@@ -1482,8 +1473,8 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
     super.initState();
     _phase = widget.startUpdating ? UpdateState.updating : UpdateState.pending;
     _contactResearcherRecognizer = TapGestureRecognizer()
-      ..onTap = () => ParticipantAndExperimentDetails()
-          .launchSupportEmail("Study Update failed");
+      ..onTap = () => ParticipantAndExperimentDetails().launchSupportEmail(
+          "Study Update failed", "Describe the issue you are facing");
     if (widget.startUpdating) {
       // Trigger after the first frame so the BlocListener is subscribed and
       // captures the terminal HubUpdated state.
@@ -1772,12 +1763,16 @@ class StudyUpdateBlockedPopUp extends StatelessWidget {
                   width: 60,
                 ),
               ),
-              SizedBox(height: 12,),
+              SizedBox(
+                height: 12,
+              ),
               Text(
                 'Update Study',
                 style: CustomTypography().headlineMedium(),
               ),
-              SizedBox(height: 12,),
+              SizedBox(
+                height: 12,
+              ),
               Container(
                 width: width,
                 padding: const EdgeInsets.all(16),
