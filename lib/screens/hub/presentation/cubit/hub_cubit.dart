@@ -1,6 +1,7 @@
 import 'package:audio_diaries_flutter/core/usecases/experiment_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -36,21 +37,60 @@ class HubCubit extends Cubit<HubState> {
         diary.status == DiaryStatus.complete);
   }
 
-  update() async {
+  /// Returns true if any of today's diaries are in-progress or have been
+  /// recorded but not yet submitted. Used to defer a pending update by a day.
+  bool hasOngoingOrCompleteToday() {
+    final diaries = _diaryRepository.getDailyDiaries(DateTime.now());
+    return diaries.any((diary) =>
+        diary.status == DiaryStatus.ongoing ||
+        diary.status == DiaryStatus.complete);
+  }
+
+  void update() async {
     emit(HubUpdating());
     final done = await _experimentManager.update();
 
-    if (done) {
+    if (done == true) {
       await _experimentManager.setUpdateStatus(UpdateStatus.none);
+      return emit(HubUpdated());
     }
 
-    emit(HubUpdated(done));
+    emit(HubUpdateFailed(connectionError: done == null));
 
     emit(const HubInitial());
   }
 
   void scheduleForLater() async {
-    await _experimentManager.setUpdateStatus(UpdateStatus.pending);
+    await _rescheduleWithNotification();
+  }
+
+  // Fixed ID so re-scheduling always replaces the previous notification.
+  static const int _studyUpdateNotificationId = 900001;
+
+  /// Saves the pending status + next-day date, then schedules a notification
+  /// 15 minutes before the first diary of that day starts.
+  Future<void> _rescheduleWithNotification() async {
+    final pendingDate = await _experimentManager.reschedule();
+
+    final diaries = _diaryRepository.getDiaries(pendingDate);
+    if (diaries.isEmpty) return;
+
+    final earliest = diaries.reduce(
+      (a, b) => a.start.isBefore(b.start) ? a : b,
+    );
+
+    final notificationTime =
+        earliest.start.subtract(const Duration(minutes: 15));
+    if (notificationTime.isBefore(DateTime.now())) return;
+
+    await NotificationService.createNotification(
+      id: _studyUpdateNotificationId,
+      title: 'Study Update Available',
+      body:
+          'Your first entry for the day begins in 15 minutes! Before you proceed, please update the study by clicking here.',
+      date: notificationTime.toUtc(),
+      payload: {'type': 'study_update'},
+    );
   }
 
   void refresh() {
@@ -58,11 +98,21 @@ class HubCubit extends Cubit<HubState> {
   }
 
   void checkForUpdates() async {
-    final state = await _experimentManager.checkForUpdates();
-    if (state == UpdateStatus.available) {
+    final status = await _experimentManager.checkForUpdates();
+    if (status == UpdateStatus.available) {
       emit(HubUpdateAvailable());
-    } else if (state == UpdateStatus.pending) {
-      // TODO: cross-check scheduled job
+    } else if (status == UpdateStatus.pending) {
+      final pendingDate = await _experimentManager.getPendingDate();
+      if (pendingDate == null || DateTime.now().isBefore(pendingDate)) return;
+
+      // Scheduled date has arrived — check for blocking diaries.
+      if (hasOngoingOrCompleteToday()) {
+        // User has active or unsubmitted diaries; defer by another day.
+        await _rescheduleWithNotification();
+      } else {
+        await _experimentManager.setUpdateStatus(UpdateStatus.available);
+        emit(HubUpdateAvailable());
+      }
     }
   }
 }

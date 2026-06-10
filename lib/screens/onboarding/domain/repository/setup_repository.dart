@@ -644,7 +644,6 @@ class SetupRepository {
     }
 
     final finalDate = DateFormat('dd/MM/yyyy').format(date);
-    extras['date_adjuster'] = finalDate;
     //store the date the person has finished onboarding, we will use this as date joined
     if (!dateJoined.containsKey('date_joined')) {
       await dateJoined.setString(
@@ -685,6 +684,15 @@ class SetupRepository {
 
     if (result) {
       final res = await getStudies(partialCleanDB: partialCleanDB);
+      if (res != true) {
+        // getStudies failed — the server already has protocol_acknowledged=true
+        // but local content was never refreshed. Roll back the acknowledgment
+        // so checkForUpdates still surfaces the update on the next attempt.
+        extras['protocol_acknowledged'] = false;
+        extras.remove('protocol_acknowledged_at');
+        map['extras'] = jsonEncode(extras);
+        await post(path: "/fabla/updateuserextras", body: map);
+      }
       return res;
     }
 

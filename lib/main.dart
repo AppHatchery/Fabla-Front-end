@@ -22,6 +22,8 @@ import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart'
+    show StudyUpdatePopUp;
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -210,6 +212,7 @@ class _HubState extends State<Hub>
   ];
 
   final isAndroid = Platform.isAndroid;
+  bool _updateDialogShowing = false;
 
   @override
   void initState() {
@@ -270,7 +273,14 @@ class _HubState extends State<Hub>
           if (state is HubRefreshing) {
             refresh();
           } else if (state is HubUpdateAvailable) {
-            showScheduleUpdateDialog();
+            if (_updateDialogShowing) return;
+            _updateDialogShowing = true;
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) =>
+                  const StudyUpdatePopUp(state: UpdateState.available),
+            ).whenComplete(() => _updateDialogShowing = false);
           }
         },
         builder: (context, state) {
@@ -318,7 +328,7 @@ class _HubState extends State<Hub>
     );
   }
 
-  startPendo() async {
+  void startPendo() async {
     final repository = SetupRepository();
     final participant = repository.getParticipant();
     final experiment = repository.getExperiment();
@@ -326,7 +336,7 @@ class _HubState extends State<Hub>
         participant!.studyCode.toString(), experiment.login);
   }
 
-  _makeNavBars() {
+  void _makeNavBars() {
     final repository = DiaryRepository();
     final diaries = repository.getAllDiaries();
     final count = diaries
@@ -365,5 +375,4 @@ class _HubState extends State<Hub>
       });
     }
   }
-
 }

@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/settings/cubit/settings_cubit.dart';
@@ -167,8 +168,7 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                               Text(
                                 dateJoined ?? "-",
                                 style: CustomTypography().bodyMedium(
-                                    color:
-                                        CustomColors.textTertiaryContent),
+                                    color: CustomColors.textTertiaryContent),
                               ),
                             ],
                           )
@@ -180,13 +180,12 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
           ),
         ),
         if (!hasNoOBQuestions)
-        surveyTile(width, date: date, questions: questions)
+          surveyTile(width, date: date, questions: questions)
       ],
     );
   }
 
-  Widget surveyTile(double width,
-      {String? date, List<Questions>? questions}) {
+  Widget surveyTile(double width, {String? date, List<Questions>? questions}) {
     final hasSurvey = date != null && questions != null;
 
     final tile = Container(
@@ -265,7 +264,7 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const StudyUpdatePopUp(startUpdating: true),
+      builder: (_) => const StudyUpdatePopUp(state: UpdateState.updating),
     );
   }
 }
