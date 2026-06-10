@@ -1,21 +1,39 @@
 import 'package:audio_diaries_flutter/core/usecases/experiment_manager.dart';
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-// Mock class using mocktail
+// Mock classes using mocktail
 class MockExperimentManager extends Mock implements ExperimentManager {}
 
+class MockDiaryRepository extends Mock implements DiaryRepository {}
+
+class MockDiaryModel extends Mock implements DiaryModel {}
+
 void main() {
+  // getDailyDiaries takes a DateTime; mocktail's any() needs a fallback for it.
+  setUpAll(() {
+    registerFallbackValue(DateTime(2020));
+  });
+
   group('HubCubit', () {
     late HubCubit hubCubit;
     late MockExperimentManager mockExperimentManager;
+    late MockDiaryRepository mockDiaryRepository;
 
     setUp(() {
       mockExperimentManager = MockExperimentManager();
-      // Create HubCubit with injected mock
-      hubCubit = HubCubit(experimentManager: mockExperimentManager);
+      mockDiaryRepository = MockDiaryRepository();
+      // Create HubCubit with injected mocks so no real ObjectBox-backed
+      // DiaryRepository is constructed in the test environment.
+      hubCubit = HubCubit(
+        experimentManager: mockExperimentManager,
+        diaryRepository: mockDiaryRepository,
+      );
     });
 
     tearDown(() {
@@ -32,7 +50,10 @@ void main() {
         build: () {
           when(() => mockExperimentManager.update())
               .thenAnswer((_) async => false);
-          return HubCubit(experimentManager: mockExperimentManager);
+          return HubCubit(
+            experimentManager: mockExperimentManager,
+            diaryRepository: mockDiaryRepository,
+          );
         },
         act: (cubit) => cubit.update(),
         expect: () => [
@@ -50,7 +71,10 @@ void main() {
         build: () {
           when(() => mockExperimentManager.update())
               .thenAnswer((_) async => true);
-          return HubCubit(experimentManager: mockExperimentManager);
+          return HubCubit(
+            experimentManager: mockExperimentManager,
+            diaryRepository: mockDiaryRepository,
+          );
         },
         act: (cubit) => cubit.update(),
         expect: () => [
@@ -68,7 +92,10 @@ void main() {
         build: () {
           when(() => mockExperimentManager.update())
               .thenThrow(Exception('Test exception'));
-          return HubCubit(experimentManager: mockExperimentManager);
+          return HubCubit(
+            experimentManager: mockExperimentManager,
+            diaryRepository: mockDiaryRepository,
+          );
         },
         act: (cubit) => cubit.update(),
         expect: () => [
@@ -87,7 +114,10 @@ void main() {
         build: () {
           when(() => mockExperimentManager.update())
               .thenAnswer((_) async => false);
-          return HubCubit(experimentManager: mockExperimentManager);
+          return HubCubit(
+            experimentManager: mockExperimentManager,
+            diaryRepository: mockDiaryRepository,
+          );
         },
         act: (cubit) async {
           await cubit.update();
@@ -117,7 +147,10 @@ void main() {
             await Future.delayed(const Duration(milliseconds: 10));
             return true;
           });
-          return HubCubit(experimentManager: mockExperimentManager);
+          return HubCubit(
+            experimentManager: mockExperimentManager,
+            diaryRepository: mockDiaryRepository,
+          );
         },
         act: (cubit) async {
           // Start multiple concurrent calls
@@ -138,6 +171,49 @@ void main() {
           verify(() => mockExperimentManager.update()).called(2);
         },
       );
+    });
+
+    group('hasPendingOrSubmittedToday', () {
+      DiaryModel diaryWithStatus(DiaryStatus status) {
+        final diary = MockDiaryModel();
+        when(() => diary.status).thenReturn(status);
+        return diary;
+      }
+
+      test('returns false when there are no diaries today', () {
+        when(() => mockDiaryRepository.getDailyDiaries(any())).thenReturn([]);
+        expect(hubCubit.hasPendingOrSubmittedToday(), isFalse);
+      });
+
+      test('returns true when a diary is pending submission (complete)', () {
+        // Build the diary mocks (which call when() internally) before
+        // stubbing getDailyDiaries to avoid a nested when() call.
+        final diaries = [
+          diaryWithStatus(DiaryStatus.idle),
+          diaryWithStatus(DiaryStatus.complete),
+        ];
+        when(() => mockDiaryRepository.getDailyDiaries(any()))
+            .thenReturn(diaries);
+        expect(hubCubit.hasPendingOrSubmittedToday(), isTrue);
+      });
+
+      test('returns true when a diary is already submitted', () {
+        final diaries = [diaryWithStatus(DiaryStatus.submitted)];
+        when(() => mockDiaryRepository.getDailyDiaries(any()))
+            .thenReturn(diaries);
+        expect(hubCubit.hasPendingOrSubmittedToday(), isTrue);
+      });
+
+      test('returns false for idle/ongoing/missed diaries only', () {
+        final diaries = [
+          diaryWithStatus(DiaryStatus.idle),
+          diaryWithStatus(DiaryStatus.ongoing),
+          diaryWithStatus(DiaryStatus.missed),
+        ];
+        when(() => mockDiaryRepository.getDailyDiaries(any()))
+            .thenReturn(diaries);
+        expect(hubCubit.hasPendingOrSubmittedToday(), isFalse);
+      });
     });
 
     group('state equality', () {

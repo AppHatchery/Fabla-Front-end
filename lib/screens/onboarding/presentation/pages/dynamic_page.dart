@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
-import 'package:audio_diaries_flutter/core/utils/emailFunction.dart'
+import 'package:audio_diaries_flutter/core/utils/email_function.dart'
     show launchEmail;
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';

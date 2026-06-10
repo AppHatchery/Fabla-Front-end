@@ -76,10 +76,10 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
         scrolledUnderElevation: 0.0,
         leading: IconButton(
             onPressed: () => {
-                  track(timer.stop(), "Back"),
-                  RouteService()
-                      .navigateBack(context: context, current: 'active_dates')
-                },
+              track(timer.stop(), "Back"),
+              RouteService()
+                  .navigateBack(context: context, current: 'active_dates')
+            },
             icon: const Icon(
               Icons.arrow_back_rounded,
               color: CustomColors.fillWhite,
@@ -146,7 +146,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                             image: "",
                             avatarType: "animation",
                             animation:
-                                "assets/animations/onboarding/active_dates.riv",
+                            "assets/animations/onboarding/active_dates.riv",
                             scrollable: false,
                             stateMachineName: 'Animation_12',
                             foregroundHeight: 0.6,
