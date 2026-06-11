@@ -96,10 +96,12 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text(
-              "Participant Details",
-              style: CustomTypography()
-                  .titleLarge(color: CustomColors.textNormalContent),
+            Expanded(
+              child: Text(
+                "Participant Details",
+                style: CustomTypography()
+                    .titleLarge(color: CustomColors.textNormalContent),
+              ),
             ),
           ],
         ),
@@ -123,16 +125,20 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          "Participant ID",
-                          style: CustomTypography().bodyLarge(
-                            weight: FontWeight.w500,
+                        Flexible(
+                          child: Text(
+                            "Participant ID",
+                            style: CustomTypography().bodyLarge(
+                              weight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                        Text(
-                          participant!.studyCode,
-                          style: CustomTypography().bodyMedium(
-                              color: CustomColors.textTertiaryContent),
+                        Flexible(
+                          child: Text(
+                            participant!.studyCode,
+                            style: CustomTypography().bodyMedium(
+                                color: CustomColors.textTertiaryContent),
+                          ),
                         ),
                       ],
                     ),
@@ -140,16 +146,20 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          "Study String",
-                          style: CustomTypography().bodyLarge(
-                            weight: FontWeight.w500,
+                        Flexible(
+                          child: Text(
+                            "Study String",
+                            style: CustomTypography().bodyLarge(
+                              weight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                        Text(
-                          experiment!.login,
-                          style: CustomTypography().bodyMedium(
-                              color: CustomColors.textTertiaryContent),
+                        Flexible(
+                          child: Text(
+                            experiment!.login,
+                            style: CustomTypography().bodyMedium(
+                                color: CustomColors.textTertiaryContent),
+                          ),
                         ),
                       ],
                     ),
@@ -158,17 +168,21 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
-                                "Date Joined",
-                                style: CustomTypography().bodyLarge(
-                                  weight: FontWeight.w500,
+                              Flexible(
+                                child: Text(
+                                  "Date Joined",
+                                  style: CustomTypography().bodyLarge(
+                                    weight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                              Text(
-                                dateJoined ?? "-",
-                                style: CustomTypography().bodyMedium(
-                                    color:
-                                        CustomColors.textTertiaryContent),
+                              Flexible(
+                                child: Text(
+                                  dateJoined ?? "-",
+                                  style: CustomTypography().bodyMedium(
+                                      color:
+                                          CustomColors.textTertiaryContent),
+                                ),
                               ),
                             ],
                           )
@@ -205,22 +219,24 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Onboarding Survey",
-                      style: CustomTypography()
-                          .bodyLarge(color: CustomColors.productNormalActive),
-                    ),
-                    Text(
-                      hasSurvey ? "Completed $date" : "",
-                      style: CustomTypography()
-                          .bodyMedium(color: CustomColors.textTertiaryContent),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Onboarding Survey",
+                        style: CustomTypography()
+                            .bodyLarge(color: CustomColors.productNormalActive),
+                      ),
+                      Text(
+                        hasSurvey ? "Completed $date" : "",
+                        style: CustomTypography()
+                            .bodyMedium(color: CustomColors.textTertiaryContent),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
