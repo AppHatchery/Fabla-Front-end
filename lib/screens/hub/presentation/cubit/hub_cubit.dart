@@ -100,6 +100,10 @@ class HubCubit extends Cubit<HubState> {
   void checkForUpdates() async {
     final status = await _experimentManager.checkForUpdates();
     if (status == UpdateStatus.available) {
+      if (hasOngoingOrCompleteToday()) {
+        await _rescheduleWithNotification();
+        return;
+      }
       emit(HubUpdateAvailable());
     } else if (status == UpdateStatus.pending) {
       final pendingDate = await _experimentManager.getPendingDate();
