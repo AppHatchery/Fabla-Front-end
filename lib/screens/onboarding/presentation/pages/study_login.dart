@@ -142,7 +142,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
 
                     return initialLogin();
                   },
-                  listener: (context, state) async{
+                  listener: (context, state) {
                     if (state is StudyLoginError) {
                       setState(() {
                         error = true;
@@ -150,11 +150,6 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                       });
                     } else if (state is StudyLoginSuccess) {
                       error = false;
-                      //save study data
-                      final details = ParticipantAndExperimentDetails();
-                      await details.saveDateJoined();
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.setString('study_string', controller.text.trim());
                       int spent = timer.stop();
                       track(spent, "Finished");
                       RouteService().navigate(
@@ -310,11 +305,11 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
       }
   }
 
-  Future<void> launchEmail() async {
+Future<void> launchEmail() async {
     await ParticipantAndExperimentDetails().loginSupportEmail(
         "Fabla Participant Login Issue",
         "Describe the issue you are facing:",
-        "I do not know my study string"
+        "My study string is not working"
     );
   }
 

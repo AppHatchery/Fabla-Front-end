@@ -31,7 +31,6 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   bool warning = false;
   String message = '';
   String warnMessage = '';
-  String version = "1.0";
 
   File? _riveFile;
   RiveWidgetController? _riveController;
@@ -144,15 +143,10 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                     return Center(child: loading(height - 200));
                   }
                   return initialLogin();
-                }, listener: (context, state) async {
+                }, listener: (context, state) {
                   if (state is LoginSuccess) {
                     error = false;
                     warning = false;
-                    ///save participant data
-                    final details = ParticipantAndExperimentDetails();
-                    await details.saveDateJoined();
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setString('participant_id', controller.text.trim());
                     RouteService().navigate(null,
                         context: context, current: 'participant_login');
                   } else if (state is LoginWarning) {
@@ -317,19 +311,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     await ParticipantAndExperimentDetails().loginSupportEmail(
       "Fabla Participant Login Issue",
       "Describe the issue you are facing",
-      "I do not know my participant ID"
+      "My Participant ID is not working"
     );
   }
-
-
-  void getAppVersion() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    final version = packageInfo.version;
-
-    if (mounted) {
-      this.version = version;
-    }
-  }
-
-
 }

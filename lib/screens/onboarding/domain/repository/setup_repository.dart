@@ -294,6 +294,13 @@ class SetupRepository {
     return ExperimentModel.fromEntity(entity!);
   }
 
+  /// Null-safe variant for flows (e.g. login screens) that run before an
+  /// experiment has been stored.
+  ExperimentModel? getExperimentOrNull() {
+    final entity = _experimentDAO.getExperiment();
+    return entity == null ? null : ExperimentModel.fromEntity(entity);
+  }
+
   setColorForStudy(List<StudyModel> studies) async {
     final pref = PreferenceService();
     final source = await pref.getStringPreference(key: 'study_color_source');

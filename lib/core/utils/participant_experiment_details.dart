@@ -41,24 +41,6 @@ class ParticipantAndExperimentDetails {
     );
   }
 
-  ///saves the date joined (only if not already saved)
-  Future<void> saveDateJoined() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.getString('date_joined') == null) {
-      final now = DateTime.now();
-      final dateOnly = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
-      await prefs.setString('date_joined', dateOnly);
-    }
-  }
-
-  ///saves the last updated date (overwrites previous value)
-  Future<void> saveLastUpdated() async {
-    final prefs = await SharedPreferences.getInstance();
-    final now = DateTime.now();
-    final dateOnly = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
-    await prefs.setString('last_Updated', dateOnly);
-  }
-
   /// Builds and launches the prefilled support email. Consolidates the
   /// participant, experiment, date, version and device details so callers do
   /// not duplicate this logic.
@@ -87,11 +69,11 @@ Please attach screenshots of the error or the screen where you got stuck:
     );
   }
 
-  Future<void> loginSupportEmail(String? subject, String body, String example) async {
+  Future<void> loginSupportEmail(String subject, String body, String? example) async {
     final appVersion = await getAppVersion();
     final deviceInfo = await getDeviceInfo();
 
-    if (subject == null || subject.isEmpty) {
+    if (subject.isEmpty) {
       subject = "Fabla Participant Login Issue";
     }
 

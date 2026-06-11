@@ -1695,10 +1695,7 @@ class WebViewErrorCard extends StatelessWidget {
   Future<void> _launchEmail() async {
     await ParticipantAndExperimentDetails().launchSupportEmail(
         '$title – Assistance Needed',
-'''$title was encountered. Please investigate and advise on next steps.
-
-
-Participant ID: ''');
+        '$title was encountered. Please investigate and advise on next steps.');
   }
 }
 

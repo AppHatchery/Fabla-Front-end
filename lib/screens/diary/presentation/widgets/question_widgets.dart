@@ -799,10 +799,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
   void _launchEmail() async {
     await ParticipantAndExperimentDetails().launchSupportEmail(
         'Web Survey – Assistance Needed',
-        '''Error encountered. Please investigate and advise on next steps.
-        
-        
-Participant ID: ''');
+        'Error encountered. Please investigate and advise on next steps.');
   }
 
   void showModal() {

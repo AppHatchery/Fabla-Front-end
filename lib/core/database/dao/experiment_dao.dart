@@ -7,7 +7,8 @@ class ExperimentDAO {
   ExperimentDAO({required this.box});
 
   Experiment? getExperiment() {
-    return box.getAll().first;
+    final experiments = box.getAll();
+    return experiments.isEmpty ? null : experiments.first;
   }
 
   void addExperiment(Experiment experiment) {
