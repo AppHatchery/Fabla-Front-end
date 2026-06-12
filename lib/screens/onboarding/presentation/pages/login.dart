@@ -311,7 +311,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     await ParticipantAndExperimentDetails().loginSupportEmail(
         subject: 'Fabla Participant Login Issue',
         body: 'Describe the issue you are facing',
-        example: 'My Participant ID is not working'
+        example: ': e.g. My Participant ID is not working'
     );
   }
 }

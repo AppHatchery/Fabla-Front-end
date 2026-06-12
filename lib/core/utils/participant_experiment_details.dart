@@ -46,20 +46,23 @@ class ParticipantAndExperimentDetails {
   /// not duplicate this logic.
   Future<void> launchSupportEmail({
     required String subject,
-    required String body
+    required String body,
+    String? example
   }) async {
     final exp = experiment;
     final studyCode = participant?.studyCode ?? '';
     final dates = await getStudyDates();
     final appVersion = await getAppVersion();
     final deviceInfo = await getDeviceInfo();
-    const String example =
-        "The audio recording stops after 3 seconds and I'm unable to complete the task. This happens every time I try on the second task of the diary.";
+    const String defaultExample =
+        "e.g. The audio recording stops after 3 seconds and I'm unable to complete the task. This happens every time I try on the second task of the diary.";
+
+    final finalExample = (example?.isNotEmpty == true) ? example : defaultExample;
 
     await launchEmail(
       subject: '$subject ${exp.login} $studyCode',
       body: '''
-$body: e.g. "$example"
+$body: $finalExample
 
 Study String: ${exp.login}
 Participant ID: $studyCode
@@ -76,7 +79,7 @@ Please attach screenshots of the error or the screen where you got stuck:
   Future<void> loginSupportEmail({
     required String subject,
     required String body,
-    required String?example
+    required String? example
   }) async {
     final appVersion = await getAppVersion();
     final deviceInfo = await getDeviceInfo();
@@ -88,7 +91,7 @@ Please attach screenshots of the error or the screen where you got stuck:
     await launchEmail(
       subject: subject,
       body: '''
-$body: e.g. $example
+$body $example
 
 App Version: $appVersion
 Device and OS: $deviceInfo

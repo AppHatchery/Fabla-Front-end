@@ -308,8 +308,8 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
 Future<void> launchEmail() async {
     await ParticipantAndExperimentDetails().loginSupportEmail(
         subject: 'Fabla Participant Login Issue',
-        body: 'Describe the issue you are facing:',
-        example: 'My study string is not working'
+        body: 'Describe the issue you are facing',
+        example: ': e.g. My study string is not working'
     );
   }
 

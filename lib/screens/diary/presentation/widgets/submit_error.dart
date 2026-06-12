@@ -98,7 +98,9 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
       await ParticipantAndExperimentDetails()
           .launchSupportEmail(
           subject: 'Had an error submitting my diary',
-          body: 'I had a problem submitting my diary on day   ');
+          body: 'I had a problem submitting my diary on day   ',
+          example: ''
+      );
       }
   }
 

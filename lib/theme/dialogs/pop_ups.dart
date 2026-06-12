@@ -1373,7 +1373,7 @@ class StudyInfoPopUp extends StatelessWidget {
     await ParticipantAndExperimentDetails().loginSupportEmail(
         subject: 'Fabla Participant Login Issue',
         body: 'Describe the issue you are facing:',
-        example: 'I do not know my study string');
+        example: ': e.g. I do not know my study string');
   }
 }
 
