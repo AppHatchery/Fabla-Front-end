@@ -209,10 +209,11 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
 // launch email to experiment owner email
 Future<void> launchEmail() async {
   await ParticipantAndExperimentDetails().loginSupportEmail(
-      "Assistance Needed: Participant ID Already in Use",
-      ''' Participant ID entered is already in use. Please confirm or advise next steps.
+      subject: 'Assistance Needed: Participant ID Already in Use',
+      body: ''' Participant ID entered is already in use. Please confirm or advise next steps.
         
         
-Name: ''', ""
+Name: ''',
+      example: ''
   );
 }

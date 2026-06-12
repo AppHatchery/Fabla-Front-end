@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
-import 'package:audio_diaries_flutter/core/utils/email_function.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -1694,8 +1693,8 @@ class WebViewErrorCard extends StatelessWidget {
 
   Future<void> _launchEmail() async {
     await ParticipantAndExperimentDetails().launchSupportEmail(
-        '$title – Assistance Needed',
-        '$title was encountered. Please investigate and advise on next steps.');
+        subject: '$title – Assistance Needed',
+        body: '$title was encountered. Please investigate and advise on next steps.');
   }
 }
 

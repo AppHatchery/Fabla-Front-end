@@ -844,9 +844,9 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
 
   Future<void> launchEmail() async {
     await ParticipantAndExperimentDetails().loginSupportEmail(
-        'Issue with Uploading Onboarding Questions',
-        'Hi,\n\nI\'m experiencing the following issue while trying to onboard:\n\n[Please describe the issue you\'re facing]\n\nThank you!',
-        'I am failing to Submit my onboarding questions');
+        subject: 'Issue with Uploading Onboarding Questions',
+        body: 'Hi,\n\nI\'m experiencing the following issue while trying to onboard:\n\n[Please describe the issue you\'re facing]\n\nThank you!',
+        example: 'I am failing to Submit my onboarding questions');
   }
 
 }

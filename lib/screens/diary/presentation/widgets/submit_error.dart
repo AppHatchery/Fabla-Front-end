@@ -96,9 +96,9 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
 
   Future<void> launchEmail() async {
       await ParticipantAndExperimentDetails()
-          .launchSupportEmail(""
-          "Had an error submitting my diary",
-       "I had a problem submitting my diary on day   ");
+          .launchSupportEmail(
+          subject: 'Had an error submitting my diary',
+          body: 'I had a problem submitting my diary on day   ');
       }
   }
 

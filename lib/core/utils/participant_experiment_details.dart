@@ -44,13 +44,17 @@ class ParticipantAndExperimentDetails {
   /// Builds and launches the prefilled support email. Consolidates the
   /// participant, experiment, date, version and device details so callers do
   /// not duplicate this logic.
-  Future<void> launchSupportEmail(String subject, String body) async {
+  Future<void> launchSupportEmail({
+    required String subject,
+    required String body
+  }) async {
     final exp = experiment;
     final studyCode = participant?.studyCode ?? '';
     final dates = await getStudyDates();
     final appVersion = await getAppVersion();
     final deviceInfo = await getDeviceInfo();
-    const String example = "The audio recording stops after 3 seconds and I'm unable to complete the task. This happens every time I try on the second task of the diary.";
+    const String example =
+        "The audio recording stops after 3 seconds and I'm unable to complete the task. This happens every time I try on the second task of the diary.";
 
     await launchEmail(
       subject: '$subject ${exp.login} $studyCode',
@@ -69,7 +73,11 @@ Please attach screenshots of the error or the screen where you got stuck:
     );
   }
 
-  Future<void> loginSupportEmail(String subject, String body, String? example) async {
+  Future<void> loginSupportEmail({
+    required String subject,
+    required String body,
+    required String?example
+  }) async {
     final appVersion = await getAppVersion();
     final deviceInfo = await getDeviceInfo();
 

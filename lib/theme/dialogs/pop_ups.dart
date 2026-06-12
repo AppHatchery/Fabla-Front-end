@@ -1371,9 +1371,9 @@ class StudyInfoPopUp extends StatelessWidget {
 
   Future<void> launchEmail() async {
     await ParticipantAndExperimentDetails().loginSupportEmail(
-        "Fabla Participant Login Issue",
-        "Describe the issue you are facing:",
-        "I do not know my study string");
+        subject: 'Fabla Participant Login Issue',
+        body: 'Describe the issue you are facing:',
+        example: 'I do not know my study string');
   }
 }
 
@@ -1475,7 +1475,8 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
     _phase = widget.startUpdating ? UpdateState.updating : UpdateState.pending;
     _contactResearcherRecognizer = TapGestureRecognizer()
       ..onTap = () => ParticipantAndExperimentDetails().launchSupportEmail(
-          "Study Update failed", "Describe the issue you are facing");
+          subject: 'Study Update failed',
+          body: 'Describe the issue you are facing');
     if (widget.startUpdating) {
       // Trigger after the first frame so the BlocListener is subscribed and
       // captures the terminal HubUpdated state.

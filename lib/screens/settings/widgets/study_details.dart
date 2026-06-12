@@ -163,8 +163,9 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
   }
 
   Future<void> launchEmailMethod() => _details.launchSupportEmail
-    ("Fabla Participant Issue",
-    "Describe the issue you are facing"
+    (
+      subject: 'Fabla Participant Issue',
+      body: 'Describe the issue you are facing',
   );
 
 
