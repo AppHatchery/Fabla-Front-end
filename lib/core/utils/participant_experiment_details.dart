@@ -95,10 +95,13 @@ Device and OS: $deviceInfo
       body: '''
 $body $example
 
+Please attach screenshots of the error or the screen where you got stuck:
+
+(Please Do Not Edit Below)
 App Version: $appVersion
 Device and OS: $deviceInfo
 
-Please attach screenshots of the error or the screen where you got stuck:
+
 ''',
     );
   }
