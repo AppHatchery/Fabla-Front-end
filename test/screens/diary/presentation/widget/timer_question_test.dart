@@ -42,13 +42,13 @@ class TestTimerWidget extends StatefulWidget {
   final Function(Function) addToPreFunction;
 
   const TestTimerWidget({
-    Key? key,
+    super.key,
     required this.time,
     required this.playbackControls,
     required this.userInteraction,
     required this.respond,
     required this.addToPreFunction,
-  }) : super(key: key);
+  });
 
   @override
   State<TestTimerWidget> createState() => _TestTimerWidgetState();
