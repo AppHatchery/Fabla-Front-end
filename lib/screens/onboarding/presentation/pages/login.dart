@@ -9,9 +9,7 @@ import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rive/rive.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io' show Platform;
 import '../../../../theme/custom_colors.dart';
 

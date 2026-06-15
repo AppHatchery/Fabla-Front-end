@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:alarm/alarm.dart';
-import 'package:alarm/model/volume_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';

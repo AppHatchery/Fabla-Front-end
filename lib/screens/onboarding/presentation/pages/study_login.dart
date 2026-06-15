@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:math' show pi;
 import 'package:rive/rive.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io' show Platform;
 import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../services/pendo_service.dart';

@@ -1,16 +1,13 @@
-import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
 
-import '../../domain/repository/setup_repository.dart';
 
 class VerificationCodeTextField extends StatefulWidget {
   final String title;
