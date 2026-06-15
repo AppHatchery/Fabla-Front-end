@@ -160,7 +160,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           pendoEvent();
           track(timer.stop(), "Submitted");
           Navigator.of(context).pushReplacement(_completionRoute()).then((_) {
-            summaryCubit.loadSummary(widget.diary);
+            Future.delayed(Duration(seconds: 1), (){
+              summaryCubit.loadSummary(widget.diary);
+            });
           });
         } else if (state is SummaryLoaded) {
           // If the user reaches the submission page for the first time add to the completion list

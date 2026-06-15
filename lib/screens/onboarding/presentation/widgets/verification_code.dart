@@ -3,17 +3,12 @@ import 'dart:developer' as dev;
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
-import 'package:popover/popover.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../core/database/dao/experiment_dao.dart';
-import '../../../../main.dart';
-import '../../../../objectbox.g.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
 
-import '../../../home/domain/entities/experiment.dart';
 import '../../domain/repository/setup_repository.dart';
 
 class VerificationCodeTextField extends StatefulWidget {
@@ -41,9 +36,6 @@ class VerificationCodeTextField extends StatefulWidget {
       _VerificationCodeTextFieldState();
 }
 
-final ExperimentDAO _experimentDAO =
-    ExperimentDAO(box: Box<Experiment>(objectbox.store));
-
 class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
   @override
   Widget build(BuildContext context) {
@@ -55,14 +47,14 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
           children: [
             Text(
               widget.title,
-              style: CustomTypography().titleSmall(color: CustomColors.textWhite),
+              style:
+                  CustomTypography().titleSmall(color: CustomColors.textWhite),
             ),
             if (widget.title == "Study String")
               IconButton(
                 iconSize: 20,
                 onPressed: () async => await showDialog(
-                    context: context,
-                    builder:(context) => StudyInfoPopUp()),
+                    context: context, builder: (context) => StudyInfoPopUp()),
                 icon: const Icon(
                   Icons.info_outline,
                   color: CustomColors.textWhite,
@@ -147,7 +139,8 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
                                           decoration: ShapeDecoration(
                                             color: CustomColors.pumpkinOrange,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(11),
+                                              borderRadius:
+                                                  BorderRadius.circular(11),
                                             ),
                                           ),
                                           child: TextButton(
@@ -156,8 +149,10 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
                                               fit: BoxFit.scaleDown,
                                               child: Text(
                                                 "Contact Researcher",
-                                                style: CustomTypography().bodyLarge(
-                                                  color: CustomColors.fillVanilla,
+                                                style: CustomTypography()
+                                                    .bodyLarge(
+                                                  color:
+                                                      CustomColors.fillVanilla,
                                                   weight: FontWeight.w400,
                                                 ),
                                               ),

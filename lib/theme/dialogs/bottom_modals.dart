@@ -9,6 +9,8 @@ import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
+import 'package:audio_diaries_flutter/services/pendo_service.dart'
+    show PendoService;
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
 import 'package:audio_diaries_flutter/theme/components/webview.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -26,6 +28,7 @@ import 'package:rive/rive.dart' as r;
 import 'package:video_player/video_player.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../core/usecases/webview_survey_detector.dart';
 import '../../core/utils/formatter.dart';
 import '../components/buttons.dart';
 import '../custom_icons.dart';
@@ -66,23 +69,15 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   RecorderState recorderState = RecorderState.isStopped;
   final ValueNotifier<bool> _erase = ValueNotifier<bool>(false);
   String? tempUrl;
+  // a flag to check if the recording is active or not
+  bool _recordingCheck = false;
 
   ScrollController scrollController = ScrollController();
 
   //Animation
-  late r.StateMachineController _controller;
+  r.File? _riveFile;
+  r.RiveWidgetController? _riveController;
   double animationHeight = 0;
-
-  void _onInit(r.Artboard art) {
-    var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
-    if (ctrl != null) {
-      art.addController(ctrl);
-      _controller = ctrl;
-    }
-    setState(() {
-      animationHeight = art.height;
-    });
-  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -103,13 +98,33 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   void initState() {
     recorderInit();
     WidgetsBinding.instance.addObserver(this);
+    _loadRive();
     super.initState();
+  }
+
+  Future<void> _loadRive() async {
+    final file = await r.File.asset(
+      'assets/animations/onboarding/floats_in.riv',
+      riveFactory: r.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = r.RiveWidgetController(
+        file,
+        stateMachineSelector: r.StateMachineSelector.byName('Animation_12'),
+      );
+      setState(() {
+        _riveFile = file;
+        _riveController = controller;
+        animationHeight = controller.artboard.height;
+      });
+    }
   }
 
   @override
   void dispose() {
     recorder.closeRecorder();
-    _controller.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -149,7 +164,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 children: [
                   GestureDetector(
                     onTap: () => {
-                      Navigator.pop(context),
+                      //setting the tap to null when recording is on to avoid accidental closes
+                      recorder.isRecording ? null : Navigator.pop(context),
                     },
                     child: Icon(
                       CupertinoIcons.clear_circled_solid,
@@ -169,7 +185,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Widget questionAndHints() {
     final width = MediaQuery.of(context).size.width;
-    final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
     final isCompleted =
         recorderState == RecorderState.isStopped && elapsed.inSeconds > 0;
 
@@ -189,11 +204,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     style: CustomTypography()
                         .titleLarge(color: const Color(0xFF000000)),
                   ),
-                  const  SizedBox(height:24),
+                  const SizedBox(height: 24),
                   Text(
                     widget.subtitle ?? "",
-                    style: CustomTypography()
-                        .bodyLarge(
+                    style: CustomTypography().bodyLarge(
                       color: CustomColors.textNormalContent,
                       weight: FontWeight.w400,
                     ),
@@ -258,13 +272,14 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           child: Transform(
             transform: Matrix4.translationValues(
                 -140, textScaleFactor >= 1.6 ? 0 : 20, 0)
-              ..scale(-1.0, 1.0),
+              ..multiply(Matrix4.diagonal3Values(-1.0, 1.0, 1.0)),
             alignment: Alignment.center,
-            child: r.RiveAnimation.asset(
-              'assets/animations/onboarding/floats_in.riv',
-              fit: BoxFit.scaleDown,
-              onInit: _onInit,
-            ),
+            child: _riveController != null
+                ? r.RiveWidget(
+                    controller: _riveController!,
+                    fit: r.Fit.scaleDown,
+                  )
+                : const SizedBox.shrink(),
           ),
         ),
       ),
@@ -549,11 +564,18 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
         if (tempUrl != null) {
           final file = File(tempUrl!);
-          await file.delete();
+          if (await file.exists()) {
+            try {
+              await file.delete();
+            } catch (e) {
+              dev.log("Error deleting file: $e");
+            }
+          }
         }
 
+        if (!mounted) return;
         await Future.delayed(const Duration(milliseconds: 150));
-        record();
+        await record();
 
         if (mounted) {
           setState(() {
@@ -569,28 +591,38 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Future<void> record() async {
-    final hasPermission = await checkAndRequestPermission();
-    //Check if scroll controller is already at the bottom
-    if (mounted) {
+    //if recording is active return
+    if (_recordingCheck) return;
+
+    // set recoding to true
+    _recordingCheck = true;
+
+    try {
+      final hasPermission = await checkAndRequestPermission();
+      //TODO:: add a show permission error when recorder has no permission
+      if (!hasPermission) return;
+
+      if (!mounted) return;
+
+      //Check if scroll controller is already at the bottom
       scrollController.animateTo(
         scrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeIn,
       );
-    }
 
-    if (hasPermission) {
-      WakelockPlus.enable();
       if (recorder.isRecording) {
         WakelockPlus.disable();
-        await recorder.pauseRecorder();
         _timer?.cancel();
+        await recorder.pauseRecorder();
       } else if (recorder.isPaused) {
         WakelockPlus.enable();
         await recorder.resumeRecorder();
         startTimer();
       } else {
+        //start fresh
         final path = await getFilePath();
+        WakelockPlus.enable();
         await recorder.startRecorder(toFile: path);
         startTimer();
       }
@@ -602,8 +634,14 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               : RecorderState.isPaused;
         });
       }
-    } else {
-      /* TODO: Show Permission Error */ null;
+    } on Exception catch (e) {
+      debugPrint('record() failed: $e');
+
+      //reset state to stopped state
+      if (mounted) setState(() => recorderState = RecorderState.isStopped);
+    } finally {
+      //set recording check back to false
+      _recordingCheck = false;
     }
   }
 
@@ -679,31 +717,14 @@ class _BottomTextModalState extends State<BottomTextModal>
   bool disabled = true;
 
   //Animation
-  late r.StateMachineController _controller;
-
-  void _onInit(r.Artboard art) {
-    var ctrl = r.StateMachineController.fromArtboard(art, "Ghosts");
-
-    ctrl?.isActive = false;
-    if (ctrl != null) {
-      art.addController(ctrl);
-      setState(() {
-        _controller = ctrl;
-      });
-
-      Future.delayed(const Duration(milliseconds: 10), () {
-        final searchingOne = _controller.findSMI('Searching_1');
-        if (searchingOne != null && mounted) {
-          searchingOne.value = true;
-        }
-      });
-    }
-  }
+  r.File? _riveFile;
+  r.RiveWidgetController? _riveController;
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     textFocusNode = FocusNode();
+    _loadRiveText();
     if (widget.index != null) {
       textController = TextEditingController(
           text: widget.prompt.answer?.response?.elementAtOrNull(widget.index!));
@@ -728,11 +749,35 @@ class _BottomTextModalState extends State<BottomTextModal>
     super.initState();
   }
 
+  Future<void> _loadRiveText() async {
+    final file = await r.File.asset(
+      'assets/animations/ghosts.riv',
+      riveFactory: r.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = r.RiveWidgetController(
+        file,
+        stateMachineSelector: r.StateMachineSelector.byName('Ghosts'),
+      );
+      setState(() {
+        _riveFile = file;
+        _riveController = controller;
+      });
+      Future.delayed(const Duration(milliseconds: 10), () {
+        final searchingOne = controller.stateMachine.trigger('Searching_1');
+        if (searchingOne != null && mounted) {
+          searchingOne.fire();
+        }
+      });
+    }
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     textController.dispose();
-    _controller.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     hideOverlay();
     super.dispose();
   }
@@ -876,18 +921,19 @@ class _BottomTextModalState extends State<BottomTextModal>
           SizedBox(
             height: 100,
             width: 100,
-            child: r.RiveAnimation.asset(
-              'assets/animations/ghosts.riv',
-              onInit: _onInit,
-            ),
+            child: _riveController != null
+                ? r.RiveWidget(controller: _riveController!)
+                : const SizedBox.shrink(),
           ),
           const SizedBox(
             height: 16,
           ),
-          widget.hint != null && widget.hint!.isNotEmpty ? Text(
-            widget.hint!,
-            style: CustomTypography().body(),
-          ) : SizedBox.shrink(),
+          widget.hint != null && widget.hint!.isNotEmpty
+              ? Text(
+                  widget.hint!,
+                  style: CustomTypography().body(),
+                )
+              : SizedBox.shrink(),
           // CustomOutlineButton(
           //   onClick: () => {},
           //   color: CustomColors.productNormal,
@@ -1172,8 +1218,14 @@ class BottomErrorModal extends StatelessWidget {
 class BottomWebViewModal extends StatefulWidget {
   final String url;
   final void Function(String) respond;
-   const BottomWebViewModal(
-      {super.key, required this.url, required this.respond});
+  final int diaryId;
+  final int promptId;
+  const BottomWebViewModal(
+      {super.key,
+      required this.url,
+      required this.respond,
+      required this.diaryId,
+      required this.promptId});
 
   @override
   State<BottomWebViewModal> createState() => _BottomWebViewModalState();
@@ -1184,11 +1236,56 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   late DateTime end;
   bool? completed = false;
   late String errorText;
+  final _webViewKey = GlobalKey<CustomWebViewWidgetState>();
 
   @override
   void initState() {
     start = DateTime.now();
     super.initState();
+    // Track when the webview modal is first opened.
+    _track({'event': 'webview_opened'});
+  }
+
+  // Properties shared across all Pendo track calls.
+  // All three events fire under the single 'Webview Survey' event name;
+  // the 'event' key in each call distinguishes them in Pendo queries.
+  Map<String, dynamic> _baseProperties() => {
+        'datetime': DateTime.now().toIso8601String(),
+        'survey_url': widget.url,
+        // True when a platform-specific JS detector is active (Qualtrics/REDCap).
+        // False for the default passthrough, where detection is not meaningful.
+        'js_injected': isKnownSurveyPlatform(widget.url),
+        'prompt_id': widget.promptId,
+        'diary_id': widget.diaryId,
+      };
+
+  int get _timeInSurveySeconds => DateTime.now().difference(start).inSeconds;
+
+  void _track(Map<String, dynamic> properties) {
+    PendoService.track('Webview Survey', {..._baseProperties(), ...properties});
+  }
+
+  // Maps (button, action, end_string_present) to an after-label for Pendo.
+  // Returns null when end is null (unknown platform) — keeps the label column
+  // clean rather than producing misleading states.
+  //
+  // finish + yes + end → detection_submission   finish + yes + no end → failed_skipped
+  // finish + no  + end → detection_return        finish + no  + no end → failed_continued
+  // close + yes + end → detection_exit           close + yes + no end → unknown_exit
+  // close + no  + end → detection_exitattempt    close + no  + no end → unknown_return
+  String? _afterLabel(String button, String action, bool? end) {
+    if (end == null) return null;
+    if (button == 'finish') {
+      if (action == 'yes') {
+        return end ? 'detection_submission' : 'failed_skipped';
+      }
+      return end ? 'detection_return' : 'failed_continued';
+    }
+    if (button == 'close') {
+      if (action == 'yes') return end ? 'detection_exit' : 'unknown_exit';
+      return end ? 'detection_exitattempt' : 'unknown_return';
+    }
+    return null;
   }
 
   @override
@@ -1229,6 +1326,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
               width: width,
               color: CustomColors.greyTrack,
               child: CustomWebViewWidget(
+                key: _webViewKey,
                 url: widget.url,
                 errorText: (value) => setState(() => errorText = value),
                 onComplete: (value) {
@@ -1248,7 +1346,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
             child: CustomFlatButton(
               isDisabled: (completed == false),
               onClick: () => popUp(),
-              text: "Continue",
+              text: "Finish",
             ),
           )
         ],
@@ -1257,25 +1355,65 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   }
 
   popUp() async {
-    await showDialog<bool>(
+    // Snapshot end-string before the dialog opens — the page is still visible
+    // and hasn't changed yet, so this reflects the true completion state.
+    final endPresent = await _webViewKey.currentState?.checkEndString();
+    if (!mounted) return;
+
+    // onYes/onSkip only close the dialog with a result — tracking and save()
+    // happen after showDialog resolves to avoid save()'s Navigator.pop()
+    // dismissing the dialog early and causing showDialog to return null,
+    // which would incorrectly trigger the 'no' branch below.
+    final result = await showDialog<bool>(
       context: context,
       builder: (context) => CompletedPopUp(
         title: "Have you completed the survey?",
-        onYes: (ctx) {
-          save();
-          Navigator.pop(ctx, true);
-        },
+        onYes: (ctx) => Navigator.pop(ctx, true),
         onSkip: (ctx) {
           errorText = "survey skipped";
           completed = null;
-          save();
-          Navigator.pop(ctx, true);
+          Navigator.pop(ctx, false);
         },
       ),
     );
+
+    if (result == true && mounted) {
+      _track({
+        'event': 'webview_finish',
+        'time_in_survey_seconds': _timeInSurveySeconds,
+        'action': 'yes',
+        'end_string_present': endPresent,
+        'after_label': _afterLabel('finish', 'yes', endPresent),
+      });
+      save();
+    } else if (result == false && completed == null && mounted) {
+      // skip path
+      _track({
+        'event': 'webview_finish',
+        'time_in_survey_seconds': _timeInSurveySeconds,
+        'action': 'skip',
+        'end_string_present': endPresent,
+        'after_label': _afterLabel('finish', 'no', endPresent),
+      });
+      save();
+    } else if (mounted) {
+      _track({
+        'event': 'webview_finish',
+        'time_in_survey_seconds': _timeInSurveySeconds,
+        'action': 'no',
+        'end_string_present': endPresent,
+        'after_label': _afterLabel('finish', 'no', endPresent),
+      });
+      // setState(() => completed = false); //! Commented out not to reset the end of survey detection
+      _webViewKey.currentState?.resetSurvey();
+    }
   }
 
   exit() async {
+    // Snapshot end-string before the dialog opens — same reasoning as popUp().
+    final endPresent = await _webViewKey.currentState?.checkEndString();
+    if (!mounted) return;
+
     final results = await showDialog<bool>(
         context: context,
         builder: (context) => ExitPopUp(
@@ -1291,6 +1429,16 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
                     textAlign: TextAlign.center),
               ],
             ));
+
+    final action = results == true ? 'yes' : 'no';
+    _track({
+      'event': 'webview_close',
+      'time_in_survey_seconds': _timeInSurveySeconds,
+      'action': action,
+      'end_string_present': endPresent,
+      'after_label': _afterLabel('close', action, endPresent),
+    });
+
     if (results == true && mounted) Navigator.pop(context);
   }
 
@@ -1298,10 +1446,8 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
     end = DateTime.now();
     if (completed == null) {
       widget.respond("Item was skipped due to: $errorText");
-      dev.log('${widget.respond} Item was skipped due to: $errorText');
     } else {
       widget.respond("Start: $start | End: $end");
-      dev.log('${widget.respond} "Start: $start | End: $end" ');
     }
     Navigator.pop(context);
   }
@@ -1344,33 +1490,41 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
       ResolutionPreset.high,
     );
     cameraInit();
+    _loadRive();
     super.initState();
   }
 
   @override
   dispose() {
+    _searchingOne?.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     controller.dispose();
     super.dispose();
   }
 
   //Animation
-  late r.StateMachineController _controller;
+  r.File? _riveFile;
+  r.RiveWidgetController? _riveController;
+  r.TriggerInput? _searchingOne;
 
-  void _onInit(r.Artboard art) {
-    var ctrl = r.StateMachineController.fromArtboard(art, "Ghosts");
-
-    ctrl?.isActive = false;
-    if (ctrl != null) {
-      art.addController(ctrl);
+  Future<void> _loadRive() async {
+    final file = await r.File.asset(
+      'assets/animations/ghosts.riv',
+      riveFactory: r.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = r.RiveWidgetController(
+        file,
+        stateMachineSelector: r.StateMachineSelector.byName('Ghosts'),
+      );
       setState(() {
-        _controller = ctrl;
+        _riveFile = file;
+        _riveController = controller;
+        _searchingOne = controller.stateMachine.trigger('Searching_1');
       });
-
       Future.delayed(const Duration(milliseconds: 10), () {
-        final searchingThree = _controller.findSMI('Searching_1');
-        if (searchingThree != null && mounted) {
-          searchingThree.value = true;
-        }
+        if (mounted) _searchingOne?.fire();
       });
     }
   }
@@ -1484,10 +1638,9 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                     SizedBox(
                       height: 100,
                       width: 100,
-                      child: r.RiveAnimation.asset(
-                        'assets/animations/ghosts.riv',
-                        onInit: _onInit,
-                      ),
+                      child: _riveController != null
+                          ? r.RiveWidget(controller: _riveController!)
+                          : const SizedBox.shrink(),
                     ),
                     const SizedBox(
                       height: 16,
@@ -2139,101 +2292,6 @@ class _VideoPreviewState extends State<VideoPreview> {
   }
 }
 
-class BottomUpdateModal extends StatefulWidget {
-  final ValueNotifier<bool?> completeNotifier;
-  const BottomUpdateModal({super.key, required this.completeNotifier});
-
-  @override
-  State<BottomUpdateModal> createState() => _BottomUpdateModalState();
-}
-
-class _BottomUpdateModalState extends State<BottomUpdateModal> {
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    return Container(
-      height: 300,
-      width: width,
-      decoration: const BoxDecoration(
-        color: CustomColors.fillWhite,
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(14), topRight: Radius.circular(14)),
-      ),
-      child: ValueListenableBuilder(
-          valueListenable: widget.completeNotifier,
-          builder: (context, complete, _) {
-            return Column(
-              spacing: 24,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 24.0),
-                  child: Text(
-                    complete == null
-                        ? "Updating Experiment \nContent"
-                        : complete
-                            ? "Experiment Content \nUpdated"
-                            : "Content Update \nFailed",
-                    style: CustomTypography().headlineMedium(),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 50),
-                  child: Text(
-                    complete == null
-                        ? "Hang tight! We're updating the experiment content. This won’t take long!"
-                        : complete
-                            ? "Content Update Complete!"
-                            : "Please check your internet connection and try again.",
-                    style: CustomTypography().bodyMedium(),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-                // Progress
-
-                SizedBox(
-                  height: 30,
-                  width: 30,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    transitionBuilder:
-                        (Widget child, Animation<double> animation) {
-                      return FadeTransition(opacity: animation, child: child);
-                    },
-                    child: complete == null
-                        ? CircularProgressIndicator(
-                            key: ValueKey(1), // Unique key for transition
-                            color: CustomColors.productNormal,
-                            strokeCap: StrokeCap.round,
-                          )
-                        : complete
-                            ? Center(
-                                child: Icon(
-                                  Icons.check_circle_rounded,
-                                  key: ValueKey(2), // Unique key for transition
-                                  color: CustomColors.darkGreen,
-                                  size: 32,
-                                ),
-                              )
-                            : Center(
-                                child: Icon(
-                                  Icons.cancel_rounded,
-                                  key: ValueKey(3), // Unique key for transition
-                                  color: CustomColors.warningActive,
-                                  size: 32,
-                                ),
-                              ),
-                  ),
-                ),
-              ],
-            );
-          }),
-    );
-  }
-}
-
 class ViewAllMediaModal extends StatefulWidget {
   final List<Recording> recordings;
   final bool interactions;
@@ -2545,43 +2603,49 @@ class _BottomTimerModalState extends State<BottomTimerModal>
   double animationHeight = 0;
   // Icon Shake animation
   late AnimationController _shakeController;
-  r.StateMachineController? _controller;
+  r.File? _riveFile;
+  r.RiveWidgetController? _riveController;
 
   @override
   void initState() {
     super.initState();
+    _loadRive();
 
     // Initialize animation controller
     _shakeController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     )..addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        _shakeController.repeat();
-      }
-    });
+        if (status == AnimationStatus.completed) {
+          _shakeController.repeat();
+        }
+      });
+  }
+
+  Future<void> _loadRive() async {
+    final file = await r.File.asset(
+      'assets/animations/onboarding/floats_in.riv',
+      riveFactory: r.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = r.RiveWidgetController(
+        file,
+        stateMachineSelector: r.StateMachineSelector.byName('Animation_12'),
+      );
+      setState(() {
+        _riveFile = file;
+        _riveController = controller;
+        animationHeight = controller.artboard.height;
+      });
+    }
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     _shakeController.dispose();
     super.dispose();
-  }
-
-  void _onRiveInit(r.Artboard art) {
-
-    var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
-
-    if (ctrl != null) {
-      art.addController(ctrl);
-      _controller = ctrl;
-    }
-
-    setState(() {
-      animationHeight = art.height;
-    });
-
   }
 
   @override
@@ -2602,8 +2666,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
           end: Alignment.bottomCenter,
         ),
         image: const DecorationImage(
-          image: AssetImage(
-              'assets/images/Meditation_timer_background.png'),
+          image: AssetImage('assets/images/Meditation_timer_background.png'),
           fit: BoxFit.fitWidth,
           alignment: Alignment.topCenter,
         ),
@@ -2646,10 +2709,10 @@ class _BottomTimerModalState extends State<BottomTimerModal>
           widget.showTimeUpOverlay
               ? const SizedBox.shrink()
               : Image.asset(
-            'assets/images/icons/pace.png',
-            height: iconSize,
-            width: iconSize,
-          ),
+                  'assets/images/icons/pace.png',
+                  height: iconSize,
+                  width: iconSize,
+                ),
           const SizedBox(width: 8), // spacing proportional to width
           Flexible(
             child: FittedBox(
@@ -2661,15 +2724,15 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                 textAlign: TextAlign.center,
                 style: CustomTypography()
                     .custom(
-                  color: CustomColors.textWhite,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 48,
-                )
+                      color: CustomColors.textWhite,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 48,
+                    )
                     .copyWith(
-                  fontFeatures: widget.showTimeUpOverlay
-                      ? []
-                      : [const FontFeature.tabularFigures()],
-                ),
+                      fontFeatures: widget.showTimeUpOverlay
+                          ? []
+                          : [const FontFeature.tabularFigures()],
+                    ),
               ),
             ),
           ),
@@ -2689,14 +2752,14 @@ class _BottomTimerModalState extends State<BottomTimerModal>
           width: media.size.width,
           child: Transform(
             transform: Matrix4.translationValues(5, -animationHeight / 5, 0)
-              ..scale(-1.7,
-                  1.7), // Scale up by 1.5x and flip horizontally with negative x
+              ..multiply(Matrix4.diagonal3Values(-1.7, 1.7, 1.0)),
             alignment: Alignment.center,
-            child: r.RiveAnimation.asset(
-              'assets/animations/onboarding/floats_in.riv',
-              fit: BoxFit.contain,
-              onInit: _onRiveInit,
-            ),
+            child: _riveController != null
+                ? r.RiveWidget(
+                    controller: _riveController!,
+                    fit: r.Fit.contain,
+                  )
+                : const SizedBox.shrink(),
           ),
         ),
       ),
@@ -2710,31 +2773,30 @@ class _BottomTimerModalState extends State<BottomTimerModal>
         padding: const EdgeInsets.only(bottom: 100),
         child: widget.playbackControls || widget.showTimeUpOverlay
             ? Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _circleButton(
-              icon: Icons.close,
-              onTap: widget.onClose,
-              borderColor: CustomColors.fillWhite,
-            ),
-            const SizedBox(width: 37),
-            _mainControlButton(),
-            const SizedBox(width: 37),
-            widget.playbackControls
-                ? _circleButton(
-              icon: Icons.refresh_rounded,
-              onTap: widget.onRestart,
-              borderColor:
-              CustomColors.productLightBackground,
-            )
-                : const SizedBox(width: 64, height: 64),
-          ],
-        )
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _circleButton(
+                    icon: Icons.close,
+                    onTap: widget.onClose,
+                    borderColor: CustomColors.fillWhite,
+                  ),
+                  const SizedBox(width: 37),
+                  _mainControlButton(),
+                  const SizedBox(width: 37),
+                  widget.playbackControls
+                      ? _circleButton(
+                          icon: Icons.refresh_rounded,
+                          onTap: widget.onRestart,
+                          borderColor: CustomColors.productLightBackground,
+                        )
+                      : const SizedBox(width: 64, height: 64),
+                ],
+              )
             : _circleButton(
-          icon: Icons.close,
-          onTap: widget.onClose,
-          borderColor: CustomColors.fillWhite,
-        ),
+                icon: Icons.close,
+                onTap: widget.onClose,
+                borderColor: CustomColors.fillWhite,
+              ),
       ),
     );
   }
@@ -2760,9 +2822,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
 
   Widget _mainControlButton() {
     return GestureDetector(
-      onTap: widget.showTimeUpOverlay
-          ? widget.onStop
-          : widget.onPauseResume,
+      onTap: widget.showTimeUpOverlay ? widget.onStop : widget.onPauseResume,
       child: Container(
         width: 80,
         height: 80,
@@ -2773,21 +2833,21 @@ class _BottomTimerModalState extends State<BottomTimerModal>
         child: Center(
           child: widget.showTimeUpOverlay
               ? const Icon(
-            CupertinoIcons.checkmark_alt,
-            size: 40,
-            color: CustomColors.productNormal,
-          )
+                  CupertinoIcons.checkmark_alt,
+                  size: 40,
+                  color: CustomColors.productNormal,
+                )
               : (widget.isRunning && !widget.isPaused)
-              ? const Icon(
-            CupertinoIcons.pause_fill,
-            size: 40,
-            color: CustomColors.warningActive,
-          )
-              : const Icon(
-            CupertinoIcons.play_fill,
-            size: 40,
-            color: CustomColors.productNormal,
-          ),
+                  ? const Icon(
+                      CupertinoIcons.pause_fill,
+                      size: 40,
+                      color: CustomColors.warningActive,
+                    )
+                  : const Icon(
+                      CupertinoIcons.play_fill,
+                      size: 40,
+                      color: CustomColors.productNormal,
+                    ),
         ),
       ),
     );

@@ -4,82 +4,147 @@ on:
   pull_request:
     branches:
       - main
-      - Dev
+
+# Needed so the workflow can post/update the results comment on the PR.
+permissions:
+  contents: read
+  pull-requests: write
+
+  #cancel superseded runs on the same PR instead of stacking them.
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-  Qaulity_and_test_check:
+  test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MIN_COVERAGE: "18"
     steps:
-      - uses: actions/checkout@v4
-
-      - name: set up flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.35.7'
-          channel: 'stable'
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-cache-
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      # Code Quality Checks
-      - name: Format Dart files (fix in place)
-        run: dart format .
-
-      - name: Check formatting (fail if incorrect)
-        run: dart format --set-exit-if-changed .
-
-      - name: Security Analysis
-        run: |
-          # Check for hardcoded secrets (basic check)
-          if grep -r "password\|secret\|key\|token" --include="*.dart" lib/ --exclude-dir=secrets; then
-            echo "⚠️ Potential hardcoded secrets found"
-            # Don't fail the build, just warn
-          fi 
-          # Check dependencies for known vulnerabilities
-          flutter pub deps --json > deps.json
-          echo "✅ Dependency check completed"
-
-  tests:
-    needs: Qaulity_and_test_check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.7'
+          flutter-version: '3.41.9'
           channel: 'stable'
+          cache: true # caches the Flutter SDK itself between runs
 
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v3
+      - name: Cache pub & dart_tool
+        uses: actions/cache@v5
         with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+          path: |
+            ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
-            ${{ runner.os }}-pub-cache-
+            ${{ runner.os }}-pub-
+
+      - name: Create .env from secrets
+        run: |
+          printf 'APIKEY=%s\n' "$APIKEY" > .env
+          printf 'PENDOKEY=%s\n' "$PENDOKEY" >> .env
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Create DUMMY KEYS.dart for CI
-        run: |
-          mkdir -p lib/core/secrets
-          echo "// Dummy API keys for CI" > lib/core/secrets/keys.dart
-          echo "const apiKey = 'dummy';" >> lib/core/secrets/keys.dart
-          echo "const pendoKey = 'dummy';" >> lib/core/secrets/keys.dart
-
-      - name: install the database
+      - name: Generate ObjectBox bindings
         run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Run tests
-        run: flutter test test/
+      # The `github` reporter annotates failing tests inline in the run log and
+      # folds output into groups; the `json` file-reporter is parsed afterwards
+      # for the step summary and PR comment. continue-on-error lets the summary
+      # and comment steps run even when tests fail — the gate step fails the job.
+      - name: Run tests with coverage
+        id: tests
+        continue-on-error: true
         timeout-minutes: 10
+        run: |
+          flutter test --coverage test/ \
+            --reporter github \
+            --file-reporter "json:test-results.json"
+
+      - name: Compute in-scope coverage
+        id: coverage
+        if: always()
+        run: |
+          sudo apt-get install -y lcov
+          if [ -f coverage/lcov.info ]; then
+            lcov --remove coverage/lcov.info \
+              'lib/**/*.g.dart' \
+              'lib/**/*.freezed.dart' \
+              'lib/objectbox.g.dart' \
+              'lib/main.dart' \
+              'lib/firebase_options.dart' \
+              'lib/theme/**' \
+              'lib/core/utils/dummy_data.dart' \
+              'lib/core/utils/errorCodes.dart' \
+              'lib/core/utils/emailFunction.dart' \
+              -o coverage/lcov.info --ignore-errors unused
+            COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 \
+              | grep -oP 'lines.*: \K[0-9.]+(?=%)' || echo "0")
+          else
+            COVERAGE="0"
+          fi
+          echo "coverage=$COVERAGE" >> "$GITHUB_OUTPUT"
+          echo "Coverage: $COVERAGE% (gate ${MIN_COVERAGE}%)"
+
+      # Build a Markdown report (counts + failing tests + coverage), send it to
+      # the run's Summary page, and expose the counts as step outputs.
+      - name: Build test report
+        id: report
+        if: always()
+        run: |
+          python3 .github/scripts/test_summary.py \
+            test-results.json report.md \
+            "${{ steps.coverage.outputs.coverage }}" "${MIN_COVERAGE}" \
+            >> "$GITHUB_OUTPUT"
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+
+      # Upsert a single sticky comment on the PR (first-party github-script, no
+      # third-party action). Matched by the hidden marker so re-runs update it.
+      - name: Comment results on the PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- unit-widget-tests -->';
+            const body = marker + '\n' + fs.readFileSync('report.md', 'utf8');
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo, issue_number, per_page: 100,
+            });
+            const existing = comments.find(
+              (c) => c.body && c.body.includes(marker)
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existing.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number, body,
+              });
+            }
+
+      # Single place the job actually fails: tests must pass AND coverage must
+      # meet the gate. Reasons are emitted as ::error:: annotations.
+      - name: Enforce results and coverage gate
+        if: always()
+        run: |
+          ok=1
+          if [ "${{ steps.tests.outcome }}" != "success" ]; then
+            echo "::error::${{ steps.report.outputs.failed }} test(s) failed — see the job summary and PR comment."
+            ok=0
+          fi
+          COVERAGE="${{ steps.coverage.outputs.coverage }}"
+          if ! awk "BEGIN {exit !($COVERAGE >= $MIN_COVERAGE)}"; then
+            echo "::error::Coverage $COVERAGE% is below the gate of ${MIN_COVERAGE}%."
+            ok=0
+          fi
+          if [ "$ok" -ne 1 ]; then
+            exit 1
+          fi
+          echo "All tests passed; coverage $COVERAGE% >= ${MIN_COVERAGE}%."

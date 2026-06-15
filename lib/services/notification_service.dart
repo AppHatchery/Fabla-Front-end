@@ -2,14 +2,28 @@ import 'dart:math';
 
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 
 import '../theme/custom_colors.dart';
 
 class NotificationService {
+
+  /// if channel is disabled show the user a card
+  static final ValueNotifier<bool> channelDisabled = ValueNotifier<bool>(false);
+
   /// Static instance of AwesomeNotifications for dependency injection.
   /// Can be overridden for testing purposes.
   static AwesomeNotifications _awesomeNotifications = AwesomeNotifications();
+
+  /// Opens the system settings page for the audio-diaries channel.
+  /// Bind this to the "Open Settings" button on NoNotificationCard.
+  static Future<void> openChannelSettings() async {
+    await _awesomeNotifications.showNotificationConfigPage(
+      channelKey: 'audio-diaries'
+    );
+  }
 
   /// Sets a custom AwesomeNotifications instance for testing.
   /// This method allows tests to inject a mock instance.
@@ -173,31 +187,47 @@ class NotificationService {
       required final String body,
       required final DateTime date,
       Map<String, String>? payload}) async {
+    //checks if permission for both global and channel are allowed
     final hasPermission = await _awesomeNotifications.isNotificationAllowed();
-    return hasPermission
-        ? await _awesomeNotifications.createNotification(
-            content: NotificationContent(
-                id: id ?? Random().nextInt(100000),
-                channelKey: 'audio-diaries',
-                title: title,
-                body: body,
-                icon: null,
-                largeIcon: null,
-                bigPicture: null,
-                category: NotificationCategory.Message,
-                actionType: ActionType.Default,
-                payload: payload),
-            actionButtons: [
-              NotificationActionButton(key: 'REDIRECT', label: 'Redirect'),
-              NotificationActionButton(
-                  key: 'DISMISS',
-                  label: 'Dismiss',
-                  actionType: ActionType.DismissAction,
-                  isDangerousOption: true)
-            ],
-            schedule:
-                NotificationCalendar.fromDate(date: date, preciseAlarm: true))
-        : false;
+    if (!hasPermission) {
+      channelDisabled.value = true;
+      return false;
+    }
+
+    try {
+      final created = await _awesomeNotifications.createNotification(
+          content: NotificationContent(
+              id: id ?? Random().nextInt(100000),
+              channelKey: 'audio-diaries',
+              title: title,
+              body: body,
+              icon: null,
+              largeIcon: null,
+              bigPicture: null,
+              category: NotificationCategory.Message,
+              actionType: ActionType.Default,
+              payload: payload),
+          actionButtons: [
+            NotificationActionButton(key: 'REDIRECT', label: 'Redirect'),
+            NotificationActionButton(
+                key: 'DISMISS',
+                label: 'Dismiss',
+                actionType: ActionType.DismissAction,
+                isDangerousOption: true)
+          ],
+          schedule:
+              NotificationCalendar.fromDate(date: date, preciseAlarm: true));
+
+      // Success resets the flag so the card disappears.
+      if (channelDisabled.value) channelDisabled.value = false;
+      return created;
+    } on PlatformException catch (e) {
+      // Channel disabled, removed, or not yet registered in this isolate.
+      debugPrint(
+          'createNotification failed: code=${e.code} message=${e.message}');
+      channelDisabled.value = true;
+      return false;
+    }
   }
 
   /// Cancels all scheduled and active notifications.
