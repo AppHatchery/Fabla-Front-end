@@ -64,6 +64,9 @@ class ParticipantAndExperimentDetails {
       body: '''
 $body: $finalExample
 
+Please attach screenshots of the error or the screen where you got stuck:
+
+(Please Do Not Edit Below)
 Study String: ${exp.login}
 Participant ID: $studyCode
 Date Joined: ${dates.dateJoined ?? ''}
@@ -71,7 +74,6 @@ Date last updated: ${dates.lastUpdated ?? ''}
 App Version: $appVersion
 Device and OS: $deviceInfo
 
-Please attach screenshots of the error or the screen where you got stuck:
 ''',
     );
   }
