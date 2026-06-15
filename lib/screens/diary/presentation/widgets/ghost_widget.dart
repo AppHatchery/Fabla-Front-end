@@ -12,19 +12,29 @@ class GhostCompletionWidget extends StatefulWidget {
 }
 
 class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
-  //Animation
-  late StateMachineController _controller;
+  File? _riveFile;
+  RiveWidgetController? _riveController;
 
-  void _onInit(Artboard art) {
-    var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
+  @override
+  void initState() {
+    super.initState();
+    _loadRive();
+  }
 
-    ctrl?.isActive = false;
-    if (ctrl != null) {
-      art.addController(ctrl);
+  Future<void> _loadRive() async {
+    final file = await File.asset(
+      'assets/animations/ghosts.riv',
+      riveFactory: Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = RiveWidgetController(
+        file,
+        stateMachineSelector: StateMachineSelector.byName('Ghosts'),
+      );
       setState(() {
-        _controller = ctrl;
+        _riveFile = file;
+        _riveController = controller;
       });
-
       Future.delayed(
           const Duration(milliseconds: 10), () => determineAnimation());
     }
@@ -32,28 +42,29 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return RiveAnimation.asset(
-      'assets/animations/ghosts.riv',
-      onInit: _onInit,
-      fit: BoxFit.cover,
+    if (_riveController == null) return const SizedBox.shrink();
+    return RiveWidget(
+      controller: _riveController!,
+      fit: Fit.cover,
     );
   }
 
-  determineAnimation() {
-    final achieving = _controller.findSMI('Achieving the goal ');
-
+  void determineAnimation() {
+    final achieving =
+        _riveController?.stateMachine.trigger('Achieving the goal ');
     if (achieving != null && mounted) {
-      achieving.value = true;
+      achieving.fire();
     }
   }
 
-  track(int total, int current) async {
+  Future<void> track(int total, int current) async {
     final now = DateTime.now();
     await PendoService.track("Goal Progress",
         {"total": total, "current": current, "date": now.toIso8601String()});

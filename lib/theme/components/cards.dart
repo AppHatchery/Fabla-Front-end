@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
-import 'package:audio_diaries_flutter/core/utils/emailFunction.dart';
+import 'package:audio_diaries_flutter/core/utils/email_function.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -1699,5 +1699,86 @@ class WebViewErrorCard extends StatelessWidget {
         
         
 Participant ID: ''');
+  }
+}
+
+class NoNotificationCard extends StatelessWidget {
+  final VoidCallback openSettings;
+
+  const NoNotificationCard({
+    required this.openSettings,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = Color(0xFFD26B00);
+    final width = MediaQuery.of(context).size.width;
+
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(16),
+      decoration: ShapeDecoration(
+        color: const Color(0xFFFFF8DE),
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(width: 2, color: accent),
+          borderRadius: BorderRadius.circular(11),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                CupertinoIcons.bell_fill,
+                size: 24,
+                color: accent,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 8,
+                    children: [
+                      Text(
+                        "Notification permission required",
+                        style: CustomTypography()
+                            .titleSmallCustom(color: accent),
+                      ),
+                      Text(
+                        "Notifications for Fabla are turned off. Enable them in Settings so you don't miss diary reminders.",
+                        style:
+                            CustomTypography().bodyLarge(color: accent),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 40, top: 12),
+            child: CustomOutlineButton(
+              onClick: openSettings,
+              backgroundColor: accent,
+              color: accent,
+              borderRadius: 12,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12.0, vertical: 4.0),
+              children: Wrap(children: [
+                Text(
+                  "Open Settings",
+                  style:
+                      CustomTypography().button(color: CustomColors.textWhite),
+                ),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

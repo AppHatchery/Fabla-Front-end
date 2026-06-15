@@ -13,7 +13,7 @@ Future<void> settingsFlow(WidgetTester tester) async {
   expect(find.text("View Details"), findsOneWidget);
 
   // Leave study popup
-  await tester.tap(find.text("Leave This Study"));
+  await tester.tap(find.text("Leave Study"));
   await tester.pump(const Duration(seconds: 2));
 
   await tester.tap(find.text("Dismiss"));
@@ -91,7 +91,7 @@ Future<void> settingsFlow(WidgetTester tester) async {
   await tester.pump(const Duration(seconds: 2));
 
   // Add reminder time
-  await tester.tap(find.text("Add a Reminder Time"));
+  await tester.tap(find.text("+ Add Reminder"));
   await tester.pump();
   await Future.delayed(const Duration(seconds: 10));
   await tester.tap(find.text("SAVE"));

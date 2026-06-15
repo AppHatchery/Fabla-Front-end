@@ -10,6 +10,7 @@ class AudioQuestionsWidget extends StatelessWidget {
   final int currentPage;
   final Widget responseWidget;
   final PersistentBottomSheetController? bottomSheetController;
+  final ScrollController? scrollController;
 
   const AudioQuestionsWidget({
     super.key,
@@ -18,6 +19,7 @@ class AudioQuestionsWidget extends StatelessWidget {
     required this.currentPage,
     required this.responseWidget,
     this.bottomSheetController,
+    this.scrollController,
   });
 
   @override
@@ -32,6 +34,7 @@ class AudioQuestionsWidget extends StatelessWidget {
           color: CustomColors.fillWhite,
         ),
         child: SingleChildScrollView(
+          controller: scrollController,
           child: Column(
             children: [
               Row(
@@ -77,6 +80,9 @@ class AudioQuestionsWidget extends StatelessWidget {
                   : const SizedBox(height: 240),
             ],
           ),
-        ));
+        ),
+
+    );
+
   }
 }

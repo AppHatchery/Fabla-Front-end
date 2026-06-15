@@ -1,14 +1,16 @@
 import 'dart:async';
 
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/study_login.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../core/utils/participant_experiment_details.dart';
+import '../../hub/presentation/cubit/hub_cubit.dart';
 
 class SettingsStudyDetails extends StatefulWidget {
   const SettingsStudyDetails({super.key});
@@ -18,14 +20,29 @@ class SettingsStudyDetails extends StatefulWidget {
 }
 
 class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
+  late HubCubit _hubCubit;
   ExperimentModel? experiment;
 
-  final repository = SetupRepository();
+  String? lastUpdated;
+
+  final ParticipantAndExperimentDetails _details =
+      ParticipantAndExperimentDetails();
 
   @override
-  initState() {
+  void initState() {
     super.initState();
-    getStudyDetails();
+    _hubCubit = context.read<HubCubit>();
+    _loadDetails();
+  }
+
+  Future<void> _loadDetails() async {
+    final loadedExperiment = _details.experiment;
+    final dates = await _details.getStudyDates();
+    if (!mounted) return;
+    setState(() {
+      experiment = loadedExperiment;
+      lastUpdated = dates.lastUpdated;
+    });
   }
 
   @override
@@ -35,14 +52,17 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
     }
 
     return Column(
+      spacing: 12,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text(
-              "Study Details",
-              style: CustomTypography()
-                  .titleLarge(color: CustomColors.textNormalContent),
+            Flexible(
+              child: Text(
+                "Study Details",
+                style: CustomTypography()
+                    .titleLarge(color: CustomColors.textNormalContent),
+              ),
             ),
           ],
         ),
@@ -57,74 +77,121 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      experiment!.name,
-                      style: CustomTypography()
-                          .bodyLarge(color: CustomColors.textNormalContent),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            experiment!.name,
+                            style: CustomTypography()
+                                .bodyLarge(color: CustomColors.textNormalContent),
+                          ),
+                        ),
+                        if (lastUpdated != null)
+                          Flexible(
+                            child: Text(
+                              "Last Updated: $lastUpdated",
+                              style: CustomTypography().custom(
+                                  color: CustomColors.textTertiaryContent,
+                                  fontWeight: FontWeight.w400),
+                            ),
+                          )
+                      ],
                     ),
-                    Text(
-                      experiment!.organization,
-                      style: CustomTypography()
-                          .bodyMedium(color: CustomColors.textTertiaryContent),
-                    ),
-                    Text(
-                      "Version: ${experiment!.version}",
-                      style: CustomTypography()
-                          .bodyMedium(color: CustomColors.textTertiaryContent),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            experiment!.organization,
+                            style: CustomTypography()
+                                .bodyMedium(color: CustomColors.textTertiaryContent),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
-                    CustomOutlineButton(
-                      key: Key("view_details_button"),
-                      onClick: () => viewStudyDetails(),
-                      backgroundColor: CustomColors.productNormal,
-                      color: CustomColors.productNormal,
-                      borderRadius: 200,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0, vertical: 4.0),
-                      children: Wrap(children: [
-                        Text(
-                          "View Details",
-                          style: CustomTypography()
-                              .button(color: CustomColors.textWhite),
-                        )
-                      ]),
+                    Row(
+                      spacing: 12,
+                      children: [
+                        Expanded(
+                          child: CustomOutlineButton(
+                            key: Key("view_details_button"),
+                            onClick: () => viewStudyDetails(),
+                            backgroundColor: CustomColors.productNormal,
+                            color: CustomColors.productNormal,
+                            borderRadius: 200,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24.0, vertical: 8.0),
+                            children: Wrap(children: [
+                              Center(
+                                child: Text(
+                                  "View Details",
+                                  style: CustomTypography()
+                                      .button(color: CustomColors.textWhite),
+                                ),
+                              )
+                            ]),
+                          ),
+                        ),
+                        Expanded(
+                          child: CustomOutlineButton(
+                            key: Key("update_study"),
+                            onClick: _showUpdateWarning,
+                            backgroundColor: Colors.transparent,
+                            color: CustomColors.productNormal,
+                            borderRadius: 200,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24.0, vertical: 8.0),
+                            children: Wrap(children: [
+                              Center(
+                                child: Text("Update Study",
+                                    style: CustomTypography().button(
+                                      color: CustomColors.productNormal,
+                                    )),
+                              )
+                            ]),
+                          ),
+                        ),
+                      ],
                     )
                   ],
                 ),
               ),
-              Divider(
-                thickness: 0.5,
-                height: 24,
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0, bottom: 12),
-                child: SizedBox(
-                    child: CustomOutlineButton(
-                  key: Key("leave_study_button"),
-                  onClick: () => leaveStudy(context),
-                  backgroundColor: CustomColors.fillWhite,
-                  color: CustomColors.warningActive,
-                  borderRadius: 200,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12.0, vertical: 4.0),
-                  children: Wrap(children: [
-                    Text(
-                      "Leave This Study",
-                      style: CustomTypography()
-                          .button(color: CustomColors.warningActive),
-                    )
-                  ]),
-                )),
-              ),
             ],
           ),
         ),
+        CustomFlatButton(
+            color: CustomColors.fillWhite,
+            textColor: CustomColors.productNormalActive,
+            onClick: launchEmailMethod,
+            text: "Contact Researcher"),
       ],
+    );
+  }
+
+  Future<void> launchEmailMethod() => _details.launchSupportEmail("Fabla Participant Issue");
+
+
+  /// Entry point for the manual study update. Blocks first when there are
+  /// pending/submitted diaries today; otherwise opens the single morphing
+  /// dialog, which drives the update itself and shows progress/result.
+  void _showUpdateWarning() {
+    if (_hubCubit.hasPendingOrSubmittedToday()) {
+      showDialog(
+        context: context,
+        builder: (_) => const StudyUpdateBlockedPopUp(),
+      );
+      return;
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const StudyUpdatePopUp(),
     );
   }
 
@@ -135,80 +202,10 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
   }
 
   Future<void> pendoTrack(String login) async {
-    final setupRepository = SetupRepository();
-    final pendoID = setupRepository.getParticipant()!.studyCode;
+    final pendoID = _details.participant?.studyCode;
+    if (pendoID == null) return;
 
     await PendoService.start(pendoID, login);
     await PendoService.track("StudyDetails", null);
-  }
-
-  getStudyDetails() async {
-    final experiment = repository.getExperiment();
-    setState(() {
-      this.experiment = experiment;
-    });
-  }
-
-  leaveStudy(BuildContext context) async {
-    final results = await showDialog<bool>(
-      context: context,
-      builder: (context) => ExitPopUp(
-        content: [
-          Text(
-            "Are you sure you want to leave this study?",
-            style: CustomTypography().headlineMedium(),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          Text.rich(
-            TextSpan(
-              text: "This action is final. All data stored on this device will be ",
-              style: CustomTypography().bodyLarge(),
-              children: [
-                TextSpan(
-                  text: " permanently removed.",
-                  style: CustomTypography().bodyLarge(color: Color(0xFFFC0909)),
-                ),
-              ],
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          Text.rich(
-            TextSpan(
-              text: "Note: ",
-              style: CustomTypography().bodyLarge(weight: FontWeight.w600),
-              children: [
-                TextSpan(
-                  text: "You are exiting the daily diary component ",
-                  style: CustomTypography().bodyLarge(),
-                ),
-                TextSpan(
-                  text: "only. ",
-                  style: CustomTypography().bodyLarge(weight: FontWeight.w600),
-                ),
-                TextSpan(
-                  text: "To completely withdraw from the research study and have your data removed, please contact the research team.",
-                  style: CustomTypography().bodyLarge(),
-                ),
-              ],
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-
-    if (results == true && mounted) {
-      unawaited(repository.leaveStudy());
-      if (context.mounted) {
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-                builder: (context) => StudyLogin(),
-                settings: RouteSettings(name: "/StudyLogin")),
-            (route) => false);
-      }
-    }
   }
 }

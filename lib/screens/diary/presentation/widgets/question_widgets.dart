@@ -25,7 +25,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../../core/utils/emailFunction.dart';
+import '../../../../core/utils/email_function.dart';
 import '../../../../core/utils/statuses.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
@@ -85,7 +85,7 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(5.0, 60.0, 5.0, 16.0),
+      padding: const EdgeInsets.fromLTRB(5.0, 0.0, 5.0, 16.0),
       decoration: BoxDecoration(
           color: CustomColors.productLightPrimaryNormalWhite,
           borderRadius: BorderRadius.circular(14.0)),
@@ -1714,12 +1714,13 @@ class _MediaPreviewState extends State<MediaPreview> {
   @override
   Widget build(BuildContext context) {
     return DottedBorder(
-      color: CustomColors.productNormalActive,
-      strokeWidth: 4,
-      radius: Radius.circular(4),
-      padding: const EdgeInsets.all(16),
-      dashPattern: [8, 8],
-      borderType: BorderType.RRect,
+      options: RoundedRectDottedBorderOptions(
+        radius: Radius.circular(4),
+        color: CustomColors.productNormalActive,
+        strokeWidth: 4,
+        padding: const EdgeInsets.all(16),
+        dashPattern: [8, 8],
+      ),
       child: Wrap(
         spacing: 6,
         runSpacing: 6,

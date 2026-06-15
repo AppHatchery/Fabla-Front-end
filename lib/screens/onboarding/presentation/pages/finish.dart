@@ -4,7 +4,7 @@ import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:flutter/material.dart';
-import 'package:rive/rive.dart';
+import 'package:rive/rive.dart' as rive;
 import 'dart:io' show Platform;
 
 import '../../../../theme/components/buttons.dart';
@@ -23,6 +23,9 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
   final PageTimer timer = PageTimer();
   TextScaler? scaler; // Get the size of the text scaler
 
+  rive.File? _riveFile;
+  rive.RiveWidgetController? _riveController;
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -30,7 +33,21 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       scaler = await fontScaler(context);
     });
+    _loadRive();
     super.initState();
+  }
+
+  Future<void> _loadRive() async {
+    final file = await rive.File.asset(
+      'assets/animations/onboarding/onboarding_congrats.riv',
+      riveFactory: rive.Factory.rive,
+    );
+    if (file != null && mounted) {
+      setState(() {
+        _riveFile = file;
+        _riveController = rive.RiveWidgetController(file);
+      });
+    }
   }
 
   @override
@@ -46,6 +63,8 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _riveController?.dispose();
+    _riveFile?.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -74,19 +93,12 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
                         SizedBox(
                           height: height * .7,
                           width: width,
-                          child: FutureBuilder(
-                              future: Future.delayed(
-                                  const Duration(milliseconds: 150)),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.done) {
-                                  return const RiveAnimation.asset(
-                                      'assets/animations/onboarding/onboarding_congrats.riv',
-                                      fit: BoxFit.cover);
-                                }
-
-                                return const SizedBox.shrink();
-                              }),
+                          child: _riveController != null
+                              ? rive.RiveWidget(
+                                  controller: _riveController!,
+                                  fit: rive.Fit.cover,
+                                )
+                              : const SizedBox.shrink(),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),

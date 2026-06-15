@@ -26,12 +26,9 @@ class ParticipantDetailsPage extends StatefulWidget {
 class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
     with WidgetsBindingObserver {
   late SetupCubit setupCubit;
-  late StateMachineController _controller;
-
-  SMIBool? lookDown;
+  BooleanInput? _lookDown;
 
   final TextEditingController controller = TextEditingController();
-  double animationHeight = 0;
   late StreamSubscription<bool> keyboardSubscription;
 
   final PageTimer timer = PageTimer();
@@ -52,9 +49,9 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
     keyboardSubscription =
         keyboardVisibilityController.onChange.listen((bool visible) {
       if (visible) {
-        lookDown?.value = true;
+        _lookDown?.value = true;
       } else {
-        lookDown?.value = false;
+        _lookDown?.value = false;
       }
     });
 
@@ -85,7 +82,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
   @override
   void dispose() {
     keyboardSubscription.cancel();
-    _controller.dispose();
+    _lookDown?.dispose();
     scrollController.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
@@ -252,8 +249,12 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
         image: "",
         avatarType: "animation",
         animation: "assets/animations/onboarding/keyboard.riv",
-        animationHeight: animationHeight,
-        onInit: onInit,
+        stateMachineName: "Animation_100",
+        onControllerReady: (ctrl) {
+          setState(() {
+            _lookDown = ctrl.stateMachine.boolean('Animation_1_Looks_Down');
+          });
+        },
         onContinue: () => {track(timer.stop(), "Finished"), saveName()},
         children: [
           ParticipantName(
@@ -273,24 +274,6 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
       final lastNonSpaceIndex = controller.text.lastIndexOf(RegExp(r'[^ ]'));
       final name = controller.text.substring(0, lastNonSpaceIndex + 1);
       setupCubit.updateParticipant(name);
-    }
-  }
-
-  onInit(Artboard art) async {
-    var ctrl = StateMachineController.fromArtboard(art, "Animation_100");
-    setState(() {
-      animationHeight = art.height;
-    });
-    ctrl?.isActive = false;
-
-    if (ctrl != null) {
-      art.addController(ctrl);
-      setState(() {
-        _controller = ctrl;
-        art.addController(_controller);
-        ctrl.isActive = true;
-        lookDown = _controller.getBoolInput('Animation_1_Looks_Down');
-      });
     }
   }
 

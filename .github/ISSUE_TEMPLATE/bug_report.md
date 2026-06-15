@@ -24,13 +24,6 @@ What actually happened.
 ## 📱 Environment
 - Device: [e.g. iPhone 12, Pixel 5]
 - OS: [e.g. iOS 15.1, Android 12]
-- App Version: [e.g. 1.2.3]
-- Flutter Version: [e.g. 3.16.0]
 
 ## 📎 Additional Context
 Add any other context about the problem here.
-
-## 🩺 Flutter Doctor Output
-```
-flutter doctor -v
-```

@@ -1,4 +1,3 @@
-
 import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -23,16 +22,18 @@ import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
-import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show SystemChrome, SystemUiOverlayStyle, SystemUiMode;
+import 'package:flutter/services.dart'
+    show SystemChrome, SystemUiOverlayStyle, SystemUiMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pendo_sdk/pendo_sdk.dart';
+import 'package:rive/rive.dart' show RiveNative;
 import 'dart:io' show Platform;
 
 import 'core/database/object_box.dart';
@@ -54,13 +55,14 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(
       widgetsBinding: widgetsBinding); // Start Splash Screen
+  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await CrashlyticsService().initialize();
   objectbox = await ObjectBox.create();
   cameras = await availableCameras();
-  //await configureAmplify();
+  await RiveNative.init();
   await Alarm.init();
   await NotificationService.init();
   await PendoService.init();
@@ -135,7 +137,7 @@ class _MyAppState extends State<MyApp> {
               ],
               child: PendoActionListener(
                 child: MaterialApp(
-                  title: 'Audio Diaries',
+                  title: 'Fabla',
                   theme: ThemeData(
                       primaryColor: CustomColors.productNormal,
                       useMaterial3: true),
@@ -197,7 +199,6 @@ class _HubState extends State<Hub>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   // used to refresh the page for updating
   Key key = UniqueKey();
-  final ValueNotifier<bool?> completeNotifier = ValueNotifier(null);
 
   late HubCubit cubit;
   late TabController tabController;
@@ -262,11 +263,7 @@ class _HubState extends State<Hub>
       key: key,
       child: BlocConsumer<HubCubit, HubState>(
         listener: (context, state) {
-          if (state is HubUpdating) {
-            showUpdateDialog();
-          } else if (state is HubUpdated) {
-            completeUpdate(state.complete);
-          } else if (state is HubRefreshing) {
+          if (state is HubRefreshing) {
             refresh();
           }
         },
@@ -302,7 +299,8 @@ class _HubState extends State<Hub>
                   indicator: null,
                   padding: EdgeInsets.only(
                     top: 8,
-                    bottom: bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 8),
+                    bottom:
+                        bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 8),
                   ),
                   dividerColor: Colors.transparent,
                 ),
@@ -353,19 +351,6 @@ class _HubState extends State<Hub>
     ]);
   }
 
-  void completeUpdate(bool completed) {
-    if (mounted) {
-      setState(() => completeNotifier.value = completed);
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          Navigator.pop(context);
-        }
-      }).then((_) {
-        Future.delayed(const Duration(seconds: 1), () => refresh());
-      });
-    }
-  }
-
   void refresh() {
     if (mounted) {
       setState(() {
@@ -375,24 +360,4 @@ class _HubState extends State<Hub>
     }
   }
 
-  showUpdateDialog() {
-    if (mounted) {
-      setState(() {
-        completeNotifier.value = null;
-      });
-    }
-    showModalBottomSheet(
-        context: context,
-        isDismissible: false,
-        enableDrag: false,
-        useSafeArea: true,
-        routeSettings: RouteSettings(name: "/UpdateModal"),
-        builder: (context) => Wrap(
-              children: [
-                BottomUpdateModal(
-                  completeNotifier: completeNotifier,
-                ),
-              ],
-            ));
-  }
 }

@@ -69,23 +69,15 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   RecorderState recorderState = RecorderState.isStopped;
   final ValueNotifier<bool> _erase = ValueNotifier<bool>(false);
   String? tempUrl;
+  // a flag to check if the recording is active or not
+  bool _recordingCheck = false;
 
   ScrollController scrollController = ScrollController();
 
   //Animation
-  late r.StateMachineController _controller;
+  r.File? _riveFile;
+  r.RiveWidgetController? _riveController;
   double animationHeight = 0;
-
-  void _onInit(r.Artboard art) {
-    var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
-    if (ctrl != null) {
-      art.addController(ctrl);
-      _controller = ctrl;
-    }
-    setState(() {
-      animationHeight = art.height;
-    });
-  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -106,13 +98,33 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   void initState() {
     recorderInit();
     WidgetsBinding.instance.addObserver(this);
+    _loadRive();
     super.initState();
+  }
+
+  Future<void> _loadRive() async {
+    final file = await r.File.asset(
+      'assets/animations/onboarding/floats_in.riv',
+      riveFactory: r.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = r.RiveWidgetController(
+        file,
+        stateMachineSelector: r.StateMachineSelector.byName('Animation_12'),
+      );
+      setState(() {
+        _riveFile = file;
+        _riveController = controller;
+        animationHeight = controller.artboard.height;
+      });
+    }
   }
 
   @override
   void dispose() {
     recorder.closeRecorder();
-    _controller.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -123,51 +135,49 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     final width = MediaQuery.of(context).size.width;
     final textScaleFactor = MediaQuery.of(context).textScaler.scale(1.0);
 
-    return SafeArea(
-      bottom: true,
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          width: width,
-          height: textScaleFactor >= 1.8
-              ? MediaQuery.of(context).size.height * 1
-              : textScaleFactor >= 1.2
-                  ? MediaQuery.of(context).size.height * .85
-                  : MediaQuery.of(context).size.height * .75,
-          decoration: const BoxDecoration(
-            color: Color(0xFFF3F3F3),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
-            ),
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        width: width,
+        height: textScaleFactor >= 1.8
+            ? MediaQuery.of(context).size.height * 1
+            : textScaleFactor >= 1.2
+                ? MediaQuery.of(context).size.height * .85
+                : MediaQuery.of(context).size.height * .75,
+        decoration: const BoxDecoration(
+          color: Color(0xFFF3F3F3),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
           ),
-          child: Column(
-            children: [
-              // Close Modal Button
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    GestureDetector(
-                      onTap: () => {
-                        Navigator.pop(context),
-                      },
-                      child: Icon(
-                        CupertinoIcons.clear_circled_solid,
-                        size: 32,
-                        color: CustomColors.textSecondaryContent,
-                      ),
-                    ),
-                  ],
-                ),
+        ),
+        child: Column(
+          children: [
+            // Close Modal Button
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
               ),
-              Expanded(child: questionAndHints()),
-            ],
-          ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GestureDetector(
+                    onTap: () => {
+                      //setting the tap to null when recording is on to avoid accidental closes
+                      recorder.isRecording ? null : Navigator.pop(context),
+                    },
+                    child: Icon(
+                      CupertinoIcons.clear_circled_solid,
+                      size: 32,
+                      color: CustomColors.textSecondaryContent,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(child: questionAndHints()),
+          ],
         ),
       ),
     );
@@ -262,13 +272,14 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           child: Transform(
             transform: Matrix4.translationValues(
                 -140, textScaleFactor >= 1.6 ? 0 : 20, 0)
-              ..scale(-1.0, 1.0),
+              ..multiply(Matrix4.diagonal3Values(-1.0, 1.0, 1.0)),
             alignment: Alignment.center,
-            child: r.RiveAnimation.asset(
-              'assets/animations/onboarding/floats_in.riv',
-              fit: BoxFit.scaleDown,
-              onInit: _onInit,
-            ),
+            child: _riveController != null
+                ? r.RiveWidget(
+                    controller: _riveController!,
+                    fit: r.Fit.scaleDown,
+                  )
+                : const SizedBox.shrink(),
           ),
         ),
       ),
@@ -553,11 +564,18 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
         if (tempUrl != null) {
           final file = File(tempUrl!);
-          await file.delete();
+          if (await file.exists()) {
+            try {
+              await file.delete();
+            } catch (e) {
+              dev.log("Error deleting file: $e");
+            }
+          }
         }
 
+        if (!mounted) return;
         await Future.delayed(const Duration(milliseconds: 150));
-        record();
+        await record();
 
         if (mounted) {
           setState(() {
@@ -573,28 +591,38 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Future<void> record() async {
-    final hasPermission = await checkAndRequestPermission();
-    //Check if scroll controller is already at the bottom
-    if (mounted) {
+    //if recording is active return
+    if (_recordingCheck) return;
+
+    // set recoding to true
+    _recordingCheck = true;
+
+    try {
+      final hasPermission = await checkAndRequestPermission();
+      //TODO:: add a show permission error when recorder has no permission
+      if (!hasPermission) return;
+
+      if (!mounted) return;
+
+      //Check if scroll controller is already at the bottom
       scrollController.animateTo(
         scrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeIn,
       );
-    }
 
-    if (hasPermission) {
-      WakelockPlus.enable();
       if (recorder.isRecording) {
         WakelockPlus.disable();
-        await recorder.pauseRecorder();
         _timer?.cancel();
+        await recorder.pauseRecorder();
       } else if (recorder.isPaused) {
         WakelockPlus.enable();
         await recorder.resumeRecorder();
         startTimer();
       } else {
+        //start fresh
         final path = await getFilePath();
+        WakelockPlus.enable();
         await recorder.startRecorder(toFile: path);
         startTimer();
       }
@@ -606,8 +634,14 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               : RecorderState.isPaused;
         });
       }
-    } else {
-      /* TODO: Show Permission Error */ null;
+    } on Exception catch (e) {
+      debugPrint('record() failed: $e');
+
+      //reset state to stopped state
+      if (mounted) setState(() => recorderState = RecorderState.isStopped);
+    } finally {
+      //set recording check back to false
+      _recordingCheck = false;
     }
   }
 
@@ -683,31 +717,14 @@ class _BottomTextModalState extends State<BottomTextModal>
   bool disabled = true;
 
   //Animation
-  late r.StateMachineController _controller;
-
-  void _onInit(r.Artboard art) {
-    var ctrl = r.StateMachineController.fromArtboard(art, "Ghosts");
-
-    ctrl?.isActive = false;
-    if (ctrl != null) {
-      art.addController(ctrl);
-      setState(() {
-        _controller = ctrl;
-      });
-
-      Future.delayed(const Duration(milliseconds: 10), () {
-        final searchingOne = _controller.findSMI('Searching_1');
-        if (searchingOne != null && mounted) {
-          searchingOne.value = true;
-        }
-      });
-    }
-  }
+  r.File? _riveFile;
+  r.RiveWidgetController? _riveController;
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     textFocusNode = FocusNode();
+    _loadRiveText();
     if (widget.index != null) {
       textController = TextEditingController(
           text: widget.prompt.answer?.response?.elementAtOrNull(widget.index!));
@@ -732,11 +749,35 @@ class _BottomTextModalState extends State<BottomTextModal>
     super.initState();
   }
 
+  Future<void> _loadRiveText() async {
+    final file = await r.File.asset(
+      'assets/animations/ghosts.riv',
+      riveFactory: r.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = r.RiveWidgetController(
+        file,
+        stateMachineSelector: r.StateMachineSelector.byName('Ghosts'),
+      );
+      setState(() {
+        _riveFile = file;
+        _riveController = controller;
+      });
+      Future.delayed(const Duration(milliseconds: 10), () {
+        final searchingOne = controller.stateMachine.trigger('Searching_1');
+        if (searchingOne != null && mounted) {
+          searchingOne.fire();
+        }
+      });
+    }
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     textController.dispose();
-    _controller.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     hideOverlay();
     super.dispose();
   }
@@ -880,10 +921,9 @@ class _BottomTextModalState extends State<BottomTextModal>
           SizedBox(
             height: 100,
             width: 100,
-            child: r.RiveAnimation.asset(
-              'assets/animations/ghosts.riv',
-              onInit: _onInit,
-            ),
+            child: _riveController != null
+                ? r.RiveWidget(controller: _riveController!)
+                : const SizedBox.shrink(),
           ),
           const SizedBox(
             height: 16,
@@ -1406,10 +1446,8 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
     end = DateTime.now();
     if (completed == null) {
       widget.respond("Item was skipped due to: $errorText");
-      dev.log('${widget.respond} Item was skipped due to: $errorText');
     } else {
       widget.respond("Start: $start | End: $end");
-      dev.log('${widget.respond} "Start: $start | End: $end" ');
     }
     Navigator.pop(context);
   }
@@ -1452,33 +1490,41 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
       ResolutionPreset.high,
     );
     cameraInit();
+    _loadRive();
     super.initState();
   }
 
   @override
   dispose() {
+    _searchingOne?.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     controller.dispose();
     super.dispose();
   }
 
   //Animation
-  late r.StateMachineController _controller;
+  r.File? _riveFile;
+  r.RiveWidgetController? _riveController;
+  r.TriggerInput? _searchingOne;
 
-  void _onInit(r.Artboard art) {
-    var ctrl = r.StateMachineController.fromArtboard(art, "Ghosts");
-
-    ctrl?.isActive = false;
-    if (ctrl != null) {
-      art.addController(ctrl);
+  Future<void> _loadRive() async {
+    final file = await r.File.asset(
+      'assets/animations/ghosts.riv',
+      riveFactory: r.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = r.RiveWidgetController(
+        file,
+        stateMachineSelector: r.StateMachineSelector.byName('Ghosts'),
+      );
       setState(() {
-        _controller = ctrl;
+        _riveFile = file;
+        _riveController = controller;
+        _searchingOne = controller.stateMachine.trigger('Searching_1');
       });
-
       Future.delayed(const Duration(milliseconds: 10), () {
-        final searchingThree = _controller.findSMI('Searching_1');
-        if (searchingThree != null && mounted) {
-          searchingThree.value = true;
-        }
+        if (mounted) _searchingOne?.fire();
       });
     }
   }
@@ -1592,10 +1638,9 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                     SizedBox(
                       height: 100,
                       width: 100,
-                      child: r.RiveAnimation.asset(
-                        'assets/animations/ghosts.riv',
-                        onInit: _onInit,
-                      ),
+                      child: _riveController != null
+                          ? r.RiveWidget(controller: _riveController!)
+                          : const SizedBox.shrink(),
                     ),
                     const SizedBox(
                       height: 16,
@@ -2143,603 +2188,6 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
   }
 }
 
-class TeleprompterModal extends StatefulWidget {
-  final void Function(String p, [String? type]) respond;
-  final PromptModel prompt;
-
-  const TeleprompterModal({
-    super.key,
-    required this.respond,
-    required this.prompt,
-  });
-
-  @override
-  State<TeleprompterModal> createState() => _TeleprompterModalState();
-}
-
-class _TeleprompterModalState extends State<TeleprompterModal> {
-  late CameraController controller;
-  IconData flashIcon = CupertinoIcons.bolt_badge_a_fill;
-  final ScrollController _scrollController = ScrollController();
-
-  XFile? file;
-
-  // Video Recording
-  Timer? _timer;
-  Duration elapsed = const Duration();
-
-  // Playback
-  VideoPlayerController? videoController;
-  bool videoPlaying = false;
-
-  double feedHeight = 0;
-  double feedWidth = 0;
-
-  // Floating image (sticky-bottom while script scrolls).
-  static const double _floatingImageHeight = 250.0;
-  static const double _floatingImageGap = 16.0;
-  final GlobalKey _scriptKey = GlobalKey();
-  double _scriptHeight = 0;
-
-  @override
-  void initState() {
-    controller = CameraController(
-      _frontCamera(),
-      ResolutionPreset.high,
-    );
-    cameraInit();
-    super.initState();
-  }
-
-  /// Measures the rendered script height once layout is complete so the
-  /// floating image knows when to release from its sticky position.
-  /// Called from a post-frame callback — O(1).
-  void _measureScriptHeight() {
-    if (!mounted) return;
-    final box = _scriptKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null || !box.hasSize) return;
-    final h = box.size.height;
-    if (h != _scriptHeight) {
-      setState(() => _scriptHeight = h);
-    }
-  }
-
-  /// Returns the front-facing camera if available, otherwise falls back to
-  /// the first available camera.
-  CameraDescription _frontCamera() {
-    return cameras.firstWhere(
-      (c) => c.lensDirection == CameraLensDirection.front,
-      orElse: () => cameras[0],
-    );
-  }
-
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 800),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
-  void _scrollToTop() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.minScrollExtent,
-        duration: const Duration(milliseconds: 800),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    _scrollController.dispose();
-    videoController?.dispose();
-    super.dispose();
-  }
-
-  Future<void> cameraInit() async {
-    controller.addListener(() {
-      if (mounted) {
-        setState(() {
-          if (controller.value.previewSize != null) {
-            feedWidth = controller.value.previewSize!.height / 3;
-            feedHeight = controller.value.previewSize!.width / 3;
-          }
-        });
-      }
-      if (controller.value.hasError) {
-        dev.log('Camera error ${controller.value.errorDescription}');
-      }
-    });
-
-    try {
-      await controller.initialize();
-      if (!mounted) return;
-      // Defer scroll-to-bottom until AFTER the rebuild that picks up the
-      // inflated camera feed dimensions (feedWidth/feedHeight are set in
-      // the listener via setState during initialize(), but the rebuild
-      // doesn't happen until the next frame). Without this, maxScrollExtent
-      // is computed against a 0x0 camera feed and the scroll stops short
-      // of the recording controls.
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-    } on CameraException catch (e) {
-      switch (e.code) {
-        case 'CameraAccessDenied':
-          dev.log('You have denied camera access.');
-        case 'CameraAccessDeniedWithoutPrompt':
-          // iOS only
-          dev.log('Please go to Settings app to enable camera access.');
-        case 'CameraAccessRestricted':
-          // iOS only
-          dev.log('Camera access is restricted.');
-        case 'AudioAccessDenied':
-          dev.log('You have denied audio access.');
-        case 'AudioAccessDeniedWithoutPrompt':
-          // iOS only
-          dev.log('Please go to Settings app to enable audio access.');
-        case 'AudioAccessRestricted':
-          // iOS only
-          dev.log('Audio access is restricted.');
-        default:
-          dev.log(e.toString());
-          break;
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    return SafeArea(
-      bottom: true,
-      child: Container(
-        width: width,
-        decoration: const BoxDecoration(
-          color: Color(0xFFF3F3F3),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(14),
-            topRight: Radius.circular(14),
-          ),
-        ),
-        child: Column(
-          children: [
-            const SizedBox(
-              height: 32,
-            ),
-            // Close Modal Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(
-                    child: controller.value.isRecordingVideo
-                        ? const Icon(
-                      Icons.fiber_manual_record,
-                      color: CustomColors.warningActive,
-                    )
-                        : null,
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: const Icon(
-                      CupertinoIcons.clear_circled_solid,
-                      size: 26,
-                      color: CustomColors.textSecondaryContent,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(child: questionAndHints()),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget questionAndHints() {
-    final width = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final teleprompterUrl = widget.prompt.option?.teleprompterUrl;
-
-    return LayoutBuilder(builder: (context, constraints) {
-      // Re-measure script height each layout pass (handles font scaling,
-      // orientation, etc.). The callback is cheap and idempotent.
-      WidgetsBinding.instance.addPostFrameCallback((_) => _measureScriptHeight());
-
-      final viewportHeight = constraints.maxHeight;
-
-      return SizedBox(
-        height: viewportHeight,
-        width: constraints.maxWidth,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // ── Single scroll region: script → reserved image space → controls
-            SingleChildScrollView(
-            controller: _scrollController,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Script (measured via GlobalKey to drive the floating image).
-                Padding(
-                  key: _scriptKey,
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: Text(
-                    widget.prompt.subtitle ?? '',
-                    style: CustomTypography().body(),
-                  ),
-                ),
-                // Reserves the layout space the floating image occupies so
-                // the scroll height accounts for it even though the image
-                // itself is rendered as a Positioned overlay above.
-                const SizedBox(
-                  height: _floatingImageHeight + _floatingImageGap,
-                ),
-                // Recording controls — revealed after the user scrolls past
-                // the image at the end of the script.
-                Container(
-                  width: width,
-                  color: CustomColors.productNormal,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 16),
-                      file != null ? preview() : cameraFeed(),
-                      const SizedBox(height: 24),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 36.0),
-                        child: file != null
-                            ? playbackControls()
-                            : recordingControls(),
-                      ),
-                      SizedBox(height: screenHeight > 850 ? 36 : 24),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // ── Floating image: sticky to viewport bottom while there's still script above;
-            // releases and scrolls up naturally once the script is fully scrolled past.
-            // IgnorePointer so the user can still drag the scroll through it.
-          if (teleprompterUrl != null &&
-              teleprompterUrl.isNotEmpty &&
-              _scriptHeight > 0)
-            AnimatedBuilder(
-              animation: _scrollController,
-              builder: (context, _) {
-                final scrollOffset = _scrollController.hasClients
-                    ? _scrollController.offset
-                    : 0.0;
-                // Natural top: where the image would be if it were a normal
-                // child of the scroll content, sitting just after the script.
-                final naturalTop = _scriptHeight + 6 - scrollOffset;
-                // Sticky top: anchored to viewport bottom.
-                final stickyTop = viewportHeight - _floatingImageHeight;
-                // While natural is below sticky → pin. Once natural rises
-                // above sticky → scroll naturally with content.
-                final top = min(stickyTop, naturalTop);
-                return Positioned(
-                  left: 0,
-                  right: 0,
-                  top: top,
-                  height: _floatingImageHeight,
-                  // Opaque, full-bleed block so the script behind it is fully
-                  child: IgnorePointer(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      width: double.infinity,
-                      height: _floatingImageHeight,
-                      color: const Color(0xFFF3F3F3),
-                      child: Image.asset(
-                        "assets/images/fops/$teleprompterUrl",
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: _floatingImageHeight,
-                      ),
-                    ),
-                  ),
-                    ),
-                  ),
-                );
-              },
-            ),
-
-        ],
-        ),
-      );
-    });
-  }
-
-  Widget preview() {
-    if (file == null) return const SizedBox.shrink();
-
-    return Container(
-      height: feedHeight,
-      width: feedWidth,
-      decoration: BoxDecoration(
-        color: CustomColors.grey,
-        border: GradientBoxBorder(
-          gradient: const LinearGradient(
-              colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
-          width: 4,
-        ),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: videoController != null
-          ? VideoPreview(controller: videoController!)
-          : const SizedBox.shrink(),
-    );
-  }
-
-  Widget cameraFeed() {
-    return Container(
-      width: feedWidth,
-      height: feedHeight,
-      decoration: BoxDecoration(
-        color: CustomColors.grey,
-        border: GradientBoxBorder(
-          gradient: const LinearGradient(
-              colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
-          width: 4,
-        ),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: controller.value.isInitialized
-            ? Stack(
-          children: [
-            Center(
-              child: SizedBox(
-                width: controller.value.previewSize!.height / 3,
-                height: controller.value.previewSize!.width / 3,
-                child: CameraPreview(controller),
-              ),
-            ),
-            if (elapsed.inMilliseconds > 0)
-              Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 9.0),
-                  child: Container(
-                    width: 90,
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 9),
-                    decoration: ShapeDecoration(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4)),
-                      color: controller.value.isRecordingPaused
-                          ? CustomColors.productNormal
-                          : CustomColors.warningActive,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          formatDurationtoHHMMSS(elapsed),
-                          style: CustomTypography().custom(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: CustomColors.textWhite,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        )
-            : SizedBox(height: feedHeight, width: feedWidth),
-      ),
-    );
-  }
-
-  Widget recordingControls() {
-    final width = MediaQuery.of(context).size.width;
-    return SizedBox(
-      width: width,
-      height: 68,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          GestureDetector(
-            onTap: () => record(),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 100),
-              height: controller.value.isRecordingPaused ? 50 : 64,
-              width: controller.value.isRecordingPaused ? 50 : 64,
-              decoration: BoxDecoration(
-                border: Border.all(color: CustomColors.fillWhite, width: 4),
-                borderRadius: BorderRadius.circular(68),
-              ),
-              padding: EdgeInsets.all(
-                controller.value.isRecordingPaused
-                    ? 10
-                    : controller.value.isRecordingVideo
-                    ? 15
-                    : 4,
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: CustomColors.warningActive,
-                  shape: controller.value.isRecordingVideo
-                      ? BoxShape.rectangle
-                      : BoxShape.circle,
-                  borderRadius: controller.value.isRecordingVideo
-                      ? BorderRadius.circular(4)
-                      : null,
-                ),
-              ),
-            ),
-          ),
-          controller.value.isRecordingVideo ? SizedBox.shrink() :
-          Positioned(
-            right: 0,
-            child: GestureDetector(
-              onTap: () => flip(),
-              child: Container(
-                height: 50,
-                width: 50,
-                decoration: BoxDecoration(
-                  color: CustomColors.fillWhite,
-                  borderRadius: BorderRadius.circular(68),
-                ),
-                padding: const EdgeInsets.all(4),
-                child: Center(
-                  child: Icon(
-                    CupertinoIcons.switch_camera_solid,
-                    color: CustomColors.productNormal,
-                    size: 25,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget playbackControls() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      spacing: 24,
-      children: [
-        GestureDetector(
-          onTap: () => redo(),
-          child: Container(
-            padding: const EdgeInsets.all(13),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: CustomColors.fillWhite,
-            ),
-            child: Icon(
-              CupertinoIcons.arrow_uturn_left,
-              color: CustomColors.productNormalActive,
-            ),
-          ),
-        ),
-        GestureDetector(
-          key: const Key("save"),
-          onTap: () => save(),
-          child: Container(
-            padding: const EdgeInsets.all(13),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: CustomColors.fillWhite,
-            ),
-            child: Icon(
-              CupertinoIcons.checkmark_alt,
-              color: CustomColors.productNormalActive,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<String> getFilePath() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final dir = await Directory(p.join(directory.path, 'videos'))
-        .create(recursive: true);
-    final now = DateTime.now();
-    final fileName = '${widget.prompt.id + 1}_${formatDate(now)}.mp4';
-    return p.join(dir.path, fileName);
-  }
-
-  Future<void> record() async {
-    if (controller.value.isRecordingVideo) {
-      await stop();
-      return;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToTop());
-    await controller.startVideoRecording();
-    startTimer();
-  }
-
-  Future<void> save() async {
-    try {
-      if (file != null) {
-        final path = await getFilePath();
-        await file!.saveTo(path);
-        widget.respond(basePath(path), "video");
-        if (mounted) Navigator.pop(context, true);
-      }
-    } catch (e) {
-      dev.log(e.toString(), name: "Camera Modal - Save");
-    }
-  }
-
-  void redo() {
-    setState(() {
-      file = null;
-      elapsed = const Duration();
-    });
-  }
-
-  Future<void> pause() async {
-    if (controller.value.isRecordingVideo &&
-        !controller.value.isRecordingPaused) {
-      await controller.pauseVideoRecording();
-      if (mounted) setState(() => stopTimer());
-      return;
-    }
-    await controller.resumeVideoRecording();
-    if (mounted) setState(() => startTimer());
-  }
-
-  Future<void> stop() async {
-    stopTimer();
-    final captured = await controller.stopVideoRecording();
-    if (!mounted) return;
-    setState(() {
-      file = captured;
-      videoController = VideoPlayerController.file(File(captured.path));
-      videoController?.addListener(() {
-        if (mounted) {
-          setState(() {
-            videoPlaying = videoController?.value.isPlaying ?? false;
-          });
-        }
-      });
-    });
-  }
-
-  Future<void> flip() async {
-    final currentLensDirection = controller.description.lensDirection;
-    CameraDescription lens = cameras[0];
-    for (final camera in cameras) {
-      if (camera.lensDirection != currentLensDirection) {
-        lens = camera;
-        break;
-      }
-    }
-    await controller.setDescription(lens);
-  }
-
-  void startTimer() {
-    _timer ??= Timer.periodic(const Duration(seconds: 1), (value) {
-      if (mounted) setState(() => elapsed += const Duration(seconds: 1));
-    });
-  }
-
-  void stopTimer() {
-    _timer?.cancel();
-    _timer = null;
-  }
-}
-
 class VideoPreview extends StatefulWidget {
   final VideoPlayerController controller;
   const VideoPreview({super.key, required this.controller});
@@ -2841,101 +2289,6 @@ class _VideoPreviewState extends State<VideoPreview> {
 
   seek(double value) async {
     await widget.controller.seekTo(Duration(milliseconds: value.toInt()));
-  }
-}
-
-class BottomUpdateModal extends StatefulWidget {
-  final ValueNotifier<bool?> completeNotifier;
-  const BottomUpdateModal({super.key, required this.completeNotifier});
-
-  @override
-  State<BottomUpdateModal> createState() => _BottomUpdateModalState();
-}
-
-class _BottomUpdateModalState extends State<BottomUpdateModal> {
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    return Container(
-      height: 300,
-      width: width,
-      decoration: const BoxDecoration(
-        color: CustomColors.fillWhite,
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(14), topRight: Radius.circular(14)),
-      ),
-      child: ValueListenableBuilder(
-          valueListenable: widget.completeNotifier,
-          builder: (context, complete, _) {
-            return Column(
-              spacing: 24,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 24.0),
-                  child: Text(
-                    complete == null
-                        ? "Updating Experiment \nContent"
-                        : complete
-                            ? "Experiment Content \nUpdated"
-                            : "Content Update \nFailed",
-                    style: CustomTypography().headlineMedium(),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 50),
-                  child: Text(
-                    complete == null
-                        ? "Hang tight! We're updating the experiment content. This won’t take long!"
-                        : complete
-                            ? "Content Update Complete!"
-                            : "Please check your internet connection and try again.",
-                    style: CustomTypography().bodyMedium(),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-                // Progress
-
-                SizedBox(
-                  height: 30,
-                  width: 30,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    transitionBuilder:
-                        (Widget child, Animation<double> animation) {
-                      return FadeTransition(opacity: animation, child: child);
-                    },
-                    child: complete == null
-                        ? CircularProgressIndicator(
-                            key: ValueKey(1), // Unique key for transition
-                            color: CustomColors.productNormal,
-                            strokeCap: StrokeCap.round,
-                          )
-                        : complete
-                            ? Center(
-                                child: Icon(
-                                  Icons.check_circle_rounded,
-                                  key: ValueKey(2), // Unique key for transition
-                                  color: CustomColors.darkGreen,
-                                  size: 32,
-                                ),
-                              )
-                            : Center(
-                                child: Icon(
-                                  Icons.cancel_rounded,
-                                  key: ValueKey(3), // Unique key for transition
-                                  color: CustomColors.warningActive,
-                                  size: 32,
-                                ),
-                              ),
-                  ),
-                ),
-              ],
-            );
-          }),
-    );
   }
 }
 
@@ -3250,11 +2603,13 @@ class _BottomTimerModalState extends State<BottomTimerModal>
   double animationHeight = 0;
   // Icon Shake animation
   late AnimationController _shakeController;
-  r.StateMachineController? _controller;
+  r.File? _riveFile;
+  r.RiveWidgetController? _riveController;
 
   @override
   void initState() {
     super.initState();
+    _loadRive();
 
     // Initialize animation controller
     _shakeController = AnimationController(
@@ -3267,24 +2622,30 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       });
   }
 
-  @override
-  void dispose() {
-    _controller?.dispose();
-    _shakeController.dispose();
-    super.dispose();
+  Future<void> _loadRive() async {
+    final file = await r.File.asset(
+      'assets/animations/onboarding/floats_in.riv',
+      riveFactory: r.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = r.RiveWidgetController(
+        file,
+        stateMachineSelector: r.StateMachineSelector.byName('Animation_12'),
+      );
+      setState(() {
+        _riveFile = file;
+        _riveController = controller;
+        animationHeight = controller.artboard.height;
+      });
+    }
   }
 
-  void _onRiveInit(r.Artboard art) {
-    var ctrl = r.StateMachineController.fromArtboard(art, "Animation_12");
-
-    if (ctrl != null) {
-      art.addController(ctrl);
-      _controller = ctrl;
-    }
-
-    setState(() {
-      animationHeight = art.height;
-    });
+  @override
+  void dispose() {
+    _riveController?.dispose();
+    _riveFile?.dispose();
+    _shakeController.dispose();
+    super.dispose();
   }
 
   @override
@@ -3391,14 +2752,14 @@ class _BottomTimerModalState extends State<BottomTimerModal>
           width: media.size.width,
           child: Transform(
             transform: Matrix4.translationValues(5, -animationHeight / 5, 0)
-              ..scale(-1.7,
-                  1.7), // Scale up by 1.5x and flip horizontally with negative x
+              ..multiply(Matrix4.diagonal3Values(-1.7, 1.7, 1.0)),
             alignment: Alignment.center,
-            child: r.RiveAnimation.asset(
-              'assets/animations/onboarding/floats_in.riv',
-              fit: BoxFit.contain,
-              onInit: _onRiveInit,
-            ),
+            child: _riveController != null
+                ? r.RiveWidget(
+                    controller: _riveController!,
+                    fit: r.Fit.contain,
+                  )
+                : const SizedBox.shrink(),
           ),
         ),
       ),
@@ -3489,245 +2850,6 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                     ),
         ),
       ),
-    );
-  }
-}
-
-class VideoPlayerBottomModal extends StatefulWidget {
-  final String url;
-  const VideoPlayerBottomModal({super.key, required this.url});
-
-  @override
-  State<VideoPlayerBottomModal> createState() => _VideoPlayerBottomModalState();
-}
-
-class _VideoPlayerBottomModalState extends State<VideoPlayerBottomModal> {
-  late VideoPlayerController _controller;
-  PlaybackStatus _status = PlaybackStatus.stopped;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = VideoPlayerController.asset('assets/video/${widget.url}')
-      ..initialize().then((_) {
-        setState(() {});
-      }).catchError((error) {
-        debugPrint('Controller init error: $error');
-      });
-
-    _controller.addListener(_onControllerUpdate);
-  }
-
-  void _onControllerUpdate() {
-    if (_controller.value.hasError) {
-      debugPrint('VideoPlayer error: ${_controller.value.errorDescription}');
-    }
-
-    // Detect natural playback completion
-    if (_status == PlaybackStatus.playing &&
-        _controller.value.isInitialized &&
-        !_controller.value.isPlaying &&
-        _controller.value.position >= _controller.value.duration) {
-      _onStop();
-      return;
-    }
-
-    if (mounted) setState(() {});
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_onControllerUpdate);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onPlay() {
-    _controller.play();
-    setState(() => _status = PlaybackStatus.playing);
-  }
-
-  void _onPause() {
-    _controller.pause();
-    setState(() => _status = PlaybackStatus.paused);
-  }
-
-  void _onStop() {
-    _controller.pause();
-    _controller.seekTo(Duration.zero);
-    setState(() => _status = PlaybackStatus.stopped);
-  }
-
-  void _onDone() {
-    _controller.pause();
-    _controller.seekTo(Duration.zero);
-    setState(() => _status = PlaybackStatus.done);
-    Navigator.pop(context);
-  }
-
-  Widget _controlButton({
-    required double size,
-    required double iconSize,
-    required Color color,
-    required Color iconColor,
-    required IconData icon,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: size,
-        width: size,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(size / 2),
-        ),
-        child: Icon(icon, size: iconSize, color: iconColor),
-      ),
-    );
-  }
-
-  Widget _widgetPlayback() {
-    final bool isPlaying = _status == PlaybackStatus.playing;
-    final bool isDone = _status == PlaybackStatus.done;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _controlButton(
-            size: 40,
-            iconSize: 20,
-            color: CustomColors.fillWhite,
-            icon: CupertinoIcons.stop_fill,
-            iconColor: isDone
-                ? CustomColors.productNormal.withOpacity(0.3)
-                : CustomColors.warningActive,
-            onTap: isDone ? null : _onStop,
-          ),
-          const SizedBox(width: 50),
-          _controlButton(
-            size: 68,
-            iconSize: 34,
-            color: CustomColors.fillWhite,
-            icon: isPlaying ? CupertinoIcons.pause_fill : Icons.play_arrow,
-            iconColor: isDone
-                ? CustomColors.productNormal.withOpacity(0.3)
-                : CustomColors.productNormal,
-            onTap: isDone ? null : (isPlaying ? _onPause : _onPlay),
-          ),
-          const SizedBox(width: 50),
-          _controlButton(
-            size: 40,
-            iconSize: 20,
-            color: isDone ? CustomColors.productNormal : CustomColors.fillWhite,
-            icon: CupertinoIcons.checkmark_alt,
-            iconColor: isDone ? CustomColors.fillWhite : CustomColors.productNormal,
-            onTap: isDone ? null : _onDone,
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatDuration(Duration d) {
-    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$minutes:$seconds';
-  }
-
-  Widget _widgetProgress() {
-    if (!_controller.value.isInitialized) return const SizedBox.shrink();
-
-    final position = _controller.value.position;
-    final duration = _controller.value.duration;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          VideoProgressIndicator(
-            _controller,
-            allowScrubbing: true,
-            colors: VideoProgressColors(
-              playedColor: CustomColors.fillWhite,
-              bufferedColor: CustomColors.fillWhite.withOpacity(0.3),
-              backgroundColor: CustomColors.fillWhite.withOpacity(0.15),
-            ),
-            padding: EdgeInsets.zero,
-          ),
-          const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                _formatDuration(position),
-                style: const TextStyle(
-                  color: CustomColors.fillWhite,
-                  fontSize: 12,
-                ),
-              ),
-              Text(
-                _formatDuration(duration),
-                style: TextStyle(
-                  color: CustomColors.fillWhite.withOpacity(0.6),
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-              color: CustomColors.productNormal
-          ),
-          child: Column(
-            spacing: 24,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Center(
-                child: _controller.value.isInitialized
-                    ? AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: VideoPlayer(_controller),
-                )
-                    : const CircularProgressIndicator(),
-              ),
-              _widgetProgress(),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: _widgetPlayback(),
-              ),
-            ],
-          ),
-        ),
-        Positioned(
-          top: 16,
-          right: 20,
-          child: GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: const Icon(
-              CupertinoIcons.clear_circled_solid,
-              size: 26,
-              color: CustomColors.textSecondaryContent,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

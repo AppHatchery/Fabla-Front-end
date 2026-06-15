@@ -36,6 +36,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/database/dao/participant_dao.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
@@ -269,6 +270,16 @@ class SetupRepository {
             repository.removeDiariesFrom(today);
             _studyDAO.deleteAllStudies();
           });
+
+          //store the date the person last updated.
+          final SharedPreferences lastUpdated =
+              await SharedPreferences.getInstance();
+
+          final lastUpdatedDate = DateFormat('dd/MM/yyyy').format(today);
+
+          await lastUpdated.setString(
+              'last_Updated', lastUpdatedDate); // store today's date
+          dev.log('Value added successfully!');
         } else {
           clearStudies();
         }
@@ -563,7 +574,6 @@ class SetupRepository {
       firebaseToken =
           kDebugMode ? "dev" : await FirebaseMessaging.instance.getToken();
       if (firebaseToken != null) {
-        debugPrint("Firebase Token: $firebaseToken");
       } else {
         debugPrint("Failed to fetch Firebase token: Token is null.");
       }
@@ -621,6 +631,7 @@ class SetupRepository {
 
     final date = DateTime.now();
     final formatted = DateFormat('yyyy-MM-dd').format(date);
+    final SharedPreferences dateJoined = await SharedPreferences.getInstance();
 
     if (getdbextras == null || getdbextras.isEmpty) {
       dev.log(">>>>>>>>>>>No users found in response.");
@@ -648,6 +659,17 @@ class SetupRepository {
       }
     }
 
+    final finalDate = DateFormat('dd/MM/yyyy').format(date);
+    extras['date_adjuster'] = finalDate;
+    //store the date the person has finished onboarding, we will use this as date joined
+    if (!dateJoined.containsKey('date_joined')) {
+      await dateJoined.setString(
+          'date_joined', finalDate); // store formatted, not extras map
+      dev.log('Value added successfully!');
+    } else {
+      dev.log('Key already exists. No value was added.');
+    }
+
     //dev.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>: $jsonString");
 
     // Check if date_adjuster is already in extras from onboarding questions
@@ -662,8 +684,6 @@ class SetupRepository {
         'service': platformName,
       },
     );
-
-    dev.log("map $map", name: "Uploading OnBoarding Questions");
 
     final result =
         await post(path: "/fabla/updateuserextras", body: map).then((value) {

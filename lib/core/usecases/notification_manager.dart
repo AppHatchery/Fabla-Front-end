@@ -8,6 +8,7 @@ import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart' show TimeOfDay;
 
 /// NotificationManager class is responsible for scheduling notifications
@@ -17,6 +18,7 @@ const int threshold = 50;
 
 class NotificationManager {
   final DiaryRepository diaryRepository = DiaryRepository();
+  static final AwesomeNotifications _awesomeNotifications = AwesomeNotifications();
 
   /// Schedule additional notifications
   /// This method schedules additional notifications for diaries that are due
@@ -26,110 +28,163 @@ class NotificationManager {
   /// It uses the DiaryRepository to get all diaries that are due
   ///
   void scheduleAdditional() async {
-    final now = DateTime.now();
 
-    // Get the number of notifications scheduled
-    final scheduledNotifications =
-        (await NotificationService.getScheduledNotifications())
-            .where((e) =>
-                e.content?.payload?['date'] != null) // Filter out null payloads
-            .map((e) =>
-                DateTime.parse(e.content!.payload!['date']!).toIso8601String())
-            .toSet(); // Convert to a Set for faster lookup
+    final hasPermission = await _awesomeNotifications.isNotificationAllowed();
+    if(!hasPermission) return;
 
-    dev.log('Currently scheduled notifications: $scheduledNotifications');
+    try {
+      final now = DateTime.now();
 
-    //track what is scheduled
-    await PendoService.track("ScheduledNotifications", {
-      "status": "scheduled",
-      "page": "home",
-      "scheduled_count": scheduledNotifications.length,
-    });
+      // Get the number of notifications scheduled
+      final scheduledNotifications =
+      (await NotificationService.getScheduledNotifications())
+          .where((e) =>
+      e.content?.payload?['date'] != null) // Filter out null payloads
+          .map((e) =>
+          DateTime.parse(e.content!.payload!['date']!).toIso8601String())
+          .toSet(); // Convert to a Set for faster lookup
 
-    // Get all diaries that are not complete or submitted and due in the future
-    final diaries = diaryRepository
-        .getAllDiaries()
-        .where((diary) =>
-            diary.due.isAfter(now) &&
-            ![DiaryStatus.complete, DiaryStatus.submitted]
-                .contains(diary.status))
-        .toList();
-    // sort diaries by start date
-    diaries.sort((a, b) => a.start.compareTo(b.start));
+      dev.log('Currently scheduled notifications: $scheduledNotifications');
 
-    // If there are no diaries, return early
-    if (diaries.isEmpty) {
-      dev.log('No diaries found to schedule notifications for.');
-      return;
-    }
+      //track what is scheduled
+      await PendoService.track("ScheduledNotifications", {
+        "status": "scheduled",
+        "page": "home",
+        "scheduled_count": scheduledNotifications.length,
+      });
 
-    // Check if the number of scheduled notifications is below the threshold
-    if (scheduledNotifications.length < threshold) {
-      final int notificationsToSchedule =
-          threshold - scheduledNotifications.length;
-      dev.log(
-          'Scheduled Notifications Count: ${scheduledNotifications.length}');
-      dev.log('Notifications to schedule: $notificationsToSchedule');
+      // Get all diaries that are not complete or submitted and due in the future
+      final diaries = diaryRepository
+          .getAllDiaries()
+          .where((diary) =>
+      diary.due.isAfter(now) &&
+          ![DiaryStatus.complete, DiaryStatus.submitted]
+              .contains(diary.status))
+          .toList();
+      // sort diaries by start date
+      diaries.sort((a, b) => a.start.compareTo(b.start));
 
-      int scheduledCount = 0;
+      // If there are no diaries, return early
+      if (diaries.isEmpty) {
+        dev.log('No diaries found to schedule notifications for.');
+        return;
+      }
 
-      // Iterate through each diary to schedule notifications
-      for (final diary in diaries) {
-        // Stop if the required number of notifications have been scheduled
-        if (scheduledCount >= notificationsToSchedule) break;
+      // Check if the number of scheduled notifications is below the threshold
+      if (scheduledNotifications.length < threshold) {
+        final int notificationsToSchedule =
+            threshold - scheduledNotifications.length;
+        dev.log(
+            'Scheduled Notifications Count: ${scheduledNotifications.length}');
+        dev.log('Notifications to schedule: $notificationsToSchedule');
 
-        // Access the list of notifications from the current diary
-        final diaryNotifications = diary.notifications;
-        if (diaryNotifications.isEmpty) {
-          dev.log('No notifications found for diary ${diary.name}, skipping.');
-          continue;
-        }
-        final isWeekly = _isWeeklyDiary(diary);
+        int scheduledCount = 0;
 
-        if (isWeekly) {
-          dev.log(
-              'Scheduling weekly diary ${diary.name} | Start: ${diary.start}, End: ${diary.end}, Active Days: ${diary.activeDays}');
+        // Iterate through each diary to schedule notifications
+        for (final diary in diaries) {
+          // Stop if the required number of notifications have been scheduled
+          if (scheduledCount >= notificationsToSchedule) break;
 
-          // Get all dates diary is active on
-          final activeDates = _getWeeklyDiaryDates(diary);
-          dev.log('Active dates for diary ${diary.name}: $activeDates');
+          // Access the list of notifications from the current diary
+          final diaryNotifications = diary.notifications;
+          if (diaryNotifications.isEmpty) {
+            dev.log('No notifications found for diary ${diary.name}, skipping.');
+            continue;
+          }
+          final isWeekly = _isWeeklyDiary(diary);
 
-          // Schedule notifications for each active date
-          for (final date in activeDates) {
-            // Stop if the required number of notifications have been scheduled
-            if (scheduledCount >= notificationsToSchedule) break;
+          if (isWeekly) {
+            dev.log(
+                'Scheduling weekly diary ${diary.name} | Start: ${diary.start}, End: ${diary.end}, Active Days: ${diary.activeDays}');
 
-            // get the times from the original notifications
+            // Get all dates diary is active on
+            final activeDates = _getWeeklyDiaryDates(diary);
+            dev.log('Active dates for diary ${diary.name}: $activeDates');
+
+            // Schedule notifications for each active date
+            for (final date in activeDates) {
+              // Stop if the required number of notifications have been scheduled
+              if (scheduledCount >= notificationsToSchedule) break;
+
+              // get the times from the original notifications
+              for (final notification in diaryNotifications) {
+                // Stop if the required number of notifications have been scheduled
+                if (scheduledCount >= notificationsToSchedule) break;
+                final time = TimeOfDay.fromDateTime(notification.date.toUtc());
+                final notificationDate = DateTime.utc(
+                  date.year,
+                  date.month,
+                  date.day,
+                  time.hour,
+                  time.minute,
+                );
+
+                // Check if this notification has not already been scheduled
+                dev.log(
+                    'Checking if notification date $notificationDate for ${diary.name} is already scheduled and is after now($now).');
+                if (!scheduledNotifications
+                    .contains(notificationDate.toIso8601String()) &&
+                    notificationDate.isAfter(now)) {
+                  // Generate a unique ID for the notification
+                  final int id = generateUniqueId(diary.id, notificationDate);
+
+                  // Schedule the notification asynchronously
+                  await NotificationService.createNotification(
+                    id: id,
+                    title: notification.title,
+                    body: notification.body,
+                    date: notificationDate.toUtc(),
+                    payload: {
+                      'id': id.toString(),
+                      'date': notificationDate.toIso8601String(),
+                      'diary': diary.id.toString(),
+                    },
+                  );
+
+                  await PendoService.track("ScheduleReminder", {
+                    "status": "scheduled",
+                    "page": "home",
+                    "notification_type": "reminder",
+                    "notification_id": id,
+                    "content":
+                    "Title: ${notification.title}, Body: ${notification.body}",
+                    "scheduled_time": notificationDate.toIso8601String(),
+                    "scheduled_count": scheduledCount
+                  });
+
+                  dev.log(
+                      'Scheduling notification - id: $id | Diary: ${diary.name}, title: ${notification.title}, body: ${notification.body}, date: $notificationDate');
+
+                  // Increment the count of scheduled notifications
+                  scheduledCount++;
+                }
+              }
+            }
+          } else {
+            dev.log('Scheduling daily diary ${diary.name}');
+            // Iterate through the notifications of the diary
             for (final notification in diaryNotifications) {
               // Stop if the required number of notifications have been scheduled
               if (scheduledCount >= notificationsToSchedule) break;
-              final time = TimeOfDay.fromDateTime(notification.date);
-              final notificationDate = DateTime(
-                date.year,
-                date.month,
-                date.day,
-                time.hour,
-                time.minute,
-              );
 
               // Check if this notification has not already been scheduled
               dev.log(
-                  'Checking if notification date $notificationDate for ${diary.name} is already scheduled and is after now($now).');
+                  'Checking if notification date ${notification.date} for ${diary.name} is already scheduled and is after now($now).');
               if (!scheduledNotifications
-                      .contains(notificationDate.toIso8601String()) &&
-                  notificationDate.isAfter(now)) {
+                  .contains(notification.date.toIso8601String()) &&
+                  notification.date.isAfter(now)) {
                 // Generate a unique ID for the notification
-                final int id = generateUniqueId(diary.id, notificationDate);
+                final int id = generateUniqueId(diary.id, notification.date);
 
                 // Schedule the notification asynchronously
                 await NotificationService.createNotification(
                   id: id,
                   title: notification.title,
                   body: notification.body,
-                  date: notificationDate.toUtc(),
+                  date: notification.date.toUtc(),
                   payload: {
                     'id': id.toString(),
-                    'date': notificationDate.toIso8601String(),
+                    'date': notification.date.toIso8601String(),
                     'diary': diary.id.toString(),
                   },
                 );
@@ -140,70 +195,26 @@ class NotificationManager {
                   "notification_type": "reminder",
                   "notification_id": id,
                   "content":
-                      "Title: ${notification.title}, Body: ${notification.body}",
-                  "scheduled_time": notificationDate.toIso8601String(),
+                  "Title: ${notification.title}, Body: ${notification.body}",
+                  "scheduled_time": notification.date.toIso8601String(),
                   "scheduled_count": scheduledCount
                 });
 
                 dev.log(
-                    'Scheduling notification - id: $id | Diary: ${diary.name}, title: ${notification.title}, body: ${notification.body}, date: $notificationDate');
+                    'Scheduling notification - id: $id | Diary: ${diary.name}, title: ${notification.title}, body: ${notification.body}, date: ${notification.date}');
 
                 // Increment the count of scheduled notifications
                 scheduledCount++;
               }
             }
           }
-        } else {
-          dev.log('Scheduling daily diary ${diary.name}');
-          // Iterate through the notifications of the diary
-          for (final notification in diaryNotifications) {
-            // Stop if the required number of notifications have been scheduled
-            if (scheduledCount >= notificationsToSchedule) break;
-
-            // Check if this notification has not already been scheduled
-            dev.log(
-                'Checking if notification date ${notification.date} for ${diary.name} is already scheduled and is after now($now).');
-            if (!scheduledNotifications
-                    .contains(notification.date.toIso8601String()) &&
-                notification.date.isAfter(now)) {
-              // Generate a unique ID for the notification
-              final int id = generateUniqueId(diary.id, notification.date);
-
-              // Schedule the notification asynchronously
-              await NotificationService.createNotification(
-                id: id,
-                title: notification.title,
-                body: notification.body,
-                date: notification.date.toUtc(),
-                payload: {
-                  'id': id.toString(),
-                  'date': notification.date.toIso8601String(),
-                  'diary': diary.id.toString(),
-                },
-              );
-
-              await PendoService.track("ScheduleReminder", {
-                "status": "scheduled",
-                "page": "home",
-                "notification_type": "reminder",
-                "notification_id": id,
-                "content":
-                    "Title: ${notification.title}, Body: ${notification.body}",
-                "scheduled_time": notification.date.toIso8601String(),
-                "scheduled_count": scheduledCount
-              });
-
-              dev.log(
-                  'Scheduling notification - id: $id | Diary: ${diary.name}, title: ${notification.title}, body: ${notification.body}, date: ${notification.date}');
-
-              // Increment the count of scheduled notifications
-              scheduledCount++;
-            }
-          }
         }
+        dev.log('Scheduled $scheduledCount additional notifications');
       }
-      dev.log('Scheduled $scheduledCount additional notifications');
+    } catch (e) {
+      dev.log('Schedule Additional failed due to no permissions');
     }
+
   }
 
 // Utility function to generate unique notification IDs
@@ -218,136 +229,144 @@ class NotificationManager {
   /// It schedules notifications for diaries that are due and have not been scheduled
   /// It schedules notifications for the limit set at [threshold]
   void scheduleLimit() async {
-    // clear all notifications
-    await NotificationService.cancelAllNotifications();
 
-    final diaries = diaryRepository
-        .getAllDiaries()
-        .where((diary) => diary.due.isAfter(DateTime.now()))
-        .toList();
-    int scheduledCount = 0;
+    final hasPermission = await _awesomeNotifications.isNotificationAllowed();
+    if(!hasPermission) return;
 
-    //sort diaries by start date
-    diaries.sort((a, b) => a.start.compareTo(b.start));
+      try {
+        // clear all notifications
+        await NotificationService.cancelAllNotifications();
 
-    if (diaries.isEmpty) {
-      dev.log('No diaries found to schedule notifications for.');
-      return;
-    }
+        final diaries = diaryRepository
+            .getAllDiaries()
+            .where((diary) => diary.due.isAfter(DateTime.now()))
+            .toList();
+        int scheduledCount = 0;
 
-    for (final diary in diaries) {
-      if (scheduledCount >= threshold) break;
+        //sort diaries by start date
+        diaries.sort((a, b) => a.start.compareTo(b.start));
 
-      final diaryNotifications = diary.notifications;
-      if (diaryNotifications.isEmpty) {
-        dev.log('No notifications found for diary ${diary.name}, skipping.');
-        continue;
-      }
-      final isWeekly = _isWeeklyDiary(diary);
+        if (diaries.isEmpty) {
+          dev.log('No diaries found to schedule notifications for.');
+          return;
+        }
 
-      if (isWeekly) {
-        dev.log(
-            'Scheduling weekly diary ${diary.name} | Start: ${diary.start}, End: ${diary.end}, Active Days: ${diary.activeDays}');
-
-        // Get all dates diary is active on
-        final activeDates = _getWeeklyDiaryDates(diary);
-        dev.log('Active dates for diary ${diary.name}: $activeDates');
-
-        // Schedule notifications for each active date
-        for (final date in activeDates) {
+        for (final diary in diaries) {
           if (scheduledCount >= threshold) break;
 
-          // get the times from the original notifications
-          for (final notification in diaryNotifications) {
-            if (scheduledCount >= threshold) break;
-            final time = TimeOfDay.fromDateTime(notification.date);
-            final notificationDate = DateTime(
-              date.year,
-              date.month,
-              date.day,
-              time.hour,
-              time.minute,
-            );
-            // Skip if notification is not valid/able to fire
+          final diaryNotifications = diary.notifications;
+          if (diaryNotifications.isEmpty) {
+            dev.log('No notifications found for diary ${diary.name}, skipping.');
+            continue;
+          }
+          final isWeekly = _isWeeklyDiary(diary);
+
+          if (isWeekly) {
             dev.log(
-                'Checking if notification date $notificationDate for ${diary.name} is after now(${DateTime.now()}).');
-            final isValidNotification =
+                'Scheduling weekly diary ${diary.name} | Start: ${diary.start}, End: ${diary.end}, Active Days: ${diary.activeDays}');
+
+            // Get all dates diary is active on
+            final activeDates = _getWeeklyDiaryDates(diary);
+            dev.log('Active dates for diary ${diary.name}: $activeDates');
+
+            // Schedule notifications for each active date
+            for (final date in activeDates) {
+              if (scheduledCount >= threshold) break;
+
+              // get the times from the original notifications
+              for (final notification in diaryNotifications) {
+                if (scheduledCount >= threshold) break;
+                final time = TimeOfDay.fromDateTime(notification.date.toUtc());
+                final notificationDate = DateTime.utc(
+                  date.year,
+                  date.month,
+                  date.day,
+                  time.hour,
+                  time.minute,
+                );
+                // Skip if notification is not valid/able to fire
+                dev.log(
+                    'Checking if notification date $notificationDate for ${diary.name} is after now(${DateTime.now()}).');
+                final isValidNotification =
                 notificationDate.isAfter(DateTime.now());
-            if (!isValidNotification) continue;
+                if (!isValidNotification) continue;
 
-            final int id = Random().nextInt(100000);
+                final int id = Random().nextInt(100000);
 
-            dev.log(
-                'Scheduling notification - id: $id | Diary: ${diary.name}, title: ${notification.title}, body: ${notification.body}, date: $notificationDate');
+                dev.log(
+                    'Scheduling notification - id: $id | Diary: ${diary.name}, title: ${notification.title}, body: ${notification.body}, date: $notificationDate');
 
-            await NotificationService.createNotification(
-              id: id,
-              title: notification.title,
-              body: notification.body,
-              date: notificationDate.toUtc(),
-              payload: {
-                'id': id.toString(),
-                'date': notificationDate.toIso8601String(),
-                'diary': diary.id.toString(),
-              },
-            );
-            await PendoService.track("ScheduleReminder", {
-              "status": "scheduled",
-              "page": "onboarding",
-              "notification_type": "reminder",
-              "notification_id": id,
-              "content":
+                await NotificationService.createNotification(
+                  id: id,
+                  title: notification.title,
+                  body: notification.body,
+                  date: notificationDate.toUtc(),
+                  payload: {
+                    'id': id.toString(),
+                    'date': notificationDate.toIso8601String(),
+                    'diary': diary.id.toString(),
+                  },
+                );
+                await PendoService.track("ScheduleReminder", {
+                  "status": "scheduled",
+                  "page": "onboarding",
+                  "notification_type": "reminder",
+                  "notification_id": id,
+                  "content":
                   "Diary: ${diary.name}, Title: ${notification.title}, Body: ${notification.body}",
-              "scheduled_time": notificationDate.toIso8601String(),
-              "scheduled_count": scheduledCount,
-            });
+                  "scheduled_time": notificationDate.toIso8601String(),
+                  "scheduled_count": scheduledCount,
+                });
 
-            scheduledCount++;
+                scheduledCount++;
+              }
+            }
+          } else {
+            dev.log('Scheduling daily diary ${diary.name}');
+            for (final notification in diaryNotifications) {
+              if (scheduledCount >= threshold) break;
+
+              // Skip if notification is not valid/able to fire
+              dev.log(
+                  'Checking if notification date ${notification.date} for ${diary.name} is after now(${DateTime.now()}).');
+              final isValidNotification = notification.date.isAfter(DateTime.now());
+              if (!isValidNotification) continue;
+
+              final int id = Random().nextInt(100000);
+
+              dev.log(
+                  'Scheduling notification - id: $id | Diary: ${diary.name}, title: ${notification.title}, body: ${notification.body}, date: ${notification.date}');
+
+              await NotificationService.createNotification(
+                id: id,
+                title: notification.title,
+                body: notification.body,
+                date: notification.date.toUtc(),
+                payload: {
+                  'id': id.toString(),
+                  'date': notification.date.toIso8601String(),
+                  'diary': diary.id.toString(),
+                },
+              );
+              await PendoService.track("ScheduleReminder", {
+                "status": "scheduled",
+                "page": "onboarding",
+                "notification_type": "reminder",
+                "notification_id": id,
+                "content":
+                "Diary: ${diary.name}, Title: ${notification.title}, Body: ${notification.body}",
+                "scheduled_time": notification.date.toIso8601String(),
+                "scheduled_count": scheduledCount,
+              });
+
+              scheduledCount++;
+            }
           }
         }
-      } else {
-        dev.log('Scheduling daily diary ${diary.name}');
-        for (final notification in diaryNotifications) {
-          if (scheduledCount >= threshold) break;
-
-          // Skip if notification is not valid/able to fire
-          dev.log(
-              'Checking if notification date ${notification.date} for ${diary.name} is after now(${DateTime.now()}).');
-          final isValidNotification = notification.date.isAfter(DateTime.now());
-          if (!isValidNotification) continue;
-
-          final int id = Random().nextInt(100000);
-
-          dev.log(
-              'Scheduling notification - id: $id | Diary: ${diary.name}, title: ${notification.title}, body: ${notification.body}, date: ${notification.date}');
-
-          await NotificationService.createNotification(
-            id: id,
-            title: notification.title,
-            body: notification.body,
-            date: notification.date.toUtc(),
-            payload: {
-              'id': id.toString(),
-              'date': notification.date.toIso8601String(),
-              'diary': diary.id.toString(),
-            },
-          );
-          await PendoService.track("ScheduleReminder", {
-            "status": "scheduled",
-            "page": "onboarding",
-            "notification_type": "reminder",
-            "notification_id": id,
-            "content":
-                "Diary: ${diary.name}, Title: ${notification.title}, Body: ${notification.body}",
-            "scheduled_time": notification.date.toIso8601String(),
-            "scheduled_count": scheduledCount,
-          });
-
-          scheduledCount++;
-        }
+        dev.log('Scheduled $scheduledCount notifications');
+      } catch (e) {
+        dev.log('scheduleLimit has no Permissions');
       }
-    }
-    dev.log('Scheduled $scheduledCount notifications');
   }
 
   /// Cancel diary notifications
