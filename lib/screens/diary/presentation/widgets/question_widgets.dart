@@ -797,7 +797,9 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
   void _launchEmail() async {
     await ParticipantAndExperimentDetails().launchSupportEmail(
         subject: 'Web Survey – Assistance Needed',
-        body: 'Error encountered. Please investigate and advise on next steps.');
+        body: 'Error encountered. Please investigate and advise on next steps.',
+      example: '(Please Describe the issue you are facing) e.g When I open the web survey I keep getting a Page Not Found error'
+    );
   }
 
   void showModal() {
