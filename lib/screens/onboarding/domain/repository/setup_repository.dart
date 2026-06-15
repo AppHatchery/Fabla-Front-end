@@ -10,6 +10,7 @@ import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/core/usecases/connectivity.dart'
     show checkForInternet;
+import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart' show clearAllHomeProgressTracking;
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -760,6 +761,8 @@ class SetupRepository {
 
       // Clear all preferences
       await PreferenceService().clearPreferences();
+      // Clear home progress tracking
+      await clearAllHomeProgressTracking();
 
       // Clear all saved recordings
       final dir = await getApplicationDocumentsDirectory();

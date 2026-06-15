@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/usecases/connectivity.dart';
 import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart';
@@ -8,12 +6,9 @@ import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
-import 'package:audio_diaries_flutter/screens/hub/data/submission_progress.dart'
-    show SubmissionProgress;
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
-import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'dart:developer' as dev;
 
 import '../../../../core/usecases/notifications.dart';
@@ -151,7 +146,8 @@ class SummaryRepository {
               status: DiaryStatus.submitted,
               activeDays: diary.activeDays,
               currentEntry: diary.currentEntry + 1,
-              submissions: submissions);
+              submissions: submissions,
+              completions: diary.completions);
         } else {
           newDiary = diary.copyWith(
               id: diary.id,
@@ -159,7 +155,8 @@ class SummaryRepository {
               status: DiaryStatus.idle,
               activeDays: diary.activeDays,
               currentEntry: diary.currentEntry + 1,
-              submissions: submissions);
+              submissions: submissions,
+              completions: diary.completions);
         }
 
         await diaryRepository.updateDiary(newDiary);
@@ -173,7 +170,7 @@ class SummaryRepository {
         }
         cancelContinueNotifications(diary.id);
         calculateEarnedIncentivesForAWS(participantID: participant.studyCode);
-        modifyHomeProgressTracking(studyID: diary.studyID, submissions: 1, activateAnimation: true);
+        await modifyHomeProgressTracking(studyID: diary.studyID, submissions: 1, activateAnimation: true);
         return true;
       } else {
         return false;

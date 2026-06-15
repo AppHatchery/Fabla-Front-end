@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/usecases/daily_goal_service.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/hub/data/submission_progress.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
@@ -124,6 +125,7 @@ HomeLoaded createHomeLoadedState({
     weeklyEntries: entries,
     isFinished: finished,
     goalData: actualGoalData,
+    submissionProgress: const <int, SubmissionProgress>{},
   );
 }
 
@@ -216,7 +218,8 @@ void main() {
           allStudies: [],
           weeklyEntries: 0,
           isFinished: true,
-          goalData: {}, // Empty goal data to avoid TodayGoalWidget rendering
+          goalData: {},
+          submissionProgress: const <int, SubmissionProgress>{},
         ),
         cubit: mockHomeCubit,
         waitForSettle: true,

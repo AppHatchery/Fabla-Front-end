@@ -588,16 +588,25 @@ void main() {
             id: 1,
             studyID: 1,
             status: DiaryStatus.submitted,
+            submissions: testDiary1.submissions,
+            completions: testDiary1.completions,
+            activeDays: testDiary1.activeDays,
           );
           final missedDiary = testDiary2.copyWith(
             id: 2,
             studyID: 1,
             status: DiaryStatus.missed,
+            submissions: testDiary2.submissions,
+            completions: testDiary2.completions,
+            activeDays: testDiary2.activeDays,
           );
           final completeDiary = testDiary3.copyWith(
             id: 3,
             studyID: 1,
             status: DiaryStatus.complete,
+            submissions: testDiary3.submissions,
+            completions: testDiary3.completions,
+            activeDays: testDiary3.activeDays,
           );
 
           final mockPaginatedResult = PaginatedDiaryResult(

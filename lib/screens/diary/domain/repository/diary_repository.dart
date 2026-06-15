@@ -350,6 +350,8 @@ class DiaryRepository {
       currentEntry: entryIndex,
       status: isSubmittedEntry ? DiaryStatus.submitted : null,
       submissions: originalDiary.submissions,
+      completions: originalDiary.completions,
+      activeDays: originalDiary.activeDays,
     );
   }
 
