@@ -220,9 +220,15 @@ List<DiaryModel> _processDiariesIntoEntries(
         processedDiaries.add(diary);
       }
     } else {
-      // Process each completed entry individually
-      // currentEntry is 0-based index, so if currentEntry = 2, entries 0, 1, 2 exist
-      for (var entryIndex = 0; entryIndex <= diary.currentEntry; entryIndex++) {
+      // currentEntry is the count of submitted entries. Iterate from 0 up to
+      // currentEntry-1 for submitted entries; only include the in-progress
+      // slot at index == currentEntry when the diary isn't fully done.
+      final upperBound = (diary.status == DiaryStatus.submitted ||
+              diary.currentEntry >= diary.entries)
+          ? diary.currentEntry
+          : diary.currentEntry + 1;
+
+      for (var entryIndex = 0; entryIndex < upperBound; entryIndex++) {
         final entryDiary = _createEntryDiary(diary, entryIndex);
 
         // Only include entries that have been answered or should be visible

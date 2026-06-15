@@ -2853,3 +2853,839 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     );
   }
 }
+
+class VideoPlayerBottomModal extends StatefulWidget {
+  final String url;
+  const VideoPlayerBottomModal({super.key, required this.url});
+
+  @override
+  State<VideoPlayerBottomModal> createState() => _VideoPlayerBottomModalState();
+}
+
+class _VideoPlayerBottomModalState extends State<VideoPlayerBottomModal> {
+  late VideoPlayerController _controller;
+  PlaybackStatus _status = PlaybackStatus.stopped;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.asset('assets/video/${widget.url}')
+      ..initialize().then((_) {
+        setState(() {});
+      }).catchError((error) {
+        debugPrint('Controller init error: $error');
+      });
+
+    _controller.addListener(_onControllerUpdate);
+  }
+
+  void _onControllerUpdate() {
+    if (_controller.value.hasError) {
+      debugPrint('VideoPlayer error: ${_controller.value.errorDescription}');
+    }
+
+    // Detect natural playback completion
+    if (_status == PlaybackStatus.playing &&
+        _controller.value.isInitialized &&
+        !_controller.value.isPlaying &&
+        _controller.value.position >= _controller.value.duration) {
+      _onStop();
+      return;
+    }
+
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onControllerUpdate);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onPlay() {
+    _controller.play();
+    setState(() => _status = PlaybackStatus.playing);
+  }
+
+  void _onPause() {
+    _controller.pause();
+    setState(() => _status = PlaybackStatus.paused);
+  }
+
+  void _onStop() {
+    _controller.pause();
+    _controller.seekTo(Duration.zero);
+    setState(() => _status = PlaybackStatus.stopped);
+  }
+
+  void _onDone() {
+    _controller.pause();
+    _controller.seekTo(Duration.zero);
+    setState(() => _status = PlaybackStatus.done);
+    Navigator.pop(context);
+  }
+
+  Widget _controlButton({
+    required double size,
+    required double iconSize,
+    required Color color,
+    required Color iconColor,
+    required IconData icon,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: size,
+        width: size,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(size / 2),
+        ),
+        child: Icon(icon, size: iconSize, color: iconColor),
+      ),
+    );
+  }
+
+  Widget _widgetPlayback() {
+    final bool isPlaying = _status == PlaybackStatus.playing;
+    final bool isDone = _status == PlaybackStatus.done;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _controlButton(
+            size: 40,
+            iconSize: 20,
+            color: CustomColors.fillWhite,
+            icon: CupertinoIcons.stop_fill,
+            iconColor: isDone
+                ? CustomColors.productNormal.withOpacity(0.3)
+                : CustomColors.warningActive,
+            onTap: isDone ? null : _onStop,
+          ),
+          const SizedBox(width: 50),
+          _controlButton(
+            size: 68,
+            iconSize: 34,
+            color: CustomColors.fillWhite,
+            icon: isPlaying ? CupertinoIcons.pause_fill : Icons.play_arrow,
+            iconColor: isDone
+                ? CustomColors.productNormal.withOpacity(0.3)
+                : CustomColors.productNormal,
+            onTap: isDone ? null : (isPlaying ? _onPause : _onPlay),
+          ),
+          const SizedBox(width: 50),
+          _controlButton(
+            size: 40,
+            iconSize: 20,
+            color: isDone ? CustomColors.productNormal : CustomColors.fillWhite,
+            icon: CupertinoIcons.checkmark_alt,
+            iconColor: isDone ? CustomColors.fillWhite : CustomColors.productNormal,
+            onTap: isDone ? null : _onDone,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDuration(Duration d) {
+    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
+  Widget _widgetProgress() {
+    if (!_controller.value.isInitialized) return const SizedBox.shrink();
+
+    final position = _controller.value.position;
+    final duration = _controller.value.duration;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          VideoProgressIndicator(
+            _controller,
+            allowScrubbing: true,
+            colors: VideoProgressColors(
+              playedColor: CustomColors.fillWhite,
+              bufferedColor: CustomColors.fillWhite.withOpacity(0.3),
+              backgroundColor: CustomColors.fillWhite.withOpacity(0.15),
+            ),
+            padding: EdgeInsets.zero,
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _formatDuration(position),
+                style: const TextStyle(
+                  color: CustomColors.fillWhite,
+                  fontSize: 12,
+                ),
+              ),
+              Text(
+                _formatDuration(duration),
+                style: TextStyle(
+                  color: CustomColors.fillWhite.withOpacity(0.6),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              color: CustomColors.productNormal
+          ),
+          child: Column(
+            spacing: 24,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Center(
+                child: _controller.value.isInitialized
+                    ? AspectRatio(
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: VideoPlayer(_controller),
+                )
+                    : const CircularProgressIndicator(),
+              ),
+              _widgetProgress(),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: _widgetPlayback(),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          top: 16,
+          right: 20,
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: const Icon(
+              CupertinoIcons.clear_circled_solid,
+              size: 26,
+              color: CustomColors.textSecondaryContent,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class TeleprompterModal extends StatefulWidget {
+  final void Function(String p, [String? type]) respond;
+  final PromptModel prompt;
+
+  const TeleprompterModal({
+    super.key,
+    required this.respond,
+    required this.prompt,
+  });
+
+  @override
+  State<TeleprompterModal> createState() => _TeleprompterModalState();
+}
+
+class _TeleprompterModalState extends State<TeleprompterModal> {
+  late CameraController controller;
+  IconData flashIcon = CupertinoIcons.bolt_badge_a_fill;
+  final ScrollController _scrollController = ScrollController();
+
+  XFile? file;
+
+  // Video Recording
+  Timer? _timer;
+  Duration elapsed = const Duration();
+
+  // Playback
+  VideoPlayerController? videoController;
+  bool videoPlaying = false;
+
+  double feedHeight = 0;
+  double feedWidth = 0;
+
+  // Floating image (sticky-bottom while script scrolls).
+  static const double _floatingImageHeight = 250.0;
+  static const double _floatingImageGap = 16.0;
+  final GlobalKey _scriptKey = GlobalKey();
+  double _scriptHeight = 0;
+
+  @override
+  void initState() {
+    controller = CameraController(
+      _frontCamera(),
+      ResolutionPreset.high,
+    );
+    cameraInit();
+    super.initState();
+  }
+
+  /// Measures the rendered script height once layout is complete so the
+  /// floating image knows when to release from its sticky position.
+  /// Called from a post-frame callback — O(1).
+  void _measureScriptHeight() {
+    if (!mounted) return;
+    final box = _scriptKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return;
+    final h = box.size.height;
+    if (h != _scriptHeight) {
+      setState(() => _scriptHeight = h);
+    }
+  }
+
+  /// Returns the front-facing camera if available, otherwise falls back to
+  /// the first available camera.
+  CameraDescription _frontCamera() {
+    return cameras.firstWhere(
+          (c) => c.lensDirection == CameraLensDirection.front,
+      orElse: () => cameras[0],
+    );
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void _scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.minScrollExtent,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    _scrollController.dispose();
+    videoController?.dispose();
+    super.dispose();
+  }
+
+  Future<void> cameraInit() async {
+    controller.addListener(() {
+      if (mounted) {
+        setState(() {
+          if (controller.value.previewSize != null) {
+            feedWidth = controller.value.previewSize!.height / 3;
+            feedHeight = controller.value.previewSize!.width / 3;
+          }
+        });
+      }
+      if (controller.value.hasError) {
+        dev.log('Camera error ${controller.value.errorDescription}');
+      }
+    });
+
+    try {
+      await controller.initialize();
+      if (!mounted) return;
+      // Defer scroll-to-bottom until AFTER the rebuild that picks up the
+      // inflated camera feed dimensions (feedWidth/feedHeight are set in
+      // the listener via setState during initialize(), but the rebuild
+      // doesn't happen until the next frame). Without this, maxScrollExtent
+      // is computed against a 0x0 camera feed and the scroll stops short
+      // of the recording controls.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    } on CameraException catch (e) {
+      switch (e.code) {
+        case 'CameraAccessDenied':
+          dev.log('You have denied camera access.');
+        case 'CameraAccessDeniedWithoutPrompt':
+        // iOS only
+          dev.log('Please go to Settings app to enable camera access.');
+        case 'CameraAccessRestricted':
+        // iOS only
+          dev.log('Camera access is restricted.');
+        case 'AudioAccessDenied':
+          dev.log('You have denied audio access.');
+        case 'AudioAccessDeniedWithoutPrompt':
+        // iOS only
+          dev.log('Please go to Settings app to enable audio access.');
+        case 'AudioAccessRestricted':
+        // iOS only
+          dev.log('Audio access is restricted.');
+        default:
+          dev.log(e.toString());
+          break;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return SafeArea(
+      bottom: true,
+      child: Container(
+        width: width,
+        decoration: const BoxDecoration(
+          color: Color(0xFFF3F3F3),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(14),
+            topRight: Radius.circular(14),
+          ),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(
+              height: 32,
+            ),
+            // Close Modal Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    child: controller.value.isRecordingVideo
+                        ? const Icon(
+                      Icons.fiber_manual_record,
+                      color: CustomColors.warningActive,
+                    )
+                        : null,
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(
+                      CupertinoIcons.clear_circled_solid,
+                      size: 26,
+                      color: CustomColors.textSecondaryContent,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(child: questionAndHints()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget questionAndHints() {
+    final width = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final teleprompterUrl = widget.prompt.option?.teleprompterUrl;
+
+    return LayoutBuilder(builder: (context, constraints) {
+      // Re-measure script height each layout pass (handles font scaling,
+      // orientation, etc.). The callback is cheap and idempotent.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _measureScriptHeight());
+
+      final viewportHeight = constraints.maxHeight;
+
+      return SizedBox(
+        height: viewportHeight,
+        width: constraints.maxWidth,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // ── Single scroll region: script → reserved image space → controls
+            SingleChildScrollView(
+              controller: _scrollController,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Script (measured via GlobalKey to drive the floating image).
+                  Padding(
+                    key: _scriptKey,
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      widget.prompt.subtitle ?? '',
+                      style: CustomTypography().body(),
+                    ),
+                  ),
+                  // Reserves the layout space the floating image occupies so
+                  // the scroll height accounts for it even though the image
+                  // itself is rendered as a Positioned overlay above.
+                  const SizedBox(
+                    height: _floatingImageHeight + _floatingImageGap,
+                  ),
+                  // Recording controls — revealed after the user scrolls past
+                  // the image at the end of the script.
+                  Container(
+                    width: width,
+                    color: CustomColors.productNormal,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        file != null ? preview() : cameraFeed(),
+                        const SizedBox(height: 24),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 36.0),
+                          child: file != null
+                              ? playbackControls()
+                              : recordingControls(),
+                        ),
+                        SizedBox(height: screenHeight > 850 ? 36 : 24),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // ── Floating image: sticky to viewport bottom while there's still script above;
+            // releases and scrolls up naturally once the script is fully scrolled past.
+            // IgnorePointer so the user can still drag the scroll through it.
+            if (teleprompterUrl != null &&
+                teleprompterUrl.isNotEmpty &&
+                _scriptHeight > 0)
+              AnimatedBuilder(
+                animation: _scrollController,
+                builder: (context, _) {
+                  final scrollOffset = _scrollController.hasClients
+                      ? _scrollController.offset
+                      : 0.0;
+                  // Natural top: where the image would be if it were a normal
+                  // child of the scroll content, sitting just after the script.
+                  final naturalTop = _scriptHeight + 6 - scrollOffset;
+                  // Sticky top: anchored to viewport bottom.
+                  final stickyTop = viewportHeight - _floatingImageHeight;
+                  // While natural is below sticky → pin. Once natural rises
+                  // above sticky → scroll naturally with content.
+                  final top = min(stickyTop, naturalTop);
+                  return Positioned(
+                    left: 0,
+                    right: 0,
+                    top: top,
+                    height: _floatingImageHeight,
+                    // Opaque, full-bleed block so the script behind it is fully
+                    child: IgnorePointer(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: double.infinity,
+                            height: _floatingImageHeight,
+                            color: const Color(0xFFF3F3F3),
+                            child: Image.asset(
+                              "assets/images/fops/$teleprompterUrl",
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: _floatingImageHeight,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget preview() {
+    if (file == null) return const SizedBox.shrink();
+
+    return Container(
+      height: feedHeight,
+      width: feedWidth,
+      decoration: BoxDecoration(
+        color: CustomColors.grey,
+        border: GradientBoxBorder(
+          gradient: const LinearGradient(
+              colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
+          width: 4,
+        ),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: videoController != null
+          ? VideoPreview(controller: videoController!)
+          : const SizedBox.shrink(),
+    );
+  }
+
+  Widget cameraFeed() {
+    return Container(
+      width: feedWidth,
+      height: feedHeight,
+      decoration: BoxDecoration(
+        color: CustomColors.grey,
+        border: GradientBoxBorder(
+          gradient: const LinearGradient(
+              colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
+          width: 4,
+        ),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: controller.value.isInitialized
+            ? Stack(
+          children: [
+            Center(
+              child: SizedBox(
+                width: controller.value.previewSize!.height / 3,
+                height: controller.value.previewSize!.width / 3,
+                child: CameraPreview(controller),
+              ),
+            ),
+            if (elapsed.inMilliseconds > 0)
+              Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 9.0),
+                  child: Container(
+                    width: 90,
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 9),
+                    decoration: ShapeDecoration(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4)),
+                      color: controller.value.isRecordingPaused
+                          ? CustomColors.productNormal
+                          : CustomColors.warningActive,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          formatDurationtoHHMMSS(elapsed),
+                          style: CustomTypography().custom(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: CustomColors.textWhite,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        )
+            : SizedBox(height: feedHeight, width: feedWidth),
+      ),
+    );
+  }
+
+  Widget recordingControls() {
+    final width = MediaQuery.of(context).size.width;
+    return SizedBox(
+      width: width,
+      height: 68,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          GestureDetector(
+            onTap: () => record(),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 100),
+              height: controller.value.isRecordingPaused ? 50 : 64,
+              width: controller.value.isRecordingPaused ? 50 : 64,
+              decoration: BoxDecoration(
+                border: Border.all(color: CustomColors.fillWhite, width: 4),
+                borderRadius: BorderRadius.circular(68),
+              ),
+              padding: EdgeInsets.all(
+                controller.value.isRecordingPaused
+                    ? 10
+                    : controller.value.isRecordingVideo
+                    ? 15
+                    : 4,
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: CustomColors.warningActive,
+                  shape: controller.value.isRecordingVideo
+                      ? BoxShape.rectangle
+                      : BoxShape.circle,
+                  borderRadius: controller.value.isRecordingVideo
+                      ? BorderRadius.circular(4)
+                      : null,
+                ),
+              ),
+            ),
+          ),
+          controller.value.isRecordingVideo ? SizedBox.shrink() :
+          Positioned(
+            right: 0,
+            child: GestureDetector(
+              onTap: () => flip(),
+              child: Container(
+                height: 50,
+                width: 50,
+                decoration: BoxDecoration(
+                  color: CustomColors.fillWhite,
+                  borderRadius: BorderRadius.circular(68),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: Center(
+                  child: Icon(
+                    CupertinoIcons.switch_camera_solid,
+                    color: CustomColors.productNormal,
+                    size: 25,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget playbackControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      spacing: 24,
+      children: [
+        GestureDetector(
+          onTap: () => redo(),
+          child: Container(
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: CustomColors.fillWhite,
+            ),
+            child: Icon(
+              CupertinoIcons.arrow_uturn_left,
+              color: CustomColors.productNormalActive,
+            ),
+          ),
+        ),
+        GestureDetector(
+          key: const Key("save"),
+          onTap: () => save(),
+          child: Container(
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: CustomColors.fillWhite,
+            ),
+            child: Icon(
+              CupertinoIcons.checkmark_alt,
+              color: CustomColors.productNormalActive,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<String> getFilePath() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final dir = await Directory(p.join(directory.path, 'videos'))
+        .create(recursive: true);
+    final now = DateTime.now();
+    final fileName = '${widget.prompt.id + 1}_${formatDate(now)}.mp4';
+    return p.join(dir.path, fileName);
+  }
+
+  Future<void> record() async {
+    if (controller.value.isRecordingVideo) {
+      await stop();
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToTop());
+    await controller.startVideoRecording();
+    startTimer();
+  }
+
+  Future<void> save() async {
+    try {
+      if (file != null) {
+        final path = await getFilePath();
+        await file!.saveTo(path);
+        widget.respond(basePath(path), "video");
+        if (mounted) Navigator.pop(context, true);
+      }
+    } catch (e) {
+      dev.log(e.toString(), name: "Camera Modal - Save");
+    }
+  }
+
+  void redo() {
+    setState(() {
+      file = null;
+      elapsed = const Duration();
+    });
+  }
+
+  Future<void> pause() async {
+    if (controller.value.isRecordingVideo &&
+        !controller.value.isRecordingPaused) {
+      await controller.pauseVideoRecording();
+      if (mounted) setState(() => stopTimer());
+      return;
+    }
+    await controller.resumeVideoRecording();
+    if (mounted) setState(() => startTimer());
+  }
+
+  Future<void> stop() async {
+    stopTimer();
+    final captured = await controller.stopVideoRecording();
+    if (!mounted) return;
+    setState(() {
+      file = captured;
+      videoController = VideoPlayerController.file(File(captured.path));
+      videoController?.addListener(() {
+        if (mounted) {
+          setState(() {
+            videoPlaying = videoController?.value.isPlaying ?? false;
+          });
+        }
+      });
+    });
+  }
+
+  Future<void> flip() async {
+    final currentLensDirection = controller.description.lensDirection;
+    CameraDescription lens = cameras[0];
+    for (final camera in cameras) {
+      if (camera.lensDirection != currentLensDirection) {
+        lens = camera;
+        break;
+      }
+    }
+    await controller.setDescription(lens);
+  }
+
+  void startTimer() {
+    _timer ??= Timer.periodic(const Duration(seconds: 1), (value) {
+      if (mounted) setState(() => elapsed += const Duration(seconds: 1));
+    });
+  }
+
+  void stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+}

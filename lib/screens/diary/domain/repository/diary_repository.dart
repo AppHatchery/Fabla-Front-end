@@ -175,13 +175,22 @@ class DiaryRepository {
       if (entryCount == 0 && diary.status != DiaryStatus.missed) {
         diaries.add(diary);
       } else {
-        for (var i = 0; i <= entryCount; i++) {
+        // Same bound logic as _generateDiaryEntryVariants: drop the phantom
+        // in-progress slot when the diary is already fully submitted.
+        final upperBound = (diary.status == DiaryStatus.submitted ||
+                entryCount >= diary.entries)
+            ? entryCount
+            : entryCount + 1;
+
+        for (var i = 0; i < upperBound; i++) {
           final newDiary = diary.copyWith(
               id: diary.id,
               studyID: diary.studyID,
               currentEntry: i,
               activeDays: diary.activeDays,
-              status: entryCount != i ? DiaryStatus.submitted : null,
+              // Be explicit: phantom in-progress slot is idle, not null
+              // (null would fall back to the parent's submitted status).
+              status: i < entryCount ? DiaryStatus.submitted : DiaryStatus.idle,
               submissions: diary.submissions);
 
           //check if diary is answered
@@ -328,7 +337,15 @@ class DiaryRepository {
     final variants = <DiaryModel>[];
     final entryCount = diary.currentEntry;
 
-    for (int entryIndex = 0; entryIndex <= entryCount; entryIndex++) {
+    // For a fully-submitted diary there is no in-progress slot to append,
+    // so the upper bound is exclusive of currentEntry. Otherwise we include
+    // the "current" (in-progress) slot at index == entryCount.
+    final upperBound = (diary.status == DiaryStatus.submitted ||
+            entryCount >= diary.entries)
+        ? entryCount
+        : entryCount + 1;
+
+    for (int entryIndex = 0; entryIndex < upperBound; entryIndex++) {
       final variant = _createDiaryVariant(diary, entryIndex, entryCount);
 
       if (_shouldIncludeVariant(variant, diary, now, promptRepository)) {
@@ -348,7 +365,10 @@ class DiaryRepository {
       id: originalDiary.id,
       studyID: originalDiary.studyID,
       currentEntry: entryIndex,
-      status: isSubmittedEntry ? DiaryStatus.submitted : null,
+      // A phantom (in-progress) slot must NOT inherit a parent's submitted
+      // status — that's what caused weekly counts to double for finished
+      // single-entry diaries.
+      status: isSubmittedEntry ? DiaryStatus.submitted : DiaryStatus.idle,
       submissions: originalDiary.submissions,
     );
   }
