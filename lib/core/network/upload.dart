@@ -243,12 +243,14 @@ Future<bool> uploadNonAudioData(
     var cred = await secureStorage.read();
 
     if (cred == null) {
-      dev.log('Credentials null — attempting refresh', name: 'Upload - Non-Audio Data');
+      dev.log('Credentials null — attempting refresh',
+          name: 'Upload - Non-Audio Data');
       cred = await _refreshCredentials(secureStorage);
     }
 
     if (cred == null) {
-      CrashlyticsService().log('Upload failed: credentials null after refresh attempt');
+      CrashlyticsService()
+          .log('Upload failed: credentials null after refresh attempt');
       return false;
     }
     List<Map<String, dynamic>> promptListItems =
@@ -344,9 +346,17 @@ Future<String?> getPresignedUrl(
   final httpClient = client ?? http.Client();
 
   try {
-    final cred = await secureStorage.read();
+    var cred = await secureStorage.read();
+
     if (cred == null) {
-      CrashlyticsService().log('Upload failed: credentials are null');
+      dev.log('Credentials null — attempting refresh',
+          name: 'Upload - Get Presigned URL');
+      cred = await _refreshCredentials(secureStorage);
+    }
+
+    if (cred == null) {
+      CrashlyticsService()
+          .log('Upload failed: credentials null after refresh attempt');
       return null;
     }
 
@@ -463,12 +473,14 @@ Future<bool> uploadFiles(List<FileData> files) async {
   var cred = await secureStorage.read();
 
   if (cred == null) {
-    dev.log('Credentials null — attempting refresh', name: 'Upload - Upload Files');
+    dev.log('Credentials null — attempting refresh',
+        name: 'Upload - Upload Files');
     cred = await _refreshCredentials(secureStorage);
   }
 
   if (cred == null) {
-    CrashlyticsService().log('Upload failed: credentials null after refresh attempt');
+    CrashlyticsService()
+        .log('Upload failed: credentials null after refresh attempt');
     return false;
   }
 
@@ -477,7 +489,8 @@ Future<bool> uploadFiles(List<FileData> files) async {
   final results = <bool>[];
   dev.log('Starting Files Upload - ${DateTime.now()}');
   for (var file in files) {
-    var presignedUrl = await getPresignedUrl(apiUrl, file.awsS3Directory);
+    var presignedUrl = await getPresignedUrl(apiUrl, file.awsS3Directory,
+        secureSave: secureStorage);
     if (presignedUrl != null) {
       final stopwatch = Stopwatch()..start();
       final result = await uploadFileToS3(presignedUrl, file.localDirectory);
