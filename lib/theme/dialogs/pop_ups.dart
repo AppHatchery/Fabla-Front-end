@@ -1476,7 +1476,9 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
     _contactResearcherRecognizer = TapGestureRecognizer()
       ..onTap = () => ParticipantAndExperimentDetails().launchSupportEmail(
           subject: 'Study Update failed',
-          body: 'Describe the issue you are facing');
+          body: 'Describe the issue you are facing',
+          example: "e.g. The study update keeps failing and never completes, even after closing and reopening the app."
+      );
     if (widget.startUpdating) {
       // Trigger after the first frame so the BlocListener is subscribed and
       // captures the terminal HubUpdated state.

@@ -1694,7 +1694,9 @@ class WebViewErrorCard extends StatelessWidget {
   Future<void> _launchEmail() async {
     await ParticipantAndExperimentDetails().launchSupportEmail(
         subject: '$title – Assistance Needed',
-        body: '$title was encountered. Please investigate and advise on next steps.');
+        body: '$title was encountered. Please investigate and advise on next steps.',
+      example: "e.g The survey page won't load and shows a red error screen. This happens every time I try to open the task, even after restarting the app."
+    );
   }
 }
 
