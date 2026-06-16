@@ -9,12 +9,12 @@ Future<void> launchEmail({
   required String body,
 }) async {
   try {
-    // Get experiment owner email
+    // Get experiment owner email; fall back when no experiment is stored yet
+    // support links on the login screens, before setup completes.
     final repository = SetupRepository();
-    final experiment = repository.getExperiment();
-    final ownerEmail = experiment.ownerEmail;
+    final ownerEmail = repository.getExperimentOrNull()?.ownerEmail ?? '';
 
-    final emailAddress = ownerEmail;
+    final emailAddress = ownerEmail.isNotEmpty ? ownerEmail : 'fabla@emory.edu';
 
     final queryParams = {
       'subject': subject,

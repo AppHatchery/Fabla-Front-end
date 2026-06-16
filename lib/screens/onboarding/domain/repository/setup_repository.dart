@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:developer' as dev;
-// import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/database/dao/experiment_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/questions_dao.dart';
@@ -293,6 +292,13 @@ class SetupRepository {
   ExperimentModel getExperiment() {
     final entity = _experimentDAO.getExperiment();
     return ExperimentModel.fromEntity(entity!);
+  }
+
+  /// Null-safe variant for flows (e.g. login screens) that run before an
+  /// experiment has been stored.
+  ExperimentModel? getExperimentOrNull() {
+    final entity = _experimentDAO.getExperiment();
+    return entity == null ? null : ExperimentModel.fromEntity(entity);
   }
 
   setColorForStudy(List<StudyModel> studies) async {

@@ -6,9 +6,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import '../../core/utils/email_function.dart';
 import '../../core/utils/participant_experiment_details.dart';
 import '../../core/utils/statuses.dart';
 import '../../screens/hub/presentation/cubit/hub_cubit.dart';
@@ -1373,15 +1370,10 @@ class StudyInfoPopUp extends StatelessWidget {
   }
 
   Future<void> launchEmail() async {
-    final uri = Uri(
-        scheme: "mailto",
-        path: "fabla@emory.edu",
-        query: encodeQueryParameters(<String, String>{
-          'subject': 'Need help with the study code',
-          'body': 'I have a problem with accessing the study: '
-        }));
-
-    await launchUrl(uri);
+    await ParticipantAndExperimentDetails().loginSupportEmail(
+        subject: 'Fabla Participant Login Issue',
+        body: 'Describe the issue you are facing:',
+        example: ': e.g. I do not know my study string');
   }
 }
 
@@ -1482,8 +1474,11 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
     super.initState();
     _phase = widget.startUpdating ? UpdateState.updating : UpdateState.pending;
     _contactResearcherRecognizer = TapGestureRecognizer()
-      ..onTap = () => ParticipantAndExperimentDetails()
-          .launchSupportEmail("Study Update failed");
+      ..onTap = () => ParticipantAndExperimentDetails().launchSupportEmail(
+          subject: 'Study Update failed',
+          body: 'Describe the issue you are facing',
+          example: "e.g. The study update keeps failing and never completes, even after closing and reopening the app."
+      );
     if (widget.startUpdating) {
       // Trigger after the first frame so the BlocListener is subscribed and
       // captures the terminal HubUpdated state.

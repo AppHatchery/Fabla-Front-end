@@ -11,9 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:math' show pi;
 import 'package:rive/rive.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'dart:io' show Platform;
-
+import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../services/pendo_service.dart';
 
 class StudyLogin extends StatefulWidget {
@@ -305,27 +304,16 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
       }
   }
 
-  Future<void> launchEmail() async {
-    final uri = Uri(
-        scheme: "mailto",
-        path: "fabla@emory.edu",
-        query: encodeQueryParameters(<String, String>{
-          'subject': 'Need help with the study string',
-          'body': 'I have a problem with accessing the study: '
-        }));
-
-    await launchUrl(uri);
+Future<void> launchEmail() async {
+    await ParticipantAndExperimentDetails().loginSupportEmail(
+        subject: 'Fabla Participant Login Issue',
+        body: 'Describe the issue you are facing',
+        example: ': e.g. My study string is not working'
+    );
   }
 
   Future<void> track(int spent, String status) async {
     await PendoService.track("Study Login",
         {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
-  }
-
-  String? encodeQueryParameters(Map<String, String> params) {
-    return params.entries
-        .map((MapEntry<String, String> e) =>
-            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-        .join('&');
   }
 }
