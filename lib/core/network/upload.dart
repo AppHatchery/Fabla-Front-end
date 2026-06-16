@@ -225,7 +225,13 @@ Future<CredentialsModel?> _refreshCredentials(SecureSave secureStorage) async {
       participant: participant.studyCode,
     );
     return await secureStorage.read();
-  } catch (_) {
+  } catch (e, stackTrace) {
+    CrashlyticsService().recordError(e, stackTrace,
+        reason: 'Failed to refresh credentials in _refreshCredentials');
+    await PendoService.track('Upload Error', {
+      'event': 'Refresh Credentials',
+      'reason': e.toString(),
+    });
     return null;
   }
 }
