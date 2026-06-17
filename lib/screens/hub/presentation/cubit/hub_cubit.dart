@@ -43,7 +43,8 @@ class HubCubit extends Cubit<HubState> {
     final diaries = _diaryRepository.getDailyDiaries(DateTime.now());
     return diaries.any((diary) =>
         diary.status == DiaryStatus.ongoing ||
-        diary.status == DiaryStatus.complete);
+        diary.status == DiaryStatus.complete ||
+        diary.status == DiaryStatus.submitted);
   }
 
   void update() async {

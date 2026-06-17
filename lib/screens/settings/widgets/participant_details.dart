@@ -281,7 +281,7 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const StudyUpdatePopUp(state: UpdateState.updating),
+      builder: (_) => StudyUpdatePopUp(state: UpdateState.updating),
     );
   }
 }

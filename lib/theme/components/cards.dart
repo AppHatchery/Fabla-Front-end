@@ -1673,7 +1673,6 @@ class WebViewErrorCard extends StatelessWidget {
               )
             ],
           ),
-
           if (showContactResearch)
             Padding(
               padding: const EdgeInsets.only(top: 142.0),
@@ -1694,9 +1693,10 @@ class WebViewErrorCard extends StatelessWidget {
   Future<void> _launchEmail() async {
     await ParticipantAndExperimentDetails().launchSupportEmail(
         subject: '$title – Assistance Needed',
-        body: '$title was encountered. Please investigate and advise on next steps.',
-      example: "e.g The survey page won't load and shows a red error screen. This happens every time I try to open the task, even after restarting the app."
-    );
+        body:
+            '$title was encountered. Please investigate and advise on next steps.',
+        example:
+            "e.g The survey page won't load and shows a red error screen. This happens every time I try to open the task, even after restarting the app.");
   }
 }
 
@@ -1743,13 +1743,12 @@ class NoNotificationCard extends StatelessWidget {
                     children: [
                       Text(
                         "Notification permission required",
-                        style: CustomTypography()
-                            .titleSmallCustom(color: accent),
+                        style:
+                            CustomTypography().titleSmallCustom(color: accent),
                       ),
                       Text(
                         "Notifications for Fabla are turned off. Enable them in Settings so you don't miss diary reminders.",
-                        style:
-                            CustomTypography().bodyLarge(color: accent),
+                        style: CustomTypography().bodyLarge(color: accent),
                       ),
                     ],
                   ),
@@ -1764,89 +1763,8 @@ class NoNotificationCard extends StatelessWidget {
               backgroundColor: accent,
               color: accent,
               borderRadius: 12,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 12.0, vertical: 4.0),
-              children: Wrap(children: [
-                Text(
-                  "Open Settings",
-                  style:
-                      CustomTypography().button(color: CustomColors.textWhite),
-                ),
-              ]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class NoNotificationCard extends StatelessWidget {
-  final VoidCallback openSettings;
-
-  const NoNotificationCard({
-    required this.openSettings,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const accent = Color(0xFFD26B00);
-    final width = MediaQuery.of(context).size.width;
-
-    return Container(
-      width: width,
-      padding: const EdgeInsets.all(16),
-      decoration: ShapeDecoration(
-        color: const Color(0xFFFFF8DE),
-        shape: RoundedRectangleBorder(
-          side: const BorderSide(width: 2, color: accent),
-          borderRadius: BorderRadius.circular(11),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(
-                CupertinoIcons.bell_fill,
-                size: 24,
-                color: accent,
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 8,
-                    children: [
-                      Text(
-                        "Notification permission required",
-                        style: CustomTypography()
-                            .titleSmallCustom(color: accent),
-                      ),
-                      Text(
-                        "Notifications for Fabla are turned off. Enable them in Settings so you don't miss diary reminders.",
-                        style:
-                            CustomTypography().bodyLarge(color: accent),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 40, top: 12),
-            child: CustomOutlineButton(
-              onClick: openSettings,
-              backgroundColor: accent,
-              color: accent,
-              borderRadius: 12,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 12.0, vertical: 4.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
               children: Wrap(children: [
                 Text(
                   "Open Settings",

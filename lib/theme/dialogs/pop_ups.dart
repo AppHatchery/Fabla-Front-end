@@ -1879,10 +1879,10 @@ class StudyUpdateBlockedPopUp extends StatelessWidget {
               SizedBox(
                 height: 12,
               ),
-              SizedBox(
-                Container(
-                  width: width,
-                  padding: const EdgeInsets.all(16),
+              Container(
+                width: width,
+                padding: const EdgeInsets.all(16),
+                decoration: ShapeDecoration(
                   color: const Color(0xFFFFF8DE),
                   shape: RoundedRectangleBorder(
                     side: const BorderSide(

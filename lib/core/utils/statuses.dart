@@ -8,9 +8,6 @@ enum RecorderState {
 
 enum SubmissionStatus { pending, successful, failed }
 
-/// Drives the phase of the single study-update dialog ([StudyUpdatePopUp]).
-enum UpdateState { pending, updating, failed, complete}
-
 enum TimerStatus { idle, running, paused, complete }
 
 TimerStatus status = TimerStatus.idle;
