@@ -35,13 +35,13 @@ class CustomWaveform extends StatefulWidget {
   final ValueNotifier<bool> onErase;
 
   const CustomWaveform({
-    Key? key,
+    super.key,
     required this.recorder,
     required this.maxVisibleValues,
     required this.maxValue,
     this.color = CustomColors.textTertiaryContent,
     required this.onErase,
-  }) : super(key: key);
+  });
 
   @override
   CustomWaveformState createState() => CustomWaveformState();

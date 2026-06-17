@@ -5,7 +5,6 @@ import 'package:flutter/services.dart'; // For MethodCall and PlatformException
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../dummy_data.dart';
 // PendoFlutterPlugin import is no longer needed for direct mocking here
 // import 'package:pendo_sdk/pendo_sdk.dart';
 

@@ -57,10 +57,12 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text(
-              "Study Details",
-              style: CustomTypography()
-                  .titleLarge(color: CustomColors.textNormalContent),
+            Flexible(
+              child: Text(
+                "Study Details",
+                style: CustomTypography()
+                    .titleLarge(color: CustomColors.textNormalContent),
+              ),
             ),
           ],
         ),
@@ -83,24 +85,34 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          experiment!.name,
-                          style: CustomTypography()
-                              .bodyLarge(color: CustomColors.textNormalContent),
+                        Flexible(
+                          child: Text(
+                            experiment!.name,
+                            style: CustomTypography()
+                                .bodyLarge(color: CustomColors.textNormalContent),
+                          ),
                         ),
                         if (lastUpdated != null)
-                          Text(
-                            "Last Updated: $lastUpdated",
-                            style: CustomTypography().custom(
-                                color: CustomColors.textTertiaryContent,
-                                fontWeight: FontWeight.w400),
+                          Flexible(
+                            child: Text(
+                              "Last Updated: $lastUpdated",
+                              style: CustomTypography().custom(
+                                  color: CustomColors.textTertiaryContent,
+                                  fontWeight: FontWeight.w400),
+                            ),
                           )
                       ],
                     ),
-                    Text(
-                      experiment!.organization,
-                      style: CustomTypography()
-                          .bodyMedium(color: CustomColors.textTertiaryContent),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            experiment!.organization,
+                            style: CustomTypography()
+                                .bodyMedium(color: CustomColors.textTertiaryContent),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -162,7 +174,11 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
     );
   }
 
-  Future<void> launchEmailMethod() => _details.launchSupportEmail("Fabla Participant Issue");
+  Future<void> launchEmailMethod() => _details.launchSupportEmail
+    (
+      subject: 'Fabla Participant Issue',
+      body: 'Describe the issue you are facing',
+  );
 
 
   /// Entry point for the manual study update. Blocks first when there are

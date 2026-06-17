@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-
+import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../main.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
-
 class SubmitErrorPage extends StatefulWidget {
   const SubmitErrorPage({super.key});
 
@@ -94,22 +92,15 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                 ))));
   }
 
+
+
   Future<void> launchEmail() async {
-    final uri = Uri(
-        scheme: "mailto",
-        path: "fabla@emory.edu",
-        query: encodeQueryParameters(<String, String>{
-          'subject': 'Had an error submitting my diary',
-          'body': 'I had a problem submitting my diary on day: '
-        }));
-
-    await launchUrl(uri);
+      await ParticipantAndExperimentDetails()
+          .launchSupportEmail(
+          subject: 'Had an error submitting my diary',
+          body: 'I had a problem submitting my diary on day   ',
+          example: ''
+      );
+      }
   }
 
-  String? encodeQueryParameters(Map<String, String> params) {
-    return params.entries
-        .map((MapEntry<String, String> e) =>
-            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-        .join('&');
-  }
-}
