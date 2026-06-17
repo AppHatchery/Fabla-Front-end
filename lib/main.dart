@@ -59,19 +59,31 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(
       widgetsBinding: widgetsBinding); // Start Splash Screen
-  await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+
+  // dotenv and Firebase have no dependency on each other we load them together.
+  await Future.wait([
+    dotenv.load(fileName: ".env"),
+    Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+  ]);
+
+  // Crashlytics needs Firebase so we init after firbase
   await CrashlyticsService().initialize();
-  objectbox = await ObjectBox.create();
-  cameras = await availableCameras();
-  await RiveNative.init();
-  await Alarm.init();
-  await NotificationService.init();
-  await PendoService.init();
+
+  // These initializers are mutually independent
+  await Future.wait([
+    ObjectBox.create().then((value) => objectbox = value),
+    availableCameras().then((value) => cameras = value),
+    RiveNative.init(),
+    Alarm.init(),
+    NotificationService.init(),
+    PendoService.init(),
+    _configureFirebase(),
+  ]);
+
+  // RouteService reads ObjectBox (via SetupRepository), so it must run after
+  // the batch above completes.
   final route = await RouteService().getRoute();
-  await _configureFirebase();
+
   runApp(MyApp(
     route: route,
   ));
@@ -84,8 +96,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 Future<void> _configureFirebase() async {
-  await Firebase.initializeApp();
-  await notificationController.initialize(); // Ensure this waits
+  await notificationController.initialize();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 }
 
@@ -234,9 +245,9 @@ class _HubState extends State<Hub>
     }
     cubit = BlocProvider.of<HubCubit>(context);
     tabController = TabController(length: pages.length, vsync: this);
-    startPendo();
     _makeNavBars();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      startPendo(); // Defer Pendo session start until after the first frame
       NotificationManager()
           .scheduleAdditional(); // Ensure that this also trigger when the app has just started
       NotificationManager().scheduleUserReminders(); // Schedule user reminders
