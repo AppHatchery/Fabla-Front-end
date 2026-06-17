@@ -65,7 +65,7 @@ void main() async {
   // Crashlytics needs Firebase so we init after firbase
   await CrashlyticsService().initialize();
 
-  // The remaining initializers are mutually independent so run them concurrently.
+  // These initializers are mutually independent
   await Future.wait([
     ObjectBox.create().then((value) => objectbox = value),
     availableCameras().then((value) => cameras = value),
