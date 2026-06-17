@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:alarm/alarm.dart';
-import 'package:alarm/model/volume_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
@@ -795,13 +794,12 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
         ));
   }
 
-  _launchEmail() async {
-    launchEmail(
+  void _launchEmail() async {
+    await ParticipantAndExperimentDetails().launchSupportEmail(
         subject: 'Web Survey – Assistance Needed',
-        body: '''Error encountered. Please investigate and advise on next steps.
-        
-        
-Participant ID: ''');
+        body: 'Error encountered. Please investigate and advise on next steps.',
+      example: '(Please Describe the issue you are facing) e.g When I open the web survey I keep getting a Page Not Found error'
+    );
   }
 
   void showModal() {

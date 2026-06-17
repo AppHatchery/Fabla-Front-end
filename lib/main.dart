@@ -24,6 +24,8 @@ import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart'
+    show StudyUpdatePopUp;
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -212,6 +214,7 @@ class _HubState extends State<Hub>
   ];
 
   final isAndroid = Platform.isAndroid;
+  bool _updateDialogShowing = false;
 
   @override
   void initState() {
@@ -237,6 +240,9 @@ class _HubState extends State<Hub>
       NotificationManager()
           .scheduleAdditional(); // Ensure that this also trigger when the app has just started
       NotificationManager().scheduleUserReminders(); // Schedule user reminders
+
+      // Check for experiment updates after the first frame is rendered
+      cubit.checkForUpdates();
     });
     super.initState();
   }
@@ -252,6 +258,7 @@ class _HubState extends State<Hub>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       NotificationManager().scheduleAdditional();
+      cubit.checkForUpdates();
     }
     super.didChangeAppLifecycleState(state);
   }
@@ -264,6 +271,15 @@ class _HubState extends State<Hub>
         listener: (context, state) {
           if (state is HubRefreshing) {
             refresh();
+          } else if (state is HubUpdateAvailable) {
+            if (_updateDialogShowing) return;
+            _updateDialogShowing = true;
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) =>
+                  const StudyUpdatePopUp(state: UpdateState.available),
+            ).whenComplete(() => _updateDialogShowing = false);
           }
         },
         builder: (context, state) {

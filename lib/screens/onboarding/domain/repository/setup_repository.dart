@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:developer' as dev;
-// import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:audio_diaries_flutter/core/database/dao/experiment_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/questions_dao.dart';
@@ -294,6 +293,13 @@ class SetupRepository {
   ExperimentModel getExperiment() {
     final entity = _experimentDAO.getExperiment();
     return ExperimentModel.fromEntity(entity!);
+  }
+
+  /// Null-safe variant for flows (e.g. login screens) that run before an
+  /// experiment has been stored.
+  ExperimentModel? getExperimentOrNull() {
+    final entity = _experimentDAO.getExperiment();
+    return entity == null ? null : ExperimentModel.fromEntity(entity);
   }
 
   setColorForStudy(List<StudyModel> studies) async {
@@ -645,7 +651,6 @@ class SetupRepository {
     }
 
     final finalDate = DateFormat('dd/MM/yyyy').format(date);
-    extras['date_adjuster'] = finalDate;
     //store the date the person has finished onboarding, we will use this as date joined
     if (!dateJoined.containsKey('date_joined')) {
       await dateJoined.setString(
@@ -654,6 +659,11 @@ class SetupRepository {
     } else {
       dev.log('Key already exists. No value was added.');
     }
+
+    // append acknowledgment of protocol to extras
+    extras['protocol_acknowledged'] = true;
+    extras['protocol_acknowledged_at'] =
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
 
     //dev.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>: $jsonString");
 
@@ -681,6 +691,15 @@ class SetupRepository {
 
     if (result) {
       final res = await getStudies(partialCleanDB: partialCleanDB);
+      if (res != true) {
+        // getStudies failed — the server already has protocol_acknowledged=true
+        // but local content was never refreshed. Roll back the acknowledgment
+        // so checkForUpdates still surfaces the update on the next attempt.
+        extras['protocol_acknowledged'] = false;
+        extras.remove('protocol_acknowledged_at');
+        map['extras'] = jsonEncode(extras);
+        await post(path: "/fabla/updateuserextras", body: map);
+      }
       return res;
     }
 

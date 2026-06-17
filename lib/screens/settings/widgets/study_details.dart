@@ -174,7 +174,11 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
     );
   }
 
-  Future<void> launchEmailMethod() => _details.launchSupportEmail("Fabla Participant Issue");
+  Future<void> launchEmailMethod() => _details.launchSupportEmail
+    (
+      subject: 'Fabla Participant Issue',
+      body: 'Describe the issue you are facing',
+  );
 
 
   /// Entry point for the manual study update. Blocks first when there are

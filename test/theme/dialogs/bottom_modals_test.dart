@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // Unit tests for the recorder guard pattern used by

@@ -5,13 +5,12 @@ import 'package:audio_diaries_flutter/core/database/dao/experiment_dao.dart';
 import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/experiment.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/data/credentials.dart';
+import 'package:audio_diaries_flutter/core/network/secrets_handler.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
     show CrashlyticsService;
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/database/dao/participant_dao.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
@@ -124,7 +123,12 @@ class LoginRepository {
         try {
           final extra = jsonDecode(extraString) as Map<String, dynamic>?;
           if (extra != null && extra.isNotEmpty) {
-            isAlreadyLoggedIn = true;
+            // clean extras remove acknowledgment fields to check if there are any other extras
+            final cleanedExtras = Map<String, dynamic>.from(extra)
+              ..remove('protocol_acknowledged')
+              ..remove('protocol_acknowledged_at');
+
+            if (cleanedExtras.isNotEmpty) isAlreadyLoggedIn = true;
           }
         } catch (e) {
           debugPrint("Failed to decode 'extra': $e");
@@ -143,7 +147,9 @@ class LoginRepository {
       final data = result['data'];
       final exists = data['exists'];
       if (exists == true) {
-        storeCredentials(data);
+        await SecureSave().save(
+          CredentialsModel.fromBackendMessage(data['message'] as Map<String, dynamic>),
+        );
 
         //Add Participant to DB
         addParticipant(code);
@@ -158,24 +164,6 @@ class LoginRepository {
       'success': false,
       'alreadyLoggedIn': false,
     };
-  }
-
-  void storeCredentials(Map<String, dynamic> data) async {
-    final storage = const FlutterSecureStorage();
-
-    String authorization = data['message']['Authorization'];
-    String apiKey = data['message']['x-api-key'];
-    String dynamoUrl = data['message']['dynamo_url'];
-    String presignedUrl = data['message']['presigned_url'];
-
-    final credentials = Credentials(
-        authorization: authorization,
-        xapikey: apiKey,
-        dynamo_url: dynamoUrl,
-        presigned_url: presignedUrl);
-
-    await storage.write(
-        key: 'credentials', value: json.encode(credentials.toJson()));
   }
 
   /// Verifies the study code and retrieves the corresponding experiment information.

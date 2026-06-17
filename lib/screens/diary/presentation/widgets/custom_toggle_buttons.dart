@@ -9,14 +9,14 @@ class CustomToggleButtons extends StatefulWidget {
   final Color unselectedBackgroundColor;
 
   const CustomToggleButtons({
-    Key? key,
+    super.key,
     required this.isSelected,
     required this.children,
     required this.onPressed,
     this.borderRadius = 12,
     required this.selectedBackgroundColor,
     required this.unselectedBackgroundColor,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomToggleButtons> createState() => _CustomToggleButtonsState();
