@@ -1474,9 +1474,9 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       ..onTap = () => ParticipantAndExperimentDetails().launchSupportEmail(
           subject: 'Study Update failed',
           body: 'Describe the issue you are facing',
-          example: "e.g. The study update keeps failing and never completes, even after closing and reopening the app."
-      );
-    if (widget.startUpdating) {
+          example:
+              "e.g. The study update keeps failing and never completes, even after closing and reopening the app.");
+    if (widget.state == UpdateState.updating) {
       // Trigger after the first frame so the BlocListener is subscribed and
       // captures the terminal HubUpdated state.
       WidgetsBinding.instance.addPostFrameCallback((_) {
