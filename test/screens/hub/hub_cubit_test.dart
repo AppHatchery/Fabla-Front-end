@@ -403,10 +403,16 @@ void main() {
         expect(hubCubit.hasOngoingOrCompleteToday(), isTrue);
       });
 
-      test('returns false for idle/submitted/missed diaries', () {
+      test('returns true when a diary is submitted', () {
+        final diaries = [diaryWithStatus(DiaryStatus.submitted)];
+        when(() => mockDiaryRepository.getDailyDiaries(any()))
+            .thenReturn(diaries);
+        expect(hubCubit.hasOngoingOrCompleteToday(), isTrue);
+      });
+
+      test('returns false for idle/missed diaries', () {
         final diaries = [
           diaryWithStatus(DiaryStatus.idle),
-          diaryWithStatus(DiaryStatus.submitted),
           diaryWithStatus(DiaryStatus.missed),
         ];
         when(() => mockDiaryRepository.getDailyDiaries(any()))

@@ -1,4 +1,6 @@
 import 'package:alarm/alarm.dart';
+import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart'
+    show clearAllHomeProgressTracking, getAllHomeProgressTracking;
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -263,9 +265,6 @@ class _HubState extends State<Hub>
 
   @override
   Widget build(BuildContext context) {
-    final isIos = Platform.isIOS;
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-
     return KeyedSubtree(
       key: key,
       child: BlocConsumer<HubCubit, HubState>(
@@ -305,20 +304,8 @@ class _HubState extends State<Hub>
                     ),
                   ),
                 ),
-                child: TabBar(
-                  controller: tabController,
-                  tabs: navigationBars,
-                  labelColor: CustomColors.productNormal,
-                  unselectedLabelColor: Colors.black,
-                  indicatorColor: Colors.transparent,
-                  indicatorWeight: 2,
-                  indicator: null,
-                  padding: EdgeInsets.only(
-                    top: 8,
-                    bottom:
-                        bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 8),
-                  ),
-                  dividerColor: Colors.transparent,
+                child: CustomHubTabView(
+                  tabController: tabController,
                 ),
               ),
             ),
@@ -328,7 +315,7 @@ class _HubState extends State<Hub>
     );
   }
 
-  void startPendo() async {
+  Future<void> startPendo() async {
     final repository = SetupRepository();
     final participant = repository.getParticipant();
     final experiment = repository.getExperiment();
@@ -336,7 +323,7 @@ class _HubState extends State<Hub>
         participant!.studyCode.toString(), experiment.login);
   }
 
-  void _makeNavBars() {
+  void _makeNavBars() async {
     final repository = DiaryRepository();
     final diaries = repository.getAllDiaries();
     final count = diaries
@@ -374,5 +361,123 @@ class _HubState extends State<Hub>
         _makeNavBars();
       });
     }
+  }
+}
+
+class CustomHubTabView extends StatefulWidget {
+  final TabController tabController;
+  const CustomHubTabView({super.key, required this.tabController});
+
+  @override
+  State<CustomHubTabView> createState() => _CustomHubTabViewState();
+}
+
+class _CustomHubTabViewState extends State<CustomHubTabView> {
+  static const _historyTabIndex = 1;
+  List<Tab> navigationBars = [];
+
+  @override
+  void initState() {
+    super.initState();
+    navigationBars.addAll([
+      const Tab(
+        icon: Icon(CupertinoIcons.text_badge_checkmark),
+        text: "Study",
+      ),
+      const Tab(
+        icon: Icon(Icons.history),
+        text: "History",
+      ),
+      const Tab(
+        icon: Icon(Icons.settings_outlined),
+        text: "Settings",
+      ),
+    ]);
+    _makeNavBars();
+    widget.tabController.addListener(_onTabChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.tabController.removeListener(_onTabChanged);
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    // History tab is index 1
+    if (widget.tabController.index == _historyTabIndex &&
+        !widget.tabController.indexIsChanging) {
+      clearAllHomeProgressTracking().then((_) => _makeNavBars());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return TabBar(
+      controller: widget.tabController,
+      tabs: navigationBars,
+      labelColor: CustomColors.productNormal,
+      unselectedLabelColor: Colors.black,
+      indicatorColor: Colors.transparent,
+      indicatorWeight: 2,
+      indicator: null,
+      padding: EdgeInsets.only(
+        top: 8,
+        bottom: bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 8),
+      ),
+      dividerColor: Colors.transparent,
+    );
+  }
+
+  void _makeNavBars() async {
+    final repository = DiaryRepository();
+    final diaries = repository.getAllDiaries();
+    final count = diaries
+        .where((element) => element.status == DiaryStatus.complete)
+        .length;
+    final allTracking = await getAllHomeProgressTracking();
+    if (!mounted) return;
+
+    final totalSubmissions =
+        allTracking.values.fold(0, (sum, p) => sum + p.submissions);
+
+    if (navigationBars.isNotEmpty) navigationBars.clear();
+
+    navigationBars.addAll(<Tab>[
+      const Tab(
+        icon: Icon(CupertinoIcons.text_badge_checkmark),
+        text: "Study",
+      ),
+      Tab(
+        icon: Badge(
+          backgroundColor: count > 0
+              ? Colors.transparent
+              : totalSubmissions > 0
+                  ? CustomColors.productNormal
+                  : Colors.transparent,
+          textColor: CustomColors.fillWhite,
+          label: count > 0
+              ? Icon(
+                  CupertinoIcons.cloud_upload_fill,
+                  color: CustomColors.warningActive,
+                )
+              : totalSubmissions > 0
+                  ? Text(totalSubmissions.toString())
+                  : null,
+          isLabelVisible: count > 0 || totalSubmissions > 0,
+          child: const Icon(Icons.history),
+        ),
+        text: "History",
+      ),
+      const Tab(
+        icon: Icon(Icons.settings_outlined),
+        text: "Settings",
+      ),
+    ]);
+
+    if (mounted) setState(() {});
   }
 }

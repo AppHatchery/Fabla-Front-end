@@ -1159,6 +1159,16 @@ class DeletePopUp extends StatelessWidget {
                       textColor: CustomColors.fillWhite,
                     ),
                   ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: CustomFlatButton(
+                      onClick: () => Navigator.pop(context, false),
+                      text: "Cancel",
+                      color: CustomColors.productNormal,
+                      borderColor: CustomColors.productNormal,
+                      textColor: CustomColors.fillWhite,
+                    ),
+                  ),
                 ],
               )
             ],

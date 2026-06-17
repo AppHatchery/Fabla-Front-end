@@ -1,7 +1,9 @@
 import 'package:audio_diaries_flutter/core/usecases/daily_goal_service.dart';
+import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart' show getAllHomeProgressTracking;
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
+import 'package:audio_diaries_flutter/screens/hub/data/submission_progress.dart' show SubmissionProgress;
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
     show CrashlyticsService;
@@ -66,6 +68,8 @@ class HomeCubit extends Cubit<HomeState> {
       final goalService = DailyGoalService();
       final goalData = goalService.calculateDailyGoals(
           todaysData.studies, todaysData.diaries);
+      
+      final submissionProgress = await getAllHomeProgressTracking();
 
       emit(HomeLoaded(
         todaysData: todaysData,
@@ -74,6 +78,7 @@ class HomeCubit extends Cubit<HomeState> {
         weeklyEntries: weeklyData.totalEntries,
         isFinished: isFinished,
         goalData: goalData, // Add goal data to state
+        submissionProgress: submissionProgress,
       ));
     } catch (e, stackTrace) {
       debugPrint("Error loading home page: $e");

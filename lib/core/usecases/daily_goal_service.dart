@@ -68,15 +68,14 @@ class DailyGoalService {
     }).toList();
   }
 
-  /// Calculates how many diaries have been completed within the shifted day
+  /// Calculates how many diaries have been submitted to the server within the
+  /// shifted day window.
   int _calculateCompletedDiaries(
       List<DiaryModel> diaries, ShiftedDayBoundaries boundaries) {
     int completedCount = 0;
 
     for (var diary in diaries) {
-      // Check if this diary has submissions within the shifted day window
       if (diary.submissions != null && diary.submissions!.isNotEmpty) {
-        // Count submissions that fall within the shifted day boundaries
         final submissionsInWindow = diary.submissions!.where((submission) {
           return submission.isAfter(boundaries.start) &&
               submission.isBefore(boundaries.end);

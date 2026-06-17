@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/usecases/connectivity.dart';
+import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart';
 import 'package:audio_diaries_flutter/core/usecases/incentives.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -145,7 +146,8 @@ class SummaryRepository {
               status: DiaryStatus.submitted,
               activeDays: diary.activeDays,
               currentEntry: diary.currentEntry + 1,
-              submissions: submissions);
+              submissions: submissions,
+              completions: diary.completions);
         } else {
           newDiary = diary.copyWith(
               id: diary.id,
@@ -153,7 +155,8 @@ class SummaryRepository {
               status: DiaryStatus.idle,
               activeDays: diary.activeDays,
               currentEntry: diary.currentEntry + 1,
-              submissions: submissions);
+              submissions: submissions,
+              completions: diary.completions);
         }
 
         await diaryRepository.updateDiary(newDiary);
@@ -167,6 +170,7 @@ class SummaryRepository {
         }
         cancelContinueNotifications(diary.id);
         calculateEarnedIncentivesForAWS(participantID: participant.studyCode);
+        await modifyHomeProgressTracking(studyID: diary.studyID, submissions: 1, activateAnimation: true);
         return true;
       } else {
         return false;

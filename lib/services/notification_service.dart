@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show PlatformException;
 
