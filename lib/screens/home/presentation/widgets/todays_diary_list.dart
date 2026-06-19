@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../theme/components/cards.dart';
 import '../../../../theme/custom_typography.dart';
 
@@ -28,7 +29,7 @@ class TodaysDiaryList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Today's Entries",
+          AppLocalizations.of(context).todaysEntries,
           style: CustomTypography().headlineMedium(),
           textAlign: TextAlign.left,
         ),

@@ -34,7 +34,7 @@ dependencies:
   flutter_screenutil: ^5.9.3
 
   #Formating
-  intl: ^0.20.2
+  intl: any
 
   #firebase
   firebase_core: ^4.8.0
@@ -120,6 +120,8 @@ dependencies:
   internet_connection_checker_plus: ^3.0.0
   flutter_dotenv: ^6.0.1
   device_info_plus: ^13.1.0
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
@@ -158,6 +160,7 @@ flutter_native_splash:
 # The following section is specific to Flutter packages.
 flutter:
   uses-material-design: true
+  generate: true
 
   # To add assets to your application, add an assets section, like this:
   assets:

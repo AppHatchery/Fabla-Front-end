@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 // import 'package:tuple/tuple.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../screens/diary/data/options.dart';
 import 'types.dart';
 
@@ -160,7 +161,8 @@ String formatMinsAndSecs(Duration d) {
   return "$m:$s";
 }
 
-String formatDiaryCardDue(DateTime due, DateTime start, DiaryStatus status) {
+String formatDiaryCardDue(
+    DateTime due, DateTime start, DiaryStatus status, AppLocalizations l10n) {
   final now = DateTime.now();
   final difference = due.difference(now).inHours;
 
@@ -168,15 +170,15 @@ String formatDiaryCardDue(DateTime due, DateTime start, DiaryStatus status) {
   if (status == DiaryStatus.submitted) {
     return "Submitted";
   } else if (start.isAfter(now)) {
-    return "Opens at: ${formatDurationToHHMMPP(start)}";
+    return "${l10n.opensAt} ${formatDurationToHHMMPP(start)}";
   } else if (now.isAfter(due) && difference < -24) {
     return "Closed on: ${dateFormat.format(due)}";
   } else if (now.isAfter(due)) {
     return "Closed at: ${formatDurationToHHMMPP(due)}";
   } else if (difference >= 24) {
-    return "Available until: ${dateFormat.format(due)}";
+    return "${l10n.availableUntil} ${dateFormat.format(due)}";
   } else {
-    return "Available until: ${formatDurationToHHMMPP(due)}";
+    return "${l10n.availableUntil} ${formatDurationToHHMMPP(due)}";
   }
 }
 

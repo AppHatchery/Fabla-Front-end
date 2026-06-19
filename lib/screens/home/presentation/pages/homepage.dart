@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 // import '../../../../theme/dialogs/pop_ups.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../diary/data/diary.dart';
 import '../cubit/cubit/home_cubit.dart';
 import '../widgets/empty_state.dart';
@@ -194,14 +195,14 @@ class _HomePageState extends State<HomePage>
             ),
           ] else if (state.shouldShowEndState) ...[
             Text(
-              "Today's Entries",
+              AppLocalizations.of(context).todaysEntries,
               style: CustomTypography().headlineMedium(),
               textAlign: TextAlign.left,
             ),
             Center(child: EndStateWidget()),
           ] else if (state.shouldShowFreeDay) ...[
             Text(
-              "Today's Entries",
+              AppLocalizations.of(context).todaysEntries,
               style: CustomTypography().headlineMedium(),
               textAlign: TextAlign.left,
             ),

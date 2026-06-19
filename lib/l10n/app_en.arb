@@ -1,0 +1,91 @@
+{
+  "@@locale": "en",
+  "todaysGoal": "Today's Goal",
+  "@todaysGoal": {
+    "description": "Title of the daily goal section on the home page"
+  },
+  "noDailyGoalToday": "There's no daily goal today",
+  "@noDailyGoalToday": {
+    "description": "Empty-state text shown in the today's goal section when no goal is scheduled for the current day"
+  },
+  "weeklyGoal": "Weekly Goal",
+  "@weeklyGoal": {
+    "description": "Title of the weekly goal widget in the home app bar"
+  },
+  "todaysEntries": "Today's Entries",
+  "@todaysEntries": {
+    "description": "Section header for the list of diary/survey entries due today"
+  },
+  "study": "Study",
+  "@study": {
+    "description": "Label for the Study tab in the bottom navigation bar"
+  },
+  "history": "History",
+  "@history": {
+    "description": "Label for the History tab in the bottom navigation bar"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Label for the Settings tab in the bottom navigation bar"
+  },
+  "incentivesEarned": "Incentives Earned",
+  "@incentivesEarned": {
+    "description": "Heading for compensation earned so far on the incentives screen"
+  },
+  "compensationDetails": "Compensation Details",
+  "@compensationDetails": {
+    "description": "Section title on the incentives screen"
+  },
+  "howAreIncentivesCalculated": "How are incentives calculated?",
+  "@howAreIncentivesCalculated": {
+    "description": "Expandable help link on the incentives screen"
+  },
+  "totalEntries": "Total Entries",
+  "@totalEntries": {
+    "description": "Label for the total number of entries in the incentives breakdown"
+  },
+  "each": "Each",
+  "@each": {
+    "description": "Fragment shown before a per-entry incentive amount (see concatenation note)"
+  },
+  "total": "Total",
+  "@total": {
+    "description": "Label for the total compensation amount"
+  },
+  "bonusText": "Bonus When You Complete",
+  "@bonusText": {
+    "description": "Fragment shown before the entry count required to earn a completion bonus"
+  },
+  "studyCalendar": "Study Calendar",
+  "@studyCalendar": {
+    "description": "title for the study calendar modal"
+  },
+  "pastEntries": "Past Entries",
+  "@pastEntries": {
+    "description": "Past entries"
+  },
+  "todaysCalendarEntries": "Today's entries",
+  "@todaysCalendarEntries": {
+    "description": "Today's entries for diaries"
+  },
+  "upComingEntries": "Upcoming entries",
+  "@upComingEntries": {
+    "description": "diaries which are coming up the next day and beyond"
+  },
+  "getYourBonus": "Get Your Bonus",
+  "@getYourBonus": {
+    "description": "get your bonus text"
+  },
+  "totalCompletion": "Total Completion",
+  "@totalCompletion": {
+    "description": "total completion text for the incentive page"
+  },
+  "availableUntil": "Available Until:",
+  "@availableUntil": {
+    "description": "available until text for diary validity"
+  },
+  "opensAt": "Opens At:",
+  "@opensAt": {
+    "description": "when the diary open"
+  }
+}

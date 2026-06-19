@@ -15,6 +15,8 @@ import 'package:popover/popover.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:rive/rive.dart' as rive;
 
+import '../../../../l10n/app_localizations.dart';
+
 class StudyCalendar extends StatefulWidget {
   final List<StudyModel> studies;
   final ValueChanged<bool> refresh;
@@ -47,6 +49,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
   ScrollController? controller;
   rive.File? _riveFile;
   rive.RiveWidgetController? _riveController;
+
+  late Locale currentLocale = Localizations.localeOf(context);
 
   @override
   void initState() {
@@ -113,7 +117,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          "Study Calendar",
+                          AppLocalizations.of(context).studyCalendar,
                           style: CustomTypography().titleLarge(
                               color: CustomColors.productNormalActive),
                           textAlign: TextAlign.center,
@@ -215,7 +219,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
           spacing: 6,
           children: [
             Text(
-              "Study Calendar",
+              AppLocalizations.of(context).studyCalendar,
               style: CustomTypography().titleLarge(),
             ),
             HelpButton()
@@ -232,6 +236,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
           child: TableCalendar(
             firstDay: DateTime.utc(2010, 10, 16),
             lastDay: DateTime.utc(2060, 3, 14),
+            locale: "$currentLocale",
             focusedDay: focusedDay,
             currentDay: today,
             availableGestures: AvailableGestures.horizontalSwipe,
@@ -424,12 +429,14 @@ class _StudyCalendarState extends State<StudyCalendar> {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            _getEntriesHeading(selectedDate),
-            style: CustomTypography().titleLarge(),
+          Expanded(
+            child: Text(
+              _getEntriesHeading(selectedDate),
+              style: CustomTypography().titleLarge(),
+            ),
           ),
           Text(
-            DateFormat("MMM d, yyyy").format(selectedDate),
+            DateFormat.yMMMMd("$currentLocale").format(selectedDate),
             style: CustomTypography().titleMedium(),
           ),
         ],
@@ -537,11 +544,11 @@ class _StudyCalendarState extends State<StudyCalendar> {
     );
 
     if (selected.isBefore(today)) {
-      return "Past entries";
+      return AppLocalizations.of(context).pastEntries;
     } else if (selected.isAtSameMomentAs(today)) {
-      return "Today's entries";
+      return AppLocalizations.of(context).todaysCalendarEntries;
     } else {
-      return "Upcoming entries";
+      return AppLocalizations.of(context).upComingEntries;
     }
   }
 }

@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../l10n/app_localizations.dart';
+
 class StudyIncentives extends StatefulWidget {
   final List<StudyModel> studies;
   final ValueChanged<bool> refresh;
@@ -73,7 +75,7 @@ class _StudyIncentivesState extends State<StudyIncentives> {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          "Incentives Earned",
+                          AppLocalizations.of(context).incentivesEarned,
                           style: CustomTypography()
                               .titleLarge(color: CustomColors.yellowDark),
                           textAlign: TextAlign.center,
@@ -158,7 +160,7 @@ class _StudyIncentivesState extends State<StudyIncentives> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Compensation Details",
+          AppLocalizations.of(context).compensationDetails,
           style: CustomTypography().titleLarge(),
           textAlign: TextAlign.left,
         ),
@@ -600,7 +602,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                 color: CustomColors.textSecondaryContent),
             Flexible(
               child: Text(
-                "How are the incentives calculated?",
+                AppLocalizations.of(context).howAreIncentivesCalculated,
                 style: CustomTypography()
                     .bodyMedium(color: CustomColors.textSecondaryContent),
               ),
@@ -639,7 +641,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
               Row(
                 children: [
                   Expanded(
-                      child: Text("How are the incentives calculated?",
+                      child: Text(AppLocalizations.of(context).howAreIncentivesCalculated,
                           style: CustomTypography().titleSmall())),
                   IconButton(
                       onPressed: () => Navigator.pop(context),
@@ -656,7 +658,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                     Row(
                       children: [
                         Expanded(
-                            child: Text("Each ${widget.study.name}",
+                            child: Text( "${AppLocalizations.of(context).each}  ${widget.study.name}",
                                 style: CustomTypography().bodyMedium())),
                         Text(
                             formatMoney(widget.study.incentive.amount,
@@ -667,7 +669,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                     Row(
                       children: [
                         Expanded(
-                            child: Text("Total Entries",
+                            child: Text(AppLocalizations.of(context).totalEntries,
                                 style: CustomTypography().bodyMedium())),
                         Text(totalEntriesRequired.toString(),
                             style: CustomTypography().bodyMedium()),
@@ -677,7 +679,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                       children: [
                         Expanded(
                             child: Text(
-                                "Bonus When You Complete $bonusEntriesRequired Entries",
+                                "${AppLocalizations.of(context).bonusText} $bonusEntriesRequired Entries",
                                 style: CustomTypography().bodyMedium())),
                         Text(
                             formatMoney(widget.study.incentive.bonus,
@@ -702,7 +704,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                   children: [
                     Expanded(
                         child:
-                            Text("Total", style: CustomTypography().title())),
+                            Text(AppLocalizations.of(context).total, style: CustomTypography().title())),
                     Text(formatMoney(total, currency: currency),
                         style: CustomTypography().title())
                   ],

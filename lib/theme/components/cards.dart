@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
+import 'package:audio_diaries_flutter/l10n/app_localizations.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -239,8 +240,8 @@ class _DiaryCardState extends State<DiaryCard> {
     final colors = formatDiaryCardDueColors(
         widget.diary!.due, widget.diary!.start, widget.diary!.status, optional);
 
-    final wording = formatDiaryCardDue(
-        widget.diary!.due, widget.diary!.start, widget.diary!.status);
+    final wording = formatDiaryCardDue(widget.diary!.due, widget.diary!.start,
+        widget.diary!.status, AppLocalizations.of(context));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8,

@@ -6,6 +6,8 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/app_localizations.dart';
+
 class WeeklyGoalWidget extends StatefulWidget {
   final List<StudyModel> studies;
   final List<DiaryModel> diaries;
@@ -45,7 +47,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text("Weekly Goal", style: CustomTypography().bodyLarge()),
+            Text(AppLocalizations.of(context).weeklyGoal, style: CustomTypography().bodyLarge()),
             const SizedBox(width: 6),
             GestureDetector(
               child: Icon(

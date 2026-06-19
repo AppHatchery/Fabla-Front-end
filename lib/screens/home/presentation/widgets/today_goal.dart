@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:audio_diaries_flutter/core/usecases/daily_goal_service.dart'
     show DailyGoalData;
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
+import 'package:audio_diaries_flutter/l10n/app_localizations.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/ring_progress_indicator.dart';
 import 'package:audio_diaries_flutter/screens/hub/data/submission_progress.dart' show SubmissionProgress;
@@ -80,7 +81,8 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
       spacing: 16,
       children: [
         widget.dailyGoal.isNotEmpty
-            ? Text("Today's Goal", style: CustomTypography().titleLarge())
+            ? Text(AppLocalizations.of(context).todaysGoal,
+                style: CustomTypography().titleLarge())
             : const SizedBox.shrink(),
         Align(
             alignment: Alignment.center,
@@ -316,7 +318,7 @@ class DailyGoalEntries extends StatelessWidget {
               size: 20,
             ),
             Text(
-              "There's no daily goal today",
+              AppLocalizations.of(context).noDailyGoalToday,
               style: CustomTypography().bodyMedium(),
             ),
           ]);

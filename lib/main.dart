@@ -51,6 +51,8 @@ import 'services/notification_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:audio_diaries_flutter/core/notifications/controllers/notifications_controller.dart';
 
+import 'package:audio_diaries_flutter/l10n/app_localizations.dart';
+
 //Global variables
 late ObjectBox objectbox;
 NotificationsController notificationController = NotificationsController();
@@ -152,6 +154,20 @@ class _MyAppState extends State<MyApp> {
               ],
               child: PendoActionListener(
                 child: MaterialApp(
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
+                  supportedLocales: AppLocalizations.supportedLocales,
+                  //fallback to english when the locale language is not supported
+                  localeListResolutionCallback: (locales, supported) {
+                    for (final locale in locales ?? const <Locale>[]) {
+                      for (final candidate in supported) {
+                        if (candidate.languageCode == locale.languageCode) {
+                          return candidate;
+                        }
+                      }
+                    }
+                    return const Locale('en');
+                  },
                   title: 'Fabla',
                   theme: ThemeData(
                       primaryColor: CustomColors.productNormal,
@@ -458,9 +474,9 @@ class _CustomHubTabViewState extends State<CustomHubTabView> {
     if (navigationBars.isNotEmpty) navigationBars.clear();
 
     navigationBars.addAll(<Tab>[
-      const Tab(
+      Tab(
         icon: Icon(CupertinoIcons.text_badge_checkmark),
-        text: "Study",
+        text: AppLocalizations.of(context).study,
       ),
       Tab(
         icon: Badge(
@@ -481,11 +497,11 @@ class _CustomHubTabViewState extends State<CustomHubTabView> {
           isLabelVisible: count > 0 || totalSubmissions > 0,
           child: const Icon(Icons.history),
         ),
-        text: "History",
+        text: AppLocalizations.of(context).history,
       ),
-      const Tab(
+      Tab(
         icon: Icon(Icons.settings_outlined),
-        text: "Settings",
+        text: AppLocalizations.of(context).settings,
       ),
     ]);
 
