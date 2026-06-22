@@ -1,4 +1,6 @@
 import 'package:alarm/alarm.dart';
+import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart'
+    show clearAllHomeProgressTracking, getAllHomeProgressTracking;
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -23,7 +25,8 @@ import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
-import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart'
+    show StudyUpdatePopUp;
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -57,19 +60,31 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(
       widgetsBinding: widgetsBinding); // Start Splash Screen
-  await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+
+  // dotenv and Firebase have no dependency on each other we load them together.
+  await Future.wait([
+    dotenv.load(fileName: ".env"),
+    Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+  ]);
+
+  // Crashlytics needs Firebase so we init after firbase
   await CrashlyticsService().initialize();
-  objectbox = await ObjectBox.create();
-  cameras = await availableCameras();
-  await RiveNative.init();
-  await Alarm.init();
-  await NotificationService.init();
-  await PendoService.init();
+
+  // These initializers are mutually independent
+  await Future.wait([
+    ObjectBox.create().then((value) => objectbox = value),
+    availableCameras().then((value) => cameras = value),
+    RiveNative.init(),
+    Alarm.init(),
+    NotificationService.init(),
+    PendoService.init(),
+    _configureFirebase(),
+  ]);
+
+  // RouteService reads ObjectBox (via SetupRepository), so it must run after
+  // the batch above completes.
   final route = await RouteService().getRoute();
-  await _configureFirebase();
+
   runApp(MyApp(
     route: route,
   ));
@@ -82,8 +97,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 Future<void> _configureFirebase() async {
-  await Firebase.initializeApp();
-  await notificationController.initialize(); // Ensure this waits
+  await notificationController.initialize();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 }
 
@@ -203,7 +217,6 @@ class _HubState extends State<Hub>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   // used to refresh the page for updating
   Key key = UniqueKey();
-  final ValueNotifier<bool?> completeNotifier = ValueNotifier(null);
 
   late HubCubit cubit;
   late TabController tabController;
@@ -215,6 +228,7 @@ class _HubState extends State<Hub>
   ];
 
   final isAndroid = Platform.isAndroid;
+  bool _updateDialogShowing = false;
 
   @override
   void initState() {
@@ -234,12 +248,15 @@ class _HubState extends State<Hub>
     }
     cubit = BlocProvider.of<HubCubit>(context);
     tabController = TabController(length: pages.length, vsync: this);
-    startPendo();
     _makeNavBars();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      startPendo(); // Defer Pendo session start until after the first frame
       NotificationManager()
           .scheduleAdditional(); // Ensure that this also trigger when the app has just started
       NotificationManager().scheduleUserReminders(); // Schedule user reminders
+
+      // Check for experiment updates after the first frame is rendered
+      cubit.checkForUpdates();
     });
     super.initState();
   }
@@ -255,25 +272,28 @@ class _HubState extends State<Hub>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       NotificationManager().scheduleAdditional();
+      cubit.checkForUpdates();
     }
     super.didChangeAppLifecycleState(state);
   }
 
   @override
   Widget build(BuildContext context) {
-    final isIos = Platform.isIOS;
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-
     return KeyedSubtree(
       key: key,
       child: BlocConsumer<HubCubit, HubState>(
         listener: (context, state) {
-          if (state is HubUpdating) {
-            showUpdateDialog();
-          } else if (state is HubUpdated) {
-            completeUpdate(state.complete);
-          } else if (state is HubRefreshing) {
+          if (state is HubRefreshing) {
             refresh();
+          } else if (state is HubUpdateAvailable) {
+            if (_updateDialogShowing) return;
+            _updateDialogShowing = true;
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) =>
+                  const StudyUpdatePopUp(state: UpdateState.available),
+            ).whenComplete(() => _updateDialogShowing = false);
           }
         },
         builder: (context, state) {
@@ -298,20 +318,8 @@ class _HubState extends State<Hub>
                     ),
                   ),
                 ),
-                child: TabBar(
-                  controller: tabController,
-                  tabs: navigationBars,
-                  labelColor: CustomColors.productNormal,
-                  unselectedLabelColor: Colors.black,
-                  indicatorColor: Colors.transparent,
-                  indicatorWeight: 2,
-                  indicator: null,
-                  padding: EdgeInsets.only(
-                    top: 8,
-                    bottom:
-                        bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 8),
-                  ),
-                  dividerColor: Colors.transparent,
+                child: CustomHubTabView(
+                  tabController: tabController,
                 ),
               ),
             ),
@@ -321,7 +329,7 @@ class _HubState extends State<Hub>
     );
   }
 
-  startPendo() async {
+  Future<void> startPendo() async {
     final repository = SetupRepository();
     final participant = repository.getParticipant();
     final experiment = repository.getExperiment();
@@ -329,7 +337,7 @@ class _HubState extends State<Hub>
         participant!.studyCode.toString(), experiment.login);
   }
 
-  _makeNavBars() {
+  void _makeNavBars() async {
     final repository = DiaryRepository();
     final diaries = repository.getAllDiaries();
     final count = diaries
@@ -360,19 +368,6 @@ class _HubState extends State<Hub>
     ]);
   }
 
-  void completeUpdate(bool completed) {
-    if (mounted) {
-      setState(() => completeNotifier.value = completed);
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          Navigator.pop(context);
-        }
-      }).then((_) {
-        Future.delayed(const Duration(seconds: 1), () => refresh());
-      });
-    }
-  }
-
   void refresh() {
     if (mounted) {
       setState(() {
@@ -381,25 +376,122 @@ class _HubState extends State<Hub>
       });
     }
   }
+}
 
-  showUpdateDialog() {
-    if (mounted) {
-      setState(() {
-        completeNotifier.value = null;
-      });
+class CustomHubTabView extends StatefulWidget {
+  final TabController tabController;
+  const CustomHubTabView({super.key, required this.tabController});
+
+  @override
+  State<CustomHubTabView> createState() => _CustomHubTabViewState();
+}
+
+class _CustomHubTabViewState extends State<CustomHubTabView> {
+  static const _historyTabIndex = 1;
+  List<Tab> navigationBars = [];
+
+  @override
+  void initState() {
+    super.initState();
+    navigationBars.addAll([
+      const Tab(
+        icon: Icon(CupertinoIcons.text_badge_checkmark),
+        text: "Study",
+      ),
+      const Tab(
+        icon: Icon(Icons.history),
+        text: "History",
+      ),
+      const Tab(
+        icon: Icon(Icons.settings_outlined),
+        text: "Settings",
+      ),
+    ]);
+    _makeNavBars();
+    widget.tabController.addListener(_onTabChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.tabController.removeListener(_onTabChanged);
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    // History tab is index 1
+    if (widget.tabController.index == _historyTabIndex &&
+        !widget.tabController.indexIsChanging) {
+      clearAllHomeProgressTracking().then((_) => _makeNavBars());
     }
-    showModalBottomSheet(
-        context: context,
-        isDismissible: false,
-        enableDrag: false,
-        useSafeArea: true,
-        routeSettings: RouteSettings(name: "/UpdateModal"),
-        builder: (context) => Wrap(
-              children: [
-                BottomUpdateModal(
-                  completeNotifier: completeNotifier,
-                ),
-              ],
-            ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return TabBar(
+      controller: widget.tabController,
+      tabs: navigationBars,
+      labelColor: CustomColors.productNormal,
+      unselectedLabelColor: Colors.black,
+      indicatorColor: Colors.transparent,
+      indicatorWeight: 2,
+      indicator: null,
+      padding: EdgeInsets.only(
+        top: 8,
+        bottom: bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 8),
+      ),
+      dividerColor: Colors.transparent,
+    );
+  }
+
+  void _makeNavBars() async {
+    final repository = DiaryRepository();
+    final diaries = repository.getAllDiaries();
+    final count = diaries
+        .where((element) => element.status == DiaryStatus.complete)
+        .length;
+    final allTracking = await getAllHomeProgressTracking();
+    if (!mounted) return;
+
+    final totalSubmissions =
+        allTracking.values.fold(0, (sum, p) => sum + p.submissions);
+
+    if (navigationBars.isNotEmpty) navigationBars.clear();
+
+    navigationBars.addAll(<Tab>[
+      const Tab(
+        icon: Icon(CupertinoIcons.text_badge_checkmark),
+        text: "Study",
+      ),
+      Tab(
+        icon: Badge(
+          backgroundColor: count > 0
+              ? Colors.transparent
+              : totalSubmissions > 0
+                  ? CustomColors.productNormal
+                  : Colors.transparent,
+          textColor: CustomColors.fillWhite,
+          label: count > 0
+              ? Icon(
+                  CupertinoIcons.cloud_upload_fill,
+                  color: CustomColors.warningActive,
+                )
+              : totalSubmissions > 0
+                  ? Text(totalSubmissions.toString())
+                  : null,
+          isLabelVisible: count > 0 || totalSubmissions > 0,
+          child: const Icon(Icons.history),
+        ),
+        text: "History",
+      ),
+      const Tab(
+        icon: Icon(Icons.settings_outlined),
+        text: "Settings",
+      ),
+    ]);
+
+    if (mounted) setState(() {});
   }
 }

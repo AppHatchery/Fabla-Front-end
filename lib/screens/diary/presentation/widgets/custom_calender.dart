@@ -55,14 +55,14 @@ class _CustomCalenderState extends State<CustomCalender> {
             : 80.0;
 
     final today =
-        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     return Container(
       decoration: BoxDecoration(
           color: CustomColors.fillWhite,
           borderRadius: BorderRadius.circular(12),
           shape: BoxShape.rectangle,
           border:
-              Border.all(color: CustomColors.productBorderNormal, width: 2)),
+          Border.all(color: CustomColors.productBorderNormal, width: 2)),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
       child: TableCalendar(
         firstDay: DateTime.utc(2010, 10, 16),
@@ -158,7 +158,7 @@ class _CustomCalenderState extends State<CustomCalender> {
           },
           defaultBuilder: (context, day, focusedDay) {
             final color =
-                selectedDate == day ? CustomColors.productNormal : null;
+            selectedDate == day ? CustomColors.productNormal : null;
 
             final isPast = day.isBefore(today);
 
@@ -209,8 +209,8 @@ class _CustomCalenderState extends State<CustomCalender> {
             final color = isBeforeToday
                 ? CustomColors.textTertiaryContent
                 : goal
-                    ? CustomColors.productNormalActive
-                    : Colors.transparent;
+                ? CustomColors.productNormalActive
+                : Colors.transparent;
             return Container(
               width: 7.0,
               height: 7.0,
@@ -276,7 +276,7 @@ class _CustomCalenderState extends State<CustomCalender> {
     for (final diary in diariesForDate) {
       // Find the study that matches this diary
       final study = studies.firstWhere(
-        (s) => s.studyId == diary.studyID,
+            (s) => s.studyId == diary.studyID,
       );
 
       // If diary(s) is not optional display the dot

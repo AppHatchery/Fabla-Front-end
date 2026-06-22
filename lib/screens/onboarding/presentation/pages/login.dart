@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/utils/participant_experiment_details.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/verification_code.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -9,9 +10,7 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'dart:io' show Platform;
-
 import '../../../../theme/custom_colors.dart';
 
 class LoginPage extends StatefulWidget {
@@ -305,22 +304,12 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
-  Future<void> launchEmail() async {
-    final uri = Uri(
-        scheme: "mailto",
-        path: "fabla@emory.edu",
-        query: encodeQueryParameters(<String, String>{
-          'subject': 'Need help with the participant ID',
-          'body': 'I have a problem with my participant ID:'
-        }));
 
-    await launchUrl(uri);
-  }
-
-  String? encodeQueryParameters(Map<String, String> params) {
-    return params.entries
-        .map((MapEntry<String, String> e) =>
-            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-        .join('&');
+  Future<void> launchEmail() async{
+    await ParticipantAndExperimentDetails().loginSupportEmail(
+        subject: 'Fabla Participant Login Issue',
+        body: 'Describe the issue you are facing',
+        example: ': e.g. My Participant ID is not working'
+    );
   }
 }

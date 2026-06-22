@@ -5,6 +5,7 @@ import 'package:audio_diaries_flutter/core/usecases/daily_goal_service.dart'
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/ring_progress_indicator.dart';
+import 'package:audio_diaries_flutter/screens/hub/data/submission_progress.dart' show SubmissionProgress;
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -17,12 +18,14 @@ class TodayGoalWidget extends StatefulWidget {
   final Map<StudyModel, DailyGoalData> dailyGoal;
   final int weeklyEntries;
   final ValueNotifier<bool> isHomeTipClosed;
+  final Map<int, SubmissionProgress> submissionProgress;
 
   const TodayGoalWidget(
       {super.key,
       required this.dailyGoal,
       required this.weeklyEntries,
-      required this.isHomeTipClosed});
+      required this.isHomeTipClosed,
+      required this.submissionProgress});
 
   @override
   State<TodayGoalWidget> createState() => _TodayGoalWidgetState();
@@ -93,6 +96,7 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                             padding: const EdgeInsets.only(top: 5.0),
                             child: GoalProgressIndicators(
                               goalData: widget.dailyGoal,
+                              submissionProgress: widget.submissionProgress,
                             ),
                           ),
                         )

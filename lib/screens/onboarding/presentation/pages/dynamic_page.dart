@@ -1,10 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
-
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
-import 'package:audio_diaries_flutter/core/utils/emailFunction.dart'
-    show launchEmail;
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
@@ -24,6 +21,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
+
+import '../../../../core/utils/participant_experiment_details.dart';
 
 class DynamicOnBoardingHub extends StatefulWidget {
   const DynamicOnBoardingHub({super.key});
@@ -344,9 +343,11 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
                                 onControllerReady: (ctrl) {
                                   if (stateMachineName == "Animation_5") {
                                     setState(() {
-                                      _questionTrigger = ctrl.stateMachine.trigger("Question");
+                                      _questionTrigger =
+                                          ctrl.stateMachine.trigger("Question");
                                     });
-                                    Future.delayed(const Duration(seconds: 2), () {
+                                    Future.delayed(const Duration(seconds: 2),
+                                        () {
                                       if (mounted) _questionTrigger?.fire();
                                     });
                                   }
@@ -687,7 +688,6 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
       ),
     );
   }
-
 }
 
 class DynamicErrorPage extends StatefulWidget {
@@ -829,10 +829,7 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
                   ),
 
                   CustomTextButton(
-                    onClick: () => launchEmail(
-                        subject: "Issue with Uploading Onboarding Questions",
-                        body:
-                            "Hi,\n\nI'm experiencing the following issue while trying to onboard:\n\n[Please describe the issue you're facing]\n\nThank you!"),
+                    onClick: () => launchEmail(),
                     text: 'Contact Researcher',
                     textColor: CustomColors.warningActive,
                   ),
@@ -845,4 +842,11 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
     );
   }
 
+  Future<void> launchEmail() async {
+    await ParticipantAndExperimentDetails().loginSupportEmail(
+        subject: 'Issue with Uploading Onboarding Questions',
+        body:
+            'Hi,\n\nI\'m experiencing the following issue while trying to onboard:\n\n[Please describe the issue you\'re facing]\n\nThank you!',
+        example: '');
+  }
 }

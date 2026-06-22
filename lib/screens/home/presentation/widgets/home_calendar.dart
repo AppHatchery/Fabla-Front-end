@@ -421,11 +421,19 @@ class _StudyCalendarState extends State<StudyCalendar> {
 
   Widget entries() {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(
-          DateUtils.isSameDay(DateTime.now(), selectedDate)
-              ? "Entries Available Today"
-              : "Entries Available on ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)} ",
-          style: CustomTypography().titleLarge()),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            _getEntriesHeading(selectedDate),
+            style: CustomTypography().titleLarge(),
+          ),
+          Text(
+            DateFormat("MMM d, yyyy").format(selectedDate),
+            style: CustomTypography().titleMedium(),
+          ),
+        ],
+      ),
       const SizedBox(height: 4),
 
       //Scrollable widget to display all entries due on selected date
@@ -519,6 +527,22 @@ class _StudyCalendarState extends State<StudyCalendar> {
   //Retrieving entries for a specific date (Called From StudyCalendar)
   List<DiaryModel> fetchDiaries(DateTime date) {
     return filterTodaysDiaries(date, diaryList);
+  }
+
+  String _getEntriesHeading(DateTime selectedDate) {
+    final selected = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+    );
+
+    if (selected.isBefore(today)) {
+      return "Past entries";
+    } else if (selected.isAtSameMomentAs(today)) {
+      return "Today's entries";
+    } else {
+      return "Upcoming entries";
+    }
   }
 }
 

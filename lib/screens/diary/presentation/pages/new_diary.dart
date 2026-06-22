@@ -45,7 +45,12 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   final PageTimer timer = PageTimer();
   bool ableToContinue = false;
+  bool showCloseIcon = true;
+  // Functions to run before moving to the next page
   List<Function> preFunctions = [];
+  final List<GlobalKey<_QuestionPageState>> _questionPageKeys = [];
+
+  //get page => currentPage = widget.diary.prompts.length;
 
   @override
   void initState() {
@@ -60,6 +65,11 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     sessionCubit = BlocProvider.of<DiarySessionCubit>(context);
     sessionCubit.init(widget.diary);
     timer.start();
+    // loop to initialize keys for each prompt
+    for (int i = 0; i < widget.diary.prompts.length; i++) {
+      _questionPageKeys.add(GlobalKey<_QuestionPageState>());
+    }
+    super.initState();
     WidgetsBinding.instance.addObserver(this);
     showTip();
   }
@@ -119,6 +129,22 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               settings: const RouteSettings(name: "/Hub")),
           (route) => false);
     }
+    }
+    void _scrollToTopOfCurrentQuestion() {
+      if (currentPage < _questionPageKeys.length) {
+        final GlobalKey<
+            _QuestionPageState> currentKey = _questionPageKeys[currentPage];
+        final _QuestionPageState? currentState = currentKey.currentState;
+        currentState?.scrollToTop();
+      }
+    }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    timer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
@@ -366,6 +392,15 @@ class QuestionPage extends StatefulWidget {
 
 class _QuestionPageState extends State<QuestionPage>
     with WidgetsBindingObserver {
+  final ScrollController _scrollController = ScrollController();
+  void scrollToTop() {
+    _scrollController.animateTo(
+      0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+    );
+  }
+  late PromptCubit promptCubit;
   late PromptModel promptModel;
   late DiarySessionCubit sessionCubit;
 
@@ -407,6 +442,7 @@ class _QuestionPageState extends State<QuestionPage>
 
   @override
   void dispose() {
+    _scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -554,7 +590,7 @@ class _QuestionPageState extends State<QuestionPage>
       questionTip = prompt.subtitle ?? "Please type your answer:";
     } else if (prompt.responseType == ResponseType.webview) {
       questionTip =
-          prompt.subtitle ?? "Tap 'Finish' when you've completed the survey";
+          prompt.subtitle ?? "Tap ‘Finish’ when you’ve completed the survey";
     } else if (prompt.responseType == ResponseType.timer) {
       questionTip =
           'Hit the "Start" button to begin meditation countdown.\nDuring the countdown, if you leave the page, the timer will continue on the background.';
@@ -562,79 +598,90 @@ class _QuestionPageState extends State<QuestionPage>
       questionTip = prompt.subtitle ?? "";
     }
 
-    if (prompt.responseType == ResponseType.audio ||
-        prompt.responseType == ResponseType.textAudio) {
-      return AudioQuestionsWidget(
-        diary: widget.diary,
-        prompt: prompt,
-        currentPage: widget.currentPage,
-        responseWidget: responseWidget,
-        bottomSheetController: _bottomSheetController,
-      );
-    }
-
-    if (prompt.responseType == ResponseType.instruction) {
-      return SingleChildScrollView(
-        child: CustomFormatterText(text: prompt.question),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-        color: CustomColors.fillWhite,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Question ${widget.currentPage + 1}",
-                  style: CustomTypography().button(),
+    return (prompt.responseType == ResponseType.audio ||
+            prompt.responseType == ResponseType.textAudio)
+        ? AudioQuestionsWidget(
+            diary: widget.diary,
+            prompt: prompt,
+            currentPage: widget.currentPage,
+            responseWidget: responseWidget,
+            bottomSheetController: _bottomSheetController,
+            scrollController: _scrollController,
+          )
+        : prompt.responseType == ResponseType.instruction
+            ? SingleChildScrollView(
+                child: SizedBox(
+                  child: CustomFormatterText(text: prompt.question),
                 ),
-                const SizedBox(height: 15),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    prompt.question,
-                    style: CustomTypography().titleLarge(),
+              )
+            : Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                width: MediaQuery.of(context).size.width,
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                  color: CustomColors.fillWhite,
+                ),
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                              alignment: Alignment.topLeft,
+                              child: Text(
+                                "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
+                                style: CustomTypography().button(),
+                              )),
+                          const SizedBox(height: 15),
+                        ],
+                      ),
+
+                      const SizedBox(
+                        height: 12,
+                      ),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              prompt.question.toString(),
+                              style: CustomTypography().titleLarge(),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(questionTip,
+                                style: CustomTypography().bodyLarge(
+                                    color: CustomColors.textNormalContent,
+                                    weight: FontWeight.w400)),
+                          )
+                        ],
+                      ),
+                      SizedBox(
+                          height: (prompt.responseType == ResponseType.text ||
+                                   prompt.responseType == ResponseType.radio ||
+                                   prompt.responseType == ResponseType.multiple)
+                              ? 48
+                              : 112),
+                      responseWidget,
+                      if (widget.diary.status != DiaryStatus.submitted &&
+                          widget.diary.status != DiaryStatus.missed &&
+                          prompt.responseType == ResponseType.audio)
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.3),
+
+                      // const CustomTextButton(
+                      //     onClick: null, text: "I DON'T WANT TO ANSWER THIS QUESTION"),
+                    ],
                   ),
                 ),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    questionTip,
-                    style: CustomTypography().bodyLarge(
-                        color: CustomColors.textNormalContent,
-                        weight: FontWeight.w400),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-                height:
-                    prompt.responseType == ResponseType.text ? 24 : 112),
-            responseWidget,
-            if (widget.diary.status != DiaryStatus.submitted &&
-                widget.diary.status != DiaryStatus.missed &&
-                prompt.responseType == ResponseType.audio)
-              SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.3),
-          ],
-        ),
-      ),
-    );
+              );
   }
 
   void checkForResponse(PromptModel prompt) {

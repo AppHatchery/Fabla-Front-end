@@ -422,14 +422,14 @@ List<Tag> createTestTags(
 CredentialsModel createTestCredentials({
   String authorization = 'test-auth',
   String xapikey = 'test-api-key',
-  String dynamo_url = 'test-dynamo-url',
-  String presigned_url = 'test-presigned-url',
+  String dynamoUrl = 'test-dynamo-url',
+  String presignedUrl = 'test-presigned-url',
 }) {
   return CredentialsModel(
     authorization: authorization,
     xapikey: xapikey,
-    dynamo_url: dynamo_url,
-    presigned_url: presigned_url,
+    dynamoUrl: dynamoUrl,
+    presignedUrl: presignedUrl,
   );
 }
 
