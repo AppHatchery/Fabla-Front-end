@@ -261,12 +261,16 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   child: ResponseChangedBanner(
                     currentIndex: _focusedUnansweredIndex + 1,
                     total: unansweredIndices.length,
-                    onPrevious: _focusedUnansweredIndex > 0
-                        ? () => _scrollToUnanswered(unansweredIndices, _focusedUnansweredIndex - 1)
-                        : null,
-                    onNext: _focusedUnansweredIndex < unansweredIndices.length - 1
-                        ? () => _scrollToUnanswered(unansweredIndices, _focusedUnansweredIndex + 1)
-                        : null,
+                    onPrevious: unansweredIndices.length == 1
+                        ? () => _scrollToUnanswered(unansweredIndices, 0)
+                        : (_focusedUnansweredIndex > 0
+                            ? () => _scrollToUnanswered(unansweredIndices, _focusedUnansweredIndex - 1)
+                            : null),
+                    onNext: unansweredIndices.length == 1
+                        ? () => _scrollToUnanswered(unansweredIndices, 0)
+                        : (_focusedUnansweredIndex < unansweredIndices.length - 1
+                            ? () => _scrollToUnanswered(unansweredIndices, _focusedUnansweredIndex + 1)
+                            : null),
                   ),
                 ),
               Expanded(
