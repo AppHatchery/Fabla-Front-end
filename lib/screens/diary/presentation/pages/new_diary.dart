@@ -93,7 +93,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   }
 
   void nextPage(List<PromptModel> visiblePrompts) {
-    for (var fn in preFunctions) { fn(); }
+    for (var fn in preFunctions) {
+      fn();
+    }
     if (currentPage < visiblePrompts.length - 1) {
       track(timer.reset(), "Next");
       controller.nextPage(
@@ -103,8 +105,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
           widget.diary.status == DiaryStatus.missed) {
         Navigator.pop(context);
       } else {
-        DiaryRepository().updateDiary(
-            widget.diary..status = DiaryStatus.complete);
+        DiaryRepository()
+            .updateDiary(widget.diary..status = DiaryStatus.complete);
         diaryEnd(diaryID: widget.diary.id.toString());
         track(timer.stop(), "Finished");
         Navigator.push(
@@ -117,7 +119,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   }
 
   void previousPage() {
-    for (var fn in preFunctions) { fn(); }
+    for (var fn in preFunctions) {
+      fn();
+    }
     if (currentPage > 0) {
       controller.previousPage(
           duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
@@ -129,22 +133,15 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               settings: const RouteSettings(name: "/Hub")),
           (route) => false);
     }
-    }
-    void _scrollToTopOfCurrentQuestion() {
-      if (currentPage < _questionPageKeys.length) {
-        final GlobalKey<
-            _QuestionPageState> currentKey = _questionPageKeys[currentPage];
-        final _QuestionPageState? currentState = currentKey.currentState;
-        currentState?.scrollToTop();
-      }
-    }
+  }
 
-  @override
-  void dispose() {
-    controller.dispose();
-    timer.dispose();
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
+  void _scrollToTopOfCurrentQuestion() {
+    if (currentPage < _questionPageKeys.length) {
+      final GlobalKey<_QuestionPageState> currentKey =
+          _questionPageKeys[currentPage];
+      final _QuestionPageState? currentState = currentKey.currentState;
+      currentState?.scrollToTop();
+    }
   }
 
   @override
@@ -169,8 +166,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                 _lastVisibleCount > 0) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (controller.hasClients) {
-                  controller.jumpToPage(currentPage.clamp(
-                      0, state.visiblePrompts.length - 1));
+                  controller.jumpToPage(
+                      currentPage.clamp(0, state.visiblePrompts.length - 1));
                 }
               });
             }
@@ -211,13 +208,14 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                   }
                   trackExit("Closed");
                   track(timer.stop(), "Close");
-                  for (var fn in preFunctions) { fn(); }
+                  for (var fn in preFunctions) {
+                    fn();
+                  }
                   Navigator.pushAndRemoveUntil(
                     context,
                     PageRouteBuilder(
-                      pageBuilder:
-                          (context, animation, secondaryAnimation) =>
-                              const Hub(),
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const Hub(),
                       transitionsBuilder:
                           (context, animation, secondaryAnimation, child) {
                         const begin = Offset(-1.0, 0.0);
@@ -238,8 +236,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               ),
               Expanded(
                 child: CustomBarIndicator(
-                    pageCount: visiblePrompts.length,
-                    currentPage: currentPage),
+                    pageCount: visiblePrompts.length, currentPage: currentPage),
               ),
               const SizedBox(width: 15),
             ],
@@ -259,6 +256,11 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                   setState(() {
                     currentPage = idx;
                     ableToContinue = false;
+                  });
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      _scrollToTopOfCurrentQuestion();
+                    }
                   });
                 },
                 children: visiblePrompts.asMap().entries.map((entry) {
@@ -396,11 +398,11 @@ class _QuestionPageState extends State<QuestionPage>
   void scrollToTop() {
     _scrollController.animateTo(
       0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
     );
   }
-  late PromptCubit promptCubit;
+
   late PromptModel promptModel;
   late DiarySessionCubit sessionCubit;
 
@@ -665,8 +667,8 @@ class _QuestionPageState extends State<QuestionPage>
                       ),
                       SizedBox(
                           height: (prompt.responseType == ResponseType.text ||
-                                   prompt.responseType == ResponseType.radio ||
-                                   prompt.responseType == ResponseType.multiple)
+                                  prompt.responseType == ResponseType.radio ||
+                                  prompt.responseType == ResponseType.multiple)
                               ? 48
                               : 112),
                       responseWidget,
@@ -742,7 +744,8 @@ class _QuestionPageState extends State<QuestionPage>
                     hint: hint,
                     limit: prompt.option?.maxLength,
                     suggested: prompt.option?.suggestedLength,
-                    onSave: (value) => save(prompt, value.toString(), "audio", null),
+                    onSave: (value) =>
+                        save(prompt, value.toString(), "audio", null),
                   );
                 },
               ));
