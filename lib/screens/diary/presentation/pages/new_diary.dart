@@ -236,7 +236,11 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               ),
               Expanded(
                 child: CustomBarIndicator(
-                    pageCount: visiblePrompts.length, currentPage: currentPage),
+                    pageCount: widget.diary.prompts.length,
+                    currentPage: currentPage < visiblePrompts.length
+                        ? widget.diary.prompts.indexWhere(
+                            (p) => p.id == visiblePrompts[currentPage].id)
+                        : 0),
               ),
               const SizedBox(width: 15),
             ],
@@ -634,7 +638,7 @@ class _QuestionPageState extends State<QuestionPage>
                           Container(
                               alignment: Alignment.topLeft,
                               child: Text(
-                                "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
+                                "Question ${widget.diary.prompts.indexWhere((p) => p.id == widget.prompt.id) + 1}/${widget.diary.prompts.length}",
                                 style: CustomTypography().button(),
                               )),
                           const SizedBox(height: 15),
