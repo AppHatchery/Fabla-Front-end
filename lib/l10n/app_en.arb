@@ -1,5 +1,92 @@
 {
   "@@locale": "en",
+  "welcomeToFabla": "Welcome to Fabla!",
+  "@welcomeToFabla": {
+    "description": "Title of the welcome screen"
+  },
+  "fableLoginDescription": "Fabla is a tool for daily experience research, audio diaries and more",
+  "@fableLoginDescription":{
+    "description": "Description of fabla"
+  },
+  "studyID": "Study ID",
+  "@studyID": {
+    "description": "study id label"
+  },
+  "enterYourStudyString": "Enter the study string...",
+  "verifyingStudyID": "Verifying...",
+  "@verifyingStudyID": {
+    "description": "verifying study id"
+  },
+  "hangOnTight": "Hang tight while we verify the study string - \\nalmost there!",
+  "@hangOnTight": {
+    "description": "loading text"
+  },
+  "studyInformation": "Study Information",
+  "@studyInformation": {
+    "description": "Title of the study information section"
+  },
+  "belowIsInformation": "Below is the study information associated with this study string.",
+  "@belowIsInformation": {
+    "description": "Description of the study information"
+  },
+  "studyName": "Study Name",
+  "@studyName": {
+    "description": "Name of the study"
+  },
+  "studyDuration": "Study Duration",
+  "@studyDuration": {
+    "description": "Duration of the study"
+  },
+  "researcherName": "Researcher Name",
+  "@researcherName": {
+    "description": "Name of the researcher"
+  },
+  "viewStudyDetails": "View Study Details",
+  "@viewStudyDetails": {
+    "description": "Button to view study details"
+  },
+  "confirmJoining": "Confirm Joining",
+  "@confirmJoining": {
+    "description": "Button to confirm study joining"
+  },
+  "thisIsntRight": "This isn’t right - take me back",
+  "@thisIsntRight": {
+    "description": "Button to take me back"
+  },
+  "participantLogin": "Participant Login",
+  "@participantLogin": {
+    "description": "Title of the participant login screen"
+  },
+  "participantLoginDescription": "Please enter the participant ID you were given by the researchers here.",
+  "@participantLoginDescription": {
+    "description": "Description of the participant login screen"
+  },
+  "participantID": "Participant ID",
+  "@participantID": {
+    "description": "Participant ID label"
+  },
+  "enterYourParticipantID": "Enter your participant ID...",
+  "@enterYourParticipantID": {
+    "description": "Participant ID text field placeholder"
+  },
+  "login": "Login",
+  "@login": {
+    "description": "Login button"
+  },
+  "needHelpWithParticipantID": "Need help with the participant ID?",
+  "@needHelpWithParticipantID": {
+    "description": "Need help with the participant ID?"
+  },
+  "needHelpWithStudyID": "Need help with the study String?",
+  "@needHelpWithStudyID": {
+    "description": "Need help with the study String?"
+  },
+  "contactUs": "Contact Us",
+  "@contactUs": {
+    "description": "Contact us button"
+  },
+
+
   "todaysGoal": "Today's Goal",
   "@todaysGoal": {
     "description": "Title of the daily goal section on the home page"
@@ -16,6 +103,8 @@
   "@todaysEntries": {
     "description": "Section header for the list of diary/survey entries due today"
   },
+
+
   "study": "Study",
   "@study": {
     "description": "Label for the Study tab in the bottom navigation bar"
@@ -28,6 +117,8 @@
   "@settings": {
     "description": "Label for the Settings tab in the bottom navigation bar"
   },
+
+
   "incentivesEarned": "Incentives Earned",
   "@incentivesEarned": {
     "description": "Heading for compensation earned so far on the incentives screen"
@@ -56,6 +147,16 @@
   "@bonusText": {
     "description": "Fragment shown before the entry count required to earn a completion bonus"
   },
+  "getYourBonus": "Get Your Bonus",
+  "@getYourBonus": {
+    "description": "get your bonus text"
+  },
+  "totalCompletion": "Total Completion",
+  "@totalCompletion": {
+    "description": "total completion text for the incentive page"
+  },
+
+
   "studyCalendar": "Study Calendar",
   "@studyCalendar": {
     "description": "title for the study calendar modal"
@@ -72,14 +173,8 @@
   "@upComingEntries": {
     "description": "diaries which are coming up the next day and beyond"
   },
-  "getYourBonus": "Get Your Bonus",
-  "@getYourBonus": {
-    "description": "get your bonus text"
-  },
-  "totalCompletion": "Total Completion",
-  "@totalCompletion": {
-    "description": "total completion text for the incentive page"
-  },
+
+
   "availableUntil": "Available Until:",
   "@availableUntil": {
     "description": "available until text for diary validity"

@@ -1,12 +1,40 @@
 {
   "@@locale": "de",
+  "welcomeToFabla": "Willkommen zu Fabla!",
+  "fableLoginDescription": "Fabla ist ein Instrument zur Erforschung alltäglicher Erlebnisse, zur Erstellung von Audio-Tagebüchern und vielem mehr",
+  "studyID": "Studien ID",
+  "enterYourStudyString": "Gebe die Studien ID ein...",
+  "verifyingStudyID": "Wird überprüft ...",
+  "hangOnTight": "Einen Moment bitte, wir überprüfen deine Studien-ID. Gleich geht´s weiter.",
+  "studyInformation": "Studieninformation",
+  "belowIsInformation": "Diese Informationen wurden aus dem Studiencode übernommen, den du eingegeben hast. Bitte prüfe, ob alles stimmt.",
+  "studyName": "Name der Studie",
+  "studyDuration": "Dauer der Studie",
+  "researcherName": "Forschende Person",
+  "viewStudyDetails": "Studien-Details anzeigen",
+  "confirmJoining": "Teilnahme bestätigen",
+  "thisIsntRight": "Das stimmt nicht - zurück",
+  "participantLogin": "Login Teilnehmende",
+  "participantLoginDescription": "Bitte gib deine zugeteilte Teilnehmenden ID ein.",
+  "participantID": "Teilnehmenden ID",
+  "enterYourParticipantID":"Gebe die Teilnehmenden ID ein...",
+  "login": "Anmelden",
+  "needHelpWithParticipantID": "Benötigst du Hilfe bei der Teilnehmenden ID?",
+  "needHelpWithStudyID": "Benötigst du Hilfe bei der Studien ID?",
+  "contactUs": "Kontaktiere uns",
+
+
   "todaysGoal": "Heutiges Ziel",
   "noDailyGoalToday": "Heute gibt es kein Tagesziel",
   "weeklyGoal": "Wochenziel",
   "todaysEntries" :"Tagebuch- oder Umfrageeinträge für heute",
+
+
   "study": "Studie",
   "history": "Verlauf",
   "settings": "Einstellungen",
+
+
   "incentivesEarned": "Bisherige Vergütung",
   "compensationDetails": "Vergütungsdetails",
   "howAreIncentivesCalculated": "Wie werden die Prämien berechnet?",
@@ -14,12 +42,16 @@
   "each": "Für jede",
   "total": "Gesamtbetrag",
   "bonusText": "Prämie bei Abschluss von",
+  "getYourBonus": "Einträge bis Prämie:",
+  "totalCompletion": "Gesamteinträge bis Abschluss:",
+
+
   "studyCalendar": "Studienkalender",
   "pastEntries": "Vergangene  Aufgaben vom ",
   "todaysCalendarEntries": "Heute verfügbare Aufgaben",
   "upComingEntries" : "Anstehende Aufgaben am",
-  "getYourBonus": "Einträge bis Prämie:",
-  "totalCompletion": "Gesamteinträge bis Abschluss:",
+
+
   "availableUntil": "Verfügbar bis:",
   "opensAt": "Verfügbar ab:"
 }

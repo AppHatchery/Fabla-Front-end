@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:io' show Platform;
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 // import '../../../../theme/dialogs/pop_ups.dart';
@@ -79,21 +80,21 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Study Information",
+                Text(AppLocalizations.of(context).studyInformation,
                     style: CustomTypography()
                         .headlineLarge(color: CustomColors.textWhite)),
                 const SizedBox(
                   height: 16,
                 ),
                 Text(
-                    "Below is the study information associated with this study string.",
+                    AppLocalizations.of(context).belowIsInformation,
                     style: CustomTypography()
                         .bodyLarge(color: CustomColors.textWhite)),
                 const SizedBox(
                   height: 24,
                 ),
                 ConfrimTile(
-                  title: "Study Name",
+                  title: AppLocalizations.of(context).studyName,
                   info: widget.experiment.name,
                   icon: const Icon(
                     Icons.assured_workload_rounded,
@@ -103,7 +104,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
                   height: 12,
                 ),
                 ConfrimTile(
-                  title: "Study Duration",
+                  title: AppLocalizations.of(context).studyDuration,
                   info: widget.experiment.duration,
                   icon: const Icon(
                     Icons.calendar_month_outlined,
@@ -113,7 +114,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
                   height: 12,
                 ),
                 ConfrimTile(
-                  title: "Researcher Name",
+                  title: AppLocalizations.of(context).researcherName,
                   info: widget.experiment.researcher,
                   icon: const Icon(
                     Icons.person_outline_rounded,
@@ -132,7 +133,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
                         widget.experiment.description,
                         widget.experiment.login),
                     child: Text(
-                      "View Study Details",
+                      AppLocalizations.of(context).viewStudyDetails,
                       style: TextStyle(
                           color: CustomColors.textWhite,
                           fontFamily: CustomTypography.fontName,
@@ -160,7 +161,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
                   RouteService()
                       .navigate(null, context: context, current: 'confirm')
                 },
-                text: "Confirm Joining",
+                text: AppLocalizations.of(context).confirmJoining,
                 color: CustomColors.fillWhite,
                 textColor: CustomColors.productNormalActive,
               ),
@@ -175,7 +176,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
                   RouteService()
                       .navigateBack(context: context, current: 'confirm')
                 },
-                text: "This isn’t right - take me back",
+                text: AppLocalizations.of(context).thisIsntRight,
                 color: CustomColors.fillWhite,
                 textColor: CustomColors.warningActive,
 

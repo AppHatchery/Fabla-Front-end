@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
+import '../../../../l10n/app_localizations.dart';
 import '../../../../theme/custom_colors.dart';
 
 class LoginPage extends StatefulWidget {
@@ -184,23 +185,23 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Participant Login",
+                    Text(AppLocalizations.of(context).participantLogin,
                         style: CustomTypography()
                             .headlineLarge(color: CustomColors.textWhite)),
                     const SizedBox(
                       height: 24,
                     ),
                     Text(
-                        "Please enter the participant ID you were given by the researchers here.",
+                        AppLocalizations.of(context).participantLoginDescription,
                         style: CustomTypography()
                             .titleSmall(color: CustomColors.textWhite)),
                     const SizedBox(
                       height: 24,
                     ),
                     VerificationCodeTextField(
-                      title: "Participant ID",
+                      title: AppLocalizations.of(context).participantID,
                       errorMessage: message,
-                      hint: "Enter your participant ID...",
+                      hint: AppLocalizations.of(context).enterYourParticipantID,
                       controller: controller,
                       fieldType: TextInputType.text,
                       error: error,
@@ -212,7 +213,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                     ),
                     CustomFlatButton(
                       onClick: () => login(),
-                      text: "Login",
+                      text: AppLocalizations.of(context).login,
                       color: CustomColors.fillWhite,
                       textColor: CustomColors.productNormalActive,
                     )
@@ -225,7 +226,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                 children: [
                   Flexible(
                     child: Text(
-                      "Need help with the participant ID? ",
+                      "${AppLocalizations.of(context).needHelpWithParticipantID} ",
                       style: CustomTypography()
                           .bodyMedium(color: CustomColors.textWhite),
                     ),
@@ -233,7 +234,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                   GestureDetector(
                       onTap: () => launchEmail(),
                       child: Text(
-                        "Contact us",
+                        AppLocalizations.of(context).contactUs,
                         style: TextStyle(
                             fontSize: CustomTypography().bodyMedium().fontSize,
                             fontWeight:

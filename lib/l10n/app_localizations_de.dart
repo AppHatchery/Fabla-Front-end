@@ -9,6 +9,77 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
+  String get welcomeToFabla => 'Willkommen zu Fabla!';
+
+  @override
+  String get fableLoginDescription =>
+      'Fabla ist ein Instrument zur Erforschung alltäglicher Erlebnisse, zur Erstellung von Audio-Tagebüchern und vielem mehr';
+
+  @override
+  String get studyID => 'Studien ID';
+
+  @override
+  String get enterYourStudyString => 'Gebe die Studien ID ein...';
+
+  @override
+  String get verifyingStudyID => 'Wird überprüft ...';
+
+  @override
+  String get hangOnTight =>
+      'Einen Moment bitte, wir überprüfen deine Studien-ID. Gleich geht´s weiter.';
+
+  @override
+  String get studyInformation => 'Studieninformation';
+
+  @override
+  String get belowIsInformation =>
+      'Diese Informationen wurden aus dem Studiencode übernommen, den du eingegeben hast. Bitte prüfe, ob alles stimmt.';
+
+  @override
+  String get studyName => 'Name der Studie';
+
+  @override
+  String get studyDuration => 'Dauer der Studie';
+
+  @override
+  String get researcherName => 'Forschende Person';
+
+  @override
+  String get viewStudyDetails => 'Studien-Details anzeigen';
+
+  @override
+  String get confirmJoining => 'Teilnahme bestätigen';
+
+  @override
+  String get thisIsntRight => 'Das stimmt nicht - zurück';
+
+  @override
+  String get participantLogin => 'Login Teilnehmende';
+
+  @override
+  String get participantLoginDescription =>
+      'Bitte gib deine zugeteilte Teilnehmenden ID ein.';
+
+  @override
+  String get participantID => 'Teilnehmenden ID';
+
+  @override
+  String get enterYourParticipantID => 'Gebe die Teilnehmenden ID ein...';
+
+  @override
+  String get login => 'Anmelden';
+
+  @override
+  String get needHelpWithParticipantID =>
+      'Benötigst du Hilfe bei der Teilnehmenden ID?';
+
+  @override
+  String get needHelpWithStudyID => 'Benötigst du Hilfe bei der Studien ID?';
+
+  @override
+  String get contactUs => 'Kontaktiere uns';
+
+  @override
   String get todaysGoal => 'Heutiges Ziel';
 
   @override
@@ -51,6 +122,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get bonusText => 'Prämie bei Abschluss von';
 
   @override
+  String get getYourBonus => 'Einträge bis Prämie:';
+
+  @override
+  String get totalCompletion => 'Gesamteinträge bis Abschluss:';
+
+  @override
   String get studyCalendar => 'Studienkalender';
 
   @override
@@ -61,12 +138,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get upComingEntries => 'Anstehende Aufgaben am';
-
-  @override
-  String get getYourBonus => 'Einträge bis Prämie:';
-
-  @override
-  String get totalCompletion => 'Gesamteinträge bis Abschluss:';
 
   @override
   String get availableUntil => 'Verfügbar bis:';

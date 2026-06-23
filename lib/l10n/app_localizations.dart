@@ -100,6 +100,138 @@ abstract class AppLocalizations {
     Locale('es')
   ];
 
+  /// Title of the welcome screen
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Fabla!'**
+  String get welcomeToFabla;
+
+  /// Description of fabla
+  ///
+  /// In en, this message translates to:
+  /// **'Fabla is a tool for daily experience research, audio diaries and more'**
+  String get fableLoginDescription;
+
+  /// study id label
+  ///
+  /// In en, this message translates to:
+  /// **'Study ID'**
+  String get studyID;
+
+  /// No description provided for @enterYourStudyString.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the study string...'**
+  String get enterYourStudyString;
+
+  /// verifying study id
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying...'**
+  String get verifyingStudyID;
+
+  /// loading text
+  ///
+  /// In en, this message translates to:
+  /// **'Hang tight while we verify the study string - \\nalmost there!'**
+  String get hangOnTight;
+
+  /// Title of the study information section
+  ///
+  /// In en, this message translates to:
+  /// **'Study Information'**
+  String get studyInformation;
+
+  /// Description of the study information
+  ///
+  /// In en, this message translates to:
+  /// **'Below is the study information associated with this study string.'**
+  String get belowIsInformation;
+
+  /// Name of the study
+  ///
+  /// In en, this message translates to:
+  /// **'Study Name'**
+  String get studyName;
+
+  /// Duration of the study
+  ///
+  /// In en, this message translates to:
+  /// **'Study Duration'**
+  String get studyDuration;
+
+  /// Name of the researcher
+  ///
+  /// In en, this message translates to:
+  /// **'Researcher Name'**
+  String get researcherName;
+
+  /// Button to view study details
+  ///
+  /// In en, this message translates to:
+  /// **'View Study Details'**
+  String get viewStudyDetails;
+
+  /// Button to confirm study joining
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Joining'**
+  String get confirmJoining;
+
+  /// Button to take me back
+  ///
+  /// In en, this message translates to:
+  /// **'This isn’t right - take me back'**
+  String get thisIsntRight;
+
+  /// Title of the participant login screen
+  ///
+  /// In en, this message translates to:
+  /// **'Participant Login'**
+  String get participantLogin;
+
+  /// Description of the participant login screen
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the participant ID you were given by the researchers here.'**
+  String get participantLoginDescription;
+
+  /// Participant ID label
+  ///
+  /// In en, this message translates to:
+  /// **'Participant ID'**
+  String get participantID;
+
+  /// Participant ID text field placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your participant ID...'**
+  String get enterYourParticipantID;
+
+  /// Login button
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get login;
+
+  /// Need help with the participant ID?
+  ///
+  /// In en, this message translates to:
+  /// **'Need help with the participant ID?'**
+  String get needHelpWithParticipantID;
+
+  /// Need help with the study String?
+  ///
+  /// In en, this message translates to:
+  /// **'Need help with the study String?'**
+  String get needHelpWithStudyID;
+
+  /// Contact us button
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Us'**
+  String get contactUs;
+
   /// Title of the daily goal section on the home page
   ///
   /// In en, this message translates to:
@@ -184,6 +316,18 @@ abstract class AppLocalizations {
   /// **'Bonus When You Complete'**
   String get bonusText;
 
+  /// get your bonus text
+  ///
+  /// In en, this message translates to:
+  /// **'Get Your Bonus'**
+  String get getYourBonus;
+
+  /// total completion text for the incentive page
+  ///
+  /// In en, this message translates to:
+  /// **'Total Completion'**
+  String get totalCompletion;
+
   /// title for the study calendar modal
   ///
   /// In en, this message translates to:
@@ -207,18 +351,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Upcoming entries'**
   String get upComingEntries;
-
-  /// get your bonus text
-  ///
-  /// In en, this message translates to:
-  /// **'Get Your Bonus'**
-  String get getYourBonus;
-
-  /// total completion text for the incentive page
-  ///
-  /// In en, this message translates to:
-  /// **'Total Completion'**
-  String get totalCompletion;
 
   /// available until text for diary validity
   ///

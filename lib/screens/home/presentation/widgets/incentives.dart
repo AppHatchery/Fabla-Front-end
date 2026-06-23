@@ -547,7 +547,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                       color: color,
                     ),
                     Expanded(
-                      child: Text("Get Your Bonus",
+                      child: Text(AppLocalizations.of(context).getYourBonus,
                           style: CustomTypography().bodyMedium(
                               color: CustomColors.textNormalContent)),
                     ),
@@ -569,7 +569,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                 color: color,
               ),
               Expanded(
-                child: Text("Total Completion",
+                child: Text(AppLocalizations.of(context).totalCompletion,
                     style: CustomTypography()
                         .bodyMedium(color: CustomColors.textNormalContent)),
               ),

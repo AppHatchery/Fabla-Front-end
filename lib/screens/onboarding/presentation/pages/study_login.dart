@@ -13,6 +13,7 @@ import 'dart:math' show pi;
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
 import '../../../../core/utils/participant_experiment_details.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../services/pendo_service.dart';
 
 class StudyLogin extends StatefulWidget {
@@ -190,23 +191,23 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                     const SizedBox(
                       height: 24,
                     ),
-                    Text("Welcome to Fabla! ${Strings.wavingEmoji}",
+                    Text( "${AppLocalizations.of(context).welcomeToFabla} ${Strings.wavingEmoji}",
                         style: CustomTypography()
                             .headlineLarge(color: CustomColors.textWhite)),
                     const SizedBox(
                       height: 24,
                     ),
                     Text(
-                        "Fabla is a tool for daily experience research, audio diaries and more ${Strings.telescope}",
+                        "${AppLocalizations.of(context).fableLoginDescription} ${Strings.telescope}",
                         style: CustomTypography()
                             .titleSmall(color: CustomColors.textWhite)),
                     const SizedBox(
                       height: 24,
                     ),
                     VerificationCodeTextField(
-                      title: "Study String",
+                      title: AppLocalizations.of(context).studyID,
                       errorMessage: message,
-                      hint: 'Enter the study string...',
+                      hint: AppLocalizations.of(context).enterYourStudyString,
                       controller: controller,
                       fieldType: TextInputType.text,
                       error: error,
@@ -217,7 +218,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                     ),
                     CustomFlatButton(
                       onClick: () => verify(),
-                      text: "Login",
+                      text: AppLocalizations.of(context).login,
                       color: CustomColors.fillWhite,
                       textColor: CustomColors.productNormalActive,
                     )
@@ -230,7 +231,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                 children: [
                   Flexible(
                     child: Text(
-                      "Need help with the study string? ",
+                      "${AppLocalizations.of(context).needHelpWithStudyID} ",
                       style: CustomTypography()
                           .bodyMedium(color: CustomColors.textWhite),
                     ),
@@ -238,7 +239,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                   GestureDetector(
                       onTap: () => launchEmail(),
                       child: Text(
-                        "Contact us",
+                        AppLocalizations.of(context).contactUs,
                         style: TextStyle(
                             fontSize: CustomTypography().bodyMedium().fontSize,
                             fontWeight:
@@ -273,7 +274,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
             height: 24,
           ),
           Text(
-            "Verifying...",
+            AppLocalizations.of(context).verifyingStudyID,
             style: CustomTypography()
                 .headlineMedium(color: CustomColors.textWhite),
           ),
@@ -281,7 +282,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
             height: 12,
           ),
           Text(
-            "Hang tight while we verify the study string - \nalmost there!",
+            AppLocalizations.of(context).hangOnTight,
             textAlign: TextAlign.center,
             style: CustomTypography().bodyLarge(color: CustomColors.textWhite),
           ),
