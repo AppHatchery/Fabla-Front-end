@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/services/battery_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -30,7 +31,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
     with WidgetsBindingObserver {
   bool batteryOptimization = false;
   bool requested = false;
-  bool _isRequestingNotification = false; // prevents concurrent requests
+  final PermissionRequestGuard _permissionGuard = PermissionRequestGuard();
   bool? granted;
 
   //Animations
@@ -308,10 +309,9 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   }
 
   void navigateToNextPage(BuildContext context) async {
-    if (_isRequestingNotification) return; // block overlapping requests
-    _isRequestingNotification = true;
-    try {
+    await _permissionGuard.run(() async {
       final results = await Permission.notification.request();
+      if (!mounted) return;
 
       await PendoService.track("NotificationAccess", {"state": results.name});
       if (mounted) setState(() => granted = results.isGranted);
@@ -330,11 +330,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
       }
 
       if (mounted) setState(() => requested = true);
-    } catch (e) {
-      debugPrint('Notification permission request failed: $e');
-    } finally {
-      _isRequestingNotification = false;
-    }
+    });
   }
 
   track(int spent, String status) async {

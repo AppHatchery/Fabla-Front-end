@@ -1,6 +1,7 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/camera_preview.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -27,7 +28,7 @@ class _CameraAccessState extends State<CameraAccess>
     with WidgetsBindingObserver {
   bool permission = false;
   bool requested = false;
-  bool _isRequestingCamera = false; // prevents concurrent permission requests
+  final PermissionRequestGuard _permissionGuard = PermissionRequestGuard();
 
   late CameraController controller;
 
@@ -243,9 +244,7 @@ class _CameraAccessState extends State<CameraAccess>
   }
 
   navigateToNextPage(BuildContext context) async {
-    if (_isRequestingCamera) return; // block overlapping requests
-    _isRequestingCamera = true;
-    try {
+    await _permissionGuard.run(() async {
       final results = await Permission.microphone.request();
       if (mounted) {
         setState(() {
@@ -265,11 +264,7 @@ class _CameraAccessState extends State<CameraAccess>
           cameraInit();
         }
       }
-    } catch (e) {
-      debugPrint('Camera permission request failed: $e');
-    } finally {
-      _isRequestingCamera = false;
-    }
+    });
   }
 
   track(int spent, String status) async {

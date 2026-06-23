@@ -1,6 +1,7 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/mic_tester.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -30,7 +31,7 @@ class _MicAccessPageState extends State<MicAccessPage>
   late FlutterSoundRecorder recorder;
   bool permission = false;
   bool requested = false;
-  bool _isRequestingMic = false; // prevents concurrent permission requests
+  final PermissionRequestGuard _permissionGuard = PermissionRequestGuard();
 
   //Animations
   File? _riveFile;
@@ -348,10 +349,9 @@ class _MicAccessPageState extends State<MicAccessPage>
   }
 
   void navigateToNextPage(BuildContext context) async {
-    if (_isRequestingMic) return; // block overlapping requests
-    _isRequestingMic = true;
-    try {
+    await _permissionGuard.run(() async {
       final results = await Permission.microphone.request();
+      if (!mounted) return;
       await PendoService.track("OnBoardingMicAccess", {"button": "continue"});
       setState(() {
         permission = results.isGranted;
@@ -375,11 +375,7 @@ class _MicAccessPageState extends State<MicAccessPage>
       }
 
       if (mounted) requested = true;
-    } catch (e) {
-      debugPrint('Microphone permission request failed: $e');
-    } finally {
-      _isRequestingMic = false;
-    }
+    });
   }
 
   track(int spent, String status) async {
@@ -388,9 +384,7 @@ class _MicAccessPageState extends State<MicAccessPage>
   }
 
   void _requestPermission() async {
-    if (_isRequestingMic) return; // block overlapping requests
-    _isRequestingMic = true;
-    try {
+    await _permissionGuard.run(() async {
       await PendoService.track("OnBoardingMicAccess", {"button": "icon"});
       final results = await Permission.microphone.request();
       if (!mounted) return;
@@ -401,11 +395,7 @@ class _MicAccessPageState extends State<MicAccessPage>
       if (permission) startRecorder();
 
       if (mounted) requested = true;
-    } catch (e) {
-      debugPrint('Microphone permission request failed: $e');
-    } finally {
-      _isRequestingMic = false;
-    }
+    });
   }
 
   void openPermissionSettings() async =>

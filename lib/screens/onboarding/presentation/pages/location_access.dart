@@ -1,6 +1,7 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -25,7 +26,7 @@ class _LocationAccessState extends State<LocationAccess>
     with WidgetsBindingObserver {
   bool permission = false;
   bool requested = false;
-  bool _isRequestingLocation = false; // prevents concurrent permission requests
+  final PermissionRequestGuard _permissionGuard = PermissionRequestGuard();
 
   //Animations
   rive.File? _riveFile;
@@ -263,9 +264,7 @@ class _LocationAccessState extends State<LocationAccess>
   }
 
   navigateToNextPage(BuildContext context) async {
-    if (_isRequestingLocation) return; // block overlapping requests
-    _isRequestingLocation = true;
-    try {
+    await _permissionGuard.run(() async {
       final results = await location.requestPermission();
       if (!mounted) return;
       setState(() {
@@ -284,11 +283,7 @@ class _LocationAccessState extends State<LocationAccess>
           }
         }
       }
-    } catch (e) {
-      debugPrint('Location permission request failed: $e');
-    } finally {
-      _isRequestingLocation = false;
-    }
+    });
   }
 
   void openPermissionSettings() async =>
