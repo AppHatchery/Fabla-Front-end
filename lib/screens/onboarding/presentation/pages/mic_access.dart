@@ -30,6 +30,7 @@ class _MicAccessPageState extends State<MicAccessPage>
   late FlutterSoundRecorder recorder;
   bool permission = false;
   bool requested = false;
+  bool _isRequestingMic = false; // prevents concurrent permission requests
 
   //Animations
   File? _riveFile;
@@ -347,30 +348,38 @@ class _MicAccessPageState extends State<MicAccessPage>
   }
 
   void navigateToNextPage(BuildContext context) async {
-    final results = await Permission.microphone.request();
-    await PendoService.track("OnBoardingMicAccess", {"button": "continue"});
-    setState(() {
-      permission = results.isGranted;
-    });
-    await PendoService.track("OnBoardingMicAccess", {"state": results.name});
-    if (permission) {
-      _wearHeadphones?.value = true;
-      if (requested) {
-        await PreferenceService()
-            .setBoolPreference(key: 'microphone', value: requested);
-        if (context.mounted) {
-          track(timer.stop(), "Finished");
-          RouteService()
-              .navigate(null, context: context, current: 'microphone');
+    if (_isRequestingMic) return; // block overlapping requests
+    _isRequestingMic = true;
+    try {
+      final results = await Permission.microphone.request();
+      await PendoService.track("OnBoardingMicAccess", {"button": "continue"});
+      setState(() {
+        permission = results.isGranted;
+      });
+      await PendoService.track("OnBoardingMicAccess", {"state": results.name});
+      if (permission) {
+        _wearHeadphones?.value = true;
+        if (requested) {
+          await PreferenceService()
+              .setBoolPreference(key: 'microphone', value: requested);
+          if (context.mounted) {
+            track(timer.stop(), "Finished");
+            RouteService()
+                .navigate(null, context: context, current: 'microphone');
+          }
+        } else {
+          startRecorder();
         }
       } else {
-        startRecorder();
+        _headphonesAllow?.fire();
       }
-    } else {
-      _headphonesAllow?.fire();
-    }
 
-    if (mounted) requested = true;
+      if (mounted) requested = true;
+    } catch (e) {
+      debugPrint('Microphone permission request failed: $e');
+    } finally {
+      _isRequestingMic = false;
+    }
   }
 
   track(int spent, String status) async {
@@ -379,15 +388,24 @@ class _MicAccessPageState extends State<MicAccessPage>
   }
 
   void _requestPermission() async {
-    await PendoService.track("OnBoardingMicAccess", {"button": "icon"});
-    final results = await Permission.microphone.request();
-    setState(() {
-      permission = results.isGranted;
-    });
+    if (_isRequestingMic) return; // block overlapping requests
+    _isRequestingMic = true;
+    try {
+      await PendoService.track("OnBoardingMicAccess", {"button": "icon"});
+      final results = await Permission.microphone.request();
+      if (!mounted) return;
+      setState(() {
+        permission = results.isGranted;
+      });
 
-    if (permission) startRecorder();
+      if (permission) startRecorder();
 
-    if (mounted) requested = true;
+      if (mounted) requested = true;
+    } catch (e) {
+      debugPrint('Microphone permission request failed: $e');
+    } finally {
+      _isRequestingMic = false;
+    }
   }
 
   void openPermissionSettings() async =>

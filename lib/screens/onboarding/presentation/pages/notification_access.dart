@@ -30,6 +30,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
     with WidgetsBindingObserver {
   bool batteryOptimization = false;
   bool requested = false;
+  bool _isRequestingNotification = false; // prevents concurrent requests
   bool? granted;
 
   //Animations
@@ -307,25 +308,33 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   }
 
   void navigateToNextPage(BuildContext context) async {
-    final results = await Permission.notification.request();
+    if (_isRequestingNotification) return; // block overlapping requests
+    _isRequestingNotification = true;
+    try {
+      final results = await Permission.notification.request();
 
-    await PendoService.track("NotificationAccess", {"state": results.name});
-    if (mounted) setState(() => granted = results.isGranted);
-    if (granted != null && granted == true) {
-      _showTip?.fire();
-    }
-    checkBattery();
-    if (requested) {
-      await PreferenceService()
-          .setBoolPreference(key: 'notification_requested', value: true);
-      track(timer.stop(), "Finished");
-      if (context.mounted) {
-        RouteService()
-            .navigate(null, context: context, current: 'notification_access');
+      await PendoService.track("NotificationAccess", {"state": results.name});
+      if (mounted) setState(() => granted = results.isGranted);
+      if (granted != null && granted == true) {
+        _showTip?.fire();
       }
-    }
+      checkBattery();
+      if (requested) {
+        await PreferenceService()
+            .setBoolPreference(key: 'notification_requested', value: true);
+        track(timer.stop(), "Finished");
+        if (context.mounted) {
+          RouteService()
+              .navigate(null, context: context, current: 'notification_access');
+        }
+      }
 
-    if (mounted) setState(() => requested = true);
+      if (mounted) setState(() => requested = true);
+    } catch (e) {
+      debugPrint('Notification permission request failed: $e');
+    } finally {
+      _isRequestingNotification = false;
+    }
   }
 
   track(int spent, String status) async {

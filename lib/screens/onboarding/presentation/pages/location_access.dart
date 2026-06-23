@@ -25,6 +25,7 @@ class _LocationAccessState extends State<LocationAccess>
     with WidgetsBindingObserver {
   bool permission = false;
   bool requested = false;
+  bool _isRequestingLocation = false; // prevents concurrent permission requests
 
   //Animations
   rive.File? _riveFile;
@@ -262,21 +263,31 @@ class _LocationAccessState extends State<LocationAccess>
   }
 
   navigateToNextPage(BuildContext context) async {
-    final results = await location.requestPermission();
-    setState(() {
-      permission = results == l.PermissionStatus.granted;
-      requested = true;
-    });
-    await PendoService.track("Location Access", {"state": results.name});
-    if (permission) {
-      if (requested) {
-        await PreferenceService()
-            .setBoolPreference(key: 'location', value: requested);
-        if (context.mounted) {
-          track(timer.stop(), "Finished");
-          RouteService().navigate(null, context: context, current: 'location');
+    if (_isRequestingLocation) return; // block overlapping requests
+    _isRequestingLocation = true;
+    try {
+      final results = await location.requestPermission();
+      if (!mounted) return;
+      setState(() {
+        permission = results == l.PermissionStatus.granted;
+        requested = true;
+      });
+      await PendoService.track("Location Access", {"state": results.name});
+      if (permission) {
+        if (requested) {
+          await PreferenceService()
+              .setBoolPreference(key: 'location', value: requested);
+          if (context.mounted) {
+            track(timer.stop(), "Finished");
+            RouteService()
+                .navigate(null, context: context, current: 'location');
+          }
         }
       }
+    } catch (e) {
+      debugPrint('Location permission request failed: $e');
+    } finally {
+      _isRequestingLocation = false;
     }
   }
 

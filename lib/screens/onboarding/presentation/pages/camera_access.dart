@@ -27,6 +27,7 @@ class _CameraAccessState extends State<CameraAccess>
     with WidgetsBindingObserver {
   bool permission = false;
   bool requested = false;
+  bool _isRequestingCamera = false; // prevents concurrent permission requests
 
   late CameraController controller;
 
@@ -242,24 +243,32 @@ class _CameraAccessState extends State<CameraAccess>
   }
 
   navigateToNextPage(BuildContext context) async {
-    final results = await Permission.microphone.request();
-    if (mounted) {
-      setState(() {
-        permission = results.isGranted;
-      });
-    }
-
-    if (permission) {
-      if (requested) {
-        await PreferenceService()
-            .setBoolPreference(key: 'camera', value: requested);
-        if (context.mounted) {
-          track(timer.stop(), "Finished");
-          RouteService().navigate(null, context: context, current: 'camera');
-        }
-      } else {
-        cameraInit();
+    if (_isRequestingCamera) return; // block overlapping requests
+    _isRequestingCamera = true;
+    try {
+      final results = await Permission.microphone.request();
+      if (mounted) {
+        setState(() {
+          permission = results.isGranted;
+        });
       }
+
+      if (permission) {
+        if (requested) {
+          await PreferenceService()
+              .setBoolPreference(key: 'camera', value: requested);
+          if (context.mounted) {
+            track(timer.stop(), "Finished");
+            RouteService().navigate(null, context: context, current: 'camera');
+          }
+        } else {
+          cameraInit();
+        }
+      }
+    } catch (e) {
+      debugPrint('Camera permission request failed: $e');
+    } finally {
+      _isRequestingCamera = false;
     }
   }
 
