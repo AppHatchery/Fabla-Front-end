@@ -8,16 +8,16 @@
   "@fableLoginDescription":{
     "description": "Description of fabla"
   },
-  "studyID": "Study ID",
+  "studyID": "Study String",
   "@studyID": {
-    "description": "study id label"
+    "description": "study String label"
   },
   "enterYourStudyString": "Enter the study string...",
   "verifyingStudyID": "Verifying...",
   "@verifyingStudyID": {
     "description": "verifying study id"
   },
-  "hangOnTight": "Hang tight while we verify the study string - \\nalmost there!",
+  "hangOnTight": "Hang tight while we verify the study string - \nalmost there!",
   "@hangOnTight": {
     "description": "loading text"
   },
@@ -85,6 +85,65 @@
   "@contactUs": {
     "description": "Contact us button"
   },
+  "studyStringError": "Oops! We cannot access your study without a valid Study String.",
+  "your": "Your",
+  "alphanumericcode": "is an alphanumeric code (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla",
+  "ifYouNeedHelpPopUP": "If you need help with your",
+  "youMay": "you may",
+  "reachOut": "or reach out to your researcher directly!",
+  "whatIsMyStudyString": "What's my Study String?",
+  "studyStringEmpty": "Oops! We cannot access your study without a valid Study String.",
+  "participantIDEmpty": "Oops! We cannot access your study without a valid Participant ID.",
+  "participantIDError": "Oops! We do not have this ID in the participant list. Please check your email and try again.",
+  "signingIn": "Signing in...",
+  "hangOn": "Hang tight while we verify the study string - \nalmost there!",
+
+
+  "welcome": "Welcome",
+  "youveCheckedIn": "\nYou've checked in!",
+  "welcomeDescription": "You are now checked into our study. Thank you so much for joining our research!",
+  "continueText": "Continue",
+
+  "preferredName": "Enter Your Preferred Name",
+  "turnOnNotificationsTimely":"Turn on notifications for timely reminders!",
+  "makeSureYouHaveSoundOn":"Make sure you have sound on to catch these alerts on time",
+  "batterySaverText": "Oops! It looks like your phone is in battery-saving mode. This may affect your ability to receive diary notifications. To ensure the study runs smoothly, we recommend turning off battery-saving mode.",
+  "notificationWarning": "Oops! We recommend you turn ON notifications to allow Fabla to send you reminders to complete the study, otherwise you might not know when to submit the diaries and measures needed for this study.",
+  "openSettings": "Open Settings",
+  "enableMicPermission": "Oops! You need to enable microphone access to use the recording diary.",
+  "testMicText": "Let's test your microphone, say something",
+  "micAccessText": "Great, next enable microphone access",
+  "needToEnableLocation": "Oops! You need to enable location access to participate in the study.",
+  "locationAccessText": "Let's enable access to your location.",
+  "needToEnableCamera": "Oops! You need to enable camera access to participate in the study.",
+  "cameraAccessText": "Let's enable access to your camera.",
+  "testCameraFeed": "Let's test the camera feed.",
+
+  "justFewMoreQuestions": "You’re almost done! Just a few more questions to personalize your study",
+  "settingsThingsUp": "Setting up...",
+  "hangTight": "Hang tight while we set things up for you - \nalmost there!",
+  "studyPlan": "Study Plan",
+  "studyPlanText": "All set {name}, here is your study schedule",
+  "@studyPlanText": {
+    "description": "Shown on the study plan screen after setup; {name} is the participant's name",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "aBlueDotStudyPlanCalendar": "A blue dot on the calendar indicates at least one survey is scheduled for that date.",
+  "getStarted": "Get Started",
+  "welcomeLetsGetStarted": "Welcome, \nLet's Get Started",
+  "finishedText": "Congratulations! {icon} You are all set! Your participation is invaluable to our research. We're thrilled to have you on board!",
+  "@finishText":{
+  "description": "congratulation text",
+  "placeholders": {
+    "icon": {
+      "type": "String"
+    }
+  }
+},
 
 
   "todaysGoal": "Today's Goal",

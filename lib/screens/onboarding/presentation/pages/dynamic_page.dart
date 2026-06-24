@@ -23,6 +23,7 @@ import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
 
 import '../../../../core/utils/participant_experiment_details.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class DynamicOnBoardingHub extends StatefulWidget {
   const DynamicOnBoardingHub({super.key});
@@ -188,7 +189,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
             height: 24,
           ),
           Text(
-            "Setting up...",
+            AppLocalizations.of(context).settingsThingsUp,
             style: CustomTypography()
                 .headlineMedium(color: CustomColors.textWhite),
           ),
@@ -196,7 +197,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
             height: 12,
           ),
           Text(
-            "Hang tight while we set things up for you - \nalmost there!",
+            AppLocalizations.of(context).hangTight,
             textAlign: TextAlign.center,
             style: CustomTypography().bodyLarge(color: CustomColors.textWhite),
           ),
@@ -378,7 +379,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
                                         : answer)
                               },
                           // isDisabled: answer != null || textEditingController.text.isNotEmpty,
-                          text: "Continue"),
+                          text: AppLocalizations.of(context).continueText),
                     ),
                   ],
                 ),
@@ -645,7 +646,7 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                                   padding: const EdgeInsets.only(
                                       left: 16.0, right: 16.0),
                                   child: Text(
-                                    "You’re almost done! Just a few more questions to personalize your study",
+                                    AppLocalizations.of(context).justFewMoreQuestions,
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
                                   ),
@@ -676,7 +677,7 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                         : (isIos ? 34 + 34 : 34)),
                 child: CustomFlatButton(
                   onClick: () => widget.onContinue(),
-                  text: "Continue",
+                  text: AppLocalizations.of(context).continueText,
                   color: CustomColors.fillWhite,
                   isDisabled: false,
                   textColor: CustomColors.productNormalActive,

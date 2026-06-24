@@ -15,6 +15,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart' as rive;
 // import 'dart:io' show Platform;
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../services/pendo_service.dart';
 import '../../../../services/preference_service.dart';
 import '../../../../theme/custom_colors.dart';
@@ -134,8 +135,8 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                           children: [
                             Text(
                               granted != null && granted == true
-                                  ? "Make sure you have sound on to catch these alerts on time"
-                                  : "Turn on notifications for timely reminders!",
+                                  ? AppLocalizations.of(context).makeSureYouHaveSoundOn
+                                  : AppLocalizations.of(context).turnOnNotificationsTimely,
                               style: CustomTypography()
                                   .headlineLarge(color: CustomColors.textWhite),
                             ),
@@ -168,7 +169,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                       : (isIos ? 34 + 34 : 34)),
               child: CustomFlatButton(
                 onClick: () => navigateToNextPage(context),
-                text: "Continue",
+                text: AppLocalizations.of(context).continueText,
                 color: CustomColors.fillWhite,
                 textColor: CustomColors.productNormalActive,
               ),
@@ -209,7 +210,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                 ),
                 Flexible(
                   child: Text(
-                    "Oops! We recommend you turn ON notifications to allow Fabla to send you reminders to complete the study, otherwise you might not know when to submit the diaries and measures needed for this study.",
+                      AppLocalizations.of(context).notificationWarning,
                     style: CustomTypography()
                         .bodyLarge(color: CustomColors.pumpkinOrange),
                   ),
@@ -235,7 +236,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                       ),
                     ),
                     onPressed: openPermissionSettings,
-                    child: Text("Open Settings",
+                    child: Text(AppLocalizations.of(context).openSettings,
                         style: CustomTypography()
                             .bodyLarge(color: CustomColors.textWhite)))
               ],
@@ -267,7 +268,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                 ),
                 Flexible(
                   child: Text(
-                    "Oops! It looks like your phone is in battery-saving mode. This may affect your ability to receive diary notifications. To ensure the study runs smoothly, we recommend turning off battery-saving mode.",
+                    AppLocalizations.of(context).batterySaverText,
                     style: CustomTypography()
                         .bodyLarge(color: CustomColors.warningActive),
                   ),
@@ -293,7 +294,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                       ),
                     ),
                     onPressed: () => openSetting(),
-                    child: Text("Open Settings",
+                    child: Text(AppLocalizations.of(context).openSettings,
                         style: CustomTypography()
                             .bodyLarge(color: CustomColors.textWhite)))
               ],

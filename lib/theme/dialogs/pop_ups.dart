@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../core/utils/participant_experiment_details.dart';
+import '../../l10n/app_localizations.dart';
 import '../../screens/hub/presentation/cubit/hub_cubit.dart';
 import '../components/buttons.dart';
 import '../components/checkboxes.dart';
@@ -1309,7 +1310,7 @@ class StudyInfoPopUp extends StatelessWidget {
                 ),
                 Flexible(
                   child: Text(
-                    "What's my Study String?",
+                    AppLocalizations.of(context).whatIsMyStudyString,
                     style: CustomTypography().custom(
                         fontSize: 22.sp,
                         fontWeight: FontWeight.w500,
@@ -1327,20 +1328,20 @@ class StudyInfoPopUp extends StatelessWidget {
               children: [
                 const SizedBox(height: 26),
                 Text.rich(TextSpan(
-                    text: "Your ",
+                    text: "${AppLocalizations.of(context).your} ",
                     style: CustomTypography().custom(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.w400,
                         color: const Color(0xA3000000)),
                     children: [
                       TextSpan(
-                        text: "Study String ",
+                        text: AppLocalizations.of(context).studyID,
                         style: CustomTypography().titleSmall(
                             color: CustomColors.backgroundSecondary),
                       ),
                       TextSpan(
                         text:
-                            "is an alphanumeric code (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla",
+                            " ${AppLocalizations.of(context).alphanumericcode}",
                         style: CustomTypography().custom(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.w400,
@@ -1350,21 +1351,21 @@ class StudyInfoPopUp extends StatelessWidget {
                 const SizedBox(height: 26),
                 Text.rich(
                   TextSpan(
-                    text: 'If you need help with your Study String, you may ',
+                    text: '${AppLocalizations.of(context).ifYouNeedHelpPopUP} ${AppLocalizations.of(context).studyID} ${AppLocalizations.of(context).youMay} ',
                     style: CustomTypography().custom(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.w400,
                         color: const Color(0xA3000000)),
                     children: [
                       TextSpan(
-                          text: "Contact Us",
+                          text: AppLocalizations.of(context).contactUs,
                           style: CustomTypography()
                               .titleSmall(color: const Color(0xA3000000))
                               .copyWith(decoration: TextDecoration.underline),
                           recognizer: TapGestureRecognizer()
                             ..onTap = launchEmail),
                       TextSpan(
-                          text: ' or reach out to your researcher directly!',
+                          text: ' ${AppLocalizations.of(context).reachOut}',
                           style: CustomTypography().custom(
                               fontSize: 18.sp,
                               fontWeight: FontWeight.w400,

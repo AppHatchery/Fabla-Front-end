@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:rive/rive.dart' as rive;
 import 'dart:io' show Platform;
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
@@ -114,17 +115,17 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "Welcome, \nLet's Get Started",
+                                          AppLocalizations.of(context).welcomeLetsGetStarted,
                                           style: CustomTypography()
                                               .headlineLarge(
                                                   color:
-                                                      CustomColors.textWhite),
+                                                      CustomColors.textWhite).copyWith(fontSize: 31),
                                         ),
                                         const SizedBox(
                                           height: 16,
                                         ),
                                         Text(
-                                          "Congratulations! ${Strings.confetti} You are all set! Your participation is invaluable to our research. We're thrilled to have you on board!",
+                                          AppLocalizations.of(context).finishedText(Strings.confetti) ,
                                           style: CustomTypography().bodyLarge(
                                               color: CustomColors.textWhite),
                                         ),
@@ -161,7 +162,7 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
                   // ),
                   CustomFlatButton(
                     onClick: () => _next(context),
-                    text: "Get Started",
+                    text: AppLocalizations.of(context).getStarted,
                     color: CustomColors.fillWhite,
                     textColor: CustomColors.productNormalActive,
                   )

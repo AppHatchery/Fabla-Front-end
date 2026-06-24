@@ -16,6 +16,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'dart:developer' as dev;
 import 'dart:io' show Platform;
 
+import '../../../../l10n/app_localizations.dart';
+
 class CameraAccess extends StatefulWidget {
   const CameraAccess({super.key});
 
@@ -117,8 +119,8 @@ class _CameraAccessState extends State<CameraAccess>
                                 children: [
                                   Text(
                                     permission
-                                        ? "Let's test the camera feed."
-                                        : "Let's enable access to your camera.",
+                                        ? AppLocalizations.of(context).testCameraFeed
+                                        : AppLocalizations.of(context).cameraAccessText,
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
                                   ),
@@ -151,7 +153,7 @@ class _CameraAccessState extends State<CameraAccess>
                                                   ),
                                                   Flexible(
                                                     child: Text(
-                                                      "Oops! You need to enable camera access to participate in the study.",
+                                                      AppLocalizations.of(context).needToEnableCamera,
                                                       style: CustomTypography()
                                                           .bodyLarge(
                                                               color: CustomColors
@@ -193,7 +195,7 @@ class _CameraAccessState extends State<CameraAccess>
                                                       onPressed:
                                                           openPermissionSettings,
                                                       child: Text(
-                                                          "Open Settings",
+                                                          AppLocalizations.of(context).openSettings,
                                                           style: CustomTypography()
                                                               .bodyLarge(
                                                                   color: CustomColors
@@ -228,7 +230,7 @@ class _CameraAccessState extends State<CameraAccess>
                 ),
                 CustomFlatButton(
                   onClick: () => navigateToNextPage(context),
-                  text: "Continue",
+                  text: AppLocalizations.of(context).continueText,
                   color: CustomColors.fillWhite,
                   isDisabled: requested == true && permission == false,
                   textColor: CustomColors.productNormalActive,

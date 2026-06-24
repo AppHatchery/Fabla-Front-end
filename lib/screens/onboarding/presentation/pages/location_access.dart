@@ -14,6 +14,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart' as rive;
 import 'dart:io' show Platform;
 
+import '../../../../l10n/app_localizations.dart';
+
 class LocationAccess extends StatefulWidget {
   const LocationAccess({super.key});
 
@@ -130,7 +132,7 @@ class _LocationAccessState extends State<LocationAccess>
                               child: Column(
                                 children: [
                                   Text(
-                                    "Let's enable access to your location.",
+                                    AppLocalizations.of(context).locationAccessText,
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
                                   ),
@@ -163,7 +165,7 @@ class _LocationAccessState extends State<LocationAccess>
                                                   ),
                                                   Flexible(
                                                     child: Text(
-                                                      "Oops! You need to enable location access to participate in the study.",
+                                                      AppLocalizations.of(context).needToEnableLocation,
                                                       style: CustomTypography()
                                                           .bodyLarge(
                                                               color: CustomColors
@@ -205,7 +207,7 @@ class _LocationAccessState extends State<LocationAccess>
                                                       onPressed:
                                                           openPermissionSettings,
                                                       child: Text(
-                                                          "Open Settings",
+                                                          AppLocalizations.of(context).openSettings,
                                                           style: CustomTypography()
                                                               .bodyLarge(
                                                                   color: CustomColors
@@ -248,7 +250,7 @@ class _LocationAccessState extends State<LocationAccess>
                         : (isIos ? 34 + 34 : 34)),
                 child: CustomFlatButton(
                   onClick: () => navigateToNextPage(context),
-                  text: "Continue",
+                  text: AppLocalizations.of(context).continueText,
                   color: CustomColors.fillWhite,
                   isDisabled: requested == true && permission == false,
                   textColor: CustomColors.productNormalActive,

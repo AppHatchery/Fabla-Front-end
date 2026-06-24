@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../theme/components/textfields.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
@@ -26,7 +27,8 @@ class _ParticipantNameState extends State<ParticipantName> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Enter Your Preferred Name",
+          maxLines: 2,
+          AppLocalizations.of(context).preferredName,
           style: CustomTypography().titleLarge(),
         ),
         const SizedBox(
@@ -36,7 +38,7 @@ class _ParticipantNameState extends State<ParticipantName> {
           key: widget.globalKey,
           controller: widget.controller,
           focusNode: widget.node,
-          hint: "Enter your preferred name",
+          hint: AppLocalizations.of(context).preferredName,
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           filled: true,
           borderRadius: BorderRadius.circular(11),

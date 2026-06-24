@@ -81,6 +81,145 @@ class AppLocalizationsEs extends AppLocalizations {
   String get contactUs => 'Contáctanos';
 
   @override
+  String get studyStringError =>
+      '¡Vaya! No podemos acceder a tu estudio sin un código de estudio válido.';
+
+  @override
+  String get your => 'Tu';
+
+  @override
+  String get alphanumericcode =>
+      'es un código alfanumérico (p. ej., ABC123) que tu investigador comparte contigo para darte acceso a tu estudio en Fabla';
+
+  @override
+  String get ifYouNeedHelpPopUP => 'Si necesitas ayuda con tu';
+
+  @override
+  String get youMay => 'puedes';
+
+  @override
+  String get reachOut => '¡o contacta directamente con tu investigador!';
+
+  @override
+  String get whatIsMyStudyString => '¿Cuál es mi código de estudio?';
+
+  @override
+  String get studyStringEmpty =>
+      '¡Vaya! No podemos acceder a tu estudio sin un código de estudio válido.';
+
+  @override
+  String get participantIDEmpty =>
+      '¡Vaya! No podemos acceder a tu estudio sin un ID de participante válido.';
+
+  @override
+  String get participantIDError =>
+      '¡Vaya! No tenemos este ID en la lista de participantes. Revisa tu correo electrónico e inténtalo de nuevo.';
+
+  @override
+  String get signingIn => 'Iniciando sesión...';
+
+  @override
+  String get hangOn =>
+      'Espera un momento mientras verificamos el código del estudio. ¡Ya casi está!';
+
+  @override
+  String get welcome => 'Te damos la bienvenida';
+
+  @override
+  String get youveCheckedIn => '\n¡Ya estás dentro!';
+
+  @override
+  String get welcomeDescription =>
+      'Ya estás registrado en nuestro estudio. ¡Muchas gracias por unirte a nuestra investigación!';
+
+  @override
+  String get continueText => 'Continuar';
+
+  @override
+  String get preferredName => 'Introduce tu nombre preferido';
+
+  @override
+  String get turnOnNotificationsTimely =>
+      '¡Activa las notificaciones para recibir recordatorios a tiempo!';
+
+  @override
+  String get makeSureYouHaveSoundOn =>
+      'Asegúrate de tener el sonido activado para no perderte estas alertas a tiempo';
+
+  @override
+  String get batterySaverText =>
+      '¡Vaya! Parece que tu teléfono está en modo de ahorro de batería. Esto puede afectar la recepción de las notificaciones del diario. Para que el estudio funcione correctamente, te recomendamos desactivar el modo de ahorro de batería.';
+
+  @override
+  String get notificationWarning =>
+      '¡Vaya! Te recomendamos activar las notificaciones para que Fabla pueda enviarte recordatorios para completar el estudio; de lo contrario, podrías no saber cuándo enviar los diarios y las mediciones necesarias para este estudio.';
+
+  @override
+  String get openSettings => 'Abrir ajustes';
+
+  @override
+  String get enableMicPermission =>
+      '¡Vaya! Necesitas habilitar el acceso al micrófono para usar el diario de grabación.';
+
+  @override
+  String get testMicText => 'Vamos a probar tu micrófono, di algo';
+
+  @override
+  String get micAccessText => 'Genial, ahora habilita el acceso al micrófono';
+
+  @override
+  String get needToEnableLocation =>
+      '¡Vaya! Necesitas habilitar el acceso a la ubicación para participar en el estudio.';
+
+  @override
+  String get locationAccessText =>
+      'Vamos a habilitar el acceso a tu ubicación.';
+
+  @override
+  String get needToEnableCamera =>
+      '¡Vaya! Necesitas habilitar el acceso a la cámara para participar en el estudio.';
+
+  @override
+  String get cameraAccessText => 'Vamos a habilitar el acceso a tu cámara.';
+
+  @override
+  String get testCameraFeed => 'Vamos a probar la cámara.';
+
+  @override
+  String get justFewMoreQuestions =>
+      '¡Ya casi terminas! Solo unas preguntas más para personalizar tu estudio';
+
+  @override
+  String get settingsThingsUp => 'Configurando...';
+
+  @override
+  String get hangTight =>
+      'Espera un momento mientras lo preparamos todo para ti. ¡Ya casi está!';
+
+  @override
+  String get studyPlan => 'Plan del estudio';
+
+  @override
+  String studyPlanText(String name) {
+    return '¡Todo listo, $name! Este es tu calendario del estudio.';
+  }
+
+  @override
+  String get aBlueDotStudyPlanCalendar =>
+      'Un punto azul en el calendario indica que hay al menos una encuesta programada para esa fecha.';
+
+  @override
+  String get getStarted => 'Get Started';
+
+  @override
+  String get welcomeLetsGetStarted => 'Welcome, \nLet\'s Get Started';
+
+  @override
+  String finishedText(Object icon) {
+    return 'Congratulations! $icon You are all set! Your participation is invaluable to our research. We\'re thrilled to have you on board!';
+  }
+
+  @override
   String get todaysGoal => 'Meta de hoy';
 
   @override

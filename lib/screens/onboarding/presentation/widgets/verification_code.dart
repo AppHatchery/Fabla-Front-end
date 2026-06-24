@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/utils/participant_experiment_details.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
@@ -48,7 +49,7 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
               style:
                   CustomTypography().titleSmall(color: CustomColors.textWhite),
             ),
-            if (widget.title == "Study String")
+            if (widget.title == AppLocalizations.of(context).studyID)
               IconButton(
                 iconSize: 20,
                 onPressed: () async => await showDialog(

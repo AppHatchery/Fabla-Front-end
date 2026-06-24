@@ -112,10 +112,10 @@ abstract class AppLocalizations {
   /// **'Fabla is a tool for daily experience research, audio diaries and more'**
   String get fableLoginDescription;
 
-  /// study id label
+  /// study String label
   ///
   /// In en, this message translates to:
-  /// **'Study ID'**
+  /// **'Study String'**
   String get studyID;
 
   /// No description provided for @enterYourStudyString.
@@ -133,7 +133,7 @@ abstract class AppLocalizations {
   /// loading text
   ///
   /// In en, this message translates to:
-  /// **'Hang tight while we verify the study string - \\nalmost there!'**
+  /// **'Hang tight while we verify the study string - \nalmost there!'**
   String get hangOnTight;
 
   /// Title of the study information section
@@ -231,6 +231,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Contact Us'**
   String get contactUs;
+
+  /// No description provided for @studyStringError.
+  ///
+  /// In en, this message translates to:
+  /// **'Oops! We cannot access your study without a valid Study String.'**
+  String get studyStringError;
+
+  /// No description provided for @your.
+  ///
+  /// In en, this message translates to:
+  /// **'Your'**
+  String get your;
+
+  /// No description provided for @alphanumericcode.
+  ///
+  /// In en, this message translates to:
+  /// **'is an alphanumeric code (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla'**
+  String get alphanumericcode;
+
+  /// No description provided for @ifYouNeedHelpPopUP.
+  ///
+  /// In en, this message translates to:
+  /// **'If you need help with your'**
+  String get ifYouNeedHelpPopUP;
+
+  /// No description provided for @youMay.
+  ///
+  /// In en, this message translates to:
+  /// **'you may'**
+  String get youMay;
+
+  /// No description provided for @reachOut.
+  ///
+  /// In en, this message translates to:
+  /// **'or reach out to your researcher directly!'**
+  String get reachOut;
+
+  /// No description provided for @whatIsMyStudyString.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s my Study String?'**
+  String get whatIsMyStudyString;
+
+  /// No description provided for @studyStringEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Oops! We cannot access your study without a valid Study String.'**
+  String get studyStringEmpty;
+
+  /// No description provided for @participantIDEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Oops! We cannot access your study without a valid Participant ID.'**
+  String get participantIDEmpty;
+
+  /// No description provided for @participantIDError.
+  ///
+  /// In en, this message translates to:
+  /// **'Oops! We do not have this ID in the participant list. Please check your email and try again.'**
+  String get participantIDError;
+
+  /// No description provided for @signingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in...'**
+  String get signingIn;
+
+  /// No description provided for @hangOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Hang tight while we verify the study string - \nalmost there!'**
+  String get hangOn;
+
+  /// No description provided for @welcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get welcome;
+
+  /// No description provided for @youveCheckedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'\nYou\'ve checked in!'**
+  String get youveCheckedIn;
+
+  /// No description provided for @welcomeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'You are now checked into our study. Thank you so much for joining our research!'**
+  String get welcomeDescription;
+
+  /// No description provided for @continueText.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueText;
+
+  /// No description provided for @preferredName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Your Preferred Name'**
+  String get preferredName;
+
+  /// No description provided for @turnOnNotificationsTimely.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on notifications for timely reminders!'**
+  String get turnOnNotificationsTimely;
+
+  /// No description provided for @makeSureYouHaveSoundOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Make sure you have sound on to catch these alerts on time'**
+  String get makeSureYouHaveSoundOn;
+
+  /// No description provided for @batterySaverText.
+  ///
+  /// In en, this message translates to:
+  /// **'Oops! It looks like your phone is in battery-saving mode. This may affect your ability to receive diary notifications. To ensure the study runs smoothly, we recommend turning off battery-saving mode.'**
+  String get batterySaverText;
+
+  /// No description provided for @notificationWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Oops! We recommend you turn ON notifications to allow Fabla to send you reminders to complete the study, otherwise you might not know when to submit the diaries and measures needed for this study.'**
+  String get notificationWarning;
+
+  /// No description provided for @openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get openSettings;
+
+  /// No description provided for @enableMicPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Oops! You need to enable microphone access to use the recording diary.'**
+  String get enableMicPermission;
+
+  /// No description provided for @testMicText.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s test your microphone, say something'**
+  String get testMicText;
+
+  /// No description provided for @micAccessText.
+  ///
+  /// In en, this message translates to:
+  /// **'Great, next enable microphone access'**
+  String get micAccessText;
+
+  /// No description provided for @needToEnableLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Oops! You need to enable location access to participate in the study.'**
+  String get needToEnableLocation;
+
+  /// No description provided for @locationAccessText.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s enable access to your location.'**
+  String get locationAccessText;
+
+  /// No description provided for @needToEnableCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Oops! You need to enable camera access to participate in the study.'**
+  String get needToEnableCamera;
+
+  /// No description provided for @cameraAccessText.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s enable access to your camera.'**
+  String get cameraAccessText;
+
+  /// No description provided for @testCameraFeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s test the camera feed.'**
+  String get testCameraFeed;
+
+  /// No description provided for @justFewMoreQuestions.
+  ///
+  /// In en, this message translates to:
+  /// **'You’re almost done! Just a few more questions to personalize your study'**
+  String get justFewMoreQuestions;
+
+  /// No description provided for @settingsThingsUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting up...'**
+  String get settingsThingsUp;
+
+  /// No description provided for @hangTight.
+  ///
+  /// In en, this message translates to:
+  /// **'Hang tight while we set things up for you - \nalmost there!'**
+  String get hangTight;
+
+  /// No description provided for @studyPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Plan'**
+  String get studyPlan;
+
+  /// Shown on the study plan screen after setup; {name} is the participant's name
+  ///
+  /// In en, this message translates to:
+  /// **'All set {name}, here is your study schedule'**
+  String studyPlanText(String name);
+
+  /// No description provided for @aBlueDotStudyPlanCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'A blue dot on the calendar indicates at least one survey is scheduled for that date.'**
+  String get aBlueDotStudyPlanCalendar;
+
+  /// No description provided for @getStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Started'**
+  String get getStarted;
+
+  /// No description provided for @welcomeLetsGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome, \nLet\'s Get Started'**
+  String get welcomeLetsGetStarted;
+
+  /// No description provided for @finishedText.
+  ///
+  /// In en, this message translates to:
+  /// **'Congratulations! {icon} You are all set! Your participation is invaluable to our research. We\'re thrilled to have you on board!'**
+  String finishedText(Object icon);
 
   /// Title of the daily goal section on the home page
   ///

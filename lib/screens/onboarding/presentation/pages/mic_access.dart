@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../services/preference_service.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
@@ -152,8 +153,8 @@ class _MicAccessPageState extends State<MicAccessPage>
                                 children: [
                                   Text(
                                     permission
-                                        ? "Let's test your microphone, say something"
-                                        : "Great, next enable microphone access",
+                                        ? AppLocalizations.of(context).testMicText
+                                        : AppLocalizations.of(context).micAccessText,
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
                                   ),
@@ -193,7 +194,7 @@ class _MicAccessPageState extends State<MicAccessPage>
                                                   ),
                                                   Flexible(
                                                     child: Text(
-                                                      "Oops! You need to enable microphone access to use the recording diary.",
+                                                      AppLocalizations.of(context).enableMicPermission,
                                                       style: CustomTypography()
                                                           .bodyLarge(
                                                               color: CustomColors
@@ -235,7 +236,7 @@ class _MicAccessPageState extends State<MicAccessPage>
                                                       onPressed:
                                                           openPermissionSettings,
                                                       child: Text(
-                                                          "Open Settings",
+                                                          AppLocalizations.of(context).openSettings,
                                                           style: CustomTypography()
                                                               .bodyLarge(
                                                                   color: CustomColors
@@ -287,7 +288,7 @@ class _MicAccessPageState extends State<MicAccessPage>
                 ),
                 CustomFlatButton(
                   onClick: () => navigateToNextPage(context),
-                  text: permission ? "Continue" : "Continue",
+                  text: permission ? AppLocalizations.of(context).continueText : AppLocalizations.of(context).continueText,
                   color: CustomColors.fillWhite,
                   isDisabled: requested == true && permission == false,
                   textColor: CustomColors.productNormalActive,

@@ -146,7 +146,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                     if (state is StudyLoginError) {
                       setState(() {
                         error = true;
-                        message = state.message;
+                        message = AppLocalizations.of(context).studyStringError;
                       });
                     } else if (state is StudyLoginSuccess) {
                       error = false;
@@ -299,7 +299,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
       } else {
         setState(() {
           error = true;
-          message = 'Oops! We cannot access your study without a valid Study ID.';
+          message = AppLocalizations.of(context).studyStringEmpty;
         });
         return;
       }

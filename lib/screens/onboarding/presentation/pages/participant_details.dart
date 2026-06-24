@@ -14,6 +14,7 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../theme/custom_colors.dart';
 
 class ParticipantDetailsPage extends StatefulWidget {
@@ -196,7 +197,7 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
                     child: CustomFlatButton(
                         onClick: () =>
                             {track(timer.stop(), "Finished"), saveName()},
-                        text: "Continue"),
+                        text: AppLocalizations.of(context).continueText,),
                   ),
                 ],
               ),

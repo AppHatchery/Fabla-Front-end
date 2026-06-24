@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:io' show Platform;
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../services/preference_service.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
@@ -153,14 +154,14 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                             onContinue: () => navigateToNextPage(context),
                             children: [
                               Text(
-                                "Study Plan",
+                                AppLocalizations.of(context).studyPlan,
                                 style: CustomTypography().titleLarge(),
                               ),
                               const SizedBox(
                                 height: 12,
                               ),
                               Text(
-                                "All set ${participant.name}, here is your study schedule",
+                                AppLocalizations.of(context).studyPlanText(participant.name),
                                 style: CustomTypography().titleMedium(
                                     color: CustomColors.textNormalContent),
                               ),
@@ -189,7 +190,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                     : (isIos ? 34 + 16 : 16),
               ),
               child: CustomFlatButton(
-                  onClick: () => navigateToNextPage(context), text: "Continue"),
+                  onClick: () => navigateToNextPage(context), text: AppLocalizations.of(context).continueText),
             )
           ],
         ),
@@ -226,7 +227,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
         ),
       ),
       child: Text(
-        "A blue dot on the calendar indicates at least one survey is scheduled for that date.",
+        AppLocalizations.of(context).aBlueDotStudyPlanCalendar,
         style: CustomTypography()
             .bodyLarge(color: CustomColors.textSecondaryContent),
         // textScaleFactor: 3.0,

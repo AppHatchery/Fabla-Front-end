@@ -16,7 +16,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Fabla is a tool for daily experience research, audio diaries and more';
 
   @override
-  String get studyID => 'Study ID';
+  String get studyID => 'Study String';
 
   @override
   String get enterYourStudyString => 'Enter the study string...';
@@ -26,7 +26,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hangOnTight =>
-      'Hang tight while we verify the study string - \\nalmost there!';
+      'Hang tight while we verify the study string - \nalmost there!';
 
   @override
   String get studyInformation => 'Study Information';
@@ -77,6 +77,144 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get contactUs => 'Contact Us';
+
+  @override
+  String get studyStringError =>
+      'Oops! We cannot access your study without a valid Study String.';
+
+  @override
+  String get your => 'Your';
+
+  @override
+  String get alphanumericcode =>
+      'is an alphanumeric code (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla';
+
+  @override
+  String get ifYouNeedHelpPopUP => 'If you need help with your';
+
+  @override
+  String get youMay => 'you may';
+
+  @override
+  String get reachOut => 'or reach out to your researcher directly!';
+
+  @override
+  String get whatIsMyStudyString => 'What\'s my Study String?';
+
+  @override
+  String get studyStringEmpty =>
+      'Oops! We cannot access your study without a valid Study String.';
+
+  @override
+  String get participantIDEmpty =>
+      'Oops! We cannot access your study without a valid Participant ID.';
+
+  @override
+  String get participantIDError =>
+      'Oops! We do not have this ID in the participant list. Please check your email and try again.';
+
+  @override
+  String get signingIn => 'Signing in...';
+
+  @override
+  String get hangOn =>
+      'Hang tight while we verify the study string - \nalmost there!';
+
+  @override
+  String get welcome => 'Welcome';
+
+  @override
+  String get youveCheckedIn => '\nYou\'ve checked in!';
+
+  @override
+  String get welcomeDescription =>
+      'You are now checked into our study. Thank you so much for joining our research!';
+
+  @override
+  String get continueText => 'Continue';
+
+  @override
+  String get preferredName => 'Enter Your Preferred Name';
+
+  @override
+  String get turnOnNotificationsTimely =>
+      'Turn on notifications for timely reminders!';
+
+  @override
+  String get makeSureYouHaveSoundOn =>
+      'Make sure you have sound on to catch these alerts on time';
+
+  @override
+  String get batterySaverText =>
+      'Oops! It looks like your phone is in battery-saving mode. This may affect your ability to receive diary notifications. To ensure the study runs smoothly, we recommend turning off battery-saving mode.';
+
+  @override
+  String get notificationWarning =>
+      'Oops! We recommend you turn ON notifications to allow Fabla to send you reminders to complete the study, otherwise you might not know when to submit the diaries and measures needed for this study.';
+
+  @override
+  String get openSettings => 'Open Settings';
+
+  @override
+  String get enableMicPermission =>
+      'Oops! You need to enable microphone access to use the recording diary.';
+
+  @override
+  String get testMicText => 'Let\'s test your microphone, say something';
+
+  @override
+  String get micAccessText => 'Great, next enable microphone access';
+
+  @override
+  String get needToEnableLocation =>
+      'Oops! You need to enable location access to participate in the study.';
+
+  @override
+  String get locationAccessText => 'Let\'s enable access to your location.';
+
+  @override
+  String get needToEnableCamera =>
+      'Oops! You need to enable camera access to participate in the study.';
+
+  @override
+  String get cameraAccessText => 'Let\'s enable access to your camera.';
+
+  @override
+  String get testCameraFeed => 'Let\'s test the camera feed.';
+
+  @override
+  String get justFewMoreQuestions =>
+      'You’re almost done! Just a few more questions to personalize your study';
+
+  @override
+  String get settingsThingsUp => 'Setting up...';
+
+  @override
+  String get hangTight =>
+      'Hang tight while we set things up for you - \nalmost there!';
+
+  @override
+  String get studyPlan => 'Study Plan';
+
+  @override
+  String studyPlanText(String name) {
+    return 'All set $name, here is your study schedule';
+  }
+
+  @override
+  String get aBlueDotStudyPlanCalendar =>
+      'A blue dot on the calendar indicates at least one survey is scheduled for that date.';
+
+  @override
+  String get getStarted => 'Get Started';
+
+  @override
+  String get welcomeLetsGetStarted => 'Welcome, \nLet\'s Get Started';
+
+  @override
+  String finishedText(Object icon) {
+    return 'Congratulations! $icon You are all set! Your participation is invaluable to our research. We\'re thrilled to have you on board!';
+  }
 
   @override
   String get todaysGoal => 'Today\'s Goal';

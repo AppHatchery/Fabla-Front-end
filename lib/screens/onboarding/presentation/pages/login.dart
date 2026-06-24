@@ -125,7 +125,6 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                   ),
                 ),
               ),
-
               Padding(
                 padding: EdgeInsets.fromLTRB(
                     16,
@@ -158,7 +157,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                     setState(() {
                       error = true;
                       warning = false;
-                      message = state.message;
+                      message = AppLocalizations.of(context).participantIDError;
                     });
                   }
                 }),
@@ -192,7 +191,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                       height: 24,
                     ),
                     Text(
-                        AppLocalizations.of(context).participantLoginDescription,
+                        AppLocalizations.of(context)
+                            .participantLoginDescription,
                         style: CustomTypography()
                             .titleSmall(color: CustomColors.textWhite)),
                     const SizedBox(
@@ -228,21 +228,21 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                     child: Text(
                       "${AppLocalizations.of(context).needHelpWithParticipantID} ",
                       style: CustomTypography()
-                          .bodyMedium(color: CustomColors.textWhite),
+                          .bodyMedium(color: CustomColors.textWhite)
+                          .copyWith(fontSize: 13),
                     ),
                   ),
                   GestureDetector(
-                      onTap: () => launchEmail(),
-                      child: Text(
-                        AppLocalizations.of(context).contactUs,
-                        style: TextStyle(
-                            fontSize: CustomTypography().bodyMedium().fontSize,
-                            fontWeight:
-                                CustomTypography().bodyMedium().fontWeight,
-                            decoration: TextDecoration.underline,
-                            decorationColor: CustomColors.textWhite,
-                            color: CustomColors.textWhite),
-                      )),
+                    onTap: () => launchEmail(),
+                    child: Text(
+                      AppLocalizations.of(context).contactUs,
+                      style: CustomTypography().bodyMedium().copyWith(
+                          fontSize: 13,
+                          decoration: TextDecoration.underline,
+                          decorationColor: CustomColors.textWhite,
+                          color: CustomColors.textWhite),
+                    ),
+                  ),
                 ],
               )
             ],
@@ -269,7 +269,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             height: 24,
           ),
           Text(
-            "Signing in...",
+            AppLocalizations.of(context).signingIn,
             style: CustomTypography()
                 .headlineMedium(color: CustomColors.textWhite),
           ),
@@ -277,7 +277,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             height: 12,
           ),
           Text(
-            "Hang tight while we sign you up - \nalmost there!",
+            AppLocalizations.of(context).hangOn,
             textAlign: TextAlign.center,
             style: CustomTypography().bodyLarge(color: CustomColors.textWhite),
           ),
@@ -289,15 +289,16 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   void login() {
     final code = controller.text.trim();
 
-      if (code.isNotEmpty) {
-        loginCubit.login(code);
-      } else {
-        setState(() {
-          error = true;
-          message = 'Oops! We cannot access your study without a valid Participant ID.';
-        });
-        return;
-      }
+    if (code.isNotEmpty) {
+      loginCubit.login(code);
+    } else {
+      setState(() {
+        error = true;
+        message =
+            AppLocalizations.of(context).participantIDEmpty;
+      });
+      return;
+    }
   }
 
   Future<void> track(int spent, String status) async {
@@ -305,12 +306,10 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
-
-  Future<void> launchEmail() async{
+  Future<void> launchEmail() async {
     await ParticipantAndExperimentDetails().loginSupportEmail(
         subject: 'Fabla Participant Login Issue',
         body: 'Describe the issue you are facing',
-        example: ': e.g. My Participant ID is not working'
-    );
+        example: ': e.g. My Participant ID is not working');
   }
 }

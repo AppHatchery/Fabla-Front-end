@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../services/pendo_service.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
@@ -131,7 +132,7 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "Welcome P${_participant.studyCode}, \nYou've checked in!",
+                                      "${AppLocalizations.of(context).welcome} P${_participant.studyCode}, ${AppLocalizations.of(context).youveCheckedIn}",
                                       style: CustomTypography().headlineLarge(
                                           color: CustomColors.textWhite),
                                     ),
@@ -139,7 +140,7 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
                                       height: 16,
                                     ),
                                     Text(
-                                      "You are now checked into our study. Thank you so much for joining our research! ${Strings.confetti}",
+                                      "${AppLocalizations.of(context).welcomeDescription} ${Strings.confetti}",
                                       style: CustomTypography().bodyLarge(
                                           color: CustomColors.textWhite),
                                     ),
@@ -173,7 +174,7 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
                   ),
                   child: CustomFlatButton(
                     onClick: () => navigateToNextPage(),
-                    text: "Continue",
+                    text: AppLocalizations.of(context).continueText,
                     color: CustomColors.fillWhite,
                     textColor: CustomColors.productNormalActive,
                   ),
