@@ -152,6 +152,9 @@ flutter_native_splash:
   ios: true
   web: false
 
+  #Device info
+  package_info_plus: ^5.0.1
+
 # The following section is specific to Flutter packages.
 flutter:
   uses-material-design: true

@@ -370,6 +370,8 @@ class DiaryRepository {
       // single-entry diaries.
       status: isSubmittedEntry ? DiaryStatus.submitted : DiaryStatus.idle,
       submissions: originalDiary.submissions,
+      completions: originalDiary.completions,
+      activeDays: originalDiary.activeDays,
     );
   }
 

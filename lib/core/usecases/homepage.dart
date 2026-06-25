@@ -120,7 +120,7 @@ List<DiaryModel> getDiariesUseCase(
   DateTime day,
 ) {
   // Create shifted day boundaries (04:00 - 03:59)
-  final shiftedDayBoundaries = _getShiftedDayBoundaries(day);
+  final shiftedDayBoundaries = getShiftedDayBoundaries(day);
   final dayStart = shiftedDayBoundaries.start;
   final dayEnd = shiftedDayBoundaries.end;
   final now = DateTime.now();
@@ -188,7 +188,7 @@ class ShiftedDayBoundaries {
 }
 
 /// Calculates the shifted day boundaries (04:00 - 03:59) for a given day
-ShiftedDayBoundaries _getShiftedDayBoundaries(DateTime day) {
+ShiftedDayBoundaries getShiftedDayBoundaries(DateTime day) {
   // For shifted days (04:00 - 03:59), we need to determine which 24-hour period
   // the current time falls into
 

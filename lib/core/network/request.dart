@@ -13,6 +13,9 @@ final Map<String, String> headers = {
   'x-api-key': dotenv.env['APIKEY'] ?? ''
 };
 
+/// Returns the Lambda base URL for the current build mode.
+///
+/// Debug builds use [devURL]; all other builds (profile, release) use [prodURL].
 String base() {
   if (kDebugMode) {
     return devURL;

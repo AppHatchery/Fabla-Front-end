@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../dummy_data.dart';
 
@@ -13,6 +14,11 @@ class MockDiaryRepository extends Mock implements DiaryRepository {}
 class MockSetupRepository extends Mock implements SetupRepository {}
 
 void main() {
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+  });
+
   group('HomeCubit', () {
     late MockDiaryRepository mockDiaryRepository;
     late MockSetupRepository mockSetupRepository;

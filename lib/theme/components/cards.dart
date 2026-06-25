@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
-import 'package:audio_diaries_flutter/core/utils/email_function.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -22,6 +21,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 import '../../core/utils/formatter.dart';
+import '../../core/utils/participant_experiment_details.dart';
 import '../../core/utils/statuses.dart';
 import '../../screens/diary/data/diary.dart';
 import '../custom_icons.dart';
@@ -1673,7 +1673,6 @@ class WebViewErrorCard extends StatelessWidget {
               )
             ],
           ),
-
           if (showContactResearch)
             Padding(
               padding: const EdgeInsets.only(top: 142.0),
@@ -1691,14 +1690,13 @@ class WebViewErrorCard extends StatelessWidget {
     );
   }
 
-  _launchEmail() async {
-    launchEmail(
+  Future<void> _launchEmail() async {
+    await ParticipantAndExperimentDetails().launchSupportEmail(
         subject: '$title – Assistance Needed',
         body:
-            '''$title was encountered. Please investigate and advise on next steps.
-        
-        
-Participant ID: ''');
+            '$title was encountered. Please investigate and advise on next steps.',
+        example:
+            "e.g The survey page won't load and shows a red error screen. This happens every time I try to open the task, even after restarting the app.");
   }
 }
 
@@ -1745,13 +1743,12 @@ class NoNotificationCard extends StatelessWidget {
                     children: [
                       Text(
                         "Notification permission required",
-                        style: CustomTypography()
-                            .titleSmallCustom(color: accent),
+                        style:
+                            CustomTypography().titleSmallCustom(color: accent),
                       ),
                       Text(
                         "Notifications for Fabla are turned off. Enable them in Settings so you don't miss diary reminders.",
-                        style:
-                            CustomTypography().bodyLarge(color: accent),
+                        style: CustomTypography().bodyLarge(color: accent),
                       ),
                     ],
                   ),
@@ -1766,8 +1763,8 @@ class NoNotificationCard extends StatelessWidget {
               backgroundColor: accent,
               color: accent,
               borderRadius: 12,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 12.0, vertical: 4.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
               children: Wrap(children: [
                 Text(
                   "Open Settings",

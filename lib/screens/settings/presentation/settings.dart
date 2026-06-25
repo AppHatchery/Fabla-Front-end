@@ -70,6 +70,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
 
   Future<void> checkNotificationPermission() async {
     final status = await Permission.notification.status;
+    if (!mounted) return;
     setState(() {
       notificationCheck = status == PermissionStatus.granted;
     });
@@ -77,6 +78,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
 
   Future<void> checkMicrophonePermission() async {
     final status = await Permission.microphone.status;
+    if (!mounted) return;
     setState(() {
       micCheck = status == PermissionStatus.granted;
     });

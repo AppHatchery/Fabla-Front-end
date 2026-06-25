@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,11 +7,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import '../../core/utils/email_function.dart';
 import '../../core/utils/participant_experiment_details.dart';
-import '../../core/utils/statuses.dart';
 import '../../screens/hub/presentation/cubit/hub_cubit.dart';
 import '../components/buttons.dart';
 import '../components/checkboxes.dart';
@@ -1130,10 +1127,10 @@ class DeletePopUp extends StatelessWidget {
 
               // Message
               Text(
-                subheader ??
-                    "You won't be able to undo this action",
-                style: CustomTypography().bodyLarge().copyWith(
-                color: CustomColors.textTertiaryContent),
+                subheader ?? "You won't be able to undo this action",
+                style: CustomTypography()
+                    .bodyLarge()
+                    .copyWith(color: CustomColors.textTertiaryContent),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(
@@ -1162,7 +1159,16 @@ class DeletePopUp extends StatelessWidget {
                       textColor: CustomColors.fillWhite,
                     ),
                   ),
-
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: CustomFlatButton(
+                      onClick: () => Navigator.pop(context, false),
+                      text: "Cancel",
+                      color: CustomColors.productNormal,
+                      borderColor: CustomColors.productNormal,
+                      textColor: CustomColors.fillWhite,
+                    ),
+                  ),
                 ],
               )
             ],
@@ -1373,15 +1379,10 @@ class StudyInfoPopUp extends StatelessWidget {
   }
 
   Future<void> launchEmail() async {
-    final uri = Uri(
-        scheme: "mailto",
-        path: "fabla@emory.edu",
-        query: encodeQueryParameters(<String, String>{
-          'subject': 'Need help with the study code',
-          'body': 'I have a problem with accessing the study: '
-        }));
-
-    await launchUrl(uri);
+    await ParticipantAndExperimentDetails().loginSupportEmail(
+        subject: 'Fabla Participant Login Issue',
+        body: 'Describe the issue you are facing:',
+        example: ': e.g. I do not know my study string');
   }
 }
 
@@ -1461,11 +1462,9 @@ class CompletedPopUp extends StatelessWidget {
 
 //updating study
 class StudyUpdatePopUp extends StatefulWidget {
-  /// When true, the dialog skips the warning and starts in the updating phase,
-  /// triggering the update immediately. Used by flows that already confirmed the update (e.g. after editing onboarding answers).
-  final bool startUpdating;
+  final UpdateState state;
 
-  const StudyUpdatePopUp({super.key, this.startUpdating = false});
+  const StudyUpdatePopUp({super.key, this.state = UpdateState.pending});
 
   @override
   State<StudyUpdatePopUp> createState() => _StudyUpdatePopUpState();
@@ -1480,11 +1479,14 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
   @override
   void initState() {
     super.initState();
-    _phase = widget.startUpdating ? UpdateState.updating : UpdateState.pending;
+    _phase = widget.state;
     _contactResearcherRecognizer = TapGestureRecognizer()
-      ..onTap = () => ParticipantAndExperimentDetails()
-          .launchSupportEmail("Study Update failed");
-    if (widget.startUpdating) {
+      ..onTap = () => ParticipantAndExperimentDetails().launchSupportEmail(
+          subject: 'Study Update failed',
+          body: 'Describe the issue you are facing',
+          example:
+              "e.g. The study update keeps failing and never completes, even after closing and reopening the app.");
+    if (widget.state == UpdateState.updating) {
       // Trigger after the first frame so the BlocListener is subscribed and
       // captures the terminal HubUpdated state.
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1500,19 +1502,24 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
   }
 
   void _startUpdate() {
-    setState(() => _phase = UpdateState.updating);
-    context.read<HubCubit>().update();
+    if (mounted) {
+      setState(() => _phase = UpdateState.updating);
+      context.read<HubCubit>().update();
+    }
   }
 
-  void _retry() {
-    setState(() => _phase = UpdateState.updating);
-    context.read<HubCubit>().update();
+  void _reschedule() {
+    context.read<HubCubit>().scheduleForLater();
+    _exit();
   }
 
   // Closes the success dialog and refreshes the Hub.
   void _exit() {
-    context.read<HubCubit>().refresh();
-    Navigator.pop(context);
+    if (mounted) {
+      // only refresh if the update completed successfully so the user sees the new content when they return. If the update failed, the user can try again without an unnecessary refresh.
+      if (_phase == UpdateState.complete) context.read<HubCubit>().refresh();
+      Navigator.pop(context);
+    }
   }
 
   // Maps Hub states to phases. HubInitial (emitted right after HubUpdated) and
@@ -1522,8 +1529,13 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
     if (state is HubUpdating) {
       setState(() => _phase = UpdateState.updating);
     } else if (state is HubUpdated) {
-      setState(() =>
-          _phase = state.complete ? UpdateState.complete : UpdateState.failed);
+      setState(() => _phase = UpdateState.complete);
+    } else if (state is HubUpdateFailed) {
+      if (state.connectionError) {
+        setState(() => _phase = UpdateState.connectionError);
+      } else {
+        setState(() => _phase = UpdateState.failed);
+      }
     }
   }
 
@@ -1558,10 +1570,60 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
   List<Widget> _buildContent() {
     return switch (_phase) {
       UpdateState.pending => _buildInitial(),
+      UpdateState.available => _buildAvailable(),
       UpdateState.updating => _buildUpdating(),
       UpdateState.complete => _buildSuccess(),
-      UpdateState.failed => _buildError(),
+      UpdateState.failed || UpdateState.connectionError => _buildError(),
     };
+  }
+
+  List<Widget> _buildAvailable() {
+    return [
+      Container(
+        width: 60,
+        height: 60,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: CustomColors.productLightPrimaryActive,
+        ),
+        child: const Center(
+          child: Icon(Icons.sync_rounded,
+              size: 40, color: CustomColors.productNormal),
+        ),
+      ),
+      const SizedBox(height: 12),
+      Text(
+        "Your study has an update",
+        style: CustomTypography().headlineMedium(),
+        textAlign: TextAlign.center,
+      ),
+      const SizedBox(height: 12),
+      Text(
+          'Your researcher has made an update to the study, which may include changes to wording or instructions. Please update to continue with the latest version.',
+          style: CustomTypography()
+              .bodyMedium(color: CustomColors.textSecondaryContent),
+          textAlign: TextAlign.center),
+      const SizedBox(height: 24),
+      Text(
+          'If you have questions about the changes, please contact your researcher.',
+          style: CustomTypography()
+              .bodyMedium(color: CustomColors.textSecondaryContent),
+          textAlign: TextAlign.center),
+      const SizedBox(height: 24),
+      Row(
+        children: [
+          Expanded(
+            child: CustomFlatButton(
+              onClick: _startUpdate,
+              text: "Update Now",
+              color: CustomColors.productNormal,
+              textColor: CustomColors.fillWhite,
+              borderColor: CustomColors.productNormal,
+            ),
+          ),
+        ],
+      ),
+    ];
   }
 
   List<Widget> _buildInitial() {
@@ -1677,6 +1739,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
   }
 
   List<Widget> _buildError() {
+    final connectivityError = _phase == UpdateState.connectionError;
     return [
       Image.asset(
         'assets/images/icons/studyUpdateFailed.png',
@@ -1690,12 +1753,46 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
         style: CustomTypography().headlineMedium(),
       ),
       const SizedBox(height: 12),
-      Text(
-        'Your study was not updated. Check your internet connection and retry update or try again later through settings.',
-        textAlign: TextAlign.center,
-        style: CustomTypography()
-            .bodyLarge(color: CustomColors.textSecondaryContent),
-      ),
+      if (connectivityError)
+        RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            style: CustomTypography()
+                .bodyMedium(color: CustomColors.textSecondaryContent),
+            children: [
+              const TextSpan(
+                  text:
+                      "Your study was not updated. Please check your internet connection and try again or update later under "),
+              TextSpan(
+                text: "Settings > Study Details",
+                style: CustomTypography()
+                    .bodyMedium(color: CustomColors.textSecondaryContent)
+                    .copyWith(fontStyle: FontStyle.italic),
+              ),
+              const TextSpan(text: "."),
+            ],
+          ),
+        )
+      else
+        RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            style: CustomTypography()
+                .bodyMedium(color: CustomColors.textSecondaryContent),
+            children: [
+              const TextSpan(
+                  text:
+                      "Your study was not updated. Retry update or try later under "),
+              TextSpan(
+                text: "Settings > Study Details",
+                style: CustomTypography()
+                    .bodyMedium(color: CustomColors.textSecondaryContent)
+                    .copyWith(fontStyle: FontStyle.italic),
+              ),
+              const TextSpan(text: ".")
+            ],
+          ),
+        ),
       const SizedBox(height: 24),
       Row(
         spacing: 24,
@@ -1703,7 +1800,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
         children: [
           Expanded(
             child: CustomFlatButton(
-              onClick: () => Navigator.pop(context),
+              onClick: _reschedule,
               text: 'Update Later',
               color: CustomColors.fillWhite,
               textColor: CustomColors.productNormalActive,
@@ -1712,7 +1809,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
           ),
           Expanded(
             child: CustomFlatButton(
-              onClick: _retry,
+              onClick: _startUpdate,
               text: 'Retry Update',
             ),
           ),
@@ -1772,12 +1869,16 @@ class StudyUpdateBlockedPopUp extends StatelessWidget {
                   width: 60,
                 ),
               ),
-              SizedBox(height: 12,),
+              SizedBox(
+                height: 12,
+              ),
               Text(
                 'Update Study',
                 style: CustomTypography().headlineMedium(),
               ),
-              SizedBox(height: 12,),
+              SizedBox(
+                height: 12,
+              ),
               Container(
                 width: width,
                 padding: const EdgeInsets.all(16),

@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/usecases/connectivity.dart';
+import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart';
 import 'package:audio_diaries_flutter/core/usecases/incentives.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -43,7 +44,7 @@ class SummaryRepository {
       for (final prompt in diary.prompts) {
         final newPrompt = promptRepository.load(diary, prompt.id);
         final isInstruction =
-            newPrompt.responseType ==  ResponseType.instruction || newPrompt.responseType == ResponseType.mediaVideo;
+            newPrompt.responseType == ResponseType.instruction;
         newPrompt.id = prompt.id;
         if (!isInstruction) {
           cleanPrompts.add(newPrompt);
@@ -120,20 +121,6 @@ class SummaryRepository {
   ///
   Future<bool?> submitDiary(DiaryModel diary) async {
     try {
-      // Idempotency guard: never re-submit a finished diary and never
-      // increment currentEntry past entries. Without this guard, a
-      // double-tap, retry, or overlap between SummaryCubit and
-      // BulkSubmissionCubit can append a duplicate timestamp to
-      // submissions[] and corrupt currentEntry.
-      if (diary.status == DiaryStatus.submitted ||
-          diary.currentEntry >= diary.entries) {
-        dev.log(
-            "submitDiary ignored — diary ${diary.id} already complete "
-            "(status=${diary.status}, currentEntry=${diary.currentEntry}, entries=${diary.entries})",
-            name: "SummaryRepository - submitDiary");
-        return true;
-      }
-
       final hasInternet = await checkForInternet();
       if (!hasInternet) return null;
 
@@ -150,23 +137,27 @@ class SummaryRepository {
         dev.log("Current entry: ${diary.currentEntry}",
             name: "SummaryRepository - submitDiary");
 
-        // Build a NEW list — do not mutate diary.submissions in place,
-        // otherwise the input model and the new model share state and
-        // upstream caches behave non-deterministically.
-        final updatedSubmissions = <DateTime>[
-          ...(diary.submissions ?? []),
-          DateTime.now(),
-        ];
-        final nextEntry = diary.currentEntry + 1;
-        final isLast = nextEntry == diary.entries;
-
-        newDiary = diary.copyWith(
-            id: diary.id,
-            studyID: diary.studyID,
-            status: isLast ? DiaryStatus.submitted : DiaryStatus.idle,
-            activeDays: diary.activeDays,
-            currentEntry: nextEntry,
-            submissions: updatedSubmissions);
+        final List<DateTime> submissions = diary.submissions ?? [];
+        submissions.add(DateTime.now());
+        if (diary.currentEntry + 1 == diary.entries) {
+          newDiary = diary.copyWith(
+              id: diary.id,
+              studyID: diary.studyID,
+              status: DiaryStatus.submitted,
+              activeDays: diary.activeDays,
+              currentEntry: diary.currentEntry + 1,
+              submissions: submissions,
+              completions: diary.completions);
+        } else {
+          newDiary = diary.copyWith(
+              id: diary.id,
+              studyID: diary.studyID,
+              status: DiaryStatus.idle,
+              activeDays: diary.activeDays,
+              currentEntry: diary.currentEntry + 1,
+              submissions: submissions,
+              completions: diary.completions);
+        }
 
         await diaryRepository.updateDiary(newDiary);
 
@@ -179,6 +170,7 @@ class SummaryRepository {
         }
         cancelContinueNotifications(diary.id);
         calculateEarnedIncentivesForAWS(participantID: participant.studyCode);
+        await modifyHomeProgressTracking(studyID: diary.studyID, submissions: 1, activateAnimation: true);
         return true;
       } else {
         return false;

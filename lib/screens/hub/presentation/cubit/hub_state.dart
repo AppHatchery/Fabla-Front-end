@@ -17,10 +17,14 @@ class HubUpdating extends HubState {
 
 class HubRefreshing extends HubState {}
 
-class HubUpdated extends HubState {
-  final bool complete;
-  const HubUpdated(this.complete);
+class HubUpdated extends HubState {}
+
+class HubUpdateAvailable extends HubState {}
+
+class HubUpdateFailed extends HubState {
+  final bool connectionError;
+  const HubUpdateFailed({this.connectionError = false});
 
   @override
-  List<Object> get props => [complete];
+  List<Object> get props => [connectionError];
 }

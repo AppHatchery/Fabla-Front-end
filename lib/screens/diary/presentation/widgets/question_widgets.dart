@@ -4,9 +4,9 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:alarm/alarm.dart';
-import 'package:alarm/model/volume_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
+import 'package:audio_diaries_flutter/core/utils/participant_experiment_details.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
@@ -25,7 +25,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../../core/utils/email_function.dart';
 import '../../../../core/utils/statuses.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
@@ -797,13 +796,12 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
         ));
   }
 
-  _launchEmail() async {
-    launchEmail(
+  void _launchEmail() async {
+    await ParticipantAndExperimentDetails().launchSupportEmail(
         subject: 'Web Survey – Assistance Needed',
-        body: '''Error encountered. Please investigate and advise on next steps.
-        
-        
-Participant ID: ''');
+        body: 'Error encountered. Please investigate and advise on next steps.',
+        example:
+            '(Please Describe the issue you are facing) e.g When I open the web survey I keep getting a Page Not Found error');
   }
 
   void showModal() {
@@ -1283,7 +1281,6 @@ class _TimerWidgetState extends State<TimerWidget>
     );
   }
 
-
   Widget _buildEditableControls() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 12.0),
@@ -1318,32 +1315,35 @@ class _TimerWidgetState extends State<TimerWidget>
 
   Widget _buildStartButton() {
     final isDisabled = inProgress;
-    return showCompletionText ? CustomOutlineButton(
-      onClick: () {
-        _startAndShowModal();
-      },
-      backgroundColor: Colors.transparent,
-      color: CustomColors.productNormal,
-      children: Wrap(
-        children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(3.0),
-              child: Text(
-                "Restart Timer",
-                style: CustomTypography()
-                    .button(color: CustomColors.productNormal),
-              ),
+    return showCompletionText
+        ? CustomOutlineButton(
+            onClick: () {
+              _startAndShowModal();
+            },
+            backgroundColor: Colors.transparent,
+            color: CustomColors.productNormal,
+            children: Wrap(
+              children: [
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(3.0),
+                    child: Text(
+                      "Restart Timer",
+                      style: CustomTypography()
+                          .button(color: CustomColors.productNormal),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
-    ) :
-    CustomElevatedButton(
-    color: isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
-    onClick: isDisabled ? null : _startAndShowModal,
-    text: 'Start Timer',
-    );
+          )
+        : CustomElevatedButton(
+            color: isDisabled
+                ? CustomColors.fillDisabled
+                : CustomColors.productNormal,
+            onClick: isDisabled ? null : _startAndShowModal,
+            text: 'Start Timer',
+          );
   }
 }
 

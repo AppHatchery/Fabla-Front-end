@@ -209,9 +209,34 @@ String formatSubmissionDate(DateTime date) {
 }
 
 //Upload functions
-// Modified to support dependency injection for better testability
-// Added optional parameters for SecureSave and http.Client
-// Default values maintain backward compatibility
+
+/// Re-fetches credentials from the backend using the locally-stored participant
+/// and experiment records, then returns the newly-saved [CredentialsModel].
+///
+/// Returns `null` if local data is unavailable or the request fails, so callers
+/// can treat a null return as a permanent failure rather than retrying.
+Future<CredentialsModel?> _refreshCredentials(SecureSave secureStorage) async {
+  try {
+    final setup = SetupRepository();
+    final participant = setup.getParticipant();
+    final experiment = setup.getExperiment();
+    if (participant == null) return null;
+    await secureStorage.getCredentials(
+      study: experiment.login,
+      participant: participant.studyCode,
+    );
+    return await secureStorage.read();
+  } catch (e, stackTrace) {
+    CrashlyticsService().recordError(e, stackTrace,
+        reason: 'Failed to refresh credentials in _refreshCredentials');
+    await PendoService.track('Upload Error', {
+      'event': 'Refresh Credentials',
+      'reason': e.toString(),
+    });
+    return null;
+  }
+}
+
 Future<bool> uploadNonAudioData(
   List<PromptEntry> promptEntryList, {
   SecureSave? secureSave,
@@ -222,17 +247,24 @@ Future<bool> uploadNonAudioData(
   final httpClient = client ?? http.Client();
 
   try {
-    final cred = await secureStorage.read();
+    var cred = await secureStorage.read();
 
     if (cred == null) {
-      CrashlyticsService().log('Upload failed: credentials are null');
-      return false; // or null
+      dev.log('Credentials null — attempting refresh',
+          name: 'Upload - Non-Audio Data');
+      cred = await _refreshCredentials(secureStorage);
+    }
+
+    if (cred == null) {
+      CrashlyticsService()
+          .log('Upload failed: credentials null after refresh attempt');
+      return false;
     }
     List<Map<String, dynamic>> promptListItems =
         PromptEntry.promptListToMap(promptEntryList);
     String jsonBody = json.encode(promptListItems);
 
-    var url = Uri.parse(cred.dynamo_url ?? "");
+    var url = Uri.parse(cred.dynamoUrl ?? "");
 
     var headers = {
       'Content-Type': 'application/json',
@@ -296,10 +328,6 @@ Future<bool> uploadNonAudioData(
 /// If there's an error during the process, or the response status code is not
 /// 200, it returns null.
 ///
-/// Modified to support dependency injection for better testability.
-/// Added optional parameters for SecureSave and http.Client.
-/// Default values maintain backward compatibility.
-///
 /// Example:
 /// ```dart
 /// String apiUrl = 'https://example.com/api/upload';
@@ -325,9 +353,17 @@ Future<String?> getPresignedUrl(
   final httpClient = client ?? http.Client();
 
   try {
-    final cred = await secureStorage.read();
+    var cred = await secureStorage.read();
+
     if (cred == null) {
-      CrashlyticsService().log('Upload failed: credentials are null');
+      dev.log('Credentials null — attempting refresh',
+          name: 'Upload - Get Presigned URL');
+      cred = await _refreshCredentials(secureStorage);
+    }
+
+    if (cred == null) {
+      CrashlyticsService()
+          .log('Upload failed: credentials null after refresh attempt');
       return null;
     }
 
@@ -382,7 +418,7 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
     var fileStream = file.openRead();
 
     var request = http.Request('PUT', Uri.parse(presignedUrl))
-      ..headers['Content-Type'] = extentionToContentType(p.extension(filePath));
+      ..headers['Content-Type'] = extensionToContentType(p.extension(filePath));
 
     // Collect bytes from the file stream into a single list
     List<int> bytes = [];
@@ -429,7 +465,7 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
   }
 }
 
-String extentionToContentType(String extension) {
+String extensionToContentType(String extension) {
   final type = {
     '.aac': 'audio/aac',
     '.jpg': 'image/jpeg',
@@ -440,14 +476,28 @@ String extentionToContentType(String extension) {
 }
 
 Future<bool> uploadFiles(List<FileData> files) async {
-  final cred = await SecureSave().read();
+  final secureStorage = SecureSave();
+  var cred = await secureStorage.read();
 
-  final apiUrl = cred?.presigned_url ?? "";
+  if (cred == null) {
+    dev.log('Credentials null — attempting refresh',
+        name: 'Upload - Upload Files');
+    cred = await _refreshCredentials(secureStorage);
+  }
+
+  if (cred == null) {
+    CrashlyticsService()
+        .log('Upload failed: credentials null after refresh attempt');
+    return false;
+  }
+
+  final apiUrl = cred.presignedUrl ?? "";
   // List to store the results of each file upload
   final results = <bool>[];
   dev.log('Starting Files Upload - ${DateTime.now()}');
   for (var file in files) {
-    var presignedUrl = await getPresignedUrl(apiUrl, file.awsS3Directory);
+    var presignedUrl = await getPresignedUrl(apiUrl, file.awsS3Directory,
+        secureSave: secureStorage);
     if (presignedUrl != null) {
       final stopwatch = Stopwatch()..start();
       final result = await uploadFileToS3(presignedUrl, file.localDirectory);
@@ -486,7 +536,7 @@ Future<bool> uploadFiles(List<FileData> files) async {
 class FileData {
   String localDirectory;
   String awsS3Directory;
-  // Constructor
+
   FileData({required this.localDirectory, required this.awsS3Directory});
 }
 
@@ -499,8 +549,8 @@ class PromptEntry {
   String diaryID;
   String promptID;
   String response;
-  String respondedAt; // Added to store the response time
-  String questionsType; // Corrected parameter name
+  String respondedAt;
+  String questionsType;
   bool required;
   String transcript;
   String reference;
@@ -512,8 +562,8 @@ class PromptEntry {
     required this.diaryID,
     required this.promptID,
     required this.response,
-    required this.respondedAt, // Added to store the response time
-    required this.questionsType, // Corrected parameter name
+    required this.respondedAt,
+    required this.questionsType,
     required this.required,
     this.transcript = "",
     this.reference = "",
@@ -531,9 +581,9 @@ class PromptEntry {
         "DiaryID": entry.diaryID,
         "PromptID": entry.promptID,
         "Response": entry.response,
-        "RespondedAt": entry.respondedAt, // Added to store the response time
+        "RespondedAt": entry.respondedAt,
         "QuestionsType": entry.questionsType,
-        "Required": entry.required.toString(), // Convert bool to string
+        "Required": entry.required.toString(),
         "Transcript": entry.transcript,
         "Reference": entry.reference,
         "Environment": kDebugMode ? "Dev" : "Prod"
