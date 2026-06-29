@@ -36,49 +36,87 @@ class _TestMicrophoneState extends State<TestMicrophone> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: 18.0),
         decoration: BoxDecoration(
           color: CustomColors.fillWhite,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Column(
+          spacing: 12,
           children: [
-            Text(
-              "Your microphone access is fully set up. You can test the microphone before you start recording.",
-              style: CustomTypography()
-                  .bodyMedium(color: CustomColors.textTertiaryContent),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                "Your microphone access is fully set up. You can test the microphone before you start recording.",
+                style: TextStyle(
+                  color: Colors.black.withValues(alpha: 0.64),
+                  fontSize: 14,
+                  fontFamily: 'Rubik',
+                  fontWeight: FontWeight.w400,
+                  height: 1.50,
+                ),
+              ),
             ),
-            const SizedBox(
-              height: 12,
+            Divider(
+              thickness: 0.5,
+              height: 24,
             ),
-            SizedBox(
-              child: Row(
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      if (isRecording) {
-                        stopRecorder();
-                      } else {
-                        startRecorder();
-                      }
-                    },
-                    style: TextButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100)),
-                        backgroundColor: CustomColors.productNormal),
-                    child: Text(isRecording ? "Stop Test" : "Test Microphone",
-                        style: CustomTypography()
-                            .title(color: CustomColors.textWhite),
-                        textAlign: TextAlign.center),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Visibility(
-                      visible: isRecording,
-                      child: SettingsMIcTest(recorder: recorder),
-                    ),
-                  )
-                ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final buttonWidth = isRecording
+                      ? (constraints.maxWidth - 10) / 3
+                      : constraints.maxWidth;
+                  final waveformWidth = (constraints.maxWidth - 10) * 2 / 3;
+              
+                  return Row(
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.fastOutSlowIn,
+                        width: buttonWidth,
+                        child: TextButton(
+                          onPressed: () {
+                            if (isRecording) {
+                              stopRecorder();
+                            } else {
+                              startRecorder();
+                            }
+                          },
+                          style: TextButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(100)),
+                              backgroundColor: CustomColors.productNormal),
+                          child: Text(
+                              isRecording ? "Stop Test" : "Test Microphone",
+                              style: CustomTypography()
+                                  .title(color: CustomColors.textWhite),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.clip),
+                        ),
+                      ),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.fastOutSlowIn,
+                        clipBehavior: Clip.hardEdge,
+                        child: isRecording
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const SizedBox(width: 10),
+                                  SizedBox(
+                                    width: waveformWidth,
+                                    child: SettingsMIcTest(recorder: recorder),
+                                  ),
+                                ],
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],

@@ -41,7 +41,7 @@ class _ActiveRemindersState extends State<ActiveReminders> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       clipBehavior: Clip.antiAlias,
       decoration: ShapeDecoration(
         color: Colors.white,
@@ -118,22 +118,26 @@ class _ActiveRemindersState extends State<ActiveReminders> {
                 const SizedBox(
                   height: 12,
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12.0, vertical: 4.0),
-                  child: CustomOutlineButton(
-                    onClick: () => pickDate(),
-                    backgroundColor: CustomColors.productNormal,
-                    color: CustomColors.productNormal,
-                    borderRadius: 100,
-                    children: Wrap(children: [
-                      Text(
-                        "+ Add Reminder",
-                        style: CustomTypography()
-                            .title(color: CustomColors.textWhite),
-                      )
-                    ]),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomOutlineButton(
+                        onClick: () => pickDate(),
+                        backgroundColor: CustomColors.productNormal,
+                        color: CustomColors.productNormal,
+                        borderRadius: 100,
+                        children: Wrap(children: [
+                          Center(
+                            child: Text(
+                              "+ Add Reminder",
+                              style: CustomTypography()
+                                  .title(color: CustomColors.textWhite),
+                            ),
+                          )
+                        ]),
+                      ),
+                    ),
+                  ],
                 )
               ],
             ),

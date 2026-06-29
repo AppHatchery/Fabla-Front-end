@@ -153,15 +153,17 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                     visible: !micCheck,
                     replacement: const TestMicrophone(),
                     child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 18),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
                         color: CustomColors.fillWhite,
                       ),
                       child: Column(
+                        spacing: 12,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(top: 16.0, left: 16),
+                            padding: const EdgeInsets.only(left: 16),
                             child: Stack(
                               children: <Widget>[
                                 const Icon(
@@ -197,9 +199,6 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                               ],
                             ),
                           ),
-                          const SizedBox(
-                            width: 20,
-                          ),
                           Padding(
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 16.0),
@@ -223,27 +222,32 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                             thickness: 0.5,
                             height: 24,
                           ),
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                              child: CustomOutlineButton(
-                                onClick: () => openAppSettings().then((_) {}),
-                                backgroundColor: CustomColors.productNormal,
-                                color: CustomColors.productNormal,
-                                borderRadius: 200,
-                                children: Wrap(children: [
-                                  Text(
-                                    "Open Settings",
-                                    style: CustomTypography()
-                                        .title(color: CustomColors.textWhite),
-                                  )
-                                ]),
-                              ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: CustomOutlineButton(
+                                    onClick: () =>
+                                        openAppSettings().then((_) {}),
+                                    backgroundColor: CustomColors.productNormal,
+                                    color: CustomColors.productNormal,
+                                    borderRadius: 200,
+                                    children: Wrap(children: [
+                                      Center(
+                                        child: Text(
+                                          "Open Settings",
+                                          style: CustomTypography().title(
+                                              color: CustomColors.textWhite),
+                                        ),
+                                      )
+                                    ]),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          SizedBox(
-                            height: 18,
-                          )
                         ],
                       ),
                     )),
