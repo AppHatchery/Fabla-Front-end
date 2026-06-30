@@ -55,7 +55,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
   late MaterialLocalizations localizations = MaterialLocalizations.of(context);
 
-
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -160,7 +159,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           pendoEvent();
           track(timer.stop(), "Submitted");
           Navigator.of(context).pushReplacement(_completionRoute()).then((_) {
-            Future.delayed(Duration(seconds: 1), (){
+            Future.delayed(Duration(seconds: 1), () {
               summaryCubit.loadSummary(widget.diary);
             });
           });
@@ -504,7 +503,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         final width = MediaQuery.of(context).size.width;
         return prompt.answer == null
             ? const SizedBox.shrink()
-            : prompt.answer?.response?.firstOrNull?.contains("Item was skipped due to:") ?? true
+            : prompt.answer?.response?.firstOrNull
+                        ?.contains("Item was skipped due to:") ??
+                    true
                 ? Container(
                     width: width,
                     padding:
@@ -524,9 +525,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                       ),
                       Expanded(
                         child: Text(prompt.answer?.response?.firstOrNull ?? "",
-                            style: CustomTypography().bodyMedium(
-                              color: Color(0xFFFF3B30))
-                        ),
+                            style: CustomTypography()
+                                .bodyMedium(color: Color(0xFFFF3B30))),
                       ),
                     ]),
                   )
@@ -549,8 +549,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                       ),
                       Expanded(
                         child: Text("Survey response collected",
-                            style: CustomTypography()
-                                .bodyLarge(color: CustomColors.textSecondaryContent),
+                            style: CustomTypography().bodyLarge(
+                                color: CustomColors.textSecondaryContent),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis),
                       ),
@@ -585,8 +585,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   child: Row(children: [
                     Expanded(
                       child: Text("Completed the timer ✅",
-                          style: CustomTypography()
-                              .bodyLarge(color: CustomColors.textSecondaryContent),
+                          style: CustomTypography().bodyLarge(
+                              color: CustomColors.textSecondaryContent),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                     ),
@@ -612,8 +612,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     Expanded(
                       child: Text(
                           "${elapsed.inHours.toString().padLeft(2, '0')} h ${elapsed.inMinutes.remainder(60).toString().padLeft(2, '0')} min",
-                          style: CustomTypography()
-                              .bodyLarge(color: CustomColors.textSecondaryContent),
+                          style: CustomTypography().bodyLarge(
+                              color: CustomColors.textSecondaryContent),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                     ),
@@ -781,7 +781,12 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
       return response == null || response.contains("Item was skipped due to:");
     }
 
-    if (prompt.responseType == ResponseType.teleprompter || prompt.responseType == ResponseType.reference || prompt.responseType == ResponseType.mediaVideo) return false;
+    if (prompt.responseType == ResponseType.teleprompter ||
+        prompt.responseType == ResponseType.reference ||
+        prompt.responseType == ResponseType.mediaVideo ||
+        prompt.responseType == ResponseType.slider) {
+      return false;
+    }
 
     return true;
   }

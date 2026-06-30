@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:developer' as dev;
 import 'dart:math';
 
+import 'package:audio_diaries_flutter/core/usecases/video_compression.dart';
 import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/main.dart';
@@ -1485,6 +1486,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
 
   @override
   void initState() {
+    VideoCompressionQueue.instance.setCameraActive(true);
     controller = CameraController(
       cameras[0],
       ResolutionPreset.high,
@@ -1496,6 +1498,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
 
   @override
   dispose() {
+    VideoCompressionQueue.instance.setCameraActive(false);
     _searchingOne?.dispose();
     _riveController?.dispose();
     _riveFile?.dispose();
@@ -2059,6 +2062,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
       if (file != null) {
         final path = await getFilePath();
         await file!.saveTo(path);
+        if (!widget.isImage) VideoCompressionQueue.instance.enqueue(path);
         final name = basePath(path);
         widget.respond(name, widget.isImage ? "image" : "video");
         if (mounted) Navigator.pop(context, true);
@@ -2503,7 +2507,7 @@ class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
   }
 
   void showModal(String path, String type) {
-    final File _file = File(path);
+    final File file = File(path);
     final width = MediaQuery.of(context).size.width;
     showModalBottomSheet(
         backgroundColor: CustomColors.fillNormal,
@@ -2548,7 +2552,7 @@ class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
                             child:
                                 LayoutBuilder(builder: (context, constraints) {
                               return VideoViewer(
-                                file: _file,
+                                file: file,
                                 height: constraints.maxHeight,
                                 width: constraints.maxWidth,
                               );
@@ -2560,7 +2564,7 @@ class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
                               decoration: const BoxDecoration(
                                 color: CustomColors.greyLight,
                               ),
-                              child: Image.file(_file),
+                              child: Image.file(file),
                             ),
                           ),
                   ],
@@ -3045,7 +3049,6 @@ class _VideoPlayerBottomModalState extends State<VideoPlayerBottomModal> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -3053,8 +3056,7 @@ class _VideoPlayerBottomModalState extends State<VideoPlayerBottomModal> {
         Container(
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
-              color: CustomColors.productNormal
-          ),
+              color: CustomColors.productNormal),
           child: Column(
             spacing: 24,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -3063,9 +3065,9 @@ class _VideoPlayerBottomModalState extends State<VideoPlayerBottomModal> {
               Center(
                 child: _controller.value.isInitialized
                     ? AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: VideoPlayer(_controller),
-                )
+                        aspectRatio: _controller.value.aspectRatio,
+                        child: VideoPlayer(_controller),
+                      )
                     : const CircularProgressIndicator(),
               ),
               _widgetProgress(),
@@ -3133,9 +3135,14 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
 
   @override
   void initState() {
+    VideoCompressionQueue.instance.setCameraActive(true);
     controller = CameraController(
       _frontCamera(),
       ResolutionPreset.high,
+      enableAudio: true,
+      fps: 30,
+      videoBitrate: 2500000,
+      audioBitrate: 96000,
     );
     cameraInit();
     super.initState();
@@ -3158,7 +3165,7 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
   /// the first available camera.
   CameraDescription _frontCamera() {
     return cameras.firstWhere(
-          (c) => c.lensDirection == CameraLensDirection.front,
+      (c) => c.lensDirection == CameraLensDirection.front,
       orElse: () => cameras[0],
     );
   }
@@ -3185,6 +3192,7 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
 
   @override
   void dispose() {
+    VideoCompressionQueue.instance.setCameraActive(false);
     controller.dispose();
     _scrollController.dispose();
     videoController?.dispose();
@@ -3221,18 +3229,18 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
         case 'CameraAccessDenied':
           dev.log('You have denied camera access.');
         case 'CameraAccessDeniedWithoutPrompt':
-        // iOS only
+          // iOS only
           dev.log('Please go to Settings app to enable camera access.');
         case 'CameraAccessRestricted':
-        // iOS only
+          // iOS only
           dev.log('Camera access is restricted.');
         case 'AudioAccessDenied':
           dev.log('You have denied audio access.');
         case 'AudioAccessDeniedWithoutPrompt':
-        // iOS only
+          // iOS only
           dev.log('Please go to Settings app to enable audio access.');
         case 'AudioAccessRestricted':
-        // iOS only
+          // iOS only
           dev.log('Audio access is restricted.');
         default:
           dev.log(e.toString());
@@ -3269,9 +3277,9 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
                   SizedBox(
                     child: controller.value.isRecordingVideo
                         ? const Icon(
-                      Icons.fiber_manual_record,
-                      color: CustomColors.warningActive,
-                    )
+                            Icons.fiber_manual_record,
+                            color: CustomColors.warningActive,
+                          )
                         : null,
                   ),
                   GestureDetector(
@@ -3402,7 +3410,6 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
                   );
                 },
               ),
-
           ],
         ),
       );
@@ -3447,48 +3454,47 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
         borderRadius: BorderRadius.circular(4),
         child: controller.value.isInitialized
             ? Stack(
-          children: [
-            Center(
-              child: SizedBox(
-                width: controller.value.previewSize!.height / 3,
-                height: controller.value.previewSize!.width / 3,
-                child: CameraPreview(controller),
-              ),
-            ),
-            if (elapsed.inMilliseconds > 0)
-              Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 9.0),
-                  child: Container(
-                    width: 90,
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 9),
-                    decoration: ShapeDecoration(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4)),
-                      color: controller.value.isRecordingPaused
-                          ? CustomColors.productNormal
-                          : CustomColors.warningActive,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          formatDurationtoHHMMSS(elapsed),
-                          style: CustomTypography().custom(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: CustomColors.textWhite,
-                          ),
-                        ),
-                      ],
+                children: [
+                  Center(
+                    child: SizedBox(
+                      width: controller.value.previewSize!.height / 3,
+                      height: controller.value.previewSize!.width / 3,
+                      child: CameraPreview(controller),
                     ),
                   ),
-                ),
-              ),
-          ],
-        )
+                  if (elapsed.inMilliseconds > 0)
+                    Align(
+                      alignment: Alignment.topCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 9.0),
+                        child: Container(
+                          width: 90,
+                          padding: const EdgeInsets.symmetric(horizontal: 9),
+                          decoration: ShapeDecoration(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4)),
+                            color: controller.value.isRecordingPaused
+                                ? CustomColors.productNormal
+                                : CustomColors.warningActive,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                formatDurationtoHHMMSS(elapsed),
+                                style: CustomTypography().custom(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: CustomColors.textWhite,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              )
             : SizedBox(height: feedHeight, width: feedWidth),
       ),
     );
@@ -3516,8 +3522,8 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
                 controller.value.isRecordingPaused
                     ? 10
                     : controller.value.isRecordingVideo
-                    ? 15
-                    : 4,
+                        ? 15
+                        : 4,
               ),
               child: Container(
                 decoration: BoxDecoration(
@@ -3532,29 +3538,30 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
               ),
             ),
           ),
-          controller.value.isRecordingVideo ? SizedBox.shrink() :
-          Positioned(
-            right: 0,
-            child: GestureDetector(
-              onTap: () => flip(),
-              child: Container(
-                height: 50,
-                width: 50,
-                decoration: BoxDecoration(
-                  color: CustomColors.fillWhite,
-                  borderRadius: BorderRadius.circular(68),
-                ),
-                padding: const EdgeInsets.all(4),
-                child: Center(
-                  child: Icon(
-                    CupertinoIcons.switch_camera_solid,
-                    color: CustomColors.productNormal,
-                    size: 25,
+          controller.value.isRecordingVideo
+              ? SizedBox.shrink()
+              : Positioned(
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: () => flip(),
+                    child: Container(
+                      height: 50,
+                      width: 50,
+                      decoration: BoxDecoration(
+                        color: CustomColors.fillWhite,
+                        borderRadius: BorderRadius.circular(68),
+                      ),
+                      padding: const EdgeInsets.all(4),
+                      child: Center(
+                        child: Icon(
+                          CupertinoIcons.switch_camera_solid,
+                          color: CustomColors.productNormal,
+                          size: 25,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -3623,6 +3630,7 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
       if (file != null) {
         final path = await getFilePath();
         await file!.saveTo(path);
+        VideoCompressionQueue.instance.enqueue(path);
         widget.respond(basePath(path), "video");
         if (mounted) Navigator.pop(context, true);
       }
