@@ -82,17 +82,9 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            experiment!.name,
-                            style: CustomTypography()
-                                .bodyLarge(color: CustomColors.textNormalContent),
-                          ),
-                        ),
-                        if (lastUpdated != null)
+                    if (lastUpdated != null) ...[
+                      Row(
+                        children: [
                           Flexible(
                             child: Text(
                               "Last Updated: $lastUpdated",
@@ -100,7 +92,21 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                                   color: CustomColors.textTertiaryContent,
                                   fontWeight: FontWeight.w400),
                             ),
-                          )
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            experiment!.name,
+                            style: CustomTypography().bodyLarge(
+                                color: CustomColors.textNormalContent),
+                          ),
+                        ),
                       ],
                     ),
                     Row(
@@ -108,8 +114,8 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                         Flexible(
                           child: Text(
                             experiment!.organization,
-                            style: CustomTypography()
-                                .bodyMedium(color: CustomColors.textTertiaryContent),
+                            style: CustomTypography().bodyMedium(
+                                color: CustomColors.textTertiaryContent),
                           ),
                         ),
                       ],
@@ -138,6 +144,11 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                             ]),
                           ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
                         Expanded(
                           child: CustomOutlineButton(
                             key: Key("update_study"),
@@ -158,7 +169,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                           ),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -168,18 +179,17 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
         CustomFlatButton(
             color: CustomColors.fillWhite,
             textColor: CustomColors.productNormalActive,
+            borderColor: CustomColors.productBorderNormal,
             onClick: launchEmailMethod,
             text: "Contact Researcher"),
       ],
     );
   }
 
-  Future<void> launchEmailMethod() => _details.launchSupportEmail
-    (
-      subject: 'Fabla Participant Issue',
-      body: 'Describe the issue you are facing',
-  );
-
+  Future<void> launchEmailMethod() => _details.launchSupportEmail(
+        subject: 'Fabla Participant Issue',
+        body: 'Describe the issue you are facing',
+      );
 
   /// Entry point for the manual study update. Blocks first when there are
   /// pending/submitted diaries today; otherwise opens the single morphing

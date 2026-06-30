@@ -948,6 +948,7 @@ class WarningPopUp extends StatelessWidget {
               // Message
               RichText(
                 textAlign: TextAlign.center,
+                textScaler: MediaQuery.textScalerOf(context),
                 text: TextSpan(
                     style: CustomTypography().bodyLarge(),
                     children: const [
@@ -1643,8 +1644,6 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       ),
       const SizedBox(height: 24),
       Row(
-        spacing: 24,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: CustomFlatButton(
@@ -1655,6 +1654,10 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
               borderColor: CustomColors.warningActive,
             ),
           ),
+        ],
+      ),
+      Row(
+        children: [
           Expanded(
             child: CustomFlatButton(
               onClick: () => Navigator.pop(context),
@@ -1749,6 +1752,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       if (connectivityError)
         RichText(
           textAlign: TextAlign.center,
+          textScaler: MediaQuery.textScalerOf(context),
           text: TextSpan(
             style: CustomTypography()
                 .bodyMedium(color: CustomColors.textSecondaryContent),
@@ -1769,6 +1773,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       else
         RichText(
           textAlign: TextAlign.center,
+          textScaler: MediaQuery.textScalerOf(context),
           text: TextSpan(
             style: CustomTypography()
                 .bodyMedium(color: CustomColors.textSecondaryContent),
@@ -1788,8 +1793,6 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
         ),
       const SizedBox(height: 24),
       Row(
-        spacing: 24,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: CustomFlatButton(
@@ -1800,6 +1803,10 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
               borderColor: CustomColors.productNormalActive,
             ),
           ),
+        ],
+      ),
+      Row(
+        children: [
           Expanded(
             child: CustomFlatButton(
               onClick: _startUpdate,
