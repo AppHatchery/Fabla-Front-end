@@ -245,7 +245,7 @@ class _CameraAccessState extends State<CameraAccess>
 
   navigateToNextPage(BuildContext context) async {
     await _permissionGuard.run(() async {
-      final results = await Permission.microphone.request();
+      final results = await Permission.camera.request();
       if (mounted) {
         setState(() {
           permission = results.isGranted;
