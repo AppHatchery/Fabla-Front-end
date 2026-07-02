@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/core/network/upload.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 
@@ -46,7 +48,8 @@ void diaryEnd({required String diaryID}) async {
 ///
 /// Returns: List of [PromptEntry] to be add to the submission pool
 Future<List<PromptEntry>> submitDiaryCompletionTime(
-    {required String diaryID,
+    {required DiaryModel diary,
+    required StudyModel? study,
     required String participantID,
     required String experimentCode,
     required int promptLength}) async {
@@ -60,14 +63,16 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
     final entries = <PromptEntry>[];
 
     // Only submit if the diary has a start
-    if (starts.containsKey(diaryID)) {
+    if (starts.containsKey(diary.id.toString())) {
       // start
-      final startValue = starts[diaryID] ?? "";
+      final startValue = starts[diary.id.toString()] ?? "";
       final start = PromptEntry(
           participantID: participantID,
           experimentCode: experimentCode,
           questionTitle: "Time the diary was started",
-          diaryID: diaryID,
+          diaryID: diary.id.toString(),
+          diaryName: diary.name,
+          study: study?.name ?? 'unknown',
           promptID: (promptLength + 1).toString(),
           response: startValue,
           respondedAt: "",
@@ -77,20 +82,22 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
 
       //Clean Up!
       // To avoid reoccurring diaries from having the same start time
-      starts.removeWhere((key, _) => key == diaryID);
+      starts.removeWhere((key, _) => key == diary.id.toString());
       await preferences.setStringPreference(
           key: "diary_starts", value: jsonEncode(starts));
     }
 
-    if (ends.containsKey(diaryID)) {
+    if (ends.containsKey(diary.id.toString())) {
       // end
-      final endValue = ends[diaryID] ?? "";
+      final endValue = ends[diary.id.toString()] ?? "";
       final end = PromptEntry(
           participantID: participantID,
           experimentCode: experimentCode,
           questionTitle: "Time the diary was completed",
-          diaryID: diaryID,
+          diaryID: diary.id.toString(),
           promptID: (promptLength + 2).toString(),
+          diaryName: diary.name,
+          study: study?.name ?? 'unknown',
           response: endValue,
           respondedAt: "",
           questionsType: "end_time",
@@ -98,7 +105,7 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
       entries.add(end);
 
       // Clean Up!
-      ends.removeWhere((key, _) => key == diaryID);
+      ends.removeWhere((key, _) => key == diary.id.toString());
       await preferences.setStringPreference(
           key: "diary_ends", value: jsonEncode(ends));
     }
@@ -108,7 +115,11 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
     dev.log('Failed to build completion time entries: $e',
         name: 'Diary - submitDiaryCompletionTime');
     CrashlyticsService().recordError(e, stackTrace,
-        context: {'DiaryID': diaryID, 'ParticipantID': participantID},
+        context: {
+          'DiaryID': diary.id.toString(),
+          'ParticipantID': participantID,
+          'Diary': diary.name
+        },
         reason:
             'Failed to read/decode completion time preferences — submission will continue without timing data');
     return [];
