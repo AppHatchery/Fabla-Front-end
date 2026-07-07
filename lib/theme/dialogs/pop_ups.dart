@@ -948,6 +948,7 @@ class WarningPopUp extends StatelessWidget {
               // Message
               RichText(
                 textAlign: TextAlign.center,
+                textScaler: MediaQuery.textScalerOf(context),
                 text: TextSpan(
                     style: CustomTypography().bodyLarge(),
                     children: const [
@@ -1159,16 +1160,6 @@ class DeletePopUp extends StatelessWidget {
                       textColor: CustomColors.fillWhite,
                     ),
                   ),
-                  const SizedBox(width: 18),
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, false),
-                      text: "Cancel",
-                      color: CustomColors.productNormal,
-                      borderColor: CustomColors.productNormal,
-                      textColor: CustomColors.fillWhite,
-                    ),
-                  ),
                 ],
               )
             ],
@@ -1181,7 +1172,13 @@ class DeletePopUp extends StatelessWidget {
 
 class ExitPopUp extends StatelessWidget {
   final List<Widget> content;
-  const ExitPopUp({super.key, required this.content});
+  final String confirmText;
+  final String cancelText;
+  const ExitPopUp(
+      {super.key,
+      required this.content,
+      this.confirmText = "Yes, Leave Study",
+      this.cancelText = "No, Take Me Back"});
 
   @override
   Widget build(BuildContext context) {
@@ -1201,25 +1198,22 @@ class ExitPopUp extends StatelessWidget {
             children: [
               ...content,
               const SizedBox(height: 24),
-              // Buttons
               CustomFlatButton(
                 onClick: () => Navigator.pop(context, true),
-                text: "Yes, Leave Study",
+                text: confirmText,
                 buttonFontSize: 13,
                 textColor: CustomColors.warningActive,
                 color: CustomColors.fillWhite,
                 borderColor: CustomColors.warningActive,
               ),
-              const SizedBox(
-                width: 18,
-              ),
+              const SizedBox(width: 18),
               CustomFlatButton(
                 onClick: () => Navigator.pop(context, false),
-                text: "No, Take Me Back",
+                text: cancelText,
                 buttonFontSize: 13,
                 color: CustomColors.productNormal,
                 borderColor: CustomColors.productNormal,
-              )
+              ),
             ],
           ),
         ),
@@ -1650,8 +1644,6 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       ),
       const SizedBox(height: 24),
       Row(
-        spacing: 24,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: CustomFlatButton(
@@ -1662,6 +1654,10 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
               borderColor: CustomColors.warningActive,
             ),
           ),
+        ],
+      ),
+      Row(
+        children: [
           Expanded(
             child: CustomFlatButton(
               onClick: () => Navigator.pop(context),
@@ -1756,6 +1752,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       if (connectivityError)
         RichText(
           textAlign: TextAlign.center,
+          textScaler: MediaQuery.textScalerOf(context),
           text: TextSpan(
             style: CustomTypography()
                 .bodyMedium(color: CustomColors.textSecondaryContent),
@@ -1776,6 +1773,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       else
         RichText(
           textAlign: TextAlign.center,
+          textScaler: MediaQuery.textScalerOf(context),
           text: TextSpan(
             style: CustomTypography()
                 .bodyMedium(color: CustomColors.textSecondaryContent),
@@ -1795,8 +1793,6 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
         ),
       const SizedBox(height: 24),
       Row(
-        spacing: 24,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: CustomFlatButton(
@@ -1807,6 +1803,10 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
               borderColor: CustomColors.productNormalActive,
             ),
           ),
+        ],
+      ),
+      Row(
+        children: [
           Expanded(
             child: CustomFlatButton(
               onClick: _startUpdate,

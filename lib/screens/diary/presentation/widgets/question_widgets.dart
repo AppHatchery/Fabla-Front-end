@@ -1548,19 +1548,18 @@ class _TeleprompterResponseWidgetState
           const SizedBox(height: 32),
           widget.prompt.answer?.recordings.isNotEmpty ?? false
               ? RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: "Thank you 🎉\n",
-                    style: CustomTypography().headlineLarge(),
-                  ),
-                  TextSpan(
-                    text: "Your recording has been saved and will be available for review later",
-                    style: CustomTypography().bodyLarge(),
-                  ),
-                ]
-              ))
+                  textAlign: TextAlign.center,
+                  text: TextSpan(children: [
+                    TextSpan(
+                      text: "Thank you 🎉\n",
+                      style: CustomTypography().headlineLarge(),
+                    ),
+                    TextSpan(
+                      text:
+                          "Your recording has been saved and will be available for review later",
+                      style: CustomTypography().bodyLarge(),
+                    ),
+                  ]))
               : const SizedBox.shrink()
         ],
       ),
@@ -2123,12 +2122,15 @@ class _VideoViewerState extends State<VideoViewer> {
                     child: Stack(
                       children: [
                         Positioned(
-                          bottom: 200,
+                          bottom: 50,
                           left: 8,
                           right: 8,
-                          child: AspectRatio(
-                            aspectRatio: controller!.value.aspectRatio,
-                            child: VideoPlayer(controller!),
+                          child: SizedBox(
+                            height: MediaQuery.heightOf(context) * .65,
+                            child: AspectRatio(
+                              aspectRatio: controller!.value.aspectRatio,
+                              child: VideoPlayer(controller!),
+                            ),
                           ),
                         ),
                         Positioned(
@@ -2179,8 +2181,8 @@ class _VideoViewerState extends State<VideoViewer> {
                   ),
                 ),
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 28.5),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 28.5),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
