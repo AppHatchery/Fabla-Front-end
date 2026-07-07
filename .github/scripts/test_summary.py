@@ -48,7 +48,6 @@ def main():
         if kind == "suite":
             suite = event["suite"]
             path = suite.get("path") or ""
-            # Trim the runner's absolute prefix to a repo-relative test/ path.
             if "/test/" in path:
                 path = path[path.index("/test/") + 1:]
             suite_path[suite["id"]] = path
@@ -66,9 +65,9 @@ def main():
             }
 
     passed = failed = skipped = 0
-    failures = []  # (name, path, first_error_line)
+    failures = []
     for tid, res in results.items():
-        if res["hidden"]:  # loading/tearDown bookkeeping entries
+        if res["hidden"]:
             continue
         if res["skipped"]:
             skipped += 1
@@ -84,45 +83,67 @@ def main():
             ))
 
     total = passed + failed + skipped
+    pass_rate = (passed / total * 100) if total else 0.0
     icon = "✅" if failed == 0 and total > 0 else ("❌" if failed else "⚠️")
+    status_word = "PASSED" if failed == 0 and total > 0 else ("FAILED" if failed else "NO TESTS")
+
+    def bar(pct, width=20):
+        filled = round(width * pct / 100)
+        return "█" * filled + "░" * (width - filled)
 
     lines = [
-        f"## {icon} Unit & Widget Tests",
+        f"## {icon} Unit & Widget Tests — {status_word}",
         "",
-        "| Result | Count |",
-        "| --- | ---: |",
-        f"| ✅ Passed | {passed} |",
-        f"| ❌ Failed | {failed} |",
-        f"| ⏭️ Skipped | {skipped} |",
-        f"| **Total** | **{total}** |",
+        f"`{bar(pass_rate)}` **{pass_rate:.1f}%** pass rate ({passed}/{total})",
+        "",
+        "| ✅ Passed | ❌ Failed | ⏭️ Skipped | Σ Total |",
+        "| :---: | :---: | :---: | :---: |",
+        f"| {passed} | {failed} | {skipped} | **{total}** |",
         "",
     ]
 
     if coverage:
-        gate = f" · gate {threshold}%" if threshold else ""
-        cov_icon = ""
-        if threshold:
-            try:
-                cov_icon = " ✅" if float(coverage) >= float(threshold) else " ❌"
-            except ValueError:
-                cov_icon = ""
-        lines.append(f"**Test Coverage: {coverage}%{gate}**{cov_icon}")
+        try:
+            cov_val = float(coverage)
+            gate_val = float(threshold) if threshold else None
+        except ValueError:
+            cov_val, gate_val = None, None
+
+        if cov_val is not None:
+            cov_icon = "✅" if gate_val is not None and cov_val >= gate_val else (
+                "❌" if gate_val is not None else "📊"
+            )
+            gate = f" (gate: {threshold}%)" if threshold else ""
+            lines.append(f"`{bar(cov_val)}` {cov_icon} **Coverage: {coverage}%**{gate}")
+        else:
+            lines.append(f"📊 **Coverage: {coverage}%**")
         lines.append("")
 
     if failures:
-        lines.append("### Failing tests")
+        lines.append(f"### ❌ {len(failures)} Failing Test{'s' if len(failures) != 1 else ''}")
         lines.append("")
+        # Collapsed by default when the list is long, so the PR comment stays scannable.
+        collapse = len(failures) > 10
+        if collapse:
+            lines.append("<details>")
+            lines.append(f"<summary>Show {len(failures)} failures</summary>")
+            lines.append("")
         for name, path, first in failures[:50]:
-            location = f" — `{path}`" if path else ""
-            lines.append(f"- **{name}**{location}")
+            location = f" · `{path}`" if path else ""
+            lines.append(f"**`{name}`**{location}")
             if first:
-                lines.append(f"  > {first[:300]}")
+                lines.append("```")
+                lines.append(first[:300])
+                lines.append("```")
         if len(failures) > 50:
-            lines.append(f"- …and {len(failures) - 50} more")
+            lines.append(f"_…and {len(failures) - 50} more_")
+        if collapse:
+            lines.append("")
+            lines.append("</details>")
         lines.append("")
 
     if total == 0:
-        lines.append("> ⚠️ No test results were parsed — the run likely failed "
+        lines.append("> ⚠️ **No test results were parsed** — the run likely failed "
                      "before tests executed (build/setup error). Check the log.")
         lines.append("")
 
