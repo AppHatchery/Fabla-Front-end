@@ -92,11 +92,11 @@ def main():
         return "█" * filled + "░" * (width - filled)
 
     lines = [
-        f"## {icon} Unit & Widget Tests — {status_word}",
+        f"## Unit & Widget Tests — {status_word} {icon}",
         "",
         f"`{bar(pass_rate)}` **{pass_rate:.1f}%** pass rate ({passed}/{total})",
         "",
-        "| ✅ Passed | ❌ Failed | ⏭️ Skipped | Σ Total |",
+        "| Passed | Failed | Skipped | Total |",
         "| :---: | :---: | :---: | :---: |",
         f"| {passed} | {failed} | {skipped} | **{total}** |",
         "",
@@ -114,7 +114,7 @@ def main():
                 "❌" if gate_val is not None else "📊"
             )
             gate = f" (gate: {threshold}%)" if threshold else ""
-            lines.append(f"`{bar(cov_val)}` {cov_icon} **Coverage: {coverage}%**{gate}")
+            lines.append(f"`{bar(cov_val)}` **Coverage: {coverage}%**{gate} {cov_icon}")
         else:
             lines.append(f"📊 **Coverage: {coverage}%**")
         lines.append("")
