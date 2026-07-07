@@ -2989,7 +2989,8 @@ class _VideoPlayerBottomModalState extends State<VideoPlayerBottomModal> {
             iconSize: 20,
             color: isDone ? CustomColors.productNormal : CustomColors.fillWhite,
             icon: CupertinoIcons.checkmark_alt,
-            iconColor: isDone ? CustomColors.fillWhite : CustomColors.productNormal,
+            iconColor:
+                isDone ? CustomColors.fillWhite : CustomColors.productNormal,
             onTap: isDone ? null : _onDone,
           ),
         ],
@@ -3127,11 +3128,11 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
   double feedHeight = 0;
   double feedWidth = 0;
 
-  // Floating image (sticky-bottom while script scrolls).
-  static const double _floatingImageHeight = 250.0;
-  static const double _floatingImageGap = 16.0;
-  final GlobalKey _scriptKey = GlobalKey();
-  double _scriptHeight = 0;
+  bool _showingInitial = true;
+  bool _viewfinderPopped = false;
+  Timer? _viewfinderTimer;
+  int? _countdown;
+  Timer? _countdownTimer;
 
   @override
   void initState() {
@@ -3148,19 +3149,6 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
     super.initState();
   }
 
-  /// Measures the rendered script height once layout is complete so the
-  /// floating image knows when to release from its sticky position.
-  /// Called from a post-frame callback — O(1).
-  void _measureScriptHeight() {
-    if (!mounted) return;
-    final box = _scriptKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null || !box.hasSize) return;
-    final h = box.size.height;
-    if (h != _scriptHeight) {
-      setState(() => _scriptHeight = h);
-    }
-  }
-
   /// Returns the front-facing camera if available, otherwise falls back to
   /// the first available camera.
   CameraDescription _frontCamera() {
@@ -3170,29 +3158,11 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
     );
   }
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 800),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
-  void _scrollToTop() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.minScrollExtent,
-        duration: const Duration(milliseconds: 800),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
   @override
   void dispose() {
     VideoCompressionQueue.instance.setCameraActive(false);
+    _viewfinderTimer?.cancel();
+    _countdownTimer?.cancel();
     controller.dispose();
     _scrollController.dispose();
     videoController?.dispose();
@@ -3216,14 +3186,6 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
 
     try {
       await controller.initialize();
-      if (!mounted) return;
-      // Defer scroll-to-bottom until AFTER the rebuild that picks up the
-      // inflated camera feed dimensions (feedWidth/feedHeight are set in
-      // the listener via setState during initialize(), but the rebuild
-      // doesn't happen until the next frame). Without this, maxScrollExtent
-      // is computed against a 0x0 camera feed and the scroll stops short
-      // of the recording controls.
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } on CameraException catch (e) {
       switch (e.code) {
         case 'CameraAccessDenied':
@@ -3265,20 +3227,36 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
         ),
         child: Column(
           children: [
-            const SizedBox(
-              height: 32,
-            ),
-            // Close Modal Button
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   SizedBox(
-                    child: controller.value.isRecordingVideo
-                        ? const Icon(
-                            Icons.fiber_manual_record,
-                            color: CustomColors.warningActive,
+                    child: elapsed.inMilliseconds > 0
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 9),
+                            decoration: ShapeDecoration(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4)),
+                              color: !controller.value.isRecordingVideo ||
+                                      controller.value.isRecordingPaused
+                                  ? CustomColors.productNormal
+                                  : CustomColors.warningActive,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  formatDurationtoHHMMSS(elapsed),
+                                  style: CustomTypography().custom(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: CustomColors.textWhite,
+                                  ),
+                                ),
+                              ],
+                            ),
                           )
                         : null,
                   ),
@@ -3293,147 +3271,249 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
                 ],
               ),
             ),
-            Expanded(child: questionAndHints()),
+            Expanded(
+              child: LayoutBuilder(builder: (context, constraints) {
+                final H = constraints.maxHeight;
+                final W = constraints.maxWidth;
+                final double sh = MediaQuery.sizeOf(context).height;
+
+                // Fixed controls bar so it never gets squeezed on small phones.
+                final double controlsBarH = sh < 700 ? 72.0 : 88.0;
+                const double miniW = 48;
+                const double miniH = 64;
+
+                // Height available above the controls bar (flex-2 + flex-3)
+                final double contentH = H - controlsBarH;
+
+                // Raw feed dimensions from the controller (safe defaults before init).
+                // feedHeight is the long dimension because previewSize is reported
+                // in landscape: previewSize.width is the long side on Android.
+                final double rawCamW = feedWidth > 0 ? feedWidth : W * 0.55;
+                final double rawCamH =
+                    feedHeight > 0 ? feedHeight : contentH * 0.42;
+
+                // Scale down proportionally so the feed never overflows its
+                // flex-3 area (3/5 of contentH, full width with 5% margin).
+                final double maxCamW = W * 0.95;
+                final double maxCamH = contentH * 3 / 5 * 0.92;
+                final double camScale =
+                    min(1.0, min(maxCamW / rawCamW, maxCamH / rawCamH));
+                final double camW = rawCamW * camScale;
+                final double camH = rawCamH * camScale;
+
+                // Large: centered in the flex-3 portion of contentH.
+                final double largeTop =
+                    contentH * 2 / 5 + (contentH * 3 / 5 - camH) / 2;
+                final double largeLeft = (W - camW) / 2;
+
+                // Mini: vertically centred inside the fixed controls bar
+                final double miniTop =
+                    H - controlsBarH + (controlsBarH - miniH) / 2;
+
+                final bool showLarge = _showingInitial || _viewfinderPopped;
+
+                return Stack(
+                  children: [
+                    // Content — switches between instructions and teleprompter
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 450),
+                      transitionBuilder: (child, animation) {
+                        final slide = Tween<Offset>(
+                          begin: const Offset(0, 0.06),
+                          end: Offset.zero,
+                        ).animate(CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutCubic,
+                        ));
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(position: slide, child: child),
+                        );
+                      },
+                      child: _showingInitial
+                          ? KeyedSubtree(
+                              key: const ValueKey('initialView'),
+                              child: initialView())
+                          : KeyedSubtree(
+                              key: const ValueKey('recordingView'),
+                              child: recordingView()),
+                    ),
+
+                    // Animated camera overlay — transitions from large to mini pip
+                    // and back on tap during recording.
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeOutCubic,
+                      top: showLarge ? largeTop : miniTop,
+                      left: showLarge ? largeLeft : 16,
+                      width: showLarge ? camW : miniW,
+                      height: showLarge ? camH : miniH,
+                      child: GestureDetector(
+                        onTap: _showingInitial ? null : _popViewfinder,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: CustomColors.grey,
+                            border: GradientBoxBorder(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFABD0FE), Color(0xFF595EF2)],
+                              ),
+                              width: showLarge ? 4 : 2,
+                            ),
+                            borderRadius:
+                                BorderRadius.circular(showLarge ? 4 : 8),
+                          ),
+                          child: ClipRRect(
+                            borderRadius:
+                                BorderRadius.circular(showLarge ? 4 : 8),
+                            child: controller.value.isInitialized
+                                ? Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      CameraPreview(controller),
+                                    ],
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget questionAndHints() {
-    final width = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final teleprompterUrl = widget.prompt.option?.teleprompterUrl;
+  Widget initialView() {
+    final width = MediaQuery.sizeOf(context).width;
+    final double sh = MediaQuery.sizeOf(context).height;
+    final bool isCompact = sh < 700;
+    final double controlsBarH = isCompact ? 72.0 : 88.0;
 
-    return LayoutBuilder(builder: (context, constraints) {
-      // Re-measure script height each layout pass (handles font scaling,
-      // orientation, etc.). The callback is cheap and idempotent.
-      WidgetsBinding.instance.addPostFrameCallback((_) => _measureScriptHeight());
-
-      final viewportHeight = constraints.maxHeight;
-
-      return SizedBox(
-        height: viewportHeight,
-        width: constraints.maxWidth,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // ── Single scroll region: script → reserved image space → controls
-            SingleChildScrollView(
-              controller: _scrollController,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Instructions — scrollable so text never overflows on small phones
+        Expanded(
+            flex: 2,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                vertical: isCompact ? 8 : 16,
+                horizontal: 12,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Script (measured via GlobalKey to drive the floating image).
-                  Padding(
-                    key: _scriptKey,
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Text(
-                      widget.prompt.subtitle ?? '',
-                      style: CustomTypography().body(),
-                    ),
+                  Text(
+                    'Before you begin:',
+                    style: CustomTypography()
+                        .body()
+                        .copyWith(fontWeight: FontWeight.w600),
                   ),
-                  // Reserves the layout space the floating image occupies so
-                  // the scroll height accounts for it even though the image
-                  // itself is rendered as a Positioned overlay above.
-                  const SizedBox(
-                    height: _floatingImageHeight + _floatingImageGap,
-                  ),
-                  // Recording controls — revealed after the user scrolls past
-                  // the image at the end of the script.
-                  Container(
-                    width: width,
-                    color: CustomColors.productNormal,
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        file != null ? preview() : cameraFeed(),
-                        const SizedBox(height: 24),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 36.0),
-                          child: file != null
-                              ? playbackControls()
-                              : recordingControls(),
-                        ),
-                        SizedBox(height: screenHeight > 850 ? 36 : 24),
-                      ],
+                  SizedBox(height: isCompact ? 6 : 12),
+                  ...[
+                    '1. Find your position — sit or stand somewhere comfortable and well-lit.',
+                    '2. When ready, tap Record — the screen will switch to your script.',
+                    '3. Scroll to read — swipe up on the script to advance at your own pace.',
+                    '4. Viewfinder — your camera preview will be minimized to the bottom-left. Tap it to check your framing anytime.',
+                  ].map(
+                    (step) => Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text(step, style: CustomTypography().body()),
                     ),
                   ),
                 ],
               ),
-            ),
-            // ── Floating image: sticky to viewport bottom while there's still script above;
-            // releases and scrolls up naturally once the script is fully scrolled past.
-            // IgnorePointer so the user can still drag the scroll through it.
-            if (teleprompterUrl != null &&
-                teleprompterUrl.isNotEmpty &&
-                _scriptHeight > 0)
-              AnimatedBuilder(
-                animation: _scrollController,
-                builder: (context, _) {
-                  final scrollOffset = _scrollController.hasClients
-                      ? _scrollController.offset
-                      : 0.0;
-                  // Natural top: where the image would be if it were a normal
-                  // child of the scroll content, sitting just after the script.
-                  final naturalTop = _scriptHeight + 6 - scrollOffset;
-                  // Sticky top: anchored to viewport bottom.
-                  final stickyTop = viewportHeight - _floatingImageHeight;
-                  // While natural is below sticky → pin. Once natural rises
-                  // above sticky → scroll naturally with content.
-                  final top = min(stickyTop, naturalTop);
-                  return Positioned(
-                    left: 0,
-                    right: 0,
-                    top: top,
-                    height: _floatingImageHeight,
-                    // Opaque, full-bleed block so the script behind it is fully
-                    child: IgnorePointer(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            width: double.infinity,
-                            height: _floatingImageHeight,
-                            color: const Color(0xFFF3F3F3),
-                            child: Image.asset(
-                              "assets/images/fops/$teleprompterUrl",
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: _floatingImageHeight,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-          ],
+            )),
+
+        // Camera renders as AnimatedPositioned overlay in build()
+        Expanded(flex: 3, child: const SizedBox.shrink()),
+
+        // Controls — fixed height so the record button is never clipped
+        SizedBox(
+          height: controlsBarH,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            width: width,
+            color: CustomColors.productNormal,
+            child: recordingControls(),
+          ),
         ),
-      );
-    });
+      ],
+    );
   }
 
-  Widget preview() {
-    if (file == null) return const SizedBox.shrink();
+  Widget recordingView() {
+    final teleprompterUrl = widget.prompt.option?.teleprompterUrl;
+    final width = MediaQuery.sizeOf(context).width;
+    final double sh = MediaQuery.sizeOf(context).height;
+    final bool isCompact = sh < 700;
+    final double controlsBarH = isCompact ? 72.0 : 88.0;
+    // Stimulus shrinks on smaller screens so the script gets more room
+    final double stimulusH = sh < 700
+        ? 110.0
+        : sh < 800
+            ? 150.0
+            : 180.0;
 
-    return Container(
-      height: feedHeight,
-      width: feedWidth,
-      decoration: BoxDecoration(
-        color: CustomColors.grey,
-        border: GradientBoxBorder(
-          gradient: const LinearGradient(
-              colors: [Color(0xFFABD0FE), Color(0xFF595EF2)]),
-          width: 4,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Stimulus — height scales with screen size
+        SizedBox(
+          height: stimulusH,
+          child: Image.asset(
+            "assets/images/fops/$teleprompterUrl",
+            fit: BoxFit.cover,
+            width: double.infinity,
+            errorBuilder: (context, error, stackTrace) =>
+                const Center(child: Icon(Icons.broken_image_rounded)),
+          ),
         ),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: videoController != null
-          ? VideoPreview(controller: videoController!)
-          : const SizedBox.shrink(),
+
+        // Scrollable script — expands to fill all space between stimulus and controls
+        Expanded(
+          child: SizedBox(
+            width: double.infinity,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              padding: EdgeInsets.symmetric(
+                horizontal: 32,
+                vertical: isCompact ? 8 : 12,
+              ),
+              child: Text(
+                widget.prompt.subtitle ?? '',
+                style: CustomTypography().body(),
+              ),
+            ),
+          ),
+        ),
+
+        // Controls — fixed height; swaps to playback when done
+        SizedBox(
+          height: controlsBarH,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            width: width,
+            color: CustomColors.productNormal,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: file != null
+                  ? KeyedSubtree(
+                      key: const ValueKey('playback'),
+                      child: Center(child: playbackControls()),
+                    )
+                  : KeyedSubtree(
+                      key: const ValueKey('controls'),
+                      child: recordingControls(),
+                    ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -3462,37 +3542,6 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
                       child: CameraPreview(controller),
                     ),
                   ),
-                  if (elapsed.inMilliseconds > 0)
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 9.0),
-                        child: Container(
-                          width: 90,
-                          padding: const EdgeInsets.symmetric(horizontal: 9),
-                          decoration: ShapeDecoration(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4)),
-                            color: controller.value.isRecordingPaused
-                                ? CustomColors.productNormal
-                                : CustomColors.warningActive,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                formatDurationtoHHMMSS(elapsed),
-                                style: CustomTypography().custom(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: CustomColors.textWhite,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
                 ],
               )
             : SizedBox(height: feedHeight, width: feedWidth),
@@ -3525,17 +3574,35 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
                         ? 15
                         : 4,
               ),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: CustomColors.warningActive,
-                  shape: controller.value.isRecordingVideo
-                      ? BoxShape.rectangle
-                      : BoxShape.circle,
-                  borderRadius: controller.value.isRecordingVideo
-                      ? BorderRadius.circular(4)
-                      : null,
-                ),
-              ),
+              child: _countdown != null
+                  ? AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      transitionBuilder: (child, animation) => ScaleTransition(
+                        scale: animation,
+                        child: FadeTransition(opacity: animation, child: child),
+                      ),
+                      child: Text(
+                        '$_countdown',
+                        key: ValueKey(_countdown),
+                        textScaler: TextScaler.linear(1.0),
+                        style: CustomTypography().custom(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: CustomColors.fillWhite,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: CustomColors.warningActive,
+                        shape: controller.value.isRecordingVideo
+                            ? BoxShape.rectangle
+                            : BoxShape.circle,
+                        borderRadius: controller.value.isRecordingVideo
+                            ? BorderRadius.circular(4)
+                            : null,
+                      ),
+                    ),
             ),
           ),
           controller.value.isRecordingVideo
@@ -3615,14 +3682,45 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
     return p.join(dir.path, fileName);
   }
 
+  /// Pops the viewfinder to the mini pip position for 2 seconds, then returns it to the large position.
+  void _popViewfinder() {
+    _viewfinderTimer?.cancel();
+    setState(() => _viewfinderPopped = true);
+    _viewfinderTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _viewfinderPopped = false);
+    });
+  }
+
   Future<void> record() async {
     if (controller.value.isRecordingVideo) {
       await stop();
       return;
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToTop());
-    await controller.startVideoRecording();
-    startTimer();
+    // Second tap during countdown cancels it
+    if (_countdown != null) {
+      _countdownTimer?.cancel();
+      setState(() => _countdown = null);
+      return;
+    }
+    // Start 3-second countdown before recording
+    setState(() => _countdown = 3);
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) async {
+      if (!mounted) {
+        t.cancel();
+        return;
+      }
+      if (_countdown! <= 1) {
+        t.cancel();
+        setState(() {
+          _countdown = null;
+          _showingInitial = false;
+        });
+        await controller.startVideoRecording();
+        if (mounted) startTimer();
+      } else {
+        setState(() => _countdown = _countdown! - 1);
+      }
+    });
   }
 
   Future<void> save() async {
@@ -3640,9 +3738,14 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
   }
 
   void redo() {
+    _viewfinderTimer?.cancel();
+    _countdownTimer?.cancel();
     setState(() {
       file = null;
       elapsed = const Duration();
+      _showingInitial = true;
+      _viewfinderPopped = false;
+      _countdown = null;
     });
   }
 
