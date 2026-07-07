@@ -1,6 +1,7 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/camera_preview.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -27,6 +28,7 @@ class _CameraAccessState extends State<CameraAccess>
     with WidgetsBindingObserver {
   bool permission = false;
   bool requested = false;
+  final PermissionRequestGuard _permissionGuard = PermissionRequestGuard();
 
   late CameraController controller;
 
@@ -242,25 +244,27 @@ class _CameraAccessState extends State<CameraAccess>
   }
 
   navigateToNextPage(BuildContext context) async {
-    final results = await Permission.microphone.request();
-    if (mounted) {
-      setState(() {
-        permission = results.isGranted;
-      });
-    }
-
-    if (permission) {
-      if (requested) {
-        await PreferenceService()
-            .setBoolPreference(key: 'camera', value: requested);
-        if (context.mounted) {
-          track(timer.stop(), "Finished");
-          RouteService().navigate(null, context: context, current: 'camera');
-        }
-      } else {
-        cameraInit();
+    await _permissionGuard.run(() async {
+      final results = await Permission.camera.request();
+      if (mounted) {
+        setState(() {
+          permission = results.isGranted;
+        });
       }
-    }
+
+      if (permission) {
+        if (requested) {
+          await PreferenceService()
+              .setBoolPreference(key: 'camera', value: requested);
+          if (context.mounted) {
+            track(timer.stop(), "Finished");
+            RouteService().navigate(null, context: context, current: 'camera');
+          }
+        } else {
+          cameraInit();
+        }
+      }
+    });
   }
 
   track(int spent, String status) async {

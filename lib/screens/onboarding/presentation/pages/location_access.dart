@@ -1,6 +1,7 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -25,6 +26,7 @@ class _LocationAccessState extends State<LocationAccess>
     with WidgetsBindingObserver {
   bool permission = false;
   bool requested = false;
+  final PermissionRequestGuard _permissionGuard = PermissionRequestGuard();
 
   //Animations
   rive.File? _riveFile;
@@ -262,22 +264,26 @@ class _LocationAccessState extends State<LocationAccess>
   }
 
   navigateToNextPage(BuildContext context) async {
-    final results = await location.requestPermission();
-    setState(() {
-      permission = results == l.PermissionStatus.granted;
-      requested = true;
-    });
-    await PendoService.track("Location Access", {"state": results.name});
-    if (permission) {
-      if (requested) {
-        await PreferenceService()
-            .setBoolPreference(key: 'location', value: requested);
-        if (context.mounted) {
-          track(timer.stop(), "Finished");
-          RouteService().navigate(null, context: context, current: 'location');
+    await _permissionGuard.run(() async {
+      final results = await location.requestPermission();
+      if (!mounted) return;
+      setState(() {
+        permission = results == l.PermissionStatus.granted;
+        requested = true;
+      });
+      await PendoService.track("Location Access", {"state": results.name});
+      if (permission) {
+        if (requested) {
+          await PreferenceService()
+              .setBoolPreference(key: 'location', value: requested);
+          if (context.mounted) {
+            track(timer.stop(), "Finished");
+            RouteService()
+                .navigate(null, context: context, current: 'location');
+          }
         }
       }
-    }
+    });
   }
 
   void openPermissionSettings() async =>

@@ -138,7 +138,7 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                           child: Text(
                             participant!.studyCode,
                             style: CustomTypography().bodyMedium(
-                                color: CustomColors.textTertiaryContent),
+                                color: CustomColors.textSecondaryContent),
                           ),
                         ),
                       ],
@@ -159,7 +159,7 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                           child: Text(
                             experiment!.login,
                             style: CustomTypography().bodyMedium(
-                                color: CustomColors.textTertiaryContent),
+                                color: CustomColors.textSecondaryContent),
                           ),
                         ),
                       ],
@@ -182,7 +182,7 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                                   dateJoined ?? "-",
                                   style: CustomTypography().bodyMedium(
                                       color:
-                                          CustomColors.textTertiaryContent),
+                                          CustomColors.textSecondaryContent),
                                 ),
                               ),
                             ],
@@ -227,7 +227,7 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                       Text(
                         "Onboarding Survey",
                         style: CustomTypography()
-                            .bodyLarge(color: CustomColors.productNormalActive),
+                            .bodyLarge(color: CustomColors.productNormalActive, weight: FontWeight.w500),
                       ),
                       Text(
                         hasSurvey ? "Completed $date" : "",

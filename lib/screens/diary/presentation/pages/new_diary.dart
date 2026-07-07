@@ -139,7 +139,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         final GlobalKey<
             _QuestionPageState> currentKey = _questionPageKeys[currentPage];
         final _QuestionPageState? currentState = currentKey.currentState;
-        currentState?.scrollToTop();
+        currentState?._scrollToTop();
       }
     }
 
@@ -417,13 +417,6 @@ class QuestionPage extends StatefulWidget {
 class _QuestionPageState extends State<QuestionPage>
     with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
-  void scrollToTop() {
-    _scrollController.animateTo(
-      0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-    );
-  }
   late PromptCubit promptCubit;
   late PromptModel promptModel;
 
@@ -434,6 +427,16 @@ class _QuestionPageState extends State<QuestionPage>
   void updateSliderValue(PromptModel prompt, double value) {
     save(prompt, value.toString(), 'other', 0);
     widget.answerAdded(true);
+  }
+
+  void _scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.minScrollExtent,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   bool isClicked = false;

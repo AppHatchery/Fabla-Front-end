@@ -1417,6 +1417,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
     final results = await showDialog<bool>(
         context: context,
         builder: (context) => ExitPopUp(
+              confirmText: "Yes, Leave Survey",
               content: [
                 Text(
                   "Exit Survey?",
