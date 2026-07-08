@@ -107,7 +107,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       'assets/animations/onboarding/floats_in.riv',
       riveFactory: r.Factory.rive,
     );
-    if (file != null && mounted) {
+
+    if(!mounted) {
+      file?.dispose();
+      return;
+    }
+
+    if (file != null) {
       final controller = r.RiveWidgetController(
         file,
         stateMachineSelector: r.StateMachineSelector.byName('Animation_12'),
@@ -754,7 +760,13 @@ class _BottomTextModalState extends State<BottomTextModal>
       'assets/animations/ghosts.riv',
       riveFactory: r.Factory.rive,
     );
-    if (file != null && mounted) {
+
+    if(!mounted) {
+      file?.dispose();
+      return;
+    }
+
+    if (file != null) {
       final controller = r.RiveWidgetController(
         file,
         stateMachineSelector: r.StateMachineSelector.byName('Ghosts'),
@@ -1514,7 +1526,13 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
       'assets/animations/ghosts.riv',
       riveFactory: r.Factory.rive,
     );
-    if (file != null && mounted) {
+
+    if(!mounted) {
+      file?.dispose();
+      return;
+    }
+
+    if (file != null) {
       final controller = r.RiveWidgetController(
         file,
         stateMachineSelector: r.StateMachineSelector.byName('Ghosts'),
@@ -2628,7 +2646,13 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       'assets/animations/onboarding/floats_in.riv',
       riveFactory: r.Factory.rive,
     );
-    if (file != null && mounted) {
+
+    if(!mounted) {
+      file?.dispose();
+      return;
+    }
+
+    if (file != null) {
       final controller = r.RiveWidgetController(
         file,
         stateMachineSelector: r.StateMachineSelector.byName('Animation_12'),
