@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:audio_diaries_flutter/core/usecases/video_compression.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'dart:developer' as dev;
@@ -129,6 +130,9 @@ class AnswerRepository {
       if (isMedia) {
         if (path != null) {
           _deleteFile(path);
+          // Discard only this recording's background-compressed file, keeping
+          // the compression queue and cache in sync (no-op for non-video).
+          await VideoCompressionQueue.instance.discard(path);
           answer.recordings.removeWhere((record) => record.path == path);
         }
       }

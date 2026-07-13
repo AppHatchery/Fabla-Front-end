@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:developer' as dev;
+import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:video_compress/video_compress.dart';
 
 /// Compresses the video at [sourcePath] to 720p and returns the compressed
@@ -81,6 +83,40 @@ class VideoCompressionQueue {
     if (_current != null) VideoCompress.cancelCompression();
   }
 
+  /// Discards a single recording's compression when its source is deleted:
+  /// drops it from the queue, cancels it if in-flight, and deletes any finished
+  /// compressed output. Matches by file name, so callers can pass the relative
+  /// (`videos/xxx.mp4`) or the absolute path.
+  Future<void> discard(String recordingPath) async {
+    final name = p.basename(recordingPath);
+
+    _queue.removeWhere((rawPath) => p.basename(rawPath) == name);
+
+    if (_current != null && p.basename(_current!) == name) {
+      VideoCompress.cancelCompression();
+    }
+
+    String? matchedKey;
+    for (final rawPath in _completed.keys) {
+      if (p.basename(rawPath) == name) {
+        matchedKey = rawPath;
+        break;
+      }
+    }
+    if (matchedKey == null) return;
+
+    final compressedPath = _completed.remove(matchedKey);
+    if (compressedPath == null) return;
+    try {
+      final file = File(compressedPath);
+      if (await file.exists()) await file.delete();
+      dev.log("Deleted one compressed video");
+    } catch (e) {
+      dev.log('Failed to delete compressed file: $e',
+          name: 'Video Compression');
+    }
+  }
+
   Future<void> _pump() async {
     if (_working || _cameraActive || _queue.isEmpty) return;
     _working = true;
@@ -95,7 +131,7 @@ class VideoCompressionQueue {
     } finally {
       _current = null;
       _working = false;
-      // Resume if work was requeued (e.g. camera became active) mid-run.
+      // Resume if work was re-queued (e.g. camera became active) mid-run.
       if (!_cameraActive && _queue.isNotEmpty) unawaited(_pump());
     }
   }
