@@ -226,7 +226,9 @@ void _useCompressedVideos(List<FileData> files, List<String> compressedPaths) {
   for (final file in files) {
     if (p.extension(file.localDirectory).toLowerCase() != '.mp4') continue;
     final compressedPath = queue.compressedPathFor(file.localDirectory);
-    if (compressedPath != null) {
+    // Only use the compressed copy if it still exists on disk; otherwise fall
+    // back to uploading the raw file.
+    if (compressedPath != null && File(compressedPath).existsSync()) {
       file.localDirectory = compressedPath;
       compressedPaths.add(compressedPath);
     }
