@@ -257,23 +257,24 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
             ],
           ),
         ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Container(
-            color: CustomColors.fillWhite,
-            padding:
-                const EdgeInsets.only(bottom: 34, top: 24, left: 16, right: 16),
-            alignment: Alignment.bottomCenter,
-            child: CustomFlatButton(
-              onClick: () => submitDiary(diary),
-              text: "Submit My Response",
-              color: CustomColors.productNormal,
-              textColor: CustomColors.textWhite,
-            ),
-          ),
-        ),
+        //commenting this button as Kennedy wanted.
+        // Positioned(
+        //   left: 0,
+        //   right: 0,
+        //   bottom: 0,
+        //   child: Container(
+        //     color: CustomColors.fillWhite,
+        //     padding:
+        //         const EdgeInsets.only(bottom: 34, top: 24, left: 16, right: 16),
+        //     alignment: Alignment.bottomCenter,
+        //     child: CustomFlatButton(
+        //       onClick: () => submitDiary(diary),
+        //       text: "Submit My Response",
+        //       color: CustomColors.productNormal,
+        //       textColor: CustomColors.textWhite,
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }
