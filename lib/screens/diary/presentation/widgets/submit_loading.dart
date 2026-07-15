@@ -29,7 +29,7 @@ class _SubmitLoadingPageState extends State<SubmitLoadingPage> {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -55,6 +55,59 @@ class _SubmitLoadingPageState extends State<SubmitLoadingPage> {
                 color: CustomColors.textSecondaryContent,
               ),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 40),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: ShapeDecoration(
+                color: CustomColors.fillVanilla,
+                shape: RoundedRectangleBorder(
+                  side: const BorderSide(
+                      width: 2, color: CustomColors.pumpkinOrange),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.warning_rounded,
+                    color: CustomColors.pumpkinOrange,
+                    size: 24,
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 8,
+                        children: [
+                          Text(
+                            "Do Not Leave This Screen",
+                            style: CustomTypography().titleSmallCustom(
+                              color: CustomColors.pumpkinOrange,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 0, vertical: 2),
+                            decoration: ShapeDecoration(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4)),
+                            ),
+                            child: Text(
+                              "Please stay on this screen until the upload is complete to ensure your diary is saved safely. Closing the app now may result in data loss.",
+                              style: CustomTypography().bodyLarge(
+                                color: CustomColors.pumpkinOrange,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
