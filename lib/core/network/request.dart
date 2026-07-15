@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 const String devURL =
-    "https://vqujlfqpuxbfluuojai52fopvy0pregz.lambda-url.us-east-1.on.aws";
+    "vqujlfqpuxbfluuojai52fopvy0pregz.lambda-url.us-east-1.on.aws";
 const String prodURL =
     "phy7427sobzzf3dbeevuvi6z4m0dehgx.lambda-url.us-east-1.on.aws";
 
