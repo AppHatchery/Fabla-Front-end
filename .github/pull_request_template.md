@@ -1,31 +1,33 @@
-## 📝 Description
-Brief description of what this PR does.
+## Overview
+<!-- Concise summary: what does this PR do, and why? -->
 
-## 🔗 Related Issue
-Closes #[issue number]
+Closes #
 
-## 🚀 Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
-- [ ] Refactor
-- [ ] Performance improvement
-- [ ] Enhancement
+## Changes
+<!-- Significant architectural changes, new packages, breaking API/protocol changes, UI changes -->
+-
 
-## 🧪 Testing
-- [ ] Unit tests added/updated
-- [ ] Widget tests added/updated
-- [ ] Integration tests added/updated
-- [ ] Manual testing completed
+## How to test
+<!-- Steps a reviewer can follow to verify the change -->
+1.
 
-## 📱 Screenshots/Videos
-<!-- Add screenshots or videos if UI changes -->
+## Tested on
+- [ ] Android (device/emulator: )
+- [ ] iOS (device/simulator: )
 
-## ✅ Checklist
-- [ ] Code follows project style guidelines
+## Screenshots / Videos (UI changes only)
+
+| Before | After |
+| :--- | :--- |
+|  |  |
+
+## Engineering standards
+- [ ] Logic separated from UI; widgets `const` where possible; follows BLoC pattern
+- [ ] Null safety on new fields; listeners/controllers/streams disposed
+
+
+
+## Checklist
 - [ ] Self-review completed
-- [ ] All tests pass locally
-- [ ] Code is commented where needed
-- [ ] Documentation updated if needed
-- [ ] No breaking changes (or noted in description above)
+- [ ] No hardcoded secrets, keys, or logs containing PII/participant data
+- [ ] Data submission / notifications / study protocol integrity verified
