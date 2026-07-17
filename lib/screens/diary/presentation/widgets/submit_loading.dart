@@ -60,8 +60,7 @@ class _SubmitLoadingPageState extends State<SubmitLoadingPage> {
             const SizedBox(height: 40),
             const WarningCard(
               title: "Do Not Leave This Screen",
-              message: "Please stay on this screen until the upload is complete to ensure your diary is saved safely. Closing the app now may result in data loss.",
-              icon: Icons.warning_rounded,
+              message: "Please stay on this screen until the upload is complete to ensure your diary is saved safely. Closing the app now may result in data loss."
             ),
           ],
         ),
