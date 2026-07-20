@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/location.dart';
+import 'package:audio_diaries_flutter/core/usecases/video_compression.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -45,6 +47,7 @@ import 'secrets_handler.dart';
 /// }
 /// ```
 Future<bool> upload(String participantID, DiaryModel diary) async {
+  final compressedPaths = <String>[];
   try {
     final dir = await getApplicationDocumentsDirectory();
     final repository = SetupRepository();
@@ -114,6 +117,11 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
       'HasFiles': files.isNotEmpty.toString(),
     });
 
+    // Use background-compressed videos where ready; upload raw otherwise (no
+    // wait). Then stop any compression still running — its output won't be used.
+    _useCompressedVideos(files, compressedPaths);
+    VideoCompressionQueue.instance.cancelAll();
+
     final uploaded = await awsUploadResponses(promptEntryList, files);
 
     await PendoService.track('Submission Completed', {
@@ -136,6 +144,8 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
         },
         reason: 'Failed to upload data in upload function');
     return false;
+  } finally {
+    await _deleteTempFiles(compressedPaths);
   }
 }
 
@@ -206,6 +216,35 @@ void _addPromptEntry(PromptModel prompt, String participantID,
 
 String formatSubmissionDate(DateTime date) {
   return DateFormat('yyyy-MM-dd').format(date);
+}
+
+/// Points each video [files] entry at its background-compressed copy when one
+/// is ready, recording the temp path in [compressedPaths] for later cleanup.
+/// Videos whose compression hasn't finished are left as-is and uploaded raw. O(n).
+void _useCompressedVideos(List<FileData> files, List<String> compressedPaths) {
+  final queue = VideoCompressionQueue.instance;
+  for (final file in files) {
+    if (p.extension(file.localDirectory).toLowerCase() != '.mp4') continue;
+    final compressedPath = queue.compressedPathFor(file.localDirectory);
+    // Only use the compressed copy if it still exists on disk; otherwise fall
+    // back to uploading the raw file.
+    if (compressedPath != null && File(compressedPath).existsSync()) {
+      file.localDirectory = compressedPath;
+      compressedPaths.add(compressedPath);
+    }
+  }
+}
+
+/// Deletes the temporary compressed files used for upload. Best-effort.
+Future<void> _deleteTempFiles(List<String> paths) async {
+  for (final path in paths) {
+    try {
+      final file = File(path);
+      if (await file.exists()) await file.delete();
+    } catch (e) {
+      dev.log('Failed to delete temp file $path: $e', name: 'Upload');
+    }
+  }
 }
 
 //Upload functions
@@ -412,47 +451,70 @@ Future<String?> getPresignedUrl(
   }
 }
 
+/// Hard upper bound on a single S3 upload so a stalled socket fails (and logs)
+/// instead of hanging forever. Generous enough for a multi-minute 720p clip on
+/// a weak uplink; tune down once payloads are compressed.
+const Duration _s3UploadTimeout = Duration(minutes: 2);
+
 Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
+  final s3Client = http.Client();
   try {
-    var file = File(filePath);
-    var fileStream = file.openRead();
+    final file = File(filePath);
 
-    var request = http.Request('PUT', Uri.parse(presignedUrl))
-      ..headers['Content-Type'] = extensionToContentType(p.extension(filePath));
-
-    // Collect bytes from the file stream into a single list
-    List<int> bytes = [];
-    await for (var chunk in fileStream) {
-      bytes.addAll(chunk);
+    if (!await file.exists()) {
+      dev.log('S3 upload skipped: file not found: $filePath',
+          name: 'Upload - S3 Storage');
+      CrashlyticsService().log('S3 upload skipped: file not found: $filePath');
+      return false;
     }
 
-    // Set the body bytes of the request
-    request.bodyBytes = bytes;
+    final contentLength = await file.length();
+    dev.log('Uploading to S3: $filePath ($contentLength bytes)',
+        name: 'Upload - S3 Storage');
 
-    final s3Client = http.Client();
-    try {
-      final response = await s3Client.send(request);
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        dev.log(
-            'S3 upload failed: status=${response.statusCode} file=$filePath',
-            name: 'Upload - S3 Storage');
-        CrashlyticsService().recordApiError(
-            'S3 upload failed with status ${response.statusCode}', presignedUrl,
-            statusCode: response.statusCode,
-            method: 'PUT',
-            requestData: {'file_path': filePath});
-        await PendoService.track('Upload Error', {
-          'event': 'Upload to S3',
-          'reason': response.reasonPhrase ?? 'unknown',
-          'status': response.statusCode
+    final request = http.StreamedRequest('PUT', Uri.parse(presignedUrl))
+      ..headers['Content-Type'] = extensionToContentType(p.extension(filePath))
+      ..contentLength = contentLength;
+
+    // Stream the file straight into the request body with backpressure, so peak
+    // memory stays at one chunk regardless of file size.
+    unawaited(
+        request.sink.addStream(file.openRead()).whenComplete(request.sink.close));
+
+    final response = await s3Client.send(request).timeout(_s3UploadTimeout);
+    final responseBody = await response.stream.bytesToString();
+
+    if (response.statusCode == 200) {
+      return true;
+    }
+
+    dev.log(
+        'S3 upload failed: status=${response.statusCode} file=$filePath body=$responseBody',
+        name: 'Upload - S3 Storage');
+    CrashlyticsService().recordApiError(
+        'S3 upload failed with status ${response.statusCode}', presignedUrl,
+        statusCode: response.statusCode,
+        method: 'PUT',
+        requestData: {
+          'file_path': filePath,
+          'content_length': contentLength.toString()
         });
-        return false;
-      }
-    } finally {
-      s3Client.close();
-    }
+    await PendoService.track('Upload Error', {
+      'event': 'Upload to S3',
+      'reason': response.reasonPhrase ?? 'unknown',
+      'status': response.statusCode
+    });
+    return false;
+  } on TimeoutException catch (e, stackTrace) {
+    dev.log(
+        'S3 upload timed out after ${_s3UploadTimeout.inMinutes}m: $filePath',
+        name: 'Upload - S3 Storage');
+    CrashlyticsService().recordError(e, stackTrace,
+        context: {'file_path': filePath},
+        reason: 'S3 upload timed out in uploadFileToS3');
+    await PendoService.track(
+        'Upload Error', {'event': 'Upload to S3', 'reason': 'timeout'});
+    return false;
   } catch (e, stackTrace) {
     dev.log('S3 Storage: Error uploading file: $e',
         name: 'Upload - S3 Storage');
@@ -462,6 +524,8 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
     await PendoService.track(
         'Upload Error', {'event': 'Upload to S3', 'reason': e.toString()});
     return false; // Return false if an error occurred
+  } finally {
+    s3Client.close();
   }
 }
 

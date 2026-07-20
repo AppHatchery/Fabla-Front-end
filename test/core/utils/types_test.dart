@@ -4,7 +4,7 @@ import 'package:audio_diaries_flutter/core/utils/types.dart';
 void main() {
   group('ResponseType Tests', () {
     test('ResponseType enum should have all expected values', () {
-      expect(ResponseType.values.length, equals(16));
+      expect(ResponseType.values.length, equals(18));
       expect(ResponseType.values, contains(ResponseType.audio));
       expect(ResponseType.values, contains(ResponseType.text));
       expect(ResponseType.values, contains(ResponseType.multiple));
@@ -21,6 +21,8 @@ void main() {
       expect(ResponseType.values, contains(ResponseType.mediaImage));
       expect(ResponseType.values, contains(ResponseType.mediaVideo));
       expect(ResponseType.values, contains(ResponseType.timePicker));
+      expect(ResponseType.values, contains(ResponseType.teleprompter));
+      expect(ResponseType.values, contains(ResponseType.reference));
     });
   });
 

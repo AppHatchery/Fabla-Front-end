@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - FOPS_Branch
 
 # Needed so the workflow can post/update the results comment on the PR.
 permissions:
@@ -12,8 +13,8 @@ permissions:
 
   #cancel superseded runs on the same PR instead of stacking them.
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:

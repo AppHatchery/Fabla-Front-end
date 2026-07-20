@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:developer' as dev;
 import 'dart:math';
 
+import 'package:audio_diaries_flutter/core/usecases/video_compression.dart';
 import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/main.dart';
@@ -1486,6 +1487,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
 
   @override
   void initState() {
+    VideoCompressionQueue.instance.setCameraActive(true);
     controller = CameraController(
       cameras[0],
       ResolutionPreset.high,
@@ -1497,6 +1499,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
 
   @override
   dispose() {
+    VideoCompressionQueue.instance.setCameraActive(false);
     _searchingOne?.dispose();
     _riveController?.dispose();
     _riveFile?.dispose();
@@ -2060,6 +2063,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
       if (file != null) {
         final path = await getFilePath();
         await file!.saveTo(path);
+        if (!widget.isImage) VideoCompressionQueue.instance.enqueue(path);
         final name = basePath(path);
         widget.respond(name, widget.isImage ? "image" : "video");
         if (mounted) Navigator.pop(context, true);
@@ -2504,7 +2508,7 @@ class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
   }
 
   void showModal(String path, String type) {
-    final File _file = File(path);
+    final File file = File(path);
     final width = MediaQuery.of(context).size.width;
     showModalBottomSheet(
         backgroundColor: CustomColors.fillNormal,
@@ -2549,7 +2553,7 @@ class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
                             child:
                                 LayoutBuilder(builder: (context, constraints) {
                               return VideoViewer(
-                                file: _file,
+                                file: file,
                                 height: constraints.maxHeight,
                                 width: constraints.maxWidth,
                               );
@@ -2561,7 +2565,7 @@ class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
                               decoration: const BoxDecoration(
                                 color: CustomColors.greyLight,
                               ),
-                              child: Image.file(_file),
+                              child: Image.file(file),
                             ),
                           ),
                   ],
@@ -3133,9 +3137,14 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
 
   @override
   void initState() {
+    VideoCompressionQueue.instance.setCameraActive(true);
     controller = CameraController(
       _frontCamera(),
       ResolutionPreset.high,
+      enableAudio: true,
+      fps: 30,
+      videoBitrate: 2500000,
+      audioBitrate: 96000,
     );
     cameraInit();
     super.initState();
@@ -3152,6 +3161,7 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
 
   @override
   void dispose() {
+    VideoCompressionQueue.instance.setCameraActive(false);
     _viewfinderTimer?.cancel();
     _countdownTimer?.cancel();
     controller.dispose();
@@ -3719,6 +3729,7 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
       if (file != null) {
         final path = await getFilePath();
         await file!.saveTo(path);
+        VideoCompressionQueue.instance.enqueue(path);
         widget.respond(basePath(path), "video");
         if (mounted) Navigator.pop(context, true);
       }
