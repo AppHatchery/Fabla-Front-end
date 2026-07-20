@@ -128,7 +128,7 @@
               {
                 "question_id": 4958,
                 "type": "multiple",
-                "title": "<h3>Imagine that after an important public speaking task, you notice this automatic and unhelpful thought: \"I embarrassed myself.\"\n\nTo generate new helpful thoughts, one  question to ask yourself is: \"What is the evidence?\" \n\nPick two statements that are examples of helpful thoughts based on evidence?</h3>",
+                "title": "Imagine that after an important public speaking task, you notice this automatic and unhelpful thought: \"I embarrassed myself.\"\n\nTo generate new helpful thoughts, one  question to ask yourself is: \"What is the evidence?\" \n\nPick two statements that are examples of helpful thoughts based on evidence?",
                 "subtitle": "",
                 "required": true,
                 "question_number": 2,
@@ -408,7 +408,7 @@
                 "subtitle": "This step is what makes the exercise work. Stick with it, even if it's hard.",
                 "required": true,
                 "question_number": 6,
-                "media_link": "Post_Approach.mov"
+                "media_link": "Post_Approach_1.mov"
               },
               {
                 "question_id": 4980,
@@ -539,7 +539,7 @@
                 "max_value": 5,
                 "min_label": "Not at all",
                 "max_label": "Fully immersed",
-                "default_value": 0
+                "default_value": 1
               },
               {
                 "question_id": 4992,
@@ -738,7 +738,7 @@
                 "subtitle": "This step is what makes the exercise work. Stick with it, even if it's hard.",
                 "required": true,
                 "question_number": 7,
-                "media_link": "Post_Approach.mov"
+                "media_link": "Post_Approach_1.mov"
               },
               {
                 "question_id": 5082,
@@ -869,7 +869,7 @@
                 "max_value": 5,
                 "min_label": "Not at all",
                 "max_label": "Fully immersed",
-                "default_value": 0
+                "default_value": 1
               },
               {
                 "question_id": 5094,
@@ -1026,7 +1026,7 @@
                 "subtitle": "This step is what makes the exercise work. Stick with it, even if it's hard.",
                 "required": true,
                 "question_number": 7,
-                "media_link": "Post_Approach.mov"
+                "media_link": "Post_Approach_1.mov"
               },
               {
                 "question_id": 5162,
@@ -1157,7 +1157,7 @@
                 "max_value": 5,
                 "min_label": "Not at all",
                 "max_label": "Fully immersed",
-                "default_value": 0
+                "default_value": 1
               },
               {
                 "question_id": 5174,
@@ -1292,7 +1292,7 @@
                 "subtitle": "Share a lesson you've learned through experience (from school, work, travel, family, or a hobby) and talk about what happened, what it taught you, and how it still shapes you today.",
                 "required": true,
                 "question_number": 5,
-                "teleprompter_url": "Andrew_Audience.mov"
+                "teleprompter_url": "Audience_Adults_Large.png"
               },
               {
                 "question_id": 5220,
@@ -1314,7 +1314,7 @@
                 "subtitle": "This step is what makes the exercise work. Stick with it, even if it's hard.",
                 "required": true,
                 "question_number": 7,
-                "media_link": "Post_Approach.mov"
+                "media_link": "Post_Approach_1.mov"
               },
               {
                 "question_id": 5222,
@@ -1353,7 +1353,7 @@
                 "subtitle": "Share a lesson you've learned through experience (from school, work, travel, family, or a hobby) and talk about what happened, what it taught you, and how it still shapes you today.",
                 "required": true,
                 "question_number": 11,
-                "teleprompter_url": "Andrew_Audience.mov"
+                "teleprompter_url": "Audience_Adults_Large.png"
               },
               {
                 "question_id": 5226,
@@ -1397,7 +1397,7 @@
                 "subtitle": "Share a lesson you've learned through experience (from school, work, travel, family, or a hobby) and talk about what happened, what it taught you, and how it still shapes you today.",
                 "required": true,
                 "question_number": 15,
-                "teleprompter_url": "Andrew_Audience.mov"
+                "teleprompter_url": "Audience_Adults_Large.png"
               },
               {
                 "question_id": 5230,
@@ -1445,7 +1445,7 @@
                 "max_value": 5,
                 "min_label": "Not at all",
                 "max_label": "Fully immersed",
-                "default_value": 0
+                "default_value": 1
               },
               {
                 "question_id": 5234,
