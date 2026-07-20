@@ -336,7 +336,7 @@
           "weekly": 1
         },
         "incentive": {
-          "amount": "0.00",
+          "amount": "5.00",
           "bonus": "0.00",
           "currency": "$",
           "threshold": 0
@@ -359,11 +359,20 @@
               },
               {
                 "question_id": 4975,
+                "type": "media/Video",
+                "title": "Before you begin, setting the scene",
+                "subtitle": "",
+                "required": true,
+                "question_number": 2,
+                "media_link": "Pre_Approach_1.mov"
+              },
+              {
+                "question_id": 4976,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
                 "required": true,
-                "question_number": 2,
+                "question_number": 3,
                 "min_value": 0,
                 "max_value": 100,
                 "min_label": "Totally relaxed",
@@ -371,73 +380,52 @@
                 "default_value": 0
               },
               {
-                "question_id": 4976,
+                "question_id": 4977,
                 "type": "teleprompter",
                 "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to an audience of children.",
                 "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere",
                 "required": true,
-                "question_number": 3,
+                "question_number": 4,
                 "teleprompter_url": "Audience_Children_Small.png"
               },
               {
-                "question_id": 4977,
+                "question_id": 4978,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
                 "required": true,
-                "question_number": 4,
+                "question_number": 5,
                 "min_value": 0,
                 "max_value": 100,
                 "min_label": "Totally relaxed",
                 "max_label": "Highest distress I have ever felt",
                 "default_value": 0
-              },
-              {
-                "question_id": 4978,
-                "type": "reference",
-                "title": "Review this recording of your speech.",
-                "subtitle": "Remember, review it objectively and not critically.",
-                "targeted_question": 3,
-                "required": true,
-                "question_number": 5
               },
               {
                 "question_id": 4979,
-                "type": "slider",
-                "title": "On a scale of 0-100, how stressed are you feeling right now?",
-                "subtitle": " ",
+                "type": "media/Video",
+                "title": "Why Rewatching Matters",
+                "subtitle": "This step is what makes the exercise work. Stick with it, even if it's hard.",
                 "required": true,
                 "question_number": 6,
-                "min_value": 0,
-                "max_value": 100,
-                "min_label": "Totally relaxed",
-                "max_label": "Highest distress I have ever felt",
-                "default_value": 0
+                "media_link": "Post_Approach.mov"
               },
               {
                 "question_id": 4980,
-                "type": "instruction",
-                "title": "<h3>Record the speech two more times before this module's Self-Reflection</h3>",
-                "subtitle": "Click 'Next' to record the speech again",
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 4,
                 "required": true,
                 "question_number": 7
               },
               {
                 "question_id": 4981,
-                "type": "teleprompter",
-                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to an audience of children.",
-                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
-                "required": true,
-                "question_number": 8,
-                "teleprompter_url": "Audience_Children_Small.png"
-              },
-              {
-                "question_id": 5043,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
                 "required": true,
-                "question_number": 9,
+                "question_number": 8,
                 "min_value": 0,
                 "max_value": 100,
                 "min_label": "Totally relaxed",
@@ -445,16 +433,24 @@
                 "default_value": 0
               },
               {
-                "question_id": 5047,
-                "type": "reference",
-                "title": "Review this recording of your speech.",
-                "subtitle": "Remember, review it objectively and not critically.",
-                "targeted_question": 8,
+                "question_id": 4982,
+                "type": "instruction",
+                "title": "<h3>Record the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to record the speech again",
                 "required": true,
-                "question_number": 10
+                "question_number": 9
               },
               {
-                "question_id": 5045,
+                "question_id": 4983,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to an audience of children.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "required": true,
+                "question_number": 10,
+                "teleprompter_url": "Audience_Children_Small.png"
+              },
+              {
+                "question_id": 4984,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
@@ -467,16 +463,16 @@
                 "default_value": 0
               },
               {
-                "question_id": 4982,
-                "type": "teleprompter",
-                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to an audience of children.",
-                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
+                "question_id": 4985,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 10,
                 "required": true,
-                "question_number": 12,
-                "teleprompter_url": "Audience_Children_Small.png"
+                "question_number": 12
               },
               {
-                "question_id": 5044,
+                "question_id": 4986,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
@@ -489,16 +485,16 @@
                 "default_value": 0
               },
               {
-                "question_id": 5048,
-                "type": "reference",
-                "title": "Review this recording of your speech.",
-                "subtitle": "Remember, review it objectively and not critically.",
-                "targeted_question": 12,
+                "question_id": 4987,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to an audience of children.",
+                "subtitle": "GOODNIGHT MOON \nby Margaret Wise Brown\n\nIn the great green room\nthere was a telephone\nand a red balloon\nand a picture of\nthe cow jumping over the moon.\n \nThere were three little bears\nsitting on chairs\nand two little kittens\nand a pair of mittens\nand a little toyhouse\nand a young mouse\nand a comb and a brush\nand a bowl full of mush\nand a quiet old lady\nwho was whispering \"hush.\"\n \nGood night room\nGoodnight moon\nGoodnight cow\njumping over the moon\nGoodnight light\nand the red balloon\n \nGoodnight bears\nGoodnight chairs\nGoodnight kittens\nand goodnight mittens\n \nGoodnight clocks\nand goodnight socks\nGoodnight little house\nand goodnight mouse.\n \nGoodnight comb\nand goodnight brush\nGoodnight nobody\nGoodnight mush\nand goodnight to the old lady\nwhispering \"hush.\"\n \nGoodnight stars\nGoodnight air\nGoodnight noises everywhere.",
                 "required": true,
-                "question_number": 14
+                "question_number": 14,
+                "teleprompter_url": "Audience_Children_Small.png"
               },
               {
-                "question_id": 5046,
+                "question_id": 4988,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
@@ -511,48 +507,83 @@
                 "default_value": 0
               },
               {
-                "question_id": 4983,
+                "question_id": 4989,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 14,
+                "required": true,
+                "question_number": 16
+              },
+              {
+                "question_id": 4990,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": " ",
+                "required": true,
+                "question_number": 17,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 4991,
+                "type": "slider",
+                "title": "On a scale of 1-5, how immersed did you feel while speaking to the audience?",
+                "subtitle": " ",
+                "required": true,
+                "question_number": 18,
+                "min_value": 1,
+                "max_value": 5,
+                "min_label": "Not at all",
+                "max_label": "Fully immersed",
+                "default_value": 0
+              },
+              {
+                "question_id": 4992,
                 "type": "audio",
                 "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
                 "subtitle": null,
                 "required": true,
-                "question_number": 16,
+                "question_number": 19,
                 "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
                 "display_time": false,
                 "multiple_answers": false
               },
               {
-                "question_id": 4984,
+                "question_id": 4993,
                 "type": "audio",
                 "title": "Self Reflection - What did you do that was helpful that you could continue doing?",
                 "subtitle": null,
                 "required": true,
-                "question_number": 17,
+                "question_number": 20,
                 "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
                 "display_time": false,
                 "multiple_answers": false
               },
               {
-                "question_id": 4985,
+                "question_id": 4994,
                 "type": "text",
                 "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
                 "subtitle": "",
                 "required": true,
-                "question_number": 18,
+                "question_number": 21,
                 "suggested_length": "00:00:00",
                 "max_length": "00:00:00",
                 "display_time": false,
                 "multiple_answers": false
               },
               {
-                "question_id": 5049,
+                "question_id": 4995,
                 "type": "instruction",
                 "title": "<h2>Congrats on completing the approach!</h2>\n \n<h3>Notice that you stayed in the situation even though you felt anxious.</h3>\n \n<h3>Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n \n<h3>Each approach is practice, not a test.</h3>\n \n<h3>Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
-                "question_number": 20
+                "question_number": 22
               }
             ],
             "notifications": [
@@ -627,7 +658,7 @@
           "weekly": 1
         },
         "incentive": {
-          "amount": "0.00",
+          "amount": "5.00",
           "bonus": "0.00",
           "currency": "$",
           "threshold": 0
@@ -658,55 +689,42 @@
               },
               {
                 "question_id": 5077,
-                "type": "slider",
-                "title": "On a scale of 0-100, how stressed are you feeling right now?",
-                "subtitle": " ",
+                "type": "media/Video",
+                "title": "Before you begin, setting the scene",
+                "subtitle": "",
                 "required": true,
                 "question_number": 3,
-                "min_value": 0,
-                "max_value": 100,
-                "min_label": "Totally relaxed",
-                "max_label": "Highest distress I have ever felt",
-                "default_value": 0
+                "media_link": "Pre_Approach_2.mov"
               },
               {
                 "question_id": 5078,
-                "type": "teleprompter",
-                "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to a small audience of adults.",
-                "subtitle": "\"Gettysburg Address\" by Abraham Lincoln\n\nFour score and seven years ago our fathers brought forth on this continent a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battlefield of that war.\n\nWe have come to dedicate a portion of that field, as a final resting-place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this. But, in a larger sense, we cannot dedicate \u2013 we cannot consecrate \u2013 we cannot hallow \u2013 this ground. The brave men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract.\n\nThe world will little note, nor long remember what we say here, but it can never forget what they did here. It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us \u2013 that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion \u2013 that we here highly resolve that these dead shall not have died in vain \u2013 that this nation, under God, shall have a new birth of freedom \u2013 and that government of the people, by the people, for the people, shall not perish from the earth.",
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": " ",
                 "required": true,
                 "question_number": 4,
-                "teleprompter_url": "Audience_Adults_Small.png"
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
               },
               {
                 "question_id": 5079,
-                "type": "slider",
-                "title": "On a scale of 0-100, how stressed are you feeling right now?",
-                "subtitle": " ",
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to a small audience of adults.",
+                "subtitle": "\"Gettysburg Address\" by Abraham Lincoln\n\nFour score and seven years ago our fathers brought forth on this continent a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battlefield of that war.\n\nWe have come to dedicate a portion of that field, as a final resting-place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this. But, in a larger sense, we cannot dedicate – we cannot consecrate – we cannot hallow – this ground. The brave men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract.\n\nThe world will little note, nor long remember what we say here, but it can never forget what they did here. It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us – that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion – that we here highly resolve that these dead shall not have died in vain – that this nation, under God, shall have a new birth of freedom – and that government of the people, by the people, for the people, shall not perish from the earth.",
                 "required": true,
                 "question_number": 5,
-                "min_value": 0,
-                "max_value": 100,
-                "min_label": "Totally relaxed",
-                "max_label": "Highest distress I have ever felt",
-                "default_value": 0
+                "teleprompter_url": "Audience_Adults_Small.png"
               },
               {
                 "question_id": 5080,
-                "type": "reference",
-                "title": "Review this recording of your speech.",
-                "subtitle": "Remember, review it objectively and not critically.",
-                "targeted_question": 4,
-                "required": true,
-                "question_number": 6
-              },
-              {
-                "question_id": 5081,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
                 "required": true,
-                "question_number": 7,
+                "question_number": 6,
                 "min_value": 0,
                 "max_value": 100,
                 "min_label": "Totally relaxed",
@@ -714,29 +732,30 @@
                 "default_value": 0
               },
               {
+                "question_id": 5081,
+                "type": "media/Video",
+                "title": "Why Rewatching Matters",
+                "subtitle": "This step is what makes the exercise work. Stick with it, even if it's hard.",
+                "required": true,
+                "question_number": 7,
+                "media_link": "Post_Approach.mov"
+              },
+              {
                 "question_id": 5082,
-                "type": "instruction",
-                "title": "<h3>Record the speech two more times before this module's Self-Reflection</h3>",
-                "subtitle": "Click 'Next' to record the speech again",
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 5,
                 "required": true,
                 "question_number": 8
               },
               {
                 "question_id": 5083,
-                "type": "teleprompter",
-                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a small audience of adults.",
-                "subtitle": "\"Gettysburg Address\" by Abraham Lincoln\n\nFour score and seven years ago our fathers brought forth on this continent a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battlefield of that war.\n\nWe have come to dedicate a portion of that field, as a final resting-place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this. But, in a larger sense, we cannot dedicate \u2013 we cannot consecrate \u2013 we cannot hallow \u2013 this ground. The brave men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract.\n\nThe world will little note, nor long remember what we say here, but it can never forget what they did here. It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us \u2013 that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion \u2013 that we here highly resolve that these dead shall not have died in vain \u2013 that this nation, under God, shall have a new birth of freedom \u2013 and that government of the people, by the people, for the people, shall not perish from the earth.",
-                "required": true,
-                "question_number": 9,
-                "teleprompter_url": "Audience_Adults_Small.png"
-              },
-              {
-                "question_id": 5084,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
                 "required": true,
-                "question_number": 10,
+                "question_number": 9,
                 "min_value": 0,
                 "max_value": 100,
                 "min_label": "Totally relaxed",
@@ -744,13 +763,21 @@
                 "default_value": 0
               },
               {
-                "question_id": 5085,
-                "type": "reference",
-                "title": "Review this recording of your speech",
-                "subtitle": "Remember, review it objectively and not critically",
-                "targeted_question": 9,
+                "question_id": 5084,
+                "type": "instruction",
+                "title": "<h3>Record the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to record the speech again",
                 "required": true,
-                "question_number": 11
+                "question_number": 10
+              },
+              {
+                "question_id": 5085,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a small audience of adults.",
+                "subtitle": "\"Gettysburg Address\" by Abraham Lincoln\n\nFour score and seven years ago our fathers brought forth on this continent a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battlefield of that war.\n\nWe have come to dedicate a portion of that field, as a final resting-place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this. But, in a larger sense, we cannot dedicate – we cannot consecrate – we cannot hallow – this ground. The brave men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract.\n\nThe world will little note, nor long remember what we say here, but it can never forget what they did here. It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us – that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion – that we here highly resolve that these dead shall not have died in vain – that this nation, under God, shall have a new birth of freedom – and that government of the people, by the people, for the people, shall not perish from the earth.",
+                "required": true,
+                "question_number": 11,
+                "teleprompter_url": "Audience_Adults_Small.png"
               },
               {
                 "question_id": 5086,
@@ -767,12 +794,12 @@
               },
               {
                 "question_id": 5087,
-                "type": "teleprompter",
-                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a small audience of adults.",
-                "subtitle": "\"Gettysburg Address\" by Abraham Lincoln\n\nFour score and seven years ago our fathers brought forth on this continent a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battlefield of that war.\n\nWe have come to dedicate a portion of that field, as a final resting-place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this. But, in a larger sense, we cannot dedicate \u2013 we cannot consecrate \u2013 we cannot hallow \u2013 this ground. The brave men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract.\n\nThe world will little note, nor long remember what we say here, but it can never forget what they did here. It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us \u2013 that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion \u2013 that we here highly resolve that these dead shall not have died in vain \u2013 that this nation, under God, shall have a new birth of freedom \u2013 and that government of the people, by the people, for the people, shall not perish from the earth.",
+                "type": "reference",
+                "title": "Review this recording of your speech",
+                "subtitle": "Remember, review it objectively and not critically",
+                "targeted_question": 11,
                 "required": true,
-                "question_number": 13,
-                "teleprompter_url": "Audience_Adults_Small.png"
+                "question_number": 13
               },
               {
                 "question_id": 5088,
@@ -789,12 +816,12 @@
               },
               {
                 "question_id": 5089,
-                "type": "reference",
-                "title": "Review this recording of your speech.",
-                "subtitle": "Remember, review it objectively and not critically.",
-                "targeted_question": 13,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a small audience of adults.",
+                "subtitle": "\"Gettysburg Address\" by Abraham Lincoln\n\nFour score and seven years ago our fathers brought forth on this continent a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battlefield of that war.\n\nWe have come to dedicate a portion of that field, as a final resting-place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this. But, in a larger sense, we cannot dedicate – we cannot consecrate – we cannot hallow – this ground. The brave men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract.\n\nThe world will little note, nor long remember what we say here, but it can never forget what they did here. It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us – that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion – that we here highly resolve that these dead shall not have died in vain – that this nation, under God, shall have a new birth of freedom – and that government of the people, by the people, for the people, shall not perish from the earth.",
                 "required": true,
-                "question_number": 15
+                "question_number": 15,
+                "teleprompter_url": "Audience_Adults_Small.png"
               },
               {
                 "question_id": 5090,
@@ -811,47 +838,82 @@
               },
               {
                 "question_id": 5091,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 15,
+                "required": true,
+                "question_number": 17
+              },
+              {
+                "question_id": 5092,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": " ",
+                "required": true,
+                "question_number": 18,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5093,
+                "type": "slider",
+                "title": "On a scale of 1-5, how immersed did you feel while speaking to the audience?",
+                "subtitle": " ",
+                "required": true,
+                "question_number": 19,
+                "min_value": 1,
+                "max_value": 5,
+                "min_label": "Not at all",
+                "max_label": "Fully immersed",
+                "default_value": 0
+              },
+              {
+                "question_id": 5094,
                 "type": "audio",
                 "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
                 "subtitle": null,
                 "required": true,
-                "question_number": 17,
+                "question_number": 20,
                 "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
                 "display_time": false,
                 "multiple_answers": false
               },
               {
-                "question_id": 5092,
+                "question_id": 5095,
                 "type": "audio",
                 "title": "Self Reflection - What did you do that was helpful that you could continue doing?",
                 "subtitle": null,
                 "required": true,
-                "question_number": 18,
+                "question_number": 21,
                 "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
                 "display_time": false,
                 "multiple_answers": false
               },
               {
-                "question_id": 5093,
+                "question_id": 5096,
                 "type": "text",
                 "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
                 "subtitle": "",
                 "required": true,
-                "question_number": 19,
+                "question_number": 22,
                 "suggested_length": "00:00:00",
                 "max_length": "00:00:00",
                 "display_time": false,
                 "multiple_answers": false
               },
               {
-                "question_id": 5094,
+                "question_id": 5097,
                 "type": "instruction",
-                "title":"<h2>Congrats on completing the approach!</h2>\n \n<h3>Notice that you stayed in the situation even though you felt anxious.</h3>\n \n<h3>Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n \n<h3>Each approach is practice, not a test.</h3>\n \n<h3>Progress comes from repetition and staying engaged!</h3>",
+                "title": "<h2>Congrats on completing the approach!</h2>\n \n<h3>Notice that you stayed in the situation even though you felt anxious.</h3>\n \n<h3>Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n \n<h3>Each approach is practice, not a test.</h3>\n \n<h3>Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
-                "question_number": 20
+                "question_number": 23
               }
             ],
             "notifications": [
@@ -884,7 +946,7 @@
           "weekly": 1
         },
         "incentive": {
-          "amount": "0.00",
+          "amount": "7.50",
           "bonus": "0.00",
           "currency": "$",
           "threshold": 0
@@ -915,55 +977,42 @@
               },
               {
                 "question_id": 5157,
-                "type": "slider",
-                "title": "On a scale of 0-100, how stressed are you feeling right now?",
-                "subtitle": " ",
+                "type": "media/Video",
+                "title": "Before you begin, setting the scene",
+                "subtitle": "",
                 "required": true,
                 "question_number": 3,
-                "min_value": 0,
-                "max_value": 100,
-                "min_label": "Totally relaxed",
-                "max_label": "Highest distress I have ever felt",
-                "default_value": 0
+                "media_link": "Pre_Approach_3.mov"
               },
               {
                 "question_id": 5158,
-                "type": "teleprompter",
-                "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to a large audience of adults.",
-                "subtitle": "Franklin D. Roosevelt - Inaugural Address\n\nI am certain that my fellow Americans expect that on my induction into the Presidency I will address them with a candor and a decision which the present situation of our Nation impels. This is preeminently the time to speak the truth, the whole truth, frankly and boldly. Nor need we shrink from honestly facing conditions in our country today. This great Nation will endure as it has endured, will revive and will prosper.\n\nSo, first of all, let me assert my firm belief that the only thing we have to fear is fear itself \u2014 nameless, unreasoning, unjustified terror which paralyzes needed efforts to convert retreat into advance. In every dark hour of our national life a leadership of frankness and vigor has met with that understanding and support of the people themselves which is essential to victory.\n\nI am convinced that you will again give that support to leadership in these critical days. In such a spirit on my part and on yours we face our common difficulties. They concern, thank God, only material things. Values have shrunken to fantastic levels; taxes have risen; our ability to pay has fallen; government of all kinds is faced by serious curtailment of income; the means of exchange are frozen in the currents of trade; the withered leaves of industrial enterprise lie on every side; farmers find no markets for their produce; the savings of many years in thousands of families are gone. More important, a host of unemployed citizens face the grim problem of existence, and an equally great number toil with little return. Only a foolish optimist can deny the dark realities of the moment.",
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": " ",
                 "required": true,
                 "question_number": 4,
-                "teleprompter_url": "Audience_Adults_Large.png"
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
               },
               {
                 "question_id": 5159,
-                "type": "slider",
-                "title": "On a scale of 0-100, how stressed are you feeling right now?",
-                "subtitle": " ",
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script.\nFor this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "Franklin D. Roosevelt - Inaugural Address\n\nI am certain that my fellow Americans expect that on my induction into the Presidency I will address them with a candor and a decision which the present situation of our Nation impels. This is preeminently the time to speak the truth, the whole truth, frankly and boldly. Nor need we shrink from honestly facing conditions in our country today. This great Nation will endure as it has endured, will revive and will prosper.\n\nSo, first of all, let me assert my firm belief that the only thing we have to fear is fear itself — nameless, unreasoning, unjustified terror which paralyzes needed efforts to convert retreat into advance. In every dark hour of our national life a leadership of frankness and vigor has met with that understanding and support of the people themselves which is essential to victory.\n\nI am convinced that you will again give that support to leadership in these critical days. In such a spirit on my part and on yours we face our common difficulties. They concern, thank God, only material things. Values have shrunken to fantastic levels; taxes have risen; our ability to pay has fallen; government of all kinds is faced by serious curtailment of income; the means of exchange are frozen in the currents of trade; the withered leaves of industrial enterprise lie on every side; farmers find no markets for their produce; the savings of many years in thousands of families are gone. More important, a host of unemployed citizens face the grim problem of existence, and an equally great number toil with little return. Only a foolish optimist can deny the dark realities of the moment.",
                 "required": true,
                 "question_number": 5,
-                "min_value": 0,
-                "max_value": 100,
-                "min_label": "Totally relaxed",
-                "max_label": "Highest distress I have ever felt",
-                "default_value": 0
+                "teleprompter_url": "Audience_Adults_Large.png"
               },
               {
                 "question_id": 5160,
-                "type": "reference",
-                "title": "Review this recording of your speech.",
-                "subtitle": "Remember, review it objectively and not critically.",
-                "targeted_question": 4,
-                "required": true,
-                "question_number": 6
-              },
-              {
-                "question_id": 5161,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
                 "required": true,
-                "question_number": 7,
+                "question_number": 6,
                 "min_value": 0,
                 "max_value": 100,
                 "min_label": "Totally relaxed",
@@ -971,29 +1020,30 @@
                 "default_value": 0
               },
               {
+                "question_id": 5161,
+                "type": "media/Video",
+                "title": "Why Rewatching Matters",
+                "subtitle": "This step is what makes the exercise work. Stick with it, even if it's hard.",
+                "required": true,
+                "question_number": 7,
+                "media_link": "Post_Approach.mov"
+              },
+              {
                 "question_id": 5162,
-                "type": "instruction",
-                "title": "<h3>Record the speech two more times before this module's Self-Reflection</h3>",
-                "subtitle": "Click 'Next' to record the speech again",
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 5,
                 "required": true,
                 "question_number": 8
               },
               {
                 "question_id": 5163,
-                "type": "teleprompter",
-                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience of adults.",
-                "subtitle": "Franklin D. Roosevelt - Inaugural Address\n\nI am certain that my fellow Americans expect that on my induction into the Presidency I will address them with a candor and a decision which the present situation of our Nation impels. This is preeminently the time to speak the truth, the whole truth, frankly and boldly. Nor need we shrink from honestly facing conditions in our country today. This great Nation will endure as it has endured, will revive and will prosper.\n\nSo, first of all, let me assert my firm belief that the only thing we have to fear is fear itself \u2014 nameless, unreasoning, unjustified terror which paralyzes needed efforts to convert retreat into advance. In every dark hour of our national life a leadership of frankness and vigor has met with that understanding and support of the people themselves which is essential to victory.\n\nI am convinced that you will again give that support to leadership in these critical days. In such a spirit on my part and on yours we face our common difficulties. They concern, thank God, only material things. Values have shrunken to fantastic levels; taxes have risen; our ability to pay has fallen; government of all kinds is faced by serious curtailment of income; the means of exchange are frozen in the currents of trade; the withered leaves of industrial enterprise lie on every side; farmers find no markets for their produce; the savings of many years in thousands of families are gone. More important, a host of unemployed citizens face the grim problem of existence, and an equally great number toil with little return. Only a foolish optimist can deny the dark realities of the moment.",
-                "required": true,
-                "question_number": 9,
-                "teleprompter_url": "Audience_Adults_Large.png"
-              },
-              {
-                "question_id": 5164,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
                 "required": true,
-                "question_number": 10,
+                "question_number": 9,
                 "min_value": 0,
                 "max_value": 100,
                 "min_label": "Totally relaxed",
@@ -1001,13 +1051,21 @@
                 "default_value": 0
               },
               {
-                "question_id": 5165,
-                "type": "reference",
-                "title": "Review this recording of your speech",
-                "subtitle": "Remember, review it objectively and not critically",
-                "targeted_question": 9,
+                "question_id": 5164,
+                "type": "instruction",
+                "title": "<h3>Record the speech two more times before this module's Self-Reflection</h3>",
+                "subtitle": "Click 'Next' to record the speech again",
                 "required": true,
-                "question_number": 11
+                "question_number": 10
+              },
+              {
+                "question_id": 5165,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "Franklin D. Roosevelt - Inaugural Address\n\nI am certain that my fellow Americans expect that on my induction into the Presidency I will address them with a candor and a decision which the present situation of our Nation impels. This is preeminently the time to speak the truth, the whole truth, frankly and boldly. Nor need we shrink from honestly facing conditions in our country today. This great Nation will endure as it has endured, will revive and will prosper.\n\nSo, first of all, let me assert my firm belief that the only thing we have to fear is fear itself — nameless, unreasoning, unjustified terror which paralyzes needed efforts to convert retreat into advance. In every dark hour of our national life a leadership of frankness and vigor has met with that understanding and support of the people themselves which is essential to victory.\n\nI am convinced that you will again give that support to leadership in these critical days. In such a spirit on my part and on yours we face our common difficulties. They concern, thank God, only material things. Values have shrunken to fantastic levels; taxes have risen; our ability to pay has fallen; government of all kinds is faced by serious curtailment of income; the means of exchange are frozen in the currents of trade; the withered leaves of industrial enterprise lie on every side; farmers find no markets for their produce; the savings of many years in thousands of families are gone. More important, a host of unemployed citizens face the grim problem of existence, and an equally great number toil with little return. Only a foolish optimist can deny the dark realities of the moment.",
+                "required": true,
+                "question_number": 11,
+                "teleprompter_url": "Audience_Adults_Large.png"
               },
               {
                 "question_id": 5166,
@@ -1024,12 +1082,12 @@
               },
               {
                 "question_id": 5167,
-                "type": "teleprompter",
-                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience of adults.",
-                "subtitle": "Franklin D. Roosevelt - Inaugural Address\n\nI am certain that my fellow Americans expect that on my induction into the Presidency I will address them with a candor and a decision which the present situation of our Nation impels. This is preeminently the time to speak the truth, the whole truth, frankly and boldly. Nor need we shrink from honestly facing conditions in our country today. This great Nation will endure as it has endured, will revive and will prosper.\n\nSo, first of all, let me assert my firm belief that the only thing we have to fear is fear itself \u2014 nameless, unreasoning, unjustified terror which paralyzes needed efforts to convert retreat into advance. In every dark hour of our national life a leadership of frankness and vigor has met with that understanding and support of the people themselves which is essential to victory.\n\nI am convinced that you will again give that support to leadership in these critical days. In such a spirit on my part and on yours we face our common difficulties. They concern, thank God, only material things. Values have shrunken to fantastic levels; taxes have risen; our ability to pay has fallen; government of all kinds is faced by serious curtailment of income; the means of exchange are frozen in the currents of trade; the withered leaves of industrial enterprise lie on every side; farmers find no markets for their produce; the savings of many years in thousands of families are gone. More important, a host of unemployed citizens face the grim problem of existence, and an equally great number toil with little return. Only a foolish optimist can deny the dark realities of the moment.",
+                "type": "reference",
+                "title": "Review this recording of your speech",
+                "subtitle": "Remember, review it objectively and not critically",
+                "targeted_question": 11,
                 "required": true,
-                "question_number": 13,
-                "teleprompter_url": "Audience_Adults_Large.png"
+                "question_number": 13
               },
               {
                 "question_id": 5168,
@@ -1046,12 +1104,12 @@
               },
               {
                 "question_id": 5169,
-                "type": "reference",
-                "title": "Review this recording of your speech.",
-                "subtitle": "Remember, review it objectively and not critically.",
-                "targeted_question": 13,
+                "type": "teleprompter",
+                "title": "Record yourself while reading out the following script. For this activity, imagine you are speaking to a large audience of adults.",
+                "subtitle": "Franklin D. Roosevelt - Inaugural Address\n\nI am certain that my fellow Americans expect that on my induction into the Presidency I will address them with a candor and a decision which the present situation of our Nation impels. This is preeminently the time to speak the truth, the whole truth, frankly and boldly. Nor need we shrink from honestly facing conditions in our country today. This great Nation will endure as it has endured, will revive and will prosper.\n\nSo, first of all, let me assert my firm belief that the only thing we have to fear is fear itself — nameless, unreasoning, unjustified terror which paralyzes needed efforts to convert retreat into advance. In every dark hour of our national life a leadership of frankness and vigor has met with that understanding and support of the people themselves which is essential to victory.\n\nI am convinced that you will again give that support to leadership in these critical days. In such a spirit on my part and on yours we face our common difficulties. They concern, thank God, only material things. Values have shrunken to fantastic levels; taxes have risen; our ability to pay has fallen; government of all kinds is faced by serious curtailment of income; the means of exchange are frozen in the currents of trade; the withered leaves of industrial enterprise lie on every side; farmers find no markets for their produce; the savings of many years in thousands of families are gone. More important, a host of unemployed citizens face the grim problem of existence, and an equally great number toil with little return. Only a foolish optimist can deny the dark realities of the moment.",
                 "required": true,
-                "question_number": 15
+                "question_number": 15,
+                "teleprompter_url": "Audience_Adults_Large.png"
               },
               {
                 "question_id": 5170,
@@ -1068,47 +1126,82 @@
               },
               {
                 "question_id": 5171,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 15,
+                "required": true,
+                "question_number": 17
+              },
+              {
+                "question_id": 5172,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": " ",
+                "required": true,
+                "question_number": 18,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5173,
+                "type": "slider",
+                "title": "On a scale of 1-5, how immersed did you feel while speaking to the audience?",
+                "subtitle": " ",
+                "required": true,
+                "question_number": 19,
+                "min_value": 1,
+                "max_value": 5,
+                "min_label": "Not at all",
+                "max_label": "Fully immersed",
+                "default_value": 0
+              },
+              {
+                "question_id": 5174,
                 "type": "audio",
                 "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
                 "subtitle": null,
                 "required": true,
-                "question_number": 17,
+                "question_number": 20,
                 "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
                 "display_time": false,
                 "multiple_answers": false
               },
               {
-                "question_id": 5172,
+                "question_id": 5175,
                 "type": "audio",
                 "title": "Self Reflection - What did you do that was helpful that you could continue doing?",
                 "subtitle": null,
                 "required": true,
-                "question_number": 18,
+                "question_number": 21,
                 "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
                 "display_time": false,
                 "multiple_answers": false
               },
               {
-                "question_id": 5173,
+                "question_id": 5176,
                 "type": "text",
                 "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
                 "subtitle": "",
                 "required": true,
-                "question_number": 19,
+                "question_number": 22,
                 "suggested_length": "00:00:00",
                 "max_length": "00:00:00",
                 "display_time": false,
                 "multiple_answers": false
               },
               {
-                "question_id": 5174,
+                "question_id": 5177,
                 "type": "instruction",
                 "title": "<h2>Congrats on completing the approach!</h2>\n \n<h3>Notice that you stayed in the situation even though you felt anxious.</h3>\n \n<h3>Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n \n<h3>Each approach is practice, not a test.</h3>\n \n<h3>Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
-                "question_number": 20
+                "question_number": 23
               }
             ],
             "notifications": [
@@ -1135,20 +1228,20 @@
       },
       {
         "id": 387,
-        "name": "[Optional] Approach Module 4",
+        "name": "Approach Module 4",
         "goal": {
           "daily": 1,
           "weekly": 1
         },
         "incentive": {
-          "amount": "0.00",
+          "amount": "7.50",
           "bonus": "0.00",
           "currency": "$",
           "threshold": 0
         },
         "diaries": [
           {
-            "name": "Approach #4 Module [Optional]",
+            "name": "Approach #4 Module",
             "start_time": "2026-05-01T08:00:00",
             "end_time": "2026-05-05T23:45:00",
             "entries": 1,
@@ -1157,7 +1250,7 @@
               {
                 "question_id": 5215,
                 "type": "instruction",
-                "title": "<h2>Overview of approach:</h2>\n\n<h3>You will read an authority's opinion for 1-minute in front of a large audience of adults and then give an extemporaneous 1-minute speech on your own opinion in front of that large audience of adults.</h3>",
+                "title": "<h2>Overview of approach:</h2>\n\n<h3>You will give an extemporaneous speech about a lesson you've learned through experience in front of an audience of adults.</h3>",
                 "subtitle": null,
                 "required": true,
                 "question_number": 1
@@ -1172,11 +1265,20 @@
               },
               {
                 "question_id": 5217,
+                "type": "media/Video",
+                "title": "Before you begin, setting the scene",
+                "subtitle": "",
+                "required": true,
+                "question_number": 3,
+                "media_link": "Pre_Approach_4.mov"
+              },
+              {
+                "question_id": 5218,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
                 "required": true,
-                "question_number": 3,
+                "question_number": 4,
                 "min_value": 0,
                 "max_value": 100,
                 "min_label": "Totally relaxed",
@@ -1184,25 +1286,16 @@
                 "default_value": 0
               },
               {
-                "question_id": 5218,
+                "question_id": 5219,
                 "type": "teleprompter",
-                "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\n\nFor this activity, imagine you are speaking to a large audience of adults.",
-                "subtitle": "\"What is the point of poetry, if any?\"\n(Scene from Dead Poets Society written by Tom Schulman)\n\nWe don't read and write poetry because it's cute. We read and write poetry because we are members of the human race. And the human race is filled with passion. And medicine, law, business, engineering, these are noble pursuits and necessary to sustain life. But poetry, beauty, romance, love, these are what we stay alive for.\n\nTo quote from Whitman, \"O me! O life!... of the questions of these recurring; of the endless trains of the faithless... of cities filled with the foolish; what good amid these, O me, O life?\" The answer: That you are here, that life exists \u2013 and identity; that the powerful play goes on and you may contribute a verse. That the powerful play goes on and you may contribute a verse. What will your verse be?",
-                "required": true,
-                "question_number": 4,
-                "teleprompter_url": "Audience_Adults_Large.png"
-              },
-              {
-                "question_id": 5240,
-                "type": "teleprompter",
-                "title": "Now record yourself speaking on the following topic.",
-                "subtitle": "Now speak for one minute on what is the point of poetry, if any.",
+                "title": "Record yourself speaking on the following topic. For this activity, imagine you are speaking to an audience of adults.",
+                "subtitle": "Share a lesson you've learned through experience (from school, work, travel, family, or a hobby) and talk about what happened, what it taught you, and how it still shapes you today.",
                 "required": true,
                 "question_number": 5,
-                "teleprompter_url": "Audience_Adults_Large.png"
+                "teleprompter_url": "Andrew_Audience.mov"
               },
               {
-                "question_id": 5219,
+                "question_id": 5220,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
@@ -1215,16 +1308,16 @@
                 "default_value": 0
               },
               {
-                "question_id": 5220,
-                "type": "reference",
-                "title": "Review this recording of your speech.",
-                "subtitle": "Remember, review it objectively and not critically.",
-                "targeted_question": 4,
+                "question_id": 5221,
+                "type": "media/Video",
+                "title": "Why Rewatching Matters",
+                "subtitle": "This step is what makes the exercise work. Stick with it, even if it's hard.",
                 "required": true,
-                "question_number": 7
+                "question_number": 7,
+                "media_link": "Post_Approach.mov"
               },
               {
-                "question_id": 5241,
+                "question_id": 5222,
                 "type": "reference",
                 "title": "Review this recording of your speech.",
                 "subtitle": "Remember, review it objectively and not critically.",
@@ -1233,7 +1326,7 @@
                 "question_number": 8
               },
               {
-                "question_id": 5221,
+                "question_id": 5223,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
@@ -1246,7 +1339,7 @@
                 "default_value": 0
               },
               {
-                "question_id": 5222,
+                "question_id": 5224,
                 "type": "instruction",
                 "title": "<h3>Record the speech two more times before this module's Self-Reflection</h3>",
                 "subtitle": "Click 'Next' to record the speech again",
@@ -1254,30 +1347,21 @@
                 "question_number": 10
               },
               {
-                "question_id": 5223,
+                "question_id": 5225,
                 "type": "teleprompter",
-                "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\nFor this activity, imagine you are speaking to a large audience of adults.",
-                "subtitle": "\"What is the point of poetry, if any?\"\n(Scene from Dead Poets Society written by Tom Schulman)\n\nWe don't read and write poetry because it's cute. We read and write poetry because we are members of the human race. And the human race is filled with passion. And medicine, law, business, engineering, these are noble pursuits and necessary to sustain life. But poetry, beauty, romance, love, these are what we stay alive for.\n\nTo quote from Whitman, \"O me! O life!... of the questions of these recurring; of the endless trains of the faithless... of cities filled with the foolish; what good amid these, O me, O life?\" The answer: That you are here, that life exists \u2013 and identity; that the powerful play goes on and you may contribute a verse. That the powerful play goes on and you may contribute a verse. What will your verse be?",
+                "title": "Record yourself speaking on the following topic. For this activity, imagine you are speaking to an audience of adults.",
+                "subtitle": "Share a lesson you've learned through experience (from school, work, travel, family, or a hobby) and talk about what happened, what it taught you, and how it still shapes you today.",
                 "required": true,
                 "question_number": 11,
-                "teleprompter_url": "Audience_Adults_Large.png"
+                "teleprompter_url": "Andrew_Audience.mov"
               },
               {
-                "question_id": 5242,
-                "type": "teleprompter",
-                "title": "Now record yourself speaking on the following topic.",
-                "subtitle": "Now speak for one minute on what is the point of poetry, if any.",
-                "required": true,
-                "question_number": 12,
-                "teleprompter_url": "Audience_Adults_Large.png"
-              },
-              {
-                "question_id": 5224,
+                "question_id": 5226,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
                 "required": true,
-                "question_number": 13,
+                "question_number": 12,
                 "min_value": 0,
                 "max_value": 100,
                 "min_label": "Totally relaxed",
@@ -1285,25 +1369,38 @@
                 "default_value": 0
               },
               {
-                "question_id": 5225,
+                "question_id": 5227,
                 "type": "reference",
-                "title": "Review this recording of your speech",
-                "subtitle": "Remember, review it objectively and not critically",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
                 "targeted_question": 11,
                 "required": true,
-                "question_number": 14
+                "question_number": 13
               },
               {
-                "question_id": 5243,
-                "type": "reference",
-                "title": "Review this recording of your speech",
-                "subtitle": "Remember, review it objectively and not critically",
-                "targeted_question": 12,
+                "question_id": 5228,
+                "type": "slider",
+                "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": " ",
                 "required": true,
-                "question_number": 15
+                "question_number": 14,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
               },
               {
-                "question_id": 5226,
+                "question_id": 5229,
+                "type": "teleprompter",
+                "title": "Record yourself speaking on the following topic. For this activity, imagine you are speaking to an audience of adults.",
+                "subtitle": "Share a lesson you've learned through experience (from school, work, travel, family, or a hobby) and talk about what happened, what it taught you, and how it still shapes you today.",
+                "required": true,
+                "question_number": 15,
+                "teleprompter_url": "Andrew_Audience.mov"
+              },
+              {
+                "question_id": 5230,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
                 "subtitle": " ",
@@ -1316,110 +1413,83 @@
                 "default_value": 0
               },
               {
-                "question_id": 5227,
-                "type": "teleprompter",
-                "title": "Record yourself while reading out the following script for 1-minute followed by an extemporaneous speech for 1-minute on your own opinion.\nFor this activity, imagine you are speaking to a large audience of adults.",
-                "subtitle": "\"What is the point of poetry, if any?\"\n(Scene from Dead Poets Society written by Tom Schulman)\n\nWe don't read and write poetry because it's cute. We read and write poetry because we are members of the human race. And the human race is filled with passion. And medicine, law, business, engineering, these are noble pursuits and necessary to sustain life. But poetry, beauty, romance, love, these are what we stay alive for.\n\nTo quote from Whitman, \"O me! O life!... of the questions of these recurring; of the endless trains of the faithless... of cities filled with the foolish; what good amid these, O me, O life?\" The answer: That you are here, that life exists \u2013 and identity; that the powerful play goes on and you may contribute a verse. That the powerful play goes on and you may contribute a verse. What will your verse be?",
+                "question_id": 5231,
+                "type": "reference",
+                "title": "Review this recording of your speech.",
+                "subtitle": "Remember, review it objectively and not critically.",
+                "targeted_question": 15,
                 "required": true,
-                "question_number": 17,
-                "teleprompter_url": "Audience_Adults_Large.png"
+                "question_number": 17
               },
               {
-                "question_id": 5244,
-                "type": "teleprompter",
-                "title": "Now record yourself speaking on the following topic.",
-                "subtitle": "Now speak for one minute on what is the point of poetry, if any.",
-                "required": true,
-                "question_number": 18,
-                "teleprompter_url": "Audience_Adults_Large.png"
-              },
-              {
-                "question_id": 5228,
+                "question_id": 5232,
                 "type": "slider",
                 "title": "On a scale of 0-100, how stressed are you feeling right now?",
+                "subtitle": " ",
+                "required": true,
+                "question_number": 18,
+                "min_value": 0,
+                "max_value": 100,
+                "min_label": "Totally relaxed",
+                "max_label": "Highest distress I have ever felt",
+                "default_value": 0
+              },
+              {
+                "question_id": 5233,
+                "type": "slider",
+                "title": "On a scale of 1-5, how immersed did you feel while speaking to the audience?",
                 "subtitle": " ",
                 "required": true,
                 "question_number": 19,
-                "min_value": 0,
-                "max_value": 100,
-                "min_label": "Totally relaxed",
-                "max_label": "Highest distress I have ever felt",
+                "min_value": 1,
+                "max_value": 5,
+                "min_label": "Not at all",
+                "max_label": "Fully immersed",
                 "default_value": 0
               },
               {
-                "question_id": 5229,
-                "type": "reference",
-                "title": "Review this recording of your speech.",
-                "subtitle": "Remember, review it objectively and not critically.",
-                "targeted_question": 17,
-                "required": true,
-                "question_number": 20
-              },
-              {
-                "question_id": 5245,
-                "type": "reference",
-                "title": "Review this recording of your speech.",
-                "subtitle": "Remember, review it objectively and not critically.",
-                "targeted_question": 18,
-                "required": true,
-                "question_number": 21
-              },
-              {
-                "question_id": 5230,
-                "type": "slider",
-                "title": "On a scale of 0-100, how stressed are you feeling right now?",
-                "subtitle": " ",
-                "required": true,
-                "question_number": 22,
-                "min_value": 0,
-                "max_value": 100,
-                "min_label": "Totally relaxed",
-                "max_label": "Highest distress I have ever felt",
-                "default_value": 0
-              },
-              {
-                "question_id": 5231,
+                "question_id": 5234,
                 "type": "audio",
                 "title": "Self Reflection - What were you scared of? Did that happen? Why or why not?",
                 "subtitle": "",
                 "required": true,
-                "question_number": 23,
+                "question_number": 20,
                 "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
                 "display_time": false,
                 "multiple_answers": false
               },
               {
-                "question_id": 5232,
+                "question_id": 5235,
                 "type": "audio",
                 "title": "Self Reflection - What did you do that was helpful that you could continue doing?",
                 "subtitle": null,
                 "required": true,
-                "question_number": 24,
+                "question_number": 21,
                 "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
                 "display_time": false,
                 "multiple_answers": false
               },
               {
-                "question_id": 5233,
+                "question_id": 5240,
                 "type": "text",
                 "title": "Self Reflection - Create one reminder you can use in your next approach practice. Examples include, \"I can be anxious and do it anyway\" and \"I get better by approaching, not avoiding.\"",
                 "subtitle": null,
                 "required": true,
-                "question_number": 25,
+                "question_number": 22,
                 "suggested_length": "00:01:00",
                 "max_length": "00:00:00",
                 "display_time": false,
                 "multiple_answers": false
               },
               {
-                "question_id": 5234,
+                "question_id": 5241,
                 "type": "instruction",
                 "title": "<h2>Congrats on completing the approach!</h2>\n \n<h3>Notice that you stayed in the situation even though you felt anxious.</h3>\n \n<h3>Remember that courage means acting in the presence of fear. You do not need anxiety to be gone in order to succeed.</h3>\n \n<h3>Each approach is practice, not a test.</h3>\n \n<h3>Progress comes from repetition and staying engaged!</h3>",
                 "subtitle": null,
                 "required": true,
-                "question_number": 26
+                "question_number": 23
               }
             ],
             "notifications": []
