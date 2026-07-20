@@ -3126,6 +3126,17 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
   VideoPlayerController? videoController;
   bool videoPlaying = false;
 
+  // Teleprompter stimulus video (plays while recording)
+  static const Set<String> _videoExtensions = {'.mov', '.mp4', '.m4v'};
+  VideoPlayerController? _stimulusController;
+
+  /// True when the teleprompter stimulus is a video rather than an image.
+  bool get _isVideoStimulus {
+    final url = widget.prompt.option?.teleprompterUrl?.toLowerCase();
+    if (url == null) return false;
+    return _videoExtensions.any(url.endsWith);
+  }
+
   double feedHeight = 0;
   double feedWidth = 0;
 
@@ -3147,7 +3158,26 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
       audioBitrate: 96000,
     );
     cameraInit();
+    _stimulusInit();
     super.initState();
+  }
+
+  /// Loads the teleprompter stimulus video (if the URL is a video file) so it
+  /// is ready to play the moment recording starts. No-op for image stimuli.
+  Future<void> _stimulusInit() async {
+    if (!_isVideoStimulus) return;
+    final url = widget.prompt.option!.teleprompterUrl!;
+    final stimulus = VideoPlayerController.asset("assets/images/fops/$url");
+    _stimulusController = stimulus;
+    try {
+      await stimulus.setLooping(true);
+      await stimulus.initialize();
+      if (mounted) setState(() {});
+    } catch (e) {
+      dev.log(e.toString(), name: "Teleprompter - Stimulus Init");
+      await stimulus.dispose();
+      _stimulusController = null;
+    }
   }
 
   /// Returns the front-facing camera if available, otherwise falls back to
@@ -3167,6 +3197,7 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
     controller.dispose();
     _scrollController.dispose();
     videoController?.dispose();
+    _stimulusController?.dispose();
     super.dispose();
   }
 
@@ -3447,8 +3478,46 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
     );
   }
 
+  /// Builds the teleprompter stimulus: a video (for .mov/.mp4/.m4v) that is
+  /// driven by the recording lifecycle, or a static image otherwise.
+  Widget _stimulus(double height) {
+    final url = widget.prompt.option?.teleprompterUrl;
+    if (url == null) return const SizedBox.shrink();
+
+    if (_isVideoStimulus) {
+      final stimulus = _stimulusController;
+      if (stimulus == null || !stimulus.value.isInitialized) {
+        // Reserve the slot while the video loads (or if it failed to load).
+        return SizedBox(height: height, width: double.infinity);
+      }
+      return SizedBox(
+        height: height,
+        width: double.infinity,
+        child: FittedBox(
+          fit: BoxFit.cover,
+          clipBehavior: Clip.hardEdge,
+          child: SizedBox(
+            width: stimulus.value.size.width,
+            height: stimulus.value.size.height,
+            child: VideoPlayer(stimulus),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: height,
+      child: Image.asset(
+        "assets/images/fops/$url",
+        fit: BoxFit.cover,
+        width: double.infinity,
+        errorBuilder: (context, error, stackTrace) =>
+            const Center(child: Icon(Icons.broken_image_rounded)),
+      ),
+    );
+  }
+
   Widget recordingView() {
-    final teleprompterUrl = widget.prompt.option?.teleprompterUrl;
     final width = MediaQuery.sizeOf(context).width;
     final double sh = MediaQuery.sizeOf(context).height;
     final bool isCompact = sh < 700;
@@ -3463,17 +3532,10 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Stimulus — height scales with screen size
-        SizedBox(
-          height: stimulusH,
-          child: Image.asset(
-            "assets/images/fops/$teleprompterUrl",
-            fit: BoxFit.cover,
-            width: double.infinity,
-            errorBuilder: (context, error, stackTrace) =>
-                const Center(child: Icon(Icons.broken_image_rounded)),
-          ),
-        ),
+        // Stimulus — height scales with screen size.
+        // Plays a video (auto-starts/stops with recording) or shows an image
+        // based on the teleprompter file type.
+        _stimulus(stimulusH),
 
         // Scrollable script — expands to fill all space between stimulus and controls
         Expanded(
@@ -3717,6 +3779,7 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
           _showingInitial = false;
         });
         await controller.startVideoRecording();
+        await _stimulusController?.play();
         if (mounted) startTimer();
       } else {
         setState(() => _countdown = _countdown! - 1);
@@ -3754,15 +3817,19 @@ class _TeleprompterModalState extends State<TeleprompterModal> {
     if (controller.value.isRecordingVideo &&
         !controller.value.isRecordingPaused) {
       await controller.pauseVideoRecording();
+      await _stimulusController?.pause();
       if (mounted) setState(() => stopTimer());
       return;
     }
     await controller.resumeVideoRecording();
+    await _stimulusController?.play();
     if (mounted) setState(() => startTimer());
   }
 
   Future<void> stop() async {
     stopTimer();
+    await _stimulusController?.pause();
+    await _stimulusController?.seekTo(Duration.zero);
     final captured = await controller.stopVideoRecording();
     if (!mounted) return;
     setState(() {
