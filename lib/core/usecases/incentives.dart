@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/network/secrets_handler.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -6,6 +7,7 @@ import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repo
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
+import 'package:http/http.dart' as http;
 
 import 'dart:developer' as dev;
 
@@ -16,19 +18,29 @@ import 'dart:developer' as dev;
 /// entry scoped to [studyID] (the study the just-submitted diary belongs to), and a
 /// one-time "BonusEarned" entry the first time that study's completion threshold is met.
 ///
+/// [setupRepository], [diaryRepository], [preferenceService], [secureSave], and [client]
+/// can be injected for testing; defaults to real instances otherwise.
+///
 /// Returns a `bool` value after the calculated incentives are submitted to AWS.
-Future<bool> calculateEarnedIncentivesForAWS(
-    {required String participantID, required int studyID}) async {
-  final repository = SetupRepository();
+Future<bool> calculateEarnedIncentivesForAWS({
+  required String participantID,
+  required int studyID,
+  SetupRepository? setupRepository,
+  DiaryRepository? diaryRepository,
+  PreferenceService? preferenceService,
+  SecureSave? secureSave,
+  http.Client? client,
+}) async {
+  final repository = setupRepository ?? SetupRepository();
   final experiment = repository.getExperiment();
   final experimentCode = experiment.login;
-  final diaryRepository = DiaryRepository();
-  final preferences = PreferenceService();
+  final diaryRepo = diaryRepository ?? DiaryRepository();
+  final preferences = preferenceService ?? PreferenceService();
 
   // Get the all diaries with multiple entries
-  final diaries = diaryRepository.getAllDiariesWithMultipleEntries();
+  final diaries = diaryRepo.getAllDiariesWithMultipleEntries();
 
-  final studies = diaryRepository.getAllStudies();
+  final studies = diaryRepo.getAllStudies();
 
   // Make a map of study to diaries
   // where the studyID is equal to the diary's studyID
@@ -135,7 +147,8 @@ Future<bool> calculateEarnedIncentivesForAWS(
     }
   }
 
-  final uploaded = await uploadNonAudioData(entries);
+  final uploaded = await uploadNonAudioData(entries,
+      secureSave: secureSave, client: client);
 
   // Only persist the bonus as given once it has actually been submitted,
   // so a failed upload can still retry on the next diary submission.

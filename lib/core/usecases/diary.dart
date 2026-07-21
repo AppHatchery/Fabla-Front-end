@@ -46,16 +46,21 @@ void diaryEnd({required String diaryID}) async {
 /// The entry of [diaryID] is then removed from the Start Map to allow
 /// reoccurring diaries to use the same ID for completion submission
 ///
+/// [preferenceService] can be injected for testing; defaults to the shared
+/// [preferences] instance otherwise.
+///
 /// Returns: List of [PromptEntry] to be add to the submission pool
 Future<List<PromptEntry>> submitDiaryCompletionTime(
     {required DiaryModel diary,
     required StudyModel? study,
     required String participantID,
     required String experimentCode,
-    required int promptLength}) async {
+    required int promptLength,
+    PreferenceService? preferenceService}) async {
+  final prefs = preferenceService ?? preferences;
   try {
-    final _starts = await preferences.getStringPreference(key: "diary_starts");
-    final _end = await preferences.getStringPreference(key: "diary_ends");
+    final _starts = await prefs.getStringPreference(key: "diary_starts");
+    final _end = await prefs.getStringPreference(key: "diary_ends");
     final Map<String, String> starts =
         _starts != null ? jsonDecode(_starts).cast<String, String>() : {};
     final Map<String, String> ends =
@@ -83,7 +88,7 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
       //Clean Up!
       // To avoid reoccurring diaries from having the same start time
       starts.removeWhere((key, _) => key == diary.id.toString());
-      await preferences.setStringPreference(
+      await prefs.setStringPreference(
           key: "diary_starts", value: jsonEncode(starts));
     }
 
@@ -106,7 +111,7 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
 
       // Clean Up!
       ends.removeWhere((key, _) => key == diary.id.toString());
-      await preferences.setStringPreference(
+      await prefs.setStringPreference(
           key: "diary_ends", value: jsonEncode(ends));
     }
 
