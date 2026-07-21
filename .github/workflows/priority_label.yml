@@ -1,0 +1,75 @@
+name: Apply Priority Label
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+
+jobs:
+  apply-priority-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync priority label from issue form
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.issue.body || '';
+
+            // Issue forms render a dropdown as "### <Label>\n\n<selected option>"
+            const match = body.match(/### Priority\s*\n+\s*(P[0-3])[^\n]*/i);
+            if (!match) {
+              console.log('No Priority field found in issue body, skipping.');
+              return;
+            }
+
+            const key = match[1].toUpperCase(); // P0, P1, P2, or P3
+            const targetLabel = `priority: ${key}`;
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.payload.issue.number;
+
+            const colors = {
+              'priority: P0': 'b60205',
+              'priority: P1': 'd93f0b',
+              'priority: P2': 'fbca04',
+              'priority: P3': '0e8a16',
+            };
+
+            // Create the label if it doesn't exist yet in the repo
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: targetLabel });
+            } catch {
+              await github.rest.issues.createLabel({
+                owner,
+                repo,
+                name: targetLabel,
+                color: colors[targetLabel],
+              });
+            }
+
+            const currentLabels = context.payload.issue.labels.map((l) => l.name);
+
+            // Remove any stale priority label so only one is ever applied
+            const staleLabels = currentLabels.filter(
+              (l) => l.startsWith('priority: ') && l !== targetLabel
+            );
+            for (const stale of staleLabels) {
+              await github.rest.issues.removeLabel({
+                owner,
+                repo,
+                issue_number,
+                name: stale,
+              });
+            }
+
+            if (!currentLabels.includes(targetLabel)) {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number,
+                labels: [targetLabel],
+              });
+            }

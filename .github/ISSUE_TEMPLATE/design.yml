@@ -1,0 +1,31 @@
+name: Design
+description: Suggest new designs for Fabla
+title: '[DESIGN] '
+labels: ['design']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This Design form is meant to be used for new design ideas
+
+  - type: textarea
+    id: design_motivation
+    attributes:
+      label: Design Motivation
+      description: Why is this design being proposed
+    validations:
+      required: true
+
+  - type: textarea
+    id: design_requirement
+    attributes:
+      label: Design Requirement
+      description: What are the requirements which the design needs to pass
+    validations:
+      required: true
+
+  - type: textarea
+    id: reference
+    attributes:
+      label: Reference
+      description: Add any related references for the design
