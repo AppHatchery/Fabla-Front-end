@@ -7,44 +7,31 @@ import UserNotifications
 import alarm
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
-    
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-      FirebaseApp.configure()
-      
-      UNUserNotificationCenter.current().delegate = self
+    FirebaseApp.configure()
 
-      application.registerForRemoteNotifications()
-      if #available(iOS 10.0, *) {
-        UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
-      }
-      SwiftAlarmPlugin.registerBackgroundTasks()
-      
-    GeneratedPluginRegistrant.register(with: self)
+    UNUserNotificationCenter.current().delegate = self
+    application.registerForRemoteNotifications()
+    if #available(iOS 10.0, *) {
+      UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
+    }
+    SwiftAlarmPlugin.registerBackgroundTasks()
+
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
-    
-    override func application(_ app: UIApplication,open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-        if url.scheme?.range(of: "pendo") != nil {
-            PendoManager.shared().initWith(url)
-            return true
-        }
-        return true
-    }
-    
-    // APNs token received
-    override  func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-           Messaging.messaging().apnsToken = deviceToken
-          // let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
-          // print("APNs device token: \(tokenString)")
-       }
-       
-       // Handle token errors
-    override  func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-         //  print("Failed to register for remote notifications: \(error.localizedDescription)")
-       }
-        
+
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+  }
+
+  override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    Messaging.messaging().apnsToken = deviceToken
+  }
+
+  override func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {}
 }
