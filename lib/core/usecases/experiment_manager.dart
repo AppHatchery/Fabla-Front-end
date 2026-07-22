@@ -78,7 +78,11 @@ class ExperimentManager {
 
       if (data == null || data.isEmpty) return UpdateStatus.none;
 
-      final Map<String, dynamic> extra = jsonDecode(data[0]['extra'] as String);
+      //null checker for the extra
+      final extraRaw = data[0]['extra'] as String?;
+      if (extraRaw == null) return UpdateStatus.none;
+
+      final Map<String, dynamic> extra = jsonDecode(extraRaw);
       final acknowledged = extra['protocol_acknowledged'];
 
       if (acknowledged == null || acknowledged == true) {
