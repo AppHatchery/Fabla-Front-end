@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/services/battery_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -30,6 +31,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
     with WidgetsBindingObserver {
   bool batteryOptimization = false;
   bool requested = false;
+  final PermissionRequestGuard _permissionGuard = PermissionRequestGuard();
   bool? granted;
 
   //Animations
@@ -307,25 +309,28 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   }
 
   void navigateToNextPage(BuildContext context) async {
-    final results = await Permission.notification.request();
+    await _permissionGuard.run(() async {
+      final results = await Permission.notification.request();
+      if (!mounted) return;
 
-    await PendoService.track("NotificationAccess", {"state": results.name});
-    if (mounted) setState(() => granted = results.isGranted);
-    if (granted != null && granted == true) {
-      _showTip?.fire();
-    }
-    checkBattery();
-    if (requested) {
-      await PreferenceService()
-          .setBoolPreference(key: 'notification_requested', value: true);
-      track(timer.stop(), "Finished");
-      if (context.mounted) {
-        RouteService()
-            .navigate(null, context: context, current: 'notification_access');
+      await PendoService.track("NotificationAccess", {"state": results.name});
+      if (mounted) setState(() => granted = results.isGranted);
+      if (granted != null && granted == true) {
+        _showTip?.fire();
       }
-    }
+      checkBattery();
+      if (requested) {
+        await PreferenceService()
+            .setBoolPreference(key: 'notification_requested', value: true);
+        track(timer.stop(), "Finished");
+        if (context.mounted) {
+          RouteService()
+              .navigate(null, context: context, current: 'notification_access');
+        }
+      }
 
-    if (mounted) setState(() => requested = true);
+      if (mounted) setState(() => requested = true);
+    });
   }
 
   track(int spent, String status) async {

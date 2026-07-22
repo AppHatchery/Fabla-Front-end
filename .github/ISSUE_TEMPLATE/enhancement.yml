@@ -1,0 +1,62 @@
+name: Enhancement
+description: Suggest places where we can improve Fabla
+title: '[ENHANCEMENT] '
+labels: ['enhancement']
+assignees: ['BuchiNy', 'Wiza-Munthali', 'carol-kadza']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This form is used to suggest areas of improvement for Fabla
+  - type: input
+    id: affected-feature
+    attributes:
+      label: 🎯 Affected Feature/Area
+      description: Which existing feature, screen, or part of Fabla does this affect?
+      placeholder: 'e.g. Onboarding flow, settings, Push notifications'
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: 🔍 Current Behavior
+      description: How does this feature work today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: desired-improvement
+    attributes:
+      label: 💭 Desired Improvement
+      description: What should change, and why would it be better?
+    validations:
+      required: true
+
+  - type: textarea
+    id: mockups-examples
+    attributes:
+      label: 📱 Mockups/Examples
+      description: Add any mockups, examples, or references.
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: ✅ Acceptance Criteria
+      description: List the criteria that must be met for this enhancement to be considered complete.
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Criterion 3
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 📎 Additional Context
+      description: Add any other context about the enhancement here.
+    validations:
+      required: false

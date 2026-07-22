@@ -16,14 +16,15 @@ class _SettingsMIcTestState extends State<SettingsMIcTest> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
       decoration: BoxDecoration(
-          color: CustomColors.productNormal,
-          borderRadius: BorderRadius.circular(11)),
+          color: CustomColors.fillWhite,
+          border: Border.all(color: CustomColors.productBorderNormal, width: 2),
+          borderRadius: BorderRadius.circular(100)),
       child: Row(children: [
         const Icon(
           CustomIcons.keyboardVoice,
-          color: CustomColors.productLightPrimaryNormalWhite,
+          color: CustomColors.productNormal,
         ),
         const SizedBox(width: 5),
         Expanded(
