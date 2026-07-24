@@ -103,28 +103,56 @@ function buildIssueBody(params: IssueBodyParams): string {
     "App should remain responsive at all times." :
     "App should operate without crashing.";
 
+  // Mirrors the "Priority" dropdown in .github/ISSUE_TEMPLATE/bug_report.yml.
+  // Keep this in sync if those dropdown options ever change.
+  // fatal -> P0, anr/regression/velocity -> P1, non-fatal -> P2.
+  const priorityMap: Record<IssueType, string> = {
+    "fatal": "P0 - Critical (blocks core functionality / crash)",
+    "anr": "P1 - High",
+    "regression": "P1 - High",
+    "velocity": "P1 - High",
+    "non-fatal": "P2 - Medium",
+  };
+
+  // Headings below match the exact field labels from bug_report.yml, in the
+  // same order, using the "### <Label>" h3 format GitHub renders issue-form
+  // answers with. This keeps auto-filed Crashlytics issues visually and
+  // structurally identical to ones humans submit through the form — and it's
+  // required for priority-label.yml's regex match on "### Priority" to fire.
   return `
-## 🐛 Bug Description
+### Description of the problem
+
 ${subtitle}
 
-## 🔄 Steps to Reproduce
-*Automatically detected by Firebase Crashlytics — steps unknown.*
-*See the [Crashlytics console](${consoleUrl}) for stack traces and session details.*
+### Steps to reproduce
 
-## ✅ Expected Behavior
+_Automatically detected by Firebase Crashlytics — steps unknown._
+_See the [Crashlytics console](${consoleUrl}) for stack traces and session details._
+
+### Expected results
+
 ${expectedBehavior}
 
-## ❌ Actual Behavior
+### Actual results
+
 ${actualBehaviorMap[type]}
 
-## 📱 Environment
-- **App Version:** \`${appVersion}\`
-- **App ID:** \`${appId}\`
-- **Device / OS:** *See [Crashlytics console](${consoleUrl}) for device details*
+### Priority
 
-## 📎 Additional Context
+${priorityMap[type]}
+
+### Device
+
+_See [Crashlytics console](${consoleUrl}) for device details._
+
+### OS
+
+_See [Crashlytics console](${consoleUrl}) for OS details._
+
+### Additional context
+
 - **Crashlytics Issue ID:** \`${issueId}\`
-- [🔗 View crash details in Firebase console](${consoleUrl})
+- [View crash details in Firebase console](${consoleUrl})
   `.trim();
 }
 
