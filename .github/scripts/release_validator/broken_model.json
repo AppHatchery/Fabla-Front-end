@@ -1,0 +1,462 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:5854292124266384596",
+      "lastPropertyId": "4:5873510534198742419",
+      "name": "Answer",
+      "properties": [
+        {
+          "id": "1:5330924011387406619",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+
+        {
+          "id": "3:1856960891214932324",
+          "name": "response",
+          "type": 30
+        },
+        {
+          "id": "4:5873510534198742419",
+          "name": "promptId",
+          "indexId": "1:4791128831704768824",
+          "type": 11,
+          "flags": 520,
+          "relationTarget": "Prompt"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:2718562603036521648",
+      "lastPropertyId": "14:7777413689069435084",
+      "name": "Diary",
+      "properties": [
+        {
+          "id": "1:5147572662922355304",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1803781164331014128",
+          "name": "studyID",
+          "type": 6
+        },
+        {
+          "id": "3:3057165327761051383",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "4:8448922725316097263",
+          "name": "start",
+          "type": 10
+        },
+        {
+          "id": "5:8504613382585994847",
+          "name": "end",
+          "type": 10
+        },
+        {
+          "id": "6:6579302468880790468",
+          "name": "entries",
+          "type": 6
+        },
+        {
+          "id": "7:562672074575067987",
+          "name": "currentEntry",
+          "type": 6
+        },
+        {
+          "id": "8:6452118090039355711",
+          "name": "due",
+          "type": 10
+        },
+        {
+          "id": "9:7344206090163357604",
+          "name": "deadline",
+          "type": 9
+        },
+        {
+          "id": "10:3256530960332762262",
+          "name": "dbDiaryStatus",
+          "type": 6
+        },
+        {
+          "id": "11:2953292468504398457",
+          "name": "notifications",
+          "type": 9
+        },
+        {
+          "id": "12:5939914576974872814",
+          "name": "activeDays",
+          "type": 27
+        },
+        {
+          "id": "13:2846982392222686810",
+          "name": "submissions",
+          "type": 30
+        },
+        {
+          "id": "14:7777413689069435084",
+          "name": "completions",
+          "type": 30
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:2102395644300957026",
+      "lastPropertyId": "9:4721769344667590758",
+      "name": "Experiment",
+      "properties": [
+        {
+          "id": "1:4420343772847430884",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6773748951742014759",
+          "name": "login",
+          "type": 9
+        },
+        {
+          "id": "3:4188064453485768981",
+          "name": "researcher",
+          "type": 9
+        },
+        {
+          "id": "4:562404920878106569",
+          "name": "organization",
+          "type": 9
+        },
+        {
+          "id": "5:2506703993803422451",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "6:2603864382414346900",
+          "name": "duration",
+          "type": 9
+        },
+        {
+          "id": "7:5724173273923276127",
+          "name": "description",
+          "type": 9
+        },
+        {
+          "id": "8:6838657705324870840",
+          "name": "version",
+          "type": 9
+        },
+        {
+          "id": "9:4721769344667590758",
+          "name": "ownerEmail",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "4:349636722219385723",
+      "lastPropertyId": "3:4397783093950340128",
+      "name": "Participant",
+      "properties": [
+        {
+          "id": "1:864294661472962239",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5987744461729918873",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:4397783093950340128",
+          "name": "studyCode",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "5:8772867094899341742",
+      "lastPropertyId": "9:2371406240884662852",
+      "name": "Prompt",
+      "properties": [
+        {
+          "id": "1:8132408664234994706",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6024934436238040586",
+          "name": "question",
+          "type": 9
+        },
+        {
+          "id": "3:7621251383171857179",
+          "name": "option",
+          "type": 9
+        },
+        {
+          "id": "4:4414088368547435870",
+          "name": "subtitle",
+          "type": 9
+        },
+        {
+          "id": "5:1921250108702699620",
+          "name": "required",
+          "type": 1
+        },
+        {
+          "id": "6:4681877718501396308",
+          "name": "diaryId",
+          "indexId": "2:6631521764056071387",
+          "type": 11,
+          "flags": 520,
+          "relationTarget": "Diary"
+        },
+        {
+          "id": "7:2145501645015716071",
+          "name": "responseTypeValue",
+          "type": 6
+        },
+        {
+          "id": "8:7773254165595787356",
+          "name": "questionNumber",
+          "type": 6
+        },
+        {
+          "id": "9:2371406240884662852",
+          "name": "multipleAnswer",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "6:6091333895423423885",
+      "lastPropertyId": "5:2471532132609385406",
+      "name": "ProtocolEntity",
+      "properties": [
+        {
+          "id": "1:4619257633086111466",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3213502991969066769",
+          "name": "version",
+          "type": 6
+        },
+        {
+          "id": "3:412174614935791710",
+          "name": "weeklyGoal",
+          "type": 6
+        },
+        {
+          "id": "4:8757730362604045872",
+          "name": "dailyGoal",
+          "type": 6
+        },
+        {
+          "id": "5:2471532132609385406",
+          "name": "diaryBlueprints",
+          "type": 30
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "8:6563800693063139779",
+      "lastPropertyId": "7:2805220565069682009",
+      "name": "Recording",
+      "properties": [
+        {
+          "id": "1:5584788537534046128",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6222127652789076469",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:135726372924099430",
+          "name": "path",
+          "type": 9
+        },
+        {
+          "id": "4:6179758231632725228",
+          "name": "transcript",
+          "type": 9
+        },
+        {
+          "id": "5:5333454612988718868",
+          "name": "date",
+          "type": 10
+        },
+        {
+          "id": "6:5997037681344134171",
+          "name": "answerId",
+          "indexId": "3:6458972295195859441",
+          "type": 11,
+          "flags": 520,
+          "relationTarget": "Answer"
+        },
+        {
+          "id": "7:2805220565069682009",
+          "name": "type",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "9:7496160323398228160",
+      "lastPropertyId": "6:5903923034696034310",
+      "name": "Study",
+      "properties": [
+        {
+          "id": "1:1600386079895184378",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2713224796906688125",
+          "name": "studyId",
+          "type": 6
+        },
+        {
+          "id": "3:8049948232794000671",
+          "name": "experimentCode",
+          "type": 9
+        },
+        {
+          "id": "4:5836502815872426071",
+          "name": "goals",
+          "type": 9
+        },
+        {
+          "id": "5:5560967743883992339",
+          "name": "incentive",
+          "type": 9
+        },
+        {
+          "id": "6:5903923034696034310",
+          "name": "name",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "10:2851749120900257167",
+      "lastPropertyId": "12:484686793405024867",
+      "name": "QuestionsEntity",
+      "properties": [
+        {
+          "id": "1:2297417806661332145",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7172657809297650520",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "3:6779149653716421536",
+          "name": "subtitle",
+          "type": 9
+        },
+        {
+          "id": "4:4944144181669905639",
+          "name": "options",
+          "type": 9
+        },
+        {
+          "id": "5:6946495595569139425",
+          "name": "type",
+          "type": 9
+        },
+        {
+          "id": "6:5377422794347072468",
+          "name": "min",
+          "type": 6
+        },
+        {
+          "id": "7:4490513902805558025",
+          "name": "max",
+          "type": 6
+        },
+        {
+          "id": "8:3698567987712949731",
+          "name": "defaultValue",
+          "type": 6
+        },
+        {
+          "id": "9:3293899210761099223",
+          "name": "variable",
+          "type": 9
+        },
+        {
+          "id": "10:4922930426466913637",
+          "name": "answer",
+          "type": 9
+        },
+        {
+          "id": "11:7226026629410015265",
+          "name": "minLabel",
+          "type": 9
+        },
+        {
+          "id": "12:484686793405024867",
+          "name": "maxLabel",
+          "type": 9
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "10:2851749120900257167",
+  "lastIndexId": "3:6458972295195859441",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [
+    1748021281935827717
+  ],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [
+    3961175314670380402,
+    4334280845023347725,
+    1113159504706489936,
+    426493442725437305,
+    3922881303515000855,
+    7750263042683215055,
+    6174335443674272054,
+    5424774880361595912,
+    523294475925365727,
+    4226934096153378817
+  ],
+  "retiredRelationUids": [],
+  "version": 1
+}

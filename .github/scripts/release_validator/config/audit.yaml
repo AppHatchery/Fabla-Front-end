@@ -1,0 +1,20 @@
+# Audit Log for Manual Schema Overrides
+# Add entries here to bypass 'approval' failures.
+
+approved_changes:
+  # Example:
+  # - type: PROPERTY_DELETED
+  #   entity: Diary
+  #   property: oldField
+  #   approved_by: "TechLeadName"
+  #   reason: "Cleanup of deprecated field"
+  - type: PROPERTY_DELETED
+    entity: Answer
+    property: date
+    approved_by: "Carol"
+
+
+
+retired_entities:
+  # Tracked by UID
+  # - 5854292124266384596
