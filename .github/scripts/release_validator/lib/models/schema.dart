@@ -1,3 +1,4 @@
+/// Defines the data structures for representing an ObjectBox model, including entities and properties.
 class ObjectBoxModel {
   final List<Entity> entities;
   final List<int> retiredEntityUids;
@@ -14,6 +15,13 @@ class ObjectBoxModel {
   Entity? findEntityByUid(int uid) {
     for (var entity in entities) {
       if (entity.uid == uid) return entity;
+    }
+    return null;
+  }
+
+  Entity? findEntityByName(String name) {
+    for (var entity in entities) {
+      if (entity.name == name) return entity;
     }
     return null;
   }
@@ -37,6 +45,13 @@ class Entity {
   Property? findPropertyByUid(int uid) {
     for (var prop in properties) {
       if (prop.uid == uid) return prop;
+    }
+    return null;
+  }
+
+  Property? findPropertyByName(String name) {
+    for (var prop in properties) {
+      if (prop.name == name) return prop;
     }
     return null;
   }

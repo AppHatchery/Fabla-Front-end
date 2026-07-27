@@ -1,3 +1,4 @@
+/// Evaluates schema changes against defined policies and audit approvals to determine if they are safe for release.
 import '../models/schema.dart';
 import '../models/validation.dart';
 import 'config_service.dart';
@@ -48,6 +49,6 @@ class ValidationEngine {
       return ValidationResult.pass("Marked as retired in audit.yaml");
     }
 
-    return ValidationResult.fail("Entity '${change.entity}' was deleted but not added to 'retiredEntityUids'");
+    return ValidationResult.fail("Entity '${change.entity}' was deleted but not added to 'retiredEntityUids'. Please add UID: ${change.uid} to the model file.");
   }
 }

@@ -1,3 +1,4 @@
+/// Defines types and results for the validation process, including change categories and pass/fail statuses.
 enum ChangeType {
   ENTITY_ADDED,
   PROPERTY_ADDED,

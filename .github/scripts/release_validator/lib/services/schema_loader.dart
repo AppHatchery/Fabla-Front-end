@@ -1,3 +1,4 @@
+/// Handles loading and decoding ObjectBox model JSON files from the file system.
 import 'dart:convert';
 import 'dart:io';
 import '../models/schema.dart';

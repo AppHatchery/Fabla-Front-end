@@ -16,7 +16,7 @@ void main(List<String> args) async {
   try {
     // 1. Setup Paths
     final scriptDir = p.dirname(p.fromUri(Platform.script));
-    final projectRoot = p.dirname(scriptDir); // release_validator root
+    final projectRoot = p.dirname(scriptDir);
     final policyPath = p.join(projectRoot, 'config', 'policy.yaml');
     final auditPath = p.join(projectRoot, 'config', 'audit.yaml');
 
