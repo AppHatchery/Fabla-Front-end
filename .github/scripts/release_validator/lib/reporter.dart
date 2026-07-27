@@ -77,10 +77,8 @@ class ReportGenerator {
           lines.add(currentLine);
         }
         currentLine = word;
-        
-        // Handle words longer than maxWidth
+
         while (_estimateVisibleLength(currentLine) > maxWidth) {
-          // This is a simple cut-off for extremely long words (like UIDs or paths)
           final cutPoint = maxWidth - 2; 
           lines.add(currentLine.substring(0, cutPoint));
           currentLine = currentLine.substring(cutPoint);
@@ -93,10 +91,8 @@ class ReportGenerator {
     return lines;
   }
 
-  /// Emojis often take up 2 display cells but count as 1 or more characters in strings.
   int _estimateVisibleLength(String text) {
     int length = text.length;
-    // Add +1 for each known emoji to account for double-width display
     final emojiCount = RegExp(r'[🧱🔷🔶✅🛑]').allMatches(text).length;
     return length + emojiCount;
 
