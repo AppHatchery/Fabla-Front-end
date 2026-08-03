@@ -22,11 +22,11 @@ env:
   FLUTTER_VERSION: '3.41.9'
 
 jobs:
+  # No `name:` on purpose — the check name falls back to this job id, `test`,
+  # which is the required status check in main's branch protection. Adding a
+  # display name or renaming the job leaves that check pending forever and
+  # blocks every merge.
   test:
-    # Kept as-is despite no longer running analysis: this string is the required
-    # status check in main's branch protection. Renaming it would leave that
-    # check pending forever and block every merge.
-    name: Analyze and test
     runs-on: ubuntu-latest
     timeout-minutes: 15
 

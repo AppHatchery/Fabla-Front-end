@@ -4,8 +4,8 @@ name: PR
 # than defining steps itself, so what runs on a PR is readable in one screen and
 # each concern stays independently runnable.
 #
-# main is branch-protected: make `PR / Tests / Analyze and test` the required
-# check. Do not require the deploy job — it is opt-in and skipped on most PRs.
+# main is branch-protected: `test` is the required check. Do not require the
+# deploy job — it is opt-in and skipped on most PRs.
 on:
   pull_request:
     branches:
