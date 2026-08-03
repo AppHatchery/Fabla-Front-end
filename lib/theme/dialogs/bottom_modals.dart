@@ -18,6 +18,7 @@ import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
@@ -107,7 +108,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       'assets/animations/onboarding/floats_in.riv',
       riveFactory: r.Factory.rive,
     );
-    if (file != null && mounted) {
+
+    if(!mounted) {
+      file?.dispose();
+      return;
+    }
+
+    if (file != null) {
       final controller = r.RiveWidgetController(
         file,
         stateMachineSelector: r.StateMachineSelector.byName('Animation_12'),
@@ -754,7 +761,13 @@ class _BottomTextModalState extends State<BottomTextModal>
       'assets/animations/ghosts.riv',
       riveFactory: r.Factory.rive,
     );
-    if (file != null && mounted) {
+
+    if(!mounted) {
+      file?.dispose();
+      return;
+    }
+
+    if (file != null) {
       final controller = r.RiveWidgetController(
         file,
         stateMachineSelector: r.StateMachineSelector.byName('Ghosts'),
@@ -1514,7 +1527,13 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
       'assets/animations/ghosts.riv',
       riveFactory: r.Factory.rive,
     );
-    if (file != null && mounted) {
+
+    if(!mounted) {
+      file?.dispose();
+      return;
+    }
+
+    if (file != null) {
       final controller = r.RiveWidgetController(
         file,
         stateMachineSelector: r.StateMachineSelector.byName('Ghosts'),
@@ -2572,7 +2591,7 @@ class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
 }
 
 class BottomTimerModal extends StatefulWidget {
-  final Duration remaining;
+  final ValueListenable<Duration> remainingListenable;
   final bool isRunning;
   final bool isPaused;
   final bool showTimeUpOverlay;
@@ -2584,7 +2603,7 @@ class BottomTimerModal extends StatefulWidget {
 
   const BottomTimerModal({
     super.key,
-    required this.remaining,
+    required this.remainingListenable,
     required this.isRunning,
     required this.isPaused,
     required this.showTimeUpOverlay,
@@ -2600,7 +2619,7 @@ class BottomTimerModal extends StatefulWidget {
 }
 
 class _BottomTimerModalState extends State<BottomTimerModal>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   double animationHeight = 0;
   // Icon Shake animation
   late AnimationController _shakeController;
@@ -2610,6 +2629,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadRive();
 
     // Initialize animation controller
@@ -2628,7 +2648,13 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       'assets/animations/onboarding/floats_in.riv',
       riveFactory: r.Factory.rive,
     );
-    if (file != null && mounted) {
+
+    if(!mounted) {
+      file?.dispose();
+      return;
+    }
+
+    if (file != null) {
       final controller = r.RiveWidgetController(
         file,
         stateMachineSelector: r.StateMachineSelector.byName('Animation_12'),
@@ -2643,6 +2669,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _riveController?.dispose();
     _riveFile?.dispose();
     _shakeController.dispose();
@@ -2718,23 +2745,34 @@ class _BottomTimerModalState extends State<BottomTimerModal>
           Flexible(
             child: FittedBox(
               fit: BoxFit.scaleDown, // prevents clipping if space is tight
-              child: Text(
-                widget.showTimeUpOverlay
-                    ? "Time's Up!"
-                    : formatMinsAndSecs(widget.remaining),
-                textAlign: TextAlign.center,
-                style: CustomTypography()
-                    .custom(
-                      color: CustomColors.textWhite,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 48,
+              child: widget.showTimeUpOverlay
+                  ? Text(
+                      "Time's Up!",
+                      textAlign: TextAlign.center,
+                      style: CustomTypography().custom(
+                        color: CustomColors.textWhite,
+                        fontWeight: FontWeight.w400,
+                        fontSize: 48,
+                      ),
                     )
-                    .copyWith(
-                      fontFeatures: widget.showTimeUpOverlay
-                          ? []
-                          : [const FontFeature.tabularFigures()],
+                  : ValueListenableBuilder<Duration>(
+                      valueListenable: widget.remainingListenable,
+                      builder: (context, remaining, _) => Text(
+                        formatMinsAndSecs(remaining),
+                        textAlign: TextAlign.center,
+                        style: CustomTypography()
+                            .custom(
+                              color: CustomColors.textWhite,
+                              fontWeight: FontWeight.w400,
+                              fontSize: 48,
+                            )
+                            .copyWith(
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                            ),
+                      ),
                     ),
-              ),
             ),
           ),
         ],
