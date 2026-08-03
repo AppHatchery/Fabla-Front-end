@@ -166,3 +166,10 @@ jobs:
             exit 1
           fi
           echo "All tests passed; coverage $COVERAGE% >= ${MIN_COVERAGE}%."
+
+      - name: Run Release Validator
+        if: ${{ !cancelled() }}
+        run: |
+          cd .github/scripts/release_validator
+          dart pub get
+          dart run bin/validator.dart baseline.json ../../../lib/objectbox-model.json
