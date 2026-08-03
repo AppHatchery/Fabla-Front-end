@@ -7,6 +7,3 @@ approved_changes:
   #   entity: Diary
   #   property: oldField
   #   reason: "Cleanup of deprecated field"
-  - type: PROPERTY_DELETED
-    entity: Diary
-    property: studyID
