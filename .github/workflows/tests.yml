@@ -1,0 +1,155 @@
+name: Tests
+
+# Reusable: called by pr.yml on every pull request, and invocable manually from
+# the Actions tab for flake triage or post-secret-rotation re-runs. This
+# workflow owns static analysis and testing only — it never builds or ships an
+# artifact, so it can run on any ref without side effects.
+on:
+  workflow_call:
+    inputs:
+      min-coverage:
+        description: Line coverage percentage required to pass.
+        required: false
+        type: string
+        default: '18'
+    outputs:
+      coverage:
+        description: In-scope line coverage percentage.
+        value: ${{ jobs.test.outputs.coverage }}
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: '3.41.9'
+
+jobs:
+  test:
+    name: Analyze and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Only what this job needs: read the code, comment on the PR. The deploy
+    # pipeline's permissions are declared separately and do not overlap.
+    permissions:
+      contents: read
+      pull-requests: write
+
+    # Cancel superseded runs on the same PR instead of stacking them. Cheap and
+    # safe here because nothing is published. Declared on the job rather than
+    # the workflow so callers can't deadlock waiting on their own group.
+    concurrency:
+      group: tests-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+
+    env:
+      MIN_COVERAGE: ${{ inputs.min-coverage || '18' }}
+
+    outputs:
+      coverage: ${{ steps.coverage.outputs.coverage }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/flutter-setup
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          apikey: ${{ secrets.APIKEY }}
+          pendokey: ${{ secrets.PENDOKEY }}
+
+      # analysis_options.yaml enables flutter_lints; enforce it. Infos are
+      # non-fatal so style nits don't block a merge, but warnings and errors do.
+      # continue-on-error defers the failure to the gate step below, so test
+      # results are still reported when only analysis is broken.
+      - name: Analyze
+        id: analyze
+        continue-on-error: true
+        run: flutter analyze --no-fatal-infos
+
+      # The `github` reporter annotates failing tests inline in the run log and
+      # folds output into groups; the `json` file-reporter is parsed afterwards
+      # for the step summary and PR comment.
+      - name: Run tests with coverage
+        id: tests
+        continue-on-error: true
+        timeout-minutes: 10
+        run: |
+          flutter test --coverage test/ \
+            --reporter github \
+            --file-reporter "json:test-results.json"
+
+      # `!cancelled()`: run on test failure so results still get reported, but
+      # respect cancel-in-progress — a superseded run must not keep burning
+      # minutes or overwrite the newer run's PR comment.
+      - name: Compute in-scope coverage
+        id: coverage
+        if: ${{ !cancelled() }}
+        run: |
+          sudo apt-get install -y lcov
+          .github/scripts/coverage.sh
+
+      # Builds report.md (concise — sticky PR comment) and summary.md (extended
+      # — run details, slowest tests, per-file breakdown) for the run Summary
+      # page. Counts are exposed as step outputs.
+      - name: Build test report
+        id: report
+        if: ${{ !cancelled() }}
+        run: |
+          python3 .github/scripts/test_summary.py \
+            test-results.json report.md \
+            "${{ steps.coverage.outputs.coverage }}" "${MIN_COVERAGE}" \
+            --summary-out summary.md \
+            --lines "${{ steps.coverage.outputs.lines }}" \
+            >> "$GITHUB_OUTPUT"
+          cat summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      # Upsert a single sticky comment on the PR (first-party github-script, no
+      # third-party action). Matched by the hidden marker so re-runs update it.
+      - name: Comment results on the PR
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- unit-widget-tests -->';
+            const body = marker + '\n' + fs.readFileSync('report.md', 'utf8');
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo, issue_number, per_page: 100,
+            });
+            const existing = comments.find(
+              (c) => c.body && c.body.includes(marker)
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existing.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number, body,
+              });
+            }
+
+      # Single place the job actually fails: analysis, tests and the coverage
+      # gate are each reported as ::error:: annotations, so one run surfaces
+      # every reason rather than only the first.
+      - name: Enforce results and coverage gate
+        if: ${{ !cancelled() }}
+        run: |
+          ok=1
+          if [ "${{ steps.analyze.outcome }}" != "success" ]; then
+            echo "::error::flutter analyze reported problems — see the log."
+            ok=0
+          fi
+          if [ "${{ steps.tests.outcome }}" != "success" ]; then
+            echo "::error::${{ steps.report.outputs.failed }} test(s) failed — see the job summary and PR comment."
+            ok=0
+          fi
+          COVERAGE="${{ steps.coverage.outputs.coverage }}"
+          if ! awk "BEGIN {exit !($COVERAGE >= $MIN_COVERAGE)}"; then
+            echo "::error::Coverage $COVERAGE% is below the gate of ${MIN_COVERAGE}%."
+            ok=0
+          fi
+          if [ "$ok" -ne 1 ]; then
+            exit 1
+          fi
+          echo "All checks passed; coverage $COVERAGE% >= ${MIN_COVERAGE}%."

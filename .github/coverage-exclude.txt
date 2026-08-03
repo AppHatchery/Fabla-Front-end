@@ -1,0 +1,21 @@
+# Paths excluded from the coverage gate, one lcov pattern per line.
+# Blank lines and # comments are ignored. Read by .github/scripts/coverage.sh.
+#
+# Only exclude code that cannot be meaningfully unit tested: generated
+# sources, pure declarations, and entrypoints that require a live platform.
+# Anything with branching logic belongs in the gate.
+
+# Generated sources
+lib/**/*.g.dart
+lib/**/*.freezed.dart
+lib/objectbox.g.dart
+
+# Entrypoints and platform bootstrap
+lib/main.dart
+lib/firebase_options.dart
+
+# Pure declarations, no logic
+lib/theme/**
+lib/core/utils/dummy_data.dart
+lib/core/utils/errorCodes.dart
+lib/core/utils/emailFunction.dart

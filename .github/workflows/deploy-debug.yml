@@ -1,0 +1,136 @@
+name: Deploy debug to Firebase
+
+# Reusable: called by pr.yml when a PR carries the `deploy:testing` label, and
+# invocable manually from the Actions tab to ship any ref. This workflow owns
+# building and distributing the Android debug artifact — nothing else.
+on:
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: '3.41.9'
+  JAVA_VERSION: '17'
+  RUBY_VERSION: '3.3.6'
+  # Android 16 — must track compileSdkVersion/ndkVersion in
+  # android/app/build.gradle. Bump both together.
+  ANDROID_API_LEVEL: '36'
+  ANDROID_BUILD_TOOLS: '36.0.0'
+  ANDROID_NDK_VERSION: '28.2.13676358'
+  ANDROID_CMAKE_VERSION: '3.22.1'
+
+jobs:
+  build_and_deploy:
+    name: Build and distribute
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    permissions:
+      contents: read
+
+    # Deploys serialise and are never cancelled mid-flight: interrupting a
+    # Firebase upload leaves an ambiguous release. Declared on the job so a
+    # caller in pr.yml cannot queue behind its own concurrency group.
+    concurrency:
+      group: deploy-debug
+      cancel-in-progress: false
+
+    # Scopes the Firebase credentials to this job, records every deploy in the
+    # environment's history, and gives you a place to add required reviewers or
+    # a branch allowlist without touching this file.
+    environment: firebase-testing
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost \
+            /usr/share/swift "$AGENT_TOOLSDIRECTORY"
+          # Drop preinstalled NDKs we don't use; ours is pinned below.
+          find /usr/local/lib/android/sdk/ndk -mindepth 1 -maxdepth 1 \
+            ! -name "${ANDROID_NDK_VERSION}" -exec sudo rm -rf {} + || true
+          sudo apt-get clean
+
+      - uses: ./.github/actions/flutter-setup
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          apikey: ${{ secrets.APIKEY }}
+          pendokey: ${{ secrets.PENDOKEY }}
+
+      - name: Accept Android SDK licenses
+        run: |
+          yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" \
+            --licenses >/dev/null
+
+      - name: Cache Android SDK components
+        uses: actions/cache@v5
+        with:
+          path: |
+            /usr/local/lib/android/sdk/ndk/${{ env.ANDROID_NDK_VERSION }}
+            /usr/local/lib/android/sdk/platforms/android-${{ env.ANDROID_API_LEVEL }}
+            /usr/local/lib/android/sdk/build-tools/${{ env.ANDROID_BUILD_TOOLS }}
+            /usr/local/lib/android/sdk/cmake/${{ env.ANDROID_CMAKE_VERSION }}
+          key: ${{ runner.os }}-android-sdk-${{ env.ANDROID_API_LEVEL }}-v1
+          restore-keys: ${{ runner.os }}-android-sdk-${{ env.ANDROID_API_LEVEL }}-
+
+      # Pre-install SDK components so Gradle doesn't download mid-build.
+      # Android 16 (API 36) only — matches compileSdkVersion 36. Fails loudly: a
+      # missing platform surfaces here, not 20 minutes into a Gradle run.
+      - name: Install required SDK components
+        run: |
+          "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --install \
+            "platforms;android-${ANDROID_API_LEVEL}" \
+            "build-tools;${ANDROID_BUILD_TOOLS}" \
+            "cmake;${ANDROID_CMAKE_VERSION}" \
+            "ndk;${ANDROID_NDK_VERSION}"
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+          working-directory: android
+
+      # Only cache Gradle dependencies, not build output
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches/modules-2
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-deps-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-deps-
+
+      # github.run_number is monotonic and owned by CI, so versionCode is
+      # derived rather than stored. The old fastlane bump_build_number lane
+      # rewrote pubspec.yaml on an ephemeral runner and never committed it,
+      # which meant every release shipped the same versionCode.
+      - name: Build debug APK
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.vfs.watch=false"
+        run: |
+          flutter build apk --debug \
+            --build-number=${{ github.run_number }} \
+            --target-platform android-arm64 \
+            --tree-shake-icons
+
+      # Retain the artifact before the upload that can fail. Without this a
+      # Firebase outage discards a 20-minute build and there is nothing to
+      # inspect or re-distribute by hand.
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Distribute via Fastlane
+        working-directory: android
+        env:
+          FIREBASE_APP_ID_ANDROID: ${{ secrets.FIREBASE_APP_ID_ANDROID }}
+          FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: bundle exec fastlane deploy_to_firebase

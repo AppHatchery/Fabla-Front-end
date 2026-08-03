@@ -1,0 +1,72 @@
+name: Flutter setup
+description: >-
+  Check out prerequisites for any Flutter job: SDK, pub cache, .env asset,
+  dependencies and (optionally) generated sources. Every workflow that needs a
+  buildable checkout uses this so the setup contract lives in one place.
+
+inputs:
+  flutter-version:
+    description: Flutter SDK version to install.
+    required: true
+  java-version:
+    description: >-
+      Temurin JDK version. Leave empty to skip Java setup — only the Android
+      build needs a JDK; `flutter test` does not.
+    required: false
+    default: ''
+  apikey:
+    description: APIKEY value written to the .env asset.
+    required: true
+  pendokey:
+    description: PENDOKEY value written to the .env asset.
+    required: true
+  run-codegen:
+    description: Run build_runner to generate ObjectBox bindings.
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Java
+      if: inputs.java-version != ''
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: ${{ inputs.java-version }}
+
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ inputs.flutter-version }}
+        channel: stable
+        cache: true # caches the Flutter SDK itself between runs
+
+    - name: Cache pub dependencies
+      uses: actions/cache@v5
+      with:
+        path: ~/.pub-cache
+        key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pub-
+
+    # .env is a declared asset in pubspec.yaml, so it must exist before any
+    # build or test — its absence is a hard asset-resolution failure, not a
+    # runtime one. Secrets aren't auto-exposed as shell vars.
+    - name: Create .env
+      shell: bash
+      env:
+        APIKEY: ${{ inputs.apikey }}
+        PENDOKEY: ${{ inputs.pendokey }}
+      run: |
+        printf 'APIKEY=%s\n' "$APIKEY" > .env
+        printf 'PENDOKEY=%s\n' "$PENDOKEY" >> .env
+
+    - name: Install dependencies
+      shell: bash
+      run: flutter pub get
+
+    - name: Generate ObjectBox bindings
+      if: inputs.run-codegen == 'true'
+      shell: bash
+      run: dart run build_runner build --delete-conflicting-outputs

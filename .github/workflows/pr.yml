@@ -1,0 +1,42 @@
+name: PR
+
+# The only entrypoint for pull requests. Composes the reusable workflows rather
+# than defining steps itself, so what runs on a PR is readable in one screen and
+# each concern stays independently runnable.
+#
+# main is branch-protected: make `PR / Tests / Analyze and test` the required
+# check. Do not require the deploy job — it is opt-in and skipped on most PRs.
+on:
+  pull_request:
+    branches:
+      - main
+    # `labeled` so adding deploy:testing to an open PR triggers a build without
+    # needing a new commit.
+    types: [opened, synchronize, reopened, labeled]
+
+# A called workflow can only narrow the token it is handed, never widen it, so
+# the union of what the callees need is granted here. Each callee then scopes
+# down per job: only the test job gets pull-requests: write.
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  tests:
+    name: Tests
+    uses: ./.github/workflows/tests.yml
+    secrets: inherit
+
+  # Opt-in per PR via the `deploy:testing` label. A label is used rather than a
+  # title keyword because labels are recorded in the PR timeline with an author
+  # and timestamp, whereas a title can be edited silently between re-runs.
+  #
+  # Note: pull_request runs from forks receive no secrets, so this cannot
+  # deploy a fork contribution. Use the manual workflow_dispatch on
+  # deploy-debug.yml for that.
+  deploy_debug:
+    name: Deploy debug
+    needs: tests
+    if: contains(github.event.pull_request.labels.*.name, 'deploy:testing')
+    uses: ./.github/workflows/deploy-debug.yml
+    secrets: inherit
