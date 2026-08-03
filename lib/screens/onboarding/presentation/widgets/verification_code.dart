@@ -1,20 +1,13 @@
-import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
-import 'package:popover/popover.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../core/database/dao/experiment_dao.dart';
-import '../../../../main.dart';
-import '../../../../objectbox.g.dart';
+import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
 
-import '../../../home/domain/entities/experiment.dart';
-import '../../domain/repository/setup_repository.dart';
 
 class VerificationCodeTextField extends StatefulWidget {
   final String title;
@@ -41,9 +34,6 @@ class VerificationCodeTextField extends StatefulWidget {
       _VerificationCodeTextFieldState();
 }
 
-final ExperimentDAO _experimentDAO =
-    ExperimentDAO(box: Box<Experiment>(objectbox.store));
-
 class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
   @override
   Widget build(BuildContext context) {
@@ -55,14 +45,14 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
           children: [
             Text(
               widget.title,
-              style: CustomTypography().titleSmall(color: CustomColors.textWhite),
+              style:
+                  CustomTypography().titleSmall(color: CustomColors.textWhite),
             ),
             if (widget.title == "Study String")
               IconButton(
                 iconSize: 20,
                 onPressed: () async => await showDialog(
-                    context: context,
-                    builder:(context) => StudyInfoPopUp()),
+                    context: context, builder: (context) => StudyInfoPopUp()),
                 icon: const Icon(
                   Icons.info_outline,
                   color: CustomColors.textWhite,
@@ -147,7 +137,8 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
                                           decoration: ShapeDecoration(
                                             color: CustomColors.pumpkinOrange,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(11),
+                                              borderRadius:
+                                                  BorderRadius.circular(11),
                                             ),
                                           ),
                                           child: TextButton(
@@ -156,8 +147,10 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
                                               fit: BoxFit.scaleDown,
                                               child: Text(
                                                 "Contact Researcher",
-                                                style: CustomTypography().bodyLarge(
-                                                  color: CustomColors.fillVanilla,
+                                                style: CustomTypography()
+                                                    .bodyLarge(
+                                                  color:
+                                                      CustomColors.fillVanilla,
                                                   weight: FontWeight.w400,
                                                 ),
                                               ),
@@ -212,40 +205,12 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
 
 // launch email to experiment owner email
 Future<void> launchEmail() async {
-  try {
-    //get experiment owner email
-    final repository = SetupRepository();
-    final experiment = repository.getExperiment();
-    final ownerEmail = experiment.ownerEmail;
-
-    //create the email uri
-    final uri = Uri(
-      scheme: "mailto",
-      path: ownerEmail.isNotEmpty ? ownerEmail : "fabla@emory.edu",
-      query: encodeQueryParameters(<String, String>{
-        'subject': 'Assistance Needed: Participant ID Already in Use',
-        'body':
-            ''' Participant ID entered is already in use. Please confirm or advise next steps.
+  await ParticipantAndExperimentDetails().loginSupportEmail(
+      subject: 'Assistance Needed: Participant ID Already in Use',
+      body: ''' Participant ID entered is already in use. Please confirm or advise next steps.
         
         
-Name: '''
-      }),
-    );
-
-    //launch the email client
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      dev.log('Could not launch email client');
-    }
-  } catch (e) {
-    dev.log('Error launching email: $e');
-  }
-}
-
-String? encodeQueryParameters(Map<String, String> params) {
-  return params.entries
-      .map((MapEntry<String, String> e) =>
-          '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-      .join('&');
+Name: ''',
+      example: ''
+  );
 }

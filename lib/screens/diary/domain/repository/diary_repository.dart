@@ -1,5 +1,7 @@
 import 'dart:developer' as dev;
 
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+
 import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
@@ -16,8 +18,6 @@ import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 
-import 'package:audio_diaries_flutter/core/utils/types.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/tag.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
@@ -350,6 +350,8 @@ class DiaryRepository {
       currentEntry: entryIndex,
       status: isSubmittedEntry ? DiaryStatus.submitted : null,
       submissions: originalDiary.submissions,
+      completions: originalDiary.completions,
+      activeDays: originalDiary.activeDays,
     );
   }
 
@@ -616,28 +618,42 @@ class DiaryRepository {
   /// A Future indicating that the operation may be asynchronous and requires awaiting.
   ///
   Future<void> updateDiary(DiaryModel diary) async {
-    final entity = Diary.fromModel(diary);
-    _diaryDAO.updateDiary(entity);
-    invalidateDiaryHistoryCache();
-  }
-
-  List<Tag> _getTags(DiaryModel diary) {
-    List<Tag> tags = [];
-
-    if (diary.status == DiaryStatus.submitted) {
-      tags.add(const Tag(text: "Done", type: TagType.time));
-      // } else if (diary.status == DiaryStatus.missed) {
-      //   tags.add(const Tag(text: "Missed", type: TagType.time));
-    } else if (diary.status == DiaryStatus.complete) {
-      tags.add(const Tag(text: "Awaiting Submission", type: TagType.time));
-    } else if (diary.status == DiaryStatus.ongoing) {
-      tags.add(const Tag(text: "Ongoing", type: TagType.time));
-    } else if (diary.status == DiaryStatus.idle) {
-      tags.add(const Tag(text: "Ready to Start", type: TagType.time));
+    try {
+      final entity = Diary.fromModel(diary);
+      _diaryDAO.updateDiary(entity);
+      invalidateDiaryHistoryCache();
+    } catch (e, stackTrace) {
+      dev.log('Failed to update diary: $e', name: 'DiaryRepository - updateDiary');
+      CrashlyticsService().recordError(e, stackTrace,
+          context: {
+            'Diary': diary.name.toString(),
+            'DiaryID': diary.id.toString(),
+            'NewStatus': diary.status.toString(),
+            'CurrentEntry': diary.currentEntry.toString(),
+          },
+          reason:
+              'Failed to persist diary state after successful upload — user may resubmit an already-uploaded diary');
+      rethrow;
     }
-
-    return tags;
   }
+
+  // List<Tag> _getTags(DiaryModel diary) {
+  //   List<Tag> tags = [];
+
+  //   if (diary.status == DiaryStatus.submitted) {
+  //     tags.add(const Tag(text: "Done", type: TagType.time));
+  //     // } else if (diary.status == DiaryStatus.missed) {
+  //     //   tags.add(const Tag(text: "Missed", type: TagType.time));
+  //   } else if (diary.status == DiaryStatus.complete) {
+  //     tags.add(const Tag(text: "Awaiting Submission", type: TagType.time));
+  //   } else if (diary.status == DiaryStatus.ongoing) {
+  //     tags.add(const Tag(text: "Ongoing", type: TagType.time));
+  //   } else if (diary.status == DiaryStatus.idle) {
+  //     tags.add(const Tag(text: "Ready to Start", type: TagType.time));
+  //   }
+
+  //   return tags;
+  // }
 
   Future<int> getIndexOfLastAnsweredPrompt(DiaryModel diary) async {
     final promptRepository = PromptRepository();

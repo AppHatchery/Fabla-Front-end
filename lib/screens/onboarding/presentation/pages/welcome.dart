@@ -26,9 +26,11 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
   final PageTimer timer = PageTimer();
   TextScaler? scaler; // Get the size of the text scaler
 
-  late StateMachineController _controller;
+  File? _riveFile;
+  RiveWidgetController? _riveController;
 
   late Participant _participant;
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
@@ -41,27 +43,30 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       scaler = await fontScaler(context);
     });
+    _loadRive();
     super.initState();
   }
 
-  onInit(Artboard art) async {
-    var ctrl = StateMachineController.fromArtboard(art, "Animation_1");
-
-    ctrl?.isActive = false;
-
-    if (ctrl != null) {
-      art.addController(ctrl);
+  Future<void> _loadRive() async {
+    final file = await File.asset(
+      'assets/animations/onboarding/onboarding.riv',
+      riveFactory: Factory.rive,
+    );
+    if (file != null && mounted) {
       setState(() {
-        _controller = ctrl;
-        art.addController(_controller);
-        ctrl.isActive = true;
+        _riveFile = file;
+        _riveController = RiveWidgetController(
+          file,
+          stateMachineSelector: StateMachineSelector.byName('Animation_1'),
+        );
       });
     }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -144,11 +149,12 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
                               SizedBox(
                                 height: 250,
                                 width: width,
-                                child: RiveAnimation.asset(
-                                  'assets/animations/onboarding/onboarding.riv',
-                                  fit: BoxFit.fitWidth,
-                                  onInit: onInit,
-                                ),
+                                child: _riveController != null
+                                    ? RiveWidget(
+                                        controller: _riveController!,
+                                        fit: Fit.fitWidth,
+                                      )
+                                    : const SizedBox.shrink(),
                               ),
                             ],
                           ),
@@ -185,12 +191,12 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
     RouteService().navigate(null, context: context, current: 'welcome');
   }
 
-  track(int spent, String status) async {
+  Future<void> track(int spent, String status) async {
     await PendoService.track("Welcome",
         {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
   }
 
-  startPendo() async {
+  Future<void> startPendo() async {
     final experiment = repository.getExperiment();
     await PendoService.start(
         _participant.studyCode.toString(), experiment.login);

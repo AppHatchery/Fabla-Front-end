@@ -3,9 +3,9 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:alarm/alarm.dart';
-import 'package:alarm/model/volume_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
+import 'package:audio_diaries_flutter/core/utils/participant_experiment_details.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
@@ -24,7 +24,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../../core/utils/emailFunction.dart';
 import '../../../../core/utils/statuses.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
@@ -61,7 +60,7 @@ class SliderQuestionCard extends StatefulWidget {
 
 class _SliderQuestionCardState extends State<SliderQuestionCard> {
   double _value = 0;
-   late bool isDisabled = !widget.isSliderEnabled;
+  late bool isDisabled = !widget.isSliderEnabled;
 
   @override
   void initState() {
@@ -83,11 +82,22 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(5.0, 60.0, 5.0, 16.0),
+      padding: const EdgeInsets.fromLTRB(5.0, 0.0, 5.0, 16.0),
       decoration: BoxDecoration(
           color: CustomColors.productLightPrimaryNormalWhite,
           borderRadius: BorderRadius.circular(14.0)),
-      child: Column(children: [
+      child: Column(spacing: 12, children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            widget.isSliderEnabled
+                ? SizedBox.shrink()
+                : Text(
+                    "Selected value: ${_value.round().toString()}",
+                    style: CustomTypography().titleSmall(),
+                  ),
+          ],
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -102,54 +112,41 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
                 padding: const EdgeInsets.symmetric(horizontal: 5.0),
                 child: SliderTheme(
                   data: SliderThemeData(
-                    thumbColor: isDisabled
-                        ? CustomColors.fillDisabled
-                        : CustomColors.productNormal,
-
-                    activeTrackColor: isDisabled
-                        ? CustomColors.fillDisabled
-                        : CustomColors.productNormal,
-
-                    inactiveTrackColor: CustomColors.fillDisabled,
-
-                    activeTickMarkColor: isDisabled
-                        ? CustomColors.fillDisabled
-                        : CustomColors.productNormal,
-
-                    inactiveTickMarkColor: CustomColors.textNormalContent.withOpacity(0.35),
-
-                    overlayShape: SliderComponentShape.noOverlay,
-
-                    valueIndicatorColor: isDisabled
-                        ? Colors.transparent
-                        : CustomColors.productNormal,
-
-                    trackHeight: 4,
-
-                    valueIndicatorTextStyle: widget.isSliderEnabled ?
-                    CustomTypography().bodyLarge(color: CustomColors.fillWhite):
-                    CustomTypography().titleSmall(color: Colors.black),
-
-                    showValueIndicator: widget.isSliderEnabled
-                        ? ShowValueIndicator.onlyForDiscrete
-                        : ShowValueIndicator.alwaysVisible,
-                  ),
+                      thumbColor: widget.value != null
+                          ? CustomColors.productNormal
+                          : CustomColors.fillDisabled,
+                      activeTrackColor: widget.value != null
+                          ? CustomColors.productNormal
+                          : CustomColors.fillDisabled,
+                      inactiveTrackColor: CustomColors.fillDisabled,
+                      activeTickMarkColor: CustomColors.productNormal,
+                      inactiveTickMarkColor:
+                          CustomColors.textNormalContent.withOpacity(0.35),
+                      overlayShape: SliderComponentShape.noOverlay,
+                      valueIndicatorColor: CustomColors.productNormal,
+                      trackHeight: 4,
+                      valueIndicatorTextStyle: CustomTypography()
+                          .bodyLarge(color: CustomColors.textWhite)),
                   child: Slider(
                     value: _value,
                     min: widget.scaleMin.toDouble(),
                     max: widget.scaleMax.toDouble(),
                     divisions: widget.scaleMax - widget.scaleMin,
                     label: _value.round().toString(),
-                    onChanged: (double val) {
-                      if (!widget.isSliderEnabled) return;
-                      setState(() {
-                        _value = val;
-                      });
-                    },
-                    onChangeEnd: (double value) {
-                      if (!widget.isSliderEnabled) return;
-                      widget.onSliderValueChanged?.call(value);
-                    },
+                    onChangeEnd: widget.isSliderEnabled
+                        ? (double value) {
+                            if (widget.onSliderValueChanged != null) {
+                              widget.onSliderValueChanged!(value);
+                            }
+                          }
+                        : null,
+                    onChanged: widget.isSliderEnabled
+                        ? (val) {
+                            setState(() {
+                              _value = val;
+                            });
+                          }
+                        : null,
                     //overlayColor:CustomColors.newBlue,
                   ),
                 ),
@@ -163,9 +160,6 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
             ),
           ],
         ),
-        const SizedBox(
-          height: 12,
-        ),
         Row(
           spacing: 40,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -174,16 +168,14 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
               child: Text(
                 widget.scaleMinText ?? '',
                 textAlign: TextAlign.start,
-                style: CustomTypography()
-                    .bodyLarge(color: widget.colorFont),
+                style: CustomTypography().bodyLarge(color: widget.colorFont),
               ),
             ),
             Expanded(
               child: Text(
                 widget.scaleMaxText ?? '',
                 textAlign: TextAlign.end,
-                style: CustomTypography()
-                    .bodyLarge(color: widget.colorFont),
+                style: CustomTypography().bodyLarge(color: widget.colorFont),
               ),
             ),
           ],
@@ -683,8 +675,8 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                 onClick: () => showModal(),
                 text: "Tap here to respond",
               )
-            ]
-            else if (response.firstOrNull!.contains("Item was skipped due to: ")) ...[
+            ] else if (response.firstOrNull!
+                .contains("Item was skipped due to: ")) ...[
               SizedBox(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -727,7 +719,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                     ),
                     SizedBox(height: 20),
                     Row(
-                      spacing: 24,
+                        spacing: 24,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           SizedBox(
@@ -751,8 +743,9 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                         ]),
                     SizedBox(height: 20),
                     CustomOutlineButton(
-                      padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                        onClick:() => showModal(),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 12.0),
+                        onClick: () => showModal(),
                         color: Color(0xFFFF3B30),
                         backgroundColor: Colors.transparent,
                         children: Wrap(
@@ -761,7 +754,8 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text("Try Again",
-                                style: CustomTypography().button(color: Color(0xFFFF3B30))),
+                                    style: CustomTypography()
+                                        .button(color: Color(0xFFFF3B30))),
                               ],
                             )
                           ],
@@ -800,13 +794,12 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
         ));
   }
 
-  _launchEmail() async {
-    launchEmail(
+  void _launchEmail() async {
+    await ParticipantAndExperimentDetails().launchSupportEmail(
         subject: 'Web Survey – Assistance Needed',
-        body: '''Error encountered. Please investigate and advise on next steps.
-        
-        
-Participant ID: ''');
+        body: 'Error encountered. Please investigate and advise on next steps.',
+        example:
+            '(Please Describe the issue you are facing) e.g When I open the web survey I keep getting a Page Not Found error');
   }
 
   void showModal() {
@@ -827,6 +820,8 @@ Participant ID: ''');
                 return BottomWebViewModal(
                   url: widget.prompt.option!.link!,
                   respond: widget.respond,
+                  diaryId: widget.diary.id,
+                  promptId: widget.prompt.id,
                 );
               },
             ));
@@ -859,7 +854,6 @@ class _TimerWidgetState extends State<TimerWidget>
   late Duration remaining;
 
   Timer? _timer;
-
 
   bool showTimeUpOverlay = false;
   bool showCompletionText = false;
@@ -1049,7 +1043,6 @@ class _TimerWidgetState extends State<TimerWidget>
           showCompletionText = true;
         });
       }
-
     });
   }
 
@@ -1099,53 +1092,56 @@ class _TimerWidgetState extends State<TimerWidget>
       elevation: 0,
       useSafeArea: true,
       routeSettings: const RouteSettings(name: "/TimerModal"),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 1,
-        minChildSize: 1,
-        snap: true,
-        builder: (context, scrollController) {
-          return StatefulBuilder(
-            builder: (context, setModalState) {
-              // Capture a callback to refresh the modal with latest parent state
-              _updateModalCallback = () {
-                if (mounted) setModalState(() {});
-              };
+      builder: (context) => PopScope(
+        canPop: false,
+        child: DraggableScrollableSheet(
+          initialChildSize: 1,
+          minChildSize: 1,
+          snap: true,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+                // Capture a callback to refresh the modal with latest parent state
+                _updateModalCallback = () {
+                  if (mounted) setModalState(() {});
+                };
 
-              return BottomTimerModal(
-                  remaining: remaining,
-                  isRunning: isRunning,
-                  isPaused: isPaused,
-                  showTimeUpOverlay: showTimeUpOverlay,
-                  playbackControls: widget.playbackControls,
-                  onClose: () {
-                    Navigator.of(context).pop();
-                    _onTimerClose();
-                  },
-                  onRestart: () {
-                    if (widget.playbackControls) _restartTimer();
-                    _refreshModal();
-                  },
-                  onPauseResume: () {
-                    _playBack();
-                    _refreshModal();
-                  },
-                  onStop: () {
-                    _stopTimer();
-                    Navigator.of(context).pop();
-                    if (mounted) {
-                      setState(() {
-                        status = TimerStatus.complete;
-                        showTimeUpOverlay = false;
-                        showCompletionText = true;
-                        showPersistentSheet = false;
-                        _expectedEndTime = null;
-                      });
-                    }
-                    widget.respond("Complete");
-                  });
-            },
-          );
-        },
+                return BottomTimerModal(
+                    remaining: remaining,
+                    isRunning: isRunning,
+                    isPaused: isPaused,
+                    showTimeUpOverlay: showTimeUpOverlay,
+                    playbackControls: widget.playbackControls,
+                    onClose: () {
+                      Navigator.of(context).pop();
+                      _onTimerClose();
+                    },
+                    onRestart: () {
+                      if (widget.playbackControls) _restartTimer();
+                      _refreshModal();
+                    },
+                    onPauseResume: () {
+                      _playBack();
+                      _refreshModal();
+                    },
+                    onStop: () {
+                      _stopTimer();
+                      Navigator.of(context).pop();
+                      if (mounted) {
+                        setState(() {
+                          status = TimerStatus.complete;
+                          showTimeUpOverlay = false;
+                          showCompletionText = true;
+                          showPersistentSheet = false;
+                          _expectedEndTime = null;
+                        });
+                      }
+                      widget.respond("Complete");
+                    });
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -1274,36 +1270,11 @@ class _TimerWidgetState extends State<TimerWidget>
               children: [
                 _buildEditableControls(),
                 const SizedBox(height: 36),
-                if (!isComplete) ...[_buildStartButton()],
-                if (isComplete && showCompletionText) ...[_buildCompletionView()],
+                _buildStartButton(),
               ],
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildCompletionView() {
-    return CustomOutlineButton(
-      onClick: () {
-        _startAndShowModal();
-      },
-      backgroundColor: Colors.transparent,
-      color: CustomColors.productNormal,
-      children: Wrap(
-        children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(3.0),
-              child: Text(
-                "Restart Timer",
-                style: CustomTypography()
-                    .button(color: CustomColors.productNormal),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1342,11 +1313,35 @@ class _TimerWidgetState extends State<TimerWidget>
 
   Widget _buildStartButton() {
     final isDisabled = inProgress;
-    return CustomElevatedButton(
-      color: isDisabled ? CustomColors.fillDisabled : CustomColors.productNormal,
-      onClick: isDisabled ? null : _startAndShowModal,
-      text: 'Start Timer',
-    );
+    return showCompletionText
+        ? CustomOutlineButton(
+            onClick: () {
+              _startAndShowModal();
+            },
+            backgroundColor: Colors.transparent,
+            color: CustomColors.productNormal,
+            children: Wrap(
+              children: [
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(3.0),
+                    child: Text(
+                      "Restart Timer",
+                      style: CustomTypography()
+                          .button(color: CustomColors.productNormal),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        : CustomElevatedButton(
+            color: isDisabled
+                ? CustomColors.fillDisabled
+                : CustomColors.productNormal,
+            onClick: isDisabled ? null : _startAndShowModal,
+            text: 'Start Timer',
+          );
   }
 }
 
@@ -1540,12 +1535,13 @@ class _MediaPreviewState extends State<MediaPreview> {
   @override
   Widget build(BuildContext context) {
     return DottedBorder(
-      color: CustomColors.productNormalActive,
-      strokeWidth: 4,
-      radius: Radius.circular(4),
-      padding: const EdgeInsets.all(16),
-      dashPattern: [8, 8],
-      borderType: BorderType.RRect,
+      options: RoundedRectDottedBorderOptions(
+        radius: Radius.circular(4),
+        color: CustomColors.productNormalActive,
+        strokeWidth: 4,
+        padding: const EdgeInsets.all(16),
+        dashPattern: [8, 8],
+      ),
       child: Wrap(
         spacing: 6,
         runSpacing: 6,

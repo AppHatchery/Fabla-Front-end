@@ -143,11 +143,13 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
             final _day = DateTime(day.year, day.month, day.day, 0, 0, 0);
             final _selected = DateTime(selectedDate.year, selectedDate.month,
                 selectedDate.day, 0, 0, 0);
+
+            final isPast = _day.isBefore(DateTime.now());
             final color = _selected == _day ? CustomColors.productNormal : null;
 
             final textColor = _selected == _day
                 ? CustomColors.textWhite
-                : CustomColors.textTertiaryContent;
+                : isPast ? CustomColors.textTertiaryContent : CustomColors.textNormalContent;
             return Center(
               child: Container(
                 width: scaler.scale(33),

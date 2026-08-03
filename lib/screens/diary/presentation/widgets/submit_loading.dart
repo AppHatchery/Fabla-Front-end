@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../theme/components/cards.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
 
@@ -55,6 +56,11 @@ class _SubmitLoadingPageState extends State<SubmitLoadingPage> {
                 color: CustomColors.textSecondaryContent,
               ),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 40),
+            const WarningCard(
+              title: "Do Not Leave This Screen",
+              message: "Please stay on this screen until the upload is complete to ensure your diary is saved safely. Closing the app now may result in data loss."
             ),
           ],
         ),

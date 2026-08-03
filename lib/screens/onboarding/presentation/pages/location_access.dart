@@ -1,6 +1,7 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -25,9 +26,11 @@ class _LocationAccessState extends State<LocationAccess>
     with WidgetsBindingObserver {
   bool permission = false;
   bool requested = false;
+  final PermissionRequestGuard _permissionGuard = PermissionRequestGuard();
 
   //Animations
-  late rive.StateMachineController _controller;
+  rive.File? _riveFile;
+  rive.RiveWidgetController? _riveController;
 
   final PageTimer timer = PageTimer();
   TextScaler? scaler; // Get the size of the text scaler
@@ -42,7 +45,24 @@ class _LocationAccessState extends State<LocationAccess>
       scaler = await fontScaler(context);
     });
     location = l.Location();
+    _loadRive();
     super.initState();
+  }
+
+  Future<void> _loadRive() async {
+    final file = await rive.File.asset(
+      'assets/animations/onboarding/location.riv',
+      riveFactory: rive.Factory.rive,
+    );
+    if (file != null && mounted) {
+      setState(() {
+        _riveFile = file;
+        _riveController = rive.RiveWidgetController(
+          file,
+          stateMachineSelector: rive.StateMachineSelector.byName('Animation_3'),
+        );
+      });
+    }
   }
 
   @override
@@ -59,7 +79,8 @@ class _LocationAccessState extends State<LocationAccess>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -203,11 +224,12 @@ class _LocationAccessState extends State<LocationAccess>
                             SizedBox(
                               height: height * 0.25,
                               width: width,
-                              child: rive.RiveAnimation.asset(
-                                'assets/animations/onboarding/location.riv',
-                                fit: BoxFit.fitWidth,
-                                onInit: onInit,
-                              ),
+                              child: _riveController != null
+                                  ? rive.RiveWidget(
+                                      controller: _riveController!,
+                                      fit: rive.Fit.fitWidth,
+                                    )
+                                  : const SizedBox.shrink(),
                             ),
                             SizedBox(
                               width: width,
@@ -242,36 +264,26 @@ class _LocationAccessState extends State<LocationAccess>
   }
 
   navigateToNextPage(BuildContext context) async {
-    final results = await location.requestPermission();
-    setState(() {
-      permission = results == l.PermissionStatus.granted;
-      requested = true;
-    });
-    await PendoService.track("Location Access", {"state": results.name});
-    if (permission) {
-      if (requested) {
-        await PreferenceService()
-            .setBoolPreference(key: 'location', value: requested);
-        if (context.mounted) {
-          track(timer.stop(), "Finished");
-          RouteService().navigate(null, context: context, current: 'location');
+    await _permissionGuard.run(() async {
+      final results = await location.requestPermission();
+      if (!mounted) return;
+      setState(() {
+        permission = results == l.PermissionStatus.granted;
+        requested = true;
+      });
+      await PendoService.track("Location Access", {"state": results.name});
+      if (permission) {
+        if (requested) {
+          await PreferenceService()
+              .setBoolPreference(key: 'location', value: requested);
+          if (context.mounted) {
+            track(timer.stop(), "Finished");
+            RouteService()
+                .navigate(null, context: context, current: 'location');
+          }
         }
       }
-    }
-  }
-
-  onInit(rive.Artboard art) async {
-    var ctrl = rive.StateMachineController.fromArtboard(art, "Animation_3");
-    ctrl?.isActive = false;
-
-    if (ctrl != null) {
-      art.addController(ctrl);
-      setState(() {
-        _controller = ctrl;
-        art.addController(_controller);
-        ctrl.isActive = true;
-      });
-    }
+    });
   }
 
   void openPermissionSettings() async =>

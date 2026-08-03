@@ -1,114 +1,147 @@
 import 'dart:convert';
 
+import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
     show CrashlyticsService;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
-import 'dart:developer' as dev;
 
+/// Manages backend credentials for the app.
+///
+/// On first login, [getCredentials] exchanges the study code for a [CredentialsModel]
+/// via a credentials Lambda endpoint. The returned credentials are persisted to
+/// encrypted device storage and read back by the upload layer on every submission.
+///
+/// **To swap in your own backend:** replace the Lambda URL in [getCredentials] with
+/// your own credentials endpoint. The endpoint must accept a `StudyCode` form
+/// field and return JSON matching:
+/// ```json
+/// {
+///   "message": {
+///     "Authorization": "…",
+///     "x-api-key": "…",
+///     "dynamo_url": "https://…",
+///     "presigned_url": "https://…"
+///   }
+/// }
+/// ```
 class SecureSave {
-  // Modified to support dependency injection for better testability
-  // Added constructor parameters for storage and http client
-  // Default values maintain backward compatibility
   final FlutterSecureStorage _storage;
-  final http.Client _client;
 
-  // Constructor with optional dependency injection
-  // If not provided, uses default implementations for production use
-  SecureSave({
-    FlutterSecureStorage? storage,
-    http.Client? client,
-  })  : _storage = storage ?? const FlutterSecureStorage(),
-        _client = client ?? http.Client();
+  SecureSave({FlutterSecureStorage? storage})
+      : _storage = storage ?? const FlutterSecureStorage();
 
-  Future<String> postData(String st) async {
+  /// Fetches credentials from the backend and persists them to secure storage.
+  ///
+  /// Sends a POST to `/fabla/verifyuser` with the [study] login code and
+  /// [participant] ID, then saves the returned [CredentialsModel] via [save].
+  ///
+  /// Throws a JSON-encoded `{"exists": false}` string on failure so callers
+  /// can detect auth errors without relying on exception types.
+  Future<void> getCredentials({
+    required String study,
+    required String participant,
+  }) async {
     try {
-      // Updated to use injected http client instead of static http.post
-      var response = await _client.post(
-        Uri.parse(
-            'https://3z44ix42wc77473ramwyoqr6ji0fswhn.lambda-url.us-east-1.on.aws/api/getdata'),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: {
-          'StudyCode': st,
-        },
-      );
+      final response = await post(path: "/fabla/verifyuser", body: {
+        'login_code': study,
+        'participant_id': participant,
+      });
 
-      if (response.statusCode == 200) {
-        dev.log('Response body: ${response.body}',
-            name: 'Secrets Handler - Post Data');
-        String jsonString = response.body;
-        Map<String, dynamic> data = jsonDecode(jsonString);
-        String authorization = data['message']['Authorization'];
-        String apiKey = data['message']['x-api-key'];
-        String dynamoUrl = data['message']['dynamo_url'];
-        String presignedUrl = data['message']['presigned_url'];
-        save(CredentialsModel(
-            authorization: authorization,
-            xapikey: apiKey,
-            dynamo_url: dynamoUrl,
-            presigned_url: presignedUrl));
-
-        return response.body;
+      if (response != null) {
+        final data = json.decode(response)['data'] as Map<String, dynamic>;
+        if (data['exists'] != true) {
+          throw Exception('Participant not found for study "$study"');
+        }
+        await save(CredentialsModel.fromBackendMessage(
+          data['message'] as Map<String, dynamic>,
+        ));
       } else {
-        throw Exception('Failed to load data: ${response.statusCode}');
+        throw Exception('Failed to retrieve credentials: response was null');
       }
     } catch (e, stackTrace) {
-      //print('Error during HTTP request: $e');
-      Map<String, dynamic> error = {
-        'exists': false,
-      };
       CrashlyticsService().recordError(e, stackTrace,
-          context: {'StudyCode': st},
-          reason: 'Error during HTTP request in postData');
-      throw jsonEncode(error);
+          context: {'StudyCode': study, 'ParticipantID': participant},
+          reason: 'Error during HTTP request in getCredentials');
+      throw json.encode({'exists': false});
     }
   }
 
+  /// Reads the stored credentials from encrypted device storage.
+  ///
+  /// Returns `null` if no credentials are saved or decoding fails.
   Future<CredentialsModel?> read() async {
-    // Now uses injected storage instead of hardcoded _storage
-    final credentialsModel = await _storage.read(key: 'credentials');
-    if (credentialsModel?.isNotEmpty ?? false) {
-      return CredentialsModel.fromJson(json.decode(credentialsModel!));
+    try {
+      final stored = await _storage.read(key: 'credentials');
+      if (stored?.isNotEmpty ?? false) {
+        return CredentialsModel.fromJson(json.decode(stored!));
+      }
+      return null;
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason:
+              'Failed to read/decode credentials from secure storage — all upload auth will be empty');
+      return null;
     }
-    return null;
   }
 
-  Future<void> save(CredentialsModel credentialsModel) async {
-    // Now uses injected storage instead of hardcoded _storage
-    await _storage.write(
-        key: 'credentials', value: json.encode(credentialsModel.toJson()));
+  /// Persists [credentials] to encrypted device storage.
+  ///
+  /// Silently logs write errors; the next submission will fail auth rather
+  /// than crash the app.
+  Future<void> save(CredentialsModel credentials) async {
+    try {
+      await _storage.write(
+          key: 'credentials', value: json.encode(credentials.toJson()));
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason:
+              'Failed to write credentials to secure storage — next submission will have no auth');
+    }
   }
 }
 
+/// Holds the backend credentials used by the upload layer.
+///
+/// - [authorization]: Bearer / AWS auth header value passed to DynamoDB and S3 endpoints.
+/// - [xapikey]: API Gateway key attached to every upload request as `x-api-key`.
+/// - [dynamoUrl]: Endpoint that receives survey response JSON (see [uploadNonAudioData]).
+/// - [presignedUrl]: Endpoint that returns S3 presigned URLs for file uploads (see [getPresignedUrl]).
 class CredentialsModel {
-  String? authorization;
-  String? xapikey;
-  // ignore: non_constant_identifier_names
-  String? dynamo_url;
-  // ignore: non_constant_identifier_names
-  String? presigned_url;
+  final String? authorization;
+  final String? xapikey;
+  final String? dynamoUrl;
+  final String? presignedUrl;
 
-  CredentialsModel(
-      // ignore: non_constant_identifier_names
-      {this.authorization,
-      this.xapikey,
-      this.dynamo_url,
-      this.presigned_url});
-  CredentialsModel.fromJson(Map<String, dynamic> json) {
-    authorization = json['authorization'];
-    xapikey = json['x-api-key'];
-    dynamo_url = json['dynamo_url'];
-    presigned_url = json['presigned_url'];
-  }
+  CredentialsModel({
+    this.authorization,
+    this.xapikey,
+    this.dynamoUrl,
+    this.presignedUrl,
+  });
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['authorization'] = authorization;
-    data['x-api-key'] = xapikey;
-    data['dynamo_url'] = dynamo_url;
-    data['presigned_url'] = presigned_url;
-    return data;
-  }
+  /// Deserializes from the JSON stored in secure storage.
+  ///
+  /// Note: the wire key for [xapikey] is `x-api-key` and URL keys use
+  /// snake_case to match the backend contract; Dart field names use camelCase.
+  CredentialsModel.fromJson(Map<String, dynamic> map)
+      : authorization = map['authorization'] as String?,
+        xapikey = map['x-api-key'] as String?,
+        dynamoUrl = map['dynamo_url'] as String?,
+        presignedUrl = map['presigned_url'] as String?;
+
+  /// Deserializes from the `message` object in the backend `/fabla/verifyuser`
+  /// response, where `Authorization` is capitalised.
+  CredentialsModel.fromBackendMessage(Map<String, dynamic> message)
+      : authorization = message['Authorization'] as String?,
+        xapikey = message['x-api-key'] as String?,
+        dynamoUrl = message['dynamo_url'] as String?,
+        presignedUrl = message['presigned_url'] as String?;
+
+  /// Serializes to JSON for secure storage persistence.
+  Map<String, dynamic> toJson() => {
+        'authorization': authorization,
+        'x-api-key': xapikey,
+        'dynamo_url': dynamoUrl,
+        'presigned_url': presignedUrl,
+      };
 }

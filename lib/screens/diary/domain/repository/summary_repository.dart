@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/usecases/connectivity.dart';
+import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart';
 import 'package:audio_diaries_flutter/core/usecases/incentives.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -145,7 +146,8 @@ class SummaryRepository {
               status: DiaryStatus.submitted,
               activeDays: diary.activeDays,
               currentEntry: diary.currentEntry + 1,
-              submissions: submissions);
+              submissions: submissions,
+              completions: diary.completions);
         } else {
           newDiary = diary.copyWith(
               id: diary.id,
@@ -153,10 +155,11 @@ class SummaryRepository {
               status: DiaryStatus.idle,
               activeDays: diary.activeDays,
               currentEntry: diary.currentEntry + 1,
-              submissions: submissions);
+              submissions: submissions,
+              completions: diary.completions);
         }
 
-        diaryRepository.updateDiary(newDiary);
+        await diaryRepository.updateDiary(newDiary);
 
         // Cancel notifications if diary is complete
         // Schedule daily goal notifications if diary is not complete
@@ -166,14 +169,23 @@ class SummaryRepository {
           dailyGoalNotification(diary.id);
         }
         cancelContinueNotifications(diary.id);
-        calculateEarnedIncentivesForAWS(participantID: participant.studyCode);
+        calculateEarnedIncentivesForAWS(
+            participantID: participant.studyCode, studyID: diary.studyID);
+        await modifyHomeProgressTracking(studyID: diary.studyID, submissions: 1, activateAnimation: true);
         return true;
       } else {
         return false;
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       dev.log("Error submitting diary: $e",
           name: "SummaryRepository - submitDiary");
+      CrashlyticsService().recordError(e, stackTrace,
+          context: {
+            'Diary': diary.name.toString(),
+            'DiaryID': diary.id.toString(),
+            'CurrentEntry': diary.currentEntry.toString(),
+          },
+          reason: 'Unhandled exception in submitDiary - SummaryRepository');
       return false;
     }
   }

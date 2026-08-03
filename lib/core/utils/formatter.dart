@@ -1,7 +1,9 @@
 // import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'dart:convert';
+import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -44,8 +46,8 @@ String formatDateShort(DateTime dateTime) {
 }
 
 /// Returns: Month/Day/Year
-String formatDateOnly(DateTime date) {
-  final DateFormat formatter = DateFormat('yyyy-MM-dd');
+String formatDateOnly(DateTime date, {DateFormat? format}) {
+  final DateFormat formatter = format ?? DateFormat('yyyy-MM-dd');
   return formatter.format(date);
 }
 
@@ -348,15 +350,16 @@ final Map<ResponseType, String> _responseStringMap = {
 };
 
 /// Function to convert ResponseType enum value to string
-String responseTypeValue(ResponseType responseType) {
-  final stringRepresentation = _responseStringMap[responseType];
-  if (stringRepresentation == null) {
-    throw Exception('Invalid response type');
+String responseTypeValue(ResponseType? responseType) {
+  final value = _responseStringMap[responseType];
+  if (value == null) {
+    dev.log('Unmapped responseType: $responseType', name: 'Formatter');
+    CrashlyticsService().log('Unmapped responseType: $responseType');
   }
-  return stringRepresentation;
+  return value ?? 'unknown';
 }
 
-OptionsType optionTypeFromResponse(ResponseType responseType) {
+OptionsType optionTypeFromResponse(ResponseType? responseType) {
   switch (responseType) {
     case ResponseType.multiple:
       return OptionsType.multiple;

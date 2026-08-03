@@ -248,6 +248,8 @@ DiaryModel _createEntryDiary(DiaryModel originalDiary, int entryIndex) {
     currentEntry: entryIndex,
     status: entryStatus,
     completions: originalDiary.completions,
+    submissions: originalDiary.submissions,
+    activeDays: originalDiary.activeDays,
   );
 }
 

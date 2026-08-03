@@ -1,9 +1,10 @@
-import 'package:audio_diaries_flutter/core/secrets/keys.dart'; // Import for pendoKey
 // PendoService will now bring IPendoPlugin, PendoPluginWrapper
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:flutter/foundation.dart'; // Import for kDebugMode
 import 'package:flutter/services.dart'; // For MethodCall and PlatformException
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 // PendoFlutterPlugin import is no longer needed for direct mocking here
 // import 'package:pendo_sdk/pendo_sdk.dart';
 
@@ -65,7 +66,15 @@ class MockPendoPlugin implements IPendoPlugin {
 }
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() {
+    // PendoService.init() reads `dotenv.env['PENDOKEY']!`. Seed dotenv before
+    // any test runs so the null-assertion doesn't blow up inside init()'s
+    // try/catch (which would swallow the error and leave the mock log empty).
+    TestWidgetsFlutterBinding.ensureInitialized();
+    dotenv.loadFromString(
+      envString: 'PENDOKEY=test-pendo-key',
+    );
+  });
 
   // Store method calls for verification
   late List<MethodCall> log;
@@ -88,7 +97,7 @@ void main() {
         () async {
       await PendoService.init();
       expect(log, <Matcher>[
-        isMethodCall('setup', arguments: {'pendoKey': pendoKey})
+        isMethodCall('setup', arguments: {'pendoKey': dotenv.env['PENDOKEY']})
       ]);
     });
 

@@ -5,6 +5,8 @@ import 'package:audio_diaries_flutter/screens/diary/domain/entities/answer.dart'
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
+import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/experiment.dart'
@@ -74,6 +76,8 @@ class MockQueryBuilder<T> extends Mock implements QueryBuilder<T> {}
 
 // Mock for SummaryRepository
 class MockSummaryRepository extends Mock implements SummaryRepository {}
+
+class MockDiaryRepository extends Mock implements DiaryRepository {}
 
 void main() {
   // Test data - Create Answer with proper List<String> response
@@ -310,6 +314,56 @@ void main() {
           const SubmitError(),
         ],
       );
+    });
+
+    group('updateDiaryCompletion', () {
+      late MockDiaryRepository mockDiaryRepository;
+
+      setUp(() {
+        mockDiaryRepository = MockDiaryRepository();
+        when(() => mockSummaryRepository.diaryRepository)
+            .thenReturn(mockDiaryRepository);
+        when(() => mockDiaryRepository.updateDiary(any()))
+            .thenAnswer((_) async {});
+      });
+
+      test('saves diary with completions added and submissions preserved', () async {
+        final submissions = [DateTime(2024, 1, 1, 10)];
+        final activeDays = [1, 2, 3];
+        final diary = createTestDiaryModel(
+          currentEntry: 0,
+          submissions: submissions,
+          activeDays: activeDays,
+          completions: null,
+        );
+
+        final cubit = SummaryCubit(summaryRepository: mockSummaryRepository);
+        await cubit.updateDiaryCompletion(diary);
+
+        final captured = verify(() => mockDiaryRepository.updateDiary(captureAny()))
+            .captured
+            .single as DiaryModel;
+
+        expect(captured.submissions, equals(submissions),
+            reason: 'submissions must be preserved across the copyWith');
+        expect(captured.activeDays, equals(activeDays),
+            reason: 'activeDays must be preserved across the copyWith');
+        expect(captured.completions, hasLength(1),
+            reason: 'one completion timestamp should be added');
+      });
+
+      test('does not save when completion for current entry already exists', () async {
+        final existing = DateTime(2024, 1, 1, 9);
+        final diary = createTestDiaryModel(
+          currentEntry: 0,
+          completions: [existing],
+        );
+
+        final cubit = SummaryCubit(summaryRepository: mockSummaryRepository);
+        await cubit.updateDiaryCompletion(diary);
+
+        verifyNever(() => mockDiaryRepository.updateDiary(any()));
+      });
     });
 
     group('checkForLocationPermission', () {

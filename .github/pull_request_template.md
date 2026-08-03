@@ -1,30 +1,63 @@
-## 📝 Description
-Brief description of what this PR does.
+# Overview
+<!-- Concise summary: what does this PR do, and why? -->
 
-## 🔗 Related Issue
-Closes #[issue number]
+Closes #
 
-## 🧪 Testing
-- [ ] Unit tests added/updated
-- [ ] Widget tests added/updated
-- [ ] Integration tests added/updated
-- [ ] Manual testing completed
+---
 
-## 📱 Screenshots/Videos
-<!-- Add screenshots or videos if UI changes -->
+# Change Type
 
-## ✅ Checklist
-- [ ] Code follows project style guidelines
-- [ ] Self-review completed
-- [ ] Tests Run Successfully
-- [ ] Code is commented where needed
-- [ ] Documentation updated if needed
-- [ ] No breaking changes (or noted in description)
-
-## 🚀 Type of Change
 - [ ] Bug fix
 - [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
-- [ ] Refactor
+- [ ] Refactor / Architecture improvement
 - [ ] Performance improvement
+- [ ] Breaking change
+
+---
+
+# Key Changes
+<!-- Highlight anything reviewers should pay attention to. -->
+
+
+
+---
+
+# Reviewer Guide
+<!-- Help reviewers verify the change quickly. -->
+
+## How To Test
+
+1.
+2.
+3.
+
+## Tested on
+
+- [ ] Android (device/emulator: )
+- [ ] iOS (device/simulator: )
+
+---
+
+# Visual Changes (UI only)
+
+| Before | After |
+| :----- | :---- |
+|         |        |
+
+---
+
+# Review Notes
+<!-- Anything CI cannot verify automatically. -->
+
+- [ ] Architecture follows project conventions (BLoC, separation of concerns).
+- [ ] Resources are managed correctly (streams, listeners, controllers disposed where applicable).
+- [ ] No secrets, PII, or sensitive logs introduced.
+- [ ] Any required configuration or environment variable changes are documented.
+
+---
+
+# CI Status
+<!-- Verified automatically by GitHub Actions -->
+
+- [ ] All required GitHub Actions checks passed.
+- [ ] Reviewed the automated test & coverage report.

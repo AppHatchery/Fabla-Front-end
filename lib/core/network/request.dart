@@ -1,6 +1,6 @@
-import 'package:audio_diaries_flutter/core/secrets/keys.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 const String devURL =
@@ -8,11 +8,14 @@ const String devURL =
 const String prodURL =
     "phy7427sobzzf3dbeevuvi6z4m0dehgx.lambda-url.us-east-1.on.aws";
 
-const Map<String, String> headers = {
+final Map<String, String> headers = {
   'Content-Type': 'application/x-www-form-urlencoded',
-  'x-api-key': apiKey
+  'x-api-key': dotenv.env['APIKEY'] ?? ''
 };
 
+/// Returns the Lambda base URL for the current build mode.
+///
+/// Debug builds use [devURL]; all other builds (profile, release) use [prodURL].
 String base() {
   if (kDebugMode) {
     return devURL;
@@ -31,11 +34,12 @@ String base() {
 /// Returns the response body as a String on success, or null on failure.
 Future<String?> get({
   required String path,
-  http.Client? client, // Optional parameter for dependency injection (testing)
+  http.Client? client,
 }) async {
+  final bool ownClient = client == null;
+  final httpClient = client ?? http.Client();
+
   try {
-    // Using injected client for testing, or default client for production
-    final httpClient = client ?? http.Client();
     final url = Uri.https(base(), path);
     final response = await httpClient.get(url, headers: headers);
     return response.body;
@@ -44,6 +48,8 @@ Future<String?> get({
         stackTrace: stackTrace, method: 'GET', requestData: null);
     debugPrint(e.toString());
     return null;
+  } finally {
+    if (ownClient) httpClient.close();
   }
 }
 
@@ -58,17 +64,17 @@ Future<String?> get({
 Future<String?> post({
   required String path,
   required Map<String, dynamic> body,
-  http.Client? client, // Optional parameter for dependency injection (testing)
+  http.Client? client,
 }) async {
+  final bool ownClient = client == null;
+  final httpClient = client ?? http.Client();
+
   try {
-    // Use injected client for testing, or default client for production
-    final httpClient = client ?? http.Client();
     final url = Uri.https(base(), path);
     final response = await httpClient.post(url, headers: headers, body: body);
     if (response.statusCode == 200) {
       return response.body;
     } else {
-      debugPrint(response.body);
       CrashlyticsService().recordApiError(response.body, path,
           statusCode: response.statusCode, method: 'POST', requestData: body);
       throw Exception("Failed to post");
@@ -78,5 +84,7 @@ Future<String?> post({
     CrashlyticsService().recordApiError(e, path,
         stackTrace: stackTrace, method: 'POST', requestData: body);
     return null;
+  } finally {
+    if (ownClient) httpClient.close();
   }
 }

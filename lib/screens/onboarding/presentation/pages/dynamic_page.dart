@@ -1,10 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
-
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
-import 'package:audio_diaries_flutter/core/utils/emailFunction.dart'
-    show launchEmail;
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
@@ -24,6 +21,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
+
+import '../../../../core/utils/participant_experiment_details.dart';
 
 class DynamicOnBoardingHub extends StatefulWidget {
   const DynamicOnBoardingHub({super.key});
@@ -270,14 +269,11 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   late TextEditingController textEditingController;
   String? answer;
 
-  late StateMachineController _controller;
-  double animationHeight = 0;
+  TriggerInput? _questionTrigger;
   double foregroundHeight = 0.75;
   String animationURL = "";
   String stateMachineName = "";
   bool loop = true;
-
-  SMITrigger? questionTrigger;
 
   @override
   void initState() {
@@ -293,7 +289,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
   @override
   void dispose() {
     textEditingController.dispose();
-    _controller.dispose();
+    _questionTrigger?.dispose();
     super.dispose();
   }
 
@@ -342,9 +338,20 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
                                 image: "",
                                 avatarType: "animation",
                                 animation: animationURL,
-                                animationHeight: animationHeight,
+                                stateMachineName: stateMachineName,
                                 onContinue: () {},
-                                onInit: onInit,
+                                onControllerReady: (ctrl) {
+                                  if (stateMachineName == "Animation_5") {
+                                    setState(() {
+                                      _questionTrigger =
+                                          ctrl.stateMachine.trigger("Question");
+                                    });
+                                    Future.delayed(const Duration(seconds: 2),
+                                        () {
+                                      if (mounted) _questionTrigger?.fire();
+                                    });
+                                  }
+                                },
                                 children: [
                                   getWidget(widget.question,
                                       index: widget.index)
@@ -379,34 +386,6 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
             );
           })),
     );
-  }
-
-  onInit(Artboard art) async {
-    var ctrl = StateMachineController.fromArtboard(art, stateMachineName);
-    ctrl?.isActive = false;
-
-    //height of animation
-    setState(() {
-      animationHeight = art.height;
-    });
-
-    if (ctrl != null) {
-      art.addController(ctrl);
-      setState(() {
-        _controller = ctrl;
-        art.addController(_controller);
-        ctrl.isActive = true;
-        if (stateMachineName == "Animation_5") {
-          questionTrigger = _controller.getTriggerInput("Question");
-
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) {
-              questionTrigger?.fire();
-            }
-          });
-        }
-      });
-    }
   }
 
   getAnimationAssets() {
@@ -587,19 +566,38 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
   final SetupRepository _repository = SetupRepository();
   late String name;
 
-  late StateMachineController _controller;
+  File? _riveFile;
+  RiveWidgetController? _riveController;
 
   @override
   void initState() {
     setState(() {
       name = _repository.getParticipant()!.name;
     });
+    _loadRive();
     super.initState();
+  }
+
+  Future<void> _loadRive() async {
+    final file = await File.asset(
+      'assets/animations/onboarding/clipboard.riv',
+      riveFactory: Factory.rive,
+    );
+    if (file != null && mounted) {
+      setState(() {
+        _riveFile = file;
+        _riveController = RiveWidgetController(
+          file,
+          stateMachineSelector: StateMachineSelector.byName('Animation_4'),
+        );
+      });
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     super.dispose();
   }
 
@@ -657,11 +655,12 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                             SizedBox(
                               height: 300,
                               width: width,
-                              child: RiveAnimation.asset(
-                                "assets/animations/onboarding/clipboard.riv",
-                                onInit: onInit,
-                                fit: BoxFit.fitWidth,
-                              ),
+                              child: _riveController != null
+                                  ? RiveWidget(
+                                      controller: _riveController!,
+                                      fit: Fit.fitWidth,
+                                    )
+                                  : const SizedBox.shrink(),
                             ),
                           ]),
                     ),
@@ -689,20 +688,6 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
       ),
     );
   }
-
-  onInit(Artboard art) async {
-    var ctrl = StateMachineController.fromArtboard(art, "Animation_4");
-    ctrl?.isActive = false;
-
-    if (ctrl != null) {
-      art.addController(ctrl);
-      setState(() {
-        _controller = ctrl;
-        art.addController(_controller);
-        ctrl.isActive = true;
-      });
-    }
-  }
 }
 
 class DynamicErrorPage extends StatefulWidget {
@@ -721,7 +706,44 @@ class DynamicErrorPage extends StatefulWidget {
 }
 
 class _DynamicErrorPageState extends State<DynamicErrorPage> {
-  late StateMachineController _controller;
+  File? _riveFile;
+  RiveWidgetController? _riveController;
+  BooleanInput? _searchingTwo;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRive();
+  }
+
+  Future<void> _loadRive() async {
+    final file = await File.asset(
+      'assets/animations/ghosts.riv',
+      riveFactory: Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = RiveWidgetController(
+        file,
+        stateMachineSelector: StateMachineSelector.byName('Ghosts'),
+      );
+      setState(() {
+        _riveFile = file;
+        _riveController = controller;
+        _searchingTwo = controller.stateMachine.boolean('Searching_2');
+      });
+      Future.delayed(const Duration(milliseconds: 10), () {
+        if (mounted) _searchingTwo?.value = true;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchingTwo?.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -751,11 +773,12 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
                   SizedBox(
                     height: width * 0.75,
                     width: width * 0.75,
-                    child: RiveAnimation.asset(
-                      'assets/animations/ghosts.riv',
-                      onInit: _onInit,
-                      fit: BoxFit.cover,
-                    ),
+                    child: _riveController != null
+                        ? RiveWidget(
+                            controller: _riveController!,
+                            fit: Fit.cover,
+                          )
+                        : const SizedBox.shrink(),
                   ),
 
                   Padding(
@@ -806,10 +829,7 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
                   ),
 
                   CustomTextButton(
-                    onClick: () => launchEmail(
-                        subject: "Issue with Uploading Onboarding Questions",
-                        body:
-                            "Hi,\n\nI'm experiencing the following issue while trying to onboard:\n\n[Please describe the issue you're facing]\n\nThank you!"),
+                    onClick: () => launchEmail(),
                     text: 'Contact Researcher',
                     textColor: CustomColors.warningActive,
                   ),
@@ -822,23 +842,11 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
     );
   }
 
-  void _onInit(Artboard art) {
-    var ctrl = StateMachineController.fromArtboard(art, "Ghosts");
-
-    ctrl?.isActive = false;
-    if (ctrl != null) {
-      art.addController(ctrl);
-      setState(() {
-        _controller = ctrl;
-      });
-
-      Future.delayed(const Duration(milliseconds: 10), () {
-        final animation = _controller.findSMI('Searching_2');
-        if (animation != null && mounted) {
-          animation.value = true;
-        }
-        return;
-      });
-    }
+  Future<void> launchEmail() async {
+    await ParticipantAndExperimentDetails().loginSupportEmail(
+        subject: 'Issue with Uploading Onboarding Questions',
+        body:
+            'Hi,\n\nI\'m experiencing the following issue while trying to onboard:\n\n[Please describe the issue you\'re facing]\n\nThank you!',
+        example: '');
   }
 }

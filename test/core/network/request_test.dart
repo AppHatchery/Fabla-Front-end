@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/network/request.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
@@ -9,6 +10,16 @@ class MockHttpClient extends Mock implements http.Client {}
 
 void main() {
   late MockHttpClient mockHttpClient;
+
+  setUpAll(() {
+    // request.dart builds its top-level `headers` map via `dotenv.env['APIKEY']!`.
+    // That map is lazy-initialized on first access, so dotenv MUST be seeded
+    // before any test touches get()/post(). Otherwise the `!` throws.
+    TestWidgetsFlutterBinding.ensureInitialized();
+    dotenv.loadFromString(
+      envString: 'APIKEY=${TestValues.testApiKey}',
+    );
+  });
 
   setUp(() {
     mockHttpClient = MockHttpClient();
@@ -154,6 +165,52 @@ void main() {
         verify(() => mockHttpClient.post(any(),
             headers: any(named: 'headers'),
             body: any(named: 'body'))).called(1);
+      });
+    });
+
+    group('Headers from .env', () {
+      test('get sends x-api-key sourced from dotenv', () async {
+        Map<String, String>? capturedHeaders;
+
+        when(() => mockHttpClient.get(any(), headers: any(named: 'headers')))
+            .thenAnswer((invocation) async {
+          capturedHeaders =
+              invocation.namedArguments[#headers] as Map<String, String>?;
+          return http.Response(
+            createTestApiResponse(),
+            TestValues.testStatusOk,
+          );
+        });
+
+        await get(path: 'test', client: mockHttpClient);
+
+        expect(capturedHeaders, isNotNull);
+        expect(capturedHeaders!['x-api-key'], TestValues.testApiKey);
+        expect(capturedHeaders!['Content-Type'],
+            'application/x-www-form-urlencoded');
+      });
+
+      test('post sends x-api-key sourced from dotenv', () async {
+        Map<String, String>? capturedHeaders;
+        final testBody = createTestPostBody();
+
+        when(() => mockHttpClient.post(any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'))).thenAnswer((invocation) async {
+          capturedHeaders =
+              invocation.namedArguments[#headers] as Map<String, String>?;
+          return http.Response(
+            createTestApiResponse(),
+            TestValues.testStatusOk,
+          );
+        });
+
+        await post(path: 'test', body: testBody, client: mockHttpClient);
+
+        expect(capturedHeaders, isNotNull);
+        expect(capturedHeaders!['x-api-key'], TestValues.testApiKey);
+        expect(capturedHeaders!['Content-Type'],
+            'application/x-www-form-urlencoded');
       });
     });
 

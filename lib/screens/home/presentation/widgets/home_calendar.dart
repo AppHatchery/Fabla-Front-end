@@ -15,10 +15,6 @@ import 'package:popover/popover.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:rive/rive.dart' as rive;
 
-extension _TextExtension on rive.Artboard {
-  rive.TextValueRun? textRun(String name) => component<rive.TextValueRun>(name);
-}
-
 class StudyCalendar extends StatefulWidget {
   final List<StudyModel> studies;
   final ValueChanged<bool> refresh;
@@ -49,11 +45,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
   late List<StudyModel> studies;
 
   ScrollController? controller;
-  late rive.StateMachineController _controller;
-
-  rive.TextValueRun? days;
-  rive.TextValueRun? cheer;
-  rive.TextValueRun? encouragement;
+  rive.File? _riveFile;
+  rive.RiveWidgetController? _riveController;
 
   @override
   void initState() {
@@ -70,13 +63,15 @@ class _StudyCalendarState extends State<StudyCalendar> {
     studies = widget.studies;
 
     track();
+    _loadRive();
     super.initState();
   }
 
   @override
   void dispose() {
     controller?.dispose();
-    _controller.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     pageController = null;
     pageController?.dispose();
     super.dispose();
@@ -91,6 +86,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
       height: height,
       width: width,
       child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
         controller: controller,
         child: Column(
           children: [
@@ -164,48 +160,51 @@ class _StudyCalendarState extends State<StudyCalendar> {
     return SizedBox(
       width: width,
       height: 150,
-      child: rive.RiveAnimation.asset(
-        'assets/animations/ghosts-calendar.riv',
-        onInit: _onInit,
-        fit: BoxFit.contain,
-      ),
+      child: _riveController != null
+          ? rive.RiveWidget(
+              controller: _riveController!,
+              fit: rive.Fit.contain,
+            )
+          : const SizedBox.shrink(),
     );
   }
 
-  void _onInit(rive.Artboard art) {
-    var ctrl = rive.StateMachineController.fromArtboard(art, "Ghosts");
-
-    ctrl?.isActive = false;
-    if (ctrl != null) {
-      art.addController(ctrl);
-      final _days = art.textRun('Days');
-      final _cheer = art.textRun('Cheer');
-      final _encouragement = art.textRun('Encouragement');
+  Future<void> _loadRive() async {
+    final file = await rive.File.asset(
+      'assets/animations/ghosts-calendar.riv',
+      riveFactory: rive.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = rive.RiveWidgetController(
+        file,
+        stateMachineSelector: rive.StateMachineSelector.byName('Ghosts'),
+      );
       setState(() {
-        _controller = ctrl;
-        days = _days;
-        cheer = _cheer;
-        encouragement = _encouragement;
+        _riveFile = file;
+        _riveController = controller;
       });
-
-      final arrival = _controller.findSMI('First arrival');
+      final arrival = _riveController?.stateMachine.boolean('First arrival');
       if (arrival != null && mounted) {
         arrival.value = true;
       }
-
       determineAnimationWords();
     }
   }
 
   void determineAnimationWords() {
-    days?.text = Intl.plural(activeDates.length,
-        other:
-            "${activeDates.length} days active - You're doing GREAT! Keep working towards the goals",
-        one: "1 day active - You're doing GOOD! Keep working towards the goals",
-        zero:
-            "No days logged yet - Make sure to look out for your upcoming diaries");
-    cheer?.text = "";
-    encouragement?.text = "";
+    final artboard = _riveController?.artboard;
+    if (artboard == null) return;
+    artboard.setText(
+        'Days',
+        Intl.plural(activeDates.length,
+            other:
+                "${activeDates.length} days active - You're doing GREAT! Keep working towards the goals",
+            one:
+                "1 day active - You're doing GOOD! Keep working towards the goals",
+            zero:
+                "No days logged yet - Make sure to look out for your upcoming diaries"));
+    artboard.setText('Cheer', "");
+    artboard.setText('Encouragement', "");
   }
 
   Widget calendar() {
@@ -321,9 +320,13 @@ class _StudyCalendarState extends State<StudyCalendar> {
                     ? CustomColors.productNormalActive
                     : null;
 
+                final isPast = day.isBefore(today);
+
                 final textColor = selectedDate == day
                     ? CustomColors.textWhite
-                    : CustomColors.textTertiaryContent;
+                    : isPast
+                        ? CustomColors.textTertiaryContent
+                        : CustomColors.textNormalContent;
                 return Center(
                   child: Container(
                     width: 33,
@@ -372,7 +375,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
                     ? isDiaryOnEventSubmitted
                         ? CustomColors.productLightPrimaryActive
                         : CustomColors.productBorderNormal
-                    : goal ? CustomColors.productNormalActive : Colors.transparent;
+                    : goal
+                        ? CustomColors.productNormalActive
+                        : Colors.transparent;
                 return Container(
                   width: 7.0,
                   height: 7.0,
@@ -416,11 +421,19 @@ class _StudyCalendarState extends State<StudyCalendar> {
 
   Widget entries() {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(
-          DateUtils.isSameDay(DateTime.now(), selectedDate)
-              ? "Entries Available Today"
-              : "Entries Available on ${DateFormat("MMMM d").format(selectedDate)}, ${DateFormat.y().format(selectedDate)} ",
-          style: CustomTypography().titleLarge()),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            _getEntriesHeading(selectedDate),
+            style: CustomTypography().titleLarge(),
+          ),
+          Text(
+            DateFormat("MMM d, yyyy").format(selectedDate),
+            style: CustomTypography().titleMedium(),
+          ),
+        ],
+      ),
       const SizedBox(height: 4),
 
       //Scrollable widget to display all entries due on selected date
@@ -467,13 +480,17 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   getActiveDates(List<DiaryModel> diaries) {
-    // get dates of submitted diaries
+    // get dates of submitted diaries, normalized to day only so multiple
+    // submissions on the same day count as a single active day
     for (final diary in diaries) {
       if (diary.status == DiaryStatus.submitted) {
-        activeDates.add(diary.start);
+        activeDates.add(
+          DateTime(diary.start.year, diary.start.month, diary.start.day),
+        );
       }
     }
   }
+
   //function to check if the diaries belong to a study with a goal or not
   bool studyGoalCheck(DateTime date) {
     // Get diaries for the specific date
@@ -494,7 +511,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
     for (final diary in diariesForDate) {
       // Find the study that matches this diary
       final study = studies.firstWhere(
-            (s) => s.studyId == diary.studyID,
+        (s) => s.studyId == diary.studyID,
       );
 
       // If diary(s) is not optional display the dot
@@ -510,6 +527,22 @@ class _StudyCalendarState extends State<StudyCalendar> {
   //Retrieving entries for a specific date (Called From StudyCalendar)
   List<DiaryModel> fetchDiaries(DateTime date) {
     return filterTodaysDiaries(date, diaryList);
+  }
+
+  String _getEntriesHeading(DateTime selectedDate) {
+    final selected = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+    );
+
+    if (selected.isBefore(today)) {
+      return "Past entries";
+    } else if (selected.isAtSameMomentAs(today)) {
+      return "Today's entries";
+    } else {
+      return "Upcoming entries";
+    }
   }
 }
 

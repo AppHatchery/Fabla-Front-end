@@ -422,14 +422,14 @@ List<Tag> createTestTags(
 CredentialsModel createTestCredentials({
   String authorization = 'test-auth',
   String xapikey = 'test-api-key',
-  String dynamo_url = 'test-dynamo-url',
-  String presigned_url = 'test-presigned-url',
+  String dynamoUrl = 'test-dynamo-url',
+  String presignedUrl = 'test-presigned-url',
 }) {
   return CredentialsModel(
     authorization: authorization,
     xapikey: xapikey,
-    dynamo_url: dynamo_url,
-    presigned_url: presigned_url,
+    dynamoUrl: dynamoUrl,
+    presignedUrl: presignedUrl,
   );
 }
 
@@ -439,6 +439,8 @@ PromptEntry createTestPromptEntry({
   String experimentCode = 'test-experiment',
   String questionTitle = 'Test Question',
   String diaryID = '1',
+  String diaryName = 'Test Diary',
+  String study = 'Test Study',
   String promptID = '1',
   String response = 'Test Response',
   String questionsType = 'text',
@@ -450,6 +452,8 @@ PromptEntry createTestPromptEntry({
     experimentCode: experimentCode,
     questionTitle: questionTitle,
     diaryID: diaryID,
+    diaryName: diaryName,
+    study: study,
     promptID: promptID,
     response: response,
     questionsType: questionsType,

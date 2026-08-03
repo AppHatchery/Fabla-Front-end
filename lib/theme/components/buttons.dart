@@ -261,6 +261,7 @@ class CustomFlatButton extends StatelessWidget {
   final bool isDisabled;
   final Color textColor;
   final Color borderColor;
+  final double? buttonFontSize;
   const CustomFlatButton({
     super.key,
     required this.onClick,
@@ -269,6 +270,8 @@ class CustomFlatButton extends StatelessWidget {
     this.isDisabled = false,
     this.textColor = CustomColors.fillWhite,
     this.borderColor = CustomColors.productNormal,
+    this.buttonFontSize,
+
   });
 
   @override
@@ -300,14 +303,17 @@ class CustomFlatButton extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
               child: Center(
                   child: Text(text.toString(),
-                      style: CustomTypography().button(
-                          color:
-                              isDisabled ? CustomColors.greyDark : textColor))),
+                    style: CustomTypography().button(
+                      color: isDisabled ? CustomColors.greyDark : textColor,
+                    ).copyWith(fontSize: buttonFontSize),
             ),
           ),
         ),
       ),
-    );
+        )
+      )
+        );
+
   }
 }
 

@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/incentives.dart';
+import 'package:audio_diaries_flutter/screens/home/presentation/widgets/no_notification_widget.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/pending_submission_widget.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_goal.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
@@ -170,6 +171,7 @@ class _HomePageState extends State<HomePage>
         children: [
           // Always show pending submissions
           PendingSubmissionWidget(),
+          NoNotificationWidget(),
           const SizedBox(height: 24),
 
           // Show goal widget if there are goals (even when finished)
@@ -178,6 +180,7 @@ class _HomePageState extends State<HomePage>
               dailyGoal: state.goalData,
               weeklyEntries: state.weeklyEntries,
               isHomeTipClosed: isHomeTipClosed,
+              submissionProgress: state.submissionProgress,
             ),
             const SizedBox(height: 24),
           ],

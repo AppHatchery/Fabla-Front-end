@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audio_diaries_flutter/screens/settings/widgets/participant_details.dart';
 import 'package:audio_diaries_flutter/screens/settings/widgets/settings_active_reminders.dart';
 import 'package:audio_diaries_flutter/screens/settings/widgets/study_details.dart';
@@ -6,11 +8,14 @@ import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/utils/device_appInfo.dart';
 import '../../../services/preference_service.dart';
+import '../../../theme/dialogs/pop_ups.dart';
+import '../../onboarding/domain/repository/setup_repository.dart';
+import '../../onboarding/presentation/pages/study_login.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -26,7 +31,9 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
   bool isButtonVisible = true;
   final DateTime _date = DateTime.now();
 
-  String version = "1.0";
+  final repository = SetupRepository();
+
+  String version = '';
 
   @override
   void initState() {
@@ -35,6 +42,16 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
     checkNotificationPermission();
     checkMicrophonePermission();
     getAppVersion();
+    _loadInfo();
+  }
+
+  Future<void> _loadInfo() async {
+    final v = await getAppVersion();
+    if (mounted) {
+      setState(() {
+        version = v;
+      });
+    }
   }
 
   @override
@@ -53,6 +70,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
 
   Future<void> checkNotificationPermission() async {
     final status = await Permission.notification.status;
+    if (!mounted) return;
     setState(() {
       notificationCheck = status == PermissionStatus.granted;
     });
@@ -60,6 +78,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
 
   Future<void> checkMicrophonePermission() async {
     final status = await Permission.microphone.status;
+    if (!mounted) return;
     setState(() {
       micCheck = status == PermissionStatus.granted;
     });
@@ -127,21 +146,24 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                     ),
                   ],
                 ),
+                SizedBox(
+                  height: 12,
+                ),
                 Visibility(
                     visible: !micCheck,
                     replacement: const TestMicrophone(),
                     child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 18),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                            color: CustomColors.productBorderNormal, width: 1),
                         color: CustomColors.fillWhite,
                       ),
                       child: Column(
+                        spacing: 12,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(top: 16.0, left: 16),
+                            padding: const EdgeInsets.only(left: 16),
                             child: Stack(
                               children: <Widget>[
                                 const Icon(
@@ -177,9 +199,6 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                               ],
                             ),
                           ),
-                          const SizedBox(
-                            width: 20,
-                          ),
                           Padding(
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 16.0),
@@ -205,23 +224,30 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                           ),
                           Padding(
                             padding:
-                                const EdgeInsets.only(left: 16.0, bottom: 16),
-                            child: CustomOutlineButton(
-                              onClick: () => openAppSettings().then((_) {}),
-                              backgroundColor: CustomColors.productNormal,
-                              color: CustomColors.productNormal,
-                              borderRadius: 200,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12.0, vertical: 4.0),
-                              children: Wrap(children: [
-                                Text(
-                                  "Open Settings",
-                                  style: CustomTypography()
-                                      .button(color: CustomColors.textWhite),
-                                )
-                              ]),
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: CustomOutlineButton(
+                                    onClick: () =>
+                                        openAppSettings().then((_) {}),
+                                    backgroundColor: CustomColors.productNormal,
+                                    color: CustomColors.productNormal,
+                                    borderRadius: 200,
+                                    children: Wrap(children: [
+                                      Center(
+                                        child: Text(
+                                          "Open Settings",
+                                          style: CustomTypography().title(
+                                              color: CustomColors.textWhite),
+                                        ),
+                                      )
+                                    ]),
+                                  ),
+                                ),
+                              ],
                             ),
-                          )
+                          ),
                         ],
                       ),
                     )),
@@ -325,7 +351,18 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                   times: times,
                   isEnabled: notificationCheck,
                 ),
-                const SizedBox(height: 12.0),
+                SizedBox(
+                  height: 24,
+                ),
+                CustomFlatButton(
+                    borderColor: CustomColors.warningActive,
+                    color: CustomColors.fillWhite,
+                    textColor: CustomColors.warningActive,
+                    onClick: () => leaveStudy(context),
+                    text: "Leave Study"),
+                SizedBox(
+                  height: 24,
+                ),
               ]),
             ),
             //
@@ -369,12 +406,68 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
         ));
   }
 
-  void getAppVersion() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    final version = packageInfo.version;
+  void leaveStudy(BuildContext context) async {
+    final results = await showDialog<bool>(
+      context: context,
+      builder: (context) => ExitPopUp(
+        content: [
+          Text(
+            "Are you sure you want to leave this study?",
+            style: CustomTypography().headlineMedium(),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Text.rich(
+            TextSpan(
+              text:
+                  "This action is final. All data stored on this device will be ",
+              style: CustomTypography().bodyLarge(),
+              children: [
+                TextSpan(
+                  text: " permanently removed.",
+                  style: CustomTypography().bodyLarge(color: Color(0xFFFC0909)),
+                ),
+              ],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Text.rich(
+            TextSpan(
+              text: "Note: ",
+              style: CustomTypography().bodyLarge(weight: FontWeight.w600),
+              children: [
+                TextSpan(
+                  text: "You are exiting the daily diary component ",
+                  style: CustomTypography().bodyLarge(),
+                ),
+                TextSpan(
+                  text: "only. ",
+                  style: CustomTypography().bodyLarge(weight: FontWeight.w600),
+                ),
+                TextSpan(
+                  text:
+                      "To completely withdraw from the research study and have your data removed, please contact the research team.",
+                  style: CustomTypography().bodyLarge(),
+                ),
+              ],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
 
-    if (mounted) {
-      this.version = version;
+    if (results == true && mounted) {
+      unawaited(repository.leaveStudy());
+      if (context.mounted) {
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+                builder: (context) => StudyLogin(),
+                settings: RouteSettings(name: "/StudyLogin")),
+            (route) => false);
+      }
     }
   }
 }

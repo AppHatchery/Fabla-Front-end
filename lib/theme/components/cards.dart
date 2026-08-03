@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
-import 'package:audio_diaries_flutter/core/utils/emailFunction.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -22,6 +21,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 import '../../core/utils/formatter.dart';
+import '../../core/utils/participant_experiment_details.dart';
 import '../../core/utils/statuses.dart';
 import '../../screens/diary/data/diary.dart';
 import '../custom_icons.dart';
@@ -842,13 +842,16 @@ class _NewAudioCardState extends State<NewAudioCard> {
                 shape: BoxShape.circle,
                 color: CustomColors.productNormalActive,
               ),
-              child: IconButton(
-                onPressed: () => play(),
-                icon: Icon(isPlaying
-                    ? CupertinoIcons.pause_fill
-                    : CupertinoIcons.play_arrow_solid),
-                color: CustomColors.fillWhite,
-                iconSize: 10,
+              child: Transform.translate(
+                offset: isPlaying ? const Offset(0, -1) : const Offset(1, -1),
+                child: IconButton(
+                  onPressed: () => play(),
+                  icon: Icon(isPlaying
+                      ? CupertinoIcons.pause_fill
+                      : CupertinoIcons.play_arrow_solid),
+                  color: CustomColors.fillWhite,
+                  iconSize: 10,
+                ),
               )),
           const SizedBox(width: 3),
           Expanded(
@@ -1670,7 +1673,6 @@ class WebViewErrorCard extends StatelessWidget {
               )
             ],
           ),
-
           if (showContactResearch)
             Padding(
               padding: const EdgeInsets.only(top: 142.0),
@@ -1688,13 +1690,161 @@ class WebViewErrorCard extends StatelessWidget {
     );
   }
 
-  _launchEmail() async {
-    launchEmail(
+  Future<void> _launchEmail() async {
+    await ParticipantAndExperimentDetails().launchSupportEmail(
         subject: '$title – Assistance Needed',
         body:
-            '''$title was encountered. Please investigate and advise on next steps.
-        
-        
-Participant ID: ''');
+            '$title was encountered. Please investigate and advise on next steps.',
+        example:
+            "e.g The survey page won't load and shows a red error screen. This happens every time I try to open the task, even after restarting the app.");
+  }
+}
+
+class NoNotificationCard extends StatelessWidget {
+  final VoidCallback openSettings;
+
+  const NoNotificationCard({
+    required this.openSettings,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = Color(0xFFD26B00);
+    final width = MediaQuery.of(context).size.width;
+
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(16),
+      decoration: ShapeDecoration(
+        color: const Color(0xFFFFF8DE),
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(width: 2, color: accent),
+          borderRadius: BorderRadius.circular(11),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                CupertinoIcons.bell_fill,
+                size: 24,
+                color: accent,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 8,
+                    children: [
+                      Text(
+                        "Notification permission required",
+                        style:
+                            CustomTypography().titleSmallCustom(color: accent),
+                      ),
+                      Text(
+                        "Notifications for Fabla are turned off. Enable them in Settings so you don't miss diary reminders.",
+                        style: CustomTypography().bodyLarge(color: accent),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 40, top: 12),
+            child: CustomOutlineButton(
+              onClick: openSettings,
+              backgroundColor: accent,
+              color: accent,
+              borderRadius: 12,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+              children: Wrap(children: [
+                Text(
+                  "Open Settings",
+                  style:
+                      CustomTypography().button(color: CustomColors.textWhite),
+                ),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+class WarningCard extends StatelessWidget {
+  final String title;
+  final String message;
+  final IconData icon;
+
+  const WarningCard({
+    super.key,
+    required this.title,
+    required this.message,
+    this.icon = Icons.warning_rounded,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(16),
+      decoration: ShapeDecoration(
+        color: CustomColors.fillVanilla,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(width: 2, color: CustomColors.pumpkinOrange),
+          borderRadius: BorderRadius.circular(11),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            color: CustomColors.pumpkinOrange,
+            size: 24,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: [
+                  Text(
+                    title,
+                    style: CustomTypography().titleSmallCustom(
+                      color: CustomColors.pumpkinOrange,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                    decoration: ShapeDecoration(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4)),
+                    ),
+                    child: Text(
+                      message,
+                      style: CustomTypography().bodyLarge(
+                        color: CustomColors.pumpkinOrange,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

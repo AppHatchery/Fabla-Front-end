@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/study_login_cubit.dart';
@@ -11,10 +9,10 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:rive/rive.dart' hide Image;
-import 'package:url_launcher/url_launcher.dart';
+import 'dart:math' show pi;
+import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
-
+import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../services/pendo_service.dart';
 
 class StudyLogin extends StatefulWidget {
@@ -32,7 +30,8 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   bool error = false;
   String message = '';
 
-  late StateMachineController _controller;
+  File? _riveFile;
+  RiveWidgetController? _riveController;
 
   late StudyLoginCubit cubit;
 
@@ -44,11 +43,30 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       scaler = await fontScaler(context);
     });
+    _loadRive();
     super.initState();
+  }
+
+  Future<void> _loadRive() async {
+    final file = await File.asset(
+      'assets/animations/onboarding/hide_peek.riv',
+      riveFactory: Factory.rive,
+    );
+    if (file != null && mounted) {
+      setState(() {
+        _riveFile = file;
+        _riveController = RiveWidgetController(
+          file,
+          stateMachineSelector: StateMachineSelector.byName('Animation_8'),
+        );
+      });
+    }
   }
 
   @override
   void dispose() {
+    _riveController?.dispose();
+    _riveFile?.dispose();
     controller.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
@@ -69,7 +87,6 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
-    final width = MediaQuery.of(context).size.width;
     final isIos = Platform.isIOS;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
@@ -92,11 +109,12 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                     child: SizedBox(
                       height: 340,
                       width: 340,
-                      child: RiveAnimation.asset(
-                        'assets/animations/onboarding/hide_peek.riv',
-                        fit: BoxFit.fitWidth,
-                        onInit: onInit,
-                      ),
+                      child: _riveController != null
+                          ? RiveWidget(
+                              controller: _riveController!,
+                              fit: Fit.fitWidth,
+                            )
+                          : const SizedBox.shrink(),
                     ),
                   ),
                 ),
@@ -107,9 +125,12 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                   16,
                   70,
                   16,
-                  bottomPadding > 0
+                  MediaQuery.of(context).viewInsets.bottom > 0
+                      ? MediaQuery.of(context).viewInsets.bottom + 16
+                      : (bottomPadding > 0
                       ? bottomPadding + 34
-                      : (isIos ? 34 + 34 : 34)),
+                      : (isIos ? 68 : 34)),
+                ),
               child: BlocConsumer<StudyLoginCubit, StudyLoginState>(
                   builder: (context, state) {
                     if (state is StudyLoginInitial) {
@@ -117,7 +138,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                     } else if (state is StudyLoginLoading) {
                       return Center(child: loading(height - 100));
                     }
-        
+
                     return initialLogin();
                   },
                   listener: (context, state) {
@@ -147,7 +168,6 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
   }
 
   Widget initialLogin() {
-    final width = MediaQuery.of(context).size.width;
     return LayoutBuilder(builder: (context, constraints) {
       return SingleChildScrollView(
         child: ConstrainedBox(
@@ -284,41 +304,16 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
       }
   }
 
-  Future<void> launchEmail() async {
-    final uri = Uri(
-        scheme: "mailto",
-        path: "fabla@emory.edu",
-        query: encodeQueryParameters(<String, String>{
-          'subject': 'Need help with the study string',
-          'body': 'I have a problem with accessing the study: '
-        }));
-
-    await launchUrl(uri);
+Future<void> launchEmail() async {
+    await ParticipantAndExperimentDetails().loginSupportEmail(
+        subject: 'Fabla Participant Login Issue',
+        body: 'Describe the issue you are facing',
+        example: ': e.g. My study string is not working'
+    );
   }
 
-  onInit(Artboard art) async {
-    var ctrl = StateMachineController.fromArtboard(art, "Animation_8");
-    ctrl?.isActive = false;
-
-    if (ctrl != null) {
-      art.addController(ctrl);
-      setState(() {
-        _controller = ctrl;
-        art.addController(_controller);
-        ctrl.isActive = true;
-      });
-    }
-  }
-
-  track(int spent, String status) async {
+  Future<void> track(int spent, String status) async {
     await PendoService.track("Study Login",
         {"time_on_page": spent, "status": status, "Font Scaler": "$scaler"});
-  }
-
-  String? encodeQueryParameters(Map<String, String> params) {
-    return params.entries
-        .map((MapEntry<String, String> e) =>
-            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-        .join('&');
   }
 }

@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/services/battery_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -30,11 +31,13 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
     with WidgetsBindingObserver {
   bool batteryOptimization = false;
   bool requested = false;
+  final PermissionRequestGuard _permissionGuard = PermissionRequestGuard();
   bool? granted;
 
   //Animations
-  late rive.StateMachineController _controller;
-  rive.SMITrigger? showTip;
+  rive.File? _riveFile;
+  rive.RiveWidgetController? _riveController;
+  rive.TriggerInput? _showTip;
 
   final PageTimer timer = PageTimer();
   TextScaler? scaler; // Get the size of the text scaler
@@ -47,7 +50,26 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       scaler = await fontScaler(context);
     });
+    _loadRive();
     super.initState();
+  }
+
+  Future<void> _loadRive() async {
+    final file = await rive.File.asset(
+      'assets/animations/onboarding/notification_access.riv',
+      riveFactory: rive.Factory.rive,
+    );
+    if (file != null && mounted) {
+      final controller = rive.RiveWidgetController(
+        file,
+        stateMachineSelector: rive.StateMachineSelector.byName('Animation_3'),
+      );
+      setState(() {
+        _riveFile = file;
+        _riveController = controller;
+        _showTip = controller.stateMachine.trigger('tip');
+      });
+    }
   }
 
   @override
@@ -65,7 +87,9 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _showTip?.dispose();
+    _riveController?.dispose();
+    _riveFile?.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -126,11 +150,12 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                     SizedBox(
                       height: height >= 700 ? 300 : height * 0.65,
                       width: width,
-                      child: rive.RiveAnimation.asset(
-                        'assets/animations/onboarding/notification_access.riv',
-                        fit: BoxFit.fitWidth,
-                        onInit: onInit,
-                      ),
+                      child: _riveController != null
+                          ? rive.RiveWidget(
+                              controller: _riveController!,
+                              fit: rive.Fit.fitWidth,
+                            )
+                          : const SizedBox.shrink(),
                     ),
                   ],
                 ),
@@ -283,41 +308,29 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
     return const SizedBox.shrink();
   }
 
-  onInit(rive.Artboard art) async {
-    var ctrl = rive.StateMachineController.fromArtboard(art, "Animation_3");
-    ctrl?.isActive = false;
-
-    if (ctrl != null) {
-      art.addController(ctrl);
-      setState(() {
-        _controller = ctrl;
-        art.addController(_controller);
-        ctrl.isActive = true;
-        showTip = _controller.getTriggerInput('tip');
-      });
-    }
-  }
-
   void navigateToNextPage(BuildContext context) async {
-    final results = await Permission.notification.request();
+    await _permissionGuard.run(() async {
+      final results = await Permission.notification.request();
+      if (!mounted) return;
 
-    await PendoService.track("NotificationAccess", {"state": results.name});
-    if (mounted) setState(() => granted = results.isGranted);
-    if (granted != null && granted == true) {
-      showTip?.fire();
-    }
-    checkBattery();
-    if (requested) {
-      await PreferenceService()
-          .setBoolPreference(key: 'notification_requested', value: true);
-      track(timer.stop(), "Finished");
-      if (context.mounted) {
-        RouteService()
-            .navigate(null, context: context, current: 'notification_access');
+      await PendoService.track("NotificationAccess", {"state": results.name});
+      if (mounted) setState(() => granted = results.isGranted);
+      if (granted != null && granted == true) {
+        _showTip?.fire();
       }
-    }
+      checkBattery();
+      if (requested) {
+        await PreferenceService()
+            .setBoolPreference(key: 'notification_requested', value: true);
+        track(timer.stop(), "Finished");
+        if (context.mounted) {
+          RouteService()
+              .navigate(null, context: context, current: 'notification_access');
+        }
+      }
 
-    if (mounted) setState(() => requested = true);
+      if (mounted) setState(() => requested = true);
+    });
   }
 
   track(int spent, String status) async {
