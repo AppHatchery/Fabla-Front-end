@@ -76,6 +76,7 @@ jobs:
       - name: Compute in-scope coverage
         id: coverage
         if: ${{ !cancelled() }}
+        continue-on-error: true
         run: |
           sudo apt-get install -y lcov
           .github/scripts/coverage.sh
@@ -134,8 +135,16 @@ jobs:
             echo "::error::${{ steps.report.outputs.failed }} test(s) failed — see the job summary and PR comment."
             ok=0
           fi
+          # Validate before interpolating into awk: an empty or non-numeric
+          # value builds a malformed program (`BEGIN {exit !( >= 18)}`), and
+          # awk's nonzero exit would otherwise be misreported as "below gate",
+          # hiding the real failure in the coverage step.
           COVERAGE="${{ steps.coverage.outputs.coverage }}"
-          if ! awk "BEGIN {exit !($COVERAGE >= $MIN_COVERAGE)}"; then
+          if [ "${{ steps.coverage.outcome }}" != "success" ] \
+            || ! [[ "$COVERAGE" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "::error::Coverage step did not produce a percentage (got '$COVERAGE') — see the 'Compute in-scope coverage' log."
+            ok=0
+          elif ! awk "BEGIN {exit !($COVERAGE >= $MIN_COVERAGE)}"; then
             echo "::error::Coverage $COVERAGE% is below the gate of ${MIN_COVERAGE}%."
             ok=0
           fi
