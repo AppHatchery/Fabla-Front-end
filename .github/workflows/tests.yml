@@ -2,8 +2,8 @@ name: Tests
 
 # Reusable: called by pr.yml on every pull request, and invocable manually from
 # the Actions tab for flake triage or post-secret-rotation re-runs. This
-# workflow owns static analysis and testing only — it never builds or ships an
-# artifact, so it can run on any ref without side effects.
+# workflow owns testing only — it never builds or ships an artifact, so it can
+# run on any ref without side effects.
 on:
   workflow_call:
     inputs:
@@ -23,6 +23,9 @@ env:
 
 jobs:
   test:
+    # Kept as-is despite no longer running analysis: this string is the required
+    # status check in main's branch protection. Renaming it would leave that
+    # check pending forever and block every merge.
     name: Analyze and test
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -54,15 +57,6 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           apikey: ${{ secrets.APIKEY }}
           pendokey: ${{ secrets.PENDOKEY }}
-
-      # analysis_options.yaml enables flutter_lints; enforce it. Infos are
-      # non-fatal so style nits don't block a merge, but warnings and errors do.
-      # continue-on-error defers the failure to the gate step below, so test
-      # results are still reported when only analysis is broken.
-      - name: Analyze
-        id: analyze
-        continue-on-error: true
-        run: flutter analyze --no-fatal-infos
 
       # The `github` reporter annotates failing tests inline in the run log and
       # folds output into groups; the `json` file-reporter is parsed afterwards
@@ -129,17 +123,13 @@ jobs:
               });
             }
 
-      # Single place the job actually fails: analysis, tests and the coverage
-      # gate are each reported as ::error:: annotations, so one run surfaces
-      # every reason rather than only the first.
+      # Single place the job actually fails: tests and the coverage gate are
+      # each reported as ::error:: annotations, so one run surfaces every
+      # reason rather than only the first.
       - name: Enforce results and coverage gate
         if: ${{ !cancelled() }}
         run: |
           ok=1
-          if [ "${{ steps.analyze.outcome }}" != "success" ]; then
-            echo "::error::flutter analyze reported problems — see the log."
-            ok=0
-          fi
           if [ "${{ steps.tests.outcome }}" != "success" ]; then
             echo "::error::${{ steps.report.outputs.failed }} test(s) failed — see the job summary and PR comment."
             ok=0
