@@ -8,6 +8,8 @@ import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -51,11 +53,14 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
   try {
     final dir = await getApplicationDocumentsDirectory();
     final repository = SetupRepository();
+    final diaryRepository = DiaryRepository();
     final experiment = repository.getExperiment();
     final promptEntryList = <PromptEntry>[];
     final files = <FileData>[];
     final references =
         <PromptEntry>[]; // for referencing the audio files in Dynamo
+
+    final study = await diaryRepository.getStudy(diary.studyID);
 
     for (final prompt in diary.prompts) {
       if (prompt.answer == null) continue;
@@ -67,18 +72,18 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
           prompt.responseType == ResponseType.video ||
           prompt.responseType == ResponseType.imageVideo ||
           prompt.responseType == ResponseType.teleprompter) {
-        _addFileData(experiment.login, prompt, participantID, diary, dir, files,
-            references);
+       _addFileData(experiment.login, prompt, participantID, diary, study, dir,
+            files, references);
 
         // If the prompt is textAudio and has a text response, add the text response
         if (prompt.responseType == ResponseType.textAudio &&
             (prompt.answer?.response?.isNotEmpty ?? false)) {
-          _addPromptEntry(prompt, participantID, experiment.login,
-              diary.id.toString(), promptEntryList);
+          _addPromptEntry(prompt, participantID, experiment.login, diary, study,
+              promptEntryList);
         }
       } else {
-        _addPromptEntry(prompt, participantID, experiment.login,
-            diary.id.toString(), promptEntryList);
+        _addPromptEntry(prompt, participantID, experiment.login, diary, study,
+            promptEntryList);
       }
     }
 
@@ -87,7 +92,8 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
         experimentCode: experiment.login,
         participantID: participantID,
         promptLength: diary.prompts.length,
-        diaryID: diary.id.toString());
+        diary: diary,
+        study: study);
     if (location != null) promptEntryList.add(location);
 
     // Submitting the completion time for this diary
@@ -95,7 +101,8 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
         experimentCode: experiment.login,
         participantID: participantID,
         promptLength: diary.prompts.length,
-        diaryID: diary.id.toString());
+        diary: diary,
+        study: study);
     promptEntryList.addAll(completionTime);
 
     promptEntryList.addAll(
@@ -154,6 +161,7 @@ void _addFileData(
   PromptModel prompt,
   String participantID,
   DiaryModel diary,
+  StudyModel? study,
   Directory dir,
   List<FileData> files,
   List<PromptEntry> references,
@@ -183,6 +191,8 @@ void _addFileData(
             questionTitle: prompt.question,
             diaryID: diary.id.toString(),
             promptID: prompt.id.toString(),
+            diaryName: diary.name,
+            study: study?.name ?? "",
             response: "",
             respondedAt: record.date.toIso8601String(),
             questionsType: responseTypeValue(prompt.responseType),
@@ -197,15 +207,22 @@ void _addFileData(
   files.addAll(data);
 }
 
-void _addPromptEntry(PromptModel prompt, String participantID,
-    String experimentCode, String diaryID, List<PromptEntry> promptEntryList) {
+void _addPromptEntry(
+    PromptModel prompt,
+    String participantID,
+    String experimentCode,
+    DiaryModel diary,
+    StudyModel? study,
+    List<PromptEntry> promptEntryList) {
   promptEntryList.add(
     PromptEntry(
       participantID: participantID,
       experimentCode: experimentCode,
       questionTitle: prompt.question,
-      diaryID: diaryID,
+      diaryID: diary.id.toString(),
       promptID: prompt.id.toString(),
+      diaryName: diary.name,
+      study: study?.name ?? "",
       response: prompt.answer?.response?.join(' | ') ?? "",
       respondedAt: prompt.answer?.date.toIso8601String() ?? "",
       questionsType: responseTypeValue(prompt.responseType),
@@ -612,6 +629,8 @@ class PromptEntry {
   String questionTitle;
   String diaryID;
   String promptID;
+  String diaryName;
+  String study;
   String response;
   String respondedAt;
   String questionsType;
@@ -625,6 +644,8 @@ class PromptEntry {
     required this.questionTitle,
     required this.diaryID,
     required this.promptID,
+    required this.diaryName,
+    required this.study,
     required this.response,
     required this.respondedAt,
     required this.questionsType,
@@ -644,6 +665,8 @@ class PromptEntry {
         "QuestionTitle": entry.questionTitle,
         "DiaryID": entry.diaryID,
         "PromptID": entry.promptID,
+        "DiaryName": entry.diaryName,
+        "Study": entry.study,
         "Response": entry.response,
         "RespondedAt": entry.respondedAt,
         "QuestionsType": entry.questionsType,

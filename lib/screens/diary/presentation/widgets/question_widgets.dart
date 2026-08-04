@@ -853,7 +853,13 @@ class TimerWidget extends StatefulWidget {
 class _TimerWidgetState extends State<TimerWidget>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   late Duration duration;
-  late Duration remaining;
+
+  // Countdown value. Backed by a notifier so only the modal's time text
+  // rebuilds each second — not the whole modal (and its Rive subtree).
+  final ValueNotifier<Duration> _remainingNotifier =
+      ValueNotifier(Duration.zero);
+  Duration get remaining => _remainingNotifier.value;
+  set remaining(Duration value) => _remainingNotifier.value = value;
 
   Timer? _timer;
 
@@ -930,6 +936,7 @@ class _TimerWidgetState extends State<TimerWidget>
 
     _timer?.cancel();
     _shakeController.dispose();
+    _remainingNotifier.dispose();
 
     final p = player;
     player = null; // Set to null first so no other methods can trigger it
@@ -946,10 +953,8 @@ class _TimerWidgetState extends State<TimerWidget>
       if (!isRunning) return;
 
       if (remaining.inSeconds > 0) {
-        setState(() {
-          remaining -= const Duration(seconds: 1);
-        });
-        _refreshModal();
+        // updates the notifier only. The modal's ValueListenableBuilder repaints the time text
+        remaining -= const Duration(seconds: 1);
       } else {
         _timer?.cancel();
         _timer = null;
@@ -1109,7 +1114,7 @@ class _TimerWidgetState extends State<TimerWidget>
                 };
 
                 return BottomTimerModal(
-                    remaining: remaining,
+                    remainingListenable: _remainingNotifier,
                     isRunning: isRunning,
                     isPaused: isPaused,
                     showTimeUpOverlay: showTimeUpOverlay,
