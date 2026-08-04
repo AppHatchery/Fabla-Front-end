@@ -59,6 +59,15 @@ jobs:
       - name: Generate ObjectBox bindings
         run: dart run build_runner build --delete-conflicting-outputs
 
+      - name: Run Release Validator
+        id: validator
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: |
+          cd tools/release_validator
+          dart pub get
+          dart run bin/validator.dart baseline.json ../../lib/objectbox-model.json --markdown ../../validator_report.md
+
       # The `github` reporter annotates failing tests inline in the run log and
       # folds output into groups; the `json` file-reporter is parsed afterwards
       # for the step summary and PR comment. continue-on-error lets the summary
@@ -117,6 +126,10 @@ jobs:
             --summary-out summary.md \
             --lines "${{ steps.coverage.outputs.lines }}" \
             >> "$GITHUB_OUTPUT"
+          if [ -f validator_report.md ]; then
+            cat validator_report.md >> summary.md
+            cat validator_report.md >> report.md
+          fi
           cat summary.md >> "$GITHUB_STEP_SUMMARY"
 
       # Upsert a single sticky comment on the PR (first-party github-script, no
@@ -153,6 +166,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           ok=1
+          if [ "${{ steps.validator.outcome }}" != "success" ]; then
+            echo "::error::Schema validation failed — see the job summary and PR comment."
+            ok=0
+          fi
           if [ "${{ steps.tests.outcome }}" != "success" ]; then
             echo "::error::${{ steps.report.outputs.failed }} test(s) failed — see the job summary and PR comment."
             ok=0
@@ -166,10 +183,3 @@ jobs:
             exit 1
           fi
           echo "All tests passed; coverage $COVERAGE% >= ${MIN_COVERAGE}%."
-
-      - name: Run Release Validator
-        if: ${{ !cancelled() }}
-        run: |
-          cd .github/scripts/release_validator
-          dart pub get
-          dart run bin/validator.dart baseline.json ../../../lib/objectbox-model.json
