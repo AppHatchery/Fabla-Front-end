@@ -70,7 +70,8 @@ class _MicAccessPageState extends State<MicAccessPage>
       setState(() {
         _riveFile = file;
         _riveController = controller;
-        _wearHeadphones = controller.stateMachine.boolean('Puts the Headphones on');
+        _wearHeadphones =
+            controller.stateMachine.boolean('Puts the Headphones on');
         _thumbsUp = controller.stateMachine.trigger('Thumbs Up');
         _headphonesAllow = controller.stateMachine.trigger('Headphones_Allow');
       });
@@ -327,10 +328,20 @@ class _MicAccessPageState extends State<MicAccessPage>
   }
 
   void startRecorder() async {
-    final tempDir = await getTemporaryDirectory();
-    final path = '${tempDir.path}/flutter_sound.aac';
-    recorder.startRecorder(
-        toFile: path, codec: Codec.aacADTS, sampleRate: 44100, bitRate: 48000);
+    // Guard against a double start: so bail out early
+    if (!recorder.isStopped) return;
+
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final path = '${tempDir.path}/flutter_sound.aac';
+      await recorder.startRecorder(
+          toFile: path,
+          codec: Codec.aacADTS,
+          sampleRate: 44100,
+          bitRate: 48000);
+    } catch (_) {
+      return;
+    }
 
     recorder.onProgress!.listen((event) {
       if (!hasTriggeredThumbsUp &&
