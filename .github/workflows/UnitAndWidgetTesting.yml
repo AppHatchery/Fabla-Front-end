@@ -69,11 +69,16 @@ jobs:
         run: |
           cd tools/release_validator
           dart pub get
-          dart test --coverage=coverage
-          # Extract coverage percentage for the report
-          VAL_COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep -oP 'lines.*: \K[0-9.]+(?=%)' || echo "0")
-          echo "Validator Code Coverage: $VAL_COVERAGE%" >> ../../validator_report.md
-          dart run bin/validator.dart baseline.json ../../lib/objectbox-model.json --markdown ../../validator_report.md  
+          dart test --coverage=coverage --file-reporter "json:../../val-results.json"
+          
+          # Extract coverage percentage and line details
+          SUMMARY=$(lcov --summary coverage/lcov.info 2>&1)
+          VAL_COVERAGE=$(echo "$SUMMARY" | grep -oP 'lines.*: \K[0-9.]+(?=%)' || echo "0")
+          VAL_LINES=$(echo "$SUMMARY" | grep -oP 'lines.*\(\K[0-9]+ of [0-9]+(?= lines\))' || echo "")
+          echo "val_coverage=$VAL_COVERAGE" >> "$GITHUB_OUTPUT"
+          echo "val_lines=$VAL_LINES" >> "$GITHUB_OUTPUT"
+          
+          dart run bin/validator.dart baseline.json ../../lib/objectbox-model.json --markdown ../../validator_report.md
 
       # The `github` reporter annotates failing tests inline in the run log and
       # folds output into groups; the `json` file-reporter is parsed afterwards
@@ -132,11 +137,11 @@ jobs:
             "${{ steps.coverage.outputs.coverage }}" "${MIN_COVERAGE}" \
             --summary-out summary.md \
             --lines "${{ steps.coverage.outputs.lines }}" \
+            --val-results val-results.json \
+            --val-coverage "${{ steps.validator.outputs.val_coverage }}" \
+            --val-lines "${{ steps.validator.outputs.val_lines }}" \
+            --val-report validator_report.md \
             >> "$GITHUB_OUTPUT"
-          if [ -f validator_report.md ]; then
-            cat validator_report.md >> summary.md
-            cat validator_report.md >> report.md
-          fi
           cat summary.md >> "$GITHUB_STEP_SUMMARY"
 
       # Upsert a single sticky comment on the PR (first-party github-script, no
