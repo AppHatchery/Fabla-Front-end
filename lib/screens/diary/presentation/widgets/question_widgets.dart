@@ -2127,14 +2127,18 @@ class _VideoViewerState extends State<VideoViewer> {
                     child: Stack(
                       children: [
                         Positioned(
-                          bottom: 50,
+                          top: 8,
+                          bottom: 8,
                           left: 8,
                           right: 8,
-                          child: SizedBox(
-                            height: MediaQuery.heightOf(context) * .65,
-                            child: AspectRatio(
-                              aspectRatio: controller!.value.aspectRatio,
-                              child: VideoPlayer(controller!),
+                          child: ClipRect(
+                            child: FittedBox(
+                              fit: BoxFit.cover,
+                              child: SizedBox(
+                                width: controller!.value.size.width,
+                                height: controller!.value.size.height,
+                                child: VideoPlayer(controller!),
+                              ),
                             ),
                           ),
                         ),
