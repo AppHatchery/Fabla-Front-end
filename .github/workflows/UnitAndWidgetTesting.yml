@@ -59,6 +59,9 @@ jobs:
       - name: Generate ObjectBox bindings
         run: dart run build_runner build --delete-conflicting-outputs
 
+      - name: Install coverage tools
+        run: sudo apt-get install -y lcov
+
       - name: Run Release Validator
         id: validator
         if: ${{ !cancelled() }}
@@ -66,7 +69,11 @@ jobs:
         run: |
           cd tools/release_validator
           dart pub get
-          dart run bin/validator.dart baseline.json ../../lib/objectbox-model.json --markdown ../../validator_report.md
+          dart test --coverage=coverage
+          # Extract coverage percentage for the report
+          VAL_COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep -oP 'lines.*: \K[0-9.]+(?=%)' || echo "0")
+          echo "Validator Code Coverage: $VAL_COVERAGE%" >> ../../validator_report.md
+          dart run bin/validator.dart baseline.json ../../lib/objectbox-model.json --markdown ../../validator_report.md  
 
       # The `github` reporter annotates failing tests inline in the run log and
       # folds output into groups; the `json` file-reporter is parsed afterwards

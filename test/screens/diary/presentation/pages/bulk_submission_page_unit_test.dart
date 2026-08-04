@@ -8,7 +8,6 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/bulk_subm
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:objectbox/objectbox.dart';
 
 import '../../../../core/usecases/location_test.dart';
 import '../../../../dummy_data.dart';

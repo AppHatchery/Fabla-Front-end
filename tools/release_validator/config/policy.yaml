@@ -13,3 +13,5 @@ validation_policy:
   RELATIONSHIP_CHANGED: approval
   PROPERTY_DELETED: approval
   ENTITY_DELETED: retirement
+  PROPERTY_TYPE_CHANGED: approval
+  PROPERTY_FLAGS_CHANGED: approval

@@ -59,8 +59,8 @@ class SchemaComparator {
     final handledOldProps = <int>{};
 
     for (var newProp in newEntity.properties) {
-      // 1. Match by UID
-      var oldProp = oldEntity.findPropertyByUid(newProp.uid);
+      Property? oldProp = oldEntity.findPropertyByUid(newProp.uid);
+      
       if (oldProp != null) {
         handledOldProps.add(oldProp.uid);
         if (oldProp.name != newProp.name) {
@@ -72,50 +72,69 @@ class SchemaComparator {
             newValue: newProp.name,
           ));
         }
-        if (oldProp.relationTarget != newProp.relationTarget) {
+        _checkPropertyInternalChanges(oldProp, newProp, newEntity.name, changes);
+      } else {
+        oldProp = oldEntity.findPropertyByName(newProp.name);
+        if (oldProp != null) {
+          handledOldProps.add(oldProp.uid);
           changes.add(SchemaChange(
-            type: ChangeType.RELATIONSHIP_CHANGED,
+            type: ChangeType.PROPERTY_UID_CHANGED,
             entity: newEntity.name,
             property: newProp.name,
-            oldValue: oldProp.relationTarget,
-            newValue: newProp.relationTarget,
+            oldValue: oldProp.uid.toString(),
+            newValue: newProp.uid.toString(),
           ));
-        }
-        continue;
-      }
-
-      // 2. Match by Name (UID Change)
-      oldProp = oldEntity.findPropertyByName(newProp.name);
-      if (oldProp != null) {
-        handledOldProps.add(oldProp.uid);
-        changes.add(SchemaChange(
-          type: ChangeType.PROPERTY_UID_CHANGED,
-          entity: newEntity.name,
-          property: newProp.name,
-          oldValue: oldProp.uid.toString(),
-          newValue: newProp.uid.toString(),
-        ));
-        if (oldProp.relationTarget != newProp.relationTarget) {
+          _checkPropertyInternalChanges(oldProp, newProp, newEntity.name, changes);
+        } else {
           changes.add(SchemaChange(
-            type: ChangeType.RELATIONSHIP_CHANGED,
-            entity: newEntity.name,
-            property: newProp.name,
-            oldValue: oldProp.relationTarget,
-            newValue: newProp.relationTarget,
+            type: ChangeType.PROPERTY_ADDED, 
+            entity: newEntity.name, 
+            property: newProp.name, 
+            uid: newProp.uid,
           ));
         }
-        continue;
       }
-
-      // 3. Truly Added
-      changes.add(SchemaChange(type: ChangeType.PROPERTY_ADDED, entity: newEntity.name, property: newProp.name, uid: newProp.uid));
     }
 
-    // 4. Truly Deleted
     for (var oldProp in oldEntity.properties) {
       if (!handledOldProps.contains(oldProp.uid)) {
-        changes.add(SchemaChange(type: ChangeType.PROPERTY_DELETED, entity: oldEntity.name, property: oldProp.name, uid: oldProp.uid));
+        changes.add(SchemaChange(
+          type: ChangeType.PROPERTY_DELETED, 
+          entity: oldEntity.name, 
+          property: oldProp.name, 
+          uid: oldProp.uid,
+        ));
       }
+    }
+  }
+
+  void _checkPropertyInternalChanges(Property oldProp, Property newProp, String entityName, List<SchemaChange> changes) {
+    if (oldProp.relationTarget != newProp.relationTarget) {
+      changes.add(SchemaChange(
+        type: ChangeType.RELATIONSHIP_CHANGED,
+        entity: entityName,
+        property: newProp.name,
+        oldValue: oldProp.relationTarget,
+        newValue: newProp.relationTarget,
+      ));
+    }
+    if (oldProp.type != newProp.type) {
+      changes.add(SchemaChange(
+        type: ChangeType.PROPERTY_TYPE_CHANGED,
+        entity: entityName,
+        property: newProp.name,
+        oldValue: oldProp.type.toString(),
+        newValue: newProp.type.toString(),
+      ));
+    }
+    if (oldProp.flags != newProp.flags) {
+      changes.add(SchemaChange(
+        type: ChangeType.PROPERTY_FLAGS_CHANGED,
+        entity: entityName,
+        property: newProp.name,
+        oldValue: oldProp.flags?.toString() ?? 'none',
+        newValue: newProp.flags?.toString() ?? 'none',
+      ));
     }
   }
 }

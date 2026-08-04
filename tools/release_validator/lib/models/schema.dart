@@ -60,14 +60,24 @@ class Entity {
 class Property {
   final int uid;
   final String name;
+  final int type;
+  final int? flags;
   final String? relationTarget;
 
-  Property({required this.uid, required this.name, this.relationTarget});
+  Property({
+    required this.uid,
+    required this.name,
+    required this.type,
+    this.flags,
+    this.relationTarget,
+  });
 
   factory Property.fromJson(Map<String, dynamic> json) {
     return Property(
       uid: int.parse((json['id'] as String).split(':')[1]),
       name: json['name'],
+      type: json['type'],
+      flags: json['flags'],
       relationTarget: json['relationTarget'],
     );
   }

@@ -1,9 +1,0 @@
-# Audit Log for Manual Schema Overrides
-# Add entries here to bypass 'approval' failures.
-
-approved_changes:
-  # Example:
-  # - type: PROPERTY_DELETED
-  #   entity: Diary
-  #   property: oldField
-  #   reason: "Cleanup of deprecated field"
