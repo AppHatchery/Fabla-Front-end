@@ -14,10 +14,10 @@ permissions:
   contents: read
   pull-requests: write
 
-  #cancel superseded runs on the same PR instead of stacking them.
+# Cancel superseded runs on the same PR instead of stacking them.
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -25,6 +25,8 @@ jobs:
     timeout-minutes: 15
     env:
       MIN_COVERAGE: "18"
+      MIN_VALIDATOR_COVERAGE: "85"
+      VALIDATOR_DIR: tools/release_validator
     steps:
       - uses: actions/checkout@v6
 
@@ -35,14 +37,12 @@ jobs:
           channel: 'stable'
           cache: true # caches the Flutter SDK itself between runs
 
-      - name: Cache pub & dart_tool
+      - name: Cache pub packages
         uses: actions/cache@v5
         with:
-          path: |
-            ~/.pub-cache
+          path: ~/.pub-cache
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-
+          restore-keys: ${{ runner.os }}-pub-
 
       - name: Create .env from secrets
         # Secrets aren't auto-exposed as shell vars
@@ -59,26 +59,70 @@ jobs:
       - name: Generate ObjectBox bindings
         run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Install coverage tools
+      # `lcov` is only needed to strip generated/untestable files from the app's
+      # lcov.info. Percentages are computed from the LF/LH records with awk, so
+      # nothing depends on lcov's human-readable summary format.
+      - name: Install lcov
         run: sudo apt-get install -y lcov
 
-      - name: Run Release Validator
+      # Resolved once, up front, so the two validator steps below are
+      # independent of each other.
+      - name: Install release validator dependencies
+        working-directory: ${{ env.VALIDATOR_DIR }}
+        run: dart pub get
+
+      # `dart test --coverage=<dir>` writes raw VM hitmaps to <dir>/test/*.json,
+      # NOT an lcov.info. format_coverage converts them.
+      - name: Run release validator tests with coverage
+        id: validator_tests
+        continue-on-error: true
+        working-directory: ${{ env.VALIDATOR_DIR }}
+        run: |
+          dart test \
+            --coverage=coverage \
+            --file-reporter "json:$GITHUB_WORKSPACE/val-results.json"
+          dart pub global activate coverage
+          dart pub global run coverage:format_coverage \
+            --lcov \
+            --in=coverage \
+            --out=coverage/lcov.info \
+            --report-on=lib
+
+      # Sums LF (lines found) / LH (lines hit) straight out of lcov.info — one
+      # pass over the file, no dependency on lcov's summary wording.
+      - name: Compute validator line coverage
+        id: validator_coverage
+        if: ${{ !cancelled() }}
+        working-directory: ${{ env.VALIDATOR_DIR }}
+        run: |
+          COVERAGE="0"
+          LINES=""
+          if [ -f coverage/lcov.info ]; then
+            read -r COVERAGE LINES <<<"$(awk -F: '
+              /^LH:/ { hit += $2 }
+              /^LF:/ { found += $2 }
+              END { printf "%.2f %d of %d", (found ? hit * 100 / found : 0), hit, found }
+            ' coverage/lcov.info)"
+          fi
+          echo "coverage=$COVERAGE" >> "$GITHUB_OUTPUT"
+          echo "lines=$LINES" >> "$GITHUB_OUTPUT"
+          echo "Validator line coverage: $COVERAGE% ($LINES)" \
+            "(gate ${MIN_VALIDATOR_COVERAGE}%)"
+
+      # Separate from the tool's own tests: the schema report must still be
+      # written when the tool's unit tests (or its coverage collection) fail.
+      # The validator writes the markdown before exiting non-zero, so a real
+      # policy violation still produces a report.
+      - name: Run ObjectBox schema validation
         id: validator
         if: ${{ !cancelled() }}
         continue-on-error: true
+        working-directory: ${{ env.VALIDATOR_DIR }}
         run: |
-          cd tools/release_validator
-          dart pub get
-          dart test --coverage=coverage --file-reporter "json:../../val-results.json"
-          
-          # Extract coverage percentage and line details
-          SUMMARY=$(lcov --summary coverage/lcov.info 2>&1)
-          VAL_COVERAGE=$(echo "$SUMMARY" | grep -oP 'lines.*: \K[0-9.]+(?=%)' || echo "0")
-          VAL_LINES=$(echo "$SUMMARY" | grep -oP 'lines.*\(\K[0-9]+ of [0-9]+(?= lines\))' || echo "")
-          echo "val_coverage=$VAL_COVERAGE" >> "$GITHUB_OUTPUT"
-          echo "val_lines=$VAL_LINES" >> "$GITHUB_OUTPUT"
-          
-          dart run bin/validator.dart baseline.json ../../lib/objectbox-model.json --markdown ../../validator_report.md
+          dart run bin/validator.dart \
+            baseline.json \
+            "$GITHUB_WORKSPACE/lib/objectbox-model.json" \
+            --markdown "$GITHUB_WORKSPACE/validator_report.md"
 
       # The `github` reporter annotates failing tests inline in the run log and
       # folds output into groups; the `json` file-reporter is parsed afterwards
@@ -86,6 +130,7 @@ jobs:
       # and comment steps run even when tests fail — the gate step fails the job.
       - name: Run tests with coverage
         id: tests
+        if: ${{ !cancelled() }}
         continue-on-error: true
         timeout-minutes: 10
         run: |
@@ -100,7 +145,6 @@ jobs:
         id: coverage
         if: ${{ !cancelled() }}
         run: |
-          sudo apt-get install -y lcov
           COVERAGE="0"
           LINES=""
           if [ -f coverage/lcov.info ]; then
@@ -115,11 +159,11 @@ jobs:
               'lib/core/utils/errorCodes.dart' \
               'lib/core/utils/emailFunction.dart' \
               -o coverage/lcov.info --ignore-errors unused
-            SUMMARY=$(lcov --summary coverage/lcov.info 2>&1)
-            COVERAGE=$(echo "$SUMMARY" \
-              | grep -oP 'lines.*: \K[0-9.]+(?=%)' || echo "0")
-            LINES=$(echo "$SUMMARY" \
-              | grep -oP 'lines.*\(\K[0-9]+ of [0-9]+(?= lines\))' || echo "")
+            read -r COVERAGE LINES <<<"$(awk -F: '
+              /^LH:/ { hit += $2 }
+              /^LF:/ { found += $2 }
+              END { printf "%.2f %d of %d", (found ? hit * 100 / found : 0), hit, found }
+            ' coverage/lcov.info)"
           fi
           echo "coverage=$COVERAGE" >> "$GITHUB_OUTPUT"
           echo "lines=$LINES" >> "$GITHUB_OUTPUT"
@@ -138,8 +182,9 @@ jobs:
             --summary-out summary.md \
             --lines "${{ steps.coverage.outputs.lines }}" \
             --val-results val-results.json \
-            --val-coverage "${{ steps.validator.outputs.val_coverage }}" \
-            --val-lines "${{ steps.validator.outputs.val_lines }}" \
+            --val-coverage "${{ steps.validator_coverage.outputs.coverage }}" \
+            --val-lines "${{ steps.validator_coverage.outputs.lines }}" \
+            --val-threshold "${MIN_VALIDATOR_COVERAGE}" \
             --val-report validator_report.md \
             >> "$GITHUB_OUTPUT"
           cat summary.md >> "$GITHUB_STEP_SUMMARY"
@@ -172,12 +217,22 @@ jobs:
               });
             }
 
-      # Single place the job actually fails: tests must pass AND coverage must
-      # meet the gate. Reasons are emitted as ::error:: annotations.
+      # Single place the job actually fails: validator tests, schema validation,
+      # and app tests must all pass AND both coverage gates must be met. Reasons
+      # are emitted as ::error:: annotations.
       - name: Enforce results and coverage gate
         if: ${{ !cancelled() }}
         run: |
           ok=1
+          if [ "${{ steps.validator_tests.outcome }}" != "success" ]; then
+            echo "::error::Release validator tests failed — see the job summary and PR comment."
+            ok=0
+          fi
+          VAL_COVERAGE="${{ steps.validator_coverage.outputs.coverage }}"
+          if ! awk "BEGIN {exit !($VAL_COVERAGE >= $MIN_VALIDATOR_COVERAGE)}"; then
+            echo "::error::Release validator coverage $VAL_COVERAGE% is below the gate of ${MIN_VALIDATOR_COVERAGE}%."
+            ok=0
+          fi
           if [ "${{ steps.validator.outcome }}" != "success" ]; then
             echo "::error::Schema validation failed — see the job summary and PR comment."
             ok=0
@@ -194,4 +249,5 @@ jobs:
           if [ "$ok" -ne 1 ]; then
             exit 1
           fi
-          echo "All tests passed; coverage $COVERAGE% >= ${MIN_COVERAGE}%."
+          echo "All tests passed; app coverage $COVERAGE% >= ${MIN_COVERAGE}%," \
+            "validator coverage $VAL_COVERAGE% >= ${MIN_VALIDATOR_COVERAGE}%."

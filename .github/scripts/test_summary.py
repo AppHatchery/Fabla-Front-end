@@ -146,6 +146,8 @@ def main():
                         help="Validator coverage percentage")
     parser.add_argument("--val-lines", default="",
                         help="Validator lcov line detail")
+    parser.add_argument("--val-threshold", default="",
+                        help="Validator coverage gate percentage")
     parser.add_argument("--val-report", default="",
                         help="Path to the validator's markdown report")
     args = parser.parse_args()
@@ -234,15 +236,22 @@ def main():
     if args.val_report:
         try:
             with open(args.val_report, "r", encoding="utf-8") as f:
-                lines.append(f.read())
+                lines += [f.read().rstrip("\n"), ""]
         except FileNotFoundError:
-            lines.append("### 🧱 ObjectBox Schema Validation")
-            lines.append("> ⚠️ Validator report not found.")
+            lines += [
+                "### 🧱 ObjectBox Schema Validation",
+                "",
+                "> ⚠️ No validator report was produced — the schema validation "
+                "step did not complete. Check the *Run ObjectBox schema "
+                "validation* step in the run log.",
+                "",
+            ]
 
-        # Add validator health metrics
-        lines.append("#### Validator Health")
+    # Validator health is independent of the schema report: the tool's own
+    # tests can pass while the schema check fails, and vice versa.
+    if args.val_results or args.val_coverage:
+        lines += ["#### Validator Health", ""]
 
-        # Test count
         if args.val_results:
             v_res = parse_results(args.val_results)
             v_total = v_res["total"]
@@ -252,19 +261,40 @@ def main():
             v_pass_rate = (v_passed / v_total * 100) if v_total else 0.0
 
             lines += [
-                f"| Passed | Failed | Skipped | Total | Pass Rate |",
-                f"| :---: | :---: | :---: | :---: | :---: |",
-                f"| {v_passed} | {v_failed} | {v_skipped} | {v_total} | {v_pass_rate:.1f}% |",
-                ""
+                "| Passed | Failed | Skipped | Total | Pass Rate |",
+                "| :---: | :---: | :---: | :---: | :---: |",
+                f"| {v_passed} | {v_failed} | {v_skipped} | {v_total} "
+                f"| {v_pass_rate:.1f}% |",
+                "",
             ]
+            if v_total == 0:
+                lines += [
+                    "> ⚠️ No validator test results were parsed — the tool's "
+                    "tests did not run.",
+                    "",
+                ]
 
-        # Coverage
         if args.val_coverage:
-            v_detail = f" ({args.val_lines.replace(' of ', '/')} lines)" if args.val_lines else ""
-            lines += [
-                f"**Validator Code Coverage:** {args.val_coverage}%{v_detail}",
-                ""
-            ]
+            v_detail = (f" ({args.val_lines.replace(' of ', '/')} lines)"
+                        if args.val_lines else "")
+            try:
+                v_cov = float(args.val_coverage)
+                v_gate = float(args.val_threshold) if args.val_threshold else None
+            except ValueError:
+                v_cov, v_gate = None, None
+
+            if v_cov is not None and v_gate is not None:
+                v_status = "✅ PASS" if v_cov >= v_gate else "❌ FAIL"
+                lines += [
+                    f"**Validator coverage gate {v_status}** — "
+                    f"**{v_cov:.2f}%**{v_detail}, threshold {v_gate:.2f}%",
+                    "",
+                ]
+            else:
+                lines += [
+                    f"**Validator line coverage:** {args.val_coverage}%{v_detail}",
+                    "",
+                ]
 
     with open(args.out, "w", encoding="utf-8") as out:
         out.write("\n".join(lines) + "\n")
