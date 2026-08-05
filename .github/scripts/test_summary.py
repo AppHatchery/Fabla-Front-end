@@ -247,10 +247,10 @@ def main():
                 "",
             ]
 
-    # Validator health is independent of the schema report: the tool's own
+    # Validator Tests is independent of the schema report: the tool's own
     # tests can pass while the schema check fails, and vice versa.
     if args.val_results or args.val_coverage:
-        lines += ["#### Validator Health", ""]
+        lines += ["#### Validator Tests", ""]
 
         if args.val_results:
             v_res = parse_results(args.val_results)
