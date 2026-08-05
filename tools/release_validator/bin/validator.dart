@@ -15,7 +15,7 @@ void main(List<String> args) async {
 
   try {
     // 1. Setup Paths
-    final scriptDir = p.dirname(p.fromUri(Platform.script));
+    //final scriptDir = p.dirname(p.fromUri(Platform.script));
     final projectRoot = Directory.current.path;
     final policyPath = p.join(projectRoot, 'config', 'policy.yaml');
     final auditPath = p.join(projectRoot, 'config', 'audit.yaml');

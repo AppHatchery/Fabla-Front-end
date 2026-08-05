@@ -74,11 +74,11 @@ class Property {
 
   factory Property.fromJson(Map<String, dynamic> json) {
     return Property(
-      uid: int.parse((json['id'] as String).split(':')[1]),
-      name: json['name'],
-      type: json['type'],
-      flags: json['flags'],
-      relationTarget: json['relationTarget'],
+      uid: int.parse(((json['id'] ?? '0:0') as String).split(':')[1]),
+      name: (json['name'] ?? 'unknown') as String,
+      type: (json['type'] ?? 0) as int,
+      flags: json['flags'] as int?,
+      relationTarget: json['relationTarget'] as String?,
     );
   }
 }
