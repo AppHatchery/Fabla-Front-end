@@ -35,7 +35,7 @@ platform :android do
     firebase_app_distribution(
       app: ENV["FIREBASE_APP_ID_ANDROID"].strip,
       groups: "testers",
-      service_credentials_file: ENV["GCP_SERVICE_ACCOUNT"].strip
+      service_credentials_file: ENV["GCP_SERVICE_ACCOUNT"].strip,
 #       firebase_cli_token: ENV["FIREBASE_CLI_TOKEN"].strip,
       android_artifact_path: DEBUG_APK,
       android_artifact_type: "APK",
