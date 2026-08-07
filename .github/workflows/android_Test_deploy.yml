@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy_android_test_debug_build:
+  deploy:
     runs-on: ubuntu-latest
     # Cold runs pay for the Gradle distribution, ~45 plugin AARs and the NDK.
     timeout-minutes: 45
@@ -141,12 +141,11 @@ jobs:
           name: app-debug-${{ github.run_number }}
           path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 1
 
       - name: Distribute via Fastlane
         working-directory: android
         env:
           FIREBASE_APP_ID_ANDROID: ${{ secrets.FIREBASE_APP_ID_ANDROID }}
-#          FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
-          GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
         run: bundle exec fastlane deploy_to_firebase
