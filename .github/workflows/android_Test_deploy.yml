@@ -1,0 +1,147 @@
+name: Deploy Test Build
+
+# Manual deployment of a debug APK to Firebase App Distribution.
+# Triggered from the GitHub Actions tab.
+on:
+  workflow_dispatch:
+    inputs:
+      release_notes:
+        description: 'Release notes shown to testers'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# Cancel an earlier manual run from the same branch if a new one starts.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Cold runs pay for the Gradle distribution, ~45 plugin AARs and the NDK.
+    timeout-minutes: 45
+    env:
+      # Must match ndkVersion in android/app/build.gradle and rive.ndk.version
+      # in android/gradle.properties.
+      NDK_VERSION: '28.2.13676358'
+    steps:
+      - uses: actions/checkout@v6
+
+      # AGP 8.11 / Kotlin JVM target 17 (see android/app/build.gradle).
+      # No `cache: gradle` here — the explicit cache step below owns those paths.
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # The runner image ships NDK 27.3.x, so AGP would otherwise download ~1 GB
+      # on every run just to strip symbols from the plugins' prebuilt .so files.
+      - name: Cache Android NDK
+        id: ndk-cache
+        uses: actions/cache@v5
+        with:
+          path: /usr/local/lib/android/sdk/ndk/${{ env.NDK_VERSION }}
+          key: ndk-${{ env.NDK_VERSION }}
+
+      - name: Install Android NDK
+        if: steps.ndk-cache.outputs.cache-hit != 'true'
+        # cmdline-tools is not on PATH on the runner image.
+        run: echo y | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --install "ndk;$NDK_VERSION"
+
+      # pubspec.lock is in the key because the resolved plugin set determines
+      # which Android artifacts Gradle has to fetch.
+      - name: Cache Gradle
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle', 'android/gradle.properties', 'android/gradle/wrapper/gradle-wrapper.properties', 'pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.4'
+          channel: 'stable'
+          cache: true # caches the Flutter SDK itself between runs
+
+      - name: Cache pub
+        uses: actions/cache@v5
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      # Early so a broken Gemfile fails in a minute rather than after the build.
+      # Installs fastlane + the firebase_app_distribution plugin from android/Gemfile.
+      - name: Set up Ruby and fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: android
+
+      - name: Create .env from secrets
+        # .env is a declared asset in pubspec.yaml, so the build fails without it.
+        # Secrets aren't auto-exposed as shell vars.
+        env:
+          APIKEY: ${{ secrets.APIKEY }}
+          PENDOKEY: ${{ secrets.PENDOKEY }}
+        run: |
+          printf 'APIKEY=%s\n' "$APIKEY" > .env
+          printf 'PENDOKEY=%s\n' "$PENDOKEY" >> .env
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # objectbox.g.dart is gitignored, so it has to be generated before building.
+      - name: Generate ObjectBox bindings
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # Fastlane uploads this file verbatim as the release notes. The input goes
+      # through env, never interpolated into the script.
+      - name: Write release notes
+        env:
+          NOTES: ${{ inputs.release_notes }}
+        run: |
+          {
+            printf '%s\n\n' "$NOTES"
+            printf 'Branch: %s\n' "$GITHUB_REF_NAME"
+            printf 'Commit: %s\n' "${GITHUB_SHA:0:7}"
+            printf 'Build:  #%s\n' "$GITHUB_RUN_NUMBER"
+          } > release_notes.txt
+
+      - name: Build debug APK
+        # versionCode is offset by the pubspec build number so distributed builds
+        # stay above the last locally installed one — Android refuses to install
+        # a lower versionCode over a higher one.
+        run: |
+          base=$(sed -n 's/^version:.*+//p' pubspec.yaml)
+          [ -n "$base" ] || { echo "pubspec.yaml version has no +buildNumber"; exit 1; }
+          flutter build apk --debug --no-pub \
+            --build-number=$((base + GITHUB_RUN_NUMBER))
+
+      # Retain the artifact before the upload that can fail. Without this a
+      # Firebase outage discards a 20-minute build and there is nothing to
+      # inspect or re-distribute by hand.
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Distribute via Fastlane
+        working-directory: android
+        env:
+          FIREBASE_APP_ID_ANDROID: ${{ secrets.FIREBASE_APP_ID_ANDROID }}
+          FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
+        run: bundle exec fastlane deploy_to_firebase
