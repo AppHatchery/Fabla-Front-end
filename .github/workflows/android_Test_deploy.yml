@@ -3,6 +3,10 @@ name: Deploy Test Build
 # Manual deployment of a debug APK to Firebase App Distribution.
 # Triggered from the GitHub Actions tab.
 on:
+  pull_request:
+    branches:
+      - main
+
   workflow_dispatch:
     inputs:
       release_notes:
