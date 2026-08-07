@@ -29,7 +29,7 @@ platform :android do
   desc "Deploy pre-built debug APK to Firebase App Distribution"
   lane :deploy_to_firebase do
     ensure_env_vars(
-      env_vars: ["FIREBASE_APP_ID_ANDROID", "FIREBASE_CLI_TOKEN"]
+      env_vars: ["FIREBASE_APP_ID_ANDROID", "GCP_SERVICE_ACCOUNT"]
     )
 
     firebase_app_distribution(
