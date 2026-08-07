@@ -147,5 +147,6 @@ jobs:
         working-directory: android
         env:
           FIREBASE_APP_ID_ANDROID: ${{ secrets.FIREBASE_APP_ID_ANDROID }}
-          FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
+#          FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
+          GCP_Service_Account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
         run: bundle exec fastlane deploy_to_firebase
