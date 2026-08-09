@@ -21,6 +21,17 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Only run on Main Branch and only allowed users can trigger it
+    if: |
+      (
+        github.ref == 'refs/heads/main'
+      ) &&
+      (
+        github.actor == 'BuchiNy' ||
+        github.actor == 'Wiza-Munthali' ||
+        github.actor == 'carol-kadza'
+      )
+
     # Cold runs pay for the Gradle distribution, ~45 plugin AARs and the NDK.
     timeout-minutes: 45
     env:
