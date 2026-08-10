@@ -184,7 +184,8 @@ class SummaryRepository {
           dailyGoalNotification(diary.id);
         }
         cancelContinueNotifications(diary.id);
-        calculateEarnedIncentivesForAWS(participantID: participant.studyCode);
+        calculateEarnedIncentivesForAWS(
+            participantID: participant.studyCode, studyID: diary.studyID);
         await modifyHomeProgressTracking(studyID: diary.studyID, submissions: 1, activateAnimation: true);
         return true;
       } else {

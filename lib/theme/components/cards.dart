@@ -1876,3 +1876,72 @@ class NoNotificationCard extends StatelessWidget {
     );
   }
 }
+class WarningCard extends StatelessWidget {
+  final String title;
+  final String message;
+  final IconData icon;
+
+  const WarningCard({
+    super.key,
+    required this.title,
+    required this.message,
+    this.icon = Icons.warning_rounded,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(16),
+      decoration: ShapeDecoration(
+        color: CustomColors.fillVanilla,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(width: 2, color: CustomColors.pumpkinOrange),
+          borderRadius: BorderRadius.circular(11),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            color: CustomColors.pumpkinOrange,
+            size: 24,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: [
+                  Text(
+                    title,
+                    style: CustomTypography().titleSmallCustom(
+                      color: CustomColors.pumpkinOrange,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                    decoration: ShapeDecoration(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4)),
+                    ),
+                    child: Text(
+                      message,
+                      style: CustomTypography().bodyLarge(
+                        color: CustomColors.pumpkinOrange,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

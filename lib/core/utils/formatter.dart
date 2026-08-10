@@ -46,8 +46,8 @@ String formatDateShort(DateTime dateTime) {
 }
 
 /// Returns: Month/Day/Year
-String formatDateOnly(DateTime date) {
-  final DateFormat formatter = DateFormat('yyyy-MM-dd');
+String formatDateOnly(DateTime date, {DateFormat? format}) {
+  final DateFormat formatter = format ?? DateFormat('yyyy-MM-dd');
   return formatter.format(date);
 }
 

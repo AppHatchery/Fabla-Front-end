@@ -1,0 +1,57 @@
+name: Dev Task
+description: Track a to-do, an exploratory spike, or a general task for the dev team
+title: '[TASK] '
+labels: ['task']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This form is used to explore new/existing areas for Fabla by the dev team
+
+  - type: dropdown
+    id: task-type
+    attributes:
+      label: 🧾 Task Type
+      description: What kind of task is this?
+      options:
+        - TODO
+        - Exploration / Spike
+        - Chore
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 📋 Description
+      description: What needs to be done (or explored)?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 🔗 Context
+      description: Why does this matter right now? Link any related issues, discussions, or PRs.
+    validations:
+      required: false
+
+  - type: textarea
+    id: definition-of-done
+    attributes:
+      label: ✅ Definition of Done
+      description: How do we know this is finished? Leave blank if this is exploratory and has no fixed end state.
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 📎 Additional Context
+      description: Add any other context here.
+    validations:
+      required: false

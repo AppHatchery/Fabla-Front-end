@@ -7,6 +7,7 @@ import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:intl/intl.dart';
 
 part 'settings_state.dart';
 
@@ -25,7 +26,7 @@ class SettingsCubit extends Cubit<SettingsState> {
           ? DateTime.parse(completedDate)
           : DateTime.now();
       emit(SettingsLoaded(
-          onboardingQuestion: questions, completedDate: formatDateOnly(date)));
+          onboardingQuestion: questions, completedDate: formatDateOnly(date, format: DateFormat('dd/MM/yyyy'))));
     } catch (e, stackTrace) {
       CrashlyticsService().recordError(e, stackTrace,
           reason: "Error fetching Onboarding Questions");
