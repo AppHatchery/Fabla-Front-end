@@ -3,6 +3,11 @@ name: Deploy Android Test Build to Firebase
 # Manual deployment of a debug APK to Firebase App Distribution.
 # Triggered from the GitHub Actions tab.
 on:
+  pull_request:
+    branches:
+      - 960-task
+      - main
+
   workflow_dispatch:
     inputs:
       release_notes:
@@ -23,18 +28,13 @@ jobs:
     runs-on: ubuntu-latest
     # Only run on Main Branch and only allowed users can trigger it
     if: |
-      (
-        github.ref == 'refs/heads/main'
-      ) &&
-      (
-        github.actor == 'BuchiNy' ||
-        github.actor == 'Wiza-Munthali' ||
-        github.actor == 'carol-kadza'
-      )
+      github.ref == 'refs/heads/main' &&
+      contains(fromJSON('["BuchiNy", "Wiza-Munthali", "carol-kadza"]'), github.actor)
 
     # Cold runs pay for the Gradle distribution, ~45 plugin AARs and the NDK.
     timeout-minutes: 45
     env:
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       # Must match ndkVersion in android/app/build.gradle and rive.ndk.version
       # in android/gradle.properties.
       NDK_VERSION: '28.2.13676358'
@@ -55,13 +55,13 @@ jobs:
         id: ndk-cache
         uses: actions/cache@v5
         with:
-          path: /usr/local/lib/android/sdk/ndk/${{ env.NDK_VERSION }}
-          key: ndk-${{ env.NDK_VERSION }}
+          path: ${{ env.ANDROID_SDK_ROOT }}/ndk/${{ env.NDK_VERSION }}
+          key: ${{ runner.os }}-ndk-${{ env.NDK_VERSION }}
 
       - name: Install Android NDK
         if: steps.ndk-cache.outputs.cache-hit != 'true'
-        # cmdline-tools is not on PATH on the runner image.
-        run: echo y | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --install "ndk;$NDK_VERSION"
+        run: |
+          yes | sdkmanager "ndk;$NDK_VERSION"
 
       # pubspec.lock is in the key because the resolved plugin set determines
       # which Android artifacts Gradle has to fetch.
@@ -81,14 +81,6 @@ jobs:
           flutter-version: '3.44.4'
           channel: 'stable'
           cache: true # caches the Flutter SDK itself between runs
-
-      - name: Cache pub
-        uses: actions/cache@v5
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-${{ hashFiles('pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-
 
       # Early so a broken Gemfile fails in a minute rather than after the build.
       # Installs fastlane + the firebase_app_distribution plugin from android/Gemfile.
@@ -124,15 +116,12 @@ jobs:
         run: |
           {
             printf '%s\n\n' "$NOTES"
-            printf 'Branch: %s\n' "$GITHUB_REF_NAME"
-            printf 'Commit: %s\n' "${GITHUB_SHA:0:7}"
-            printf 'Build:  #%s\n' "$GITHUB_RUN_NUMBER"
           } > release_notes.txt
 
       # Run tests to make sure everything works as expected.
       - name: Run Tests
         timeout-minutes: 10
-        run: flutter test test/ --reporter expanded
+        run: flutter test --no-pub --reporter expanded
 
       - name: Build debug APK
         # versionCode is offset by the pubspec build number so distributed builds
@@ -153,11 +142,20 @@ jobs:
           name: app-debug-${{ github.run_number }}
           path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 3
+
+      - name: Write GCP service account key
+        # firebase_app_distribution auths via a service account key file, not the
+        # legacy firebase_cli_token. Written to $RUNNER_TEMP, not the repo, and
+        # gone when the runner is torn down.
+        env:
+          GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+        run: |
+          echo "$GCP_SERVICE_ACCOUNT" > "$RUNNER_TEMP/gcp_service_account.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/gcp_service_account.json" >> "$GITHUB_ENV"
 
       - name: Distribute via Fastlane
         working-directory: android
         env:
           FIREBASE_APP_ID_ANDROID: ${{ secrets.FIREBASE_APP_ID_ANDROID }}
-          FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
         run: bundle exec fastlane deploy_to_firebase
