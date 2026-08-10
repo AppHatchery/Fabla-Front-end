@@ -3,11 +3,6 @@ name: Deploy Android Test Build to Firebase
 # Manual deployment of a debug APK to Firebase App Distribution.
 # Triggered from the GitHub Actions tab.
 on:
-  pull_request:
-    branches:
-      - 960-task
-      - main
-
   workflow_dispatch:
     inputs:
       release_notes:
