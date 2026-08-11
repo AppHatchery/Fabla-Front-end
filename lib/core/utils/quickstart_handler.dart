@@ -82,10 +82,11 @@ class QuickstartHandler {
   /// [SharedPreferences] under the `videoUrls` key.
   ///
   /// Videos that fail to fetch are logged and skipped rather than aborting
-  /// the whole batch, so a partial cache is still saved.
-  Future<void> getVideos() async {
+  /// the whole batch, so a partial cache is still saved. [client] follows
+  /// the same reuse-or-create convention as [getVideo].
+  Future<void> getVideos({http.Client? client}) async {
     final videoUrls = <String, String>{};
-    final httpClient = http.Client();
+    final httpClient = client ?? http.Client();
     try {
       for (var videoName in videos.keys) {
         try {
@@ -97,7 +98,9 @@ class QuickstartHandler {
         }
       }
     } finally {
-      httpClient.close();
+      if (client == null) {
+        httpClient.close();
+      }
     }
 
     final payload = {
@@ -130,13 +133,14 @@ class QuickstartHandler {
   }
 
   /// Fetches and caches video URLs only if the cache is missing any of
-  /// [videos]. Safe to call speculatively without awaiting — failures are
-  /// logged inside [getVideos] rather than thrown.
-  Future<void> ensureVideosCached() async {
+  /// [videos] (including if it has expired past [_cacheTtl]). Safe to call
+  /// speculatively without awaiting — failures are logged inside
+  /// [getVideos] rather than thrown.
+  Future<void> ensureVideosCached({http.Client? client}) async {
     final cached = await getCachedVideoUrls();
     final hasAllVideos = videos.keys.every(cached.containsKey);
     if (hasAllVideos) return;
 
-    await getVideos();
+    await getVideos(client: client);
   }
 }
