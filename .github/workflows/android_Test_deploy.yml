@@ -24,7 +24,7 @@ jobs:
     # Only run on Main Branch and only allowed users can trigger it
     if: |
       github.ref == 'refs/heads/main' &&
-      contains(fromJSON('["BuchiNy", "Wiza-Munthali", "carol-kadza"]'), github.actor)
+      contains(fromJSON('["BuchiNy", "Wiza-Munthali", "carol-kadza", "Prasshanna-S", "yago1994","Tulika-Banerjee"]'), github.actor)
 
     # Cold runs pay for the Gradle distribution, ~45 plugin AARs and the NDK.
     timeout-minutes: 45
