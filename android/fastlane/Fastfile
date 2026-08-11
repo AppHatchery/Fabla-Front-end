@@ -1,0 +1,47 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:android)
+
+# Actions run from android/, so both paths are relative to that. Each resolves to
+# the repo root, where android/build.gradle sends Gradle's output
+# (rootProject.buildDir = '../build') and where the workflow writes the notes.
+DEBUG_APK = "../build/app/outputs/flutter-apk/app-debug.apk"
+RELEASE_NOTES_FILE = "../release_notes.txt"
+
+platform :android do
+
+  # ──────────────────────────────────────────────
+  # Debug → Firebase App Distribution
+  # ──────────────────────────────────────────────
+  desc "Deploy pre-built debug APK to Firebase App Distribution"
+  lane :deploy_to_firebase do
+    ensure_env_vars(
+      env_vars: ["FIREBASE_APP_ID_ANDROID", "FIREBASE_CLI_TOKEN"]
+    )
+
+    firebase_app_distribution(
+      app: ENV["FIREBASE_APP_ID_ANDROID"].strip,
+      groups: "testers",
+      firebase_cli_token: ENV["FIREBASE_CLI_TOKEN"].strip,
+      android_artifact_path: DEBUG_APK,
+      android_artifact_type: "APK",
+      release_notes_file: RELEASE_NOTES_FILE
+    )
+
+    UI.success("Debug APK deployed to Firebase App Distribution")
+  end
+
+end

@@ -152,13 +152,12 @@ class PromptModel {
       }
     }
 
-    // Evaluate based on condition logic
-    if (conditionLogic == ConditionLogic.and) {
-      return results.every((result) => result == true);
-    } else if (conditionLogic == ConditionLogic.or) {
+    // Evaluate based on condition logic. Default to AND when logic isn't set
+    // (e.g. a prompt with a single condition has no need for and/or).
+    if (conditionLogic == ConditionLogic.or) {
       return results.any((result) => result == true);
     }
 
-    return true;
+    return results.every((result) => result == true);
   }
 }

@@ -1,0 +1,4 @@
+# Only needed for Play Store uploads (`supply`). Firebase App Distribution reads
+# its own service account key from GOOGLE_APPLICATION_CREDENTIALS instead.
+# json_key_file("") # https://docs.fastlane.tools/actions/supply/#setup
+package_name("edu.emory.audio_diaries_flutter")

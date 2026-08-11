@@ -133,22 +133,15 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               settings: const RouteSettings(name: "/Hub")),
           (route) => false);
     }
-    }
-    void _scrollToTopOfCurrentQuestion() {
-      if (currentPage < _questionPageKeys.length) {
-        final GlobalKey<
-            _QuestionPageState> currentKey = _questionPageKeys[currentPage];
-        final _QuestionPageState? currentState = currentKey.currentState;
-        currentState?._scrollToTop();
-      }
-    }
+  }
 
-  @override
-  void dispose() {
-    controller.dispose();
-    timer.dispose();
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
+  void _scrollToTopOfCurrentQuestion() {
+    if (currentPage < _questionPageKeys.length) {
+      final GlobalKey<_QuestionPageState> currentKey =
+          _questionPageKeys[currentPage];
+      final _QuestionPageState? currentState = currentKey.currentState;
+      currentState?.scrollToTop();
+    }
   }
 
   @override
@@ -406,28 +399,19 @@ class QuestionPage extends StatefulWidget {
 class _QuestionPageState extends State<QuestionPage>
     with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
-  late PromptCubit promptCubit;
+  void scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
   late PromptModel promptModel;
   late DiarySessionCubit sessionCubit;
 
   bool disabled = false;
   PersistentBottomSheetController? _bottomSheetController;
-
-  void updateSliderValue(PromptModel prompt, double value) {
-    save(prompt, value.toString(), 'other', 0);
-    widget.answerAdded(true);
-  }
-
-  void _scrollToTop() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.minScrollExtent,
-        duration: const Duration(milliseconds: 800),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
   bool isClicked = false;
 
   @override
