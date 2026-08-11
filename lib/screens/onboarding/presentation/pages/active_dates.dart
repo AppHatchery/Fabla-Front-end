@@ -1,5 +1,8 @@
+import 'dart:async' show unawaited;
+
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/core/utils/quickstart_handler.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -76,10 +79,10 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
         scrolledUnderElevation: 0.0,
         leading: IconButton(
             onPressed: () => {
-              track(timer.stop(), "Back"),
-              RouteService()
-                  .navigateBack(context: context, current: 'active_dates')
-            },
+                  track(timer.stop(), "Back"),
+                  RouteService()
+                      .navigateBack(context: context, current: 'active_dates')
+                },
             icon: const Icon(
               Icons.arrow_back_rounded,
               color: CustomColors.fillWhite,
@@ -146,7 +149,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                             image: "",
                             avatarType: "animation",
                             animation:
-                            "assets/animations/onboarding/active_dates.riv",
+                                "assets/animations/onboarding/active_dates.riv",
                             scrollable: false,
                             stateMachineName: 'Animation_12',
                             foregroundHeight: 0.6,
@@ -214,6 +217,10 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
 
   void load() {
     setupCubit.load();
+    // Kick off the quickstart video fetch here, two screens before the user
+    // reaches the homepage, so the URLs are cached by the time the
+    // quickstart modal or Settings > Quickstart need them.
+    unawaited(QuickstartHandler().ensureVideosCached());
   }
 
   Widget description() {

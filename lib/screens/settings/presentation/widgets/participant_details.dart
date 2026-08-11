@@ -1,17 +1,17 @@
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
-import 'package:audio_diaries_flutter/screens/settings/cubit/settings_cubit.dart';
-import 'package:audio_diaries_flutter/screens/settings/presentation/settings_onboarding.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/cubit/settings_cubit.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/pages/settings_onboarding.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/utils/participant_experiment_details.dart';
-import '../../../theme/dialogs/pop_ups.dart';
-import '../../home/data/experiment.dart';
-import '../../onboarding/domain/entities/participant.dart';
+import '../../../../core/utils/participant_experiment_details.dart';
+import '../../../../theme/dialogs/pop_ups.dart';
+import '../../../home/data/experiment.dart';
+import '../../../onboarding/domain/entities/participant.dart';
 
 class ParticipantDetails extends StatefulWidget {
   const ParticipantDetails({super.key});

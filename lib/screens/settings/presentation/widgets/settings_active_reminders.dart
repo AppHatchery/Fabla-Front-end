@@ -1,13 +1,13 @@
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:flutter/material.dart';
 
-import '../../../services/pendo_service.dart';
-import '../../../services/preference_service.dart';
-import '../../../theme/components/buttons.dart';
-import '../../../theme/components/time_picker.dart';
-import '../../../theme/custom_colors.dart';
-import '../../../theme/custom_typography.dart';
-import '../../onboarding/presentation/widgets/active_time_tile.dart';
+import '../../../../services/pendo_service.dart';
+import '../../../../services/preference_service.dart';
+import '../../../../theme/components/buttons.dart';
+import '../../../../theme/components/time_picker.dart';
+import '../../../../theme/custom_colors.dart';
+import '../../../../theme/custom_typography.dart';
+import '../../../onboarding/presentation/widgets/active_time_tile.dart';
 
 class ActiveReminders extends StatefulWidget {
   final List<TimeOfDay> times;

@@ -9,8 +9,8 @@ import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/utils/participant_experiment_details.dart';
-import '../../hub/presentation/cubit/hub_cubit.dart';
+import '../../../../core/utils/participant_experiment_details.dart';
+import '../../../hub/presentation/cubit/hub_cubit.dart';
 
 class SettingsStudyDetails extends StatefulWidget {
   const SettingsStudyDetails({super.key});
