@@ -1,4 +1,4 @@
-name: Deploy Test Build
+name: Deploy Android Test Build to Firebase
 
 # Manual deployment of a debug APK to Firebase App Distribution.
 # Triggered from the GitHub Actions tab.
@@ -117,6 +117,11 @@ jobs:
             printf 'Commit: %s\n' "${GITHUB_SHA:0:7}"
             printf 'Build:  #%s\n' "$GITHUB_RUN_NUMBER"
           } > release_notes.txt
+
+      # Run tests to make sure everything works as expected.
+      - name: Run Tests
+        timeout-minutes: 10
+        run: flutter test test/ --reporter expanded
 
       - name: Build debug APK
         # versionCode is offset by the pubspec build number so distributed builds
