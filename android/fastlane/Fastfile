@@ -29,13 +29,13 @@ platform :android do
   desc "Deploy pre-built debug APK to Firebase App Distribution"
   lane :deploy_to_firebase do
     ensure_env_vars(
-      env_vars: ["FIREBASE_APP_ID_ANDROID", "FIREBASE_CLI_TOKEN"]
+      env_vars: ["FIREBASE_APP_ID_ANDROID", "GOOGLE_APPLICATION_CREDENTIALS"]
     )
 
     firebase_app_distribution(
       app: ENV["FIREBASE_APP_ID_ANDROID"].strip,
       groups: "testers",
-      firebase_cli_token: ENV["FIREBASE_CLI_TOKEN"].strip,
+      service_credentials_file: ENV["GOOGLE_APPLICATION_CREDENTIALS"].strip,
       android_artifact_path: DEBUG_APK,
       android_artifact_type: "APK",
       release_notes_file: RELEASE_NOTES_FILE
