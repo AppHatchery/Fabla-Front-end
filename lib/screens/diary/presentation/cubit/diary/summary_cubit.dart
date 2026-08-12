@@ -6,6 +6,7 @@ import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:location/location.dart' as l;
+import 'dart:async';
 import 'dart:developer' as dev;
 
 import '../../../data/diary.dart';
@@ -17,6 +18,13 @@ class SummaryCubit extends Cubit<SummaryState> {
   // Added constructor parameter for summary repository
   // Default value maintains backward compatibility
   final SummaryRepository _summaryRepository;
+  final Map<int, AnswerSubmissionStatus> _submissionStatuses = {};
+  final Map<int, Future<bool?>> _activeUploads = {};
+  final Map<int, int> _activeUploadGenerations = {};
+  final Map<int, int> _promptGenerations = {};
+  DiaryModel? _loadedDiary;
+  String? _submissionDiaryKey;
+  bool _lastUploadHadNoInternet = false;
 
   // Constructor with optional dependency injection
   // If not provided, uses default implementation for production use
@@ -37,13 +45,35 @@ class SummaryCubit extends Cubit<SummaryState> {
   /// Note:
   /// Any exceptions that occur during the loading process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
-  void loadSummary(DiaryModel diary) {
+  Future<void> loadSummary(DiaryModel diary,
+      {bool uploadAnswers = false,
+      Set<int> resetPromptIds = const <int>{}}) async {
     emit(const SummaryLoading());
     try {
-      // Updated to use injected repository instance
-      _summaryRepository.loadSummary(diary).then((value) {
-        emit(SummaryLoaded(value));
-      });
+      final value = await _summaryRepository.loadSummary(diary);
+      final diaryKey = '${diary.id}:${diary.currentEntry}';
+      if (_submissionDiaryKey != diaryKey) {
+        for (final promptId in _activeUploads.keys) {
+          _promptGenerations[promptId] =
+              (_promptGenerations[promptId] ?? 0) + 1;
+        }
+        _submissionStatuses.clear();
+        _submissionDiaryKey = diaryKey;
+      }
+      for (final promptId in resetPromptIds) {
+        _submissionStatuses.remove(promptId);
+        _promptGenerations[promptId] = (_promptGenerations[promptId] ?? 0) + 1;
+      }
+      _loadedDiary = value;
+
+      if (uploadAnswers) {
+        for (final prompt in value.prompts.where(_hasAnswer)) {
+          _submissionStatuses.putIfAbsent(
+              prompt.id, () => AnswerSubmissionStatus.pending);
+        }
+      }
+      _emitLoaded();
+      if (uploadAnswers) unawaited(uploadPendingAnswers());
     } catch (e, stackTrace) {
       CrashlyticsService().recordError(e, stackTrace,
           reason: 'Error loading summary in loadSummary - SummaryCubit');
@@ -65,7 +95,8 @@ class SummaryCubit extends Cubit<SummaryState> {
   /// Any exceptions that occur during the saving process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
   void saveResponse(
-      DiaryModel diary, PromptModel prompt, String path, String type) {
+      DiaryModel diary, PromptModel prompt, String path, String type,
+      {bool uploadAfterSave = false}) {
     try {
       // Updated to use injected repository instance
       _summaryRepository.saveResponse(prompt, path, type);
@@ -74,7 +105,8 @@ class SummaryCubit extends Cubit<SummaryState> {
           reason: 'Error saving response in saveResponse - SummaryCubit');
       dev.log("Error saving response: $e", name: "SummaryCubit - saveResponse");
     } finally {
-      loadSummary(diary);
+      loadSummary(diary,
+          uploadAnswers: uploadAfterSave, resetPromptIds: {prompt.id});
     }
   }
 
@@ -96,6 +128,7 @@ class SummaryCubit extends Cubit<SummaryState> {
       // Updated to use injected repository instance
       _summaryRepository.removeResponse(prompt, path).then((value) {
         if (value) {
+          _submissionStatuses.remove(prompt.id);
           loadSummary(diary);
         }
       });
@@ -130,11 +163,22 @@ class SummaryCubit extends Cubit<SummaryState> {
   //   }
   // }
 
-  void submitDiary(DiaryModel diary) async {
+  Future<void> submitDiary(DiaryModel diary,
+      {bool usePartialUploads = false}) async {
     try {
+      if (usePartialUploads) {
+        final allUploaded = await uploadPendingAnswers(retryFailed: true);
+        if (!allUploaded) {
+          emit(_lastUploadHadNoInternet
+              ? const SubmitNoInternet()
+              : const SubmitError());
+          return;
+        }
+      }
       emit(const SubmitLoading());
-      // Updated to use injected repository instance
-      final result = await _summaryRepository.submitDiary(diary);
+      final result = usePartialUploads
+          ? await _summaryRepository.submitPartiallyUploadedDiary(diary)
+          : await _summaryRepository.submitDiary(diary);
       if (result == null) {
         // Save network error state
         saveNetworkError();
@@ -156,6 +200,80 @@ class SummaryCubit extends Cubit<SummaryState> {
           reason: 'Error submitting diary in submitDiary - SummaryCubit');
       emit(const SubmitError());
     }
+  }
+
+  Future<bool> uploadPendingAnswers({bool retryFailed = false}) async {
+    final diary = _loadedDiary;
+    if (diary == null) return false;
+    _lastUploadHadNoInternet = false;
+
+    for (final prompt in diary.prompts.where(_hasAnswer)) {
+      final status = _submissionStatuses[prompt.id];
+      if (status == AnswerSubmissionStatus.successful) continue;
+      if (status == AnswerSubmissionStatus.failed && !retryFailed) continue;
+      final result = await _uploadPrompt(diary, prompt);
+      if (result == null) _lastUploadHadNoInternet = true;
+    }
+
+    return diary.prompts.where(_hasAnswer).every((prompt) =>
+        _submissionStatuses[prompt.id] == AnswerSubmissionStatus.successful);
+  }
+
+  Future<bool?> retryPrompt(int promptId) async {
+    final diary = _loadedDiary;
+    if (diary == null) return false;
+    final prompt =
+        diary.prompts.where((item) => item.id == promptId).firstOrNull;
+    if (prompt == null || !_hasAnswer(prompt)) return false;
+    return _uploadPrompt(diary, prompt);
+  }
+
+  Future<bool?> _uploadPrompt(DiaryModel diary, PromptModel prompt) async {
+    final generation = _promptGenerations[prompt.id] ?? 0;
+    final existing = _activeUploads[prompt.id];
+    if (existing != null && _activeUploadGenerations[prompt.id] == generation) {
+      return existing;
+    }
+
+    final future = _performPromptUpload(diary, prompt, generation);
+    _activeUploads[prompt.id] = future;
+    _activeUploadGenerations[prompt.id] = generation;
+    try {
+      return await future;
+    } finally {
+      if (identical(_activeUploads[prompt.id], future)) {
+        _activeUploads.remove(prompt.id);
+        _activeUploadGenerations.remove(prompt.id);
+      }
+    }
+  }
+
+  Future<bool?> _performPromptUpload(
+      DiaryModel diary, PromptModel prompt, int generation) async {
+    _submissionStatuses[prompt.id] = AnswerSubmissionStatus.uploading;
+    _emitLoaded();
+    final result = await _summaryRepository.submitPrompt(diary, prompt);
+    if ((_promptGenerations[prompt.id] ?? 0) != generation) return result;
+    _submissionStatuses[prompt.id] = result == true
+        ? AnswerSubmissionStatus.successful
+        : AnswerSubmissionStatus.failed;
+    _emitLoaded();
+    return result;
+  }
+
+  bool _hasAnswer(PromptModel prompt) {
+    final answer = prompt.answer;
+    return answer != null &&
+        ((answer.response?.isNotEmpty ?? false) ||
+            answer.recordings.isNotEmpty);
+  }
+
+  void _emitLoaded() {
+    final diary = _loadedDiary;
+    if (diary == null || isClosed) return;
+    emit(SummaryLoaded(diary,
+        submissionStatuses: Map<int, AnswerSubmissionStatus>.unmodifiable(
+            _submissionStatuses)));
   }
 
   Future<bool?> checkForLocationPermission() async {
@@ -190,6 +308,7 @@ class SummaryCubit extends Cubit<SummaryState> {
       await _summaryRepository.diaryRepository.updateDiary(newDiary);
     }
   }
+
   void saveNetworkError() async {
     final prefs = PreferenceService();
     await prefs.setBoolPreference(key: 'network_error', value: true);

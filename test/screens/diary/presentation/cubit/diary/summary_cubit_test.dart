@@ -316,6 +316,46 @@ void main() {
       );
     });
 
+    group('partial answer uploads', () {
+      test('marks an acknowledged answer as successful', () async {
+        final answeredPrompt = createTestPromptModel(answer: testAnswer);
+        final answeredDiary = createTestDiaryModel(prompts: [answeredPrompt]);
+        when(() => mockSummaryRepository.loadSummary(answeredDiary))
+            .thenAnswer((_) async => answeredDiary);
+        when(() => mockSummaryRepository.submitPrompt(
+            answeredDiary, answeredPrompt)).thenAnswer((_) async => true);
+
+        final cubit = SummaryCubit(summaryRepository: mockSummaryRepository);
+        await cubit.loadSummary(answeredDiary, uploadAnswers: true);
+        await cubit.uploadPendingAnswers();
+
+        final state = cubit.state as SummaryLoaded;
+        expect(state.submissionStatuses[answeredPrompt.id],
+            AnswerSubmissionStatus.successful);
+        verify(() => mockSummaryRepository.submitPrompt(
+            answeredDiary, answeredPrompt)).called(1);
+        await cubit.close();
+      });
+
+      test('marks a rejected answer as failed', () async {
+        final answeredPrompt = createTestPromptModel(answer: testAnswer);
+        final answeredDiary = createTestDiaryModel(prompts: [answeredPrompt]);
+        when(() => mockSummaryRepository.loadSummary(answeredDiary))
+            .thenAnswer((_) async => answeredDiary);
+        when(() => mockSummaryRepository.submitPrompt(
+            answeredDiary, answeredPrompt)).thenAnswer((_) async => false);
+
+        final cubit = SummaryCubit(summaryRepository: mockSummaryRepository);
+        await cubit.loadSummary(answeredDiary, uploadAnswers: true);
+        await cubit.uploadPendingAnswers();
+
+        final state = cubit.state as SummaryLoaded;
+        expect(state.submissionStatuses[answeredPrompt.id],
+            AnswerSubmissionStatus.failed);
+        await cubit.close();
+      });
+    });
+
     group('updateDiaryCompletion', () {
       late MockDiaryRepository mockDiaryRepository;
 
@@ -327,7 +367,8 @@ void main() {
             .thenAnswer((_) async {});
       });
 
-      test('saves diary with completions added and submissions preserved', () async {
+      test('saves diary with completions added and submissions preserved',
+          () async {
         final submissions = [DateTime(2024, 1, 1, 10)];
         final activeDays = [1, 2, 3];
         final diary = createTestDiaryModel(

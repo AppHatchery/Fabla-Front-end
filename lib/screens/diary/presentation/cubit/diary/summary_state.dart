@@ -7,6 +7,8 @@ sealed class SummaryState extends Equatable {
   List<Object> get props => [];
 }
 
+enum AnswerSubmissionStatus { pending, uploading, successful, failed }
+
 final class SummaryInitial extends SummaryState {
   const SummaryInitial();
 }
@@ -17,10 +19,12 @@ final class SummaryLoading extends SummaryState {
 
 final class SummaryLoaded extends SummaryState {
   final DiaryModel diary;
-  const SummaryLoaded(this.diary);
+  final Map<int, AnswerSubmissionStatus> submissionStatuses;
+  const SummaryLoaded(this.diary,
+      {this.submissionStatuses = const <int, AnswerSubmissionStatus>{}});
 
   @override
-  List<Object> get props => [diary];
+  List<Object> get props => [diary, submissionStatuses];
 }
 
 final class SummaryError extends SummaryState {

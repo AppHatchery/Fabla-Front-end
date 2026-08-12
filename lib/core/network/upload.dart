@@ -145,16 +145,100 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
   }
 }
 
+/// Uploads a single answered prompt. A successful result means both its media
+/// (when present) and its DynamoDB record were acknowledged.
+Future<bool> uploadPromptResponse(
+    String participantID, DiaryModel diary, PromptModel prompt) async {
+  try {
+    if (prompt.answer == null) return true;
+
+    final dir = await getApplicationDocumentsDirectory();
+    final setupRepository = SetupRepository();
+    final diaryRepository = DiaryRepository();
+    final experiment = setupRepository.getExperiment();
+    final study = await diaryRepository.getStudy(diary.studyID);
+    final promptEntries = <PromptEntry>[];
+    final files = <FileData>[];
+    final references = <PromptEntry>[];
+
+    if ((prompt.responseType == ResponseType.textAudio &&
+            (prompt.answer?.recordings.isNotEmpty ?? false)) ||
+        prompt.responseType == ResponseType.audio ||
+        prompt.responseType == ResponseType.image ||
+        prompt.responseType == ResponseType.video ||
+        prompt.responseType == ResponseType.imageVideo) {
+      _addFileData(experiment.login, prompt, participantID, diary, study, dir,
+          files, references);
+      if (prompt.responseType == ResponseType.textAudio &&
+          (prompt.answer?.response?.isNotEmpty ?? false)) {
+        _addPromptEntry(prompt, participantID, experiment.login, diary, study,
+            promptEntries);
+      }
+    } else {
+      _addPromptEntry(
+          prompt, participantID, experiment.login, diary, study, promptEntries);
+    }
+
+    promptEntries.addAll(references);
+    return await awsUploadResponses(promptEntries, files);
+  } catch (e, stackTrace) {
+    CrashlyticsService().recordError(e, stackTrace,
+        context: {
+          'DiaryID': diary.id.toString(),
+          'PromptID': prompt.id.toString(),
+          'CurrentEntry': diary.currentEntry.toString(),
+        },
+        reason: 'Failed to upload individual prompt response');
+    return false;
+  }
+}
+
+/// Uploads only entry-level metadata after all individual answers have been
+/// acknowledged. It deliberately excludes answer records and media files.
+Future<bool> uploadDiaryMetadata(String participantID, DiaryModel diary) async {
+  try {
+    final setupRepository = SetupRepository();
+    final diaryRepository = DiaryRepository();
+    final experiment = setupRepository.getExperiment();
+    final study = await diaryRepository.getStudy(diary.studyID);
+    final entries = <PromptEntry>[];
+
+    final location = await appendLocation(
+        experimentCode: experiment.login,
+        participantID: participantID,
+        promptLength: diary.prompts.length,
+        diary: diary,
+        study: study);
+    if (location != null) entries.add(location);
+
+    entries.addAll(await submitDiaryCompletionTime(
+        experimentCode: experiment.login,
+        participantID: participantID,
+        promptLength: diary.prompts.length,
+        diary: diary,
+        study: study));
+
+    return await awsUploadResponses(entries, const <FileData>[]);
+  } catch (e, stackTrace) {
+    CrashlyticsService().recordError(e, stackTrace,
+        context: {
+          'DiaryID': diary.id.toString(),
+          'CurrentEntry': diary.currentEntry.toString(),
+        },
+        reason: 'Failed to upload diary metadata');
+    return false;
+  }
+}
+
 void _addFileData(
-  String experimentCode,
-  PromptModel prompt,
-  String participantID,
-  DiaryModel diary,
-  StudyModel? study,
-  Directory dir,
-  List<FileData> files,
-  List<PromptEntry> references,
-) {
+    String experimentCode,
+    PromptModel prompt,
+    String participantID,
+    DiaryModel diary,
+    StudyModel? study,
+    Directory dir,
+    List<FileData> files,
+    List<PromptEntry> references) {
   final recordings = prompt.answer?.recordings;
   final data = <FileData>[];
 
@@ -304,7 +388,7 @@ Future<bool> uploadNonAudioData(
         });
       }
 
-      if (response.statusCode == 200) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         return true;
       } else {
         dev.log(
@@ -396,7 +480,7 @@ Future<String?> getPresignedUrl(
       body: requestBody,
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
       var responseBody = response.body;
       var jsonResponse = jsonDecode(responseBody);
       var body = jsonDecode(jsonResponse['body']);
@@ -448,7 +532,7 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
     final s3Client = http.Client();
     try {
       final response = await s3Client.send(request);
-      if (response.statusCode == 200) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         return true;
       } else {
         dev.log(
