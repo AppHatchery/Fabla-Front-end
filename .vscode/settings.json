@@ -1,13 +1,4 @@
 {
-  "terminal.integrated.env.windows": {
-    "JAVA_HOME": "D:\\Java\\jdk-17",
-    "GRADLE_USER_HOME": "D:\\gradle",
-    "ANDROID_HOME": "D:\\Android\\SDK",
-    "ANDROID_SDK_ROOT": "D:\\Android\\SDK",
-    "PUB_CACHE": "D:\\pub-cache",
-    "TEMP": "D:\\Temp",
-    "TMP": "D:\\Temp"
-  },
   "files.exclude": {
     "amplify/.config": true,
     "amplify/**/*-parameters.json": true,
