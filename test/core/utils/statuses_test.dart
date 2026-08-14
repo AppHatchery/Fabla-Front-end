@@ -112,4 +112,48 @@ void main() {
       status = TimerStatus.idle;
     });
   });
+
+  group('AudioStatus Tests', () {
+    // AudioStatus drives what a recording card shows when the audio behind it
+    // cannot be played. Each failure value maps to distinct participant-facing
+    // copy, so the set is asserted exactly.
+    test('AudioStatus enum should have all expected values', () {
+      expect(AudioStatus.values.length, equals(5));
+      expect(AudioStatus.values, contains(AudioStatus.loading));
+      expect(AudioStatus.values, contains(AudioStatus.available));
+      expect(AudioStatus.values, contains(AudioStatus.fileNotFound));
+      expect(AudioStatus.values, contains(AudioStatus.noAudioLength));
+      expect(AudioStatus.values, contains(AudioStatus.canNotPlay));
+    });
+
+    test('available is the only playable state', () {
+      final playable = AudioStatus.values
+          .where((status) => status == AudioStatus.available)
+          .toList();
+
+      expect(playable, equals([AudioStatus.available]));
+    });
+
+    test('failure states are distinct from loading and available', () {
+      const failures = [
+        AudioStatus.fileNotFound,
+        AudioStatus.noAudioLength,
+        AudioStatus.canNotPlay,
+      ];
+
+      expect(failures, isNot(contains(AudioStatus.loading)));
+      expect(failures, isNot(contains(AudioStatus.available)));
+      expect(failures.toSet().length, equals(3));
+    });
+
+    test('names are stable — they are sent to Crashlytics as custom keys', () {
+      // AudioPlaybackMixin._fail reports `audio_status: status.name`, so
+      // renaming a value silently breaks issue grouping in Crashlytics.
+      expect(AudioStatus.loading.name, equals('loading'));
+      expect(AudioStatus.available.name, equals('available'));
+      expect(AudioStatus.fileNotFound.name, equals('fileNotFound'));
+      expect(AudioStatus.noAudioLength.name, equals('noAudioLength'));
+      expect(AudioStatus.canNotPlay.name, equals('canNotPlay'));
+    });
+  });
 }

@@ -31,6 +31,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../core/usecases/webview_survey_detector.dart';
 import '../../core/utils/formatter.dart';
+import '../../services/crashlytics_service.dart';
 import '../components/buttons.dart';
 import '../custom_icons.dart';
 import '../custom_typography.dart';
@@ -83,16 +84,26 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
-      setState(() {
-        if (recorder.isRecording) {
-          recorderState = RecorderState.isPaused;
-          WakelockPlus.disable();
-          recorder.pauseRecorder();
-          _timer?.cancel();
-        }
-      });
+      _handleAppPaused();
+    } else if (state == AppLifecycleState.resumed) {
+      _restoreAudioSession();
     }
     super.didChangeAppLifecycleState(state);
+  }
+
+  Future<void> _handleAppPaused() async {
+    if (!recorder.isRecording) return;
+
+    WakelockPlus.disable();
+    _timer?.cancel();
+    if (mounted) setState(() => recorderState = RecorderState.isPaused);
+
+    try {
+      await recorder.pauseRecorder();
+    } catch (e, s) {
+      CrashlyticsService()
+          .recordError(e, s, reason: 'pauseRecorder on app pause failed');
+    }
   }
 
   @override
@@ -133,6 +144,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     _riveController?.dispose();
     _riveFile?.dispose();
     scrollController.dispose();
+    _timer?.cancel();
+    _erase.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -499,8 +512,19 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     );
   }
 
-  void recorderInit() async {
-    await recorder.openRecorder();
+  Future<void> recorderInit() async {
+    try {
+      await recorder.openRecorder();
+      await _configureAudioSession();
+      await recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
+    } catch (e, s) {
+      CrashlyticsService().recordError(e, s, reason: 'recorderInit failed');
+    }
+  }
+
+  /// Applies the recording configuration and returns the shared session so
+  /// callers can activate it when needed.
+  Future<AudioSession> _configureAudioSession() async {
     final session = await AudioSession.instance;
     await session.configure(AudioSessionConfiguration(
       avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
@@ -519,8 +543,25 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
       androidWillPauseWhenDucked: true,
     ));
+    return session;
+  }
 
-    await recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
+  /// Restores the audio session after the app returns to the foreground.
+  ///
+  /// iOS deactivates the app's AVAudioSession when it is interrupted or
+  /// backgrounded, and flutter_sound does not restore it. Without this, the
+  /// next `startRecorder()` succeeds at the Dart level while AVAudioRecorder
+  /// captures nothing — the file is never written, but `stopRecorder()` still
+  /// returns its intended path, which is how empty recordings reach the
+  /// database.
+  Future<void> _restoreAudioSession() async {
+    try {
+      final session = await _configureAudioSession();
+      await session.setActive(true);
+    } catch (e, s) {
+      CrashlyticsService()
+          .recordError(e, s, reason: 'Audio session restore failed');
+    }
   }
 
   void startTimer() {
@@ -546,9 +587,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Future<void> stop() async {
     tempUrl = await recorder.stopRecorder();
     _timer?.cancel();
-    setState(() {
-      recorderState = RecorderState.isStopped;
-    });
+    if (!mounted) return;
+    setState(() => recorderState = RecorderState.isStopped);
   }
 
   Future<void> redo() async {
@@ -578,6 +618,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               dev.log("Error deleting file: $e");
             }
           }
+          //Clear the reference either way so a later save() cannot persist a path that no longer exists.
+          tempUrl = null;
         }
 
         if (!mounted) return;
@@ -641,8 +683,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
               : RecorderState.isPaused;
         });
       }
-    } on Exception catch (e) {
+    } catch (e, s) {
       debugPrint('record() failed: $e');
+      CrashlyticsService().recordError(e, s, reason: 'record() failed');
 
       //reset state to stopped state
       if (mounted) setState(() => recorderState = RecorderState.isStopped);
@@ -652,20 +695,46 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     }
   }
 
-  void save() async {
+  /// Persists the recording, but only once the recorder has actually produced
+  /// a file on disk.
+  ///
+  /// flutter_sound creates the file lazily on the first audio write, so an
+  /// inactive audio session leaves a valid-looking [tempUrl] pointing at
+  /// nothing. Saving that path would create a database row for audio that does
+  /// not exist, which then fails silently on both playback and S3 upload while
+  /// the submission still reaches DynamoDB. On failure the modal stays open and
+  /// resets silently so the participant can record again.
+  Future<void> save() async {
     WakelockPlus.disable();
     try {
       _timer?.cancel();
       if (mounted) setState(() => recorderState = RecorderState.isStopped);
 
-      if (tempUrl != null) {
-        final file = File(tempUrl!);
-        final name = basePath(file.path);
-        widget.onSave?.call(name);
-        if (mounted) Navigator.pop(context);
+      final url = tempUrl;
+      if (url == null) return;
+
+      final file = File(url);
+      if (!await file.exists() || await file.length() == 0) {
+        tempUrl = null;
+        await CrashlyticsService().recordError(
+          FileSystemException('Recorder produced no audio file', url),
+          StackTrace.current,
+          reason: 'save() aborted - empty recording',
+          context: {'prompt_id': widget.promptId},
+        );
+
+        if (!mounted) return;
+        setState(() {
+          elapsed = const Duration();
+          timer = "00:00";
+          _erase.value = !_erase.value;
+        });
+        return;
       }
-    } catch (e) {
-      // TODO: Show Error
+      widget.onSave?.call(basePath(file.path));
+      if (mounted) Navigator.pop(context);
+    } catch (e, s) {
+      CrashlyticsService().recordError(e, s, reason: 'save() failed');
     }
   }
 
