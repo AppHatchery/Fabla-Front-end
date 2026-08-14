@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 // Unit tests for the recorder guard pattern used by
 // `_BottomRecordingModalState.record()` in lib/theme/dialogs/bottom_modals.dart.
@@ -17,8 +19,14 @@ import 'package:flutter_test/flutter_test.dart';
 // not a unit test, and trips a SIGABRT in flutter_tester because Rive's
 // native binary is loaded via FFI when `_loadRive()` fires.
 //
-// Given the "no widget test, no impl change" constraint, this file
-// contains two kinds of unit tests:
+// Given the "no widget test, no impl change" constraint, this file mirrors
+// each pattern under test with a stand-in harness. Groups 4 and 5 cover the
+// data-loss fix: recordings were reaching the database for files that were
+// never written to disk (Crashlytics issue ea6670918b178545b203745b920fee57),
+// which then failed forever on playback and on S3 upload while the submission
+// still committed to DynamoDB.
+//
+// The unit tests are:
 //
 //   1. FLUTTER_SOUND CONTRACT TESTS
 //      Prove the underlying bug premise: calling `startRecorder` while
@@ -38,7 +46,22 @@ import 'package:flutter_test/flutter_test.dart';
 //      If `record()` strays from this pattern (e.g. the `finally` block
 //      gets removed), the equivalent behavior would no longer hold.
 //
+//   3. basePath CONTRACT TESTS
+//      The relative path stored on the Recording row must survive a
+//      reinstall, so only the last two segments are kept.
+//
+//   4. SAVE GATE TESTS (`_SaveHarness`)
+//      A recording is only persisted once the file is confirmed present and
+//      non-empty. This is what stops a database row being created for audio
+//      that does not exist.
+//
+//   5. REDO TESTS
+//      redo() deletes the take on disk and drops the reference, so a later
+//      save cannot resurrect the deleted path.
+//
 // What these tests DO NOT cover (would require DI or widget mount):
+//   - `_restoreAudioSession()` on AppLifecycleState.resumed — it calls into
+//     AudioSession.instance, which has no test seam here.
 //   - The actual sequencing of `recorder.startRecorder/pauseRecorder/...`
 //     inside `record()`.
 //   - The interaction with `WakelockPlus`, `AudioSession`, the timer,
@@ -138,7 +161,7 @@ void main() {
   //   _recordingCheck = true;
   //   try {
   //     await body();
-  //   } on Exception catch (_) {
+  //   } catch (e, s) {
   //     onError();
   //   } finally {
   //     _recordingCheck = false;
@@ -261,24 +284,210 @@ void main() {
           reason: 'finally runs on all exit paths, including early return');
     });
 
-    test('Error subtypes (not Exception) are NOT caught by `on Exception`',
+    test('Error subtypes are caught — the catch is deliberately unnarrowed',
         () async {
-      // The implementation uses `on Exception` — narrower than `catch (_)`.
-      // StateError extends Error, not Exception, so it must propagate.
-      // This pins the type narrowness intentionally.
-      await expectLater(
-        () => harness.run(() async {
-          throw StateError('not an Exception');
-        }),
-        throwsA(isA<StateError>()),
-      );
-      // Even when the body throws an Error, the guard must still release
-      // via finally.
+      // `record()` used `on Exception`, which let FlutterError, TypeError and
+      // LateInitializationError escape as uncaught async errors — they reached
+      // PlatformDispatcher.onError and were reported as fatal crashes.
+      //
+      // It now uses `catch (e, s)` so those are caught and reported as
+      // non-fatals instead. StateError extends Error, not Exception, so it
+      // pins the widening.
+      await harness.run(() async {
+        throw StateError('an Error, not an Exception');
+      });
+
+      expect(harness.errorInvocations, 1,
+          reason: 'Error subtypes must reach the catch and be reported');
       expect(harness.guardHeld, isFalse,
-          reason: 'finally runs even when the catch did not match');
+          reason: 'finally runs on every exit path');
+    });
+  });
+
+  // -------------------------------------------------------------------
+  // 3. basePath — the relative path stored on the Recording row
+  // -------------------------------------------------------------------
+  //
+  // `save()` persists `basePath(file.path)`, not the absolute path. Keeping
+  // only the last two segments makes the reference survive reinstalls,
+  // because the iOS container UUID in the absolute path changes.
+  //
+  // Mirrored below rather than imported, for the same reason the rest of this
+  // file avoids importing bottom_modals.dart.
+  // -------------------------------------------------------------------
+  group('basePath contract', () {
+    test('keeps the final directory and filename', () {
+      expect(
+        _basePath('/var/mobile/Containers/Data/Application/B2AD9040/Documents/'
+            'audios/audio_prompt_120_2026-07-21-20-55-36.aac'),
+        'audios/audio_prompt_120_2026-07-21-20-55-36.aac',
+      );
+    });
+
+    test('drops the container UUID that changes between installs', () {
+      const first = '/var/mobile/Containers/Data/Application/AAAA-1111/'
+          'Documents/audios/clip.aac';
+      const second = '/var/mobile/Containers/Data/Application/BBBB-2222/'
+          'Documents/audios/clip.aac';
+
+      expect(_basePath(first), _basePath(second));
+    });
+
+    test('handles a two segment path', () {
+      expect(_basePath('audios/clip.aac'), 'audios/clip.aac');
+    });
+  });
+
+  // -------------------------------------------------------------------
+  // 4. save() validation gate
+  // -------------------------------------------------------------------
+  //
+  // `save()` used to persist `tempUrl` unconditionally. flutter_sound creates
+  // the file lazily on first audio write, so an inactive audio session left a
+  // valid-looking path pointing at nothing — the row reached the database and
+  // then failed forever on playback and on S3 upload, while the submission
+  // still committed to DynamoDB.
+  //
+  // `_SaveHarness` mirrors the gate now in `save()`. If the implementation
+  // changes, mirror it here AND update these tests.
+  // -------------------------------------------------------------------
+  group('save() validation gate', () {
+    late Directory audiosDir;
+    late _SaveHarness harness;
+
+    setUp(() {
+      // Mirrors <documents>/audios/, so basePath yields "audios/<file>".
+      audiosDir = Directory(
+        p.join(Directory.systemTemp.createTempSync('save_gate').path, 'audios'),
+      )..createSync(recursive: true);
+
+      harness = _SaveHarness();
+    });
+
+    tearDown(() {
+      final root = audiosDir.parent;
+      if (root.existsSync()) root.deleteSync(recursive: true);
+    });
+
+    String pathFor(String name) => p.join(audiosDir.path, name);
+
+    test('persists a recording that exists and has content', () async {
+      final file = File(pathFor('clip.aac'))..writeAsBytesSync([1, 2, 3, 4]);
+
+      await harness.save(file.path);
+
+      expect(harness.savedName, 'audios/clip.aac');
+      expect(harness.popped, isTrue);
+    });
+
+    test('does not persist when the file was never written', () async {
+      // The production case: startRecorder captured nothing so the file was
+      // never created, but stopRecorder still returned its intended path.
+      await harness.save(pathFor('never_written.aac'));
+
+      expect(harness.savedName, isNull,
+          reason: 'a database row must not be created for a missing file');
+      expect(harness.popped, isFalse,
+          reason: 'the modal stays open so the participant can retry');
+    });
+
+    test('does not persist a zero byte file', () async {
+      final file = File(pathFor('empty.aac'))..createSync();
+
+      await harness.save(file.path);
+
+      expect(file.lengthSync(), 0);
+      expect(harness.savedName, isNull);
+      expect(harness.popped, isFalse);
+    });
+
+    test('clears tempUrl on failure so a retry cannot reuse the bad path',
+        () async {
+      await harness.save(pathFor('missing.aac'));
+
+      expect(harness.tempUrl, isNull);
+    });
+
+    test('does nothing when there is no recording to save', () async {
+      await harness.save(null);
+
+      expect(harness.savedName, isNull);
+      expect(harness.popped, isFalse);
+    });
+  });
+
+  // -------------------------------------------------------------------
+  // 5. redo() must clear tempUrl
+  // -------------------------------------------------------------------
+  //
+  // redo() deletes the file at tempUrl but used to leave the field set. The
+  // sequence record -> stop -> redo -> record -> tap save then persisted the
+  // path redo had just deleted.
+  // -------------------------------------------------------------------
+  group('redo() discards the previous take', () {
+    late Directory audiosDir;
+
+    setUp(() {
+      audiosDir = Directory(
+        p.join(Directory.systemTemp.createTempSync('redo').path, 'audios'),
+      )..createSync(recursive: true);
+    });
+
+    tearDown(() {
+      final root = audiosDir.parent;
+      if (root.existsSync()) root.deleteSync(recursive: true);
+    });
+
+    /// redo(): delete the take on disk, then drop the reference to it.
+    Future<String?> redo(String? tempUrl) async {
+      if (tempUrl != null) {
+        final file = File(tempUrl);
+        if (await file.exists()) await file.delete();
+      }
+      return null;
+    }
+
+    test('clearing tempUrl leaves nothing for a later save to persist',
+        () async {
+      final first = File(p.join(audiosDir.path, 'first.aac'))
+        ..writeAsBytesSync([1, 2, 3]);
+
+      final harness = _SaveHarness();
+      final afterRedo = await redo(first.path);
+
+      expect(afterRedo, isNull, reason: 'redo must drop the reference');
+      expect(first.existsSync(), isFalse, reason: 'redo deletes the take');
+
+      await harness.save(afterRedo);
+
+      expect(harness.savedName, isNull);
+      expect(harness.popped, isFalse);
+    });
+
+    test('the existence check still backstops a stale tempUrl', () async {
+      // Defence in depth: even if a stale reference survived redo, the gate
+      // in save() must refuse it.
+      final first = File(p.join(audiosDir.path, 'first.aac'))
+        ..writeAsBytesSync([1, 2, 3]);
+      final stalePath = first.path;
+
+      await first.delete();
+
+      final harness = _SaveHarness();
+      await harness.save(stalePath);
+
+      expect(harness.savedName, isNull);
+      expect(harness.tempUrl, isNull);
     });
   });
 }
+
+/// Mirror of `basePath` in bottom_modals.dart — the last two path segments.
+String _basePath(String path) {
+  final parts = p.split(path);
+  return parts.sublist(parts.length - 2).join(p.separator);
+}
+
 
 /// Mirror of the `_recordingCheck + try/catch/finally` pattern used by
 /// `_BottomRecordingModalState.record()`. Tests use this to exercise the
@@ -299,10 +508,48 @@ class _GuardHarness {
     try {
       bodyInvocations++;
       await body();
-    } on Exception {
+    } catch (_) {
+      // Deliberately unnarrowed: `record()` catches Error subtypes too, so
+      // FlutterError/TypeError are reported rather than escaping to
+      // PlatformDispatcher.onError as fatal crashes.
       errorInvocations++;
     } finally {
       _recordingCheck = false;
     }
+  }
+}
+
+/// Mirror of the validation gate in `_BottomRecordingModalState.save()`:
+///
+///   final url = tempUrl;
+///   if (url == null) return;
+///   final file = File(url);
+///   if (!await file.exists() || await file.length() == 0) {
+///     tempUrl = null;
+///     ...report, reset...
+///     return;
+///   }
+///   widget.onSave?.call(basePath(file.path));
+///   if (mounted) Navigator.pop(context);
+///
+/// If you change the gate in `save()`, mirror the change here AND update the
+/// tests — otherwise the spec drifts away from the impl.
+class _SaveHarness {
+  String? tempUrl;
+  String? savedName;
+  bool popped = false;
+
+  Future<void> save(String? url) async {
+    tempUrl = url;
+    if (url == null) return;
+
+    final file = File(url);
+    if (!await file.exists() || await file.length() == 0) {
+      tempUrl = null;
+      return;
+    }
+
+    savedName = _basePath(file.path);
+    popped = true;
   }
 }

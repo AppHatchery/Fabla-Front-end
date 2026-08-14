@@ -29,3 +29,11 @@ enum UpdateState {
 }
 
 enum UpdateStatus { none, available, pending }
+
+enum AudioStatus {
+  loading,
+  available,
+  fileNotFound,
+  noAudioLength,
+  canNotPlay
+}
