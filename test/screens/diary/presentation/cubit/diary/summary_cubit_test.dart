@@ -417,8 +417,13 @@ void main() {
               .thenAnswer((_) async {});
         },
         build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
-        act: (cubit) => cubit.submitDiary(testDiary, usePartialUploads: true),
+        act: (cubit) async {
+          await cubit.loadSummary(testDiary);
+          await cubit.submitDiary(testDiary, usePartialUploads: true);
+        },
         expect: () => [
+          const SummaryLoading(),
+          isA<SummaryLoaded>(),
           const SubmitLoading(),
           const SummarySubmitted(),
         ],
@@ -435,8 +440,13 @@ void main() {
               .thenAnswer((_) async => false);
         },
         build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
-        act: (cubit) => cubit.submitDiary(testDiary, usePartialUploads: true),
+        act: (cubit) async {
+          await cubit.loadSummary(testDiary);
+          await cubit.submitDiary(testDiary, usePartialUploads: true);
+        },
         expect: () => [
+          const SummaryLoading(),
+          isA<SummaryLoaded>(),
           const SubmitLoading(),
           const SubmitError(),
         ],
@@ -509,7 +519,7 @@ void main() {
 
         // 2. User edits (resets prompt 42)
         await cubit.loadSummary(answeredDiary,
-            uploadAnswers: true, resetPromptIds: {42});
+            uploadAnswers: false, resetPromptIds: {42});
 
         state = cubit.state as SummaryLoaded;
         // Status should be pending initially after reset
