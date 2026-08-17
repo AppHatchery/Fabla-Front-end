@@ -448,6 +448,7 @@ mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
         AudioStatus.fileNotFound,
         FileSystemException('Recording file not found', path),
       );
+      onAudioStatusResolved(AudioStatus.fileNotFound, duringLoad: true);
       return;
     }
 
@@ -456,6 +457,7 @@ mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
         AudioStatus.noAudioLength,
         FileSystemException('Recording file is empty', path),
       );
+      onAudioStatusResolved(AudioStatus.noAudioLength, duringLoad: true);
       return;
     }
 
@@ -472,6 +474,7 @@ mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
           AudioStatus.noAudioLength,
           FileSystemException('Recording has no playable duration', path),
         );
+        onAudioStatusResolved(AudioStatus.noAudioLength, duringLoad: true);
         return;
       }
 
@@ -497,11 +500,22 @@ mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
         maxSliderPosition = duration.inMilliseconds.toDouble();
         audioStatus = AudioStatus.available;
       });
+
+      onAudioStatusResolved(AudioStatus.available, duringLoad: true);
     } catch (e, s) {
       await player.dispose();
       _fail(AudioStatus.canNotPlay, e, s);
     }
   }
+
+  /// Called once the card settles on a terminal status, so a parent can react
+  /// to a recording that turned out to be unplayable.
+  ///
+  /// [duringLoad] separates "this file could not be loaded" from "playback of
+  /// an already-loaded file failed". The second can be transient — an
+  /// interrupted session, a route change — so a caller that discards broken
+  /// recordings must not act on it.
+  void onAudioStatusResolved(AudioStatus status, {required bool duringLoad}) {}
 
   void disposeAudio() => audioPlayer?.dispose();
 
@@ -532,6 +546,7 @@ mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
       audioPlayer = null;
       await player.dispose();
       _fail(AudioStatus.canNotPlay, e, s);
+      onAudioStatusResolved(AudioStatus.canNotPlay, duringLoad: false);
     }
   }
 
@@ -680,7 +695,6 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
             ),
           ],
         ),
-
         Visibility(
           visible: widget.isExpanded,
           child: Row(
