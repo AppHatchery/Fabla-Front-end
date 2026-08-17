@@ -735,6 +735,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       if (mounted) Navigator.pop(context);
     } catch (e, s) {
       CrashlyticsService().recordError(e, s, reason: 'save() failed');
+      PendoService.track("Failed to Save Audio", {
+        "study_date": "${DateTime.now()}",
+        "prompt_number": "${widget.promptId + 1}"
+      });
     }
   }
 
