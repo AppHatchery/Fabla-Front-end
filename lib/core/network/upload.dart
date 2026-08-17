@@ -193,8 +193,8 @@ Future<bool> uploadPromptResponse(
   }
 }
 
-/// Uploads only entry-level metadata after all individual answers have been
-/// acknowledged. It deliberately excludes answer records and media files.
+/// Uploads only entry-level metadata after all individual answers have been acknowledged.
+
 Future<bool> uploadDiaryMetadata(String participantID, DiaryModel diary) async {
   try {
     final setupRepository = SetupRepository();
@@ -388,7 +388,7 @@ Future<bool> uploadNonAudioData(
         });
       }
 
-      if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (response.statusCode == 200) {
         return true;
       } else {
         dev.log(
@@ -480,7 +480,7 @@ Future<String?> getPresignedUrl(
       body: requestBody,
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
+    if (response.statusCode == 200) {
       var responseBody = response.body;
       var jsonResponse = jsonDecode(responseBody);
       var body = jsonDecode(jsonResponse['body']);
@@ -532,7 +532,7 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
     final s3Client = http.Client();
     try {
       final response = await s3Client.send(request);
-      if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (response.statusCode == 200) {
         return true;
       } else {
         dev.log(

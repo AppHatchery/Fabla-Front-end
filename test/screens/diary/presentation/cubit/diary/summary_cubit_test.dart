@@ -407,6 +407,121 @@ void main() {
       });
     });
 
+    group('Metadata and Partial Uploads', () {
+      blocTest<SummaryCubit, SummaryState>(
+        'emits [SubmitLoading, SummarySubmitted] when metadata submission succeeds',
+        setUp: () {
+          when(() => mockSummaryRepository.submitPartiallyUploadedDiary(any()))
+              .thenAnswer((_) async => true);
+          when(() => mockSummaryRepository.calculateEarnedIncentives(any()))
+              .thenAnswer((_) async {});
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) => cubit.submitDiary(testDiary, usePartialUploads: true),
+        expect: () => [
+          const SubmitLoading(),
+          const SummarySubmitted(),
+        ],
+        verify: (cubit) {
+          verify(() => mockSummaryRepository.submitPartiallyUploadedDiary(testDiary))
+              .called(1);
+        },
+      );
+
+      blocTest<SummaryCubit, SummaryState>(
+        'emits [SubmitLoading, SubmitError] when metadata submission fails',
+        setUp: () {
+          when(() => mockSummaryRepository.submitPartiallyUploadedDiary(any()))
+              .thenAnswer((_) async => false);
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) => cubit.submitDiary(testDiary, usePartialUploads: true),
+        expect: () => [
+          const SubmitLoading(),
+          const SubmitError(),
+        ],
+      );
+    });
+
+    group('No Internet Handling', () {
+      blocTest<SummaryCubit, SummaryState>(
+        'emits SubmitNoInternet when submitDiary returns null',
+        setUp: () {
+          when(() => mockSummaryRepository.submitDiary(any()))
+              .thenAnswer((_) async => null);
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) => cubit.submitDiary(testDiary),
+        expect: () => [
+          const SubmitNoInternet(),
+        ],
+      );
+
+      blocTest<SummaryCubit, SummaryState>(
+        'emits SubmitNoInternet during partial upload when connectivity is lost',
+        setUp: () {
+          final answeredPrompt = createTestPromptModel(answer: testAnswer);
+          final answeredDiary = createTestDiaryModel(prompts: [answeredPrompt]);
+
+          when(() => mockSummaryRepository.loadSummary(any()))
+              .thenAnswer((_) async => answeredDiary);
+          // Mock prompt upload failure due to no internet
+          when(() => mockSummaryRepository.submitPrompt(any(), any()))
+              .thenAnswer((_) async => null);
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) async {
+          await cubit.loadSummary(testDiary, uploadAnswers: true);
+          await cubit.submitDiary(testDiary, usePartialUploads: true);
+        },
+        expect: () => [
+          const SummaryLoading(),
+          isA<SummaryLoaded>(),
+          const SubmitNoInternet(),
+        ],
+      );
+    });
+
+    group('Editing Scenarios', () {
+      test('loadSummary with resetPromptIds clears status and re-triggers upload',
+          () async {
+        final answeredPrompt = createTestPromptModel(id: 42, answer: testAnswer);
+        final answeredDiary = createTestDiaryModel(prompts: [answeredPrompt]);
+
+        when(() => mockSummaryRepository.loadSummary(any()))
+            .thenAnswer((_) async => answeredDiary);
+        when(() => mockSummaryRepository.submitPrompt(any(), any()))
+            .thenAnswer((_) async => true);
+
+        final cubit = SummaryCubit(summaryRepository: mockSummaryRepository);
+
+        // 1. Initial load and upload
+        await cubit.loadSummary(answeredDiary, uploadAnswers: true);
+        await cubit.uploadPendingAnswers();
+
+        var state = cubit.state as SummaryLoaded;
+        expect(state.submissionStatuses[42], AnswerSubmissionStatus.successful);
+
+        // 2. User edits (resets prompt 42)
+        await cubit.loadSummary(answeredDiary,
+            uploadAnswers: true, resetPromptIds: {42});
+
+        state = cubit.state as SummaryLoaded;
+        // Status should be pending initially after reset
+        expect(state.submissionStatuses[42], AnswerSubmissionStatus.pending);
+
+        // 3. Verify it re-uploads
+        await cubit.uploadPendingAnswers();
+        state = cubit.state as SummaryLoaded;
+        expect(state.submissionStatuses[42], AnswerSubmissionStatus.successful);
+
+        // Verify submitPrompt was called twice (once for initial, once for reset)
+        verify(() => mockSummaryRepository.submitPrompt(any(), any())).called(2);
+        
+        await cubit.close();
+      });
+    });
+
     group('checkForLocationPermission', () {
       test('returns null when location is not an extra permission', () async {
         SharedPreferences.setMockInitialValues({

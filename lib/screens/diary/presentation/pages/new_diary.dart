@@ -7,7 +7,6 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/audio_q
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
-// import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/types.dart';
@@ -21,8 +20,10 @@ import '../../../../theme/dialogs/bottom_modals.dart';
 import '../../data/diary.dart';
 import '../../data/prompt.dart';
 import '../../domain/repository/diary_repository.dart';
+import '../cubit/diary/summary_cubit.dart';
 import '../cubit/prompt/prompt_cubit.dart';
 import 'diarysummary.dart';
+import 'dart:developer' as dev;
 
 /// This class holds and manages all the pages in the page view
 /// It has all the UI elements of the New Daily Diary flow
@@ -89,6 +90,19 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   void nextPage() {
     for (var function in preFunctions) {
       function();
+    }
+
+    // Trigger background upload for the question just answered
+    if (currentPage < widget.diary.prompts.length) {
+      final prompt = widget.diary.prompts[currentPage];
+      dev.log("Triggering background upload for prompt ID: ${prompt.id} on nextPage",
+          name: "NewDiaryPage - nextPage");
+      BlocProvider.of<SummaryCubit>(context).loadSummary(
+        widget.diary,
+        uploadAnswers: true,
+        silent: true,
+        resetPromptIds: {prompt.id},
+      );
     }
 
     if (currentPage < widget.diary.prompts.length - 1) {
@@ -866,6 +880,7 @@ class _QuestionPageState extends State<QuestionPage>
         response: response,
         type: type,
         index: index);
+
     cancelContinueNotifications(widget.diary.id);
     if (!isClicked && mounted) {
       setState(() {

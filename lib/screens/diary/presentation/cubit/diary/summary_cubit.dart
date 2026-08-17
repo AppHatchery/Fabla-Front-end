@@ -47,8 +47,9 @@ class SummaryCubit extends Cubit<SummaryState> {
   ///
   Future<void> loadSummary(DiaryModel diary,
       {bool uploadAnswers = false,
+      bool silent = false,
       Set<int> resetPromptIds = const <int>{}}) async {
-    emit(const SummaryLoading());
+    if (!silent) emit(const SummaryLoading());
     try {
       final value = await _summaryRepository.loadSummary(diary);
       final diaryKey = '${diary.id}:${diary.currentEntry}';
@@ -207,12 +208,29 @@ class SummaryCubit extends Cubit<SummaryState> {
     if (diary == null) return false;
     _lastUploadHadNoInternet = false;
 
+    dev.log("Checking for pending answers to upload for diary: ${diary.name}",
+        name: "SummaryCubit - uploadPendingAnswers");
+
     for (final prompt in diary.prompts.where(_hasAnswer)) {
       final status = _submissionStatuses[prompt.id];
       if (status == AnswerSubmissionStatus.successful) continue;
       if (status == AnswerSubmissionStatus.failed && !retryFailed) continue;
+
+      dev.log("Starting upload for prompt ID: ${prompt.id}",
+          name: "SummaryCubit - uploadPendingAnswers");
+
       final result = await _uploadPrompt(diary, prompt);
-      if (result == null) _lastUploadHadNoInternet = true;
+      if (result == null) {
+        _lastUploadHadNoInternet = true;
+        dev.log("Upload failed (No Internet) for prompt ID: ${prompt.id}",
+            name: "SummaryCubit - uploadPendingAnswers");
+      } else if (result == true) {
+        dev.log("Upload successful for prompt ID: ${prompt.id}",
+            name: "SummaryCubit - uploadPendingAnswers");
+      } else {
+        dev.log("Upload failed for prompt ID: ${prompt.id}",
+            name: "SummaryCubit - uploadPendingAnswers");
+      }
     }
 
     return diary.prompts.where(_hasAnswer).every((prompt) =>

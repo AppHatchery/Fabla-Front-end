@@ -308,12 +308,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     ),
                   ),
 
-                  if (submissionStatus != null) ...[
-                    const SizedBox(width: 8),
-                    _submissionIndicator(prompt.id, submissionStatus),
-                    const SizedBox(width: 8),
-                  ],
-
                   // Edit Button
                   isEditable(prompt)
                       ? GestureDetector(
@@ -351,48 +345,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         // const SizedBox(height: 24),
       ],
     );
-  }
-
-  Widget _submissionIndicator(
-      int promptId, AnswerSubmissionStatus submissionStatus) {
-    switch (submissionStatus) {
-      case AnswerSubmissionStatus.pending:
-        return const Tooltip(
-          message: 'Waiting to upload',
-          child: Icon(Icons.schedule_rounded,
-              color: CustomColors.textSecondaryContent, size: 24),
-        );
-      case AnswerSubmissionStatus.uploading:
-        return const Tooltip(
-          message: 'Uploading response',
-          child: SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
-              color: CustomColors.productNormalActive,
-            ),
-          ),
-        );
-      case AnswerSubmissionStatus.successful:
-        return const Tooltip(
-          message: 'Response uploaded',
-          child: Icon(Icons.check_circle_rounded,
-              color: CustomColors.darkGreen, size: 24),
-        );
-      case AnswerSubmissionStatus.failed:
-        return Tooltip(
-          message: 'Upload failed. Tap to retry',
-          child: IconButton(
-            visualDensity: VisualDensity.compact,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            onPressed: () => summaryCubit.retryPrompt(promptId),
-            icon: const Icon(Icons.refresh_rounded,
-                color: CustomColors.warningNormal, size: 24),
-          ),
-        );
-    }
   }
 
   List<String> extractAnswers(String response) {
@@ -679,7 +631,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   }
 
   void loadDiary(BuildContext context) {
-    summaryCubit.loadSummary(widget.diary, uploadAnswers: true);
+    summaryCubit.loadSummary(widget.diary, uploadAnswers: true, silent: true);
   }
 
   void editResponse(PromptModel _prompt, int index) async {
