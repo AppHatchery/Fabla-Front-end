@@ -67,6 +67,14 @@ class SummaryCubit extends Cubit<SummaryState> {
       }
       _loadedDiary = value;
 
+      // A reset answer was edited, so any previous upload no longer represents
+      // it. Mark it pending regardless of [uploadAnswers] so the state keeps
+      // describing it as needing an upload instead of dropping it entirely.
+      for (final prompt in value.prompts.where(
+          (prompt) => resetPromptIds.contains(prompt.id) && _hasAnswer(prompt))) {
+        _submissionStatuses[prompt.id] = AnswerSubmissionStatus.pending;
+      }
+
       if (uploadAnswers) {
         for (final prompt in value.prompts.where(_hasAnswer)) {
           _submissionStatuses.putIfAbsent(

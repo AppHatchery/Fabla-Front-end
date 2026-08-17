@@ -411,6 +411,8 @@ void main() {
       blocTest<SummaryCubit, SummaryState>(
         'emits [SubmitLoading, SummarySubmitted] when metadata submission succeeds',
         setUp: () {
+          when(() => mockSummaryRepository.loadSummary(any()))
+              .thenAnswer((_) async => testDiary);
           when(() => mockSummaryRepository.submitPartiallyUploadedDiary(any()))
               .thenAnswer((_) async => true);
           when(() => mockSummaryRepository.calculateEarnedIncentives(any()))
@@ -436,6 +438,8 @@ void main() {
       blocTest<SummaryCubit, SummaryState>(
         'emits [SubmitLoading, SubmitError] when metadata submission fails',
         setUp: () {
+          when(() => mockSummaryRepository.loadSummary(any()))
+              .thenAnswer((_) async => testDiary);
           when(() => mockSummaryRepository.submitPartiallyUploadedDiary(any()))
               .thenAnswer((_) async => false);
         },
@@ -483,6 +487,10 @@ void main() {
         build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
         act: (cubit) async {
           await cubit.loadSummary(testDiary, uploadAnswers: true);
+          // loadSummary fires the background upload without awaiting it. Let it
+          // settle so the submit below exercises the retry path rather than
+          // joining the still-in-flight upload.
+          await pumpEventQueue();
           await cubit.submitDiary(testDiary, usePartialUploads: true);
         },
         expect: () => [
