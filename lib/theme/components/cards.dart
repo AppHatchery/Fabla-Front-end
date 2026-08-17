@@ -448,6 +448,7 @@ mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
         AudioStatus.fileNotFound,
         FileSystemException('Recording file not found', path),
       );
+      onAudioStatusResolved(AudioStatus.fileNotFound, duringLoad: true);
       return;
     }
 
@@ -456,6 +457,7 @@ mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
         AudioStatus.noAudioLength,
         FileSystemException('Recording file is empty', path),
       );
+      onAudioStatusResolved(AudioStatus.noAudioLength, duringLoad: true);
       return;
     }
 
@@ -472,6 +474,7 @@ mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
           AudioStatus.noAudioLength,
           FileSystemException('Recording has no playable duration', path),
         );
+        onAudioStatusResolved(AudioStatus.noAudioLength, duringLoad: true);
         return;
       }
 
@@ -497,11 +500,22 @@ mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
         maxSliderPosition = duration.inMilliseconds.toDouble();
         audioStatus = AudioStatus.available;
       });
+
+      onAudioStatusResolved(AudioStatus.available, duringLoad: true);
     } catch (e, s) {
       await player.dispose();
       _fail(AudioStatus.canNotPlay, e, s);
     }
   }
+
+  /// Called once the card settles on a terminal status, so a parent can react
+  /// to a recording that turned out to be unplayable.
+  ///
+  /// [duringLoad] separates "this file could not be loaded" from "playback of
+  /// an already-loaded file failed". The second can be transient — an
+  /// interrupted session, a route change — so a caller that discards broken
+  /// recordings must not act on it.
+  void onAudioStatusResolved(AudioStatus status, {required bool duringLoad}) {}
 
   void disposeAudio() => audioPlayer?.dispose();
 
@@ -532,6 +546,7 @@ mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
       audioPlayer = null;
       await player.dispose();
       _fail(AudioStatus.canNotPlay, e, s);
+      onAudioStatusResolved(AudioStatus.canNotPlay, duringLoad: false);
     }
   }
 
@@ -644,7 +659,6 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
           child: Column(
             children: [
               title(),
-
               Visibility(
                 visible: widget.isExpanded && canPlay,
                 child: Column(
@@ -654,13 +668,11 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
                   ],
                 ),
               ),
-
               Visibility(
                 visible: !widget.isExpanded,
                 replacement: const SizedBox(height: 24),
                 child: const SizedBox(height: 12),
               ),
-
               controls(),
             ],
           ),
@@ -683,7 +695,6 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
             ),
           ],
         ),
-
         Visibility(
           visible: widget.isExpanded,
           child: Row(
@@ -805,7 +816,6 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
           const Expanded(
             child: SizedBox(),
           ),
-
           Expanded(
             flex: 2,
             child: Row(
@@ -822,7 +832,6 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
                   color: Colors.black,
                   iconSize: 24,
                 ),
-
                 IconButton(
                   onPressed: () {
                     trackControl("play");
@@ -836,7 +845,6 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
                   color: Colors.black,
                   iconSize: 24,
                 ),
-
                 IconButton(
                   onPressed: () {
                     trackControl("forward");
@@ -851,7 +859,6 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
               ],
             ),
           ),
-
           Expanded(
             child: widget.viewOnly
                 ? const SizedBox()
@@ -889,7 +896,6 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
       widget.delete?.call();
     }
   }
-
 }
 
 class NewAudioCard extends StatefulWidget {
@@ -900,6 +906,10 @@ class NewAudioCard extends StatefulWidget {
   final String? callerWidget;
   final bool? isVisible;
 
+  /// Reports the terminal [AudioStatus] for this recording once the card
+  /// resolves, so the prompt can react to one that turned out unplayable.
+  final void Function(String path, AudioStatus status)? onPlaybackResolved;
+
   const NewAudioCard(
       {super.key,
       required this.recording,
@@ -907,6 +917,7 @@ class NewAudioCard extends StatefulWidget {
       this.isVisible,
       required this.viewOnly,
       this.callerWidget,
+      this.onPlaybackResolved,
       required this.promptId});
 
   @override
@@ -925,6 +936,22 @@ class _NewAudioCardState extends State<NewAudioCard>
   void dispose() {
     disposeAudio();
     super.dispose();
+  }
+
+  /// Reports upward so the prompt can offer a way to record a replacement.
+  /// Deferred a frame so a parent rebuild triggered by this cannot land while
+  /// the surrounding list is still building.
+  @override
+  void onAudioStatusResolved(AudioStatus status, {required bool duringLoad}) {
+    // A failure part-way through playback can be transient, and the page
+    // discards whatever it is told is broken. Only load-time outcomes, where
+    // the file itself was proven bad, are reported upward.
+    if (!duringLoad) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      widget.onPlaybackResolved?.call(widget.recording.path, status);
+    });
   }
 
   @override
@@ -1860,6 +1887,7 @@ class NoNotificationCard extends StatelessWidget {
     );
   }
 }
+
 class WarningCard extends StatelessWidget {
   final String title;
   final String message;
@@ -1908,7 +1936,8 @@ class WarningCard extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
                     decoration: ShapeDecoration(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4)),

@@ -59,6 +59,9 @@ class _PlaybackHarness extends StatefulWidget {
 
 class _PlaybackHarnessState extends State<_PlaybackHarness>
     with AudioPlaybackMixin<_PlaybackHarness> {
+  /// Everything the mixin reported, in order.
+  final List<({AudioStatus status, bool duringLoad})> resolutions = [];
+
   @override
   void initState() {
     super.initState();
@@ -69,6 +72,11 @@ class _PlaybackHarnessState extends State<_PlaybackHarness>
   void dispose() {
     disposeAudio();
     super.dispose();
+  }
+
+  @override
+  void onAudioStatusResolved(AudioStatus status, {required bool duringLoad}) {
+    resolutions.add((status: status, duringLoad: duringLoad));
   }
 
   @override
@@ -277,7 +285,50 @@ void main() {
   });
 
   // -------------------------------------------------------------------
-  // 4. Participant-facing error copy
+  // 4. Reporting a terminal status upward
+  // -------------------------------------------------------------------
+  //
+  // The page discards whatever it is told is broken, so the mixin has to be
+  // precise about what it reports. `duringLoad` separates "this file could not
+  // be loaded" from "playback of an already-loaded file failed" — the second
+  // can be transient (an interrupted session, a route change) and must not
+  // cost the participant their recording.
+  // -------------------------------------------------------------------
+  group('AudioPlaybackMixin — status reporting', () {
+    testWidgets('a missing file is reported once, as a load failure',
+        (tester) async {
+      final state = await pumpHarness(tester);
+
+      expect(state.resolutions, hasLength(1));
+      expect(state.resolutions.single.status, AudioStatus.fileNotFound);
+      expect(state.resolutions.single.duringLoad, isTrue);
+    });
+
+    testWidgets('an empty file is reported as a load failure', (tester) async {
+      writeRecording(_recordingPath, bytes: 0);
+
+      final state = await pumpHarness(tester);
+
+      expect(state.resolutions.single.status, AudioStatus.noAudioLength);
+      expect(state.resolutions.single.duringLoad, isTrue);
+    });
+
+    testWidgets('no-op controls do not report anything further',
+        (tester) async {
+      final state = await pumpHarness(tester);
+      final reportedAtLoad = state.resolutions.length;
+
+      await state.play();
+      await state.seek(1000);
+      await state.skip(15000);
+
+      expect(state.resolutions, hasLength(reportedAtLoad),
+          reason: '`_run` returns early, so nothing new resolves');
+    });
+  });
+
+  // -------------------------------------------------------------------
+  // 5. Participant-facing error copy
   // -------------------------------------------------------------------
   group('RecordingIssueCard', () {
     Future<void> pumpCard(WidgetTester tester, AudioStatus status) async {

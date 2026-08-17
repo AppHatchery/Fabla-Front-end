@@ -10,6 +10,7 @@ import 'package:audio_diaries_flutter/services/preference_service.dart';
 // import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/usecases/recording_answer.dart';
 import '../../../../core/utils/types.dart';
 import '../../../../main.dart';
 import '../../../../theme/components/buttons.dart';
@@ -424,6 +425,30 @@ class _QuestionPageState extends State<QuestionPage>
   bool disabled = false;
   PersistentBottomSheetController? _bottomSheetController;
 
+  /// Owned here rather than in the card because the record button and the
+  /// Next button must agree on what counts as an answer. The card is the only
+  /// thing that can detect an undecodable file, so it reports upward.
+  late final RecordingAnswerChecker _answers = RecordingAnswerChecker(
+    discard: (path) => promptCubit.removeResponse(
+      diary: widget.diary,
+      prompt: promptModel,
+      path: path,
+    ),
+  );
+
+  /// Guards [checkForResponse] against overlapping runs. It is async and fires
+  /// both from the prompt listener and from [onPlaybackResolved], so a slower
+  /// earlier run could otherwise land after a newer one and re-enable Next
+  /// with a stale answer.
+  int _responseCheckToken = 0;
+
+  void onPlaybackResolved(String path, AudioStatus status) {
+    if (!mounted || !_answers.report(path, status)) return;
+
+    setState(() {});
+    checkForResponse(promptModel);
+  }
+
   void updateSliderValue(PromptModel prompt, double value) {
     save(prompt, value.toString(), 'other', 0);
     widget.answerAdded(true);
@@ -588,6 +613,8 @@ class _QuestionPageState extends State<QuestionPage>
         respond: (String type, int? index) =>
             recordResponse(prompt, type, index: index),
         prompt: prompt,
+        unplayable: _answers.unplayable,
+        onPlaybackResolved: onPlaybackResolved,
       );
     } else if (prompt.responseType == ResponseType.webview) {
       responseWidget = WebViewResponseCard(
@@ -749,14 +776,23 @@ class _QuestionPageState extends State<QuestionPage>
   ///Checks whether the provided prompt has a response
   ///Returns a bool for [`able to continue`] that allows the user to either proceed or not
   ///depending on the availability of the response/recording
-  void checkForResponse(PromptModel prompt1) {
-    bool isValidResponse = false;
+  Future<void> checkForResponse(PromptModel prompt1) async {
+    final token = ++_responseCheckToken;
     final answer = prompt1.answer;
+
+    // Runs before the required check: an optional prompt never gates Next, but
+    // a recording whose file was never written still has to be cleared or it
+    // fails S3 upload at submission.
+    final usable = await _answers.countUsable(answer?.recordings ?? []);
+
+    if (!mounted || token != _responseCheckToken) return;
 
     if (!prompt1.required) {
       widget.answerAdded(true);
       return;
     }
+
+    bool isValidResponse = false;
 
     switch (prompt1.responseType) {
       case ResponseType.instruction:
@@ -768,10 +804,10 @@ class _QuestionPageState extends State<QuestionPage>
       case ResponseType.video:
       case ResponseType.imageVideo:
         if (prompt1.responseType == ResponseType.textAudio) {
-          isValidResponse = (answer?.recordings.isNotEmpty ?? false) ||
+          isValidResponse = usable > 0 ||
               (answer?.response != null && answer!.response!.isNotEmpty);
         } else {
-          isValidResponse = answer?.recordings.isNotEmpty ?? false;
+          isValidResponse = usable > 0;
         }
         break;
       default:

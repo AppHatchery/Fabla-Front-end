@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/recording_answer.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -30,6 +31,27 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
   late PromptCubit promptCubit;
 
   bool proceed = true;
+
+  /// Shared with the diary flow so both screens agree on what counts as an
+  /// answer, and so a recording that cannot be uploaded is cleared here too.
+  late final RecordingAnswerChecker _answers = RecordingAnswerChecker(
+    discard: (path) => promptCubit.removeResponse(
+      diary: widget.diary,
+      prompt: widget.prompt,
+      path: path,
+    ),
+  );
+
+  /// Guards [canUserProceed] against overlapping runs — it is async, and a
+  /// slower earlier run could otherwise land after a newer one.
+  int _responseCheckToken = 0;
+
+  void onPlaybackResolved(String path, AudioStatus status) {
+    if (!mounted || !_answers.report(path, status)) return;
+
+    setState(() {});
+    canUserProceed(widget.prompt);
+  }
 
   // Functions to run before moving to the next page
   List<Function> preFunctions = [];
@@ -97,14 +119,23 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
     );
   }
 
-  void canUserProceed(PromptModel prompt) {
-    bool isValidResponse = false;
+  Future<void> canUserProceed(PromptModel prompt) async {
+    final token = ++_responseCheckToken;
     final answer = prompt.answer;
+
+    // Runs before the required check: an optional prompt never gates the
+    // button, but a recording whose file was never written still has to be
+    // cleared or it fails S3 upload at submission.
+    final usable = await _answers.countUsable(answer?.recordings ?? []);
+
+    if (!mounted || token != _responseCheckToken) return;
 
     if (!prompt.required) {
       setState(() => proceed = true);
       return;
     }
+
+    bool isValidResponse = false;
 
     switch (prompt.responseType) {
       case ResponseType.instruction:
@@ -116,10 +147,10 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
       case ResponseType.video:
       case ResponseType.imageVideo:
         if (prompt.responseType == ResponseType.textAudio) {
-          isValidResponse = (answer?.recordings.isNotEmpty ?? false) ||
+          isValidResponse = usable > 0 ||
               (answer?.response != null && answer!.response!.isNotEmpty);
         } else {
-          isValidResponse = answer?.recordings.isNotEmpty ?? false;
+          isValidResponse = usable > 0;
         }
         break;
       case ResponseType.multiple:
@@ -264,6 +295,8 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
           respond: (String type, index) =>
               recordResponse(prompt, type, index: index),
           prompt: prompt,
+          unplayable: _answers.unplayable,
+          onPlaybackResolved: onPlaybackResolved,
         );
       case ResponseType.slider:
         return SliderQuestionCard(
