@@ -453,6 +453,7 @@ void main() {
         build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
         act: (cubit) => cubit.submitDiary(testDiary),
         expect: () => [
+          const SubmitLoading(),
           const SubmitNoInternet(),
         ],
       );
@@ -476,7 +477,11 @@ void main() {
         },
         expect: () => [
           const SummaryLoading(),
-          isA<SummaryLoaded>(),
+          isA<SummaryLoaded>(), // Initial load
+          isA<SummaryLoaded>(), // Uploading
+          isA<SummaryLoaded>(), // Failed
+          isA<SummaryLoaded>(), // Retry Uploading
+          isA<SummaryLoaded>(), // Retry Failed
           const SubmitNoInternet(),
         ],
       );
