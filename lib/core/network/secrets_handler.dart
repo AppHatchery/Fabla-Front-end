@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
     show CrashlyticsService;
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Manages backend credentials for the app.
 ///
@@ -25,10 +27,58 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// }
 /// ```
 class SecureSave {
+  static const credentialsKey = 'credentials';
+  static const _backgroundAccessMigrationKey =
+      'credentials_background_access_v1';
+
+  /// Allows iOS to read upload credentials while the device is locked, after
+  /// the user has unlocked it once since the most recent device restart.
+  static const backgroundIOSOptions = IOSOptions(
+    accessibility: KeychainAccessibility.first_unlock_this_device,
+  );
+
   final FlutterSecureStorage _storage;
 
   SecureSave({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage();
+      : _storage = storage ??
+            const FlutterSecureStorage(iOptions: backgroundIOSOptions);
+
+  /// Rewrites credentials created by older app versions with the background-
+  /// accessible iOS Keychain protection level.
+  Future<void> migrateCredentialsForBackgroundAccess({
+    FlutterSecureStorage? legacyStorage,
+    SharedPreferences? preferences,
+    bool? isIOS,
+  }) async {
+    if (!(isIOS ?? defaultTargetPlatform == TargetPlatform.iOS)) return;
+
+    final prefs = preferences ?? await SharedPreferences.getInstance();
+    if (prefs.getBool(_backgroundAccessMigrationKey) == true) return;
+
+    final legacy = legacyStorage ?? const FlutterSecureStorage();
+    try {
+      final stored = await legacy.read(key: credentialsKey);
+      if (stored != null && stored.isNotEmpty) {
+        // Updating an existing Keychain value does not change its accessibility
+        // attribute, so recreate it using the new iOS options.
+        await legacy.delete(key: credentialsKey);
+        try {
+          await _storage.write(key: credentialsKey, value: stored);
+        } catch (_) {
+          // Avoid losing valid credentials if the migration write fails.
+          await legacy.write(key: credentialsKey, value: stored);
+          rethrow;
+        }
+      }
+      await prefs.setBool(_backgroundAccessMigrationKey, true);
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(
+        e,
+        stackTrace,
+        reason: 'Failed to migrate credentials for iOS background access',
+      );
+    }
+  }
 
   /// Fetches credentials from the backend and persists them to secure storage.
   ///
@@ -71,7 +121,7 @@ class SecureSave {
   /// Returns `null` if no credentials are saved or decoding fails.
   Future<CredentialsModel?> read() async {
     try {
-      final stored = await _storage.read(key: 'credentials');
+      final stored = await _storage.read(key: credentialsKey);
       if (stored?.isNotEmpty ?? false) {
         return CredentialsModel.fromJson(json.decode(stored!));
       }
@@ -91,7 +141,7 @@ class SecureSave {
   Future<void> save(CredentialsModel credentials) async {
     try {
       await _storage.write(
-          key: 'credentials', value: json.encode(credentials.toJson()));
+          key: credentialsKey, value: json.encode(credentials.toJson()));
     } catch (e, stackTrace) {
       CrashlyticsService().recordError(e, stackTrace,
           reason:

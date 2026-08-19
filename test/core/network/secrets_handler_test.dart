@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/core/network/secrets_handler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../dummy_data.dart';
 
@@ -16,6 +17,7 @@ void main() {
   });
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     mockStorage = MockFlutterSecureStorage();
     secureSave = SecureSave(storage: mockStorage);
   });
@@ -132,6 +134,51 @@ void main() {
             key: 'credentials',
             value: any(named: 'value'),
           )).called(1);
+    });
+
+    test('migrates existing iOS credentials to background access', () async {
+      final legacyStorage = MockFlutterSecureStorage();
+      final preferences = await SharedPreferences.getInstance();
+      final storedCredentials = createTestStoredCredentialsJson();
+
+      when(() => legacyStorage.read(key: SecureSave.credentialsKey))
+          .thenAnswer((_) async => storedCredentials);
+      when(() => legacyStorage.delete(key: SecureSave.credentialsKey))
+          .thenAnswer((_) async {});
+      when(() => mockStorage.write(
+            key: SecureSave.credentialsKey,
+            value: storedCredentials,
+          )).thenAnswer((_) async {});
+
+      await secureSave.migrateCredentialsForBackgroundAccess(
+        legacyStorage: legacyStorage,
+        preferences: preferences,
+        isIOS: true,
+      );
+
+      verifyInOrder([
+        () => legacyStorage.read(key: SecureSave.credentialsKey),
+        () => legacyStorage.delete(key: SecureSave.credentialsKey),
+        () => mockStorage.write(
+              key: SecureSave.credentialsKey,
+              value: storedCredentials,
+            ),
+      ]);
+      expect(
+        preferences.getBool('credentials_background_access_v1'),
+        isTrue,
+      );
+    });
+
+    test('does not run iOS credential migration on Android', () async {
+      final legacyStorage = MockFlutterSecureStorage();
+
+      await secureSave.migrateCredentialsForBackgroundAccess(
+        legacyStorage: legacyStorage,
+        isIOS: false,
+      );
+
+      verifyNever(() => legacyStorage.read(key: any(named: 'key')));
     });
   });
 }
