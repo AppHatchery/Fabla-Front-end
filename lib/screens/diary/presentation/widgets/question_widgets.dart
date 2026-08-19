@@ -12,6 +12,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/time_picker.dart';
+import 'package:audio_diaries_flutter/services/timer_live_update_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
@@ -876,6 +877,8 @@ class _TimerWidgetState extends State<TimerWidget>
   bool showPersistentSheet = false;
   void Function()? _updateModalCallback;
   int? currentAlarmId;
+
+  static const _liveUpdate = TimerLiveUpdateService();
   // Track when the current countdown should complete (wall-clock). Used to detect completion when app is backgrounded
   DateTime? _expectedEndTime;
   @override
@@ -907,25 +910,36 @@ class _TimerWidgetState extends State<TimerWidget>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!mounted) return;
-    if (state == AppLifecycleState.resumed) {
-      if (_expectedEndTime != null &&
-          DateTime.now().isAfter(_expectedEndTime!)) {
-        _timer?.cancel();
-        _timer = null;
+    if (state != AppLifecycleState.resumed) return;
 
-        setState(() {
-          status = TimerStatus.complete;
-          showTimeUpOverlay = false;
-          showCompletionText = true;
-          showPersistentSheet = false;
-          remaining = Duration.zero;
-          _expectedEndTime = null;
-        });
+    final endTime = _expectedEndTime;
+    if (endTime == null) return;
 
-        stopAlarm();
-        widget.respond("Complete");
-      }
+    final now = DateTime.now();
+
+    if (now.isAfter(endTime)) {
+      _timer?.cancel();
+      _timer = null;
+
+      setState(() {
+        status = TimerStatus.complete;
+        showTimeUpOverlay = false;
+        showCompletionText = true;
+        showPersistentSheet = false;
+        remaining = Duration.zero;
+        _expectedEndTime = null;
+      });
+
+      stopAlarm();
+      _liveUpdate.hide();
+      widget.respond("Complete");
+      return;
     }
+
+    // Dart timers stall while backgrounded, so `remaining` has drifted.
+    // The wall-clock end time is the source of truth — reconcile off it.
+    remaining = endTime.difference(now);
+    _syncLiveUpdate();
   }
 
   @override
@@ -933,6 +947,7 @@ class _TimerWidgetState extends State<TimerWidget>
     WidgetsBinding.instance.removeObserver(this);
 
     _timer?.cancel();
+    _liveUpdate.hide();
     _shakeController.dispose();
     _remainingNotifier.dispose();
 
@@ -941,6 +956,23 @@ class _TimerWidgetState extends State<TimerWidget>
     p?.dispose();
 
     super.dispose();
+  }
+
+  /// Mirrors the current timer state onto the Android Live Update notification.
+  ///
+  /// Called on transitions only — the platform chronometer ticks the countdown
+  /// itself, so there is nothing to push each second.
+  void _syncLiveUpdate() {
+    if (!showPersistentSheet || (!isRunning && !isPaused)) {
+      _liveUpdate.hide();
+      return;
+    }
+
+    _liveUpdate.show(
+      total: duration,
+      remaining: remaining,
+      isPaused: isPaused,
+    );
   }
 
   void _startTimer() {
@@ -971,6 +1003,7 @@ class _TimerWidgetState extends State<TimerWidget>
 
     stopAlarm();
     _expectedEndTime = null;
+    _syncLiveUpdate();
   }
 
   void _resumeTimer() {
@@ -981,6 +1014,7 @@ class _TimerWidgetState extends State<TimerWidget>
     _expectedEndTime = DateTime.now().add(remaining);
     setAlarm(remaining);
     _startTimer();
+    _syncLiveUpdate();
   }
 
   Future<void> _restartTimer() async {
@@ -1009,6 +1043,7 @@ class _TimerWidgetState extends State<TimerWidget>
 
     _expectedEndTime = DateTime.now().add(duration);
     _startTimer();
+    _syncLiveUpdate();
   }
 
   void _stopTimer() {
@@ -1025,6 +1060,7 @@ class _TimerWidgetState extends State<TimerWidget>
 
     stopAlarm();
     _shakeController.reset();
+    _liveUpdate.hide();
   }
 
   void _pauseResumeTimer() => isPaused ? _resumeTimer() : _pauseTimer();
@@ -1040,6 +1076,7 @@ class _TimerWidgetState extends State<TimerWidget>
     _shakeController.forward().then((_) => _shakeController.repeat());
     widget.respond("timer");
     _refreshModal();
+    _liveUpdate.hide();
 
     // Delay showing the completion text until after modal animations are done
     Future.delayed(const Duration(milliseconds: 800), () {
@@ -1063,6 +1100,7 @@ class _TimerWidgetState extends State<TimerWidget>
     _updateModalCallback = null;
     _shakeController.reset();
     stopAlarm();
+    _liveUpdate.hide();
   }
 
   Future<void> _startAndShowModal({bool startPaused = false}) async {
@@ -1087,6 +1125,8 @@ class _TimerWidgetState extends State<TimerWidget>
     _startTimer();
 
     if (!mounted) return;
+
+    _syncLiveUpdate();
 
     showModalBottomSheet(
       backgroundColor: Colors.transparent,
