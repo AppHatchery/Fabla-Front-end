@@ -12,6 +12,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/time_picker.dart';
+import 'package:audio_diaries_flutter/services/live_activity_service.dart';
 import 'package:audio_diaries_flutter/services/timer_live_update_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
@@ -932,6 +933,7 @@ class _TimerWidgetState extends State<TimerWidget>
 
       stopAlarm();
       _liveUpdate.hide();
+      LiveActivityService.end();
       widget.respond("Complete");
       return;
     }
@@ -950,6 +952,7 @@ class _TimerWidgetState extends State<TimerWidget>
     _liveUpdate.hide();
     _shakeController.dispose();
     _remainingNotifier.dispose();
+    LiveActivityService.end();
 
     final p = player;
     player = null; // Set to null first so no other methods can trigger it
@@ -1002,6 +1005,7 @@ class _TimerWidgetState extends State<TimerWidget>
     setState(() => status = TimerStatus.paused);
 
     stopAlarm();
+    LiveActivityService.updatePaused(remaining);
     _expectedEndTime = null;
     _syncLiveUpdate();
   }
@@ -1013,6 +1017,7 @@ class _TimerWidgetState extends State<TimerWidget>
 
     _expectedEndTime = DateTime.now().add(remaining);
     setAlarm(remaining);
+    LiveActivityService.updateRunning(_expectedEndTime!);
     _startTimer();
     _syncLiveUpdate();
   }
@@ -1042,6 +1047,7 @@ class _TimerWidgetState extends State<TimerWidget>
     if (!mounted) return;
 
     _expectedEndTime = DateTime.now().add(duration);
+    LiveActivityService.start(_expectedEndTime!);
     _startTimer();
     _syncLiveUpdate();
   }
@@ -1059,6 +1065,7 @@ class _TimerWidgetState extends State<TimerWidget>
     });
 
     stopAlarm();
+    LiveActivityService.end();
     _shakeController.reset();
     _liveUpdate.hide();
   }
@@ -1074,6 +1081,9 @@ class _TimerWidgetState extends State<TimerWidget>
       showCompletionText = false; // Don't show completion text immediately
     });
     _shakeController.forward().then((_) => _shakeController.repeat());
+    // Leave the Live Activity up — it switches to its "complete" look on its
+    // own (native staleDate) so the user still sees it if they're away from
+    // the app. It's ended later when they close/dismiss the timer.
     widget.respond("timer");
     _refreshModal();
     _liveUpdate.hide();
@@ -1101,6 +1111,7 @@ class _TimerWidgetState extends State<TimerWidget>
     _shakeController.reset();
     stopAlarm();
     _liveUpdate.hide();
+    LiveActivityService.end();
   }
 
   Future<void> _startAndShowModal({bool startPaused = false}) async {
@@ -1119,6 +1130,7 @@ class _TimerWidgetState extends State<TimerWidget>
       await setAlarm(duration);
       if (!mounted) return;
       _expectedEndTime = DateTime.now().add(duration);
+      LiveActivityService.start(_expectedEndTime!);
     }
 
     await _startSound();
