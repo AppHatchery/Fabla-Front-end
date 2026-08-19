@@ -9,11 +9,13 @@ import 'package:flutter/services.dart';
 /// No-ops on non-iOS platforms and on iOS versions below 16.1 — Live
 /// Activity display is best-effort UI and must never block or crash the
 /// underlying timer flow.
-class LiveActivityService {
+class LiveActivityService {             
   static const MethodChannel _channel = MethodChannel('diary/live_activity');
 
-  static Future<void> start(DateTime endDate) => _invoke('start', {
+  static Future<void> start(DateTime endDate, Duration totalDuration) =>
+      _invoke('start', {
         'endDateMillis': endDate.millisecondsSinceEpoch.toDouble(),
+        'totalDurationMillis': totalDuration.inMilliseconds.toDouble(),
       });
 
   static Future<void> updateRunning(DateTime endDate) => _invoke('update', {

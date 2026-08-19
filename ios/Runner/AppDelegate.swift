@@ -55,7 +55,9 @@ import ActivityKit
         return
       }
       let endDate = Date(timeIntervalSince1970: endDateMillis / 1000)
-      let attributes = DiaryTimerActivityAttributes(title: "Diary Timer")
+      let totalDurationMillis = args?["totalDurationMillis"] as? Double
+      let totalDuration = totalDurationMillis.map { $0 / 1000 } ?? endDate.timeIntervalSinceNow
+      let attributes = DiaryTimerActivityAttributes(title: "Diary Timer", totalDuration: totalDuration)
       let state = DiaryTimerActivityAttributes.ContentState(endDate: endDate, pausedRemaining: nil)
       Task {
         if let existing = AppDelegate.currentTimerActivity {

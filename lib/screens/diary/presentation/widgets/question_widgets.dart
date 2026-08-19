@@ -1047,7 +1047,7 @@ class _TimerWidgetState extends State<TimerWidget>
     if (!mounted) return;
 
     _expectedEndTime = DateTime.now().add(duration);
-    LiveActivityService.start(_expectedEndTime!);
+    LiveActivityService.start(_expectedEndTime!, duration);
     _startTimer();
     _syncLiveUpdate();
   }
@@ -1130,7 +1130,7 @@ class _TimerWidgetState extends State<TimerWidget>
       await setAlarm(duration);
       if (!mounted) return;
       _expectedEndTime = DateTime.now().add(duration);
-      LiveActivityService.start(_expectedEndTime!);
+      LiveActivityService.start(_expectedEndTime!, duration);
     }
 
     await _startSound();

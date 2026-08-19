@@ -16,4 +16,7 @@ struct DiaryTimerActivityAttributes: ActivityAttributes {
     }
 
     var title: String
+    // Fixed for the activity's lifetime — used by the expanded (long-press)
+    // Dynamic Island view to render session length and overall progress.
+    var totalDuration: TimeInterval
 }
