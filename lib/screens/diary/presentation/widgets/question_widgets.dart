@@ -878,7 +878,7 @@ class _TimerWidgetState extends State<TimerWidget>
   void Function()? _updateModalCallback;
   int? currentAlarmId;
 
-  static const _liveUpdate = TimerLiveUpdateService();
+  static final _liveUpdate = TimerLiveUpdateService();
   // Track when the current countdown should complete (wall-clock). Used to detect completion when app is backgrounded
   DateTime? _expectedEndTime;
   @override

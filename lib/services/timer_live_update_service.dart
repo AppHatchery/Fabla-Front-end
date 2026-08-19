@@ -15,7 +15,12 @@ class TimerLiveUpdateService {
 
   static const _defaultTitle = 'Diary Timer';
 
-  const TimerLiveUpdateService();
+  /// [isAndroid] is injectable so the channel contract can be exercised in
+  /// tests, which run on the host platform.
+  TimerLiveUpdateService({bool? isAndroid})
+      : _isAndroid = isAndroid ?? Platform.isAndroid;
+
+  final bool _isAndroid;
 
   /// Posts or refreshes the notification. Safe to call repeatedly.
   Future<void> show({
@@ -24,7 +29,7 @@ class TimerLiveUpdateService {
     required bool isPaused,
     String title = _defaultTitle,
   }) async {
-    if (!Platform.isAndroid) return;
+    if (!_isAndroid) return;
     if (total <= Duration.zero || remaining <= Duration.zero) return hide();
 
     await _invoke('show', <String, dynamic>{
@@ -37,7 +42,7 @@ class TimerLiveUpdateService {
 
   /// Removes the notification. Safe to call when nothing is showing.
   Future<void> hide() async {
-    if (!Platform.isAndroid) return;
+    if (!_isAndroid) return;
     await _invoke('hide', null);
   }
 
