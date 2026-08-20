@@ -2010,3 +2010,38 @@ class RecordingIssueCard extends StatelessWidget {
     );
   }
 }
+
+//disclaimer message for the audio recording
+class DisclaimerCard extends StatelessWidget {
+  const DisclaimerCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: ShapeDecoration(
+        color: CustomColors.fillVanilla,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Image.asset(
+            'assets/images/icons/notice_icon.png',
+            width: 20,
+            height: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Please stay in the app. Leaving while recording can result in data loss.',
+              style: CustomTypography().bodyLarge(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
