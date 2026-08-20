@@ -11,6 +11,7 @@ import 'package:mockito/mockito.dart';
 //  openChannelSettings()        - opens the OS channel config page
 //  createNotification()         - allowed / denied / PlatformException / non-Platform error
 //                                 + channelDisabled ValueNotifier transitions
+//  showImmediateNotification()  - posts an unscheduled notification
 //  cancelAllNotifications()     - cancelAll is called
 //  cancelNotification()         - cancel is called with the correct id
 //  rescheduleNotification()     - cancelSchedule + createNotification ordering
@@ -81,7 +82,8 @@ void main() {
       await NotificationService.openChannelSettings();
 
       // Assert
-      verify(mockAwesome.showNotificationConfigPage(channelKey: 'audio-diaries'))
+      verify(mockAwesome.showNotificationConfigPage(
+              channelKey: 'audio-diaries'))
           .called(1);
     });
 
@@ -133,13 +135,37 @@ void main() {
       ));
     });
 
+    test('showImmediateNotification posts an unscheduled notification',
+        () async {
+      when(mockAwesome.isNotificationAllowed()).thenAnswer((_) async => true);
+      when(mockAwesome.createNotification(
+        content: anyNamed('content'),
+      )).thenAnswer((_) async => true);
+
+      final result = await NotificationService.showImmediateNotification(
+        id: 90421,
+        title: 'Diary upload complete',
+        body: 'Your diary was uploaded successfully.',
+        payload: const {'type': 'background_upload_complete'},
+      );
+
+      expect(result, isTrue);
+      final content = verify(mockAwesome.createNotification(
+        content: captureAnyNamed('content'),
+      )).captured.single as NotificationContent;
+      expect(content.id, 90421);
+      expect(content.title, 'Diary upload complete');
+      expect(content.payload?['type'], 'background_upload_complete');
+    });
+
     test(
         'createNotification flips channelDisabled to true when permission denied',
         () async {
       // Arrange
       when(mockAwesome.isNotificationAllowed()).thenAnswer((_) async => false);
       final emissions = <bool>[];
-      void listener() => emissions.add(NotificationService.channelDisabled.value);
+      void listener() =>
+          emissions.add(NotificationService.channelDisabled.value);
       NotificationService.channelDisabled.addListener(listener);
 
       // Act
@@ -172,7 +198,8 @@ void main() {
       )).thenAnswer((_) async => true);
 
       final emissions = <bool>[];
-      void listener() => emissions.add(NotificationService.channelDisabled.value);
+      void listener() =>
+          emissions.add(NotificationService.channelDisabled.value);
       NotificationService.channelDisabled.addListener(listener);
 
       // Act
@@ -204,7 +231,8 @@ void main() {
       )).thenAnswer((_) async => true);
 
       final emissions = <bool>[];
-      void listener() => emissions.add(NotificationService.channelDisabled.value);
+      void listener() =>
+          emissions.add(NotificationService.channelDisabled.value);
       NotificationService.channelDisabled.addListener(listener);
 
       // Act

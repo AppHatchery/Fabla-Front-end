@@ -2,14 +2,12 @@ import 'dart:math';
 
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show PlatformException;
 
 import '../theme/custom_colors.dart';
 
 class NotificationService {
-
   /// if channel is disabled show the user a card
   static final ValueNotifier<bool> channelDisabled = ValueNotifier<bool>(false);
 
@@ -21,8 +19,7 @@ class NotificationService {
   /// Bind this to the "Open Settings" button on NoNotificationCard.
   static Future<void> openChannelSettings() async {
     await _awesomeNotifications.showNotificationConfigPage(
-      channelKey: 'audio-diaries'
-    );
+        channelKey: 'audio-diaries');
   }
 
   /// Sets a custom AwesomeNotifications instance for testing.
@@ -225,6 +222,45 @@ class NotificationService {
       // Channel disabled, removed, or not yet registered in this isolate.
       debugPrint(
           'createNotification failed: code=${e.code} message=${e.message}');
+      channelDisabled.value = true;
+      return false;
+    }
+  }
+
+  /// Displays a notification immediately. Background uploads use this after
+  /// the server has accepted the diary, so the user gets confirmation without
+  /// reopening Fabla.
+  static Future<bool> showImmediateNotification({
+    required final int id,
+    required final String title,
+    required final String body,
+    Map<String, String>? payload,
+  }) async {
+    final hasPermission = await _awesomeNotifications.isNotificationAllowed();
+    if (!hasPermission) {
+      channelDisabled.value = true;
+      return false;
+    }
+
+    try {
+      final created = await _awesomeNotifications.createNotification(
+        content: NotificationContent(
+          id: id,
+          channelKey: 'audio-diaries',
+          title: title,
+          body: body,
+          category: NotificationCategory.Status,
+          actionType: ActionType.Default,
+          payload: payload,
+          displayOnForeground: true,
+          displayOnBackground: true,
+        ),
+      );
+      if (channelDisabled.value) channelDisabled.value = false;
+      return created;
+    } on PlatformException catch (e) {
+      debugPrint(
+          'showImmediateNotification failed: code=${e.code} message=${e.message}');
       channelDisabled.value = true;
       return false;
     }

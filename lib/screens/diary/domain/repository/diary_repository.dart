@@ -43,6 +43,24 @@ class DiaryRepository {
   ///
   List<Diary> _getAllDiariesEntities() {
     final diaries = _diaryDAO.getAllDiaries();
+
+    // Repair diaries that the previous overdue cleanup incorrectly marked as
+    // submitted. The successful upload path increments currentEntry; if an
+    // additional completion exists, that entry has not been acknowledged.
+    final pendingRepairs = diaries
+        .where((diary) => hasUnsubmittedCompletion(
+              diary.status,
+              diary.currentEntry,
+              diary.completions?.length ?? 0,
+            ))
+        .toList();
+    for (final diary in pendingRepairs) {
+      diary.status = DiaryStatus.complete;
+    }
+    if (pendingRepairs.isNotEmpty) {
+      _diaryDAO.updateDiaries(pendingRepairs);
+    }
+
     final now = DateTime.now();
     final due = DateTime(now.year, now.month, now.day, 4, 0, 0);
     final unSubmittedDiaries = diaries
@@ -52,12 +70,11 @@ class DiaryRepository {
 
     if (unSubmittedDiaries.isNotEmpty) {
       for (final diary in unSubmittedDiaries) {
-        if (now.isAfter(due) &&
-            diary.status != DiaryStatus.complete &&
-            diary.currentEntry == 0) {
-          diary.status = DiaryStatus.missed;
-        } else if (now.isAfter(due) && diary.currentEntry > 0) {
-          diary.status = DiaryStatus.submitted;
+        if (now.isAfter(due)) {
+          diary.status = resolveOverdueDiaryStatus(
+            diary.status,
+            diary.currentEntry,
+          );
         }
       }
 
@@ -623,7 +640,8 @@ class DiaryRepository {
       _diaryDAO.updateDiary(entity);
       invalidateDiaryHistoryCache();
     } catch (e, stackTrace) {
-      dev.log('Failed to update diary: $e', name: 'DiaryRepository - updateDiary');
+      dev.log('Failed to update diary: $e',
+          name: 'DiaryRepository - updateDiary');
       CrashlyticsService().recordError(e, stackTrace,
           context: {
             'Diary': diary.name.toString(),

@@ -13,6 +13,53 @@ void main() {
     });
   });
 
+  group('resolveOverdueDiaryStatus', () {
+    test('keeps a completed diary pending after one or more entries', () {
+      expect(
+        resolveOverdueDiaryStatus(DiaryStatus.complete, 1),
+        DiaryStatus.complete,
+      );
+    });
+
+    test('marks an untouched overdue diary as missed', () {
+      expect(
+        resolveOverdueDiaryStatus(DiaryStatus.idle, 0),
+        DiaryStatus.missed,
+      );
+    });
+
+    test('closes a partially submitted overdue diary', () {
+      expect(
+        resolveOverdueDiaryStatus(DiaryStatus.ongoing, 1),
+        DiaryStatus.submitted,
+      );
+    });
+  });
+
+  group('hasUnsubmittedCompletion', () {
+    test('repairs a submitted diary whose latest completion was not uploaded',
+        () {
+      expect(
+        hasUnsubmittedCompletion(DiaryStatus.submitted, 9, 10),
+        isTrue,
+      );
+    });
+
+    test('does not repair a diary acknowledged by the upload path', () {
+      expect(
+        hasUnsubmittedCompletion(DiaryStatus.submitted, 10, 10),
+        isFalse,
+      );
+    });
+
+    test('does not alter an already pending completed diary', () {
+      expect(
+        hasUnsubmittedCompletion(DiaryStatus.complete, 9, 10),
+        isFalse,
+      );
+    });
+  });
+
   group('RecorderState Tests', () {
     test('RecorderState enum should have all expected values', () {
       expect(RecorderState.values.length, equals(3));

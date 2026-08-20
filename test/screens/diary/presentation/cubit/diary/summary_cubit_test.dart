@@ -281,7 +281,7 @@ void main() {
       );
 
       blocTest<SummaryCubit, SummaryState>(
-        'emits [SubmitLoading, SubmitError] when submission fails',
+        'emits [SubmitLoading, SubmitNoInternet] when submission is queued',
         setUp: () {
           // Mock failed submission
           when(() => mockSummaryRepository.submitDiary(any()))
@@ -291,7 +291,7 @@ void main() {
         act: (cubit) => cubit.submitDiary(testDiary),
         expect: () => [
           const SubmitLoading(),
-          const SubmitError(),
+          const SubmitNoInternet(),
         ],
         verify: (cubit) {
           verify(() => mockSummaryRepository.submitDiary(testDiary)).called(1);
@@ -327,7 +327,8 @@ void main() {
             .thenAnswer((_) async {});
       });
 
-      test('saves diary with completions added and submissions preserved', () async {
+      test('saves diary with completions added and submissions preserved',
+          () async {
         final submissions = [DateTime(2024, 1, 1, 10)];
         final activeDays = [1, 2, 3];
         final diary = createTestDiaryModel(
@@ -340,9 +341,10 @@ void main() {
         final cubit = SummaryCubit(summaryRepository: mockSummaryRepository);
         await cubit.updateDiaryCompletion(diary);
 
-        final captured = verify(() => mockDiaryRepository.updateDiary(captureAny()))
-            .captured
-            .single as DiaryModel;
+        final captured =
+            verify(() => mockDiaryRepository.updateDiary(captureAny()))
+                .captured
+                .single as DiaryModel;
 
         expect(captured.submissions, equals(submissions),
             reason: 'submissions must be preserved across the copyWith');
@@ -352,7 +354,8 @@ void main() {
             reason: 'one completion timestamp should be added');
       });
 
-      test('does not save when completion for current entry already exists', () async {
+      test('does not save when completion for current entry already exists',
+          () async {
         final existing = DateTime(2024, 1, 1, 9);
         final diary = createTestDiaryModel(
           currentEntry: 0,

@@ -7,7 +7,11 @@ import 'package:audio_diaries_flutter/main.dart' as app;
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+import 'package:audio_diaries_flutter/services/notification_service.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/widgets.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -42,6 +46,7 @@ void backgroundUploadDispatcher() {
       }
       await CrashlyticsService().initialize();
       await CrashlyticsService().log('Background upload worker initialized');
+      await _initializeNotifications();
       app.objectbox = await ObjectBox.create();
 
       final diaryRepository = DiaryRepository();
@@ -50,8 +55,21 @@ void backgroundUploadDispatcher() {
       await CrashlyticsService()
           .log('Background worker found ${pending.length} pending upload(s)');
       if (pending.isEmpty) {
-        await backgroundUploads.cancelRetryIfQueueIsEmpty();
+        await _cancelNextIosAttempt(backgroundUploads);
         return true;
+      }
+
+      // Android displays WorkManager's foreground-service notification while
+      // this worker runs.
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        await _showUploadNotification(
+          id: 90420,
+          title: 'Uploading diary',
+          body: pending.length == 1
+              ? 'Fabla is uploading your diary.'
+              : 'Fabla is uploading ${pending.length} diaries.',
+          payload: const {'type': 'background_upload_started'},
+        );
       }
 
       final summaryRepository = SummaryRepository();
@@ -70,7 +88,19 @@ void backgroundUploadDispatcher() {
         allUploaded = allUploaded && uploaded == true;
       }
       if (allUploaded) {
-        await backgroundUploads.cancelRetryIfQueueIsEmpty();
+        await PreferenceService()
+            .setBoolPreference(key: 'network_error', value: false);
+        await _showUploadNotification(
+          id: 90421,
+          title: pending.length == 1
+              ? 'Diary upload complete'
+              : 'Diary uploads complete',
+          body: pending.length == 1
+              ? 'Your diary was uploaded successfully.'
+              : '${pending.length} diaries were uploaded successfully.',
+          payload: const {'type': 'background_upload_complete'},
+        );
+        await _cancelNextIosAttempt(backgroundUploads);
       }
       return allUploaded;
     } catch (error, stackTrace) {
@@ -89,6 +119,54 @@ void backgroundUploadDispatcher() {
       if (token != null) await lock.release(token);
     }
   });
+}
+
+Future<void> _initializeNotifications() async {
+  try {
+    await NotificationService.init();
+  } catch (error, stackTrace) {
+    _workerLog('Could not initialize upload notifications: $error');
+    await CrashlyticsService().recordError(
+      error,
+      stackTrace,
+      reason: 'Background upload notification initialization failed',
+    );
+  }
+}
+
+Future<void> _showUploadNotification({
+  required int id,
+  required String title,
+  required String body,
+  required Map<String, String> payload,
+}) async {
+  try {
+    await NotificationService.showImmediateNotification(
+      id: id,
+      title: title,
+      body: body,
+      payload: payload,
+    );
+  } catch (error, stackTrace) {
+    // A disabled/broken notification channel must never turn a successful
+    // diary upload into a failed WorkManager result.
+    _workerLog('Could not display upload notification: $error');
+    await CrashlyticsService().recordError(
+      error,
+      stackTrace,
+      reason: 'Background upload notification failed',
+    );
+  }
+}
+
+/// iOS queues a separate future BGProcessing request when the worker starts,
+/// so it must be cancelled after success. Android's one-off worker is the job
+/// currently executing; cancelling it here can terminate it before WorkManager
+/// records success and removes its foreground notification cleanly.
+Future<void> _cancelNextIosAttempt(BackgroundUploadManager manager) async {
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
+    await manager.cancelRetryIfQueueIsEmpty();
+  }
 }
 
 void _workerLog(String message) {
