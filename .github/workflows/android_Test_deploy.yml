@@ -9,6 +9,7 @@ on:
         description: 'Release notes shown to testers'
         required: true
         type: string
+        
 
 permissions:
   contents: read
@@ -55,8 +56,8 @@ jobs:
 
       - name: Install Android NDK
         if: steps.ndk-cache.outputs.cache-hit != 'true'
-        run: |
-          yes | sdkmanager "ndk;$NDK_VERSION"
+        # cmdline-tools is not on PATH on the runner image.
+        run: echo y | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --install "ndk;$NDK_VERSION"
 
       # pubspec.lock is in the key because the resolved plugin set determines
       # which Android artifacts Gradle has to fetch.
