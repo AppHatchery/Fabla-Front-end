@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      MIN_COVERAGE: "18"
+      MIN_COVERAGE: "19"
     steps:
       - uses: actions/checkout@v6
 
