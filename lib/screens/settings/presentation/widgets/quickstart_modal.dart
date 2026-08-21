@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/utils/quickstart_handler.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/video_loading_indicator.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/video_progress_bar.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -106,7 +107,7 @@ class _QuickstartModalState extends State<QuickstartModal> {
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           child: _controller == null || _controller2 == null
-              ? _loadingIndicator()
+              ? VideoLoadingIndicator()
               : (_showSkipped ? _skipped() : _walkThrough()),
         ),
       ),
@@ -158,7 +159,7 @@ class _QuickstartModalState extends State<QuickstartModal> {
                     aspectRatio: controller.value.aspectRatio,
                     child: VideoPlayer(controller),
                   )
-                : _loadingIndicator(),
+                : VideoLoadingIndicator(),
           ),
         ),
       ],
@@ -205,7 +206,7 @@ class _QuickstartModalState extends State<QuickstartModal> {
                       aspectRatio: controller2.value.aspectRatio,
                       child: VideoPlayer(controller2),
                     )
-                  : _loadingIndicator(),
+                  : VideoLoadingIndicator(),
             ),
           ),
 
@@ -214,16 +215,6 @@ class _QuickstartModalState extends State<QuickstartModal> {
             text: 'Dismiss',
           )
         ],
-      ),
-    );
-  }
-
-  Widget _loadingIndicator() {
-    return const Center(
-      child: CircularProgressIndicator(
-        color: CustomColors.productNormal,
-        strokeCap: StrokeCap.round,
-        strokeWidth: 6.0,
       ),
     );
   }
