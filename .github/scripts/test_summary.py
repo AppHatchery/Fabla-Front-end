@@ -54,27 +54,17 @@ def bar(pct, width=20):
     return "█" * filled + "░" * (width - filled)
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("results")
-    parser.add_argument("out")
-    parser.add_argument("coverage", nargs="?", default="")
-    parser.add_argument("threshold", nargs="?", default="")
-    parser.add_argument("--summary-out", default="")
-    parser.add_argument("--lines", default="",
-                        help='lcov line detail, e.g. "1234 of 3032"')
-    args = parser.parse_args()
+def parse_results(results_path):
+    names = {}
+    test_suite = {}
+    suite_path = {}
+    errors = {}
+    results = {}
+    starts = {}
+    durations = {}
+    run_ms = 0
 
-    names = {}        # testID -> test name
-    test_suite = {}   # testID -> suiteID
-    suite_path = {}   # suiteID -> file path
-    errors = {}       # testID -> [error message, ...]
-    results = {}      # testID -> {result, skipped, hidden}
-    starts = {}       # testID -> start time (ms since run start)
-    durations = {}    # testID -> wall-clock ms
-    run_ms = 0        # ms since run start of the last event seen
-
-    for event in load_events(args.results):
+    for event in load_events(results_path):
         run_ms = max(run_ms, event.get("time", 0))
         kind = event.get("type")
         if kind == "suite":
@@ -125,6 +115,57 @@ def main():
             ))
 
     total = passed + failed + skipped
+    return {
+        "passed": passed,
+        "failed": failed,
+        "skipped": skipped,
+        "total": total,
+        "failures": failures,
+        "per_file": per_file,
+        "run_ms": run_ms,
+        "durations": durations,
+        "names": names,
+        "suite_path": suite_path,
+        "test_suite": test_suite,
+        "results": results
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("results")
+    parser.add_argument("out")
+    parser.add_argument("coverage", nargs="?", default="")
+    parser.add_argument("threshold", nargs="?", default="")
+    parser.add_argument("--summary-out", default="")
+    parser.add_argument("--lines", default="",
+                        help='lcov line detail, e.g. "1234 of 3032"')
+    parser.add_argument("--val-results", default="",
+                        help="JSON reporter output for validator tests")
+    parser.add_argument("--val-coverage", default="",
+                        help="Validator coverage percentage")
+    parser.add_argument("--val-lines", default="",
+                        help="Validator lcov line detail")
+    parser.add_argument("--val-threshold", default="",
+                        help="Validator coverage gate percentage")
+    parser.add_argument("--val-report", default="",
+                        help="Path to the validator's markdown report")
+    args = parser.parse_args()
+
+    app_res = parse_results(args.results)
+    passed = app_res["passed"]
+    failed = app_res["failed"]
+    skipped = app_res["skipped"]
+    total = app_res["total"]
+    failures = app_res["failures"]
+    per_file = app_res["per_file"]
+    run_ms = app_res["run_ms"]
+    durations = app_res["durations"]
+    names = app_res["names"]
+    suite_path = app_res["suite_path"]
+    test_suite = app_res["test_suite"]
+    results = app_res["results"]
+
     pass_rate = (passed / total * 100) if total else 0.0
     icon = "✅" if failed == 0 and total > 0 else ("❌" if failed else "⚠️")
     status_word = "PASSED" if failed == 0 and total > 0 else ("FAILED" if failed else "NO TESTS")
@@ -190,6 +231,70 @@ def main():
         lines.append("> ⚠️ **No test results were parsed** — the run likely failed "
                      "before tests executed (build/setup error). Check the log.")
         lines.append("")
+
+    #  Release Validator Integration
+    if args.val_report:
+        try:
+            with open(args.val_report, "r", encoding="utf-8") as f:
+                lines += [f.read().rstrip("\n"), ""]
+        except FileNotFoundError:
+            lines += [
+                "### 🧱 ObjectBox Schema Validation",
+                "",
+                "> ⚠️ No validator report was produced — the schema validation "
+                "step did not complete. Check the *Run ObjectBox schema "
+                "validation* step in the run log.",
+                "",
+            ]
+
+    # Validator Tests is independent of the schema report: the tool's own
+    # tests can pass while the schema check fails, and vice versa.
+    if args.val_results or args.val_coverage:
+        lines += ["#### Validator Tests", ""]
+
+        if args.val_results:
+            v_res = parse_results(args.val_results)
+            v_total = v_res["total"]
+            v_passed = v_res["passed"]
+            v_failed = v_res["failed"]
+            v_skipped = v_res["skipped"]
+            v_pass_rate = (v_passed / v_total * 100) if v_total else 0.0
+
+            lines += [
+                "| Passed | Failed | Skipped | Total | Pass Rate |",
+                "| :---: | :---: | :---: | :---: | :---: |",
+                f"| {v_passed} | {v_failed} | {v_skipped} | {v_total} "
+                f"| {v_pass_rate:.1f}% |",
+                "",
+            ]
+            if v_total == 0:
+                lines += [
+                    "> ⚠️ No validator test results were parsed — the tool's "
+                    "tests did not run.",
+                    "",
+                ]
+
+        if args.val_coverage:
+            v_detail = (f" ({args.val_lines.replace(' of ', '/')} lines)"
+                        if args.val_lines else "")
+            try:
+                v_cov = float(args.val_coverage)
+                v_gate = float(args.val_threshold) if args.val_threshold else None
+            except ValueError:
+                v_cov, v_gate = None, None
+
+            if v_cov is not None and v_gate is not None:
+                v_status = "✅ PASS" if v_cov >= v_gate else "❌ FAIL"
+                lines += [
+                    f"**Validator coverage gate {v_status}** — "
+                    f"**{v_cov:.2f}%**{v_detail}, threshold {v_gate:.2f}%",
+                    "",
+                ]
+            else:
+                lines += [
+                    f"**Validator line coverage:** {args.val_coverage}%{v_detail}",
+                    "",
+                ]
 
     with open(args.out, "w", encoding="utf-8") as out:
         out.write("\n".join(lines) + "\n")
