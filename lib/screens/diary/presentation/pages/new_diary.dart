@@ -19,10 +19,22 @@ import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
 import '../../../../theme/dialogs/bottom_modals.dart';
 import '../../data/diary.dart';
+import '../../data/options.dart';
 import '../../data/prompt.dart';
 import '../../domain/repository/diary_repository.dart';
 import '../cubit/prompt/prompt_cubit.dart';
 import 'diarysummary.dart';
+
+/// Sentinel ids for locally-injected demo questions (not backed by a
+/// persisted Prompt row) used to preview a response type in the diary flow.
+const int kDebugAffectGridPromptId = -999;
+const int kDebugAffectGridPsilocybinPromptId = -998;
+const int kDebugAffectGridPublicSpeakingPromptId = -997;
+const Set<int> kDebugAffectGridPromptIds = {
+  kDebugAffectGridPromptId,
+  kDebugAffectGridPsilocybinPromptId,
+  kDebugAffectGridPublicSpeakingPromptId,
+};
 
 /// This class holds and manages all the pages in the page view
 /// It has all the UI elements of the New Daily Diary flow
@@ -54,6 +66,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   @override
   void initState() {
+    _addDebugAffectGridPrompt();
     controller = PageController();
     controllerInit();
     showTip();
@@ -84,6 +97,72 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     } else if (state == AppLifecycleState.resumed) {
       timer.start();
     }
+  }
+
+  /// Appends locally-injected affect-grid questions to the diary's prompts
+  /// so the new response type can be previewed without backend support.
+  /// Not persisted: they aren't written back to the DB or included in uploads.
+  void _addDebugAffectGridPrompt() {
+    _addDebugAffectGridQuestion(
+      id: kDebugAffectGridPromptId,
+      question: "How are you feeling right now?",
+      subtitle: "Drag to the point that best reflects your current emotional state:",
+      axisTopLabel: "Activated",
+      axisBottomLabel: "Calm",
+      axisLeftLabel: "Unpleasant",
+      axisRightLabel: "Pleasant",
+    );
+    _addDebugAffectGridQuestion(
+      id: kDebugAffectGridPsilocybinPromptId,
+      question: "Right now, how do you feel during the session?",
+      subtitle: "Drag to the point that best captures your valence "
+          "(pleasant/unpleasant) and arousal (calm/activated) right now:",
+      axisTopLabel: "Activated / Intense",
+      axisBottomLabel: "Calm",
+      axisLeftLabel: "Unpleasant",
+      axisRightLabel: "Pleasant",
+    );
+    _addDebugAffectGridQuestion(
+      id: kDebugAffectGridPublicSpeakingPromptId,
+      question: "Right before your speech, how do you feel?",
+      subtitle: "Drag to the point that best captures how threatening this "
+          "feels and how keyed-up/activated you are:",
+      axisTopLabel: "Keyed-up / Activated",
+      axisBottomLabel: "Calm",
+      axisLeftLabel: "Threatening",
+      axisRightLabel: "Safe",
+    );
+  }
+
+  void _addDebugAffectGridQuestion({
+    required int id,
+    required String question,
+    required String subtitle,
+    required String axisTopLabel,
+    required String axisBottomLabel,
+    required String axisLeftLabel,
+    required String axisRightLabel,
+  }) {
+    final alreadyPresent =
+        widget.diary.prompts.any((prompt) => prompt.id == id);
+    if (alreadyPresent) return;
+
+    widget.diary.prompts.add(PromptModel(
+      id: id,
+      questionNumber: widget.diary.prompts.length,
+      question: question,
+      responseType: ResponseType.affectGrid,
+      required: false,
+      subtitle: subtitle,
+      multipleAnswer: false,
+      option: Options(
+        type: OptionsType.affectGrid,
+        axisTopLabel: axisTopLabel,
+        axisBottomLabel: axisBottomLabel,
+        axisLeftLabel: axisLeftLabel,
+        axisRightLabel: axisRightLabel,
+      ),
+    ));
   }
 
   void nextPage() {
@@ -429,6 +508,18 @@ class _QuestionPageState extends State<QuestionPage>
     widget.answerAdded(true);
   }
 
+  void updateGridValue(PromptModel prompt, Offset value) {
+    // The debug affect-grid prompts have no persisted Prompt row to save to;
+    // required:false already keeps "Next" unlocked for them (see checkForResponse).
+    if (kDebugAffectGridPromptIds.contains(prompt.id)) return;
+    save(
+        prompt,
+        '${value.dx.toStringAsFixed(3)},${value.dy.toStringAsFixed(3)}',
+        'other',
+        0);
+    widget.answerAdded(true);
+  }
+
   void _scrollToTop() {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
@@ -540,6 +631,22 @@ class _QuestionPageState extends State<QuestionPage>
         onSliderValueChanged: (value) => updateSliderValue(prompt, value),
         isSliderEnabled: !disabled,
       );
+    } else if (prompt.responseType == ResponseType.affectGrid) {
+      final existing = prompt.answer?.response?.first;
+      final parts = existing?.split(',');
+      final initialValue = parts != null && parts.length == 2
+          ? Offset(double.parse(parts[0]), double.parse(parts[1]))
+          : null;
+
+      responseWidget = AffectGridQuestionCard(
+        value: initialValue,
+        axisTopLabel: prompt.option?.axisTopLabel,
+        axisBottomLabel: prompt.option?.axisBottomLabel,
+        axisLeftLabel: prompt.option?.axisLeftLabel,
+        axisRightLabel: prompt.option?.axisRightLabel,
+        isGridEnabled: !disabled,
+        onPositionChanged: (value) => updateGridValue(prompt, value),
+      );
     } else if (prompt.responseType == ResponseType.multiple) {
       final selected = prompt.answer?.response != null
           ? prompt.answer?.response!.first.split("/ ")
@@ -639,6 +746,9 @@ class _QuestionPageState extends State<QuestionPage>
 
     if (prompt.responseType == ResponseType.slider) {
       questionTip = prompt.subtitle ?? "Please use the slider to rate:";
+    } else if (prompt.responseType == ResponseType.affectGrid) {
+      questionTip = prompt.subtitle ??
+          "Drag to the point that best reflects how you feel:";
     } else if (prompt.responseType == ResponseType.multiple) {
       questionTip = prompt.subtitle ?? "Please check all that apply:";
     } else if (prompt.responseType == ResponseType.radio) {
@@ -742,6 +852,12 @@ class _QuestionPageState extends State<QuestionPage>
   }
 
   void loadPrompt() {
+    // The debug affect-grid prompts have no persisted Prompt row, so they
+    // can't go through the normal DB-backed load path.
+    if (kDebugAffectGridPromptIds.contains(promptModel.id)) {
+      promptCubit.loadDebugPrompt(promptModel);
+      return;
+    }
     promptCubit.loadPrompt(widget.diary, promptModel);
     promptCubit.handleInstructionsPrompt(promptModel, widget.diary);
   }

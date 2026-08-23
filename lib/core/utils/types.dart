@@ -14,7 +14,8 @@ enum ResponseType {
   psychomotor,
   mediaImage,
   mediaVideo,
-  timePicker
+  timePicker,
+  affectGrid,
 }
 
 enum OptionType {

@@ -43,6 +43,13 @@ class PromptCubit extends Cubit<PromptState> {
     }
   }
 
+  /// Emits [prompt] directly, bypassing the DB round trip `loadPrompt` does.
+  /// Used to preview a response type via a locally-injected prompt that has
+  /// no persisted Prompt row (e.g. a debug/demo question).
+  void loadDebugPrompt(PromptModel prompt) {
+    emit(PromptLoaded(prompt));
+  }
+
   /// Save a response to the DB indicating the user has read the instructions
   void handleInstructionsPrompt(PromptModel prompt, DiaryModel diary) {
     if (prompt.responseType == ResponseType.instruction) {

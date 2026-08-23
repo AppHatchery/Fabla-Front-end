@@ -10,6 +10,13 @@ class Options {
   int? minValue;
   int? maxValue;
   int? defaultValue;
+  //Affect Grid (v4): one label per edge, each shown with a directional arrow
+  //pointing toward the grid. See docs/affect_grid_versions.md for the
+  //version history of this question type.
+  String? axisTopLabel;
+  String? axisBottomLabel;
+  String? axisLeftLabel;
+  String? axisRightLabel;
   //Audio & Video Variables
   Duration? suggestedLength;
   Duration? maxLength;
@@ -33,6 +40,10 @@ class Options {
       this.minValue,
       this.maxValue,
       this.defaultValue,
+      this.axisTopLabel,
+      this.axisBottomLabel,
+      this.axisLeftLabel,
+      this.axisRightLabel,
       this.suggestedLength,
       this.maxLength,
       this.displayTime,
@@ -56,6 +67,10 @@ class Options {
       minValue: json['min_value'],
       maxValue: json['max_value'],
       defaultValue: json['default_value'],
+      axisTopLabel: json['axis_top_label'],
+      axisBottomLabel: json['axis_bottom_label'],
+      axisLeftLabel: json['axis_left_label'],
+      axisRightLabel: json['axis_right_label'],
       maxLength: json['max_length'] != null &&
               (json['max_length'] as String).isNotEmpty
           ? formatStringToDuration(json['max_length'])
@@ -89,6 +104,10 @@ class Options {
       'min_value': minValue,
       'max_value': maxValue,
       'default_value': defaultValue,
+      'axis_top_label': axisTopLabel,
+      'axis_bottom_label': axisBottomLabel,
+      'axis_left_label': axisLeftLabel,
+      'axis_right_label': axisRightLabel,
       'max_length':
           maxLength != null ? formatDurationToString(maxLength!) : null,
       'suggested_length': suggestedLength != null
@@ -116,4 +135,5 @@ enum OptionsType {
   multiple,
   radio,
   slider,
+  affectGrid,
 }

@@ -185,6 +185,350 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
   }
 }
 
+/// A 2D quadrant slider ("affect grid") question card - v4.
+/// Captures a single (x, y) position in [-1, 1] on each axis via drag, with
+/// one label per edge (each shown with a directional arrow pointing toward
+/// the grid) and a faint dashed crosshair through the origin. None of that
+/// affects the collected value, which is always the raw (x, y) position.
+/// See docs/affect_grid_versions.md for the version history of this
+/// question type.
+class AffectGridQuestionCard extends StatefulWidget {
+  final Offset? value;
+  final bool isGridEnabled;
+  final ValueChanged<Offset>? onPositionChanged;
+  final Color colorFont;
+
+  final String? axisTopLabel;
+  final String? axisBottomLabel;
+  final String? axisLeftLabel;
+  final String? axisRightLabel;
+
+  /// Draws a faint dashed crosshair through the grid's center (0, 0).
+  final bool showCenterGuides;
+
+  /// Number of dots per row/column of the grid.
+  final int gridDivisions;
+
+  /// Fill color of the grid square. Defaults to a faint tint of
+  /// [CustomColors.fillDisabled].
+  final Color? backgroundColor;
+
+  /// Border color of the grid square. Defaults to [CustomColors.productBorderNormal].
+  final Color? borderColor;
+
+  /// Base color of the far-away background dots. Defaults to
+  /// [CustomColors.textNormalContent].
+  final Color? dotColor;
+
+  /// Color dots blend towards as they get closer to the thumb (both color
+  /// and opacity ramp up with proximity). Defaults to the effective thumb
+  /// color.
+  final Color? highlightDotColor;
+
+  /// Color of the draggable thumb when the grid is enabled. Ignored while
+  /// disabled, which always renders in [CustomColors.fillDisabled].
+  final Color? thumbColor;
+
+  const AffectGridQuestionCard({
+    super.key,
+    required this.value,
+    this.onPositionChanged,
+    required this.isGridEnabled,
+    this.colorFont = Colors.black,
+    this.axisTopLabel,
+    this.axisBottomLabel,
+    this.axisLeftLabel,
+    this.axisRightLabel,
+    this.showCenterGuides = true,
+    this.gridDivisions = 18,
+    this.backgroundColor,
+    this.borderColor,
+    this.dotColor,
+    this.highlightDotColor,
+    this.thumbColor,
+  });
+
+  @override
+  State<AffectGridQuestionCard> createState() =>
+      _AffectGridQuestionCardState();
+}
+
+class _AffectGridQuestionCardState extends State<AffectGridQuestionCard> {
+  Offset _position = Offset.zero;
+
+  @override
+  void initState() {
+    _position = widget.value ?? Offset.zero;
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant AffectGridQuestionCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value != oldWidget.value && widget.value != _position) {
+      setState(() {
+        _position = widget.value ?? Offset.zero;
+      });
+    }
+  }
+
+  void _updateFromLocalPosition(Offset localPosition, Size size) {
+    final dx = ((localPosition.dx / size.width) * 2 - 1).clamp(-1.0, 1.0);
+    final dy = (1 - (localPosition.dy / size.height) * 2).clamp(-1.0, 1.0);
+    setState(() => _position = Offset(dx, dy));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(5.0, 0.0, 5.0, 16.0),
+      decoration: BoxDecoration(
+          color: CustomColors.productLightPrimaryNormalWhite,
+          borderRadius: BorderRadius.circular(14.0)),
+      child: Column(spacing: 12, children: [
+        if (widget.axisTopLabel != null)
+          Center(
+            child: _AxisLabel(
+                label: widget.axisTopLabel!,
+                edge: _GridEdge.top,
+                color: widget.colorFont),
+          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (widget.axisLeftLabel != null)
+              _AxisLabel(
+                  label: widget.axisLeftLabel!,
+                  edge: _GridEdge.left,
+                  color: widget.colorFont),
+            Expanded(
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: LayoutBuilder(builder: (context, constraints) {
+                  final size = Size(constraints.maxWidth, constraints.maxHeight);
+                  return GestureDetector(
+                    onPanDown: widget.isGridEnabled
+                        ? (details) => _updateFromLocalPosition(
+                            details.localPosition, size)
+                        : null,
+                    onPanUpdate: widget.isGridEnabled
+                        ? (details) => _updateFromLocalPosition(
+                            details.localPosition, size)
+                        : null,
+                    onPanEnd: widget.isGridEnabled
+                        ? (_) => widget.onPositionChanged?.call(_position)
+                        : null,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: widget.backgroundColor ??
+                              CustomColors.fillDisabled.withValues(alpha: 0.15),
+                          border: Border.all(
+                              color: widget.borderColor ??
+                                  CustomColors.productBorderNormal),
+                        ),
+                        child: CustomPaint(
+                          painter: _AffectGridPainter(
+                            position: _position,
+                            gridDivisions: widget.gridDivisions,
+                            showCenterGuides: widget.showCenterGuides,
+                            dotColor: widget.dotColor ??
+                                CustomColors.textNormalContent,
+                            highlightDotColor: widget.isGridEnabled
+                                ? (widget.highlightDotColor ??
+                                    widget.thumbColor ??
+                                    CustomColors.productNormal)
+                                : CustomColors.fillDisabled,
+                            thumbColor: widget.isGridEnabled
+                                ? (widget.thumbColor ?? CustomColors.productNormal)
+                                : CustomColors.fillDisabled,
+                          ),
+                          child: Container(),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+            if (widget.axisRightLabel != null)
+              _AxisLabel(
+                  label: widget.axisRightLabel!,
+                  edge: _GridEdge.right,
+                  color: widget.colorFont),
+          ],
+        ),
+        if (widget.axisBottomLabel != null)
+          Center(
+            child: _AxisLabel(
+                label: widget.axisBottomLabel!,
+                edge: _GridEdge.bottom,
+                color: widget.colorFont),
+          ),
+      ]),
+    );
+  }
+}
+
+enum _GridEdge { top, bottom, left, right }
+
+/// An axis extreme label with a directional arrow anchored to one edge of
+/// the grid (arrow always sits closest to the grid).
+class _AxisLabel extends StatelessWidget {
+  final String label;
+  final _GridEdge edge;
+  final Color color;
+
+  const _AxisLabel(
+      {required this.label, required this.edge, required this.color});
+
+  IconData get _icon {
+    switch (edge) {
+      case _GridEdge.top:
+        return Icons.arrow_upward;
+      case _GridEdge.bottom:
+        return Icons.arrow_downward;
+      case _GridEdge.left:
+        return Icons.arrow_back;
+      case _GridEdge.right:
+        return Icons.arrow_forward;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Text(label,
+        textAlign: TextAlign.center,
+        style: CustomTypography().bodyMedium(color: color));
+    final icon = Icon(_icon, size: 16, color: color);
+
+    switch (edge) {
+      case _GridEdge.top:
+        return Column(mainAxisSize: MainAxisSize.min, spacing: 4, children: [
+          text,
+          icon,
+        ]);
+      case _GridEdge.bottom:
+        return Column(mainAxisSize: MainAxisSize.min, spacing: 4, children: [
+          icon,
+          text,
+        ]);
+      case _GridEdge.left:
+        return Row(mainAxisSize: MainAxisSize.min, spacing: 4, children: [
+          text,
+          icon,
+        ]);
+      case _GridEdge.right:
+        return Row(mainAxisSize: MainAxisSize.min, spacing: 4, children: [
+          icon,
+          text,
+        ]);
+    }
+  }
+}
+
+class _AffectGridPainter extends CustomPainter {
+  final Offset position; // x, y each in [-1, 1]; (0, 0) is the center
+  final int gridDivisions;
+  final bool showCenterGuides;
+  final Color dotColor;
+  final Color highlightDotColor;
+  final Color thumbColor;
+
+  _AffectGridPainter({
+    required this.position,
+    required this.gridDivisions,
+    required this.showCenterGuides,
+    required this.dotColor,
+    required this.highlightDotColor,
+    required this.thumbColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final spacingX = size.width / gridDivisions;
+    final spacingY = size.height / gridDivisions;
+
+    final center = Offset(
+      (position.dx + 1) / 2 * size.width,
+      (1 - (position.dy + 1) / 2) * size.height,
+    );
+
+    if (showCenterGuides) {
+      final origin = Offset(size.width / 2, size.height / 2);
+      final guidePaint = Paint()
+        ..color = dotColor.withValues(alpha: 0.3)
+        ..strokeWidth = 1;
+      _drawDashedLine(canvas, Offset(origin.dx, 0),
+          Offset(origin.dx, size.height), guidePaint);
+      _drawDashedLine(canvas, Offset(0, origin.dy),
+          Offset(size.width, origin.dy), guidePaint);
+    }
+
+    // Dots ripple outward from the thumb: near it they grow larger, more
+    // opaque, and blend towards highlightDotColor, fading back to a faint
+    // baseline dotColor further away.
+    final influenceRadius = size.shortestSide * 0.6;
+
+    for (int row = 0; row <= gridDivisions; row++) {
+      for (int col = 0; col <= gridDivisions; col++) {
+        final dotCenter = Offset(col * spacingX, row * spacingY);
+        final distance = (dotCenter - center).distance;
+        final proximity =
+            (1 - (distance / influenceRadius)).clamp(0.0, 1.0);
+        final intensity = proximity * proximity;
+
+        final radius = 1.2 + intensity * 3.0;
+        final alpha = 0.12 + intensity * 0.7;
+        final color = Color.lerp(dotColor, highlightDotColor, intensity)!;
+
+        canvas.drawCircle(
+          dotCenter,
+          radius,
+          Paint()..color = color.withValues(alpha: alpha),
+        );
+      }
+    }
+
+    canvas.drawCircle(center, 10, Paint()..color = thumbColor);
+    canvas.drawCircle(
+      center,
+      10,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+  }
+
+  void _drawDashedLine(Canvas canvas, Offset start, Offset end, Paint paint) {
+    const dashLength = 5.0;
+    const gapLength = 4.0;
+    final totalDistance = (end - start).distance;
+    final direction = (end - start) / totalDistance;
+
+    var covered = 0.0;
+    while (covered < totalDistance) {
+      final segmentStart = start + direction * covered;
+      final segmentEnd =
+          start + direction * (covered + dashLength).clamp(0.0, totalDistance);
+      canvas.drawLine(segmentStart, segmentEnd, paint);
+      covered += dashLength + gapLength;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _AffectGridPainter oldDelegate) =>
+      oldDelegate.position != position ||
+      oldDelegate.gridDivisions != gridDivisions ||
+      oldDelegate.showCenterGuides != showCenterGuides ||
+      oldDelegate.dotColor != dotColor ||
+      oldDelegate.highlightDotColor != highlightDotColor ||
+      oldDelegate.thumbColor != thumbColor;
+}
+
 class MultipleQuestion extends StatefulWidget {
   final List<String> options;
   final List<String>? selected;

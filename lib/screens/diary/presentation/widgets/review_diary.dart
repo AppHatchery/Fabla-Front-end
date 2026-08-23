@@ -205,6 +205,20 @@ class _ReviewDiaryState extends State<ReviewDiary> {
           isSliderEnabled: false,
           value: double.tryParse(prompt.answer?.response?.first ?? '') ?? 0.0,
         );
+      case ResponseType.affectGrid:
+        final parts = prompt.answer?.response?.first.split(',');
+        final value = parts != null && parts.length == 2
+            ? Offset(
+                double.tryParse(parts[0]) ?? 0, double.tryParse(parts[1]) ?? 0)
+            : null;
+        return AffectGridQuestionCard(
+          value: value,
+          axisTopLabel: prompt.option?.axisTopLabel,
+          axisBottomLabel: prompt.option?.axisBottomLabel,
+          axisLeftLabel: prompt.option?.axisLeftLabel,
+          axisRightLabel: prompt.option?.axisRightLabel,
+          isGridEnabled: false,
+        );
       case ResponseType.multiple:
         return MultipleQuestionSummary(
           answers: extractAnswers(prompt.answer?.response?.first),

@@ -307,6 +307,7 @@ final Map<String, ResponseType> _responseTypeMap = {
   'radio': ResponseType.radio,
   'single': ResponseType.radio,
   'slider': ResponseType.slider,
+  'affectGrid': ResponseType.affectGrid,
   'webview': ResponseType.webview,
   'timer': ResponseType.timer,
   'visualResponse-image': ResponseType.image,
@@ -337,6 +338,7 @@ final Map<ResponseType, String> _responseStringMap = {
   ResponseType.multiple: 'multiple',
   ResponseType.radio: 'radio',
   ResponseType.slider: 'slider',
+  ResponseType.affectGrid: 'affectGrid',
   ResponseType.webview: 'webview',
   ResponseType.timer: 'timer',
   ResponseType.image: 'visualResponse-image',
@@ -365,6 +367,10 @@ OptionsType optionTypeFromResponse(ResponseType? responseType) {
       return OptionsType.multiple;
     case ResponseType.radio:
       return OptionsType.radio;
+    case ResponseType.slider:
+      return OptionsType.slider;
+    case ResponseType.affectGrid:
+      return OptionsType.affectGrid;
     default:
       return OptionsType.multiple;
   }
@@ -378,6 +384,8 @@ String optionTypeToString(OptionsType type) {
       return 'radio';
     case OptionsType.slider:
       return 'slider';
+    case OptionsType.affectGrid:
+      return 'affectGrid';
   }
 }
 
