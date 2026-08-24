@@ -96,14 +96,15 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
     WakelockPlus.disable();
     _timer?.cancel();
-    if (mounted) setState(() => recorderState = RecorderState.isPaused);
 
     try {
       await recorder.pauseRecorder();
     } catch (e, s) {
       CrashlyticsService()
           .recordError(e, s, reason: 'pauseRecorder on app pause failed');
+      return;
     }
+    if (mounted) setState(() => recorderState = RecorderState.isPaused);
   }
 
   @override
@@ -555,6 +556,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   /// returns its intended path, which is how empty recordings reach the
   /// database.
   Future<void> _restoreAudioSession() async {
+    if (!recorder.isPaused) return;
     try {
       final session = await _configureAudioSession();
       await session.setActive(true);
