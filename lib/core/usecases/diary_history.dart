@@ -259,7 +259,7 @@ bool _shouldShowUncompletedDiary(DiaryModel diary, DateTime now) {
 
 /// Determines if a specific entry should be included in the history
 bool _shouldIncludeEntry(DiaryModel entryDiary, int entryIndex, DateTime now) {
-  // Check if this specific entry has been answered
+  // Check if the diary entry has any answeres
   final hasAnswer = entryDiary.prompts.any(
       (prompt) => promptRepository.load(entryDiary, prompt.id).answer != null);
 
