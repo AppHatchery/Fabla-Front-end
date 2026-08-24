@@ -47,6 +47,7 @@ import 'screens/diary/presentation/pages/diaries.dart';
 import 'screens/diary/presentation/pages/diarysummary.dart';
 import 'screens/home/presentation/cubit/cubit/home_cubit.dart';
 import 'services/notification_service.dart';
+import 'services/background_worker.dart';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:audio_diaries_flutter/core/notifications/controllers/notifications_controller.dart';
@@ -79,6 +80,9 @@ void main() async {
     PendoService.init(),
     _configureFirebase(),
   ]);
+
+  // Register and schedule the proof-of-concept background worker.
+  await initBackgroundWorker();
 
   // RouteService reads ObjectBox (via SetupRepository), so it must run after
   // the batch above completes.
