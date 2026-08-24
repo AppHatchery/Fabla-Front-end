@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
@@ -439,24 +440,50 @@ mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
   Future<void> initAudio(String relativePath) async {
     _recordingPath = relativePath;
 
-    final dir = await getApplicationDocumentsDirectory();
-    final path = p.join(dir.path, relativePath);
-    final file = File(path);
+    final String path;
+    final File file;
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      path = p.join(dir.path, relativePath);
+      file = File(path);
+    } catch (e, s) {
+      dev.log('Could not resolve recording path',
+          error: e, stackTrace: s, name: 'AudioPathResolveFailed');
+      _fail(AudioStatus.canNotPlay, e, s);
+      onAudioStatusResolved(AudioStatus.canNotPlay, duringLoad: true);
+      return;
+    }
 
-    if (!await file.exists()) {
-      _fail(
-        AudioStatus.fileNotFound,
-        FileSystemException('Recording file not found', path),
-      );
+    try {
+      if (!await file.exists()) {
+        _fail(
+          AudioStatus.fileNotFound,
+          FileSystemException('Recording file not found', path),
+        );
+        onAudioStatusResolved(AudioStatus.fileNotFound, duringLoad: true);
+        return;
+      }
+    } catch (e, s) {
+      dev.log('Could not check if file exists or not',
+          error: e, stackTrace: s, name: 'AudioNotFoundCheckFailed');
+      _fail(AudioStatus.fileNotFound, e, s);
       onAudioStatusResolved(AudioStatus.fileNotFound, duringLoad: true);
       return;
     }
 
-    if (await file.length() == 0) {
-      _fail(
-        AudioStatus.noAudioLength,
-        FileSystemException('Recording file is empty', path),
-      );
+    try {
+      if (await file.length() == 0) {
+        _fail(
+          AudioStatus.noAudioLength,
+          FileSystemException('Recording file is empty', path),
+        );
+        onAudioStatusResolved(AudioStatus.noAudioLength, duringLoad: true);
+        return;
+      }
+    } catch (e, s) {
+      dev.log('Could not check recording file length',
+          error: e, stackTrace: s, name: 'AudioLengthCheckFailed');
+      _fail(AudioStatus.noAudioLength, e, s);
       onAudioStatusResolved(AudioStatus.noAudioLength, duringLoad: true);
       return;
     }
@@ -505,6 +532,7 @@ mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
     } catch (e, s) {
       await player.dispose();
       _fail(AudioStatus.canNotPlay, e, s);
+      onAudioStatusResolved(AudioStatus.canNotPlay, duringLoad: true);
     }
   }
 
