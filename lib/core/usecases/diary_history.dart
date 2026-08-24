@@ -11,7 +11,6 @@ import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 final diaryRepository = DiaryRepository();
 final promptRepository = PromptRepository();
 
-
 class PaginatedDiaryResult {
   final Map<String, List<DiaryModel>> diaries;
   final bool hasMore;
@@ -40,7 +39,6 @@ List<DiaryModel> _getOrBuildDiaryCache() {
   if (_cachedProcessedDiaries == null ||
       _cacheTime == null ||
       now.difference(_cacheTime!) > _cacheDuration) {
-
     _cachedProcessedDiaries = _buildProcessedDiariesList();
     _cacheTime = now;
   }
@@ -52,8 +50,8 @@ List<DiaryModel> _buildProcessedDiariesList() {
   final unfilteredDiaries = diaryRepository.getAllDiaries();
 
   final now = DateTime.now();
-  final tomorrow = DateTime(now.year, now.month, now.day)
-      .add(const Duration(days: 1));
+  final tomorrow =
+      DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
 
   final eligibleDiaries = unfilteredDiaries
       .where((diary) => diary.start.isBefore(tomorrow))
@@ -262,12 +260,13 @@ bool _shouldShowUncompletedDiary(DiaryModel diary, DateTime now) {
 /// Determines if a specific entry should be included in the history
 bool _shouldIncludeEntry(DiaryModel entryDiary, int entryIndex, DateTime now) {
   // Check if this specific entry has been answered
-  final prompt = promptRepository.load(entryDiary, entryDiary.prompts.first.id);
+  final hasAnswer = entryDiary.prompts.any(
+      (prompt) => promptRepository.load(entryDiary, prompt.id).answer != null);
 
   // Include if:
   // 1. The entry has been answered (has an answer)
   // 2. OR it's an idle diary that's still within due time
-  return prompt.answer != null ||
+  return hasAnswer ||
       (entryDiary.status == DiaryStatus.idle && entryDiary.due.isAfter(now));
 }
 
