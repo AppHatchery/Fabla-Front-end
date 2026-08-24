@@ -42,10 +42,6 @@ void callbackDispatcher() {
 }
 
 /// Registers the WorkManager callback and schedules the POC periodic task.
-///
-/// Android enforces a 15-minute minimum for periodic work; shorter frequencies
-/// are clamped to 15 minutes by the OS. Re-registering on each launch is safe:
-/// the default periodic policy keeps the existing scheduled task.
 Future<void> initBackgroundWorker() async {
   await Workmanager().initialize(callbackDispatcher);
   await Workmanager().registerPeriodicTask(
