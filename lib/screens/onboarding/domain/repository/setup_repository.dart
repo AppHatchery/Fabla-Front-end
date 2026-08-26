@@ -564,7 +564,8 @@ class SetupRepository {
 
     String? firebaseToken;
     try {
-      firebaseToken = await FirebaseMessaging.instance.getToken();
+      firebaseToken =
+      kDebugMode ? "dev" : await FirebaseMessaging.instance.getToken();
       if (firebaseToken != null) {
       } else {
         debugPrint("Failed to fetch Firebase token: Token is null.");
