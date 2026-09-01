@@ -1,11 +1,11 @@
-import 'package:audio_diaries_flutter/screens/settings/widgets/settings_mic_test.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/settings_mic_test.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../../../theme/custom_colors.dart';
-import '../../../theme/custom_typography.dart';
+import '../../../../theme/custom_colors.dart';
+import '../../../../theme/custom_typography.dart';
 
 class TestMicrophone extends StatefulWidget {
   const TestMicrophone({super.key});

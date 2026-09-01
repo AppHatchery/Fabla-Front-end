@@ -83,12 +83,55 @@ void main() {
         setupAllPreferenceMocks(setup: true);
         // Participant data is irrelevant if setup is true
         when(mockSetupRepository.getParticipant()).thenReturn(null);
+        when(mockPreferenceService.getBoolPreference(
+                key: 'has_seen_quickstart'))
+            .thenAnswer((_) async => true);
 
         final widget = await routeService.getRoute();
         expect(widget, isA<Hub>());
         verify(mockPreferenceService.setBoolPreference(
                 key: 'cold_start', value: true))
             .called(1);
+      });
+
+      testWidgets(
+          'should mark has_seen_quickstart as seen when setup is true and it was never recorded',
+          (WidgetTester tester) async {
+        setupAllPreferenceMocks(setup: true);
+        when(mockSetupRepository.getParticipant()).thenReturn(null);
+        when(mockPreferenceService.getBoolPreference(
+                key: 'has_seen_quickstart'))
+            .thenAnswer((_) async => null);
+        when(mockPreferenceService.setBoolPreference(
+                key: 'has_seen_quickstart', value: true))
+            .thenAnswer((_) async => true);
+
+        final widget = await routeService.getRoute();
+
+        expect(widget, isA<Hub>());
+        // A missing preference here always means an existing installation
+        // that predates the quickstart walkthrough (see
+        // RouteService._prepareQuickstartForExistingParticipant) — it
+        // should be marked seen so the modal never surfaces for them.
+        verify(mockPreferenceService.setBoolPreference(
+                key: 'has_seen_quickstart', value: true))
+            .called(1);
+      });
+
+      testWidgets(
+          'should not touch has_seen_quickstart when setup is true and it was already recorded',
+          (WidgetTester tester) async {
+        setupAllPreferenceMocks(setup: true);
+        when(mockSetupRepository.getParticipant()).thenReturn(null);
+        when(mockPreferenceService.getBoolPreference(
+                key: 'has_seen_quickstart'))
+            .thenAnswer((_) async => true);
+
+        final widget = await routeService.getRoute();
+
+        expect(widget, isA<Hub>());
+        verifyNever(mockPreferenceService.setBoolPreference(
+            key: 'has_seen_quickstart', value: true));
       });
 
       testWidgets(

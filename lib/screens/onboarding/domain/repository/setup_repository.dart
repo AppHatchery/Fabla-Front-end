@@ -778,8 +778,20 @@ class SetupRepository {
       // Clear all notifications
       await NotificationService.cancelAllNotifications();
 
+      // Clearing preferences below would also wipe 'has_seen_quickstart',
+      // resurfacing the quickstart walkthrough for a returning participant.
+      // Preserve it if it was already set.
+      final hasSeenQuickstart = await PreferenceService()
+              .getBoolPreference(key: 'has_seen_quickstart') ??
+          false;
+
       // Clear all preferences
       await PreferenceService().clearPreferences();
+
+      if (hasSeenQuickstart) {
+        await PreferenceService()
+            .setBoolPreference(key: 'has_seen_quickstart', value: true);
+      }
       // Clear home progress tracking
       await clearAllHomeProgressTracking();
 
