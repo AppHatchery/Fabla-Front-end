@@ -73,6 +73,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   String? tempUrl;
   // a flag to check if the recording is active or not
   bool _recordingCheck = false;
+  bool _recordingTransitioning = false;
 
   ScrollController scrollController = ScrollController();
 
@@ -81,30 +82,30 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   r.RiveWidgetController? _riveController;
   double animationHeight = 0;
 
+  //interruption
+  StreamSubscription<AudioInterruptionEvent>? _interruptionSubscription;
+  bool _isInterrupted = false;
+  StreamSubscription<AudioDevicesChangedEvent>? _devicesChangedSubscription;
+
+  /// Ids of the input devices present when the current recording started,
+  /// matched against later removals to detect a route loss mid-recording.
+  final Set<String> _inputDeviceIds = {};
+
+  DateTime? _recordingStartedAt;
+
+  static const _minimumRecordingStartDelay = Duration(
+    milliseconds: 400,
+  );
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
-      _handleAppPaused();
-    } else if (state == AppLifecycleState.resumed) {
-      _restoreAudioSession();
+    if (state == AppLifecycleState.resumed) {
+      // Deliberately fire-and-forget: _activateAudioSession() reports its own
+      // failures and never throws, so nothing can escape into
+      // PlatformDispatcher.onError and be logged as a fatal.
+      unawaited(_activateAudioSession());
     }
     super.didChangeAppLifecycleState(state);
-  }
-
-  Future<void> _handleAppPaused() async {
-    if (!recorder.isRecording) return;
-
-    WakelockPlus.disable();
-    _timer?.cancel();
-
-    try {
-      await recorder.pauseRecorder();
-    } catch (e, s) {
-      CrashlyticsService()
-          .recordError(e, s, reason: 'pauseRecorder on app pause failed');
-      return;
-    }
-    if (mounted) setState(() => recorderState = RecorderState.isPaused);
   }
 
   @override
@@ -121,7 +122,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       riveFactory: r.Factory.rive,
     );
 
-    if(!mounted) {
+    if (!mounted) {
       file?.dispose();
       return;
     }
@@ -141,6 +142,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   @override
   void dispose() {
+    _interruptionSubscription?.cancel();
+    _devicesChangedSubscription?.cancel();
+    _interruptionSubscription = null;
+    _devicesChangedSubscription = null;
     recorder.closeRecorder();
     _riveController?.dispose();
     _riveFile?.dispose();
@@ -251,13 +256,15 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      recorderState == RecorderState.isPaused
-                          ? "Resume Recording"
-                          : recorderState == RecorderState.isRecording
-                              ? "Recording"
-                              : isCompleted
-                                  ? "Save Recording"
-                                  : "Start Recording",
+                      _isInterrupted
+                          ? "Recording Interrupted"
+                          : recorderState == RecorderState.isPaused
+                              ? "Resume Recording"
+                              : recorderState == RecorderState.isRecording
+                                  ? "Recording"
+                                  : isCompleted
+                                      ? "Save Recording"
+                                      : "Start Recording",
                       style: CustomTypography().custom(
                         color: CustomColors.fillWhite,
                         fontWeight: FontWeight.w500,
@@ -516,10 +523,131 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Future<void> recorderInit() async {
     try {
       await recorder.openRecorder();
-      await _configureAudioSession();
-      await recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
+
+      final session = await _configureAudioSession();
+
+      _interruptionSubscription ??= session.interruptionEventStream.listen(
+        _handleAudioInterruption,
+      );
+
+      _devicesChangedSubscription ??= session.devicesChangedEventStream.listen(
+        _handleAudioDevicesChanged,
+      );
+
+      await recorder.setSubscriptionDuration(
+        const Duration(milliseconds: 150),
+      );
     } catch (e, s) {
-      CrashlyticsService().recordError(e, s, reason: 'recorderInit failed');
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'recorderInit failed',
+      );
+    }
+  }
+
+  /// Snapshots the inputs available as a recording starts, so a later removal
+  /// can be matched against the route we actually began on.
+  Future<void> _captureInputDevices() async {
+    try {
+      final session = await AudioSession.instance;
+      final devices = await session.getDevices(includeOutputs: false);
+
+      _inputDeviceIds
+        ..clear()
+        ..addAll(devices.where((d) => d.isInput).map((device) => device.id));
+    } catch (e, s) {
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'Input device snapshot failed',
+      );
+    }
+  }
+
+  /// Pauses when an input the recording started on disappears.
+  ///
+  /// Asking whether *any* input still exists would never be false: the
+  /// built-in mic is always reported by [AudioSession.getDevices] and is never
+  /// removed, so that test can never fire. Matching a removal against the
+  /// snapshot instead is what catches the case that matters — a Bluetooth
+  /// headset or wired mic dropping out and silently rerouting a live
+  /// recording. The built-in mic sits harmlessly in the snapshot: it is never
+  /// removed, so it can never trigger this.
+  Future<void> _handleAudioDevicesChanged(
+    AudioDevicesChangedEvent event,
+  ) async {
+    if (!mounted || !recorder.isRecording) {
+      return;
+    }
+
+    // A mic attached mid-recording takes over the route, so it becomes what a
+    // later removal is matched against.
+    for (final device in event.devicesAdded) {
+      if (device.isInput) _inputDeviceIds.add(device.id);
+    }
+
+    var lostActiveInput = false;
+    for (final device in event.devicesRemoved) {
+      // Not `any`: it short-circuits, which would leave the rest of a
+      // multi-device removal still marked as present.
+      if (device.isInput && _inputDeviceIds.remove(device.id)) {
+        lostActiveInput = true;
+      }
+    }
+
+    if (!lostActiveInput) return;
+
+    await _pauseForAudioIssue();
+  }
+
+  //interruption handler
+  Future<void> _handleAudioInterruption(
+    AudioInterruptionEvent event,
+  ) async {
+    if (!event.begin) {
+      await _handleInterruptionEnd();
+      return;
+    }
+
+    await _pauseForAudioIssue();
+  }
+
+  Future<void> _handleInterruptionEnd() async {
+    if (!mounted || !_isInterrupted) {
+      return;
+    }
+
+    // Stay interrupted when the session could not be revived.
+    if (!await _activateAudioSession()) return;
+    if (!mounted) return;
+
+    setState(() {
+      _isInterrupted = false;
+    });
+  }
+
+  //helper method for audioIssue
+  Future<void> _pauseForAudioIssue() async {
+    if (!mounted || !recorder.isRecording) {
+      return;
+    }
+
+    WakelockPlus.disable();
+    _timer?.cancel();
+
+    try {
+      await recorder.pauseRecorder();
+      setState(() {
+        _isInterrupted = true;
+        recorderState = RecorderState.isPaused;
+      });
+    } catch (e, s) {
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'Failed to pause recorder for audio issue',
+      );
     }
   }
 
@@ -536,33 +664,37 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       avAudioSessionRouteSharingPolicy:
           AVAudioSessionRouteSharingPolicy.defaultPolicy,
       avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
-      androidAudioAttributes: const AndroidAudioAttributes(
+      androidAudioAttributes: AndroidAudioAttributes(
         contentType: AndroidAudioContentType.speech,
         flags: AndroidAudioFlags.none,
         usage: AndroidAudioUsage.voiceCommunication,
       ),
-      androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+      //Allows exclusive hard pause on other media players
+      androidAudioFocusGainType:
+          AndroidAudioFocusGainType.gainTransientExclusive,
       androidWillPauseWhenDucked: true,
     ));
     return session;
   }
 
-  /// Restores the audio session after the app returns to the foreground.
-  ///
-  /// iOS deactivates the app's AVAudioSession when it is interrupted or
-  /// backgrounded, and flutter_sound does not restore it. Without this, the
-  /// next `startRecorder()` succeeds at the Dart level while AVAudioRecorder
-  /// captures nothing — the file is never written, but `stopRecorder()` still
-  /// returns its intended path, which is how empty recordings reach the
-  /// database.
-  Future<void> _restoreAudioSession() async {
-    if (!recorder.isPaused) return;
+  /// Configures and activates the audio session — both to claim it for a fresh
+  /// recording and to restore it after an interruption or a return to the foreground.
+  /// Reports failure by returning `false` rather than throwing: it is called
+  /// unawaited from [didChangeAppLifecycleState], where an escaping error
+  /// would reach `PlatformDispatcher.onError` and be recorded as a *fatal*.
+  Future<bool> _activateAudioSession() async {
     try {
       final session = await _configureAudioSession();
       await session.setActive(true);
+      return true;
     } catch (e, s) {
-      CrashlyticsService()
-          .recordError(e, s, reason: 'Audio session restore failed');
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'Audio session activation failed',
+      );
+
+      return false;
     }
   }
 
@@ -587,10 +719,54 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Future<void> stop() async {
-    tempUrl = await recorder.stopRecorder();
+    final startedAt = _recordingStartedAt;
+    if (startedAt == null) {
+      return;
+    }
+
+    if (DateTime.now().difference(startedAt) < _minimumRecordingStartDelay) {
+      return;
+    }
+
+    // Cancelled before the call, not after: a throw below would otherwise
+    // leave the limit branch of startTimer() re-firing stop() every second.
     _timer?.cancel();
-    if (!mounted) return;
-    setState(() => recorderState = RecorderState.isStopped);
+    _recordingStartedAt = null;
+
+    try {
+      tempUrl = await recorder.stopRecorder();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        recorderState = RecorderState.isStopped;
+      });
+    } catch (e, s) {
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'stopRecorder failed',
+      );
+
+      // Re-armed so the stop button keeps working. Leaving this null strands
+      // the modal: every later tap returns at the guard above, and isCompleted
+      // never turns true, so neither stop nor save is ever reachable again and
+      // the take is lost.
+      _recordingStartedAt = startedAt;
+
+      if (!mounted) {
+        return;
+      }
+
+      // Not isStopped — there is no file to save, so the modal must not offer
+      // the save button. Paused is the honest "not capturing right now" state
+      // and keeps stop on screen for a retry.
+      setState(() {
+        recorderState = RecorderState.isPaused;
+      });
+    }
   }
 
   Future<void> redo() async {
@@ -643,7 +819,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Future<void> record() async {
     //if recording is active return
-    if (_recordingCheck) return;
+    if (_recordingCheck || _recordingTransitioning) return;
 
     // set recoding to true
     _recordingCheck = true;
@@ -651,9 +827,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     try {
       final hasPermission = await checkAndRequestPermission();
       //TODO:: add a show permission error when recorder has no permission
-      if (!hasPermission) return;
-
-      if (!mounted) return;
+      if (!hasPermission || !mounted) return;
 
       //Check if scroll controller is already at the bottom
       scrollController.animateTo(
@@ -665,34 +839,76 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       if (recorder.isRecording) {
         WakelockPlus.disable();
         _timer?.cancel();
+
         await recorder.pauseRecorder();
-      } else if (recorder.isPaused) {
-        WakelockPlus.enable();
-        await recorder.resumeRecorder();
-        startTimer();
-      } else {
-        //start fresh
-        final path = await getFilePath();
-        WakelockPlus.enable();
-        await recorder.startRecorder(toFile: path);
-        startTimer();
+        if (mounted) {
+          setState(() {
+            recorderState = RecorderState.isPaused;
+          });
+        }
+        return;
       }
+      if (recorder.isPaused) {
+        WakelockPlus.enable();
+
+        await recorder.resumeRecorder();
+
+        if (mounted) {
+          setState(() {
+            recorderState = RecorderState.isRecording;
+          });
+        }
+
+        startTimer();
+        return;
+      }
+      _recordingTransitioning = true;
+
+      //start fresh
+      final path = await getFilePath();
+      WakelockPlus.enable();
+
+      // Activation is what registers the Android audio-focus listener backing
+      // `interruptionEventStream` — audio_session only attaches it inside
+      // setActive(true), so without this the interruption handling above is
+      // iOS-only. iOS gets its notifications from the session singleton
+      // regardless, so this is safe on both. Failure is reported and does not
+      // abort the take: a degraded recording still beats none.
+      await _activateAudioSession();
+      await _captureInputDevices();
+
+      await recorder.startRecorder(toFile: path);
+
+      _recordingStartedAt = DateTime.now();
 
       if (mounted) {
         setState(() {
-          recorderState = recorder.isRecording
-              ? RecorderState.isRecording
-              : RecorderState.isPaused;
+          recorderState = RecorderState.isRecording;
         });
       }
+
+      startTimer();
+
+      // Prevent an immediate stop after startRecorder().
+      await Future<void>.delayed(
+        const Duration(milliseconds: 400),
+      );
     } catch (e, s) {
       debugPrint('record() failed: $e');
-      CrashlyticsService().recordError(e, s, reason: 'record() failed');
 
-      //reset state to stopped state
-      if (mounted) setState(() => recorderState = RecorderState.isStopped);
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'record() failed',
+      );
+
+      if (mounted) {
+        setState(() {
+          recorderState = RecorderState.isStopped;
+        });
+      }
     } finally {
-      //set recording check back to false
+      _recordingTransitioning = false;
       _recordingCheck = false;
     }
   }
@@ -710,38 +926,90 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     WakelockPlus.disable();
     try {
       _timer?.cancel();
-      if (mounted) setState(() => recorderState = RecorderState.isStopped);
-
+      if (mounted) {
+        setState(() => recorderState = RecorderState.isStopped);
+      }
       final url = tempUrl;
-      if (url == null) return;
+      if (url == null) {
+        return;
+      }
+      final hasValidAudio = await _hasValidAudioFile(url);
 
-      final file = File(url);
-      if (!await file.exists() || await file.length() == 0) {
+      if (!hasValidAudio) {
         tempUrl = null;
+
         await CrashlyticsService().recordError(
-          FileSystemException('Recorder produced no audio file', url),
+          FileSystemException(
+            'Recorder produced no audio file',
+            url,
+          ),
           StackTrace.current,
           reason: 'save() aborted - empty recording',
-          context: {'prompt_id': widget.promptId},
+          context: {
+            'prompt_id': widget.promptId,
+          },
         );
 
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         setState(() {
-          elapsed = const Duration();
+          elapsed = Duration.zero;
           timer = "00:00";
           _erase.value = !_erase.value;
         });
+
         return;
       }
-      widget.onSave?.call(basePath(file.path));
-      if (mounted) Navigator.pop(context);
+
+      widget.onSave?.call(basePath(url));
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
     } catch (e, s) {
-      CrashlyticsService().recordError(e, s, reason: 'save() failed');
-      PendoService.track("Failed to Save Audio", {
-        "study_date": "${DateTime.now()}",
-        "prompt_number": "${widget.promptId + 1}"
-      });
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'save() failed',
+      );
+
+      PendoService.track(
+        "Failed to Save Audio",
+        {
+          "study_date": "${DateTime.now()}",
+          "prompt_number": "${widget.promptId + 1}",
+        },
+      );
     }
+  }
+
+  //missing file helper function
+  Future<bool> _hasValidAudioFile(String path) async {
+    final file = File(path);
+
+    if (!await file.exists()) {
+      return false;
+    }
+
+    var length = await file.length();
+
+    if (length > 0) {
+      return true;
+    }
+
+    await Future<void>.delayed(
+      const Duration(milliseconds: 200),
+    );
+
+    if (!await file.exists()) {
+      return false;
+    }
+
+    length = await file.length();
+
+    return length > 0;
   }
 
   Future<bool> checkAndRequestPermission() async {
@@ -837,7 +1105,7 @@ class _BottomTextModalState extends State<BottomTextModal>
       riveFactory: r.Factory.rive,
     );
 
-    if(!mounted) {
+    if (!mounted) {
       file?.dispose();
       return;
     }
@@ -1603,7 +1871,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
       riveFactory: r.Factory.rive,
     );
 
-    if(!mounted) {
+    if (!mounted) {
       file?.dispose();
       return;
     }
@@ -2724,7 +2992,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       riveFactory: r.Factory.rive,
     );
 
-    if(!mounted) {
+    if (!mounted) {
       file?.dispose();
       return;
     }
@@ -2837,15 +3105,15 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                         textAlign: TextAlign.center,
                         style: CustomTypography()
                             .custom(
-                              color: CustomColors.textWhite,
-                              fontWeight: FontWeight.w400,
-                              fontSize: 48,
-                            )
+                          color: CustomColors.textWhite,
+                          fontWeight: FontWeight.w400,
+                          fontSize: 48,
+                        )
                             .copyWith(
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
-                            ),
+                          fontFeatures: const [
+                            FontFeature.tabularFigures(),
+                          ],
+                        ),
                       ),
                     ),
             ),
