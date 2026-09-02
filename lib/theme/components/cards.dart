@@ -494,14 +494,18 @@ mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
       await player.setReleaseMode(ReleaseMode.stop);
       await player.setPlayerMode(PlayerMode.mediaPlayer);
 
-      final duration = await player.getDuration();
+      final duration = await _probeDuration(player);
       if (duration == null || duration <= Duration.zero) {
         await player.dispose();
+        // canNotPlay, not noAudioLength: the file was already confirmed to
+        // exist and hold bytes above, so this is the decoder declining to
+        // report a duration, not an empty recording. The distinction decides
+        // whether the row is deleted — see [RecordingAnswerChecker.report].
         _fail(
-          AudioStatus.noAudioLength,
+          AudioStatus.canNotPlay,
           FileSystemException('Recording has no playable duration', path),
         );
-        onAudioStatusResolved(AudioStatus.noAudioLength, duringLoad: true);
+        onAudioStatusResolved(AudioStatus.canNotPlay, duringLoad: true);
         return;
       }
 
@@ -534,6 +538,22 @@ mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
       _fail(AudioStatus.canNotPlay, e, s);
       onAudioStatusResolved(AudioStatus.canNotPlay, duringLoad: true);
     }
+  }
+
+  /// Asks the platform for the recording's duration, retrying once.
+  ///
+  /// A first call can come back null on a perfectly good file — the decoder
+  /// has not finished preparing the source yet, which shows up on AAC on some
+  /// Android devices. A single null used to be treated as proof the recording
+  /// was empty, and that verdict deletes the participant's audio, so it is
+  /// worth one bounded second look before believing it.
+  Future<Duration?> _probeDuration(AudioPlayer player) async {
+    final first = await player.getDuration();
+    if (first != null && first > Duration.zero) return first;
+
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+
+    return player.getDuration();
   }
 
   /// Called once the card settles on a terminal status, so a parent can react

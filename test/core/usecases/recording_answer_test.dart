@@ -85,13 +85,16 @@ void main() {
       expect(discarded, ['audios/a.aac']);
     });
 
-    test('an undecodable file is discarded like a missing one', () {
-      // The file exists and has content, but nothing can play it. Leaving it
-      // would let the participant proceed and then fail at submission.
+    test('an undecodable file is remembered but never deleted', () {
+      // The file exists and holds bytes — only the decoder objected, and a
+      // decoder can object to a good recording (a first getDuration() on AAC
+      // comes back null on some devices). Discarding deletes the audio and
+      // its row, so this verdict alone must not trigger it. The recording
+      // still does not count as an answer, so the gate stays shut.
       checker.report('audios/a.aac', AudioStatus.canNotPlay);
 
       expect(checker.unplayable['audios/a.aac'], AudioStatus.canNotPlay);
-      expect(discarded, ['audios/a.aac']);
+      expect(discarded, isEmpty);
     });
 
     test('repeating the same verdict does not discard twice', () {
@@ -121,19 +124,19 @@ void main() {
       expect(discarded, isEmpty, reason: 'a working recording is never dropped');
     });
 
-    test('a replacement under a new filename clears the old notice', () {
-      // The replacement is saved as a fresh row with its own timestamped name,
-      // so clearing by path alone would leave the discarded recording's
-      // explanation on screen beside the new answer.
-      checker.report('audios/audio_prompt_1_20-55-36.aac',
-          AudioStatus.fileNotFound);
+    test('a healthy sibling does not clear another recording\'s notice', () {
+      // A multiple-answer prompt with one bad recording and one good one.
+      // Clearing every notice on any success made the outcome depend on which
+      // card resolved last: if the good one won, the discarded recording just
+      // vanished from the list with nothing on screen to explain it. Only a
+      // replacement retires a notice, and countUsable() is what spots one.
+      checker.report('audios/bad.aac', AudioStatus.fileNotFound);
       discarded.clear();
 
-      final changed = checker.report(
-          'audios/audio_prompt_1_21-02-14.aac', AudioStatus.available);
+      final changed = checker.report('audios/good.aac', AudioStatus.available);
 
-      expect(changed, isTrue);
-      expect(checker.unplayable, isEmpty);
+      expect(changed, isFalse, reason: 'nothing about bad.aac changed');
+      expect(checker.unplayable['audios/bad.aac'], AudioStatus.fileNotFound);
       expect(discarded, isEmpty);
     });
 
@@ -142,7 +145,8 @@ void main() {
       checker.report('audios/b.aac', AudioStatus.canNotPlay);
 
       expect(checker.unplayable, hasLength(2));
-      expect(discarded, ['audios/a.aac', 'audios/b.aac']);
+      expect(discarded, ['audios/a.aac'],
+          reason: 'only the filesystem verdict deletes a row');
     });
   });
 
@@ -261,6 +265,70 @@ void main() {
 
       expect(await checker.countUsable([_recording('audios/nested.aac')]), 1);
       expect(await checker.countUsable([_recording('nested.aac')]), 0);
+    });
+
+    test('a replacement recorded under a new filename retires the notice',
+        () async {
+      // The replacement is saved as a fresh row with its own timestamped
+      // name, so its notice can never be matched by path — it has to be
+      // recognised as new instead, or the discarded recording's explanation
+      // sits on screen beside the new answer forever.
+      const old = 'audios/audio_prompt_1_20-55-36.aac';
+      const replacement = 'audios/audio_prompt_1_21-02-14.aac';
+
+      // First sweep: the take was never written, so the row goes.
+      expect(await checker.countUsable([_recording(old)]), 0);
+      expect(discarded, [old]);
+      expect(checker.unplayable[old], AudioStatus.fileNotFound);
+
+      // Second sweep, after the participant records again.
+      write(replacement, bytes: 16);
+
+      expect(await checker.countUsable([_recording(replacement)]), 1);
+      expect(checker.unplayable, isEmpty);
+    });
+
+    test('a sibling that was there all along retires nothing', () async {
+      // The other half of the same rule: only a *new* recording counts as a
+      // replacement. A healthy sibling present on the previous sweep must not
+      // erase the explanation for one that was discarded.
+      write('audios/good.aac', bytes: 16);
+
+      final first = await checker.countUsable([
+        _recording('audios/good.aac'),
+        _recording('audios/missing.aac'),
+      ]);
+      final second = await checker.countUsable([
+        _recording('audios/good.aac'),
+        _recording('audios/missing.aac'),
+      ]);
+
+      expect(first, 1);
+      expect(second, 1);
+      expect(checker.unplayable['audios/missing.aac'],
+          AudioStatus.fileNotFound);
+    });
+
+    test('survives a discard that removes from the list being swept', () async {
+      // The tests above inject a `discard` that only records the path, which
+      // is not what production does: it reaches
+      // PromptRepository.removeResponse, whose `recordings.removeWhere` runs
+      // synchronously on the very `Answer.recordings` relation handed to this
+      // sweep. Walking that list directly threw ConcurrentModificationError on
+      // the next moveNext — on any single unusable recording, the one case the
+      // sweep exists for.
+      final recordings = [
+        _recording('audios/missing_one.aac'),
+        _recording('audios/missing_two.aac'),
+      ];
+
+      final mutating = RecordingAnswerChecker(
+        discard: (path) => recordings.removeWhere((r) => r.path == path),
+      );
+
+      expect(await mutating.countUsable(recordings), 0);
+      expect(recordings, isEmpty, reason: 'both rows should be discarded');
+      expect(mutating.unplayable, hasLength(2));
     });
   });
 }
