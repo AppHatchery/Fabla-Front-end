@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
@@ -58,6 +59,23 @@
             </intent-filter>
         </activity>
         <service android:name="com.gdelataillade.alarm.services.NotificationOnKillService" />
+        <!-- Keeps microphone access alive while a diary is being recorded and
+             the app is not in the foreground. Android revokes the mic from a
+             backgrounded app that has no microphone-typed foreground service,
+             and the recorder keeps running regardless, so without this a take
+             captures silence for the time spent away.
+
+             stopWithTask: this service exists only for the length of a take.
+             Left to survive task removal it would outlive the engine that
+             owns the recorder, leaving a microphone notification and a wake
+             lock with nothing recording. It also makes the plugin's
+             RebootReceiver a no-op, so a reboot can never resurrect the
+             notification for a diary already finished. -->
+        <service
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:foregroundServiceType="microphone"
+            android:stopWithTask="true"
+            android:exported="false" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
