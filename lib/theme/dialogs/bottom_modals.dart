@@ -88,20 +88,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   bool _isInterrupted = false;
   StreamSubscription<AudioDevicesChangedEvent>? _devicesChangedSubscription;
 
-  /// Fires when the route the recording was using disappears — a Bluetooth
-  /// headset switched off, a wired mic unplugged.
-  ///
-  /// [_handleAudioDevicesChanged] cannot be relied on for this. On iOS
-  /// audio_session derives that event by diffing the current route against the
-  /// previous one, and the previous one defaults to the current route until a
-  /// route change has already been seen. Since [AudioSession.instance] is
-  /// first created here, in [recorderInit], a headset paired before the modal
-  /// opened makes its disconnect the very first route change — diffed against
-  /// itself, so `devicesRemoved` arrives empty and nothing pauses. This stream
-  /// is emitted straight off the `oldDeviceUnavailable` notification with no
-  /// diffing, so it fires the first time too.
-  StreamSubscription<void>? _becomingNoisySubscription;
-
   /// Ids of the input devices present when the current recording started,
   /// matched against later removals to detect a route loss mid-recording.
   final Set<String> _inputDeviceIds = {};
@@ -112,41 +98,15 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     milliseconds: 400,
   );
 
-  /// Whether the microphone foreground service is currently running.
-  ///
-  /// Kept in step with "a take is being captured": started on the tap that
-  /// begins or resumes one, stopped everywhere capture ends. It is also what
-  /// [_handleAppBackgrounded] reads to decide whether backgrounding is safe.
-  bool _foregroundServiceActive = false;
-
-  /// Notification id for the recording service. Distinct from the ids the
-  /// alarm and reminder notifications use so it cannot replace one of theirs.
-  static const _recordingServiceId = 8291;
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
-      _handleAppPaused();
-    } else if (state == AppLifecycleState.resumed) {
-      _restoreAudioSession();
+    if (state == AppLifecycleState.resumed) {
+      // Deliberately fire-and-forget: _activateAudioSession() reports its own
+      // failures and never throws, so nothing can escape into
+      // PlatformDispatcher.onError and be logged as a fatal.
+      unawaited(_activateAudioSession());
     }
     super.didChangeAppLifecycleState(state);
-  }
-
-  Future<void> _handleAppPaused() async {
-    if (!recorder.isRecording) return;
-
-    WakelockPlus.disable();
-    _timer?.cancel();
-
-    try {
-      await recorder.pauseRecorder();
-    } catch (e, s) {
-      CrashlyticsService()
-          .recordError(e, s, reason: 'pauseRecorder on app pause failed');
-      return;
-    }
-    if (mounted) setState(() => recorderState = RecorderState.isPaused);
   }
 
   @override
@@ -185,17 +145,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   void dispose() {
     _interruptionSubscription?.cancel();
     _devicesChangedSubscription?.cancel();
-    _becomingNoisySubscription?.cancel();
     _interruptionSubscription = null;
     _devicesChangedSubscription = null;
-    _becomingNoisySubscription = null;
-    // The modal can be torn down without either button being tapped — a
-    // system back gesture, a route pop — so the lock and the audio focus are
-    // released here rather than only in stop()/save().
-    WakelockPlus.disable();
-    unawaited(_stopForegroundService());
-    unawaited(_deactivateAudioSession());
-    unawaited(_shutdownRecorder());
+    recorder.closeRecorder();
     _riveController?.dispose();
     _riveFile?.dispose();
     scrollController.dispose();
@@ -348,7 +300,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      recorderState == RecorderState.isPaused
+                      _isInterrupted
+                          ? "Recording Interrupted"
+                          : recorderState == RecorderState.isPaused
                               ? "Resume Recording"
                               : recorderState == RecorderState.isRecording
                                   ? "Recording"
@@ -613,10 +567,131 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Future<void> recorderInit() async {
     try {
       await recorder.openRecorder();
-      await _configureAudioSession();
-      await recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
+
+      final session = await _configureAudioSession();
+
+      _interruptionSubscription ??= session.interruptionEventStream.listen(
+        _handleAudioInterruption,
+      );
+
+      _devicesChangedSubscription ??= session.devicesChangedEventStream.listen(
+        _handleAudioDevicesChanged,
+      );
+
+      await recorder.setSubscriptionDuration(
+        const Duration(milliseconds: 150),
+      );
     } catch (e, s) {
-      CrashlyticsService().recordError(e, s, reason: 'recorderInit failed');
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'recorderInit failed',
+      );
+    }
+  }
+
+  /// Snapshots the inputs available as a recording starts, so a later removal
+  /// can be matched against the route we actually began on.
+  Future<void> _captureInputDevices() async {
+    try {
+      final session = await AudioSession.instance;
+      final devices = await session.getDevices(includeOutputs: false);
+
+      _inputDeviceIds
+        ..clear()
+        ..addAll(devices.where((d) => d.isInput).map((device) => device.id));
+    } catch (e, s) {
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'Input device snapshot failed',
+      );
+    }
+  }
+
+  /// Pauses when an input the recording started on disappears.
+  ///
+  /// Asking whether *any* input still exists would never be false: the
+  /// built-in mic is always reported by [AudioSession.getDevices] and is never
+  /// removed, so that test can never fire. Matching a removal against the
+  /// snapshot instead is what catches the case that matters — a Bluetooth
+  /// headset or wired mic dropping out and silently rerouting a live
+  /// recording. The built-in mic sits harmlessly in the snapshot: it is never
+  /// removed, so it can never trigger this.
+  Future<void> _handleAudioDevicesChanged(
+    AudioDevicesChangedEvent event,
+  ) async {
+    if (!mounted || !recorder.isRecording) {
+      return;
+    }
+
+    // A mic attached mid-recording takes over the route, so it becomes what a
+    // later removal is matched against.
+    for (final device in event.devicesAdded) {
+      if (device.isInput) _inputDeviceIds.add(device.id);
+    }
+
+    var lostActiveInput = false;
+    for (final device in event.devicesRemoved) {
+      // Not `any`: it short-circuits, which would leave the rest of a
+      // multi-device removal still marked as present.
+      if (device.isInput && _inputDeviceIds.remove(device.id)) {
+        lostActiveInput = true;
+      }
+    }
+
+    if (!lostActiveInput) return;
+
+    await _pauseForAudioIssue();
+  }
+
+  //interruption handler
+  Future<void> _handleAudioInterruption(
+    AudioInterruptionEvent event,
+  ) async {
+    if (!event.begin) {
+      await _handleInterruptionEnd();
+      return;
+    }
+
+    await _pauseForAudioIssue();
+  }
+
+  Future<void> _handleInterruptionEnd() async {
+    if (!mounted || !_isInterrupted) {
+      return;
+    }
+
+    // Stay interrupted when the session could not be revived.
+    if (!await _activateAudioSession()) return;
+    if (!mounted) return;
+
+    setState(() {
+      _isInterrupted = false;
+    });
+  }
+
+  //helper method for audioIssue
+  Future<void> _pauseForAudioIssue() async {
+    if (!mounted || !recorder.isRecording) {
+      return;
+    }
+
+    WakelockPlus.disable();
+    _timer?.cancel();
+
+    try {
+      await recorder.pauseRecorder();
+      setState(() {
+        _isInterrupted = true;
+        recorderState = RecorderState.isPaused;
+      });
+    } catch (e, s) {
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'Failed to pause recorder for audio issue',
+      );
     }
   }
 
@@ -646,22 +721,24 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     return session;
   }
 
-  /// Restores the audio session after the app returns to the foreground.
-  ///
-  /// iOS deactivates the app's AVAudioSession when it is interrupted or
-  /// backgrounded, and flutter_sound does not restore it. Without this, the
-  /// next `startRecorder()` succeeds at the Dart level while AVAudioRecorder
-  /// captures nothing — the file is never written, but `stopRecorder()` still
-  /// returns its intended path, which is how empty recordings reach the
-  /// database.
-  Future<void> _restoreAudioSession() async {
-    if (!recorder.isPaused) return;
+  /// Configures and activates the audio session — both to claim it for a fresh
+  /// recording and to restore it after an interruption or a return to the foreground.
+  /// Reports failure by returning `false` rather than throwing: it is called
+  /// unawaited from [didChangeAppLifecycleState], where an escaping error
+  /// would reach `PlatformDispatcher.onError` and be recorded as a *fatal*.
+  Future<bool> _activateAudioSession() async {
     try {
       final session = await _configureAudioSession();
       await session.setActive(true);
+      return true;
     } catch (e, s) {
-      CrashlyticsService()
-          .recordError(e, s, reason: 'Audio session restore failed');
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'Audio session activation failed',
+      );
+
+      return false;
     }
   }
 
@@ -693,25 +770,55 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     });
   }
 
-  /// Ends the take, reporting whether the recorder actually stopped.
-  ///
-  /// The return value is what [startTimer] gates its automatic [save] on: a
-  /// stop that never happened leaves no file to persist.
-  Future<bool> stop() async {
+  Future<void> stop() async {
     final startedAt = _recordingStartedAt;
     if (startedAt == null) {
-      return false;
+      return;
     }
 
     if (DateTime.now().difference(startedAt) < _minimumRecordingStartDelay) {
-      return false;
+      return;
     }
 
     // Cancelled before the call, not after: a throw below would otherwise
     // leave the limit branch of startTimer() re-firing stop() every second.
     _timer?.cancel();
-    if (!mounted) return;
-    setState(() => recorderState = RecorderState.isStopped);
+    _recordingStartedAt = null;
+
+    try {
+      tempUrl = await recorder.stopRecorder();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        recorderState = RecorderState.isStopped;
+      });
+    } catch (e, s) {
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'stopRecorder failed',
+      );
+
+      // Re-armed so the stop button keeps working. Leaving this null strands
+      // the modal: every later tap returns at the guard above, and isCompleted
+      // never turns true, so neither stop nor save is ever reachable again and
+      // the take is lost.
+      _recordingStartedAt = startedAt;
+
+      if (!mounted) {
+        return;
+      }
+
+      // Not isStopped — there is no file to save, so the modal must not offer
+      // the save button. Paused is the honest "not capturing right now" state
+      // and keeps stop on screen for a retry.
+      setState(() {
+        recorderState = RecorderState.isPaused;
+      });
+    }
   }
 
   Future<void> redo() async {
@@ -786,11 +893,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         _timer?.cancel();
 
         await recorder.pauseRecorder();
-
-        // Nothing is being captured while paused, so the service — and the
-        // microphone notification announcing it — should not be up either.
-        await _stopForegroundService();
-
         if (mounted) {
           setState(() {
             recorderState = RecorderState.isPaused;
@@ -801,27 +903,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       if (recorder.isPaused) {
         WakelockPlus.enable();
 
-        // Started here rather than only on a fresh take: this tap is a
-        // foreground moment, and resuming without it leaves the rest of the
-        // recording unprotected against a background switch.
-        await _startForegroundService();
-
-        // Resuming out of an audio issue: the session may have been
-        // deactivated and the route replaced under us, so both are reclaimed
-        // before the encoder writes again. A device removal has no
-        // interruption-end event to run [_handleInterruptionEnd], so this is
-        // also the only place that can clear the banner — without it the
-        // header stays on "Recording Interrupted" for the rest of the take.
-        if (_isInterrupted) {
-          await _activateAudioSession();
-          await _captureInputDevices();
-        }
-
         await recorder.resumeRecorder();
 
         if (mounted) {
           setState(() {
-            _isInterrupted = false;
             recorderState = RecorderState.isRecording;
           });
         }
@@ -844,12 +929,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       await _activateAudioSession();
       await _captureInputDevices();
 
-      // Before startRecorder(), so the mic is already protected by the time
-      // anything is being written. Failure is not fatal here either: it means
-      // the take is foreground-only, and _handleAppBackgrounded() pauses
-      // instead of letting Android hand the encoder silence.
-      await _startForegroundService();
-
       await recorder.startRecorder(toFile: path);
 
       _recordingStartedAt = DateTime.now();
@@ -859,9 +938,15 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
           recorderState = RecorderState.isRecording;
         });
       }
+
+      startTimer();
+
+      // Prevent an immediate stop after startRecorder().
+      await Future<void>.delayed(
+        const Duration(milliseconds: 400),
+      );
     } catch (e, s) {
       debugPrint('record() failed: $e');
-      CrashlyticsService().recordError(e, s, reason: 'record() failed');
 
       CrashlyticsService().recordError(
         e,
@@ -869,22 +954,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         reason: 'record() failed',
       );
 
-      // Enabled above, before startRecorder() — so a throw from the start or
-      // resume path would otherwise hold the screen awake for the rest of the
-      // app's life with nothing recording. Same for the service, whose
-      // notification would otherwise claim a recording that never began.
-      WakelockPlus.disable();
-      await _stopForegroundService();
-
-      if (mounted) {
-        setState(() {
-          recorderState = RecorderState.isStopped;
-        });
-      }
-    } finally {
-      _recordingTransitioning = false;
-      _recordingCheck = false;
-    }
   }
 
   /// Persists the recording, but only once the recorder has actually produced
@@ -901,35 +970,62 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     try {
       _timer?.cancel();
 
+      if (mounted) {
+        setState(() => recorderState = RecorderState.isStopped);
+      }
       final url = tempUrl;
-      if (url == null) return;
+      if (url == null) {
+        return;
+      }
+      final hasValidAudio = await _hasValidAudioFile(url);
 
-      final file = File(url);
-      if (!await file.exists() || await file.length() == 0) {
+      if (!hasValidAudio) {
         tempUrl = null;
+
         await CrashlyticsService().recordError(
-          FileSystemException('Recorder produced no audio file', url),
+          FileSystemException(
+            'Recorder produced no audio file',
+            url,
+          ),
           StackTrace.current,
           reason: 'save() aborted - empty recording',
-          context: {'prompt_id': widget.promptId},
+          context: {
+            'prompt_id': widget.promptId,
+          },
         );
 
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         setState(() {
-          elapsed = const Duration();
+          elapsed = Duration.zero;
           timer = "00:00";
           _erase.value = !_erase.value;
         });
+
         return;
       }
-      widget.onSave?.call(basePath(file.path));
-      if (mounted) Navigator.pop(context);
+
+      widget.onSave?.call(basePath(url));
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
     } catch (e, s) {
-      CrashlyticsService().recordError(e, s, reason: 'save() failed');
-      PendoService.track("Failed to Save Audio", {
-        "study_date": "${DateTime.now()}",
-        "prompt_number": "${widget.promptId + 1}"
-      });
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'save() failed',
+      );
+
+      PendoService.track(
+        "Failed to Save Audio",
+        {
+          "study_date": "${DateTime.now()}",
+          "prompt_number": "${widget.promptId + 1}",
+        },
+      );
     }
   }
 
