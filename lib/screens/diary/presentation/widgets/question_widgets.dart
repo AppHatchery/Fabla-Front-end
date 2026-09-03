@@ -458,7 +458,6 @@ class _AudioTextCardState extends State<AudioTextCard> {
                 text:
                     length > 0 ? "Record Another Answer" : "Record My Response",
               ),
-              const DisclaimerCard(),
               widget.prompt.responseType == ResponseType.textAudio
                   ? Column(
                       spacing: 24,
