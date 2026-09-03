@@ -13,15 +13,6 @@ void main() {
     });
   });
 
-  group('RecorderState Tests', () {
-    test('RecorderState enum should have all expected values', () {
-      expect(RecorderState.values.length, equals(3));
-      expect(RecorderState.values, contains(RecorderState.isStopped));
-      expect(RecorderState.values, contains(RecorderState.isPaused));
-      expect(RecorderState.values, contains(RecorderState.isRecording));
-    });
-  });
-
   group('SubmissionStatus Tests', () {
     // Tests that all three submission states exist in the enum
     test('SubmissionStatus enum should have all expected values', () {
