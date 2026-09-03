@@ -1368,7 +1368,7 @@ class FailedSubmissionCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(4)),
                         ),
                         child: Text(
-                          'Your entry is saved on your phone. You can submit it once you get back online.',
+                          'Your entry is saved on your phone and will submit automatically when you get back online.',
                           style: CustomTypography().bodyLarge(
                               color: CustomColors.productNormalActive),
                         ),
@@ -1779,6 +1779,7 @@ class NoNotificationCard extends StatelessWidget {
     );
   }
 }
+
 class WarningCard extends StatelessWidget {
   final String title;
   final String message;
@@ -1827,7 +1828,8 @@ class WarningCard extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
                     decoration: ShapeDecoration(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4)),

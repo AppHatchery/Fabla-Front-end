@@ -35,6 +35,7 @@ Future<PromptEntry?> appendLocation({
   required StudyModel? study,
   Location? location,
   PreferenceService? preferenceService,
+  bool allowPlatformLocationLookup = true,
 }) async {
   // Use injected dependencies or create default instances
   final locationService = location ?? Location();
@@ -46,6 +47,21 @@ Future<PromptEntry?> appendLocation({
       [];
 
   if (extraPermissions.contains('location')) {
+    if (!allowPlatformLocationLookup) {
+      return PromptEntry(
+          participantID: participantID,
+          experimentCode: experimentCode,
+          questionTitle: "Current location",
+          diaryID: diary.id.toString(),
+          diaryName: diary.name,
+          study: study?.name ?? 'unknown',
+          promptID: (promptLength + 1).toString(),
+          response: "Location unavailable during background submission",
+          respondedAt: "",
+          questionsType: "location",
+          required: true);
+    }
+
     // Updated to use injected location service instead of global instance
     final permission = await locationService.hasPermission();
     if (permission == PermissionStatus.granted) {

@@ -5,6 +5,7 @@ import FirebaseCore
 import FirebaseMessaging
 import UserNotifications
 import alarm
+import workmanager_apple
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -13,6 +14,13 @@ import alarm
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+      WorkmanagerPlugin.registerLaunchHandlers()
+      WorkmanagerPlugin.registerBGProcessingTask(
+        withIdentifier: "edu.emory.audio.diaries.backgroundUpload"
+      )
+      WorkmanagerPlugin.setPluginRegistrantCallback { registry in
+        GeneratedPluginRegistrant.register(with: registry)
+      }
       FirebaseApp.configure()
       
       UNUserNotificationCenter.current().delegate = self

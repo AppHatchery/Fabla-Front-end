@@ -148,7 +148,7 @@ class SummaryCubit extends Cubit<SummaryState> {
         resetNetworkError();
         emit(const SummarySubmitted());
       } else {
-        emit(const SubmitError());
+        emit(const SubmitNoInternet());
       }
     } catch (e, stackTrace) {
       dev.log("Error submitting diary: $e", name: "SummaryCubit - submitDiary");
@@ -190,6 +190,7 @@ class SummaryCubit extends Cubit<SummaryState> {
       await _summaryRepository.diaryRepository.updateDiary(newDiary);
     }
   }
+
   void saveNetworkError() async {
     final prefs = PreferenceService();
     await prefs.setBoolPreference(key: 'network_error', value: true);

@@ -121,6 +121,28 @@ void main() {
       expect(result, isNull);
     });
 
+    test('does not call the location plugin during background submission',
+        () async {
+      when(() => mockPreferenceService.getStringListPreference(
+          key: 'extra_permissions')).thenAnswer((_) async => ['location']);
+
+      final result = await appendLocation(
+        experimentCode: testExperimentCode,
+        participantID: testParticipantID,
+        promptLength: testPromptLength,
+        diary: testDiary,
+        study: testStudy,
+        location: mockLocation,
+        preferenceService: mockPreferenceService,
+        allowPlatformLocationLookup: false,
+      );
+
+      expect(result?.response,
+          equals('Location unavailable during background submission'));
+      verifyNever(() => mockLocation.hasPermission());
+      verifyNever(() => mockLocation.getLocation());
+    });
+
     test('should handle null extra permissions gracefully', () async {
       // Arrange
       when(() => mockPreferenceService.getStringListPreference(

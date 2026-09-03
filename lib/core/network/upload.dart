@@ -46,7 +46,11 @@ import 'secrets_handler.dart';
 ///   // Handle upload failure.
 /// }
 /// ```
-Future<bool> upload(String participantID, DiaryModel diary) async {
+Future<bool> upload(
+  String participantID,
+  DiaryModel diary, {
+  bool allowPlatformLocationLookup = true,
+}) async {
   try {
     final dir = await getApplicationDocumentsDirectory();
     final repository = SetupRepository();
@@ -89,7 +93,8 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
         participantID: participantID,
         promptLength: diary.prompts.length,
         diary: diary,
-        study: study);
+        study: study,
+        allowPlatformLocationLookup: allowPlatformLocationLookup);
     if (location != null) promptEntryList.add(location);
 
     // Submitting the completion time for this diary

@@ -1,8 +1,10 @@
 import 'dart:async' show unawaited;
 
 import 'package:alarm/alarm.dart';
+import 'package:audio_diaries_flutter/core/background/background_upload_manager.dart';
 import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart'
     show clearAllHomeProgressTracking, getAllHomeProgressTracking;
+import 'package:audio_diaries_flutter/core/network/secrets_handler.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/quickstart_handler.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -62,6 +64,7 @@ NotificationsController notificationController = NotificationsController();
 late List<CameraDescription> cameras;
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  await BackgroundUploadManager().initialize();
   FlutterNativeSplash.preserve(
       widgetsBinding: widgetsBinding); // Start Splash Screen
 
@@ -83,11 +86,13 @@ void main() async {
     NotificationService.init(),
     PendoService.init(),
     _configureFirebase(),
+    SecureSave().migrateCredentialsForBackgroundAccess(),
   ]);
 
   // RouteService reads ObjectBox (via SetupRepository), so it must run after
   // the batch above completes.
   final route = await RouteService().getRoute();
+  await BackgroundUploadManager().schedulePendingUploads();
 
   runApp(MyApp(
     route: route,

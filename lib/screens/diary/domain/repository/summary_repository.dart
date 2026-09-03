@@ -1,4 +1,6 @@
 import 'package:audio_diaries_flutter/core/network/upload.dart';
+import 'package:audio_diaries_flutter/core/background/background_upload_manager.dart';
+import 'package:audio_diaries_flutter/core/background/upload_execution_lock.dart';
 import 'package:audio_diaries_flutter/core/usecases/connectivity.dart';
 import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart';
 import 'package:audio_diaries_flutter/core/usecases/incentives.dart';
@@ -116,20 +118,43 @@ class SummaryRepository {
   /// - [diary]: The Diary object to be submitted.
   ///
   /// Returns:
-  /// A Future<bool> indicating the success or failure of the submission process.
+  /// A `Future<bool>` indicating the success or failure of the submission process.
   /// The boolean value indicates whether the submission was successful (true) or encountered an error (false).
   ///
-  Future<bool?> submitDiary(DiaryModel diary) async {
+  Future<bool?> submitDiary(
+    DiaryModel diary, {
+    bool scheduleBackgroundRetry = true,
+    bool acquireExecutionLock = true,
+    bool allowPlatformLocationLookup = true,
+  }) async {
+    final backgroundUploads = BackgroundUploadManager();
+    if (scheduleBackgroundRetry) {
+      await backgroundUploads.scheduleRetry();
+    }
+
+    final executionLock = UploadExecutionLock();
+    final lockToken = acquireExecutionLock ? await executionLock.acquire() : '';
+    if (acquireExecutionLock && lockToken == null) return false;
+
     try {
       final hasInternet = await checkForInternet();
-      if (!hasInternet) return null;
+      if (!hasInternet) {
+        // Replace the delayed Android safety task with expedited work. Its
+        // network constraint keeps it queued while offline and lets it begin
+        // as soon as Android reports a usable connection.
+        if (scheduleBackgroundRetry) {
+          await backgroundUploads.scheduleRetry(immediate: true);
+        }
+        return null;
+      }
 
       final participant = setupRepository.getParticipant();
-      final uploaded = await upload(participant!.studyCode, diary);
+      final uploaded = await upload(
+        participant!.studyCode,
+        diary,
+        allowPlatformLocationLookup: allowPlatformLocationLookup,
+      );
       final study = await diaryRepository.getStudy(diary.studyID);
-      // final entry = diary.status == DiaryStatus.submitted
-      //     ? diary.entries
-      //     : diary.currentEntry;
 
       if (uploaded) {
         late DiaryModel newDiary;
@@ -161,8 +186,6 @@ class SummaryRepository {
 
         await diaryRepository.updateDiary(newDiary);
 
-        // Cancel notifications if diary is complete
-        // Schedule daily goal notifications if diary is not complete
         if (diary.currentEntry + 1 >= diary.entries) {
           NotificationManager().cancelDiaryNotifications(diary.id);
         } else if (diary.currentEntry + 1 < study!.goals.daily) {
@@ -171,7 +194,11 @@ class SummaryRepository {
         cancelContinueNotifications(diary.id);
         calculateEarnedIncentivesForAWS(
             participantID: participant.studyCode, studyID: diary.studyID);
-        await modifyHomeProgressTracking(studyID: diary.studyID, submissions: 1, activateAnimation: true);
+        await modifyHomeProgressTracking(
+            studyID: diary.studyID, submissions: 1, activateAnimation: true);
+        if (scheduleBackgroundRetry) {
+          await backgroundUploads.cancelRetryIfQueueIsEmpty();
+        }
         return true;
       } else {
         return false;
@@ -187,6 +214,10 @@ class SummaryRepository {
           },
           reason: 'Unhandled exception in submitDiary - SummaryRepository');
       return false;
+    } finally {
+      if (acquireExecutionLock && lockToken != null) {
+        await executionLock.release(lockToken);
+      }
     }
   }
 
