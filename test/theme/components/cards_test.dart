@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:audio_diaries_flutter/core/utils/audioPlayer.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:flutter/material.dart';
