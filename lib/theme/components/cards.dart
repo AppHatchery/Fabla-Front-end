@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:developer' as dev;
+import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
@@ -8,6 +10,7 @@ import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repo
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -414,6 +417,213 @@ class _DiaryCardSmallState extends State<DiaryCardSmall> {
 ///
 /// The card is collapsible, and the controls are only visible when the card is expanded.
 ///
+/// Shared audio playback lifecycle for the recording cards.
+///
+/// The recording is verified on disk and decoded before [audioPlayer] is
+/// exposed, so a missing, empty or undecodable file settles on an
+/// [AudioStatus] the card can render instead of throwing an uncaught
+/// `PlatformException` out of the platform audio stack.
+mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
+  AudioPlayer? audioPlayer;
+  AudioStatus audioStatus = AudioStatus.loading;
+  bool isPlaying = false;
+  double currentSliderPosition = 0;
+  double maxSliderPosition = 0;
+  Duration maxDuration = Duration.zero;
+
+  /// Retained so failure reports identify which recording broke.
+  String _recordingPath = '';
+
+  bool get canPlay => audioStatus == AudioStatus.available;
+
+  /// Loads [relativePath], resolved against the documents directory.
+  Future<void> initAudio(String relativePath) async {
+    _recordingPath = relativePath;
+
+    final String path;
+    final File file;
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      path = p.join(dir.path, relativePath);
+      file = File(path);
+    } catch (e, s) {
+      dev.log('Could not resolve recording path',
+          error: e, stackTrace: s, name: 'AudioPathResolveFailed');
+      _fail(AudioStatus.canNotPlay, e, s);
+      onAudioStatusResolved(AudioStatus.canNotPlay, duringLoad: true);
+      return;
+    }
+
+    try {
+      if (!await file.exists()) {
+        _fail(
+          AudioStatus.fileNotFound,
+          FileSystemException('Recording file not found', path),
+        );
+        onAudioStatusResolved(AudioStatus.fileNotFound, duringLoad: true);
+        return;
+      }
+    } catch (e, s) {
+      dev.log('Could not check if file exists or not',
+          error: e, stackTrace: s, name: 'AudioNotFoundCheckFailed');
+      _fail(AudioStatus.fileNotFound, e, s);
+      onAudioStatusResolved(AudioStatus.fileNotFound, duringLoad: true);
+      return;
+    }
+
+    try {
+      if (await file.length() == 0) {
+        _fail(
+          AudioStatus.noAudioLength,
+          FileSystemException('Recording file is empty', path),
+        );
+        onAudioStatusResolved(AudioStatus.noAudioLength, duringLoad: true);
+        return;
+      }
+    } catch (e, s) {
+      dev.log('Could not check recording file length',
+          error: e, stackTrace: s, name: 'AudioLengthCheckFailed');
+      _fail(AudioStatus.noAudioLength, e, s);
+      onAudioStatusResolved(AudioStatus.noAudioLength, duringLoad: true);
+      return;
+    }
+
+    final player = AudioPlayer();
+    try {
+      await player.setSourceDeviceFile(path);
+      await player.setReleaseMode(ReleaseMode.stop);
+      await player.setPlayerMode(PlayerMode.mediaPlayer);
+
+      final duration = await _probeDuration(player);
+      if (duration == null || duration <= Duration.zero) {
+        await player.dispose();
+        // canNotPlay, not noAudioLength: the file was already confirmed to
+        // exist and hold bytes above, so this is the decoder declining to
+        // report a duration, not an empty recording. The distinction decides
+        // whether the row is deleted — see [RecordingAnswerChecker.report].
+        _fail(
+          AudioStatus.canNotPlay,
+          FileSystemException('Recording has no playable duration', path),
+        );
+        onAudioStatusResolved(AudioStatus.canNotPlay, duringLoad: true);
+        return;
+      }
+
+      // The card may have been popped while the source was loading.
+      if (!mounted) {
+        await player.dispose();
+        return;
+      }
+
+      player.onPositionChanged.listen((position) {
+        if (mounted) {
+          setState(
+              () => currentSliderPosition = position.inMilliseconds.toDouble());
+        }
+      });
+      player.onPlayerStateChanged.listen((state) {
+        if (mounted) setState(() => isPlaying = state == PlayerState.playing);
+      });
+
+      setState(() {
+        audioPlayer = player;
+        maxDuration = duration;
+        maxSliderPosition = duration.inMilliseconds.toDouble();
+        audioStatus = AudioStatus.available;
+      });
+
+      onAudioStatusResolved(AudioStatus.available, duringLoad: true);
+    } catch (e, s) {
+      await player.dispose();
+      _fail(AudioStatus.canNotPlay, e, s);
+      onAudioStatusResolved(AudioStatus.canNotPlay, duringLoad: true);
+    }
+  }
+
+  /// Asks the platform for the recording's duration, retrying once.
+  ///
+  /// A first call can come back null on a perfectly good file — the decoder
+  /// has not finished preparing the source yet, which shows up on AAC on some
+  /// Android devices. A single null used to be treated as proof the recording
+  /// was empty, and that verdict deletes the participant's audio, so it is
+  /// worth one bounded second look before believing it.
+  Future<Duration?> _probeDuration(AudioPlayer player) async {
+    final first = await player.getDuration();
+    if (first != null && first > Duration.zero) return first;
+
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+
+    return player.getDuration();
+  }
+
+  /// Called once the card settles on a terminal status, so a parent can react
+  /// to a recording that turned out to be unplayable.
+  ///
+  /// [duringLoad] separates "this file could not be loaded" from "playback of
+  /// an already-loaded file failed". The second can be transient — an
+  /// interrupted session, a route change — so a caller that discards broken
+  /// recordings must not act on it.
+  void onAudioStatusResolved(AudioStatus status, {required bool duringLoad}) {}
+
+  void disposeAudio() => audioPlayer?.dispose();
+
+  Future<void> play() =>
+      _run((player) => isPlaying ? player.pause() : player.resume());
+
+  Future<void> seek(double value) => _run((player) async {
+        await player.seek(Duration(milliseconds: value.toInt()));
+        if (!isPlaying) await player.resume();
+      });
+
+  /// Seeks [milliseconds] relative to the current position, clamped to the
+  /// recording's bounds. Negative values rewind.
+  Future<void> skip(int milliseconds) => _run((player) => player.seek(Duration(
+        milliseconds: (currentSliderPosition.toInt() + milliseconds)
+            .clamp(0, maxSliderPosition.toInt()),
+      )));
+
+  /// Runs [action] against the active player, retiring the player and falling
+  /// back to an error state if the platform rejects it.
+  Future<void> _run(Future<void> Function(AudioPlayer player) action) async {
+    final player = audioPlayer;
+    if (player == null || !canPlay) return;
+
+    try {
+      await action(player);
+    } catch (e, s) {
+      audioPlayer = null;
+      await player.dispose();
+      _fail(AudioStatus.canNotPlay, e, s);
+      onAudioStatusResolved(AudioStatus.canNotPlay, duringLoad: false);
+    }
+  }
+
+  /// Moves the card into a failure [status] and reports [error] as a non-fatal.
+  ///
+  /// Every failure path routes through here, so each one is reported exactly
+  /// once with the recording that caused it.
+  void _fail(AudioStatus status, Object error, [StackTrace? stackTrace]) {
+    CrashlyticsService().recordError(
+      error,
+      stackTrace ?? StackTrace.current,
+      reason: 'Recording unplayable: ${status.name}',
+      context: {
+        'recording_path': _recordingPath,
+        'audio_status': status.name,
+      },
+    );
+
+    if (!mounted) return;
+    setState(() {
+      audioStatus = status;
+      isPlaying = false;
+      currentSliderPosition = 0;
+      maxSliderPosition = 0;
+      maxDuration = Duration.zero;
+    });
+  }
+}
+
 /// The card is also clickable, and when clicked, it expands or collapses.
 class AudioDiaryCard extends StatefulWidget {
   final Recording recording;
@@ -437,40 +647,47 @@ class AudioDiaryCard extends StatefulWidget {
   State<AudioDiaryCard> createState() => _AudioDiaryCardState();
 }
 
-class _AudioDiaryCardState extends State<AudioDiaryCard> {
-  //Audio Player
-  late AudioPlayer audioPlayer;
-  bool isPlaying = false;
-  double currentSliderPosition = 0;
-  double maxSliderPosition = 0;
-  Duration maxDuration = Duration.zero;
-
+class _AudioDiaryCardState extends State<AudioDiaryCard>
+    with AudioPlaybackMixin<AudioDiaryCard> {
   @override
   void initState() {
-    playerInit();
     super.initState();
+    initAudio(widget.recording.path);
   }
 
   @override
   void dispose() {
-    audioPlayer.dispose();
+    disposeAudio();
     super.dispose();
+  }
+
+  void trackControl(String action) {
+    PendoService.track("AudioControl", {
+      "action": action,
+      "study_date": "${DateTime.now()}",
+      "prompt_number": "${widget.promptId + 1}"
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+
     if (widget.isExpanded) {
       PendoService.track("AudioOpen", {
         "study_date": "${DateTime.now()}",
       });
     }
+
     return SizedBox(
       width: width,
       child: GestureDetector(
         onTap: widget.onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
           decoration: BoxDecoration(
             color: CustomColors.fillWhite,
             borderRadius: BorderRadius.circular(12),
@@ -487,34 +704,25 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
             ],
             shape: BoxShape.rectangle,
           ),
-          child: SizedBox(
-            child: Column(
-              children: [
-                title(),
-                Visibility(
-                    visible: widget.isExpanded,
-                    child: Column(
-                      children: [
-                        // transcript(),
-                        /// Remove sized if transcript is available
-                        const SizedBox(
-                          height: 18,
-                        ),
-                        slider(width),
-                      ],
-                    )),
-                Visibility(
-                  visible: !widget.isExpanded,
-                  replacement: const SizedBox(
-                    height: 24,
-                  ),
-                  child: const SizedBox(
-                    height: 12,
-                  ),
+          child: Column(
+            children: [
+              title(),
+              Visibility(
+                visible: widget.isExpanded && canPlay,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 18),
+                    slider(width),
+                  ],
                 ),
-                controls(),
-              ],
-            ),
+              ),
+              Visibility(
+                visible: !widget.isExpanded,
+                replacement: const SizedBox(height: 24),
+                child: const SizedBox(height: 12),
+              ),
+              controls(),
+            ],
           ),
         ),
       ),
@@ -525,32 +733,29 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        SizedBox(
-          child: Row(
-            children: [
-              const Icon(CustomIcons.keyboardVoice),
-              const SizedBox(
-                width: 5,
-              ),
-              Text("New Diary", style: CustomTypography().title())
-            ],
-          ),
+        Row(
+          children: [
+            const Icon(CustomIcons.keyboardVoice),
+            const SizedBox(width: 5),
+            Text(
+              "New Diary",
+              style: CustomTypography().title(),
+            ),
+          ],
         ),
         Visibility(
           visible: widget.isExpanded,
-          child: SizedBox(
-            child: Row(
-              children: [
-                const Icon(Icons.access_time_rounded),
-                const SizedBox(
-                  width: 5,
-                ),
-                Text(formatDateShort(widget.recording.date),
-                    style: CustomTypography().titleRegular())
-              ],
-            ),
+          child: Row(
+            children: [
+              const Icon(Icons.access_time_rounded),
+              const SizedBox(width: 5),
+              Text(
+                formatDateShort(widget.recording.date),
+                style: CustomTypography().titleRegular(),
+              ),
+            ],
           ),
-        )
+        ),
       ],
     );
   }
@@ -559,12 +764,15 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
     return Row(
       children: [
         Expanded(
-            child: Text(Strings.lorem,
-                overflow: TextOverflow.ellipsis,
-                style: CustomTypography()
-                    .caption(color: CustomColors.textSecondaryContent))),
+          child: Text(
+            Strings.lorem,
+            overflow: TextOverflow.ellipsis,
+            style: CustomTypography().caption(
+              color: CustomColors.textSecondaryContent,
+            ),
+          ),
+        ),
         Expanded(
-            child: SizedBox(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -578,7 +786,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
                       .caption(color: CustomColors.textSecondaryContent))
             ],
           ),
-        )),
+        ),
       ],
     );
   }
@@ -600,7 +808,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
               child: Slider(
                 value: currentSliderPosition,
                 max: maxSliderPosition,
-                onChanged: (val) => seek(val),
+                onChanged: canPlay ? seek : null,
               ),
             )),
         Row(
@@ -615,168 +823,126 @@ class _AudioDiaryCardState extends State<AudioDiaryCard> {
   }
 
   Widget controls() {
+    if (audioStatus == AudioStatus.loading) {
+      return const SizedBox(
+        height: 48,
+        child: Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (!canPlay) {
+      return RecordingIssueCard(status: audioStatus);
+    }
+
     return Visibility(
       visible: widget.isExpanded,
       replacement: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(formatDateShort(widget.recording.date),
-              style: CustomTypography().bodyMedium()),
-          Text(formatDuration(maxDuration.inMilliseconds.toInt()),
-              style: CustomTypography().bodyMedium())
+          Text(
+            formatDateShort(widget.recording.date),
+            style: CustomTypography().bodyMedium(),
+          ),
+          Text(
+            formatDuration(
+              maxDuration.inMilliseconds,
+            ),
+            style: CustomTypography().bodyMedium(),
+          ),
         ],
       ),
       child: Row(
         children: [
-          const Expanded(child: SizedBox()),
+          const Expanded(
+            child: SizedBox(),
+          ),
           Expanded(
-              flex: 2,
-              child: SizedBox(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        rewind();
-                        PendoService.track("AudioControl", {
-                          "action": "backward",
-                          "study_date": "${DateTime.now()}",
-                          "prompt_number": "${widget.promptId + 1}"
-                        });
-                      },
-                      icon: const Icon(CupertinoIcons.gobackward_15),
-                      color: Colors.black,
-                      iconSize: 24,
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        PendoService.track("AudioControl", {
-                          "action": "play",
-                          "study_date": "${DateTime.now()}",
-                          "prompt_number": "${widget.promptId + 1}"
-                        });
-                        play();
-                      },
-                      icon: Icon(isPlaying
-                          ? CupertinoIcons.pause_fill
-                          : CupertinoIcons.play_arrow_solid),
-                      color: Colors.black,
-                      iconSize: 24,
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        PendoService.track("AudioControl", {
-                          "action": "forward",
-                          "study_date": "${DateTime.now()}",
-                          "prompt_number": "${widget.promptId + 1}"
-                        });
-                        forward();
-                      },
-                      icon: const Icon(CupertinoIcons.goforward_15),
-                      color: Colors.black,
-                      iconSize: 24,
-                    ),
-                  ],
+            flex: 2,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    trackControl("backward");
+                    rewind();
+                  },
+                  icon: const Icon(
+                    CupertinoIcons.gobackward_15,
+                  ),
+                  color: Colors.black,
+                  iconSize: 24,
                 ),
-              )),
+                IconButton(
+                  onPressed: () {
+                    trackControl("play");
+                    play();
+                  },
+                  icon: Icon(
+                    isPlaying
+                        ? CupertinoIcons.pause_fill
+                        : CupertinoIcons.play_arrow_solid,
+                  ),
+                  color: Colors.black,
+                  iconSize: 24,
+                ),
+                IconButton(
+                  onPressed: () {
+                    trackControl("forward");
+                    forward();
+                  },
+                  icon: const Icon(
+                    CupertinoIcons.goforward_15,
+                  ),
+                  color: Colors.black,
+                  iconSize: 24,
+                ),
+              ],
+            ),
+          ),
           Expanded(
-              child: widget.viewOnly
-                  ? const SizedBox()
-                  : Container(
-                      alignment: Alignment.centerRight,
-                      child: IconButton(
-                        onPressed: () {
-                          PendoService.track("AudioControl", {
-                            "action": "delete",
-                            "study_date": "${DateTime.now()}",
-                            "prompt_number": "${widget.promptId + 1}"
-                          });
-                          delete();
-                        },
-                        icon: const Icon(CupertinoIcons.delete),
-                        color: CustomColors.warningActive,
-                        iconSize: 24,
+            child: widget.viewOnly
+                ? const SizedBox()
+                : Container(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      onPressed: () {
+                        trackControl("delete");
+                        delete();
+                      },
+                      icon: const Icon(
+                        CupertinoIcons.delete,
                       ),
-                    )),
+                      color: CustomColors.warningActive,
+                      iconSize: 24,
+                    ),
+                  ),
+          ),
         ],
       ),
     );
   }
 
-  Future<void> play() async =>
-      isPlaying ? await audioPlayer.pause() : await audioPlayer.resume();
+  Future<void> rewind() => skip(-15000);
 
-  Future<void> seek(double value) async {
-    currentSliderPosition = value;
-    await audioPlayer.seek(Duration(milliseconds: value.toInt()));
-    if (!isPlaying) {
-      await audioPlayer.resume();
-    }
-  }
-
-  Future<void> rewind() async {
-    final int currentPositionMillis = currentSliderPosition.toInt();
-    int reduce = 15000;
-
-    if (currentPositionMillis - reduce < 0) {
-      reduce = currentSliderPosition.toInt();
-    }
-
-    int position = currentPositionMillis - reduce;
-    await audioPlayer.seek(Duration(milliseconds: position));
-  }
-
-  Future<void> forward() async {
-    final int currentPositionMillis = currentSliderPosition.toInt();
-    int increase = 15000;
-
-    if (currentPositionMillis + increase > maxSliderPosition.toInt()) {
-      increase = maxSliderPosition.toInt() - currentPositionMillis;
-    }
-
-    int position = currentSliderPosition.toInt() + increase;
-    await audioPlayer.seek(Duration(milliseconds: position));
-  }
+  Future<void> forward() => skip(15000);
 
   Future<void> delete() async {
     final results = await showDialog<bool>(
-        context: context, builder: (context) => const DeletePopUp());
+      context: context,
+      builder: (context) => const DeletePopUp(),
+    );
 
     if (results == true) {
-      widget.delete!();
+      widget.delete?.call();
     }
-  }
-
-  void playerInit() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final path = p.join(dir.path, widget.recording.path);
-    audioPlayer = AudioPlayer()
-      ..setSourceDeviceFile(path)
-      ..setReleaseMode(ReleaseMode.stop)
-      ..setPlayerMode(PlayerMode.mediaPlayer);
-
-    audioPlayer.onPositionChanged.listen((event) {
-      if (mounted) {
-        setState(() {
-          currentSliderPosition = event.inMilliseconds.toDouble();
-        });
-      }
-    });
-    audioPlayer.onPlayerStateChanged.listen((event) {
-      if (mounted) {
-        setState(() {
-          isPlaying = event == PlayerState.playing;
-        });
-      }
-    });
-    audioPlayer.onDurationChanged.listen((event) {
-      if (mounted) {
-        setState(() {
-          maxDuration = event;
-          maxSliderPosition = event.inMilliseconds.toDouble();
-        });
-      }
-    });
   }
 }
 
@@ -788,6 +954,10 @@ class NewAudioCard extends StatefulWidget {
   final String? callerWidget;
   final bool? isVisible;
 
+  /// Reports the terminal [AudioStatus] for this recording once the card
+  /// resolves, so the prompt can react to one that turned out unplayable.
+  final void Function(String path, AudioStatus status)? onPlaybackResolved;
+
   const NewAudioCard(
       {super.key,
       required this.recording,
@@ -795,33 +965,62 @@ class NewAudioCard extends StatefulWidget {
       this.isVisible,
       required this.viewOnly,
       this.callerWidget,
+      this.onPlaybackResolved,
       required this.promptId});
 
   @override
   State<NewAudioCard> createState() => _NewAudioCardState();
 }
 
-class _NewAudioCardState extends State<NewAudioCard> {
-  late AudioPlayer audioPlayer;
-  bool isPlaying = false;
-  double currentSliderPosition = 0;
-  double maxSliderPosition = 0;
-  Duration maxDuration = Duration.zero;
-
+class _NewAudioCardState extends State<NewAudioCard>
+    with AudioPlaybackMixin<NewAudioCard> {
   @override
   void initState() {
-    playerInit();
     super.initState();
+    initAudio(widget.recording.path);
   }
 
   @override
   void dispose() {
-    audioPlayer.dispose();
+    disposeAudio();
     super.dispose();
+  }
+
+  /// Reports upward so the prompt can offer a way to record a replacement.
+  /// Deferred a frame so a parent rebuild triggered by this cannot land while
+  /// the surrounding list is still building.
+  @override
+  void onAudioStatusResolved(AudioStatus status, {required bool duringLoad}) {
+    // A failure part-way through playback can be transient, and the page
+    // discards whatever it is told is broken. Only load-time outcomes, where
+    // the file itself was proven bad, are reported upward.
+    if (!duringLoad) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      widget.onPlaybackResolved?.call(widget.recording.path, status);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (audioStatus == AudioStatus.loading) {
+      return const SizedBox(
+        height: 34,
+        child: Center(
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
+    if (!canPlay) {
+      return RecordingIssueCard(status: audioStatus);
+    }
+
     final width = MediaQuery.of(context).size.width;
     return Container(
       width: width,
@@ -884,17 +1083,6 @@ class _NewAudioCardState extends State<NewAudioCard> {
     );
   }
 
-  Future<void> play() async =>
-      isPlaying ? await audioPlayer.pause() : await audioPlayer.resume();
-
-  Future<void> seek(double value) async {
-    currentSliderPosition = value;
-    await audioPlayer.seek(Duration(milliseconds: value.toInt()));
-    if (!isPlaying) {
-      await audioPlayer.resume();
-    }
-  }
-
   Future<void> delete() async {
     String? title, subheader;
     if (widget.callerWidget != null) {
@@ -909,7 +1097,7 @@ class _NewAudioCardState extends State<NewAudioCard> {
             ));
 
     if (results == true) {
-      widget.delete!();
+      widget.delete?.call();
     }
   }
 
@@ -928,43 +1116,11 @@ class _NewAudioCardState extends State<NewAudioCard> {
           child: Slider(
             value: currentSliderPosition,
             max: maxSliderPosition,
-            onChanged: (val) => seek(val),
+            onChanged: canPlay ? seek : null,
           ),
         )),
       ],
     );
-  }
-
-  void playerInit() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final path = p.join(dir.path, widget.recording.path);
-    audioPlayer = AudioPlayer()
-      ..setSourceDeviceFile(path)
-      ..setReleaseMode(ReleaseMode.stop)
-      ..setPlayerMode(PlayerMode.mediaPlayer);
-
-    audioPlayer.onPositionChanged.listen((event) {
-      if (mounted) {
-        setState(() {
-          currentSliderPosition = event.inMilliseconds.toDouble();
-        });
-      }
-    });
-    audioPlayer.onPlayerStateChanged.listen((event) {
-      if (mounted) {
-        setState(() {
-          isPlaying = event == PlayerState.playing;
-        });
-      }
-    });
-    audioPlayer.onDurationChanged.listen((event) {
-      if (mounted) {
-        setState(() {
-          maxDuration = event;
-          maxSliderPosition = event.inMilliseconds.toDouble();
-        });
-      }
-    });
   }
 }
 
@@ -1779,6 +1935,7 @@ class NoNotificationCard extends StatelessWidget {
     );
   }
 }
+
 class WarningCard extends StatelessWidget {
   final String title;
   final String message;
@@ -1827,7 +1984,8 @@ class WarningCard extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
                     decoration: ShapeDecoration(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4)),
@@ -1841,6 +1999,93 @@ class WarningCard extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Explains why a recording cannot be played, in place of the audio controls.
+class RecordingIssueCard extends StatelessWidget {
+  const RecordingIssueCard({super.key, required this.status});
+
+  final AudioStatus status;
+
+  static const _messages = {
+    AudioStatus.fileNotFound:
+        "Sorry, we couldn\u2019t find this recording on your device. Please record your answer again using the button above.",
+    AudioStatus.noAudioLength:
+        "Sorry, no audio was captured in this recording. Please record your answer again using the button above.",
+    AudioStatus.canNotPlay:
+        "Sorry, something went wrong while saving. Please record your answer again using the button above.",
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 15),
+      decoration: ShapeDecoration(
+        color: CustomColors.warningFill,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(width: 2, color: CustomColors.warningNormal),
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            CupertinoIcons.xmark_circle_fill,
+            size: 24,
+            color: Color(0xFFCD091D),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                _messages[status] ?? '',
+                style: CustomTypography().bodyLarge(
+                  color: const Color(0xFFCD091D),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+//disclaimer message for the audio recording
+class DisclaimerCard extends StatelessWidget {
+  const DisclaimerCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: ShapeDecoration(
+        color: CustomColors.fillVanilla,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Image.asset(
+            'assets/images/icons/notice_icon.png',
+            width: 20,
+            height: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Please stay in the app. Leaving while recording can result in data loss.',
+              style: CustomTypography().bodyLarge(),
             ),
           ),
         ],
