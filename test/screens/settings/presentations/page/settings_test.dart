@@ -17,11 +17,12 @@ import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.d
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
-import 'package:audio_diaries_flutter/screens/settings/cubit/settings_cubit.dart';
-import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dart';
-import 'package:audio_diaries_flutter/screens/settings/widgets/participant_details.dart';
-import 'package:audio_diaries_flutter/screens/settings/widgets/settings_active_reminders.dart';
-import 'package:audio_diaries_flutter/screens/settings/widgets/study_details.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/cubit/settings_cubit.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/pages/quickstart.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/pages/settings.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/participant_details.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/settings_active_reminders.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/study_details.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -196,8 +197,8 @@ void main() {
     final participantQuery = MockParticipantQuery();
     when(() => participantBox.query()).thenReturn(participantQueryBuilder);
     when(() => participantQueryBuilder.build()).thenReturn(participantQuery);
-    when(() => participantQuery.findFirst())
-        .thenReturn(Participant(id: 1, name: 'Test User', studyCode: 'TEST123'));
+    when(() => participantQuery.findFirst()).thenReturn(
+        Participant(id: 1, name: 'Test User', studyCode: 'TEST123'));
 
     app.objectbox = MockObjectBox(participantBox);
   });
@@ -299,7 +300,8 @@ void main() {
 
     // Onboarding survey tile.
     expect(find.text('Onboarding Survey'), findsOneWidget);
-    expect(find.byIcon(Icons.chevron_right_rounded), findsOneWidget);
+    // Chevron icon appears twice: once in the survey tile, once in the "Help section"
+    expect(find.byIcon(Icons.chevron_right_rounded), findsAtLeast(1));
 
     // Survey tile container styling.
     final container = tester.widget<Container>(
@@ -315,6 +317,23 @@ void main() {
     // Title styling.
     final title = tester.widget<Text>(find.text('Participant Details'));
     expect(title.style?.color, CustomColors.textNormalContent);
+  });
+
+  testWidgets('Renders the help section', (tester) async {
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Help'), findsOneWidget);
+
+    // Fabla Quickstart entry point.
+    expect(find.text('Fabla Quickstart'), findsOneWidget);
+    expect(find.byIcon(Icons.question_mark_rounded), findsOneWidget);
+
+    // Tapping the tile navigates to the Quickstart walkthrough.
+    await tester.tap(find.text('Fabla Quickstart'));
+    await tester.pumpAndSettle();
+    expect(find.byType(QuickstartPage), findsOneWidget);
   });
 
   testWidgets('Renders the reminders section', (tester) async {

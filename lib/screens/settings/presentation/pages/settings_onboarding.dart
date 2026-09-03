@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
-import 'package:audio_diaries_flutter/screens/settings/cubit/settings_cubit.dart';
-import 'package:audio_diaries_flutter/screens/settings/widgets/update_widgets.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/cubit/settings_cubit.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/update_widgets.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';

@@ -1,7 +1,10 @@
+import 'dart:async' show unawaited;
+
 import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart'
     show clearAllHomeProgressTracking, getAllHomeProgressTracking;
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
+import 'package:audio_diaries_flutter/core/utils/quickstart_handler.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/bulk_submission/bulk_submission_cubit.dart';
@@ -18,10 +21,12 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dyna
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/study_login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/setup/setup_cubit.dart';
-import 'package:audio_diaries_flutter/screens/settings/cubit/settings_cubit.dart';
-import 'package:audio_diaries_flutter/screens/settings/presentation/settings.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/cubit/settings_cubit.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/pages/settings.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/quickstart_modal.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
+import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart'
@@ -226,6 +231,8 @@ class _HubState extends State<Hub>
 
   final isAndroid = Platform.isAndroid;
   bool _updateDialogShowing = false;
+  bool _hasPreparedQuickstartVideos = false;
+  static const _settingsTabIndex = 2;
 
   @override
   void initState() {
@@ -245,15 +252,21 @@ class _HubState extends State<Hub>
     }
     cubit = BlocProvider.of<HubCubit>(context);
     tabController = TabController(length: pages.length, vsync: this);
+    tabController.addListener(_prepareQuickstartVideosOnSettingsVisit);
     _makeNavBars();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       startPendo(); // Defer Pendo session start until after the first frame
       NotificationManager()
           .scheduleAdditional(); // Ensure that this also trigger when the app has just started
       NotificationManager().scheduleUserReminders(); // Schedule user reminders
 
-      // Check for experiment updates after the first frame is rendered
-      cubit.checkForUpdates();
+      // Check for experiment updates after the first frame is rendered, and
+      // wait for the (possibly non-dismissible) update dialog to be shown
+      // before considering the quickstart walkthrough, so the two never
+      // compete for the screen.
+      await cubit.checkForUpdates();
+
+      _showQuickstartIfNeeded();
     });
     super.initState();
   }
@@ -261,8 +274,50 @@ class _HubState extends State<Hub>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    tabController.removeListener(_prepareQuickstartVideosOnSettingsVisit);
     tabController.dispose();
     super.dispose();
+  }
+
+  /// Existing participants never get the video URLs prefetched during
+  /// onboarding (see [ActiveDatesPage]), so fetch them the first time the
+  /// Settings tab is actually visited rather than on every cold start —
+  /// most participants never open Settings, and the fetch is otherwise
+  /// wasted on them.
+  void _prepareQuickstartVideosOnSettingsVisit() {
+    if (_hasPreparedQuickstartVideos ||
+        tabController.index != _settingsTabIndex) {
+      return;
+    }
+    _hasPreparedQuickstartVideos = true;
+    unawaited(QuickstartHandler().ensureVideosCached());
+  }
+
+  static const _hasSeenQuickstartKey = 'has_seen_quickstart';
+
+  Future<void> _showQuickstartIfNeeded() async {
+    final hasSeenQuickstart = await PreferenceService()
+            .getBoolPreference(key: _hasSeenQuickstartKey) ??
+        false;
+    // Skip (without persisting) while the forced-update dialog is showing,
+    // so the two never fight for the screen. The quickstart walkthrough will
+    // simply be offered again on the next launch.
+    if (hasSeenQuickstart || !mounted || _updateDialogShowing) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      enableDrag: true,
+      routeSettings: const RouteSettings(name: "/QuickstartModal"),
+      builder: (context) => const QuickstartModal(),
+    );
+
+    // Only persist "seen" once the sheet has actually been pushed, so a
+    // failure to present (e.g. the widget was unmounted mid-await) doesn't
+    // permanently hide the walkthrough.
+    await PreferenceService()
+        .setBoolPreference(key: _hasSeenQuickstartKey, value: true);
   }
 
   @override

@@ -1,9 +1,10 @@
 import 'dart:async';
 
-import 'package:audio_diaries_flutter/screens/settings/widgets/participant_details.dart';
-import 'package:audio_diaries_flutter/screens/settings/widgets/settings_active_reminders.dart';
-import 'package:audio_diaries_flutter/screens/settings/widgets/study_details.dart';
-import 'package:audio_diaries_flutter/screens/settings/widgets/test_microphone_widget.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/pages/quickstart.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/participant_details.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/settings_active_reminders.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/study_details.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/test_microphone_widget.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -11,11 +12,11 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/utils/device_appInfo.dart';
-import '../../../services/preference_service.dart';
-import '../../../theme/dialogs/pop_ups.dart';
-import '../../onboarding/domain/repository/setup_repository.dart';
-import '../../onboarding/presentation/pages/study_login.dart';
+import '../../../../core/utils/device_appInfo.dart';
+import '../../../../services/preference_service.dart';
+import '../../../../theme/dialogs/pop_ups.dart';
+import '../../../onboarding/domain/repository/setup_repository.dart';
+import '../../../onboarding/presentation/pages/study_login.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -131,6 +132,87 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                 ),
 
                 const ParticipantDetails(),
+                const SizedBox(
+                  height: 24,
+                ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Help",
+                      style: CustomTypography()
+                          .titleLarge(color: CustomColors.textNormalContent),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 12,
+                ),
+
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const QuickstartPage()),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 16, 12),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color: CustomColors.productBorderNormal, width: 1),
+                      color: CustomColors.fillWhite,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                spacing: 12,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 6),
+                                    decoration: ShapeDecoration(
+                                        shape: CircleBorder(),
+                                        color: CustomColors
+                                            .productLightBackground),
+                                    child: Icon(
+                                      Icons.question_mark_rounded,
+                                      color: CustomColors.productNormal,
+                                      size: 24,
+                                    ),
+                                  ),
+                                  Text(
+                                    "Fabla Quickstart",
+                                    style: CustomTypography().bodyLarge(
+                                        color: CustomColors.productNormal,
+                                        weight: FontWeight.w500),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              size: 24,
+                              color: CustomColors.midGrey,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
 
                 const SizedBox(
                   height: 24,
