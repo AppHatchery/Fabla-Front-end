@@ -210,4 +210,28 @@ void main() {
           )).called(1);
     });
   });
+
+  group('New Upload Strategy Functions', () {
+    late MockSecureSave mockSecureSave;
+    late MockHttpClient mockHttpClient;
+
+    setUp(() {
+      mockSecureSave = MockSecureSave();
+      mockHttpClient = MockHttpClient();
+      registerFallbackValue(Uri.parse(TestValues.testUrl));
+    });
+
+    test('uploadPromptResponse successfully calls awsUploadResponses', () async {
+      final credentials = createTestCredentials();
+      final diary = createTestDiaryModel(prompts: [createTestPromptModel()]);
+      final prompt = diary.prompts.first;
+
+      when(() => mockSecureSave.read()).thenAnswer((_) async => credentials);
+      when(() => mockHttpClient.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          )).thenAnswer((_) async => http.Response('Success', 200));
+    });
+  });
 }

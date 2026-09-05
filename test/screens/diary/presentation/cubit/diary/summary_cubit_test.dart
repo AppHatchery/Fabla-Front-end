@@ -316,6 +316,46 @@ void main() {
       );
     });
 
+    group('partial answer uploads', () {
+      test('marks an acknowledged answer as successful', () async {
+        final answeredPrompt = createTestPromptModel(answer: testAnswer);
+        final answeredDiary = createTestDiaryModel(prompts: [answeredPrompt]);
+        when(() => mockSummaryRepository.loadSummary(answeredDiary))
+            .thenAnswer((_) async => answeredDiary);
+        when(() => mockSummaryRepository.submitPrompt(
+            answeredDiary, answeredPrompt)).thenAnswer((_) async => true);
+
+        final cubit = SummaryCubit(summaryRepository: mockSummaryRepository);
+        await cubit.loadSummary(answeredDiary, uploadAnswers: true);
+        await cubit.uploadPendingAnswers();
+
+        final state = cubit.state as SummaryLoaded;
+        expect(state.submissionStatuses[answeredPrompt.id],
+            AnswerSubmissionStatus.successful);
+        verify(() => mockSummaryRepository.submitPrompt(
+            answeredDiary, answeredPrompt)).called(1);
+        await cubit.close();
+      });
+
+      test('marks a rejected answer as failed', () async {
+        final answeredPrompt = createTestPromptModel(answer: testAnswer);
+        final answeredDiary = createTestDiaryModel(prompts: [answeredPrompt]);
+        when(() => mockSummaryRepository.loadSummary(answeredDiary))
+            .thenAnswer((_) async => answeredDiary);
+        when(() => mockSummaryRepository.submitPrompt(
+            answeredDiary, answeredPrompt)).thenAnswer((_) async => false);
+
+        final cubit = SummaryCubit(summaryRepository: mockSummaryRepository);
+        await cubit.loadSummary(answeredDiary, uploadAnswers: true);
+        await cubit.uploadPendingAnswers();
+
+        final state = cubit.state as SummaryLoaded;
+        expect(state.submissionStatuses[answeredPrompt.id],
+            AnswerSubmissionStatus.failed);
+        await cubit.close();
+      });
+    });
+
     group('updateDiaryCompletion', () {
       late MockDiaryRepository mockDiaryRepository;
 
@@ -327,7 +367,8 @@ void main() {
             .thenAnswer((_) async {});
       });
 
-      test('saves diary with completions added and submissions preserved', () async {
+      test('saves diary with completions added and submissions preserved',
+          () async {
         final submissions = [DateTime(2024, 1, 1, 10)];
         final activeDays = [1, 2, 3];
         final diary = createTestDiaryModel(
@@ -363,6 +404,144 @@ void main() {
         await cubit.updateDiaryCompletion(diary);
 
         verifyNever(() => mockDiaryRepository.updateDiary(any()));
+      });
+    });
+
+    group('Metadata and Partial Uploads', () {
+      blocTest<SummaryCubit, SummaryState>(
+        'emits [SubmitLoading, SummarySubmitted] when metadata submission succeeds',
+        setUp: () {
+          when(() => mockSummaryRepository.loadSummary(any()))
+              .thenAnswer((_) async => testDiary);
+          when(() => mockSummaryRepository.submitPartiallyUploadedDiary(any()))
+              .thenAnswer((_) async => true);
+          when(() => mockSummaryRepository.calculateEarnedIncentives(any()))
+              .thenAnswer((_) async {});
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) async {
+          await cubit.loadSummary(testDiary);
+          await cubit.submitDiary(testDiary, usePartialUploads: true);
+        },
+        expect: () => [
+          const SummaryLoading(),
+          isA<SummaryLoaded>(),
+          const SubmitLoading(),
+          const SummarySubmitted(),
+        ],
+        verify: (cubit) {
+          verify(() => mockSummaryRepository.submitPartiallyUploadedDiary(testDiary))
+              .called(1);
+        },
+      );
+
+      blocTest<SummaryCubit, SummaryState>(
+        'emits [SubmitLoading, SubmitError] when metadata submission fails',
+        setUp: () {
+          when(() => mockSummaryRepository.loadSummary(any()))
+              .thenAnswer((_) async => testDiary);
+          when(() => mockSummaryRepository.submitPartiallyUploadedDiary(any()))
+              .thenAnswer((_) async => false);
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) async {
+          await cubit.loadSummary(testDiary);
+          await cubit.submitDiary(testDiary, usePartialUploads: true);
+        },
+        expect: () => [
+          const SummaryLoading(),
+          isA<SummaryLoaded>(),
+          const SubmitLoading(),
+          const SubmitError(),
+        ],
+      );
+    });
+
+    group('No Internet Handling', () {
+      blocTest<SummaryCubit, SummaryState>(
+        'emits SubmitNoInternet when submitDiary returns null',
+        setUp: () {
+          when(() => mockSummaryRepository.submitDiary(any()))
+              .thenAnswer((_) async => null);
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) => cubit.submitDiary(testDiary),
+        expect: () => [
+          const SubmitLoading(),
+          const SubmitNoInternet(),
+        ],
+      );
+
+      blocTest<SummaryCubit, SummaryState>(
+        'emits SubmitNoInternet during partial upload when connectivity is lost',
+        setUp: () {
+          final answeredPrompt = createTestPromptModel(answer: testAnswer);
+          final answeredDiary = createTestDiaryModel(prompts: [answeredPrompt]);
+
+          when(() => mockSummaryRepository.loadSummary(any()))
+              .thenAnswer((_) async => answeredDiary);
+          // Mock prompt upload failure due to no internet
+          when(() => mockSummaryRepository.submitPrompt(any(), any()))
+              .thenAnswer((_) async => null);
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) async {
+          await cubit.loadSummary(testDiary, uploadAnswers: true);
+          // loadSummary fires the background upload without awaiting it. Let it
+          // settle so the submit below exercises the retry path rather than
+          // joining the still-in-flight upload.
+          await pumpEventQueue();
+          await cubit.submitDiary(testDiary, usePartialUploads: true);
+        },
+        expect: () => [
+          const SummaryLoading(),
+          isA<SummaryLoaded>(), // Initial load
+          isA<SummaryLoaded>(), // Uploading
+          isA<SummaryLoaded>(), // Failed
+          isA<SummaryLoaded>(), // Retry Uploading
+          isA<SummaryLoaded>(), // Retry Failed
+          const SubmitNoInternet(),
+        ],
+      );
+    });
+
+    group('Editing Scenarios', () {
+      test('loadSummary with resetPromptIds clears status and re-triggers upload',
+          () async {
+        final answeredPrompt = createTestPromptModel(id: 42, answer: testAnswer);
+        final answeredDiary = createTestDiaryModel(prompts: [answeredPrompt]);
+
+        when(() => mockSummaryRepository.loadSummary(any()))
+            .thenAnswer((_) async => answeredDiary);
+        when(() => mockSummaryRepository.submitPrompt(any(), any()))
+            .thenAnswer((_) async => true);
+
+        final cubit = SummaryCubit(summaryRepository: mockSummaryRepository);
+
+        // 1. Initial load and upload
+        await cubit.loadSummary(answeredDiary, uploadAnswers: true);
+        await cubit.uploadPendingAnswers();
+
+        var state = cubit.state as SummaryLoaded;
+        expect(state.submissionStatuses[42], AnswerSubmissionStatus.successful);
+
+        // 2. User edits (resets prompt 42)
+        await cubit.loadSummary(answeredDiary,
+            uploadAnswers: false, resetPromptIds: {42});
+
+        state = cubit.state as SummaryLoaded;
+        // Status should be pending initially after reset
+        expect(state.submissionStatuses[42], AnswerSubmissionStatus.pending);
+
+        // 3. Verify it re-uploads
+        await cubit.uploadPendingAnswers();
+        state = cubit.state as SummaryLoaded;
+        expect(state.submissionStatuses[42], AnswerSubmissionStatus.successful);
+
+        // Verify submitPrompt was called twice (once for initial, once for reset)
+        verify(() => mockSummaryRepository.submitPrompt(any(), any())).called(2);
+        
+        await cubit.close();
       });
     });
 
