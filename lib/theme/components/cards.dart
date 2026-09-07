@@ -1807,20 +1807,11 @@ class WarningCard extends StatelessWidget {
   }
 }
 
-/// Explains why a recording cannot be played, in place of the audio controls.
-class RecordingIssueCard extends StatelessWidget {
-  const RecordingIssueCard({super.key, required this.status});
+/// Single-line red notice, used for anything that puts a recording at risk.
+class AlertCard extends StatelessWidget {
+  const AlertCard({super.key, required this.message});
 
-  final AudioStatus status;
-
-  static const _messages = {
-    AudioStatus.fileNotFound:
-        "Sorry, we couldn\u2019t find this recording on your device. Please record your answer again using the button above.",
-    AudioStatus.noAudioLength:
-        "Sorry, no audio was captured in this recording. Please record your answer again using the button above.",
-    AudioStatus.canNotPlay:
-        "Sorry, something went wrong while saving. Please record your answer again using the button above.",
-  };
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -1840,15 +1831,15 @@ class RecordingIssueCard extends StatelessWidget {
           const Icon(
             CupertinoIcons.xmark_circle_fill,
             size: 24,
-            color: Color(0xFFCD091D),
+            color: CustomColors.warningNormal,
           ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left: 16),
               child: Text(
-                _messages[status] ?? '',
+                message,
                 style: CustomTypography().bodyLarge(
-                  color: const Color(0xFFCD091D),
+                  color: CustomColors.warningNormal,
                 ),
               ),
             ),
@@ -1859,3 +1850,22 @@ class RecordingIssueCard extends StatelessWidget {
   }
 }
 
+/// Explains why a recording cannot be played, in place of the audio controls.
+class RecordingIssueCard extends StatelessWidget {
+  const RecordingIssueCard({super.key, required this.status});
+
+  final AudioStatus status;
+
+  static const _messages = {
+    AudioStatus.fileNotFound:
+        "Sorry, we couldn\u2019t find this recording on your device. Please record your answer again using the button above.",
+    AudioStatus.noAudioLength:
+        "Sorry, no audio was captured in this recording. Please record your answer again using the button above.",
+    AudioStatus.canNotPlay:
+        "Sorry, something went wrong while saving. Please record your answer again using the button above.",
+  };
+
+  @override
+  Widget build(BuildContext context) =>
+      AlertCard(message: _messages[status] ?? '');
+}
