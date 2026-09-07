@@ -833,6 +833,7 @@ class TimerWidget extends StatefulWidget {
   final Duration time;
   final bool playbackControls;
   final bool userInteraction;
+  final bool? showLiveUpdates;
   final void Function(String) respond;
   final Function(Function) addToPreFunction;
 
@@ -841,6 +842,7 @@ class TimerWidget extends StatefulWidget {
     required this.time,
     required this.playbackControls,
     required this.userInteraction,
+    this.showLiveUpdates = true,
     required this.respond,
     required this.addToPreFunction,
   });
@@ -878,12 +880,15 @@ class _TimerWidgetState extends State<TimerWidget>
   void Function()? _updateModalCallback;
   int? currentAlarmId;
 
-  static final _liveUpdate = TimerLiveUpdateService();
+  late final TimerLiveUpdateService _liveUpdate;
   // Track when the current countdown should complete (wall-clock). Used to detect completion when app is backgrounded
   DateTime? _expectedEndTime;
   @override
   void initState() {
     super.initState();
+
+    _liveUpdate =
+        TimerLiveUpdateService(enabled: widget.showLiveUpdates ?? true);
 
     WidgetsBinding.instance.addObserver(this);
 

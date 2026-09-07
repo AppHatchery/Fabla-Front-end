@@ -19,13 +19,16 @@ class TimerLiveUpdateService {
   static const _defaultTitle = 'Diary Timer';
 
   /// [isAndroid]/[isIOS] are injectable so the channel contracts can be
-  /// exercised in tests, which run on the host platform.
-  TimerLiveUpdateService({bool? isAndroid, bool? isIOS})
+  /// exercised in tests, which run on the host platform. [enabled] gates
+  /// both platforms at once — e.g. for a timer question configured not to
+  /// show live updates.
+  TimerLiveUpdateService({bool? isAndroid, bool? isIOS, this.enabled = true})
       : _isAndroid = isAndroid ?? Platform.isAndroid,
         _isIOS = isIOS ?? Platform.isIOS;
 
   final bool _isAndroid;
   final bool _isIOS;
+  final bool enabled;
 
   /// Starts the iOS Live Activity for a fresh countdown ending at [endDate].
   Future<void> start(DateTime endDate, Duration totalDuration) =>
@@ -58,7 +61,7 @@ class TimerLiveUpdateService {
     required bool isPaused,
     String title = _defaultTitle,
   }) async {
-    if (!_isAndroid) return;
+    if (!_isAndroid || !enabled) return;
     if (total <= Duration.zero || remaining <= Duration.zero) return hide();
 
     await _invokeAndroid('show', <String, dynamic>{
@@ -78,7 +81,7 @@ class TimerLiveUpdateService {
 
   /// Removes the Android notification. Safe to call when nothing is showing.
   Future<void> hide() async {
-    if (!_isAndroid) return;
+    if (!_isAndroid || !enabled) return;
     await _invokeAndroid('hide', null);
   }
 
@@ -106,7 +109,7 @@ class TimerLiveUpdateService {
 
   Future<void> _invokeIOS(String method,
       [Map<String, dynamic>? arguments]) async {
-    if (!_isIOS) return;
+    if (!_isIOS || !enabled) return;
     try {
       await _iosChannel.invokeMethod(method, arguments);
     } catch (e, stackTrace) {

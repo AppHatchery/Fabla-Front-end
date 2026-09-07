@@ -285,4 +285,48 @@ void main() {
       expect(iosCalls, isEmpty);
     });
   });
+
+  group('TimerLiveUpdateService when disabled', () {
+    const iosChannel = MethodChannel('diary/live_activity');
+
+    late List<MethodCall> iosCalls;
+
+    void setIOSHandler(Future<Object?>? Function(MethodCall)? handler) {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(iosChannel, handler);
+    }
+
+    setUp(() {
+      iosCalls = <MethodCall>[];
+      service = TimerLiveUpdateService(
+          isAndroid: true, isIOS: true, enabled: false);
+
+      setIOSHandler((call) async {
+        iosCalls.add(call);
+        return null;
+      });
+    });
+
+    tearDown(() => setIOSHandler(null));
+
+    test('never touches the Android channel', () async {
+      await service.show(
+        total: const Duration(seconds: 30),
+        remaining: const Duration(seconds: 30),
+        isPaused: false,
+      );
+      await service.hide();
+
+      expect(calls, isEmpty);
+    });
+
+    test('never touches the iOS channel', () async {
+      await service.start(DateTime.now(), const Duration(minutes: 1));
+      await service.updateRunning(DateTime.now());
+      await service.updatePaused(const Duration(seconds: 1));
+      await service.end();
+
+      expect(iosCalls, isEmpty);
+    });
+  });
 }
