@@ -1,3 +1,5 @@
+import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
+    as http_client_factory;
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -37,7 +39,7 @@ Future<String?> get({
   http.Client? client,
 }) async {
   final bool ownClient = client == null;
-  final httpClient = client ?? http.Client();
+  final httpClient = client ?? http_client_factory.httpClient();
 
   try {
     final url = Uri.https(base(), path);
@@ -67,7 +69,7 @@ Future<String?> post({
   http.Client? client,
 }) async {
   final bool ownClient = client == null;
-  final httpClient = client ?? http.Client();
+  final httpClient = client ?? http_client_factory.httpClient();
 
   try {
     final url = Uri.https(base(), path);

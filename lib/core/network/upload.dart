@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
+    as http_client_factory;
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/location.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -260,7 +262,7 @@ Future<bool> uploadNonAudioData(
 }) async {
   final secureStorage = secureSave ?? SecureSave();
   final bool ownClient = client == null;
-  final httpClient = client ?? http.Client();
+  final httpClient = client ?? http_client_factory.httpClient();
 
   try {
     var cred = await secureStorage.read();
@@ -366,7 +368,7 @@ Future<String?> getPresignedUrl(
 }) async {
   final secureStorage = secureSave ?? SecureSave();
   final bool ownClient = client == null;
-  final httpClient = client ?? http.Client();
+  final httpClient = client ?? http_client_factory.httpClient();
 
   try {
     var cred = await secureStorage.read();
@@ -445,7 +447,7 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
     // Set the body bytes of the request
     request.bodyBytes = bytes;
 
-    final s3Client = http.Client();
+    final s3Client = http_client_factory.httpClient();
     try {
       final response = await s3Client.send(request);
       if (response.statusCode == 200) {

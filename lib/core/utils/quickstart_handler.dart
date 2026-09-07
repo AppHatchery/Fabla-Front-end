@@ -1,6 +1,8 @@
 import 'dart:convert' show jsonDecode, jsonEncode;
 import 'dart:developer' show log;
 
+import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
+    as http_client_factory;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -55,7 +57,7 @@ class QuickstartHandler {
     String videoName, {
     http.Client? client,
   }) async {
-    final httpClient = client ?? http.Client();
+    final httpClient = client ?? http_client_factory.httpClient();
 
     try {
       final url = getVideoUrl(videoName);
@@ -86,7 +88,7 @@ class QuickstartHandler {
   /// the same reuse-or-create convention as [getVideo].
   Future<void> getVideos({http.Client? client}) async {
     final videoUrls = <String, String>{};
-    final httpClient = client ?? http.Client();
+    final httpClient = client ?? http_client_factory.httpClient();
     try {
       for (var videoName in videos.keys) {
         try {
