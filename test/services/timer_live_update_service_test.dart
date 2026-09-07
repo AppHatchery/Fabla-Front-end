@@ -198,4 +198,91 @@ void main() {
       expect(calls, isEmpty);
     });
   });
+
+  group('TimerLiveUpdateService iOS Live Activity', () {
+    const iosChannel = MethodChannel('diary/live_activity');
+
+    late List<MethodCall> iosCalls;
+
+    void setIOSHandler(Future<Object?>? Function(MethodCall)? handler) {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(iosChannel, handler);
+    }
+
+    setUp(() {
+      iosCalls = <MethodCall>[];
+      service = TimerLiveUpdateService(isAndroid: false, isIOS: true);
+
+      setIOSHandler((call) async {
+        iosCalls.add(call);
+        return null;
+      });
+    });
+
+    tearDown(() => setIOSHandler(null));
+
+    test('start sends the end date and total duration', () async {
+      final endDate = DateTime.fromMillisecondsSinceEpoch(1700000000000);
+
+      await service.start(endDate, const Duration(minutes: 1));
+
+      expect(iosCalls.single.method, 'start');
+      expect(iosCalls.single.arguments, <String, dynamic>{
+        'endDateMillis': 1700000000000.0,
+        'totalDurationMillis': 60000.0,
+      });
+    });
+
+    test('updateRunning sends the end date with isPaused false', () async {
+      final endDate = DateTime.fromMillisecondsSinceEpoch(1700000000000);
+
+      await service.updateRunning(endDate);
+
+      expect(iosCalls.single.method, 'update');
+      expect(iosCalls.single.arguments, <String, dynamic>{
+        'endDateMillis': 1700000000000.0,
+        'isPaused': false,
+      });
+    });
+
+    test('updatePaused sends the remaining time with isPaused true',
+        () async {
+      await service.updatePaused(const Duration(seconds: 45));
+
+      expect(iosCalls.single.method, 'update');
+      expect(iosCalls.single.arguments, <String, dynamic>{
+        'isPaused': true,
+        'pausedRemainingMillis': 45000.0,
+      });
+    });
+
+    test('end sends end with no arguments', () async {
+      await service.end();
+
+      expect(iosCalls.single.method, 'end');
+      expect(iosCalls.single.arguments, isNull);
+    });
+
+    test('swallows a platform rejection', () async {
+      setIOSHandler((call) async {
+        throw PlatformException(code: 'UNAVAILABLE');
+      });
+
+      await expectLater(
+        service.start(DateTime.now(), const Duration(minutes: 1)),
+        completes,
+      );
+    });
+
+    test('is a no-op on non-iOS platforms', () async {
+      service = TimerLiveUpdateService(isAndroid: false, isIOS: false);
+
+      await service.start(DateTime.now(), const Duration(minutes: 1));
+      await service.updateRunning(DateTime.now());
+      await service.updatePaused(const Duration(seconds: 1));
+      await service.end();
+
+      expect(iosCalls, isEmpty);
+    });
+  });
 }
