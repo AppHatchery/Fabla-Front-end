@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.10.0+110
+version: 1.10.1+112
 
 environment:
   sdk: ">=3.0.2 <4.0.0"
@@ -27,7 +27,7 @@ dependencies:
 
   cupertino_icons: ^1.0.9
 
-  app_settings: ^7.0.0
+  app_settings: ^9.0.0
 
   table_calendar: ^3.2.0
   #Adaptive font
@@ -40,7 +40,7 @@ dependencies:
   firebase_core: ^4.8.0
   firebase_crashlytics: ^5.2.1
 
-  permission_handler: ^12.0.1
+  permission_handler: ^13.0.2
 
   #Audio recording & playback
   flutter_sound: ^9.30.0
@@ -55,7 +55,7 @@ dependencies:
   camera: ^0.12.0+1
 
   #Location
-  location: ^8.0.1
+  location: ^10.0.2
 
   #internal storage
   path_provider: ^2.1.5
@@ -89,10 +89,10 @@ dependencies:
 
   # amplify_analytics_pinpoint: ^2.6.0
   firebase_messaging: ^16.2.1
-  flutter_local_notifications: ^21.0.0
+  flutter_local_notifications: ^22.3.0
 
   #Notification
-  awesome_notifications: ^0.11.0
+  awesome_notifications: ^0.12.1
 
   #URL Launcher
   url_launcher: ^6.3.2
@@ -101,19 +101,19 @@ dependencies:
   webview_flutter: ^4.13.1
 
   #Pendo
-  pendo_sdk: ^3.13.1
+  pendo_sdk: ^3.14.1
 
   #Splash
   flutter_native_splash: ^2.4.7
 
   #Misc
   dotted_border: ^3.1.0
-  flutter_secure_storage: ^10.2.0
+  flutter_secure_storage: ^11.0.0
   wakelock_plus: ^1.6.0
   firebase_analytics: ^12.4.0
   package_info_plus: ^10.1.0
-  flutter_keyboard_visibility: ^6.0.0
-  alarm: ^5.2.1
+  flutter_keyboard_visibility: ^7.0.1
+  alarm: ^5.12.0
   gradient_borders: ^1.0.2
   popover: ^0.4.0
   mockito: ^5.6.4
@@ -160,8 +160,6 @@ flutter_native_splash:
 # The following section is specific to Flutter packages.
 flutter:
   uses-material-design: true
-  config:
-    enable-swift-package-manager: false
 
   # To add assets to your application, add an assets section, like this:
   assets:
