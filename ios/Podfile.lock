@@ -369,7 +369,7 @@ SPEC CHECKSUMS:
   FirebaseSessions: 804bd321f2d2f2ddafe74ef7856062aa19f179c2
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_fgbg: d3da78df78454b1808f0829a5da9cd17dfe16444
-  flutter_foreground_task: 9f4a7cdbb163df8df40637a93960b88d497fea41
+  flutter_foreground_task: ff24d2fb1aefdcde8ed192e8b0574348aab3a30e
   flutter_keyboard_visibility: 4625131e43015dbbe759d9b20daaf77e0e3f6619
   flutter_local_notifications: 643a3eda1ce1c0599413ca31672536d423dee214
   flutter_native_splash: c32d145d68aeda5502d5f543ee38c192065986cf
@@ -401,6 +401,6 @@ SPEC CHECKSUMS:
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
   webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
 
-PODFILE CHECKSUM: 063018f980775710e5cc387bdf6aa05bb82cc105
+PODFILE CHECKSUM: cff03a73953c5b9d07c2d057746601c1ef0682f4
 
 COCOAPODS: 1.16.2
