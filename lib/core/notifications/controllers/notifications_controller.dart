@@ -1,5 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
+    as http_client_factory;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
@@ -20,7 +22,7 @@ class NotificationsController {
     FlutterLocalNotificationsPlugin? localNotifications,
     http.Client? client,
   })  : _messaging = messaging ?? FirebaseMessaging.instance,
-        _client = client ?? http.Client() {
+        _client = client ?? http_client_factory.httpClient() {
     // Initialize the local notifications plugin with injected or default instance
     flutterLocalNotificationsPlugin =
         localNotifications ?? FlutterLocalNotificationsPlugin();
