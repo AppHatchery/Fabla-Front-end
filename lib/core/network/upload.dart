@@ -450,6 +450,9 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
     final s3Client = http_client_factory.httpClient();
     try {
       final response = await s3Client.send(request);
+      // Drain the response stream so the underlying native client considers
+      // the request complete before we close it below.
+      await response.stream.drain();
       if (response.statusCode == 200) {
         return true;
       } else {
