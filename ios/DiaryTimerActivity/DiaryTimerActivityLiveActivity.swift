@@ -242,30 +242,6 @@ private struct DynamicIslandLeadingIcon: View {
     }
 }
 
-@available(iOS 16.1, *)
-private struct ExpandedStatusChip: View {
-    let context: ActivityViewContext<DiaryTimerActivityAttributes>
-
-    private var label: String {
-        if context.isTimeUp { return "Complete" }
-        return context.state.endDate == nil ? "Paused" : "Running"
-    }
-
-    var body: some View {
-        HStack(spacing: 5) {
-            Circle()
-                .fill(context.isTimeUp || context.state.endDate != nil ? Color.diaryBrand : Color.white.opacity(0.5))
-                .frame(width: 6, height: 6)
-            Text(label)
-                .font(.rubik(.medium, size: 12))
-                .foregroundStyle(.white.opacity(0.85))
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(Capsule().fill(Color.white.opacity(0.12)))
-    }
-}
-
 /// Native ticking bar while running (system-driven, no app process needed —
 /// same mechanism as `Text(timerInterval:)`); a plain static fill while paused.
 /// Shared by the Lock Screen (white tint, for contrast on the blue gradient)
@@ -307,33 +283,35 @@ struct DiaryTimerActivityLiveActivity: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    HStack(spacing: 10) {
-                        StatusBadge(context: context)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(context.isTimeUp ? "Time's Up!" : context.attributes.title)
-                                .font(.rubik(.semibold, size: 16))
-                                .foregroundStyle(.white)
-                                .lineLimit(1)
-                            Text(context.isTimeUp ? "Tap to return" : sessionLengthLabel(context.attributes.totalDuration))
-                                .font(.rubik(.regular, size: 12))
-                                .foregroundStyle(.white.opacity(0.55))
-                                .lineLimit(1)
-                        }
-                    }
-                    .padding(.leading, 4)
-                }
-                DynamicIslandExpandedRegion(.trailing) {
-                    CountdownReadout(context: context, numberSize: 26, showRing: false)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                        .padding(.trailing, 4)
+                    StatusBadge(context: context)
+                        .padding(.leading, 4)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
+                    // The title, session length and countdown all sit on one row here
+                    // (rather than split across .leading/.trailing either side of the
+                    // TrueDepth camera) because that row has too little width beside
+                    // the camera for the title + session-length text, which otherwise
+                    // clips silently. Below the camera there's the full island width
+                    // to lay all three out on a single line.
                     VStack(alignment: .leading, spacing: 10) {
+                        HStack(alignment: .center, spacing: 8) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(context.isTimeUp ? "Time's Up!" : context.attributes.title)
+                                    .font(.rubik(.semibold, size: 16))
+                                    .foregroundStyle(.white)
+                                    .lineLimit(1)
+                                Text(context.isTimeUp ? "Tap to return" : sessionLengthLabel(context.attributes.totalDuration))
+                                    .font(.rubik(.regular, size: 12))
+                                    .foregroundStyle(.white.opacity(0.55))
+                                    .lineLimit(1)
+                            }
+                            Spacer(minLength: 8)
+                            CountdownReadout(context: context, numberSize: 26, showRing: false)
+                        }
                         TimerProgressBar(context: context)
                             .frame(height: 4)
-                        ExpandedStatusChip(context: context)
                     }
-                    .padding(.top, 8)
+                    .padding(.vertical, 8)
                 }
             } compactLeading: {
                 DynamicIslandLeadingIcon(context: context)

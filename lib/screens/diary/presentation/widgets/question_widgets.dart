@@ -1077,9 +1077,14 @@ class _TimerWidgetState extends State<TimerWidget>
       showCompletionText = false; // Don't show completion text immediately
     });
     _shakeController.forward().then((_) => _shakeController.repeat());
-    // Leave the Live Activity up — it switches to its "complete" look on its
-    // own (native staleDate) so the user still sees it if they're away from
-    // the app. It's ended later when they close/dismiss the timer.
+    // Leave the Live Activity up — it's ended later when the user closes or
+    // dismisses the timer. Its `staleDate` alone does NOT repaint the widget
+    // once passed; WidgetKit only re-evaluates `context.isStale` (and so its
+    // "complete" look) the next time it actually redraws. Re-sending the same
+    // endDate here forces that redraw at the exact moment we hit zero, so the
+    // Live Activity flips to "complete" immediately while the app is
+    // foregrounded, instead of sitting frozen on its last-drawn "0:00".
+    _liveUpdate.updateRunning(_expectedEndTime!);
     widget.respond("timer");
     _refreshModal();
     _liveUpdate.hide();
@@ -1122,7 +1127,7 @@ class _TimerWidgetState extends State<TimerWidget>
     });
 
     if (!startPaused) {
-      // await setAlarm(duration);
+      await setAlarm(duration);
       if (!mounted) return;
       _expectedEndTime = DateTime.now().add(duration);
       _liveUpdate.start(_expectedEndTime!, duration);

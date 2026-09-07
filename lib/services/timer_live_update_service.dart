@@ -35,6 +35,11 @@ class TimerLiveUpdateService {
       });
 
   /// Marks the iOS Live Activity as running (resumed) toward [endDate].
+  ///
+  /// Also the right call to force a repaint right when a countdown hits
+  /// zero: passing the Live Activity's `staleDate` doesn't repaint it on its
+  /// own once passed, so without a fresh update at that moment it stays
+  /// showing its last-drawn state instead of flipping to "complete".
   Future<void> updateRunning(DateTime endDate) => _invokeIOS('update', {
         'endDateMillis': endDate.millisecondsSinceEpoch.toDouble(),
         'isPaused': false,
