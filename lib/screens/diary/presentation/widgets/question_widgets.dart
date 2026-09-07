@@ -219,54 +219,59 @@ class _MultipleQuestionState extends State<MultipleQuestion> {
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 4.0, vertical: 3.0),
-              decoration: BoxDecoration(
-                  color: selectedOptions.contains(widget.options[index]) &&
-                          !widget.disabled
-                      ? CustomColors.productLightBackground
-                      : CustomColors.productLightPrimaryNormalWhite,
+          Material(
+              color: selectedOptions.contains(widget.options[index]) &&
+                      !widget.disabled
+                  ? CustomColors.productLightBackground
+                  : CustomColors.productLightPrimaryNormalWhite,
+              shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14.0),
-                  border: Border.all(
+                  side: BorderSide(
                       color: selectedOptions.contains(widget.options[index]) &&
                               !widget.disabled
                           ? CustomColors.productBorderActive
                           : CustomColors.productBorderNormal,
                       width: 2)),
-              child: CheckboxListTile(
-                title: Text(
-                  widget.options[index],
-                  style: CustomTypography().button(
-                      color: selectedOptions.contains(widget.options[index]) &&
-                              !widget.disabled
-                          ? CustomColors.productNormalActive
-                          : Colors.black),
-                ),
-                checkColor: CustomColors.productLightPrimaryNormalWhite,
-                fillColor: selectedOptions.contains(widget.options[index]) &&
-                        !widget.disabled
-                    ? WidgetStateProperty.all(CustomColors.productNormalActive)
-                    : selectedOptions.contains(widget.options[index])
-                        ? WidgetStateProperty.all(
-                            CustomColors.textTertiaryContent)
-                        : null,
-                controlAffinity: ListTileControlAffinity.leading,
-                value: selectedOptions.contains(widget.options[index]),
-                onChanged: (value) {
-                  if (!widget.disabled) {
-                    if (value!) {
-                      selectedOptions.add(widget.options[index]);
-                    } else {
-                      selectedOptions.remove(widget.options[index]);
-                    }
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 4.0, vertical: 3.0),
+                  child: CheckboxListTile(
+                    title: Text(
+                      widget.options[index],
+                      style: CustomTypography().button(
+                          color:
+                              selectedOptions.contains(widget.options[index]) &&
+                                      !widget.disabled
+                                  ? CustomColors.productNormalActive
+                                  : Colors.black),
+                    ),
+                    checkColor: CustomColors.productLightPrimaryNormalWhite,
+                    fillColor:
+                        selectedOptions.contains(widget.options[index]) &&
+                                !widget.disabled
+                            ? WidgetStateProperty.all(
+                                CustomColors.productNormalActive)
+                            : selectedOptions.contains(widget.options[index])
+                                ? WidgetStateProperty.all(
+                                    CustomColors.textTertiaryContent)
+                                : null,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: selectedOptions.contains(widget.options[index]),
+                    onChanged: (value) {
+                      if (!widget.disabled) {
+                        if (value!) {
+                          selectedOptions.add(widget.options[index]);
+                        } else {
+                          selectedOptions.remove(widget.options[index]);
+                        }
 
-                    setState(() {
-                      widget.onChanged!(selectedOptions);
-                    });
-                  }
-                },
-              )),
+                        setState(() {
+                          widget.onChanged!(selectedOptions);
+                        });
+                      }
+                    },
+                  ))),
           const SizedBox(
             height: 12,
           ),
@@ -302,45 +307,46 @@ class _RadioQuestionState extends State<RadioQuestion> {
       itemCount: widget.options.length,
       itemBuilder: (context, index) {
         return Column(children: [
-          Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 3.0),
-              decoration: BoxDecoration(
-                  color:
-                      widget.options[index] == widget.value && !widget.disabled
-                          ? CustomColors.productLightBackground
-                          : CustomColors.productLightPrimaryNormalWhite,
+          Material(
+              color: widget.options[index] == widget.value && !widget.disabled
+                  ? CustomColors.productLightBackground
+                  : CustomColors.productLightPrimaryNormalWhite,
+              shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14.0),
-                  border: Border.all(
+                  side: BorderSide(
                       color: widget.options[index] == widget.value &&
                               !widget.disabled
                           ? CustomColors.productNormalActive
                           : CustomColors.productBorderNormal,
                       width: 2)),
-              child: RadioListTile<String>(
-                title: Text(
-                  widget.options[index],
-                  style: CustomTypography().button(
-                      color: !widget.disabled
-                          ? widget.options[index] == widget.value
-                              ? CustomColors.productNormalActive
-                              : Colors.black
-                          : CustomColors.textTertiaryContent),
-                ),
-                fillColor: WidgetStateProperty.all(!widget.disabled
-                    ? widget.options[index] == widget.value
-                        ? CustomColors.productNormalActive
-                        : Colors.black
-                    : CustomColors.textTertiaryContent),
-                controlAffinity: ListTileControlAffinity.leading,
-                value: widget.options[index],
-                groupValue: widget.value,
-                onChanged: (String? value) {
-                  if (!widget.disabled) {
-                    widget.onChanged(value);
-                  }
-                },
-              )),
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0, vertical: 3.0),
+                  child: RadioListTile<String>(
+                    title: Text(
+                      widget.options[index],
+                      style: CustomTypography().button(
+                          color: !widget.disabled
+                              ? widget.options[index] == widget.value
+                                  ? CustomColors.productNormalActive
+                                  : Colors.black
+                              : CustomColors.textTertiaryContent),
+                    ),
+                    fillColor: WidgetStateProperty.all(!widget.disabled
+                        ? widget.options[index] == widget.value
+                            ? CustomColors.productNormalActive
+                            : Colors.black
+                        : CustomColors.textTertiaryContent),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: widget.options[index],
+                    groupValue: widget.value,
+                    onChanged: (String? value) {
+                      if (!widget.disabled) {
+                        widget.onChanged(value);
+                      }
+                    },
+                  ))),
           const SizedBox(
             height: 12,
           ),
