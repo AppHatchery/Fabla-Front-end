@@ -149,9 +149,9 @@ class _TestMicrophoneState extends State<TestMicrophone> {
 
   void startRecorder() async {
     final tempDir = await getTemporaryDirectory();
-    final path = '${tempDir.path}/flutter_sound.aac';
+    final path = '${tempDir.path}/flutter_sound.m4a';
     recorder.startRecorder(
-        toFile: path, codec: Codec.aacADTS, sampleRate: 44100, bitRate: 48000);
+        toFile: path, codec: Codec.aacMP4, sampleRate: 44100, bitRate: 48000);
     setState(() {
       isRecording = true;
     });

@@ -489,6 +489,7 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
 String extensionToContentType(String extension) {
   final type = {
     '.aac': 'audio/aac',
+    '.m4a': 'audio/mp4',
     '.jpg': 'image/jpeg',
     '.mp4': 'video/mp4',
   };

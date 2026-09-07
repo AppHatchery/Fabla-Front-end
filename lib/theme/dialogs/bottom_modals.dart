@@ -20,7 +20,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sound/public/flutter_sound_recorder.dart';
+import 'package:flutter_sound/flutter_sound.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -630,7 +630,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         //start fresh
         final path = await getFilePath();
         WakelockPlus.enable();
-        await recorder.startRecorder(toFile: path);
+        await recorder.startRecorder(toFile: path, codec: Codec.aacMP4);
         startTimer();
       }
 
@@ -680,7 +680,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         .create(recursive: true);
     final now = DateTime.now();
     final fileName =
-        'audio_prompt_${widget.promptId + 1}_${formatDate(now)}.aac';
+        'audio_prompt_${widget.promptId + 1}_${formatDate(now)}.m4a';
     final filePath = p.join(dir.path, fileName);
     return filePath;
   }
