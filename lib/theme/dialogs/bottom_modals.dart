@@ -230,11 +230,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       _foregroundServiceActive = true;
       return true;
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'Recording foreground service failed to start',
-      );
+      CrashlyticsService().recordError(e,s,reason: 'Recording foreground service failed to start');
 
       return false;
     }
@@ -254,11 +250,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     try {
       await FlutterForegroundTask.stopService();
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'Recording foreground service failed to stop',
-      );
+      CrashlyticsService().recordError(e,s,reason: 'Recording foreground service failed to stop');
     }
   }
 
@@ -286,11 +278,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     try {
       await recorder.pauseRecorder();
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'pauseRecorder on app background failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'pauseRecorder on app background failed');
     }
 
     // Outside the try, as in _pauseForAudioIssue(): the timer above is
@@ -377,21 +365,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         await recorder.stopRecorder();
       }
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'stopRecorder during dispose failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'stopRecorder during dispose failed');
     }
 
     try {
       await recorder.closeRecorder();
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'closeRecorder during dispose failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'closeRecorder during dispose failed');
     }
   }
 
@@ -791,11 +771,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         const Duration(milliseconds: 150),
       );
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'recorderInit failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'recorderInit failed');
     }
   }
 
@@ -810,11 +786,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         ..clear()
         ..addAll(devices.where((d) => d.isInput).map((device) => device.id));
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'Input device snapshot failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'Input device snapshot failed');
     }
   }
 
@@ -897,11 +869,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     try {
       await recorder.pauseRecorder();
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'Failed to pause recorder for audio issue',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'Failed to pause recorder for audio issue');
     }
 
     // Set outside the try, so a failed pause still moves the UI. The audio
@@ -955,11 +923,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       await session.setActive(true);
       return true;
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'Audio session activation failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'Audio session activation failed');
 
       return false;
     }
@@ -986,11 +950,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             AVAudioSessionSetActiveOptions.notifyOthersOnDeactivation,
       );
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'Audio session deactivation failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'Audio session deactivation failed');
     }
   }
 
@@ -1061,11 +1021,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
       return true;
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'stopRecorder failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'stopRecorder failed');
 
       // Re-armed so the stop button keeps working. Leaving this null strands
       // the modal: every later tap returns at the guard above, and isCompleted
@@ -1202,12 +1158,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
         startTimer();
         return;
-      } else {
-        //start fresh
-        final path = await getFilePath();
-        WakelockPlus.enable();
-        await recorder.startRecorder(toFile: path, codec: Codec.aacMP4);
-        startTimer();
       }
       _recordingTransitioning = true;
 
@@ -1230,7 +1180,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       // instead of letting Android hand the encoder silence.
       await _startForegroundService();
 
-      await recorder.startRecorder(toFile: path);
+      await recorder.startRecorder(codec: Codec.aacMP4, toFile: path);
 
       _recordingStartedAt = DateTime.now();
 
@@ -1249,11 +1199,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     } catch (e, s) {
       debugPrint('record() failed: $e');
 
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'record() failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'record() failed');
 
       // Enabled above, before startRecorder() — so a throw from the start or
       // resume path would otherwise hold the screen awake for the rest of the
@@ -1336,11 +1282,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         Navigator.pop(context);
       }
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'save() failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'save() failed');
 
       PendoService.track(
         "Failed to Save Audio",
