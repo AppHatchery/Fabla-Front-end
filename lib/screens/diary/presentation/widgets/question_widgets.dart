@@ -446,7 +446,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (_lowStorage) ...[
-                const AlertCard(
+                const LowWarningCard(
                   message:
                       'You are running low on storage space. Please clear up '
                       'storage to avoid losing recording data.',
@@ -454,7 +454,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
                 const SizedBox(height: 12),
               ],
               if (_lowBattery) ...[
-                const AlertCard(
+                const LowWarningCard(
                   message:
                       'Your battery is running low. Please connect your '
                       'charger to avoid interruptions while recording.',

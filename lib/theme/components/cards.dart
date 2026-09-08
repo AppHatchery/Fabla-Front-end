@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as dev;
-import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
@@ -10,19 +8,14 @@ import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repo
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
-import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
-
 import '../../core/utils/audioPlayer.dart';
 import '../../core/utils/formatter.dart';
 import '../../core/utils/participant_experiment_details.dart';
@@ -1868,4 +1861,48 @@ class RecordingIssueCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       AlertCard(message: _messages[status] ?? '');
+}
+
+//low stroage and battery warning
+
+class LowWarningCard extends StatelessWidget {
+  const LowWarningCard({super.key, required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 15),
+      decoration: ShapeDecoration(
+        color: CustomColors.yellowLight,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(width: 2, color: CustomColors.amber),
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            CupertinoIcons.xmark_circle_fill,
+            size: 24,
+            color: CustomColors.yellowDark,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                message,
+                style: CustomTypography().bodyLarge(
+                  color: CustomColors.yellowDark,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
