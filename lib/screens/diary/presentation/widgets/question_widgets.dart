@@ -886,6 +886,7 @@ class TimerWidget extends StatefulWidget {
   final Duration time;
   final bool playbackControls;
   final bool userInteraction;
+  final bool? showLiveUpdates;
   final void Function(String) respond;
   final Function(Function) addToPreFunction;
 
@@ -894,6 +895,7 @@ class TimerWidget extends StatefulWidget {
     required this.time,
     required this.playbackControls,
     required this.userInteraction,
+    this.showLiveUpdates = true,
     required this.respond,
     required this.addToPreFunction,
   });
@@ -931,12 +933,15 @@ class _TimerWidgetState extends State<TimerWidget>
   void Function()? _updateModalCallback;
   int? currentAlarmId;
 
-  static final _liveUpdate = TimerLiveUpdateService();
+  late final TimerLiveUpdateService _liveUpdate;
   // Track when the current countdown should complete (wall-clock). Used to detect completion when app is backgrounded
   DateTime? _expectedEndTime;
   @override
   void initState() {
     super.initState();
+
+    _liveUpdate =
+        TimerLiveUpdateService(enabled: widget.showLiveUpdates ?? true);
 
     WidgetsBinding.instance.addObserver(this);
 
@@ -984,7 +989,7 @@ class _TimerWidgetState extends State<TimerWidget>
       });
 
       stopAlarm();
-      _liveUpdate.hide();
+      _liveUpdate.end();
       widget.respond("Complete");
       return;
     }
@@ -1000,7 +1005,7 @@ class _TimerWidgetState extends State<TimerWidget>
     WidgetsBinding.instance.removeObserver(this);
 
     _timer?.cancel();
-    _liveUpdate.hide();
+    _liveUpdate.end();
     _shakeController.dispose();
     _remainingNotifier.dispose();
 
@@ -1055,6 +1060,7 @@ class _TimerWidgetState extends State<TimerWidget>
     setState(() => status = TimerStatus.paused);
 
     stopAlarm();
+    _liveUpdate.updatePaused(remaining);
     _expectedEndTime = null;
     _syncLiveUpdate();
   }
@@ -1066,6 +1072,7 @@ class _TimerWidgetState extends State<TimerWidget>
 
     _expectedEndTime = DateTime.now().add(remaining);
     setAlarm(remaining);
+    _liveUpdate.updateRunning(_expectedEndTime!);
     _startTimer();
     _syncLiveUpdate();
   }
@@ -1095,6 +1102,7 @@ class _TimerWidgetState extends State<TimerWidget>
     if (!mounted) return;
 
     _expectedEndTime = DateTime.now().add(duration);
+    _liveUpdate.start(_expectedEndTime!, duration);
     _startTimer();
     _syncLiveUpdate();
   }
@@ -1112,8 +1120,8 @@ class _TimerWidgetState extends State<TimerWidget>
     });
 
     stopAlarm();
+    _liveUpdate.end();
     _shakeController.reset();
-    _liveUpdate.hide();
   }
 
   void _pauseResumeTimer() => isPaused ? _resumeTimer() : _pauseTimer();
@@ -1127,6 +1135,14 @@ class _TimerWidgetState extends State<TimerWidget>
       showCompletionText = false; // Don't show completion text immediately
     });
     _shakeController.forward().then((_) => _shakeController.repeat());
+    // Leave the Live Activity up — it's ended later when the user closes or
+    // dismisses the timer. Its `staleDate` alone does NOT repaint the widget
+    // once passed; WidgetKit only re-evaluates `context.isStale` (and so its
+    // "complete" look) the next time it actually redraws. Re-sending the same
+    // endDate here forces that redraw at the exact moment we hit zero, so the
+    // Live Activity flips to "complete" immediately while the app is
+    // foregrounded, instead of sitting frozen on its last-drawn "0:00".
+    _liveUpdate.updateRunning(_expectedEndTime!);
     widget.respond("timer");
     _refreshModal();
     _liveUpdate.hide();
@@ -1153,7 +1169,7 @@ class _TimerWidgetState extends State<TimerWidget>
     _updateModalCallback = null;
     _shakeController.reset();
     stopAlarm();
-    _liveUpdate.hide();
+    _liveUpdate.end();
   }
 
   Future<void> _startAndShowModal({bool startPaused = false}) async {
@@ -1172,6 +1188,7 @@ class _TimerWidgetState extends State<TimerWidget>
       await setAlarm(duration);
       if (!mounted) return;
       _expectedEndTime = DateTime.now().add(duration);
+      _liveUpdate.start(_expectedEndTime!, duration);
     }
 
     await _startSound();
