@@ -26,8 +26,6 @@ import ActivityKit
       UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
     }
     SwiftAlarmPlugin.registerBackgroundTasks()
-      
-    GeneratedPluginRegistrant.register(with: self)
     SwiftFlutterForegroundTaskPlugin.setPluginRegistrantCallback { registry in
                 GeneratedPluginRegistrant.register(with: registry)
                 }
