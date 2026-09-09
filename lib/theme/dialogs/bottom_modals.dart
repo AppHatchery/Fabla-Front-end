@@ -73,9 +73,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   RecorderState recorderState = RecorderState.isStopped;
   final ValueNotifier<bool> _erase = ValueNotifier<bool>(false);
   String? tempUrl;
-  // a flag to check if the recording is active or not
-  bool _recordingCheck = false;
-  bool _recordingTransitioning = false;
 
   ScrollController scrollController = ScrollController();
 
@@ -108,6 +105,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   final Set<String> _inputDeviceIds = {};
 
   DateTime? _recordingStartedAt;
+
+  /// Held while a start, pause, resume or stop is in flight.
+  ///
+  /// [record] and [stop] drive the same recorder from buttons sitting side by
+  /// side, so a tap on one while the other is awaiting would put two calls on
+  /// it at once. First in wins; the other is ignored.
+  bool _recorderBusy = false;
 
   static const _minimumRecordingStartDelay = Duration(
     milliseconds: 400,
@@ -987,61 +991,70 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   /// The return value is what [startTimer] gates its automatic [save] on: a
   /// stop that never happened leaves no file to persist.
   Future<bool> stop() async {
-    final startedAt = _recordingStartedAt;
-    if (startedAt == null) {
-      return false;
-    }
 
-    if (DateTime.now().difference(startedAt) < _minimumRecordingStartDelay) {
-      return false;
-    }
-
-    // Cancelled before the call, not after: a throw below would otherwise
-    // leave the limit branch of startTimer() re-firing stop() every second.
-    _timer?.cancel();
-    _recordingStartedAt = null;
-
-    // Released either way: no branch below leaves this modal capturing, and
-    // only save() used to disable it — so stopping and then closing with the
-    // X, which the guard allows once recording has ended, kept the screen
-    // awake for the rest of the app's life.
-    WakelockPlus.disable();
-    await _stopForegroundService();
+    if (!mounted || _recorderBusy) return false;
+    _recorderBusy = true;
 
     try {
-      tempUrl = await recorder.stopRecorder();
-
-      if (!mounted) {
-        return true;
-      }
-
-      setState(() {
-        recorderState = RecorderState.isStopped;
-      });
-
-      return true;
-    } catch (e, s) {
-      CrashlyticsService().recordError(e, s, reason: 'stopRecorder failed');
-
-      // Re-armed so the stop button keeps working. Leaving this null strands
-      // the modal: every later tap returns at the guard above, and isCompleted
-      // never turns true, so neither stop nor save is ever reachable again and
-      // the take is lost.
-      _recordingStartedAt = startedAt;
-
-      if (!mounted) {
+      final startedAt = _recordingStartedAt;
+      if (startedAt == null) {
         return false;
       }
 
-      // Not isStopped — there is no file to save, so the modal must not offer
-      // the save button. Paused is the honest "not capturing right now" state
-      // and keeps stop on screen for a retry.
-      setState(() {
-        recorderState = RecorderState.isPaused;
-      });
+      if (DateTime.now().difference(startedAt) < _minimumRecordingStartDelay) {
+        return false;
+      }
 
-      return false;
+      // Cancelled before the call, not after: a throw below would otherwise
+      // leave the limit branch of startTimer() re-firing stop() every second.
+      _timer?.cancel();
+      _recordingStartedAt = null;
+
+      // Released either way: no branch below leaves this modal capturing, and
+      // only save() used to disable it — so stopping and then closing with the
+      // X, which the guard allows once recording has ended, kept the screen
+      // awake for the rest of the app's life.
+      WakelockPlus.disable();
+      await _stopForegroundService();
+
+      try {
+        tempUrl = await recorder.stopRecorder();
+
+        if (!mounted) {
+          return true;
+        }
+
+        setState(() {
+          recorderState = RecorderState.isStopped;
+        });
+
+        return true;
+      } catch (e, s) {
+        CrashlyticsService().recordError(e, s, reason: 'stopRecorder failed');
+
+        // Re-armed so the stop button keeps working. Leaving this null strands
+        // the modal: every later tap returns at the guard above, and isCompleted
+        // never turns true, so neither stop nor save is ever reachable again and
+        // the take is lost.
+        _recordingStartedAt = startedAt;
+
+        if (!mounted) {
+          return false;
+        }
+
+        // Not isStopped — there is no file to save, so the modal must not offer
+        // the save button. Paused is the honest "not capturing right now" state
+        // and keeps stop on screen for a retry.
+        setState(() {
+          recorderState = RecorderState.isPaused;
+        });
+
+        return false;
+      }
+    } finally {
+      _recorderBusy = false;
     }
+
   }
 
   Future<void> redo() async {
@@ -1093,11 +1106,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Future<void> record() async {
-    //if recording is active return
-    if (_recordingCheck || _recordingTransitioning) return;
+    if (_recorderBusy) return;
 
-    // set recoding to true
-    _recordingCheck = true;
+    _recorderBusy = true;
 
     try {
       final hasPermission = await checkAndRequestPermission();
@@ -1159,8 +1170,6 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         startTimer();
         return;
       }
-      _recordingTransitioning = true;
-
       //start fresh
       final path = await getFilePath();
       WakelockPlus.enable();
@@ -1214,8 +1223,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         });
       }
     } finally {
-      _recordingTransitioning = false;
-      _recordingCheck = false;
+      _recorderBusy = false;
     }
   }
 
