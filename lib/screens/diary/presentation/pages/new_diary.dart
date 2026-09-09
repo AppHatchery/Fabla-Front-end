@@ -434,6 +434,7 @@ class _QuestionPageState extends State<QuestionPage>
       prompt: promptModel,
       path: path,
     ),
+    singleAnswer: !(widget.prompt.option?.multipleAnswers ?? false),
   );
 
   /// Guards [checkForResponse] against overlapping runs. It is async and fires
@@ -786,6 +787,12 @@ class _QuestionPageState extends State<QuestionPage>
     final usable = await _answers.countUsable(answer?.recordings ?? []);
 
     if (!mounted || token != _responseCheckToken) return;
+
+    // The sweep can retire a notice or raise a new one, and nothing else
+    // rebuilds this page once it resolves — the prompt listener's rebuild has
+    // already run by the time the disk checks finish, so without this the card
+    // renders a stale notice until something unrelated happens to rebuild it.
+    setState(() {});
 
     if (!prompt1.required) {
       widget.answerAdded(true);
