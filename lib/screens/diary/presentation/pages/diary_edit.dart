@@ -40,6 +40,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
       prompt: widget.prompt,
       path: path,
     ),
+    singleAnswer: !(widget.prompt.option?.multipleAnswers ?? false),
   );
 
   /// Guards [canUserProceed] against overlapping runs — it is async, and a
@@ -129,6 +130,11 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
     final usable = await _answers.countUsable(answer?.recordings ?? []);
 
     if (!mounted || token != _responseCheckToken) return;
+
+    // The sweep can retire a notice or raise a new one, and nothing else
+    // rebuilds this page once it resolves — so without this the card renders a
+    // stale notice until something unrelated happens to rebuild it.
+    setState(() {});
 
     if (!prompt.required) {
       setState(() => proceed = true);

@@ -20,24 +20,40 @@ import '../utils/statuses.dart';
 /// answer, so none of them count towards the gate — but only the first two get
 /// the row deleted. See [_deletable].
 class RecordingAnswerChecker {
-  RecordingAnswerChecker({required this.discard});
+  RecordingAnswerChecker({
+    required this.discard,
+    required this.singleAnswer,
+  });
 
   /// Removes the recording row at the given path.
   final void Function(String path) discard;
+
+  /// Whether this prompt accepts exactly one answer.
+  ///
+  /// Decides when a notice for a deleted row can come down. One slot means any
+  /// usable recording is the replacement the notice asked for. With several
+  /// slots there is no such link — a re-recording is saved under a new
+  /// filename, so nothing says which lost take it replaces — and guessing is
+  /// what let one healthy recording erase another's explanation.
+  final bool singleAnswer;
 
   /// Recordings known to be unusable, keyed by path.
   ///
   /// Exposed so the prompt can explain what happened. Treat as read-only —
   /// mutate through [report] and [countUsable] so discards stay paired with
   /// the status that caused them.
+  ///
+  /// These are the notices, not a record of what was deleted — entries leave
+  /// once the explanation has been read. See [_discarded].
   final Map<String, AudioStatus> unplayable = {};
 
-  /// Paths present on the previous [countUsable] sweep.
+  /// Paths already handed to [discard].
   ///
-  /// A usable recording missing from this set is new — the participant has
-  /// re-recorded — which is what retires the outstanding notices. Siblings
-  /// that were healthy all along are in the set, so they cannot.
-  Set<String>? _previousSweep;
+  /// Separate from [unplayable] because it has to last longer: a notice comes
+  /// down once the participant has an answer again, but "this row is gone"
+  /// stays true. Sharing one set let a retired notice trigger a second
+  /// [discard] of a row that no longer exists.
+  final Set<String> _discarded = {};
 
   /// Statuses that prove the file cannot be uploaded, and so justify deleting
   /// the row.
@@ -72,7 +88,7 @@ class RecordingAnswerChecker {
     if (unplayable[path] == status) return false;
 
     unplayable[path] = status;
-    if (_deletable.contains(status)) discard(path);
+    if (_deletable.contains(status) && _discarded.add(path)) discard(path);
     return true;
   }
 
@@ -82,9 +98,6 @@ class RecordingAnswerChecker {
   /// The sweep matters for prompts no card ever rendered — a resumed diary, or
   /// an optional prompt that never gates navigation. O(n) stat calls.
   Future<int> countUsable(List<Recording> recordings) async {
-    final previous = _previousSweep;
-    _previousSweep = {for (final recording in recordings) recording.path};
-
     if (recordings.isEmpty) return 0;
 
     final dir = await getApplicationDocumentsDirectory();
@@ -95,23 +108,18 @@ class RecordingAnswerChecker {
     // it directly throws ConcurrentModificationError the moment a recording
     // turns out to be unusable — the one case this sweep exists for.
     for (final recording in List.of(recordings)) {
-      // Already known bad; it has been discarded once already.
-      if (unplayable.containsKey(recording.path)) continue;
+      // Already handled: either still carrying a notice, or a row deleted once
+      // already that must not be deleted again.
+      if (unplayable.containsKey(recording.path) ||
+          _discarded.contains(recording.path)) {
+        continue;
+      }
 
       final file = File(p.join(dir.path, recording.path));
       final exists = await file.exists();
 
       if (exists && await file.length() > 0) {
         usable++;
-
-        // Absent last sweep, so this is the replacement the notices were
-        // asking for: they have served their purpose and must not sit on
-        // screen beside the new answer. On the first sweep there is nothing
-        // to compare against, and nothing has been discarded yet either.
-        if (previous != null && !previous.contains(recording.path)) {
-          unplayable.clear();
-        }
-
         continue;
       }
 
@@ -120,6 +128,22 @@ class RecordingAnswerChecker {
         exists ? AudioStatus.noAudioLength : AudioStatus.fileNotFound,
       );
     }
+
+    if (usable > 0) _retireDiscardedNotices();
+
     return usable;
+  }
+
+  /// Takes down the notices for rows [discard] deleted, once the prompt has a
+  /// usable answer again. Single-answer prompts only — see [singleAnswer].
+  ///
+  /// Only the deleted ones. An [AudioStatus.canNotPlay] row is still in
+  /// `answer.recordings`, so dropping its key would hand it back as a playable
+  /// answer and let it open the gate — the exact thing this class exists to
+  /// prevent.
+  void _retireDiscardedNotices() {
+    if (!singleAnswer) return;
+
+    unplayable.removeWhere((_, status) => _deletable.contains(status));
   }
 }

@@ -9,7 +9,7 @@ import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:flutter_sound/public/flutter_sound_recorder.dart';
+import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
@@ -146,10 +146,12 @@ class AudioRecordingService {
   /// Absolute path of the take on disk, set once the recorder has stopped.
   String? _takePath;
 
-  /// Serialises taps on the record control: without them a double tap can
-  /// interleave a start with a pause.
-  bool _recordingCheck = false;
-  bool _recordingTransitioning = false;
+  /// Held while a start, pause, resume or stop is in flight.
+  ///
+  /// [record] and [stop] drive the same recorder from controls sitting side by
+  /// side, so a tap on one while the other is awaiting would put two calls on
+  /// it at once. First in wins; the other is ignored.
+  bool _recorderBusy = false;
 
   bool _disposed = false;
 
@@ -254,10 +256,9 @@ class AudioRecordingService {
   /// [ensureMicrophonePermission].
   Future<void> record() async {
     //if recording is active return
-    if (_recordingCheck || _recordingTransitioning) return;
+    if (_recorderBusy) return;
 
-    // set recoding to true
-    _recordingCheck = true;
+    _recorderBusy = true;
 
     try {
       if (_disposed) return;
@@ -306,8 +307,6 @@ class AudioRecordingService {
         return;
       }
 
-      _recordingTransitioning = true;
-
       //start fresh
       final path = await _filePath();
       WakelockPlus.enable();
@@ -327,7 +326,7 @@ class AudioRecordingService {
       // instead of letting Android hand the encoder silence.
       await _startForegroundService();
 
-      await _recorder.startRecorder(toFile: path);
+      await _recorder.startRecorder(codec: Codec.aacMP4, toFile: path);
 
       _recordingStartedAt = DateTime.now();
 
@@ -357,8 +356,7 @@ class AudioRecordingService {
 
       _emit(status: AudioRecordingStatus.stopped);
     } finally {
-      _recordingTransitioning = false;
-      _recordingCheck = false;
+      _recorderBusy = false;
     }
   }
 
@@ -368,52 +366,59 @@ class AudioRecordingService {
   /// what a caller should gate a [save] on: a stop that never happened leaves
   /// no file to persist.
   Future<bool> stop() async {
-    final startedAt = _recordingStartedAt;
-    if (startedAt == null) {
-      return false;
-    }
-
-    if (DateTime.now().difference(startedAt) < _minimumRecordingStartDelay) {
-      return false;
-    }
-
-    // Cancelled before the call, not after: a throw below would otherwise
-    // leave the limit branch of _startTimer() re-firing stop() every second.
-    _timer?.cancel();
-    _recordingStartedAt = null;
-
-    // Released either way: no branch below leaves this service capturing, and
-    // only save() used to disable it — so stopping and then closing the UI,
-    // which is allowed once recording has ended, kept the screen awake for the
-    // rest of the app's life.
-    WakelockPlus.disable();
-    await _stopForegroundService();
+    if (_disposed || _recorderBusy) return false;
+    _recorderBusy = true;
 
     try {
-      _takePath = await _recorder.stopRecorder();
+      final startedAt = _recordingStartedAt;
+      if (startedAt == null) {
+        return false;
+      }
 
-      _emit(status: AudioRecordingStatus.stopped);
+      if (DateTime.now().difference(startedAt) < _minimumRecordingStartDelay) {
+        return false;
+      }
 
-      return true;
-    } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'stopRecorder failed',
-      );
+      // Cancelled before the call, not after: a throw below would otherwise
+      // leave the limit branch of _startTimer() re-firing stop() every second.
+      _timer?.cancel();
+      _recordingStartedAt = null;
 
-      // Re-armed so the stop control keeps working. Leaving this null strands
-      // the recorder: every later tap returns at the guard above, and
-      // hasCompletedTake never turns true, so neither stop nor save is ever
-      // reachable again and the take is lost.
-      _recordingStartedAt = startedAt;
+      // Released either way: no branch below leaves this service capturing,
+      // and only save() used to disable it — so stopping and then closing the
+      // UI, which is allowed once recording has ended, kept the screen awake
+      // for the rest of the app's life.
+      WakelockPlus.disable();
+      await _stopForegroundService();
 
-      // Not stopped — there is no file to save, so the UI must not offer the
-      // save control. Paused is the honest "not capturing right now" state and
-      // keeps stop on screen for a retry.
-      _emit(status: AudioRecordingStatus.paused);
+      try {
+        _takePath = await _recorder.stopRecorder();
 
-      return false;
+        _emit(status: AudioRecordingStatus.stopped);
+
+        return true;
+      } catch (e, s) {
+        CrashlyticsService().recordError(
+          e,
+          s,
+          reason: 'stopRecorder failed',
+        );
+
+        // Re-armed so the stop control keeps working. Leaving this null
+        // strands the recorder: every later tap returns at the guard above,
+        // and hasCompletedTake never turns true, so neither stop nor save is
+        // ever reachable again and the take is lost.
+        _recordingStartedAt = startedAt;
+
+        // Not stopped — there is no file to save, so the UI must not offer the
+        // save control. Paused is the honest "not capturing right now" state
+        // and keeps stop on screen for a retry.
+        _emit(status: AudioRecordingStatus.paused);
+
+        return false;
+      }
+    } finally {
+      _recorderBusy = false;
     }
   }
 
@@ -959,13 +964,13 @@ class AudioRecordingService {
     }
   }
 
-  /// Where the next take is written: `<documents>/audios/audio_prompt_N_<date>.aac`.
+  /// Where the next take is written: `<documents>/audios/audio_prompt_N_<date>.m4a`.
   Future<String> _filePath() async {
     final directory = await getApplicationDocumentsDirectory();
     final dir = await Directory(p.join(directory.path, 'audios'))
         .create(recursive: true);
     final now = DateTime.now();
-    final fileName = 'audio_prompt_${promptId + 1}_${formatDate(now)}.aac';
+    final fileName = 'audio_prompt_${promptId + 1}_${formatDate(now)}.m4a';
     return p.join(dir.path, fileName);
   }
 

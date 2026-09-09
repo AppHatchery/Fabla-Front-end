@@ -43,7 +43,12 @@ void main() {
   setUp(() {
     documentsDir = Directory.systemTemp.createTempSync('recording_answer_test');
     discarded = [];
-    checker = RecordingAnswerChecker(discard: discarded.add);
+    // Single-answer is the common prompt shape; the multiple-answer group
+    // below builds its own checker.
+    checker = RecordingAnswerChecker(
+      discard: discarded.add,
+      singleAnswer: true,
+    );
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(_pathProviderChannel, (call) async {
@@ -267,12 +272,13 @@ void main() {
       expect(await checker.countUsable([_recording('nested.aac')]), 0);
     });
 
-    test('a replacement recorded under a new filename retires the notice',
+    test('a replacement retires the notice on a single-answer prompt',
         () async {
-      // The replacement is saved as a fresh row with its own timestamped
-      // name, so its notice can never be matched by path — it has to be
-      // recognised as new instead, or the discarded recording's explanation
-      // sits on screen beside the new answer forever.
+      // The replacement is saved as a fresh row with its own timestamped name,
+      // so its notice can never be matched by path. A single-answer prompt has
+      // one slot, so any usable recording is the replacement the notice was
+      // asking for — otherwise the discarded take's explanation sits on screen
+      // beside the new answer forever.
       const old = 'audios/audio_prompt_1_20-55-36.aac';
       const replacement = 'audios/audio_prompt_1_21-02-14.aac';
 
@@ -288,24 +294,77 @@ void main() {
       expect(checker.unplayable, isEmpty);
     });
 
-    test('a sibling that was there all along retires nothing', () async {
-      // The other half of the same rule: only a *new* recording counts as a
-      // replacement. A healthy sibling present on the previous sweep must not
-      // erase the explanation for one that was discarded.
+    test('retiring keeps an undecodable recording flagged', () async {
+      // The row is still in answer.recordings — only missing and empty files
+      // get deleted. Dropping its key alongside the discarded ones would hand
+      // it back as a playable answer: it would count towards the record button
+      // and, on the next sweep, towards the gate.
+      write('audios/garbage.aac', bytes: 16);
       write('audios/good.aac', bytes: 16);
 
-      final first = await checker.countUsable([
+      checker.report('audios/garbage.aac', AudioStatus.canNotPlay);
+
+      expect(await checker.countUsable([_recording('audios/missing.aac')]), 0);
+      expect(checker.unplayable['audios/missing.aac'],
+          AudioStatus.fileNotFound);
+
+      final usable = await checker.countUsable([
         _recording('audios/good.aac'),
-        _recording('audios/missing.aac'),
+        _recording('audios/garbage.aac'),
       ]);
-      final second = await checker.countUsable([
+
+      expect(usable, 1, reason: 'the undecodable file is still not an answer');
+      expect(checker.unplayable['audios/missing.aac'], isNull,
+          reason: 'the discarded row\'s notice has served its purpose');
+      expect(checker.unplayable['audios/garbage.aac'], AudioStatus.canNotPlay,
+          reason: 'the row is still present, so it stays flagged');
+      expect(discarded, isNot(contains('audios/garbage.aac')));
+    });
+
+    test('a healthy sibling retires nothing on a multiple-answer prompt',
+        () async {
+      // Nothing links a new recording to any particular lost take, so on a
+      // prompt that accepts several answers there is no honest way to say
+      // which notice it replaces. Guessing is what let one healthy recording
+      // erase the explanation for a different discarded one.
+      final multi = RecordingAnswerChecker(
+        discard: discarded.add,
+        singleAnswer: false,
+      );
+
+      write('audios/good.aac', bytes: 16);
+
+      final usable = await multi.countUsable([
         _recording('audios/good.aac'),
         _recording('audios/missing.aac'),
       ]);
 
-      expect(first, 1);
-      expect(second, 1);
-      expect(checker.unplayable['audios/missing.aac'],
+      expect(usable, 1);
+      expect(discarded, ['audios/missing.aac']);
+      expect(multi.unplayable['audios/missing.aac'], AudioStatus.fileNotFound,
+          reason: 'the lost answer still needs explaining');
+    });
+
+    test('each lost take on a multiple-answer prompt keeps its own notice',
+        () async {
+      final multi = RecordingAnswerChecker(
+        discard: discarded.add,
+        singleAnswer: false,
+      );
+
+      write('audios/good.aac', bytes: 16);
+      write('audios/empty.aac', bytes: 0);
+
+      final usable = await multi.countUsable([
+        _recording('audios/good.aac'),
+        _recording('audios/empty.aac'),
+        _recording('audios/missing.aac'),
+      ]);
+
+      expect(usable, 1);
+      expect(multi.unplayable, hasLength(2));
+      expect(multi.unplayable['audios/empty.aac'], AudioStatus.noAudioLength);
+      expect(multi.unplayable['audios/missing.aac'],
           AudioStatus.fileNotFound);
     });
 
@@ -324,6 +383,7 @@ void main() {
 
       final mutating = RecordingAnswerChecker(
         discard: (path) => recordings.removeWhere((r) => r.path == path),
+        singleAnswer: true,
       );
 
       expect(await mutating.countUsable(recordings), 0);
