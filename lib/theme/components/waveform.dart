@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 
 import '../custom_colors.dart';
@@ -9,12 +11,13 @@ import '../custom_colors.dart';
 ///
 /// This widget integrates with the FlutterSoundRecorder to visualize audio recording levels
 /// as a waveform. It takes a FlutterSoundRecorder instance, the maximum number of visible
-/// waveform values, the maximum value of the waveform, and an optional color for the waveform.
+/// waveform values, a reference loudness level used to scale the bars, and an optional
+/// color for the waveform.
 ///
 /// The waveform is drawn using a CustomPainter, and the audio recording progress is updated
-/// using the onProgress event of the recorder. The waveform values are updated in response to
-/// the audio recording progress, and only the specified maximum number of visible values
-/// are displayed on the screen at a time.
+/// using the onProgress event of the recorder. Incoming levels are smoothed (fast attack,
+/// slower release) and normalized against a fixed reference so a bar's height always reflects
+/// its actual loudness, and new bars ease in smoothly instead of popping in at full height.
 ///
 /// The onErase ValueNotifier is used to clear the waveform when the user erases the recording.
 ///
@@ -47,24 +50,73 @@ class CustomWaveform extends StatefulWidget {
   CustomWaveformState createState() => CustomWaveformState();
 }
 
-class CustomWaveformState extends State<CustomWaveform> {
-  final List<double> _decibelValues = [];
+/// A single recorded level, already normalized to [0.0, 1.0], along with the
+/// time it was captured so the painter can ease it in as it appears.
+class WaveformSample {
+  WaveformSample(this.level) : insertedAt = DateTime.now();
+
+  final double level;
+  final DateTime insertedAt;
+}
+
+class CustomWaveformState extends State<CustomWaveform>
+    with SingleTickerProviderStateMixin {
+  /// How long a new bar takes to grow from nothing to its full height.
+  static const _growDuration = Duration(milliseconds: 220);
+
+  // Attack/release smoothing: react quickly to louder audio but settle
+  // gently on quieter audio, so the meter doesn't jitter on raw mic noise.
+  static const _attack = 0.6;
+  static const _release = 0.2;
+
+  final List<WaveformSample> _samples = [];
+  double _smoothedLevel = 0;
+  StreamSubscription<RecordingDisposition>? _subscription;
+  late final Ticker _ticker;
 
   @override
   void initState() {
     super.initState();
-    widget.recorder.onProgress!.listen(_updateDecibelValues);
+    _subscription = widget.recorder.onProgress!.listen(_onProgress);
+    // Repaints while a bar is still easing in. Idle otherwise to save battery.
+    _ticker = createTicker(_onTick);
   }
 
-  void _updateDecibelValues(RecordingDisposition event) {
-    if (mounted) {
-      setState(() {
-        _decibelValues.insert(0, event.decibels as double);
-        if (_decibelValues.length > widget.maxVisibleValues) {
-          _decibelValues.removeLast();
-        }
-      });
-    }
+  void _onTick(Duration _) {
+    if (!mounted) return;
+    setState(() {});
+
+    final newest = _samples.isEmpty ? null : _samples.first;
+    final stillGrowing = newest != null &&
+        DateTime.now().difference(newest.insertedAt) < _growDuration;
+    if (!stillGrowing) _ticker.stop();
+  }
+
+  void _onProgress(RecordingDisposition event) {
+    // Normalize against a fixed reference level instead of the running max of
+    // the visible buffer, so a bar's height always reflects its actual
+    // loudness rather than shifting whenever a louder or quieter sample
+    // scrolls into view.
+    final target = ((event.decibels ?? 0) / widget.maxValue).clamp(0.0, 1.0);
+    _smoothedLevel += (target - _smoothedLevel) *
+        (target > _smoothedLevel ? _attack : _release);
+
+    if (!mounted) return;
+    setState(() {
+      _samples.insert(0, WaveformSample(_smoothedLevel));
+      if (_samples.length > widget.maxVisibleValues) {
+        _samples.removeLast();
+      }
+    });
+
+    if (!_ticker.isActive) _ticker.start();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    _subscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -72,12 +124,15 @@ class CustomWaveformState extends State<CustomWaveform> {
     return ValueListenableBuilder<bool>(
         valueListenable: widget.onErase,
         builder: (context, value, child) {
-          if (value) _decibelValues.clear();
+          if (value) {
+            _samples.clear();
+            _smoothedLevel = 0;
+          }
 
           return CustomPaint(
             painter: WaveformPainter(
-              decibelValues: _decibelValues,
-              maxValue: widget.maxValue,
+              samples: _samples,
+              growDuration: _growDuration,
               color: widget.color,
             ),
           );
@@ -88,67 +143,48 @@ class CustomWaveformState extends State<CustomWaveform> {
 /// CustomPainter for rendering a waveform visualization on a canvas.
 ///
 /// This CustomPainter is responsible for rendering a waveform visualization
-/// based on the provided decibel values, maximum value, and color. It takes a
-/// list of decibel values representing audio levels over time, a maximum value
-/// to determine the scaling of the waveform, and a color for drawing the bars.
-/// The waveform consists of a series of bars drawn on a canvas, with each bar's
-/// height determined by the corresponding decibel value.
-///
-/// The waveform is drawn using the provided decibel values as well as the maximum
-/// value to calculate the scaling of the bars' heights. The middle bar, represented
-/// by a spike, is drawn separately to indicate the current audio level. The waveform
-/// is drawn with bars descending from the center and moving towards the edges.
-///
-/// Example usage:
-/// ```dart
-/// WaveformPainter(
-///   decibelValues: myDecibelValues,
-///   maxValue: 1.0,
-///   color: Colors.blue,
-/// )
-/// ```
+/// based on a list of already-normalized, smoothed level samples. Each bar's
+/// height is a fixed fraction of the available height (no per-frame
+/// rescaling), and newly inserted bars ease in over [growDuration] for a
+/// smooth, continuous scroll rather than an abrupt pop-in. A static indicator
+/// bar marks the center where new bars appear.
 class WaveformPainter extends CustomPainter {
-  final List<double> decibelValues;
-  final double maxValue;
+  final List<WaveformSample> samples;
+  final Duration growDuration;
   final Color color;
 
-  WaveformPainter(
-      {required this.decibelValues,
-      required this.maxValue,
-      required this.color});
+  WaveformPainter({
+    required this.samples,
+    required this.growDuration,
+    required this.color,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     final centerY = size.height / 2;
-    const barWidth = 1.5;
-    const barPadding = 6;
-
-    final middleBarX = size.width / 2 - barWidth / 2;
-    // Find the maximum decibel value
-    final maxDecibel = decibelValues.isNotEmpty
-        ? decibelValues.reduce((a, b) => a > b ? a : b)
-        : 1.0;
-    final scaledMaxValue = maxValue < maxDecibel
-        ? maxDecibel
-        : maxValue; // Ensure spike height doesn't exceed maxValue
-    final spikeHeight = scaledMaxValue;
-    final centerBarHeight = maxValue;
-    final centerBarY = centerY - centerBarHeight / 2;
+    const barWidth = 2.0;
+    const barPadding = 3.0;
+    const indicatorWidth = 2.0;
+    final indicatorHeight = size.height * 0.9;
 
     final paint = Paint()
       ..color = color
-      ..strokeWidth = 12.0
       ..style = PaintingStyle.fill;
 
-    final middleSpikePaint = Paint()
+    final indicatorPaint = Paint()
       ..color = CustomColors.productNormalActive
-      ..strokeWidth = 12.0
       ..style = PaintingStyle.fill;
 
+    final now = DateTime.now();
+    final growthMs = growDuration.inMilliseconds;
     double x = size.width / 2 - barWidth / 2;
 
-    for (final decibelValue in decibelValues) {
-      final barHeight = max(1, (decibelValue / spikeHeight) * centerY);
+    for (final sample in samples) {
+      if (x < -barWidth) break;
+
+      final age = now.difference(sample.insertedAt).inMilliseconds;
+      final growth = Curves.easeOut.transform((age / growthMs).clamp(0.0, 1.0));
+      final barHeight = max(1.0, sample.level * growth * centerY);
 
       canvas.drawRRect(
         RRect.fromLTRBR(
@@ -165,16 +201,16 @@ class WaveformPainter extends CustomPainter {
 
     canvas.drawRRect(
       RRect.fromLTRBR(
-        middleBarX,
-        centerBarY,
-        middleBarX + 2,
-        centerBarY + centerBarHeight,
+        size.width / 2 - indicatorWidth / 2,
+        centerY - indicatorHeight / 2,
+        size.width / 2 + indicatorWidth / 2,
+        centerY + indicatorHeight / 2,
         const Radius.circular(10.0),
       ),
-      middleSpikePaint,
+      indicatorPaint,
     );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant WaveformPainter oldDelegate) => true;
 }
