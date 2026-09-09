@@ -520,7 +520,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       androidWillPauseWhenDucked: true,
     ));
 
-    await recorder.setSubscriptionDuration(const Duration(milliseconds: 150));
+    // Finer-grained progress updates make the waveform read as a smooth,
+    // continuous trace instead of a choppy, blocky one.
+    await recorder.setSubscriptionDuration(const Duration(milliseconds: 60));
   }
 
   void startTimer() {
