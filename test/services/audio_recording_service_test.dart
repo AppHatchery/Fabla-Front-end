@@ -51,34 +51,55 @@ void main() {
       expect(state.status, AudioRecordingStatus.stopped);
       expect(state.elapsed, Duration.zero);
       expect(state.isInterrupted, isFalse);
+      expect(state.hasTake, isFalse);
       expect(state.isRecording, isFalse);
       expect(state.isPaused, isFalse);
     });
 
     // The save and redo controls hang off this, so a take that captured
     // nothing must not look finished.
-    test('only reports a completed take once a stop has captured a second', () {
+    test('only reports a completed take once a stop has captured a file', () {
       const nothingRecorded = AudioRecordingState();
       const recording = AudioRecordingState(
         status: AudioRecordingStatus.recording,
         elapsed: Duration(seconds: 12),
+        hasTake: true,
       );
       const paused = AudioRecordingState(
         status: AudioRecordingStatus.paused,
         elapsed: Duration(seconds: 12),
+        hasTake: true,
       );
       const stopped = AudioRecordingState(
         elapsed: Duration(seconds: 12),
-      );
-      const stoppedSubSecond = AudioRecordingState(
-        elapsed: Duration(milliseconds: 900),
+        hasTake: true,
       );
 
       expect(nothingRecorded.hasCompletedTake, isFalse);
       expect(recording.hasCompletedTake, isFalse);
       expect(paused.hasCompletedTake, isFalse);
       expect(stopped.hasCompletedTake, isTrue);
-      expect(stoppedSubSecond.hasCompletedTake, isFalse);
+    });
+
+    // Stopping is allowed from _minimumRecordingStartDelay, which lands before
+    // the elapsed counter's first tick. Gating completion on the clock left a
+    // take stopped in that window with a file on disk, no save control, and no
+    // way to reach it.
+    test('a take shorter than the first tick is still completed', () {
+      const stoppedSubSecond = AudioRecordingState(
+        elapsed: Duration.zero,
+        hasTake: true,
+      );
+
+      expect(stoppedSubSecond.hasCompletedTake, isTrue);
+    });
+
+    test('a stop that captured no file is not a completed take', () {
+      const stoppedEmptyHanded = AudioRecordingState(
+        elapsed: Duration(seconds: 12),
+      );
+
+      expect(stoppedEmptyHanded.hasCompletedTake, isFalse);
     });
 
     test('copyWith replaces only what it is given', () {
@@ -130,6 +151,7 @@ void main() {
       expect(base, isNot(base.copyWith(status: AudioRecordingStatus.paused)));
       expect(base, isNot(base.copyWith(elapsed: const Duration(seconds: 6))));
       expect(base, isNot(base.copyWith(isInterrupted: true)));
+      expect(base, isNot(base.copyWith(hasTake: true)));
     });
   });
 
@@ -258,6 +280,60 @@ void main() {
 
       gate!.complete();
       await inFlight;
+    });
+
+    // The two kinds of caller are deliberately different: a tap that arrives
+    // mid-transition is dropped, while the audio-system handlers queue behind
+    // it via _acquireRecorderLock(). If stop() were ever switched to waiting
+    // too, this returns after _lockWaitTimeout instead of immediately, and the
+    // participant's tap appears to hang.
+    test('a refused stop() gives up at once rather than queueing', () async {
+      final service = AudioRecordingService(promptId: 0);
+      gate = Completer<void>();
+
+      final inFlight = service.record();
+      await Future<void>.delayed(Duration.zero);
+
+      final started = DateTime.now();
+      final stopped = await service.stop();
+      final waited = DateTime.now().difference(started);
+
+      expect(stopped, isFalse);
+      expect(
+        waited,
+        lessThan(const Duration(milliseconds: 200)),
+        reason: 'taps are ignored, not queued',
+      );
+
+      gate!.complete();
+      await inFlight;
+    });
+
+    // Teardown deactivates the session and closes the recorder. Doing that on
+    // top of a live startRecorder() is what leaves a file truncated and the
+    // native recorder locked, so dispose() waits the transition out instead of
+    // racing it.
+    test('dispose() waits for an in-flight transition before tearing down',
+        () async {
+      final service = AudioRecordingService(promptId: 0);
+      gate = Completer<void>();
+
+      final inFlight = service.record();
+      await Future<void>.delayed(Duration.zero);
+
+      var tornDown = false;
+      final disposal = service.dispose().then((_) => tornDown = true);
+
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(tornDown, isFalse,
+          reason: 'teardown must not start mid-transition');
+
+      gate!.complete();
+      await inFlight;
+      await disposal;
+
+      expect(tornDown, isTrue);
     });
 
     // The guard releases in `finally`, so a take that blew up is retryable.

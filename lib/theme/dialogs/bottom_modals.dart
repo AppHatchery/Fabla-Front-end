@@ -69,6 +69,17 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   /// opinion on it — so it stays here.
   final ValueNotifier<bool> _erase = ValueNotifier<bool>(false);
 
+  /// Held while [save] or [redo] is running.
+  ///
+  /// Both hang off controls that sit side by side in the completed state, and
+  /// both await before they act, so a double tap — or one of each — would
+  /// otherwise run twice over the same take: two answer rows for one file, and
+  /// a second [Navigator.pop] taking the route underneath this one with it.
+  ///
+  /// Released once the attempt finishes rather than on first use, so a save
+  /// whose `onSave` threw can still be retried.
+  bool _completingTake = false;
+
   ScrollController scrollController = ScrollController();
 
   //Animation
@@ -535,28 +546,35 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   /// Confirms the redo, then throws the take away and records a fresh one.
   Future<void> redo() async {
-    final showDialogResult = await showDialog<bool>(
-      context: context,
-      builder: (context) => const RedoPopUp(),
-    );
+    if (!mounted || _completingTake) return;
+    _completingTake = true;
 
-    if (showDialogResult != true) return;
+    try {
+      final showDialogResult = await showDialog<bool>(
+        context: context,
+        builder: (context) => const RedoPopUp(),
+      );
 
-    await _recordingService.discardTake();
+      if (showDialogResult != true) return;
 
-    if (!mounted) return;
+      await _recordingService.discardTake();
 
-    _erase.value = !_erase.value;
+      if (!mounted) return;
 
-    await Future.delayed(const Duration(milliseconds: 150));
+      _erase.value = !_erase.value;
 
-    if (!mounted) return;
+      await Future.delayed(const Duration(milliseconds: 150));
 
-    await record();
+      if (!mounted) return;
 
-    if (!mounted) return;
+      await record();
 
-    _erase.value = !_erase.value;
+      if (!mounted) return;
+
+      _erase.value = !_erase.value;
+    } finally {
+      _completingTake = false;
+    }
   }
 
   /// Hands the captured answer to [BottomRecordingModal.onSave] and closes.
@@ -566,7 +584,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   /// reset an empty or failed take; what is left here is the participant-facing
   /// half — persist the path, or stay open so they can record again.
   Future<void> save() async {
-    if (!mounted) return;
+    if (!mounted || _completingTake) return;
+    _completingTake = true;
 
     try {
       final result = await _recordingService.save();
@@ -596,6 +615,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       );
 
       _trackFailedSave();
+    } finally {
+      _completingTake = false;
     }
   }
 

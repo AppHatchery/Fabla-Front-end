@@ -11,6 +11,8 @@ PODS:
   - awesome_notifications (0.11.0):
     - Flutter
     - IosAwnCore (~> 0.11.0)
+  - battery_plus (1.0.0):
+    - Flutter
   - camera_avfoundation (0.0.1):
     - Flutter
   - device_info_plus (0.0.1):
@@ -224,6 +226,7 @@ DEPENDENCIES:
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/darwin`)
   - awesome_notifications (from `.symlinks/plugins/awesome_notifications/ios`)
+  - battery_plus (from `.symlinks/plugins/battery_plus/ios`)
   - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`)
@@ -288,6 +291,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/audioplayers_darwin/darwin"
   awesome_notifications:
     :path: ".symlinks/plugins/awesome_notifications/ios"
+  battery_plus:
+    :path: ".symlinks/plugins/battery_plus/ios"
   camera_avfoundation:
     :path: ".symlinks/plugins/camera_avfoundation/ios"
   device_info_plus:
@@ -351,6 +356,7 @@ SPEC CHECKSUMS:
   audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
   audioplayers_darwin: 835ced6edd4c9fc8ebb0a7cc9e294a91d99917d5
   awesome_notifications: 8291dd4082db761556cd8bf7977567f5c960c87e
+  battery_plus: b42253f6d2dde71712f8c36fef456d99121c5977
   camera_avfoundation: 968a9a5323c79a99c166ad9d7866bfd2047b5a9b
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   Firebase: aa154fee4e9b8eac17aa42344988865b3e857d33

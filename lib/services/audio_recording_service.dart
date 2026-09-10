@@ -27,34 +27,53 @@ class AudioRecordingState {
     this.status = AudioRecordingStatus.stopped,
     this.elapsed = Duration.zero,
     this.isInterrupted = false,
+    this.hasTake = false,
   });
 
   final AudioRecordingStatus status;
 
   /// How much audio the current take has captured.
+  ///
+  /// Advances on a one-second tick, so it is a display counter and not a
+  /// measure of the take — a take shorter than a second reads as zero here
+  /// while still being a real file on disk. See [hasTake].
   final Duration elapsed;
 
   /// Whether the last pause was forced by the audio system — a phone call, a
   /// headset switching off — rather than by the participant.
   final bool isInterrupted;
 
+  /// Whether the recorder has produced a file for the current take.
+  ///
+  /// Set when a stop captures a path and cleared when that path is discarded
+  /// or rejected, so it tracks the file rather than the clock.
+  final bool hasTake;
+
   bool get isRecording => status == AudioRecordingStatus.recording;
 
   bool get isPaused => status == AudioRecordingStatus.paused;
 
   /// Whether a finished take is sitting on disk waiting to be saved or redone.
+  ///
+  /// Driven by [hasTake] rather than [elapsed]: stopping is allowed from
+  /// [AudioRecordingService._minimumRecordingStartDelay], which is shorter
+  /// than the first tick of the elapsed counter, so gating on the clock left
+  /// a take stopped inside that window with a file on disk, no save control,
+  /// and no way to reach it.
   bool get hasCompletedTake =>
-      status == AudioRecordingStatus.stopped && elapsed.inSeconds > 0;
+      status == AudioRecordingStatus.stopped && hasTake;
 
   AudioRecordingState copyWith({
     AudioRecordingStatus? status,
     Duration? elapsed,
     bool? isInterrupted,
+    bool? hasTake,
   }) {
     return AudioRecordingState(
       status: status ?? this.status,
       elapsed: elapsed ?? this.elapsed,
       isInterrupted: isInterrupted ?? this.isInterrupted,
+      hasTake: hasTake ?? this.hasTake,
     );
   }
 
@@ -66,10 +85,11 @@ class AudioRecordingState {
       other is AudioRecordingState &&
       other.status == status &&
       other.elapsed == elapsed &&
-      other.isInterrupted == isInterrupted;
+      other.isInterrupted == isInterrupted &&
+      other.hasTake == hasTake;
 
   @override
-  int get hashCode => Object.hash(status, elapsed, isInterrupted);
+  int get hashCode => Object.hash(status, elapsed, isInterrupted, hasTake);
 }
 
 /// The outcome of a save attempt, plus the file it produced.
@@ -182,6 +202,17 @@ class AudioRecordingService {
   static const _minimumRecordingStartDelay = Duration(
     milliseconds: 400,
   );
+
+  /// How often [_acquireRecorderLock] re-checks for a free recorder, and how
+  /// long it keeps trying.
+  ///
+  /// The timeout is generous next to what it waits on — the longest transition
+  /// is a fresh start, which holds the lock for [_minimumRecordingStartDelay]
+  /// plus a `startRecorder()` — because giving up early is the failure that
+  /// costs a recording, and giving up late costs a handler a few hundred
+  /// milliseconds it was going to spend waiting anyway.
+  static const _lockPollInterval = Duration(milliseconds: 25);
+  static const _lockWaitTimeout = Duration(seconds: 2);
 
   /// Whether the microphone foreground service is currently running.
   ///
@@ -330,7 +361,9 @@ class AudioRecordingService {
 
       _recordingStartedAt = DateTime.now();
 
-      _emit(status: AudioRecordingStatus.recording);
+      // hasTake cleared: this take has written nothing yet, so any file the
+      // previous one left behind must stop counting as the one on offer.
+      _emit(status: AudioRecordingStatus.recording, hasTake: false);
 
       _startTimer();
 
@@ -394,7 +427,7 @@ class AudioRecordingService {
       try {
         _takePath = await _recorder.stopRecorder();
 
-        _emit(status: AudioRecordingStatus.stopped);
+        _emit(status: AudioRecordingStatus.stopped, hasTake: true);
 
         return true;
       } catch (e, s) {
@@ -430,7 +463,7 @@ class AudioRecordingService {
   Future<void> discardTake() async {
     _timer?.cancel();
 
-    _emit(elapsed: Duration.zero);
+    _emit(elapsed: Duration.zero, hasTake: false);
 
     final path = _takePath;
     if (path == null) return;
@@ -493,7 +526,7 @@ class AudioRecordingService {
           },
         );
 
-        _emit(elapsed: Duration.zero);
+        _emit(elapsed: Duration.zero, hasTake: false);
 
         return const RecordingSaveResult(RecordingSaveOutcome.emptyFile);
       }
@@ -528,23 +561,45 @@ class AudioRecordingService {
       return;
     }
 
-    WakelockPlus.disable();
-    _timer?.cancel();
-
-    try {
-      await _recorder.pauseRecorder();
-    } catch (e, s) {
+    if (!await _acquireRecorderLock()) {
       CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'pauseRecorder on app background failed',
+        StateError('Recorder still busy when backgrounding needed a pause'),
+        StackTrace.current,
+        reason: 'App background pause timed out waiting for the recorder',
       );
+
+      // Nothing published here, unlike _pauseForAudioIssue(). The screen is
+      // going away, so there is no one to inform, and claiming paused over a
+      // stop that was in the middle of finishing would hide the save control
+      // on a real take for no gain.
+      return;
     }
 
-    // Outside the try, as in _pauseForAudioIssue(): the timer above is
-    // already cancelled, so leaving this on recording would freeze the
-    // elapsed count and kill the [limit] auto-stop.
-    _emit(status: AudioRecordingStatus.paused);
+    try {
+      // Re-checked after the wait: the transition we queued behind may have
+      // stopped or paused the take already.
+      if (_disposed || !_recorder.isRecording) return;
+
+      WakelockPlus.disable();
+      _timer?.cancel();
+
+      try {
+        await _recorder.pauseRecorder();
+      } catch (e, s) {
+        CrashlyticsService().recordError(
+          e,
+          s,
+          reason: 'pauseRecorder on app background failed',
+        );
+      }
+
+      // Outside the inner try, as in _pauseForAudioIssue(): the timer above is
+      // already cancelled, so leaving this on recording would freeze the
+      // elapsed count and kill the [limit] auto-stop.
+      _emit(status: AudioRecordingStatus.paused);
+    } finally {
+      _recorderBusy = false;
+    }
   }
 
   /// Reclaims the audio session when the app comes back to the foreground.
@@ -574,6 +629,25 @@ class AudioRecordingService {
     _devicesChangedSubscription = null;
     _becomingNoisySubscription = null;
 
+    // Waits out a transition still in flight before any of the teardown below
+    // touches the audio stack. `_disposed` is already set, so nothing new can
+    // claim the recorder while we wait and no waiting handler will take it —
+    // this is only about letting the current call finish. Tearing down on top
+    // of a live startRecorder() deactivates the session and closes the
+    // recorder underneath it, which is what leaves a file truncated and the
+    // native recorder locked.
+    //
+    // Bounded, because a transition that never returns must not keep the
+    // service alive: past the timeout the teardown goes ahead and takes its
+    // chances, which is what it did unconditionally before.
+    if (!await _waitForRecorderIdle(abandonIfDisposed: false)) {
+      CrashlyticsService().recordError(
+        StateError('Recorder still busy at dispose'),
+        StackTrace.current,
+        reason: 'Dispose timed out waiting for the recorder',
+      );
+    }
+
     // The recording UI can be torn down without either control being tapped —
     // a system back gesture, a route pop — so the lock and the audio focus are
     // released here rather than only in stop()/save().
@@ -594,6 +668,7 @@ class AudioRecordingService {
     AudioRecordingStatus? status,
     Duration? elapsed,
     bool? isInterrupted,
+    bool? hasTake,
   }) {
     if (_disposed) return;
 
@@ -601,6 +676,7 @@ class AudioRecordingService {
       status: status,
       elapsed: elapsed,
       isInterrupted: isInterrupted,
+      hasTake: hasTake,
     );
   }
 
@@ -629,7 +705,9 @@ class AudioRecordingService {
   /// Teardown is not always driven by a control — an Android back gesture, a
   /// route popped from a notification tap — so disposal can land on a running
   /// encoder. Closing one outright races it, leaving the file truncated and
-  /// locked; stopping first flushes what was captured to disk. The take is not
+  /// locked; stopping first flushes what was captured to disk. Distinct from
+  /// the wait in [dispose]: that one lets an in-flight *transition* finish,
+  /// this one ends a take that is simply still running. The take is not
   /// saved — nothing here has the participant's consent to persist it — so the
   /// file is left on disk unreferenced. Reclaiming those orphans is a separate
   /// job; no cleanup pass exists yet.
@@ -774,6 +852,48 @@ class AudioRecordingService {
     }
   }
 
+  /// Waits for any in-flight transition to finish, then takes the recorder
+  /// lock. Reports whether it got it.
+  ///
+  /// This is the difference between the two kinds of caller. [record] and
+  /// [stop] are taps, and a tap that arrives mid-transition is best ignored —
+  /// the participant can simply tap again. The audio-system handlers have no
+  /// one to tap again: dropping their pause leaves the recorder writing into a
+  /// session that has already been taken away, and the resulting silence is
+  /// indistinguishable downstream from a participant who said nothing. So they
+  /// queue behind the transition instead of giving up on it.
+  ///
+  /// Polling rather than a queue because there is at most one waiter and the
+  /// wait is short. Dart's single-threaded loop is what makes the check and
+  /// the claim safe: no `await` separates them, so two waiters cannot both
+  /// come out of [_waitForRecorderIdle] holding the lock.
+  Future<bool> _acquireRecorderLock() async {
+    if (!await _waitForRecorderIdle(abandonIfDisposed: true)) return false;
+    if (_disposed) return false;
+
+    _recorderBusy = true;
+    return true;
+  }
+
+  /// Polls until no transition is in flight, or the wait times out. Reports
+  /// whether the recorder came free.
+  ///
+  /// [abandonIfDisposed] separates the two callers. A handler waiting for its
+  /// turn has nothing left to do once teardown starts, so it gives up early;
+  /// [dispose] *is* the teardown and has to wait the transition out.
+  Future<bool> _waitForRecorderIdle({required bool abandonIfDisposed}) async {
+    final deadline = DateTime.now().add(_lockWaitTimeout);
+
+    while (_recorderBusy) {
+      if (abandonIfDisposed && _disposed) return false;
+      if (DateTime.now().isAfter(deadline)) return false;
+
+      await Future<void>.delayed(_lockPollInterval);
+    }
+
+    return true;
+  }
+
   /// Snapshots the inputs available as a recording starts, so a later removal
   /// can be matched against the route we actually began on.
   Future<void> _captureInputDevices() async {
@@ -858,34 +978,62 @@ class AudioRecordingService {
       return;
     }
 
-    WakelockPlus.disable();
-    // Timer cancelled before the first await: a tick landing in that window
-    // could reach the limit branch, run stop() to completion, and then have
-    // its stopped status overwritten by the paused below — hiding the save
-    // control on a take that had in fact finished.
-    _timer?.cancel();
-    await _stopForegroundService();
-
-    try {
-      await _recorder.pauseRecorder();
-    } catch (e, s) {
+    if (!await _acquireRecorderLock()) {
       CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'Failed to pause recorder for audio issue',
+        StateError('Recorder still busy when an audio issue needed a pause'),
+        StackTrace.current,
+        reason: 'Audio issue pause timed out waiting for the recorder',
       );
+
+      // Published anyway. The audio system has told us the route or the focus
+      // is gone, so capture cannot be trusted whether or not the pause landed,
+      // and the participant should see that rather than a running timer.
+      // Whatever holds the lock publishes its own outcome after this, so a
+      // transition that was genuinely finishing still gets the last word.
+      _emit(
+        status: AudioRecordingStatus.paused,
+        isInterrupted: true,
+      );
+      return;
     }
 
-    // Published outside the try, so a failed pause still moves the UI. The
-    // audio system has told us the route or the focus is gone, which means
-    // whatever the encoder is still writing cannot be trusted — and the timer
-    // above is already cancelled, so leaving this on recording would freeze
-    // the elapsed count, kill the [limit] auto-stop, and show "Recording" to a
-    // participant who is no longer being captured.
-    _emit(
-      status: AudioRecordingStatus.paused,
-      isInterrupted: true,
-    );
+    try {
+      // Re-checked after the wait: whatever held the lock may have stopped the
+      // take outright, and publishing paused over a finished one would take
+      // the save control away from a take that is already on disk.
+      if (_disposed || !_recorder.isRecording) return;
+
+      WakelockPlus.disable();
+      // Timer cancelled before the first await: a tick landing in that window
+      // could reach the limit branch, run stop() to completion, and then have
+      // its stopped status overwritten by the paused below — hiding the save
+      // control on a take that had in fact finished.
+      _timer?.cancel();
+      await _stopForegroundService();
+
+      try {
+        await _recorder.pauseRecorder();
+      } catch (e, s) {
+        CrashlyticsService().recordError(
+          e,
+          s,
+          reason: 'Failed to pause recorder for audio issue',
+        );
+      }
+
+      // Published outside the inner try, so a failed pause still moves the UI.
+      // The audio system has told us the route or the focus is gone, which
+      // means whatever the encoder is still writing cannot be trusted — and
+      // the timer above is already cancelled, so leaving this on recording
+      // would freeze the elapsed count, kill the [limit] auto-stop, and show
+      // "Recording" to a participant who is no longer being captured.
+      _emit(
+        status: AudioRecordingStatus.paused,
+        isInterrupted: true,
+      );
+    } finally {
+      _recorderBusy = false;
+    }
   }
 
   /// Applies the recording configuration and returns the shared session so
