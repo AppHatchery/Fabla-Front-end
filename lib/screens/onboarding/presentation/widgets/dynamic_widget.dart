@@ -176,24 +176,25 @@ class _CustomMultipleQuestion extends State<CustomMultipleQuestion> {
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Material(
-              color: selectedOptions.contains(widget.options[index].value) &&
-                      !widget.disabled
-                  ? CustomColors.productLightBackground
-                  : CustomColors.productLightPrimaryNormalWhite,
-              shape: RoundedRectangleBorder(
+          Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 4.0, vertical: 3.0),
+              decoration: BoxDecoration(
+                  color:
+                      selectedOptions.contains(widget.options[index].value) &&
+                              !widget.disabled
+                          ? CustomColors.productLightBackground
+                          : CustomColors.productLightPrimaryNormalWhite,
                   borderRadius: BorderRadius.circular(14.0),
-                  side: BorderSide(
+                  border: Border.all(
                       color: selectedOptions
                                   .contains(widget.options[index].value) &&
                               !widget.disabled
                           ? CustomColors.productBorderActive
                           : CustomColors.productBorderNormal,
                       width: 2)),
-              clipBehavior: Clip.antiAlias,
-              child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 4.0, vertical: 3.0),
+              child: Material(
+                  color: Colors.transparent,
                   child: CheckboxListTile(
                     title: Text(
                       widget.options[index].title,
@@ -267,23 +268,23 @@ class _CustomRadioQuestionState extends State<CustomRadioQuestion> {
       itemCount: widget.options.length,
       itemBuilder: (context, index) {
         return Column(children: [
-          Material(
-              color: widget.selected == widget.options[index].value &&
-                      !widget.disabled
-                  ? CustomColors.productLightBackground
-                  : CustomColors.productLightPrimaryNormalWhite,
-              shape: RoundedRectangleBorder(
+          Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 3.0),
+              decoration: BoxDecoration(
+                  color: widget.selected == widget.options[index].value &&
+                          !widget.disabled
+                      ? CustomColors.productLightBackground
+                      : CustomColors.productLightPrimaryNormalWhite,
                   borderRadius: BorderRadius.circular(14.0),
-                  side: BorderSide(
+                  border: Border.all(
                       color: widget.selected == widget.options[index].value &&
                               !widget.disabled
                           ? CustomColors.productNormalActive
                           : CustomColors.productBorderNormal,
                       width: 2)),
-              clipBehavior: Clip.antiAlias,
-              child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0, vertical: 3.0),
+              child: Material(
+                  color: Colors.transparent,
                   child: RadioListTile<String>(
                     title: Text(
                       widget.options[index].title,
