@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/diary/summary_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -11,6 +12,7 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:developer' as dev;
 
 class EditDiaryPage extends StatefulWidget {
   final DiaryModel diary;
@@ -389,6 +391,16 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
     for (var function in preFunctions) {
       function();
     }
+
+    // Trigger immediate background upload for the edited prompt
+    dev.log("Triggering background upload for prompt ID: ${widget.prompt.id} from EditDiaryPage",
+        name: "EditDiaryPage - back");
+    BlocProvider.of<SummaryCubit>(context).loadSummary(
+      widget.diary,
+      uploadAnswers: true,
+      silent: true,
+      resetPromptIds: {widget.prompt.id},
+    );
 
     Navigator.pop(context, true);
   }

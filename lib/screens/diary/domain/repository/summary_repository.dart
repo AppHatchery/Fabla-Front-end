@@ -126,56 +126,8 @@ class SummaryRepository {
 
       final participant = setupRepository.getParticipant();
       final uploaded = await upload(participant!.studyCode, diary);
-      final study = await diaryRepository.getStudy(diary.studyID);
-      // final entry = diary.status == DiaryStatus.submitted
-      //     ? diary.entries
-      //     : diary.currentEntry;
-
-      if (uploaded) {
-        late DiaryModel newDiary;
-
-        dev.log("Current entry: ${diary.currentEntry}",
-            name: "SummaryRepository - submitDiary");
-
-        final List<DateTime> submissions = diary.submissions ?? [];
-        submissions.add(DateTime.now());
-        if (diary.currentEntry + 1 == diary.entries) {
-          newDiary = diary.copyWith(
-              id: diary.id,
-              studyID: diary.studyID,
-              status: DiaryStatus.submitted,
-              activeDays: diary.activeDays,
-              currentEntry: diary.currentEntry + 1,
-              submissions: submissions,
-              completions: diary.completions);
-        } else {
-          newDiary = diary.copyWith(
-              id: diary.id,
-              studyID: diary.studyID,
-              status: DiaryStatus.idle,
-              activeDays: diary.activeDays,
-              currentEntry: diary.currentEntry + 1,
-              submissions: submissions,
-              completions: diary.completions);
-        }
-
-        await diaryRepository.updateDiary(newDiary);
-
-        // Cancel notifications if diary is complete
-        // Schedule daily goal notifications if diary is not complete
-        if (diary.currentEntry + 1 >= diary.entries) {
-          NotificationManager().cancelDiaryNotifications(diary.id);
-        } else if (diary.currentEntry + 1 < study!.goals.daily) {
-          dailyGoalNotification(diary.id);
-        }
-        cancelContinueNotifications(diary.id);
-        calculateEarnedIncentivesForAWS(
-            participantID: participant.studyCode, studyID: diary.studyID);
-        await modifyHomeProgressTracking(studyID: diary.studyID, submissions: 1, activateAnimation: true);
-        return true;
-      } else {
-        return false;
-      }
+      if (!uploaded) return false;
+      return await _completeDiarySubmission(diary, participant.studyCode);
     } catch (e, stackTrace) {
       dev.log("Error submitting diary: $e",
           name: "SummaryRepository - submitDiary");
@@ -188,6 +140,67 @@ class SummaryRepository {
           reason: 'Unhandled exception in submitDiary - SummaryRepository');
       return false;
     }
+  }
+
+  /// Sends one answer through the existing Dynamo endpoint as a one-item batch.
+  Future<bool?> submitPrompt(DiaryModel diary, PromptModel prompt) async {
+    final hasInternet = await checkForInternet();
+    if (!hasInternet) return null;
+
+    final participant = setupRepository.getParticipant();
+    if (participant == null) return false;
+    return uploadPromptResponse(participant.studyCode, diary, prompt);
+  }
+
+  /// Finalizes a diary whose answers were already uploaded individually.
+  Future<bool?> submitPartiallyUploadedDiary(DiaryModel diary) async {
+    try {
+      final hasInternet = await checkForInternet();
+      if (!hasInternet) return null;
+
+      final participant = setupRepository.getParticipant();
+      if (participant == null) return false;
+      final uploaded = await uploadDiaryMetadata(participant.studyCode, diary);
+      if (!uploaded) return false;
+      return await _completeDiarySubmission(diary, participant.studyCode);
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          context: {
+            'DiaryID': diary.id.toString(),
+            'CurrentEntry': diary.currentEntry.toString(),
+          },
+          reason: 'Failed to finalize partially uploaded diary');
+      return false;
+    }
+  }
+
+  Future<bool> _completeDiarySubmission(
+      DiaryModel diary, String participantID) async {
+    final study = await diaryRepository.getStudy(diary.studyID);
+    final submissions = List<DateTime>.from(diary.submissions ?? const []);
+    submissions.add(DateTime.now());
+    final isLastEntry = diary.currentEntry + 1 == diary.entries;
+    final newDiary = diary.copyWith(
+        id: diary.id,
+        studyID: diary.studyID,
+        status: isLastEntry ? DiaryStatus.submitted : DiaryStatus.idle,
+        activeDays: diary.activeDays,
+        currentEntry: diary.currentEntry + 1,
+        submissions: submissions,
+        completions: diary.completions);
+
+    await diaryRepository.updateDiary(newDiary);
+    if (diary.currentEntry + 1 >= diary.entries) {
+      NotificationManager().cancelDiaryNotifications(diary.id);
+    } else if (study != null && diary.currentEntry + 1 < study.goals.daily) {
+      dailyGoalNotification(diary.id);
+    }
+    cancelContinueNotifications(diary.id);
+    calculateEarnedIncentivesForAWS(
+        participantID: participantID, studyID: diary.studyID);
+    await modifyHomeProgressTracking(
+        studyID: diary.studyID, submissions: 1, activateAnimation: true);
+    return true;
   }
 
   /// Asynchronous method to calculate earned incentives for a specific study per submission.

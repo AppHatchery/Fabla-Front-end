@@ -50,11 +50,11 @@ class DiarySummaryPage extends StatefulWidget {
 class _DiarySummaryPageState extends State<DiarySummaryPage>
     with WidgetsBindingObserver {
   late SummaryCubit summaryCubit;
+  bool _completionRecorded = false;
 
   final PageTimer timer = PageTimer();
 
   late MaterialLocalizations localizations = MaterialLocalizations.of(context);
-
 
   @override
   void initState() {
@@ -145,7 +145,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
               : state is SummaryLoading
                   ? loading()
                   : state is SummaryLoaded
-                      ? content(state.diary, context)
+                      ? content(state.diary, context, state.submissionStatuses)
                       : state is SubmitLoading ||
                               state is SummarySubmitted ||
                               state is SubmitNoInternet
@@ -160,13 +160,16 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           pendoEvent();
           track(timer.stop(), "Submitted");
           Navigator.of(context).pushReplacement(_completionRoute()).then((_) {
-            Future.delayed(Duration(seconds: 1), (){
+            Future.delayed(Duration(seconds: 1), () {
               summaryCubit.loadSummary(widget.diary);
             });
           });
         } else if (state is SummaryLoaded) {
           // If the user reaches the submission page for the first time add to the completion list
-          summaryCubit.updateDiaryCompletion(widget.diary);
+          if (!_completionRecorded) {
+            _completionRecorded = true;
+            summaryCubit.updateDiaryCompletion(widget.diary);
+          }
         } else if (state is SubmitNoInternet) {
           track(timer.stop(), "Submission Failed");
           Navigator.of(context)
@@ -235,7 +238,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     return Container();
   }
 
-  Widget content(DiaryModel diary, BuildContext context) {
+  Widget content(DiaryModel diary, BuildContext context,
+      Map<int, AnswerSubmissionStatus> submissionStatuses) {
     return Stack(
       children: [
         Padding(
@@ -250,8 +254,10 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: diary.prompts.length,
-                      itemBuilder: (context, index) =>
-                          buildPrompt(diary.prompts[index], index)),
+                      itemBuilder: (context, index) => buildPrompt(
+                          diary.prompts[index],
+                          index,
+                          submissionStatuses[diary.prompts[index].id])),
                 ),
               )),
             ],
@@ -278,7 +284,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     );
   }
 
-  Widget buildPrompt(PromptModel prompt, int index) {
+  Widget buildPrompt(
+      PromptModel prompt, int index, AnswerSubmissionStatus? submissionStatus) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -504,7 +511,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         final width = MediaQuery.of(context).size.width;
         return prompt.answer == null
             ? const SizedBox.shrink()
-            : prompt.answer?.response?.firstOrNull?.contains("Item was skipped due to:") ?? true
+            : prompt.answer?.response?.firstOrNull
+                        ?.contains("Item was skipped due to:") ??
+                    true
                 ? Container(
                     width: width,
                     padding:
@@ -524,9 +533,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                       ),
                       Expanded(
                         child: Text(prompt.answer?.response?.firstOrNull ?? "",
-                            style: CustomTypography().bodyMedium(
-                              color: Color(0xFFFF3B30))
-                        ),
+                            style: CustomTypography()
+                                .bodyMedium(color: Color(0xFFFF3B30))),
                       ),
                     ]),
                   )
@@ -549,8 +557,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                       ),
                       Expanded(
                         child: Text("Survey response collected",
-                            style: CustomTypography()
-                                .bodyLarge(color: CustomColors.textSecondaryContent),
+                            style: CustomTypography().bodyLarge(
+                                color: CustomColors.textSecondaryContent),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis),
                       ),
@@ -581,8 +589,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   child: Row(children: [
                     Expanded(
                       child: Text("Completed the timer ✅",
-                          style: CustomTypography()
-                              .bodyLarge(color: CustomColors.textSecondaryContent),
+                          style: CustomTypography().bodyLarge(
+                              color: CustomColors.textSecondaryContent),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                     ),
@@ -608,8 +616,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     Expanded(
                       child: Text(
                           "${elapsed.inHours.toString().padLeft(2, '0')} h ${elapsed.inMinutes.remainder(60).toString().padLeft(2, '0')} min",
-                          style: CustomTypography()
-                              .bodyLarge(color: CustomColors.textSecondaryContent),
+                          style: CustomTypography().bodyLarge(
+                              color: CustomColors.textSecondaryContent),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                     ),
@@ -623,7 +631,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   }
 
   void loadDiary(BuildContext context) {
-    summaryCubit.loadSummary(widget.diary);
+    summaryCubit.loadSummary(widget.diary, uploadAnswers: true, silent: true);
   }
 
   void editResponse(PromptModel _prompt, int index) async {
@@ -639,7 +647,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     );
 
     if (result == true && mounted) {
-      loadDiary(context);
+      summaryCubit.loadSummary(widget.diary,
+          uploadAnswers: true, resetPromptIds: {_prompt.id});
       diaryEnd(diaryID: widget.diary.id.toString());
     }
   }
@@ -669,7 +678,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                 hint: hint,
                 onSave: (value) {
                   summaryCubit.saveResponse(
-                      widget.diary, prompt, value.toString(), 'audio');
+                      widget.diary, prompt, value.toString(), 'audio',
+                      uploadAfterSave: true);
                 },
               );
             }));
@@ -681,7 +691,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
   void submitDiary(DiaryModel diary) async {
     // Doesn't Matter the status of the permission
-    checkForLocation().then((value) => summaryCubit.submitDiary(diary));
+    checkForLocation().then(
+        (value) => summaryCubit.submitDiary(diary, usePartialUploads: true));
   }
 
   Future<bool> checkForLocation() async {
