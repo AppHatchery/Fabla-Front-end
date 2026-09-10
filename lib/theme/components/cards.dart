@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as dev;
-import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
@@ -10,19 +8,15 @@ import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repo
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/review_diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
-import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
-
+import '../../core/utils/audioPlayer.dart';
 import '../../core/utils/formatter.dart';
 import '../../core/utils/participant_experiment_details.dart';
 import '../../core/utils/statuses.dart';
@@ -423,207 +417,6 @@ class _DiaryCardSmallState extends State<DiaryCardSmall> {
 /// exposed, so a missing, empty or undecodable file settles on an
 /// [AudioStatus] the card can render instead of throwing an uncaught
 /// `PlatformException` out of the platform audio stack.
-mixin AudioPlaybackMixin<T extends StatefulWidget> on State<T> {
-  AudioPlayer? audioPlayer;
-  AudioStatus audioStatus = AudioStatus.loading;
-  bool isPlaying = false;
-  double currentSliderPosition = 0;
-  double maxSliderPosition = 0;
-  Duration maxDuration = Duration.zero;
-
-  /// Retained so failure reports identify which recording broke.
-  String _recordingPath = '';
-
-  bool get canPlay => audioStatus == AudioStatus.available;
-
-  /// Loads [relativePath], resolved against the documents directory.
-  Future<void> initAudio(String relativePath) async {
-    _recordingPath = relativePath;
-
-    final String path;
-    final File file;
-    try {
-      final dir = await getApplicationDocumentsDirectory();
-      path = p.join(dir.path, relativePath);
-      file = File(path);
-    } catch (e, s) {
-      dev.log('Could not resolve recording path',
-          error: e, stackTrace: s, name: 'AudioPathResolveFailed');
-      _fail(AudioStatus.canNotPlay, e, s);
-      onAudioStatusResolved(AudioStatus.canNotPlay, duringLoad: true);
-      return;
-    }
-
-    try {
-      if (!await file.exists()) {
-        _fail(
-          AudioStatus.fileNotFound,
-          FileSystemException('Recording file not found', path),
-        );
-        onAudioStatusResolved(AudioStatus.fileNotFound, duringLoad: true);
-        return;
-      }
-    } catch (e, s) {
-      dev.log('Could not check if file exists or not',
-          error: e, stackTrace: s, name: 'AudioNotFoundCheckFailed');
-      _fail(AudioStatus.fileNotFound, e, s);
-      onAudioStatusResolved(AudioStatus.fileNotFound, duringLoad: true);
-      return;
-    }
-
-    try {
-      if (await file.length() == 0) {
-        _fail(
-          AudioStatus.noAudioLength,
-          FileSystemException('Recording file is empty', path),
-        );
-        onAudioStatusResolved(AudioStatus.noAudioLength, duringLoad: true);
-        return;
-      }
-    } catch (e, s) {
-      dev.log('Could not check recording file length',
-          error: e, stackTrace: s, name: 'AudioLengthCheckFailed');
-      _fail(AudioStatus.noAudioLength, e, s);
-      onAudioStatusResolved(AudioStatus.noAudioLength, duringLoad: true);
-      return;
-    }
-
-    final player = AudioPlayer();
-    try {
-      await player.setSourceDeviceFile(path);
-      await player.setReleaseMode(ReleaseMode.stop);
-      await player.setPlayerMode(PlayerMode.mediaPlayer);
-
-      final duration = await _probeDuration(player);
-      if (duration == null || duration <= Duration.zero) {
-        await player.dispose();
-        // canNotPlay, not noAudioLength: the file was already confirmed to
-        // exist and hold bytes above, so this is the decoder declining to
-        // report a duration, not an empty recording. The distinction decides
-        // whether the row is deleted — see [RecordingAnswerChecker.report].
-        _fail(
-          AudioStatus.canNotPlay,
-          FileSystemException('Recording has no playable duration', path),
-        );
-        onAudioStatusResolved(AudioStatus.canNotPlay, duringLoad: true);
-        return;
-      }
-
-      // The card may have been popped while the source was loading.
-      if (!mounted) {
-        await player.dispose();
-        return;
-      }
-
-      player.onPositionChanged.listen((position) {
-        if (mounted) {
-          setState(
-              () => currentSliderPosition = position.inMilliseconds.toDouble());
-        }
-      });
-      player.onPlayerStateChanged.listen((state) {
-        if (mounted) setState(() => isPlaying = state == PlayerState.playing);
-      });
-
-      setState(() {
-        audioPlayer = player;
-        maxDuration = duration;
-        maxSliderPosition = duration.inMilliseconds.toDouble();
-        audioStatus = AudioStatus.available;
-      });
-
-      onAudioStatusResolved(AudioStatus.available, duringLoad: true);
-    } catch (e, s) {
-      await player.dispose();
-      _fail(AudioStatus.canNotPlay, e, s);
-      onAudioStatusResolved(AudioStatus.canNotPlay, duringLoad: true);
-    }
-  }
-
-  /// Asks the platform for the recording's duration, retrying once.
-  ///
-  /// A first call can come back null on a perfectly good file — the decoder
-  /// has not finished preparing the source yet, which shows up on AAC on some
-  /// Android devices. A single null used to be treated as proof the recording
-  /// was empty, and that verdict deletes the participant's audio, so it is
-  /// worth one bounded second look before believing it.
-  Future<Duration?> _probeDuration(AudioPlayer player) async {
-    final first = await player.getDuration();
-    if (first != null && first > Duration.zero) return first;
-
-    await Future<void>.delayed(const Duration(milliseconds: 250));
-
-    return player.getDuration();
-  }
-
-  /// Called once the card settles on a terminal status, so a parent can react
-  /// to a recording that turned out to be unplayable.
-  ///
-  /// [duringLoad] separates "this file could not be loaded" from "playback of
-  /// an already-loaded file failed". The second can be transient — an
-  /// interrupted session, a route change — so a caller that discards broken
-  /// recordings must not act on it.
-  void onAudioStatusResolved(AudioStatus status, {required bool duringLoad}) {}
-
-  void disposeAudio() => audioPlayer?.dispose();
-
-  Future<void> play() =>
-      _run((player) => isPlaying ? player.pause() : player.resume());
-
-  Future<void> seek(double value) => _run((player) async {
-        await player.seek(Duration(milliseconds: value.toInt()));
-        if (!isPlaying) await player.resume();
-      });
-
-  /// Seeks [milliseconds] relative to the current position, clamped to the
-  /// recording's bounds. Negative values rewind.
-  Future<void> skip(int milliseconds) => _run((player) => player.seek(Duration(
-        milliseconds: (currentSliderPosition.toInt() + milliseconds)
-            .clamp(0, maxSliderPosition.toInt()),
-      )));
-
-  /// Runs [action] against the active player, retiring the player and falling
-  /// back to an error state if the platform rejects it.
-  Future<void> _run(Future<void> Function(AudioPlayer player) action) async {
-    final player = audioPlayer;
-    if (player == null || !canPlay) return;
-
-    try {
-      await action(player);
-    } catch (e, s) {
-      audioPlayer = null;
-      await player.dispose();
-      _fail(AudioStatus.canNotPlay, e, s);
-      onAudioStatusResolved(AudioStatus.canNotPlay, duringLoad: false);
-    }
-  }
-
-  /// Moves the card into a failure [status] and reports [error] as a non-fatal.
-  ///
-  /// Every failure path routes through here, so each one is reported exactly
-  /// once with the recording that caused it.
-  void _fail(AudioStatus status, Object error, [StackTrace? stackTrace]) {
-    CrashlyticsService().recordError(
-      error,
-      stackTrace ?? StackTrace.current,
-      reason: 'Recording unplayable: ${status.name}',
-      context: {
-        'recording_path': _recordingPath,
-        'audio_status': status.name,
-      },
-    );
-
-    if (!mounted) return;
-    setState(() {
-      audioStatus = status;
-      isPlaying = false;
-      currentSliderPosition = 0;
-      maxSliderPosition = 0;
-      maxDuration = Duration.zero;
-    });
-  }
-}
-
 /// The card is also clickable, and when clicked, it expands or collapses.
 class AudioDiaryCard extends StatefulWidget {
   final Recording recording;
@@ -2007,20 +1800,11 @@ class WarningCard extends StatelessWidget {
   }
 }
 
-/// Explains why a recording cannot be played, in place of the audio controls.
-class RecordingIssueCard extends StatelessWidget {
-  const RecordingIssueCard({super.key, required this.status});
+/// Single-line red notice, used for anything that puts a recording at risk.
+class AlertCard extends StatelessWidget {
+  const AlertCard({super.key, required this.message});
 
-  final AudioStatus status;
-
-  static const _messages = {
-    AudioStatus.fileNotFound:
-        "Sorry, we couldn\u2019t find this recording on your device. Please record your answer again using the button above.",
-    AudioStatus.noAudioLength:
-        "Sorry, no audio was captured in this recording. Please record your answer again using the button above.",
-    AudioStatus.canNotPlay:
-        "Sorry, something went wrong while saving. Please record your answer again using the button above.",
-  };
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -2040,15 +1824,15 @@ class RecordingIssueCard extends StatelessWidget {
           const Icon(
             CupertinoIcons.xmark_circle_fill,
             size: 24,
-            color: Color(0xFFCD091D),
+            color: CustomColors.warningNormal,
           ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left: 16),
               child: Text(
-                _messages[status] ?? '',
+                message,
                 style: CustomTypography().bodyLarge(
-                  color: const Color(0xFFCD091D),
+                  color: CustomColors.warningNormal,
                 ),
               ),
             ),
@@ -2059,33 +1843,62 @@ class RecordingIssueCard extends StatelessWidget {
   }
 }
 
-//disclaimer message for the audio recording
-class DisclaimerCard extends StatelessWidget {
-  const DisclaimerCard({super.key});
+/// Explains why a recording cannot be played, in place of the audio controls.
+class RecordingIssueCard extends StatelessWidget {
+  const RecordingIssueCard({super.key, required this.status});
+
+  final AudioStatus status;
+
+  static const _messages = {
+    AudioStatus.fileNotFound:
+        "Sorry, we couldn\u2019t find this recording on your device. Please record your answer again using the button above.",
+    AudioStatus.noAudioLength:
+        "Sorry, no audio was captured in this recording. Please record your answer again using the button above.",
+    AudioStatus.canNotPlay:
+        "Sorry, something went wrong while saving. Please record your answer again using the button above.",
+  };
+
+  @override
+  Widget build(BuildContext context) =>
+      AlertCard(message: _messages[status] ?? '');
+}
+
+//low stroage and battery warning
+
+class LowWarningCard extends StatelessWidget {
+  const LowWarningCard({super.key, required this.message});
+
+  final String message;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 15),
       decoration: ShapeDecoration(
-        color: CustomColors.fillVanilla,
+        color: CustomColors.yellowLight,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          side: const BorderSide(width: 2, color: CustomColors.amber),
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Image.asset(
-            'assets/images/icons/notice_icon.png',
-            width: 20,
-            height: 20,
+          const Icon(
+            CupertinoIcons.xmark_circle_fill,
+            size: 24,
+            color: CustomColors.yellowDark,
           ),
-          const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              'Please stay in the app. Leaving while recording can result in data loss.',
-              style: CustomTypography().bodyLarge(),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                message,
+                style: CustomTypography().bodyLarge(
+                  color: CustomColors.yellowDark,
+                ),
+              ),
             ),
           ),
         ],

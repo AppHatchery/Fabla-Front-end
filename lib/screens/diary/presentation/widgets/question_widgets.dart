@@ -26,6 +26,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../../core/utils/device_checks.dart';
 import '../../../../core/utils/statuses.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
@@ -379,6 +380,27 @@ class AudioTextCard extends StatefulWidget {
 }
 
 class _AudioTextCardState extends State<AudioTextCard> {
+  bool _lowStorage = false;
+  bool _lowBattery = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkDevice();
+  }
+
+  /// Conditions that could cost the participant a recording, checked once as
+  /// the prompt opens.
+  Future<void> _checkDevice() async {
+    final isLowStorage = await checkLowStorage();
+    final isLowBattery = await checkLowBattery();
+    if (!mounted) return;
+    setState(() {
+      _lowStorage = isLowStorage;
+      _lowBattery = isLowBattery;
+    });
+  }
+
   /// Recordings on this prompt that can actually be played back.
   int get _playableCount {
     final recordings = widget.prompt.answer?.recordings ?? [];
@@ -423,6 +445,22 @@ class _AudioTextCardState extends State<AudioTextCard> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              if (_lowStorage) ...[
+                const LowWarningCard(
+                  message:
+                      'You are running low on storage space. Please clear up '
+                      'storage to avoid losing recording data.',
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (_lowBattery) ...[
+                const LowWarningCard(
+                  message:
+                      'Your battery is running low. Please connect your '
+                      'charger to avoid interruptions while recording.',
+                ),
+                const SizedBox(height: 12),
+              ],
               controls(),
               const SizedBox(height: 12),
               discardedNotices(),
@@ -459,7 +497,6 @@ class _AudioTextCardState extends State<AudioTextCard> {
                 text:
                     length > 0 ? "Record Another Answer" : "Record My Response",
               ),
-              const DisclaimerCard(),
               widget.prompt.responseType == ResponseType.textAudio
                   ? Column(
                       spacing: 24,
