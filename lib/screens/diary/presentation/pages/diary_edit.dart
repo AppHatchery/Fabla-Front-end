@@ -54,6 +54,21 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
     canUserProceed(widget.prompt);
   }
 
+  /// Takes a notice down at the participant's request, deleting the recording
+  /// behind it when one is still there.
+  ///
+  /// Re-runs the gate: dismissing an unplayable row removes something that was
+  /// never counted as an answer, but it can also be the last row on the
+  /// prompt, and the page has to notice that.
+  void onDismissRecording(String path) {
+    if (!mounted) return;
+
+    _answers.dismiss(path);
+
+    setState(() {});
+    canUserProceed(widget.prompt);
+  }
+
   // Functions to run before moving to the next page
   List<Function> preFunctions = [];
 
@@ -303,6 +318,8 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
           prompt: prompt,
           unplayable: _answers.unplayable,
           onPlaybackResolved: onPlaybackResolved,
+          onDismissRecording: onDismissRecording,
+          isRecordingUsable: _answers.isUsable,
         );
       case ResponseType.slider:
         return SliderQuestionCard(

@@ -632,7 +632,12 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
     }
 
     if (!canPlay) {
-      return RecordingIssueCard(status: audioStatus);
+      // No dismiss control: this card has no route back to the prompt that
+      // owns the notice, so it can report the problem but not clear it.
+      return RecordingIssueCard(
+        status: audioStatus,
+        promptId: widget.promptId,
+      );
     }
 
     return Visibility(
@@ -751,6 +756,15 @@ class NewAudioCard extends StatefulWidget {
   /// resolves, so the prompt can react to one that turned out unplayable.
   final void Function(String path, AudioStatus status)? onPlaybackResolved;
 
+  /// Clears the unplayable notice for this recording and deletes the row
+  /// behind it.
+  ///
+  /// Distinct from [delete], which is the participant removing an answer they
+  /// can actually hear: this one also has to take down the notice, or the
+  /// explanation simply moves to the prompt's discarded list and the card
+  /// error never goes away.
+  final void Function(String path)? onDismissRecording;
+
   const NewAudioCard(
       {super.key,
       required this.recording,
@@ -759,6 +773,7 @@ class NewAudioCard extends StatefulWidget {
       required this.viewOnly,
       this.callerWidget,
       this.onPlaybackResolved,
+      this.onDismissRecording,
       required this.promptId});
 
   @override
@@ -811,7 +826,18 @@ class _NewAudioCardState extends State<NewAudioCard>
     }
 
     if (!canPlay) {
-      return RecordingIssueCard(status: audioStatus);
+      // This notice stands where the card's own controls — delete included —
+      // would be, so without a dismiss here an unplayable recording cannot be
+      // cleared at all: it just sits in the answer list, never counted and
+      // never removable.
+      return RecordingIssueCard(
+        status: audioStatus,
+        promptId: widget.promptId,
+        dismissDeletesRecording: true,
+        onDismiss: widget.onDismissRecording == null
+            ? null
+            : () => widget.onDismissRecording!(widget.recording.path),
+      );
     }
 
     final width = MediaQuery.of(context).size.width;
@@ -1802,9 +1828,17 @@ class WarningCard extends StatelessWidget {
 
 /// Single-line red notice, used for anything that puts a recording at risk.
 class AlertCard extends StatelessWidget {
-  const AlertCard({super.key, required this.message});
+  const AlertCard({
+    super.key,
+    required this.message,
+    this.onDismiss,
+  });
 
   final String message;
+
+  /// Takes this notice down. No control is shown when null, which is how every
+  /// caller that has nothing to dismiss keeps the card read-only.
+  final VoidCallback? onDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -1818,25 +1852,48 @@ class AlertCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
         children: [
-          const Icon(
-            CupertinoIcons.xmark_circle_fill,
-            size: 24,
-            color: CustomColors.warningNormal,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                CupertinoIcons.xmark_circle_fill,
+                size: 24,
+                color: CustomColors.warningNormal,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Text(
+                    message,
+                    style: CustomTypography().bodyLarge(
+                      color: CustomColors.warningNormal,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: Text(
-                message,
-                style: CustomTypography().bodyLarge(
-                  color: CustomColors.warningNormal,
+          if (onDismiss != null)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: onDismiss,
+                icon: const Icon(CupertinoIcons.delete, size: 18),
+                label: Text(
+                  "Dismiss",
+                  style: CustomTypography().button(
+                    color: CustomColors.warningNormal,
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: CustomColors.warningNormal,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  visualDensity: VisualDensity.compact,
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -1845,9 +1902,32 @@ class AlertCard extends StatelessWidget {
 
 /// Explains why a recording cannot be played, in place of the audio controls.
 class RecordingIssueCard extends StatelessWidget {
-  const RecordingIssueCard({super.key, required this.status});
+  const RecordingIssueCard({
+    super.key,
+    required this.status,
+    this.promptId,
+    this.onDismiss,
+    this.dismissDeletesRecording = false,
+  });
 
   final AudioStatus status;
+
+  /// Zero-based index of the prompt this notice belongs to, for the dismissal
+  /// event. Null where the card renders outside a prompt.
+  final int? promptId;
+
+  /// Clears this notice, and deletes the recording behind it when there still
+  /// is one. No dismiss control is shown when null.
+  final VoidCallback? onDismiss;
+
+  /// Whether dismissing will destroy audio rather than only take down a notice
+  /// for a recording that has already gone.
+  ///
+  /// Confirmed with the participant when it will, because the file behind an
+  /// [AudioStatus.canNotPlay] notice may be perfectly good audio that only
+  /// failed to decode on this device — that is why nothing deletes it
+  /// automatically. See `RecordingAnswerChecker.dismiss`.
+  final bool dismissDeletesRecording;
 
   static const _messages = {
     AudioStatus.fileNotFound:
@@ -1859,8 +1939,31 @@ class RecordingIssueCard extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) =>
-      AlertCard(message: _messages[status] ?? '');
+  Widget build(BuildContext context) => AlertCard(
+        message: _messages[status] ?? '',
+        onDismiss: onDismiss == null ? null : () => _dismiss(context),
+      );
+
+  Future<void> _dismiss(BuildContext context) async {
+    if (dismissDeletesRecording) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => const DeletePopUp(),
+      );
+
+      if (confirmed != true) return;
+    }
+
+    // No BuildContext past this point, so the await above needs no mounted
+    // check — the callback reaches the prompt, which does its own.
+    PendoService.track("AudioControl", {
+      "action": "Dismiss",
+      "study_date": "${DateTime.now()}",
+      if (promptId != null) "prompt_number": "${promptId! + 1}",
+    });
+
+    onDismiss!.call();
+  }
 }
 
 //low stroage and battery warning

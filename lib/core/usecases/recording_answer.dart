@@ -92,6 +92,41 @@ class RecordingAnswerChecker {
     return true;
   }
 
+  /// Whether anything known disqualifies [path] as an answer.
+  ///
+  /// The single definition of "this recording counts", and the reason this
+  /// class exists: the incident in the class doc came from two layers deciding
+  /// it independently. Both halves matter — a notice means a card found the
+  /// file unusable, and [_discarded] means the row has been deleted, which
+  /// outlives the notice. A caller that checks only [unplayable] treats a
+  /// deleted row it has not been rebuilt without yet as a perfectly good
+  /// answer.
+  ///
+  /// `true` is the absence of a verdict, not proof the file is good —
+  /// [countUsable] still stats it.
+  bool isUsable(String path) =>
+      !unplayable.containsKey(path) && !_discarded.contains(path);
+
+  /// Takes down the notice for [path] at the participant's request, deleting
+  /// the row behind it if one is still there.
+  ///
+  /// The deletion is the point. An [AudioStatus.canNotPlay] row is kept by
+  /// [report] precisely because a decoder's verdict can be wrong, so it sits
+  /// in the answer list unplayable, uncountable, and — since the card shows a
+  /// notice in place of its controls — with no delete button of its own. This
+  /// is the way out. The difference from [report] is who decided: a player's
+  /// word is not enough to destroy audio, a participant's is.
+  ///
+  /// Idempotent, and safe for a notice whose row [report] already discarded:
+  /// that one just loses the notice.
+  void dismiss(String path) {
+    unplayable.remove(path);
+
+    // The same guard report() relies on, and the reason this cannot delete a
+    // row twice.
+    if (_discarded.add(path)) discard(path);
+  }
+
   /// Counts the recordings that can serve as an answer, discarding any whose
   /// file is missing or empty along the way.
   ///
@@ -110,10 +145,7 @@ class RecordingAnswerChecker {
     for (final recording in List.of(recordings)) {
       // Already handled: either still carrying a notice, or a row deleted once
       // already that must not be deleted again.
-      if (unplayable.containsKey(recording.path) ||
-          _discarded.contains(recording.path)) {
-        continue;
-      }
+      if (!isUsable(recording.path)) continue;
 
       final file = File(p.join(dir.path, recording.path));
       final exists = await file.exists();

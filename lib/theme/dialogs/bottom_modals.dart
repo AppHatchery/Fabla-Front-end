@@ -224,32 +224,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             child: SingleChildScrollView(
               controller: scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-              child: recordingState.isInterrupted
-                  ? Column(
-                spacing: 10,
-                    children: [
-                      Text("Recording Interrupted,", style: CustomTypography().headlineMedium(),),
-                      Text("Tap the resume button to continue recording",style: CustomTypography().bodyLarge(),)
-                    ],
-                  ) : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.question,
-                    style: CustomTypography()
-                        .titleLarge(color: const Color(0xFF000000)),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    widget.subtitle ?? "",
-                    style: CustomTypography().bodyLarge(
-                      color: CustomColors.textNormalContent,
-                      weight: FontWeight.w400,
-                    ),
-                  ),
-                  _riveAnimation(),
-                ],
-              ),
+              child: _sheetBody(recordingState),
             ),
           ),
 
@@ -292,6 +267,57 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         ],
       );
     });
+  }
+
+  /// What fills the sheet above the controls: the question, or a notice when
+  /// something has happened to the take that the participant has to act on.
+  Widget _sheetBody(AudioRecordingState recordingState) {
+    if (recordingState.isInterrupted) {
+      return _sheetNotice(
+        "Recording Interrupted,",
+        "Tap the resume button to continue recording",
+      );
+    }
+
+    // A take that ended with no audio behind it. Without this the sheet just
+    // resets to 00:00, which reads as a tap that did not register — so the
+    // participant records the same answer again and loses it the same way.
+    if (recordingState.takeWasEmpty) {
+      return _sheetNotice(
+        "No audio was recorded",
+        "Something stopped the microphone from picking you up. "
+            "Tap the record button to try again.",
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.question,
+          style: CustomTypography().titleLarge(color: const Color(0xFF000000)),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          widget.subtitle ?? "",
+          style: CustomTypography().bodyLarge(
+            color: CustomColors.textNormalContent,
+            weight: FontWeight.w400,
+          ),
+        ),
+        _riveAnimation(),
+      ],
+    );
+  }
+
+  Widget _sheetNotice(String title, String body) {
+    return Column(
+      spacing: 10,
+      children: [
+        Text(title, style: CustomTypography().headlineMedium()),
+        Text(body, style: CustomTypography().bodyLarge()),
+      ],
+    );
   }
 
   Widget _riveAnimation() {
@@ -348,8 +374,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
     // Calculate progress as a percentage (0.0 to 1.0)
     final progress = totalDuration.inMilliseconds > 0
-        ? (recordingState.elapsed.inMilliseconds /
-                totalDuration.inMilliseconds)
+        ? (recordingState.elapsed.inMilliseconds / totalDuration.inMilliseconds)
             .clamp(0.0, 1.0)
         : 0.0;
 
@@ -611,7 +636,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     } catch (e, s) {
       // onSave writes the answer away, so a throw from it lands here.
       CrashlyticsService().recordError(
-        e, s, reason: 'save() failed',
+        e,
+        s,
+        reason: 'save() failed',
       );
 
       _trackFailedSave();
