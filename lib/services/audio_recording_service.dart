@@ -427,15 +427,21 @@ class AudioRecordingService {
       try {
         _takePath = await _recorder.stopRecorder();
 
-        _emit(status: AudioRecordingStatus.stopped, hasTake: true);
+        if (_takePath == null) {
+          CrashlyticsService().recordError(
+            StateError('stopRecorder returned null path'),
+            StackTrace.current,
+            reason: 'stopRecorder produced no file',
+          );
+          _recordingStartedAt = startedAt;
+          _emit(status: AudioRecordingStatus.paused);
+          return false;
+        }
 
+        _emit(status: AudioRecordingStatus.stopped, hasTake: true);
         return true;
       } catch (e, s) {
-        CrashlyticsService().recordError(
-          e,
-          s,
-          reason: 'stopRecorder failed',
-        );
+        CrashlyticsService().recordError(e, s, reason: 'stopRecorder failed',);
 
         // Re-armed so the stop control keeps working. Leaving this null
         // strands the recorder: every later tap returns at the guard above,
@@ -533,11 +539,7 @@ class AudioRecordingService {
 
       return RecordingSaveResult(RecordingSaveOutcome.saved, path);
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'save() failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'save() failed',);
 
       return const RecordingSaveResult(RecordingSaveOutcome.failed);
     }
@@ -586,11 +588,7 @@ class AudioRecordingService {
       try {
         await _recorder.pauseRecorder();
       } catch (e, s) {
-        CrashlyticsService().recordError(
-          e,
-          s,
-          reason: 'pauseRecorder on app background failed',
-        );
+        CrashlyticsService().recordError(e, s, reason: 'pauseRecorder on app background failed',);
       }
 
       // Outside the inner try, as in _pauseForAudioIssue(): the timer above is
@@ -717,21 +715,13 @@ class AudioRecordingService {
         await _recorder.stopRecorder();
       }
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'stopRecorder during dispose failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'stopRecorder during dispose failed',);
     }
 
     try {
       await _recorder.closeRecorder();
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'closeRecorder during dispose failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'closeRecorder during dispose failed',);
     }
   }
 
@@ -820,11 +810,7 @@ class AudioRecordingService {
       _foregroundServiceActive = true;
       return true;
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'Recording foreground service failed to start',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'Recording foreground service failed to start',);
 
       return false;
     }
@@ -844,11 +830,7 @@ class AudioRecordingService {
     try {
       await FlutterForegroundTask.stopService();
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'Recording foreground service failed to stop',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'Recording foreground service failed to stop');
     }
   }
 
@@ -905,11 +887,7 @@ class AudioRecordingService {
         ..clear()
         ..addAll(devices.where((d) => d.isInput).map((device) => device.id));
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'Input device snapshot failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'Input device snapshot failed',);
     }
   }
 
@@ -1014,11 +992,7 @@ class AudioRecordingService {
       try {
         await _recorder.pauseRecorder();
       } catch (e, s) {
-        CrashlyticsService().recordError(
-          e,
-          s,
-          reason: 'Failed to pause recorder for audio issue',
-        );
+        CrashlyticsService().recordError(e, s,reason: 'Failed to pause recorder for audio issue',);
       }
 
       // Published outside the inner try, so a failed pause still moves the UI.
@@ -1073,11 +1047,7 @@ class AudioRecordingService {
       await session.setActive(true);
       return true;
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'Audio session activation failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'Audio session activation failed',);
 
       return false;
     }
@@ -1104,11 +1074,7 @@ class AudioRecordingService {
             AVAudioSessionSetActiveOptions.notifyOthersOnDeactivation,
       );
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'Audio session deactivation failed',
-      );
+      CrashlyticsService().recordError(e, s, reason: 'Audio session deactivation failed',);
     }
   }
 
