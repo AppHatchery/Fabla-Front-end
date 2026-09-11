@@ -14,6 +14,7 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/pr
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/time_picker.dart';
 import 'package:audio_diaries_flutter/services/timer_live_update_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
+import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
@@ -25,6 +26,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../../core/utils/device_checks.dart';
 import '../../../../core/utils/statuses.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
@@ -355,11 +357,22 @@ class AudioTextCard extends StatefulWidget {
   final void Function(String, int?) respond;
   final DiaryModel diary;
   final PromptModel prompt;
+
+  /// Recordings that resolved to an error, keyed by path. Owned by the page so
+  /// the record button and the Next button agree on what counts as an answer.
+  /// Empty when the host has no gating to keep in step, as on the edit screen.
+  final Map<String, AudioStatus> unplayable;
+
+  /// Reports a recording's terminal status back to the page.
+  final void Function(String path, AudioStatus status)? onPlaybackResolved;
+
   const AudioTextCard({
     super.key,
     required this.respond,
     required this.diary,
     required this.prompt,
+    this.unplayable = const {},
+    this.onPlaybackResolved,
   });
 
   @override
@@ -367,6 +380,63 @@ class AudioTextCard extends StatefulWidget {
 }
 
 class _AudioTextCardState extends State<AudioTextCard> {
+  bool _lowStorage = false;
+  bool _lowBattery = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkDevice();
+  }
+
+  /// Conditions that could cost the participant a recording, checked once as
+  /// the prompt opens.
+  Future<void> _checkDevice() async {
+    final isLowStorage = await checkLowStorage();
+    final isLowBattery = await checkLowBattery();
+    if (!mounted) return;
+    setState(() {
+      _lowStorage = isLowStorage;
+      _lowBattery = isLowBattery;
+    });
+  }
+
+  /// Recordings on this prompt that can actually be played back.
+  int get _playableCount {
+    final recordings = widget.prompt.answer?.recordings ?? [];
+    if (recordings.isEmpty) return 0;
+
+    var count = 0;
+    for (final recording in recordings) {
+      if (!widget.unplayable.containsKey(recording.path)) count++;
+    }
+    return count;
+  }
+
+  /// Notices for recordings that were discarded, so the participant still sees
+  /// why their answer disappeared. Recordings still in the list render their
+  /// own card inside [MyResponse].
+  Widget discardedNotices() {
+    if (widget.unplayable.isEmpty) return const SizedBox.shrink();
+
+    final present = <String>{
+      for (final recording in widget.prompt.answer?.recordings ?? [])
+        recording.path
+    };
+
+    final notices = <Widget>[
+      for (final entry in widget.unplayable.entries)
+        if (!present.contains(entry.key))
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6.0),
+            child: RecordingIssueCard(status: entry.value),
+          ),
+    ];
+
+    if (notices.isEmpty) return const SizedBox.shrink();
+    return Column(children: notices);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -375,8 +445,25 @@ class _AudioTextCardState extends State<AudioTextCard> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              if (_lowStorage) ...[
+                const LowWarningCard(
+                  message:
+                      'You are running low on storage space. Please clear up '
+                      'storage to avoid losing recording data.',
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (_lowBattery) ...[
+                const LowWarningCard(
+                  message:
+                      'Your battery is running low. Please connect your '
+                      'charger to avoid interruptions while recording.',
+                ),
+                const SizedBox(height: 12),
+              ],
               controls(),
               const SizedBox(height: 12),
+              discardedNotices(),
               (widget.prompt.answer != null &&
                       (widget.prompt.answer!.recordings.isNotEmpty ||
                           (widget.prompt.answer!.response != null &&
@@ -385,6 +472,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
                       diary: widget.diary,
                       edit: widget.respond,
                       prompt: widget.prompt,
+                      onPlaybackResolved: widget.onPlaybackResolved,
                       recordings: widget.prompt.answer?.recordings ?? [])
                   : const SizedBox.shrink()
             ],
@@ -394,7 +482,9 @@ class _AudioTextCardState extends State<AudioTextCard> {
 
   Widget controls() {
     final multipleAnswers = widget.prompt.option?.multipleAnswers ?? false;
-    final length = widget.prompt.answer?.recordings.length ?? 0;
+    // Broken recordings do not count as an answer, so they do not hide the
+    // record button — the error card below explains why it is still there.
+    final length = _playableCount;
     final textPresent = widget.prompt.answer?.response != null &&
         widget.prompt.answer!.response!.isNotEmpty;
     return !multipleAnswers && (length > 0 || textPresent)

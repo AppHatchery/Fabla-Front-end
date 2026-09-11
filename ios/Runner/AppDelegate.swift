@@ -5,6 +5,7 @@ import FirebaseCore
 import FirebaseMessaging
 import UserNotifications
 import alarm
+import flutter_foreground_task
 import ActivityKit
 
 @main
@@ -25,7 +26,9 @@ import ActivityKit
       UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
     }
     SwiftAlarmPlugin.registerBackgroundTasks()
-
+    SwiftFlutterForegroundTaskPlugin.setPluginRegistrantCallback { registry in
+                GeneratedPluginRegistrant.register(with: registry)
+                }
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
