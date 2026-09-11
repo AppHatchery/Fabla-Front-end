@@ -23,11 +23,15 @@ import 'package:path/path.dart' as p;
 //   * path_provider, which `_filePath()` needs and which doubles as the probe
 //     for whether a `record()` actually got past the guard.
 //
-// What cannot be driven is `FlutterSoundRecorder` itself: `startRecorder` and
-// `stopRecorder` resolve on callbacks the native side posts back, so without a
-// device the recorder never opens, `_takePath` is never set, and the branches
-// behind it — a stop that captures a file, a save that validates one — are out
-// of reach. Those are mirrored, clearly marked, at the bottom of this file.
+// `FlutterSoundRecorder` can be driven too, which is what the last group
+// does. `startRecorder` and `stopRecorder` settle on callbacks the native side
+// posts back — `startRecorderCompleted`, `stopRecorderCompleted` — and those
+// are public methods, so a stubbed method channel can post them itself and a
+// whole take runs against a real file on disk.
+//
+// The mirrored helpers at the bottom of this file predate that and are kept
+// for the narrow timing cases they cover directly: an encoder still flushing
+// when the take is looked at, and a file deleted inside the retry window.
 //
 // So the guard tests below are the real thing: they hold `record()` open on a
 // parked path_provider call and count how many takes get through.
@@ -41,6 +45,15 @@ const _wakelockToggleChannel =
 
 const _pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
 
+const _recorderChannel = MethodChannel('xyz.canardoux.flutter_sound_recorder');
+
+const _audioSessionChannel = MethodChannel('com.ryanheise.audio_session');
+
+/// `RecorderState.isStopped` and `.isRecording`. The enum lives in
+/// flutter_sound_platform_interface, which is not a direct dependency.
+const _stateStopped = 0;
+const _stateRecording = 2;
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -52,8 +65,23 @@ void main() {
       expect(state.elapsed, Duration.zero);
       expect(state.isInterrupted, isFalse);
       expect(state.hasTake, isFalse);
+      expect(state.takeWasEmpty, isFalse);
       expect(state.isRecording, isFalse);
       expect(state.isPaused, isFalse);
+    });
+
+    // Distinct from `!hasTake`, which is also true before anything has been
+    // recorded. Only a take that ran and came back with nothing sets this, and
+    // it is the one outcome the participant cannot read off the controls.
+    test('an empty take is distinguishable from nothing recorded yet', () {
+      const nothingYet = AudioRecordingState();
+      const cameBackEmpty = AudioRecordingState(takeWasEmpty: true);
+
+      expect(nothingYet.hasTake, cameBackEmpty.hasTake);
+      expect(nothingYet.takeWasEmpty, isFalse);
+      expect(cameBackEmpty.takeWasEmpty, isTrue);
+      expect(cameBackEmpty.hasCompletedTake, isFalse,
+          reason: 'there is nothing to save');
     });
 
     // The save and redo controls hang off this, so a take that captured
@@ -152,6 +180,7 @@ void main() {
       expect(base, isNot(base.copyWith(elapsed: const Duration(seconds: 6))));
       expect(base, isNot(base.copyWith(isInterrupted: true)));
       expect(base, isNot(base.copyWith(hasTake: true)));
+      expect(base, isNot(base.copyWith(takeWasEmpty: true)));
     });
   });
 
@@ -419,6 +448,287 @@ void main() {
       await service.discardTake();
 
       expect(service.state.value.elapsed, Duration.zero);
+    });
+  });
+
+  // -------------------------------------------------------------------
+  // A whole take, driven against the real service and a real file
+  // -------------------------------------------------------------------
+  //
+  // The stubbed method channel plays the native side: it posts the completion
+  // callbacks flutter_sound is waiting on, and writes the file the encoder
+  // would have written. Two knobs cover the failure modes that matter —
+  // whether the encoder produced anything, and what `stopRecorder` claims the
+  // path is.
+  // -------------------------------------------------------------------
+  group('a take from record() to save()', () {
+    late Directory documents;
+    late AudioRecordingService service;
+
+    /// The path `startRecorder` was asked to write.
+    String? startedPath;
+
+    /// Whether the stubbed encoder writes anything. flutter_sound creates the
+    /// file lazily on the first audio write, so `false` reproduces the take
+    /// that leaves a valid-looking path pointing at nothing.
+    late bool encoderWritesFile;
+
+    /// What the stubbed native side hands back from `stopRecorder`. Not always
+    /// a path in production — see `_locateTake`.
+    late String? Function(String requestedPath) reportedStopPath;
+
+    /// Every platform call `initialize()` makes, in order, across both the
+    /// recorder and the audio session. Ordering between the two is load
+    /// bearing — see the setSubscriptionDuration test below.
+    late List<String> platformCalls;
+
+    setUp(() {
+      documents = Directory.systemTemp.createTempSync('take');
+      startedPath = null;
+      encoderWritesFile = true;
+      reportedStopPath = (requested) => requested;
+      platformCalls = [];
+
+      service = AudioRecordingService(promptId: 0);
+
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
+      messenger.setMockMessageHandler(
+        _wakelockToggleChannel,
+        (_) async =>
+            const StandardMessageCodec().encodeMessage(<Object?>[null]),
+      );
+
+      messenger.setMockMethodCallHandler(_pathProviderChannel, (call) async {
+        if (call.method != 'getApplicationDocumentsDirectory') return null;
+        return documents.path;
+      });
+
+      messenger.setMockMethodCallHandler(_audioSessionChannel, (call) async {
+        platformCalls.add('session.${call.method}');
+        return null;
+      });
+
+      messenger.setMockMethodCallHandler(_recorderChannel, (call) async {
+        platformCalls.add('recorder.${call.method}');
+
+        switch (call.method) {
+          case 'isEncoderSupported':
+            return true;
+
+          // Each of these settles a completer flutter_sound created just
+          // before it reached the channel. Deferred by a microtask so the
+          // platform call it belongs to has returned first.
+          case 'openRecorder':
+            scheduleMicrotask(
+              () => service.recorder.openRecorderCompleted(_stateStopped, true),
+            );
+            return null;
+
+          case 'startRecorder':
+            final path = (call.arguments as Map)['path'] as String;
+            startedPath = path;
+            if (encoderWritesFile) File(path).writeAsBytesSync([1, 2, 3, 4]);
+
+            scheduleMicrotask(
+              () => service.recorder
+                  .startRecorderCompleted(_stateRecording, true),
+            );
+            return null;
+
+          case 'stopRecorder':
+            final reported = reportedStopPath(startedPath!);
+            scheduleMicrotask(
+              () => service.recorder
+                  .stopRecorderCompleted(_stateStopped, true, reported),
+            );
+            return null;
+        }
+
+        return null;
+      });
+    });
+
+    tearDown(() {
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
+      messenger
+        ..setMockMessageHandler(_wakelockToggleChannel, null)
+        ..setMockMethodCallHandler(_pathProviderChannel, null)
+        ..setMockMethodCallHandler(_audioSessionChannel, null)
+        ..setMockMethodCallHandler(_recorderChannel, null);
+
+      if (documents.existsSync()) documents.deleteSync(recursive: true);
+    });
+
+    /// Opens the recorder and captures a take, leaving it running.
+    Future<void> startTake() async {
+      await service.initialize();
+      await service.record();
+
+      expect(service.state.value.isRecording, isTrue,
+          reason: 'the take must be running before the test acts on it');
+    }
+
+    // flutter_sound's default subscription duration is zero, which it
+    // documents as "no callbacks" — so if setting it sat behind the audio
+    // session in the same try, one session failure would cost the waveform
+    // every level for the whole session, surfacing only as an unrelated audio
+    // error. Ordering is the fix, so ordering is what this pins.
+    test('the progress rate is set before anything can fail on the session',
+        () async {
+      await service.initialize();
+
+      final rateSet = platformCalls.indexOf('recorder.setSubscriptionDuration');
+      final sessionConfigured =
+          platformCalls.indexOf('session.setConfiguration');
+
+      expect(rateSet, isNonNegative, reason: 'the rate must be set at all');
+      expect(sessionConfigured, isNonNegative,
+          reason: 'the session must be configured at all');
+      expect(rateSet, lessThan(sessionConfigured));
+    });
+
+    test('a take the encoder wrote is offered for saving, and saves', () async {
+      await startTake();
+
+      expect(await service.stop(), isTrue);
+      expect(service.state.value.hasCompletedTake, isTrue);
+
+      final result = await service.save();
+
+      expect(result.outcome, RecordingSaveOutcome.saved);
+      expect(result.path, startedPath);
+      expect(File(result.path!).existsSync(), isTrue);
+    });
+
+    // flutter_sound returns the literal string 'Recorder is not open' rather
+    // than a path when the recorder is not fully initialized, and an empty
+    // string when the native side reports no url. Neither must lose a take
+    // that is sitting on disk under the path the service asked for.
+    test('a stop that reports a non-path still finds the take', () async {
+      reportedStopPath = (_) => 'Recorder is not open';
+
+      await startTake();
+
+      expect(await service.stop(), isTrue);
+      expect(service.state.value.hasCompletedTake, isTrue);
+
+      final result = await service.save();
+
+      expect(result.outcome, RecordingSaveOutcome.saved);
+      expect(result.path, startedPath,
+          reason: 'the requested path wins over what stopRecorder claimed');
+    });
+
+    // hasTake is what puts the save control on screen. Offering it for a take
+    // with no file behind it means the participant confirms a finished-looking
+    // recording and nothing happens.
+    test('a take the encoder never wrote is not offered for saving', () async {
+      encoderWritesFile = false;
+
+      await startTake();
+
+      expect(await service.stop(), isFalse);
+      expect(service.state.value.status, AudioRecordingStatus.stopped,
+          reason: 'the recorder did stop, so paused would be a lie');
+      expect(service.state.value.hasTake, isFalse);
+      expect(service.state.value.hasCompletedTake, isFalse);
+    });
+
+    // The sheet resets to 00:00 on this path, which on its own reads as a tap
+    // that never registered. Without something to render, the participant
+    // records the same answer again and loses it the same way.
+    test('a take that produced nothing says so, and a retake clears it',
+        () async {
+      encoderWritesFile = false;
+
+      await startTake();
+      await service.stop();
+
+      expect(service.state.value.takeWasEmpty, isTrue);
+
+      encoderWritesFile = true;
+      await service.record();
+
+      expect(service.state.value.takeWasEmpty, isFalse,
+          reason: 'a fresh take is not carrying the last one’s failure');
+    });
+
+    test('discarding a take clears the empty-take notice', () async {
+      encoderWritesFile = false;
+
+      await startTake();
+      await service.stop();
+      expect(service.state.value.takeWasEmpty, isTrue);
+
+      await service.discardTake();
+
+      expect(service.state.value.takeWasEmpty, isFalse);
+    });
+
+    // save() reaches the same conclusion from the other side: the file was
+    // there when the take ended and is gone now.
+    test('a take that disappears before saving raises the same notice',
+        () async {
+      await startTake();
+      await service.stop();
+      expect(service.state.value.takeWasEmpty, isFalse);
+
+      File(startedPath!).deleteSync();
+      await service.save();
+
+      expect(service.state.value.takeWasEmpty, isTrue);
+    });
+
+    // The clock drives the progress bar and the [limit] auto-stop, so a
+    // replacement take inheriting the failed one's count would be cut short by
+    // however long that one ran.
+    test('a take that produced nothing leaves the clock at zero', () async {
+      encoderWritesFile = false;
+
+      await startTake();
+
+      // Past the first tick of the one-second elapsed counter.
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      expect(service.state.value.elapsed, greaterThan(Duration.zero));
+
+      await service.stop();
+
+      expect(service.state.value.elapsed, Duration.zero);
+    });
+
+    test('discarding a take deletes it and takes the save control away',
+        () async {
+      await startTake();
+      await service.stop();
+
+      final take = File(startedPath!);
+      expect(take.existsSync(), isTrue);
+
+      await service.discardTake();
+
+      expect(take.existsSync(), isFalse);
+      expect(service.state.value.hasTake, isFalse);
+      expect(service.state.value.elapsed, Duration.zero);
+    });
+
+    // The gate in stop() has already passed by this point, so reaching it in
+    // save() means the file went away in between.
+    test('a take that disappears between stopping and saving reports empty',
+        () async {
+      await startTake();
+      await service.stop();
+
+      File(startedPath!).deleteSync();
+
+      final result = await service.save();
+
+      expect(result.outcome, RecordingSaveOutcome.emptyFile);
+      expect(result.path, isNull);
+      expect(service.state.value.hasTake, isFalse);
     });
   });
 

@@ -450,6 +450,21 @@ class _QuestionPageState extends State<QuestionPage>
     checkForResponse(promptModel);
   }
 
+  /// Takes a notice down at the participant's request, deleting the recording
+  /// behind it when one is still there.
+  ///
+  /// Re-runs the gate: dismissing an unplayable row removes something that was
+  /// never counted as an answer, but it can also be the last row on the
+  /// prompt, and Next has to notice that.
+  void onDismissRecording(String path) {
+    if (!mounted) return;
+
+    _answers.dismiss(path);
+
+    setState(() {});
+    checkForResponse(promptModel);
+  }
+
   void updateSliderValue(PromptModel prompt, double value) {
     save(prompt, value.toString(), 'other', 0);
     widget.answerAdded(true);
@@ -616,6 +631,8 @@ class _QuestionPageState extends State<QuestionPage>
         prompt: prompt,
         unplayable: _answers.unplayable,
         onPlaybackResolved: onPlaybackResolved,
+        onDismissRecording: onDismissRecording,
+        isRecordingUsable: _answers.isUsable,
       );
     } else if (prompt.responseType == ResponseType.webview) {
       responseWidget = WebViewResponseCard(

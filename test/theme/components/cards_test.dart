@@ -179,7 +179,8 @@ void main() {
 
     testWidgets('resolves to fileNotFound when only the directory exists',
         (tester) async {
-      Directory(p.join(documentsDir.path, 'audios')).createSync(recursive: true);
+      Directory(p.join(documentsDir.path, 'audios'))
+          .createSync(recursive: true);
 
       final state = await pumpHarness(tester);
 
@@ -380,6 +381,93 @@ void main() {
           reason: '$status must offer a way forward',
         );
       }
+    });
+
+    // -----------------------------------------------------------------
+    // Dismissing a notice
+    // -----------------------------------------------------------------
+    //
+    // Two shapes, and the difference is whether audio dies. A notice whose row
+    // has already been deleted is just text, so dismissing it takes one tap.
+    // A notice standing in place of a live recording's controls is the only
+    // way that recording can be removed — and the file behind an
+    // `AudioStatus.canNotPlay` may be perfectly good audio that failed to
+    // decode here, which is why that one is confirmed first.
+    // -----------------------------------------------------------------
+    group('dismiss', () {
+      testWidgets('no control is offered when there is nothing to dismiss',
+          (tester) async {
+        await pumpCard(tester, AudioStatus.canNotPlay);
+
+        expect(find.text('Dismiss'), findsNothing);
+      });
+
+      testWidgets('a notice for a deleted row is dismissed in one tap',
+          (tester) async {
+        var dismissed = 0;
+
+        await tester.pumpWidget(_wrap(RecordingIssueCard(
+          status: AudioStatus.fileNotFound,
+          onDismiss: () => dismissed++,
+        )));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Dismiss'));
+        await tester.pumpAndSettle();
+
+        expect(dismissed, 1);
+      });
+
+      testWidgets('dismissing a live recording asks before deleting it',
+          (tester) async {
+        var dismissed = 0;
+
+        await tester.pumpWidget(_wrap(RecordingIssueCard(
+          status: AudioStatus.canNotPlay,
+          dismissDeletesRecording: true,
+          onDismiss: () => dismissed++,
+        )));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Dismiss'));
+        await tester.pumpAndSettle();
+
+        expect(dismissed, 0,
+            reason: 'nothing goes until the dialog is answered');
+        expect(find.text('Delete'), findsOneWidget);
+
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+
+        expect(dismissed, 1);
+      });
+
+      // The audio may well be fine — nothing else in the app deletes a
+      // canNotPlay recording, precisely because a decoder can be wrong. So a
+      // cancelled confirmation has to leave it exactly where it was.
+      testWidgets('cancelling the confirmation keeps the recording',
+          (tester) async {
+        var dismissed = 0;
+
+        await tester.pumpWidget(_wrap(RecordingIssueCard(
+          status: AudioStatus.canNotPlay,
+          dismissDeletesRecording: true,
+          onDismiss: () => dismissed++,
+        )));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Dismiss'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+
+        expect(dismissed, 0);
+        expect(
+          find.textContaining('something went wrong'),
+          findsOneWidget,
+          reason: 'the notice stays up',
+        );
+      });
     });
 
     testWidgets('each failure status renders distinct copy', (tester) async {

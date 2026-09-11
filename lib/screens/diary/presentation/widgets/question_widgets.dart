@@ -366,6 +366,18 @@ class AudioTextCard extends StatefulWidget {
   /// Reports a recording's terminal status back to the page.
   final void Function(String path, AudioStatus status)? onPlaybackResolved;
 
+  /// Whether a recording still counts as an answer, answered by the page that
+  /// owns the verdict.
+  ///
+  /// Not derivable from [unplayable] alone. A dismissed recording loses its
+  /// notice the moment the participant taps, while the row it refers to only
+  /// leaves this widget's prompt once the cubit has reloaded — and in that gap
+  /// a map lookup reads a deleted recording as a good answer, which hides the
+  /// record button on a prompt that no longer has one.
+  final bool Function(String path)? isRecordingUsable;
+
+  final void Function(String path)? onDismissRecording;
+
   const AudioTextCard({
     super.key,
     required this.respond,
@@ -373,6 +385,8 @@ class AudioTextCard extends StatefulWidget {
     required this.prompt,
     this.unplayable = const {},
     this.onPlaybackResolved,
+    this.onDismissRecording,
+    this.isRecordingUsable,
   });
 
   @override
@@ -408,10 +422,17 @@ class _AudioTextCardState extends State<AudioTextCard> {
 
     var count = 0;
     for (final recording in recordings) {
-      if (!widget.unplayable.containsKey(recording.path)) count++;
+      if (_isUsable(recording.path)) count++;
     }
     return count;
   }
+
+  /// Defers to the page, which knows about deleted rows as well as notices.
+  /// The map on its own is the fallback for a host with no gating to keep in
+  /// step.
+  bool _isUsable(String path) =>
+      widget.isRecordingUsable?.call(path) ??
+      !widget.unplayable.containsKey(path);
 
   /// Notices for recordings that were discarded, so the participant still sees
   /// why their answer disappeared. Recordings still in the list render their
@@ -429,7 +450,15 @@ class _AudioTextCardState extends State<AudioTextCard> {
         if (!present.contains(entry.key))
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6.0),
-            child: RecordingIssueCard(status: entry.value),
+            child: RecordingIssueCard(
+              status: entry.value,
+              promptId: widget.prompt.id,
+              // The row this explains is already gone, so dismissing only
+              // takes the explanation down — nothing to confirm.
+              onDismiss: widget.onDismissRecording == null
+                  ? null
+                  : () => widget.onDismissRecording!(entry.key),
+            ),
           ),
     ];
 
@@ -455,8 +484,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
               ],
               if (_lowBattery) ...[
                 const LowWarningCard(
-                  message:
-                      'Your battery is running low. Please connect your '
+                  message: 'Your battery is running low. Please connect your '
                       'charger to avoid interruptions while recording.',
                 ),
                 const SizedBox(height: 12),
@@ -473,6 +501,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
                       edit: widget.respond,
                       prompt: widget.prompt,
                       onPlaybackResolved: widget.onPlaybackResolved,
+                      onDismissRecording: widget.onDismissRecording,
                       recordings: widget.prompt.answer?.recordings ?? [])
                   : const SizedBox.shrink()
             ],

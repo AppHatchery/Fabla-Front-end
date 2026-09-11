@@ -79,6 +79,98 @@ void main() {
   }
 
   // -------------------------------------------------------------------
+  // 0. dismiss() — the participant clearing a notice
+  // -------------------------------------------------------------------
+  //
+  // The counterpart to report(): same two effects, opposite authority. report()
+  // will not delete a canNotPlay row because a decoder's verdict can be wrong;
+  // dismiss() will, because a participant asked it to.
+  // -------------------------------------------------------------------
+  group('dismiss', () {
+    // The case the button exists for. A canNotPlay row keeps its place in the
+    // answer list — uncountable, unplayable, and showing a notice where its
+    // own delete control would be — so this is the only way it can go.
+    test('a row report() refused to delete is deleted', () {
+      checker.report('audios/a.aac', AudioStatus.canNotPlay);
+      expect(discarded, isEmpty, reason: 'report() leaves this one alone');
+
+      checker.dismiss('audios/a.aac');
+
+      expect(discarded, ['audios/a.aac']);
+      expect(checker.unplayable, isEmpty);
+    });
+
+    // The notice on a row report() already deleted. There is nothing left to
+    // delete, and deleting again would hand the cubit a path that is gone.
+    test('a notice for an already deleted row only loses the notice', () {
+      checker.report('audios/a.aac', AudioStatus.fileNotFound);
+      expect(discarded, ['audios/a.aac']);
+
+      checker.dismiss('audios/a.aac');
+
+      expect(discarded, ['audios/a.aac'], reason: 'not deleted twice');
+      expect(checker.unplayable, isEmpty);
+    });
+
+    test('dismissing twice deletes once', () {
+      checker.report('audios/a.aac', AudioStatus.canNotPlay);
+
+      checker.dismiss('audios/a.aac');
+      checker.dismiss('audios/a.aac');
+
+      expect(discarded, ['audios/a.aac']);
+    });
+
+    // Notices are per recording. A prompt can carry several, and clearing one
+    // must not take the explanation for another down with it.
+    test('only the dismissed recording is affected', () {
+      checker.report('audios/a.aac', AudioStatus.canNotPlay);
+      checker.report('audios/b.aac', AudioStatus.canNotPlay);
+
+      checker.dismiss('audios/a.aac');
+
+      expect(discarded, ['audios/a.aac']);
+      expect(checker.unplayable.keys, ['audios/b.aac']);
+    });
+
+    // The bug this predicate exists for. dismiss() drops the notice the
+    // instant the participant taps, but the row only leaves the rendered
+    // prompt once the cubit has reloaded. Anything deciding "is this an
+    // answer" from `unplayable` alone reads the row in that gap as a good
+    // recording — which hid the record button on a prompt that no longer had
+    // one, until the diary was closed and reopened.
+    test('a dismissed recording is unusable even while its row lingers', () {
+      checker.report('audios/a.aac', AudioStatus.canNotPlay);
+      expect(checker.isUsable('audios/a.aac'), isFalse,
+          reason: 'a notice disqualifies it');
+
+      checker.dismiss('audios/a.aac');
+
+      expect(checker.unplayable, isEmpty, reason: 'the notice is gone');
+      expect(checker.isUsable('audios/a.aac'), isFalse,
+          reason: 'but the recording still must not count as an answer');
+    });
+
+    test('a recording nothing is known against is usable', () {
+      expect(checker.isUsable('audios/untouched.aac'), isTrue);
+    });
+
+    // countUsable() skips anything already discarded, so a dismissed row must
+    // not come back as a fresh notice on the next sweep.
+    test('a dismissed row stays gone across a later sweep', () async {
+      write('audios/a.aac', bytes: 0);
+      checker.report('audios/a.aac', AudioStatus.canNotPlay);
+      checker.dismiss('audios/a.aac');
+
+      final usable = await checker.countUsable([_recording('audios/a.aac')]);
+
+      expect(usable, 0);
+      expect(discarded, ['audios/a.aac'], reason: 'still only the one delete');
+      expect(checker.unplayable, isEmpty, reason: 'no notice comes back');
+    });
+  });
+
+  // -------------------------------------------------------------------
   // 1. report() — a card's verdict
   // -------------------------------------------------------------------
   group('report', () {
@@ -126,7 +218,8 @@ void main() {
 
       expect(changed, isTrue);
       expect(checker.unplayable, isEmpty);
-      expect(discarded, isEmpty, reason: 'a working recording is never dropped');
+      expect(discarded, isEmpty,
+          reason: 'a working recording is never dropped');
     });
 
     test('a healthy sibling does not clear another recording\'s notice', () {
@@ -194,7 +287,8 @@ void main() {
     test('a zero byte file is discarded as noAudioLength', () async {
       write('audios/empty.aac', bytes: 0);
 
-      final usable = await checker.countUsable([_recording('audios/empty.aac')]);
+      final usable =
+          await checker.countUsable([_recording('audios/empty.aac')]);
 
       expect(usable, 0);
       expect(discarded, ['audios/empty.aac']);
@@ -305,8 +399,8 @@ void main() {
       checker.report('audios/garbage.aac', AudioStatus.canNotPlay);
 
       expect(await checker.countUsable([_recording('audios/missing.aac')]), 0);
-      expect(checker.unplayable['audios/missing.aac'],
-          AudioStatus.fileNotFound);
+      expect(
+          checker.unplayable['audios/missing.aac'], AudioStatus.fileNotFound);
 
       final usable = await checker.countUsable([
         _recording('audios/good.aac'),
@@ -364,8 +458,7 @@ void main() {
       expect(usable, 1);
       expect(multi.unplayable, hasLength(2));
       expect(multi.unplayable['audios/empty.aac'], AudioStatus.noAudioLength);
-      expect(multi.unplayable['audios/missing.aac'],
-          AudioStatus.fileNotFound);
+      expect(multi.unplayable['audios/missing.aac'], AudioStatus.fileNotFound);
     });
 
     test('survives a discard that removes from the list being swept', () async {

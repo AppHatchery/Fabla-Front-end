@@ -25,6 +25,10 @@ class MyResponse extends StatefulWidget {
   /// the prompt can tell whether it still has a usable answer.
   final void Function(String path, AudioStatus status)? onPlaybackResolved;
 
+  /// Clears the unplayable notice for a recording and deletes the row behind
+  /// it, at the participant's request.
+  final void Function(String path)? onDismissRecording;
+
   const MyResponse({
     super.key,
     required this.edit,
@@ -32,6 +36,7 @@ class MyResponse extends StatefulWidget {
     required this.prompt,
     required this.recordings,
     this.onPlaybackResolved,
+    this.onDismissRecording,
   });
 
   @override
@@ -110,6 +115,7 @@ class _MyResponseState extends State<MyResponse> {
                   promptId: widget.prompt.id,
                   callerWidget: "diary",
                   onPlaybackResolved: widget.onPlaybackResolved,
+                  onDismissRecording: widget.onDismissRecording,
                 ),
               );
             }),
