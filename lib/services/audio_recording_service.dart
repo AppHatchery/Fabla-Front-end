@@ -129,7 +129,10 @@ class AudioRecordingService {
     required this.promptId,
     this.limit,
     this.onLimitReached,
-  });
+    Duration initialElapsed = Duration.zero,
+  }) : _state = ValueNotifier<AudioRecordingState>(
+          AudioRecordingState(elapsed: initialElapsed),
+        );
 
   /// Zero-based index of the prompt being answered. Used to name the audio
   /// file and to tag error reports.
@@ -137,6 +140,11 @@ class AudioRecordingService {
 
   /// Hard cap on a take. When reached the recorder stops itself and
   /// [onLimitReached] fires. `null` — or a zero duration — means no cap.
+  ///
+  /// Compared against [AudioRecordingState.elapsed] directly, so when this
+  /// service is seeded with a non-zero `initialElapsed` (resuming onto an
+  /// already-recorded take), the cap is naturally enforced against the
+  /// combined duration rather than just the new portion.
   final Duration? limit;
 
   /// Called once [limit] has been reached *and* the recorder actually stopped.
@@ -149,8 +157,7 @@ class AudioRecordingService {
 
   final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
 
-  final ValueNotifier<AudioRecordingState> _state =
-      ValueNotifier<AudioRecordingState>(const AudioRecordingState());
+  final ValueNotifier<AudioRecordingState> _state;
 
   /// The current recorder state, and a listenable for changes to it.
   ValueListenable<AudioRecordingState> get state => _state;

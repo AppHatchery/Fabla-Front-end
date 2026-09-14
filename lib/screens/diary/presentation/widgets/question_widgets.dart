@@ -366,6 +366,9 @@ class AudioTextCard extends StatefulWidget {
   /// Reports a recording's terminal status back to the page.
   final void Function(String path, AudioStatus status)? onPlaybackResolved;
 
+  /// Opens the audio edit modal for an existing recording.
+  final void Function(Recording recording)? onEditRecording;
+
   const AudioTextCard({
     super.key,
     required this.respond,
@@ -373,6 +376,7 @@ class AudioTextCard extends StatefulWidget {
     required this.prompt,
     this.unplayable = const {},
     this.onPlaybackResolved,
+    this.onEditRecording,
   });
 
   @override
@@ -473,6 +477,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
                       edit: widget.respond,
                       prompt: widget.prompt,
                       onPlaybackResolved: widget.onPlaybackResolved,
+                      onEditRecording: widget.onEditRecording,
                       recordings: widget.prompt.answer?.recordings ?? [])
                   : const SizedBox.shrink()
             ],

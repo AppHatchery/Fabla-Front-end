@@ -193,6 +193,34 @@ class PromptRepository {
     }
   }
 
+  /// Points [recording] at [newPath] in place, without creating a new
+  /// [Recording] row.
+  ///
+  /// Used to fold a continued take back into the answer it extends. The old
+  /// file is not deleted here: whoever produced [newPath] (a merge of the old
+  /// file with the new take) already retired it.
+  ///
+  /// Written straight to the [Recording] box rather than through
+  /// [PromptDAO.updatePrompt]: that puts the parent [Prompt], and ObjectBox's
+  /// `ToMany` only cascades items added or removed through the relation
+  /// itself, not a field mutated in place on an object already sitting in it
+  /// — so routing this through the prompt would silently leave the old path
+  /// in the database while the file it pointed to is already gone.
+  bool updateRecording(Recording recording, String newPath) {
+    try {
+      recording.path = newPath;
+      Box<Recording>(objectbox.store).put(recording);
+      return true;
+    } catch (e, stackTrace) {
+      dev.log("Error updating recording: $e",
+          name: "Prompt Repository - Update Recording");
+      CrashlyticsService().recordError(e, stackTrace,
+          reason:
+              'Error updating recording in updateRecording - PromptRepository');
+      return false;
+    }
+  }
+
   _deleteFile(String path) async {
     final file = File(path);
     if (await file.exists()) {

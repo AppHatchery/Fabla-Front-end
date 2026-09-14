@@ -25,6 +25,9 @@ class MyResponse extends StatefulWidget {
   /// the prompt can tell whether it still has a usable answer.
   final void Function(String path, AudioStatus status)? onPlaybackResolved;
 
+  /// Opens the audio edit modal for an existing recording.
+  final void Function(Recording recording)? onEditRecording;
+
   const MyResponse({
     super.key,
     required this.edit,
@@ -32,6 +35,7 @@ class MyResponse extends StatefulWidget {
     required this.prompt,
     required this.recordings,
     this.onPlaybackResolved,
+    this.onEditRecording,
   });
 
   @override
@@ -110,6 +114,7 @@ class _MyResponseState extends State<MyResponse> {
                   promptId: widget.prompt.id,
                   callerWidget: "diary",
                   onPlaybackResolved: widget.onPlaybackResolved,
+                  onEdit: widget.onEditRecording,
                 ),
               );
             }),

@@ -18,9 +18,11 @@ import '../../../../theme/components/indicators.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
+import '../../../../theme/dialogs/audio_edit_modal.dart';
 import '../../../../theme/dialogs/bottom_modals.dart';
 import '../../data/diary.dart';
 import '../../data/prompt.dart';
+import '../../domain/entities/recording.dart';
 import '../../domain/repository/diary_repository.dart';
 import '../cubit/prompt/prompt_cubit.dart';
 import 'diarysummary.dart';
@@ -616,6 +618,7 @@ class _QuestionPageState extends State<QuestionPage>
         prompt: prompt,
         unplayable: _answers.unplayable,
         onPlaybackResolved: onPlaybackResolved,
+        onEditRecording: (recording) => openAudioEditModal(prompt, recording),
       );
     } else if (prompt.responseType == ResponseType.webview) {
       responseWidget = WebViewResponseCard(
@@ -887,6 +890,30 @@ class _QuestionPageState extends State<QuestionPage>
                 },
               ));
     }
+  }
+
+  /// Opens the audio edit modal (trim / replace / resume) for [recording].
+  void openAudioEditModal(PromptModel prompt, Recording recording) {
+    track("Audio");
+    showModalBottomSheet(
+        backgroundColor: Colors.transparent,
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        elevation: 0,
+        useSafeArea: true,
+        routeSettings: RouteSettings(name: "/AudioEditModal"),
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              minChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) => BottomAudioEditModal(
+                diary: widget.diary,
+                prompt: prompt,
+                recording: recording,
+              ),
+            ));
   }
 
   track(String option) async {

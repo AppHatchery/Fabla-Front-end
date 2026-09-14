@@ -4,6 +4,7 @@ import 'dart:developer' as dev;
 import 'dart:math';
 
 import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
+import 'package:audio_diaries_flutter/core/utils/audio_processor.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
@@ -44,6 +45,20 @@ class BottomRecordingModal extends StatefulWidget {
   final ValueChanged<String?>? onSave;
   final String? subtitle;
 
+  /// Absolute path of a previously-saved recording to continue, or `null` for
+  /// a brand-new answer.
+  ///
+  /// When set, the new take is appended onto this file (via [AudioProcessor])
+  /// once saved, and [onSave] is handed the merged result rather than the new
+  /// take alone — so the caller still sees one path to persist, whether this
+  /// is a fresh answer or a resumed one.
+  final String? resumeFromPath;
+
+  /// How much audio [resumeFromPath] already holds, so the timer and
+  /// [limit] continue counting from where that recording left off instead of
+  /// restarting at zero. Ignored when [resumeFromPath] is `null`.
+  final Duration resumeElapsed;
+
   const BottomRecordingModal(
       {super.key,
       required this.promptId,
@@ -52,6 +67,8 @@ class BottomRecordingModal extends StatefulWidget {
       this.suggested,
       this.limit,
       this.hint,
+      this.resumeFromPath,
+      this.resumeElapsed = Duration.zero,
       required this.subtitle});
 
   @override
@@ -109,6 +126,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       promptId: widget.promptId,
       limit: widget.limit,
       onLimitReached: () => unawaited(save()),
+      initialElapsed: widget.resumeElapsed,
     );
     unawaited(_recordingService.initialize());
     WidgetsBinding.instance.addObserver(this);
@@ -271,7 +289,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                               ? "Recording"
                               : isCompleted
                                   ? "Save Recording"
-                                  : "Start Recording",
+                                  : widget.resumeFromPath != null
+                                      ? "Continue Recording"
+                                      : "Start Recording",
                       style: CustomTypography().custom(
                         color: CustomColors.fillWhite,
                         fontWeight: FontWeight.w500,
@@ -594,7 +614,16 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
       switch (result.outcome) {
         case RecordingSaveOutcome.saved:
-          widget.onSave?.call(basePath(result.path!));
+          final savedPath = widget.resumeFromPath == null
+              ? result.path!
+              : await _mergeWithResumedTake(result.path!);
+
+          if (savedPath == null) {
+            _trackFailedSave();
+            break;
+          }
+
+          widget.onSave?.call(basePath(savedPath));
           if (mounted) Navigator.pop(context);
           break;
         case RecordingSaveOutcome.emptyFile:
@@ -617,6 +646,42 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       _trackFailedSave();
     } finally {
       _completingTake = false;
+    }
+  }
+
+  /// Appends [newTakePath] onto [BottomRecordingModal.resumeFromPath],
+  /// returning the path of the combined file, or `null` if the merge failed.
+  ///
+  /// Both source files are deleted once the merge succeeds — they are fully
+  /// represented by the combined file from this point on, and leaving them
+  /// behind would orphan them on disk with nothing left to reference them.
+  Future<String?> _mergeWithResumedTake(String newTakePath) async {
+    final resumeFromPath = widget.resumeFromPath!;
+
+    try {
+      final mergedPath = p.join(
+        p.dirname(resumeFromPath),
+        'audio_prompt_${widget.promptId + 1}_'
+        '${DateTime.now().microsecondsSinceEpoch}.m4a',
+      );
+
+      final merged = await const AudioProcessor().appendRecording(
+        basePath: resumeFromPath,
+        newTakePath: newTakePath,
+        outputPath: mergedPath,
+      );
+
+      for (final path in [resumeFromPath, newTakePath]) {
+        final file = File(path);
+        if (await file.exists()) await file.delete();
+      }
+
+      return merged.path;
+    } catch (e, s) {
+      CrashlyticsService().recordError(
+        e, s, reason: 'Resume-recording merge failed',
+      );
+      return null;
     }
   }
 

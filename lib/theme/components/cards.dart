@@ -751,6 +751,9 @@ class NewAudioCard extends StatefulWidget {
   /// resolves, so the prompt can react to one that turned out unplayable.
   final void Function(String path, AudioStatus status)? onPlaybackResolved;
 
+  /// Opens the audio edit modal (trim / replace / resume) for this recording.
+  final void Function(Recording recording)? onEdit;
+
   const NewAudioCard(
       {super.key,
       required this.recording,
@@ -759,6 +762,7 @@ class NewAudioCard extends StatefulWidget {
       required this.viewOnly,
       this.callerWidget,
       this.onPlaybackResolved,
+      this.onEdit,
       required this.promptId});
 
   @override
@@ -771,6 +775,31 @@ class _NewAudioCardState extends State<NewAudioCard>
   void initState() {
     super.initState();
     initAudio(widget.recording.path);
+  }
+
+  /// Reloads playback when this card is reused for the same list position but
+  /// the recording it now shows points at a different file — e.g. after a
+  /// trim/replace/resume edit repoints [Recording.path] in place.
+  ///
+  /// `ListView.builder` reuses this State across rebuilds for whatever
+  /// `Recording` now sits at this position (no per-item `Key`), so without
+  /// this the card keeps playing the old file: [initState] only fires once,
+  /// and nothing else calls [initAudio] again.
+  @override
+  void didUpdateWidget(covariant NewAudioCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.recording.path != oldWidget.recording.path) {
+      disposeAudio();
+      setState(() {
+        audioPlayer = null;
+        audioStatus = AudioStatus.loading;
+        isPlaying = false;
+        currentSliderPosition = 0;
+        maxSliderPosition = 0;
+        maxDuration = Duration.zero;
+      });
+      initAudio(widget.recording.path);
+    }
   }
 
   @override
@@ -858,6 +887,13 @@ class _NewAudioCardState extends State<NewAudioCard>
           ),
           widget.isVisible ?? false
               ? IconButton(
+                  onPressed: () => editRecording(),
+                  icon: const Icon(CupertinoIcons.pencil),
+                  iconSize: 20,
+                )
+              : Container(),
+          widget.isVisible ?? false
+              ? IconButton(
                   onPressed: () {
                     PendoService.track("AudioControl", {
                       "action": "delete",
@@ -892,6 +928,13 @@ class _NewAudioCardState extends State<NewAudioCard>
     if (results == true) {
       widget.delete?.call();
     }
+  }
+
+  /// Stops playback, then hands the recording up so the caller can open the
+  /// edit modal for it.
+  void editRecording() {
+    if (isPlaying) play();
+    widget.onEdit?.call(widget.recording);
   }
 
   Widget slider() {

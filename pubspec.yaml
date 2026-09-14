@@ -46,6 +46,7 @@ dependencies:
   flutter_sound: ^9.30.0
   audio_session: ^0.2.3
   audioplayers: ^6.6.0
+  ffmpeg_kit_flutter_new: ^4.6.2
 
   #Video Playback
   video_player: ^2.11.1

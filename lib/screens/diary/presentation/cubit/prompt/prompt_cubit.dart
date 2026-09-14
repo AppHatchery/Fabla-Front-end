@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
     show CrashlyticsService;
@@ -148,6 +149,33 @@ class PromptCubit extends Cubit<PromptState> {
       CrashlyticsService().recordError(e, stackTrace,
           reason: 'Error removing response in removeResponse - PromptCubit');
       dev.log("Catch Error: $e", name: 'Prompt Cubit - Remove Response');
+    }
+  }
+
+  /// Points an existing recording at a continued take's merged file, without
+  /// creating a new answer row.
+  ///
+  /// Parameters:
+  /// - [recording]: the recording being continued.
+  /// - [newPath]: the merged file's path, replacing [recording]'s current one.
+  Future<void> updateRecording({
+    required DiaryModel diary,
+    required PromptModel prompt,
+    required Recording recording,
+    required String newPath,
+  }) async {
+    try {
+      final updated = _repository.updateRecording(recording, newPath);
+      if (updated) {
+        showSuccessModal();
+      }
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error updating recording in updateRecording - PromptCubit');
+      dev.log("Catch Error: $e", name: 'Prompt Cubit - Update Recording');
+      showErrorModal();
+    } finally {
+      loadPrompt(diary, prompt);
     }
   }
 

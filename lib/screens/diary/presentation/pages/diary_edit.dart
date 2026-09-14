@@ -3,12 +3,14 @@ import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/audio_edit_modal.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -303,6 +305,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
           prompt: prompt,
           unplayable: _answers.unplayable,
           onPlaybackResolved: onPlaybackResolved,
+          onEditRecording: (recording) => openAudioEditModal(prompt, recording),
         );
       case ResponseType.slider:
         return SliderQuestionCard(
@@ -422,6 +425,29 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
                 },
               ));
     }
+  }
+
+  /// Opens the audio edit modal (trim / replace / resume) for [recording].
+  void openAudioEditModal(PromptModel prompt, Recording recording) {
+    showModalBottomSheet(
+        backgroundColor: Colors.transparent,
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        elevation: 0,
+        useSafeArea: true,
+        routeSettings: RouteSettings(name: "/AudioEditModal"),
+        builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 1,
+              minChildSize: 1,
+              snap: true,
+              builder: (context, scrollController) => BottomAudioEditModal(
+                diary: widget.diary,
+                prompt: prompt,
+                recording: recording,
+              ),
+            ));
   }
 
   void back() {
