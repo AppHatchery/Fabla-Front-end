@@ -25,8 +25,8 @@ class MyResponse extends StatefulWidget {
   /// the prompt can tell whether it still has a usable answer.
   final void Function(String path, AudioStatus status)? onPlaybackResolved;
 
-  /// Clears the unplayable notice for a recording and deletes the row behind
-  /// it, at the participant's request.
+  /// Clears a recording's notice and deletes the row behind it, because the
+  /// participant asked.
   final void Function(String path)? onDismissRecording;
 
   const MyResponse({

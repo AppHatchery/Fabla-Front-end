@@ -632,12 +632,9 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
     }
 
     if (!canPlay) {
-      // No dismiss control: this card has no route back to the prompt that
-      // owns the notice, so it can report the problem but not clear it.
-      return RecordingIssueCard(
-        status: audioStatus,
-        promptId: widget.promptId,
-      );
+      // No dismiss button: this card has no way back to the prompt that owns
+      // the notice, so it can report the problem but not clear it.
+      return RecordingIssueCard(status: audioStatus);
     }
 
     return Visibility(
@@ -759,10 +756,9 @@ class NewAudioCard extends StatefulWidget {
   /// Clears the unplayable notice for this recording and deletes the row
   /// behind it.
   ///
-  /// Distinct from [delete], which is the participant removing an answer they
-  /// can actually hear: this one also has to take down the notice, or the
-  /// explanation simply moves to the prompt's discarded list and the card
-  /// error never goes away.
+  /// Different from [delete], which removes an answer the participant can
+  /// actually hear. This one also takes the notice down, or the error stays on
+  /// the card forever.
   final void Function(String path)? onDismissRecording;
 
   const NewAudioCard(
@@ -826,10 +822,9 @@ class _NewAudioCardState extends State<NewAudioCard>
     }
 
     if (!canPlay) {
-      // This notice stands where the card's own controls — delete included —
-      // would be, so without a dismiss here an unplayable recording cannot be
-      // cleared at all: it just sits in the answer list, never counted and
-      // never removable.
+      // This notice sits where the card's own buttons, delete included, would
+      // be. Without a dismiss here an unplayable recording can never be
+      // cleared: it just sits in the list, never counted and never removable.
       return RecordingIssueCard(
         status: audioStatus,
         promptId: widget.promptId,
@@ -1836,8 +1831,8 @@ class AlertCard extends StatelessWidget {
 
   final String message;
 
-  /// Takes this notice down. No control is shown when null, which is how every
-  /// caller that has nothing to dismiss keeps the card read-only.
+  /// Takes this notice down. No button is shown when null, which is how a
+  /// caller with nothing to dismiss keeps the card read-only.
   final VoidCallback? onDismiss;
 
   @override
@@ -1853,6 +1848,7 @@ class AlertCard extends StatelessWidget {
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1920,18 +1916,17 @@ class RecordingIssueCard extends StatelessWidget {
   /// is one. No dismiss control is shown when null.
   final VoidCallback? onDismiss;
 
-  /// Whether dismissing will destroy audio rather than only take down a notice
-  /// for a recording that has already gone.
+  /// Whether dismissing destroys audio, rather than only clearing a notice for
+  /// a recording that has already gone.
   ///
-  /// Confirmed with the participant when it will, because the file behind an
-  /// [AudioStatus.canNotPlay] notice may be perfectly good audio that only
-  /// failed to decode on this device — that is why nothing deletes it
-  /// automatically. See `RecordingAnswerChecker.dismiss`.
+  /// Confirmed with the participant when it does, because the file may be
+  /// perfectly good audio that just failed to decode on this device. See
+  /// `RecordingAnswerChecker.dismiss`.
   final bool dismissDeletesRecording;
 
   static const _messages = {
     AudioStatus.fileNotFound:
-        "Sorry, we couldn\u2019t find this recording on your device. Please record your answer again using the button above.",
+        "Sorry, we couldn't find this recording on your device. Please record your answer again using the button above.",
     AudioStatus.noAudioLength:
         "Sorry, no audio was captured in this recording. Please record your answer again using the button above.",
     AudioStatus.canNotPlay:

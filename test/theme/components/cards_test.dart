@@ -387,12 +387,10 @@ void main() {
     // Dismissing a notice
     // -----------------------------------------------------------------
     //
-    // Two shapes, and the difference is whether audio dies. A notice whose row
-    // has already been deleted is just text, so dismissing it takes one tap.
-    // A notice standing in place of a live recording's controls is the only
-    // way that recording can be removed — and the file behind an
-    // `AudioStatus.canNotPlay` may be perfectly good audio that failed to
-    // decode here, which is why that one is confirmed first.
+    // Two shapes, and the difference is whether audio dies. A notice for a row
+    // that is already deleted is just text, so one tap clears it. A notice
+    // standing in for a live recording's buttons is the only way to remove that
+    // recording, and its file may be fine, so that one is confirmed first.
     // -----------------------------------------------------------------
     group('dismiss', () {
       testWidgets('no control is offered when there is nothing to dismiss',
@@ -442,9 +440,9 @@ void main() {
         expect(dismissed, 1);
       });
 
-      // The audio may well be fine — nothing else in the app deletes a
-      // canNotPlay recording, precisely because a decoder can be wrong. So a
-      // cancelled confirmation has to leave it exactly where it was.
+      // The audio may well be fine: nothing else deletes a canNotPlay
+      // recording, because a decoder can be wrong. So cancelling has to leave
+      // it exactly where it was.
       testWidgets('cancelling the confirmation keeps the recording',
           (tester) async {
         var dismissed = 0;

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:alarm/alarm.dart';
+import 'package:audio_diaries_flutter/core/usecases/recording_answer.dart';
 import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/participant_experiment_details.dart';
@@ -358,35 +359,24 @@ class AudioTextCard extends StatefulWidget {
   final DiaryModel diary;
   final PromptModel prompt;
 
-  /// Recordings that resolved to an error, keyed by path. Owned by the page so
-  /// the record button and the Next button agree on what counts as an answer.
-  /// Empty when the host has no gating to keep in step, as on the edit screen.
-  final Map<String, AudioStatus> unplayable;
+  final RecordingAnswerView answers;
 
   /// Reports a recording's terminal status back to the page.
   final void Function(String path, AudioStatus status)? onPlaybackResolved;
 
-  /// Whether a recording still counts as an answer, answered by the page that
-  /// owns the verdict.
-  ///
-  /// Not derivable from [unplayable] alone. A dismissed recording loses its
-  /// notice the moment the participant taps, while the row it refers to only
-  /// leaves this widget's prompt once the cubit has reloaded — and in that gap
-  /// a map lookup reads a deleted recording as a good answer, which hides the
-  /// record button on a prompt that no longer has one.
-  final bool Function(String path)? isRecordingUsable;
-
   final void Function(String path)? onDismissRecording;
+
+  final bool recordingsUnchecked;
 
   const AudioTextCard({
     super.key,
     required this.respond,
     required this.diary,
     required this.prompt,
-    this.unplayable = const {},
+    required this.answers,
     this.onPlaybackResolved,
     this.onDismissRecording,
-    this.isRecordingUsable,
+    this.recordingsUnchecked = false,
   });
 
   @override
@@ -422,23 +412,14 @@ class _AudioTextCardState extends State<AudioTextCard> {
 
     var count = 0;
     for (final recording in recordings) {
-      if (_isUsable(recording.path)) count++;
+      if (widget.answers.isUsable(recording.path)) count++;
     }
     return count;
   }
 
-  /// Defers to the page, which knows about deleted rows as well as notices.
-  /// The map on its own is the fallback for a host with no gating to keep in
-  /// step.
-  bool _isUsable(String path) =>
-      widget.isRecordingUsable?.call(path) ??
-      !widget.unplayable.containsKey(path);
-
-  /// Notices for recordings that were discarded, so the participant still sees
-  /// why their answer disappeared. Recordings still in the list render their
-  /// own card inside [MyResponse].
   Widget discardedNotices() {
-    if (widget.unplayable.isEmpty) return const SizedBox.shrink();
+    final unplayable = widget.answers.unplayable;
+    if (unplayable.isEmpty) return const SizedBox.shrink();
 
     final present = <String>{
       for (final recording in widget.prompt.answer?.recordings ?? [])
@@ -446,7 +427,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
     };
 
     final notices = <Widget>[
-      for (final entry in widget.unplayable.entries)
+      for (final entry in unplayable.entries)
         if (!present.contains(entry.key))
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6.0),
@@ -454,7 +435,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
               status: entry.value,
               promptId: widget.prompt.id,
               // The row this explains is already gone, so dismissing only
-              // takes the explanation down — nothing to confirm.
+              // clears the message. Nothing to confirm.
               onDismiss: widget.onDismissRecording == null
                   ? null
                   : () => widget.onDismissRecording!(entry.key),
@@ -486,6 +467,15 @@ class _AudioTextCardState extends State<AudioTextCard> {
                 const LowWarningCard(
                   message: 'Your battery is running low. Please connect your '
                       'charger to avoid interruptions while recording.',
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (widget.recordingsUnchecked) ...[
+                const LowWarningCard(
+                  message: 'We could not check your recordings on this device, '
+                      'so we cannot confirm this answer yet. Please try again '
+                      'in a moment, or restart the app if this keeps '
+                      'happening.',
                 ),
                 const SizedBox(height: 12),
               ],

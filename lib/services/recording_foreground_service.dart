@@ -6,10 +6,10 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 /// The Android microphone foreground service that keeps a take alive while the
 /// app is off screen.
 ///
-/// Android revokes the microphone from a backgrounded app with no
-/// microphone-typed foreground service, while flutter_sound keeps writing
-/// regardless — so without this a take captures silence for the time spent
-/// away, and nothing downstream can tell.
+/// Android takes the microphone away from a backgrounded app that has no
+/// microphone foreground service, while flutter_sound keeps writing anyway. So
+/// without this a take records silence for the time spent away, and nothing
+/// downstream can tell.
 ///
 /// A no-op on iOS, which keeps capturing on the `audio` background mode alone.
 class RecordingForegroundService {
@@ -27,13 +27,10 @@ class RecordingForegroundService {
 
   /// Registers the notification channel and the service options.
   ///
-  /// Every option that would let the service outlive a take is off:
-  /// [ForegroundTaskEventAction.nothing] because there is no task isolate to
-  /// tick, and `autoRunOnBoot` / `autoRunOnMyPackageReplaced` /
-  /// `allowAutoRestart` because a microphone notification resurrected after a
-  /// reboot, an update, or a process kill would sit there with no recorder
-  /// behind it. `allowWakeLock` stays on: that is the CPU lock keeping the
-  /// encoder running with the screen off, not the screen lock.
+  /// Every option that could let the service outlive a take is off, because a
+  /// microphone notification brought back after a reboot or update would sit
+  /// there with no recorder behind it. `allowWakeLock` stays on: that is the
+  /// CPU lock keeping the encoder running with the screen off.
   void configure() {
     FlutterForegroundTask.init(
       androidNotificationOptions: AndroidNotificationOptions(
@@ -62,11 +59,9 @@ class RecordingForegroundService {
 
   /// Starts the service, reporting whether it is up.
   ///
-  /// Call only from the tap that begins or resumes a take. Android 12+ refuses
-  /// to start a foreground service from the background, so starting it once
-  /// the app is already away would be too late.
-  ///
-  /// `false` means the take is foreground-only.
+  /// Call only from the tap that starts or resumes a take. Android 12+ refuses
+  /// to start a foreground service from the background, so doing it once the
+  /// app is away is too late. `false` means the take is foreground-only.
   Future<bool> start() async {
     if (!Platform.isAndroid) return false;
     if (_active) return true;
@@ -113,10 +108,10 @@ class RecordingForegroundService {
 
   /// Stops the service once capture ends.
   ///
-  /// [isActive] is cleared before the call, not after: if the stop fails, the
-  /// honest assumption is that background capture can no longer be relied on.
-  /// Pausing a take that would have survived costs the participant a tap;
-  /// trusting a service that is not there costs them the recording.
+  /// [isActive] is cleared before the call, not after. If the stop fails, the
+  /// safe assumption is that background recording can no longer be trusted:
+  /// pausing a take that would have survived costs one tap, trusting a service
+  /// that is gone costs the recording.
   Future<void> stop() async {
     if (!_active) return;
     _active = false;

@@ -15,16 +15,13 @@ import 'package:path/path.dart' as p;
 // ------------------------------------------------------------------
 // Recordings were reaching the database for files the recorder never wrote
 // (Crashlytics issue ea6670918b178545b203745b920fee57). They failed playback
-// and S3 upload while the submission still committed to DynamoDB, so a
-// participant could finish a diary whose audio did not exist.
+// and upload while the diary still submitted, so a participant could finish a
+// diary whose audio did not exist.
 //
-// The checker is what stops that: it discards rows that cannot be uploaded and
-// reports how many usable recordings remain, so the Next / Back To Summary
-// buttons stay disabled until a good recording replaces them.
-//
-// It is deliberately a plain class with an injected `discard` callback — the
-// diary flow and the edit screen share one instance each, and neither the
-// widget tree nor PromptCubit is needed to exercise it.
+// The checker stops that: it deletes rows that cannot be uploaded and reports
+// how many good recordings remain, so the Next button stays disabled until one
+// replaces them. It is a plain class with an injected `discard` callback, so no
+// widget tree or cubit is needed to test it.
 // ------------------------------------------------------------------
 
 const MethodChannel _pathProviderChannel =
@@ -32,6 +29,17 @@ const MethodChannel _pathProviderChannel =
 
 Recording _recording(String path) =>
     Recording('name', path, 'audio', null, DateTime(2026, 7, 21));
+
+/// The usable count from a sweep.
+///
+/// Most of these tests are about what the sweep found, not about whether it
+/// could read the disk at all, so they take the count and ignore the rest.
+/// The "could not read the disk" group covers that half.
+Future<int> usableCount(
+  RecordingAnswerChecker checker,
+  List<Recording> recordings,
+) async =>
+    (await checker.countUsable(recordings)).usable;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -82,9 +90,9 @@ void main() {
   // 0. dismiss() — the participant clearing a notice
   // -------------------------------------------------------------------
   //
-  // The counterpart to report(): same two effects, opposite authority. report()
-  // will not delete a canNotPlay row because a decoder's verdict can be wrong;
-  // dismiss() will, because a participant asked it to.
+  // The other side of report(): same two effects, opposite authority. report()
+  // will not delete a canNotPlay row, because a decoder can be wrong.
+  // dismiss() will, because a participant asked.
   // -------------------------------------------------------------------
   group('dismiss', () {
     // The case the button exists for. A canNotPlay row keeps its place in the
@@ -133,12 +141,10 @@ void main() {
       expect(checker.unplayable.keys, ['audios/b.aac']);
     });
 
-    // The bug this predicate exists for. dismiss() drops the notice the
-    // instant the participant taps, but the row only leaves the rendered
-    // prompt once the cubit has reloaded. Anything deciding "is this an
-    // answer" from `unplayable` alone reads the row in that gap as a good
-    // recording — which hid the record button on a prompt that no longer had
-    // one, until the diary was closed and reopened.
+    // The bug this predicate exists for. dismiss() drops the notice the instant
+    // the participant taps, but the row only leaves the prompt once the cubit
+    // reloads. Reading `unplayable` alone treats the row as good in that gap,
+    // which hid the record button until the diary was closed and reopened.
     test('a dismissed recording is unusable even while its row lingers', () {
       checker.report('audios/a.aac', AudioStatus.canNotPlay);
       expect(checker.isUsable('audios/a.aac'), isFalse,
@@ -162,11 +168,191 @@ void main() {
       checker.report('audios/a.aac', AudioStatus.canNotPlay);
       checker.dismiss('audios/a.aac');
 
-      final usable = await checker.countUsable([_recording('audios/a.aac')]);
+      final usable = await usableCount(checker, [_recording('audios/a.aac')]);
 
       expect(usable, 0);
       expect(discarded, ['audios/a.aac'], reason: 'still only the one delete');
       expect(checker.unplayable, isEmpty, reason: 'no notice comes back');
+    });
+  });
+
+  // -------------------------------------------------------------------
+  // 0b. Resilience — a failure must not take the sweep or the notices with it
+  // -------------------------------------------------------------------
+  group('resilience', () {
+    // The sweep changes state as it goes: each bad recording gets a notice and
+    // a delete before the next is looked at. A throw part-way used to abort the
+    // whole thing, so the rest were never examined and the caller got an
+    // exception instead of a count.
+    //
+    // The throw comes from the discard callback, not the disk: `File.exists()`
+    // returns false rather than throwing for every bad path this test could
+    // build. A cubit call that throws is a realistic failure anyway.
+    test('a discard that fails is reported and does not stop the sweep',
+        () async {
+      write('audios/good.aac', bytes: 4);
+
+      final reasons = <String>[];
+
+      checker = RecordingAnswerChecker(
+        discard: (path) => throw StateError('the row is gone'),
+        singleAnswer: true,
+        onError: (error, stackTrace, reason) => reasons.add(reason),
+      );
+
+      final usable = await usableCount(checker, [
+        _recording('audios/gone.aac'),
+        _recording('audios/good.aac'),
+      ]);
+
+      expect(usable, 1, reason: 'the healthy recording was still counted');
+      expect(reasons, hasLength(1), reason: 'and the failure was not silent');
+    });
+
+    // The row is still there when the delete fails, so the checker must not
+    // remember it as gone. Marking it discarded up front left a row that never
+    // counted, was never retried, and lost its notice — so the participant
+    // could neither use it nor remove it, with nothing explaining why.
+    test('a row whose delete failed is tried again on the next sweep',
+        () async {
+      write('audios/good.aac', bytes: 4);
+
+      var deleteWorks = false;
+
+      checker = RecordingAnswerChecker(
+        discard: (path) {
+          if (!deleteWorks) throw StateError('the row is gone');
+          discarded.add(path);
+        },
+        singleAnswer: true,
+      );
+
+      List<Recording> prompt() => [
+            _recording('audios/missing.aac'),
+            _recording('audios/good.aac'),
+          ];
+
+      await usableCount(checker, prompt());
+      expect(discarded, isEmpty, reason: 'nothing was actually deleted');
+
+      deleteWorks = true;
+      await usableCount(checker, prompt());
+
+      expect(discarded, ['audios/missing.aac'],
+          reason: 'the second sweep reached it because the first did not '
+              'claim it was already gone');
+    });
+
+    // The same retry with nothing else on the prompt to trigger it. It used to
+    // depend on _retireDiscardedNotices() clearing the notice first, which only
+    // runs on a single-answer prompt that already has a good recording — so
+    // everywhere else the row was never tried again at all.
+    test('a row whose delete failed is retried with nothing else to go on',
+        () async {
+      var deleteWorks = false;
+
+      checker = RecordingAnswerChecker(
+        discard: (path) {
+          if (!deleteWorks) throw StateError('the row is gone');
+          discarded.add(path);
+        },
+        singleAnswer: false,
+        onError: (error, stackTrace, reason) {},
+      );
+
+      List<Recording> prompt() => [_recording('audios/missing.aac')];
+
+      expect(await usableCount(checker, prompt()), 0);
+      expect(discarded, isEmpty, reason: 'the first delete threw');
+
+      deleteWorks = true;
+      expect(await usableCount(checker, prompt()), 0);
+
+      expect(discarded, ['audios/missing.aac'],
+          reason: 'the second sweep reached it even with no healthy sibling '
+              'to retire the notice');
+    });
+
+    // The sweep now checks every row still on the prompt, not just the ones
+    // without a notice — so a recording that exists and has bytes but will not
+    // play must stay uncounted on the card's word alone.
+    test('a recording a card rejected is not counted by a healthy stat',
+        () async {
+      write('audios/broken.aac', bytes: 4);
+
+      checker.report('audios/broken.aac', AudioStatus.canNotPlay);
+
+      expect(await usableCount(checker, [_recording('audios/broken.aac')]), 0);
+      expect(discarded, isEmpty,
+          reason: 'and a decoder’s verdict still does not destroy it');
+    });
+
+    // The other half of the same failure. _retireDiscardedNotices() used to
+    // decide from the status alone, but a deletable status only means report()
+    // *tried*. When the delete threw, the row is still there, so dropping its
+    // notice handed a missing file back as a perfectly good answer.
+    test('a notice is not retired for a row that was never deleted', () async {
+      write('audios/good.aac', bytes: 4);
+
+      checker = RecordingAnswerChecker(
+        discard: (path) => throw StateError('the cubit refused'),
+        singleAnswer: true,
+        onError: (error, stackTrace, reason) {},
+      );
+
+      final usable = await usableCount(checker, [
+        _recording('audios/missing.aac'),
+        _recording('audios/good.aac'),
+      ]);
+
+      expect(usable, 1, reason: 'the good recording retires the notices');
+      expect(checker.unplayable.keys, ['audios/missing.aac'],
+          reason: 'but not this one — its row is still there');
+      expect(checker.isUsable('audios/missing.aac'), isFalse,
+          reason: 'and it must not come back as an answer');
+    });
+
+    // Every onError call sits inside a catch whose whole job is to absorb a
+    // failure. A reporter that throws would escape that block and undo the
+    // recovery it was being told about — turning something already handled
+    // back into the unhandled error this class works to avoid.
+    test('a reporter that throws cannot undo the recovery', () async {
+      write('audios/good.aac', bytes: 4);
+
+      checker = RecordingAnswerChecker(
+        discard: (path) => throw StateError('the row is gone'),
+        singleAnswer: true,
+        onError: (error, stackTrace, reason) =>
+            throw StateError('and the reporter is down too'),
+      );
+
+      final count = await checker.countUsable([
+        _recording('audios/gone.aac'),
+        _recording('audios/good.aac'),
+      ]);
+
+      expect(count.checked, isTrue);
+      expect(count.usable, 1,
+          reason: 'the sweep finished despite both failures');
+    });
+
+    // The notices are handed to the card that renders them. Letting it write
+    // to the map would let a widget clear an explanation the participant is
+    // owed, or mark a broken recording available, with the page none the
+    // wiser — the page owns that decision, through report() and dismiss().
+    test('the notices cannot be rewritten by whoever is rendering them', () {
+      checker.report('audios/a.aac', AudioStatus.canNotPlay);
+
+      expect(() => checker.unplayable.clear(), throwsUnsupportedError);
+      expect(
+        () => checker.unplayable['audios/a.aac'] = AudioStatus.available,
+        throwsUnsupportedError,
+      );
+      expect(() => checker.unplayable.remove('audios/a.aac'),
+          throwsUnsupportedError);
+
+      expect(checker.unplayable['audios/a.aac'], AudioStatus.canNotPlay,
+          reason: 'and the notice is still there to read');
     });
   });
 
@@ -249,11 +435,88 @@ void main() {
   });
 
   // -------------------------------------------------------------------
+  // 1b. A sweep that could not look at the disk at all
+  // -------------------------------------------------------------------
+  //
+  // Zero used to mean two different things. "Checked them all, none count" is
+  // something a participant can fix by recording again; "could not find the
+  // documents folder" is a device fault that every retry repeats. Both arrived
+  // as a bare `0`, so the page shut the gate and said nothing.
+  // -------------------------------------------------------------------
+  group('a sweep that could not read the disk', () {
+    void failTheDocumentsDirectory() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        _pathProviderChannel,
+        (call) async => throw PlatformException(code: 'no-documents-directory'),
+      );
+    }
+
+    test('says so, rather than reporting that nothing counts', () async {
+      failTheDocumentsDirectory();
+
+      final count = await checker.countUsable([_recording('audios/a.aac')]);
+
+      expect(count.checked, isFalse);
+      expect(count.usable, 0, reason: 'nothing was established either way');
+    });
+
+    test('a sweep that ran and found nothing still reports itself checked',
+        () async {
+      final count = await checker.countUsable([_recording('audios/a.aac')]);
+
+      expect(count.checked, isTrue);
+      expect(count.usable, 0);
+    });
+
+    // The gate stays shut either way, but nothing may be destroyed or written
+    // off on the strength of a lookup that never ran: not one of these files
+    // was actually examined.
+    test('writes nothing off and deletes nothing', () async {
+      failTheDocumentsDirectory();
+
+      await checker.countUsable([_recording('audios/a.aac')]);
+
+      expect(discarded, isEmpty);
+      expect(checker.unplayable, isEmpty);
+      expect(checker.isUsable('audios/a.aac'), isTrue,
+          reason: 'the next sweep has to be free to check it properly');
+    });
+
+    test('reports the failure rather than swallowing it', () async {
+      final reasons = <String>[];
+
+      checker = RecordingAnswerChecker(
+        discard: discarded.add,
+        singleAnswer: true,
+        onError: (error, stackTrace, reason) => reasons.add(reason),
+      );
+
+      failTheDocumentsDirectory();
+
+      await checker.countUsable([_recording('audios/a.aac')]);
+
+      expect(reasons, hasLength(1));
+    });
+
+    // A prompt with nothing on it never reaches the disk, so its zero is a
+    // real verdict and the page has nothing to explain.
+    test('a prompt with no recordings counts as checked', () async {
+      failTheDocumentsDirectory();
+
+      final count = await checker.countUsable([]);
+
+      expect(count.checked, isTrue);
+      expect(count.usable, 0);
+    });
+  });
+
+  // -------------------------------------------------------------------
   // 2. countUsable() — the sweep
   // -------------------------------------------------------------------
   group('countUsable', () {
     test('an empty list needs no disk access', () async {
-      expect(await checker.countUsable([]), 0);
+      expect(await usableCount(checker, []), 0);
       expect(discarded, isEmpty);
     });
 
@@ -261,7 +524,8 @@ void main() {
       write('audios/a.aac', bytes: 16);
       write('audios/b.aac', bytes: 16);
 
-      final usable = await checker.countUsable(
+      final usable = await usableCount(
+        checker,
         [_recording('audios/a.aac'), _recording('audios/b.aac')],
       );
 
@@ -274,7 +538,7 @@ void main() {
       // The production case: startRecorder captured nothing, so the file was
       // never created, but stopRecorder returned its intended path anyway.
       final usable =
-          await checker.countUsable([_recording('audios/never_written.aac')]);
+          await usableCount(checker, [_recording('audios/never_written.aac')]);
 
       expect(usable, 0);
       expect(discarded, ['audios/never_written.aac']);
@@ -288,7 +552,7 @@ void main() {
       write('audios/empty.aac', bytes: 0);
 
       final usable =
-          await checker.countUsable([_recording('audios/empty.aac')]);
+          await usableCount(checker, [_recording('audios/empty.aac')]);
 
       expect(usable, 0);
       expect(discarded, ['audios/empty.aac']);
@@ -303,7 +567,7 @@ void main() {
       write('audios/good.aac', bytes: 16);
       write('audios/empty.aac', bytes: 0);
 
-      final usable = await checker.countUsable([
+      final usable = await usableCount(checker, [
         _recording('audios/good.aac'),
         _recording('audios/empty.aac'),
         _recording('audios/missing.aac'),
@@ -318,7 +582,7 @@ void main() {
       discarded.clear();
 
       final usable =
-          await checker.countUsable([_recording('audios/missing.aac')]);
+          await usableCount(checker, [_recording('audios/missing.aac')]);
 
       expect(usable, 0);
       expect(discarded, isEmpty, reason: 'already dropped once');
@@ -333,7 +597,7 @@ void main() {
       discarded.clear();
 
       final usable =
-          await checker.countUsable([_recording('audios/garbage.aac')]);
+          await usableCount(checker, [_recording('audios/garbage.aac')]);
 
       expect(usable, 0);
       expect(discarded, isEmpty);
@@ -342,11 +606,11 @@ void main() {
     test('is idempotent across repeated sweeps', () async {
       write('audios/good.aac', bytes: 16);
 
-      final first = await checker.countUsable([
+      final first = await usableCount(checker, [
         _recording('audios/good.aac'),
         _recording('audios/missing.aac'),
       ]);
-      final second = await checker.countUsable([
+      final second = await usableCount(checker, [
         _recording('audios/good.aac'),
         _recording('audios/missing.aac'),
       ]);
@@ -362,8 +626,8 @@ void main() {
       // container UUID in an absolute path changes.
       write('audios/nested.aac', bytes: 16);
 
-      expect(await checker.countUsable([_recording('audios/nested.aac')]), 1);
-      expect(await checker.countUsable([_recording('nested.aac')]), 0);
+      expect(await usableCount(checker, [_recording('audios/nested.aac')]), 1);
+      expect(await usableCount(checker, [_recording('nested.aac')]), 0);
     });
 
     test('a replacement retires the notice on a single-answer prompt',
@@ -377,14 +641,14 @@ void main() {
       const replacement = 'audios/audio_prompt_1_21-02-14.aac';
 
       // First sweep: the take was never written, so the row goes.
-      expect(await checker.countUsable([_recording(old)]), 0);
+      expect(await usableCount(checker, [_recording(old)]), 0);
       expect(discarded, [old]);
       expect(checker.unplayable[old], AudioStatus.fileNotFound);
 
       // Second sweep, after the participant records again.
       write(replacement, bytes: 16);
 
-      expect(await checker.countUsable([_recording(replacement)]), 1);
+      expect(await usableCount(checker, [_recording(replacement)]), 1);
       expect(checker.unplayable, isEmpty);
     });
 
@@ -398,11 +662,11 @@ void main() {
 
       checker.report('audios/garbage.aac', AudioStatus.canNotPlay);
 
-      expect(await checker.countUsable([_recording('audios/missing.aac')]), 0);
+      expect(await usableCount(checker, [_recording('audios/missing.aac')]), 0);
       expect(
           checker.unplayable['audios/missing.aac'], AudioStatus.fileNotFound);
 
-      final usable = await checker.countUsable([
+      final usable = await usableCount(checker, [
         _recording('audios/good.aac'),
         _recording('audios/garbage.aac'),
       ]);
@@ -428,7 +692,7 @@ void main() {
 
       write('audios/good.aac', bytes: 16);
 
-      final usable = await multi.countUsable([
+      final usable = await usableCount(multi, [
         _recording('audios/good.aac'),
         _recording('audios/missing.aac'),
       ]);
@@ -449,7 +713,7 @@ void main() {
       write('audios/good.aac', bytes: 16);
       write('audios/empty.aac', bytes: 0);
 
-      final usable = await multi.countUsable([
+      final usable = await usableCount(multi, [
         _recording('audios/good.aac'),
         _recording('audios/empty.aac'),
         _recording('audios/missing.aac'),
@@ -479,7 +743,7 @@ void main() {
         singleAnswer: true,
       );
 
-      expect(await mutating.countUsable(recordings), 0);
+      expect(await usableCount(mutating, recordings), 0);
       expect(recordings, isEmpty, reason: 'both rows should be discarded');
       expect(mutating.unplayable, hasLength(2));
     });

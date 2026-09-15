@@ -12,18 +12,12 @@ import 'package:flutter_test/flutter_test.dart';
 // ------------------------------------------------------------------
 // What is driven here, and what is not
 // ------------------------------------------------------------------
-// `activate()` / `deactivate()` reach the platform, so they are out of range
-// without a device — they report their own failures and return, which is all a
-// test here could observe.
+// `activate()` and `deactivate()` reach the platform, so they are out of range
+// without a device.
 //
-// What matters and *is* reachable is the input-device bookkeeping: which
-// removals count as losing the route a take started on. That runs entirely on
-// a snapshot held in Dart, so the two subscription targets are driven directly
-// and the callbacks are recorded.
-//
-// `AudioSession.instance` does resolve in the test VM, and `getDevices()`
-// answers with an empty set — which is what makes the re-snapshot test below
-// meaningful rather than a stub talking to itself.
+// What is reachable is the input-device bookkeeping: which removals count as
+// losing the route a take started on. That runs entirely on a snapshot held in
+// Dart, so the two subscription targets are driven directly.
 // ------------------------------------------------------------------
 
 AudioDevice _input(String id) => AudioDevice(

@@ -269,8 +269,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     });
   }
 
-  /// What fills the sheet above the controls: the question, or a notice when
-  /// something has happened to the take that the participant has to act on.
+  /// What fills the sheet above the buttons: the question, or a notice when
+  /// something happened to the take that the participant has to act on.
   Widget _sheetBody(AudioRecordingState recordingState) {
     if (recordingState.isInterrupted) {
       return _sheetNotice(
@@ -280,7 +280,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     }
 
     // A take that ended with no audio behind it. Without this the sheet just
-    // resets to 00:00, which reads as a tap that did not register — so the
+    // resets to 00:00, which looks like a tap that did not register, so the
     // participant records the same answer again and loses it the same way.
     if (recordingState.takeWasEmpty) {
       return _sheetNotice(

@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/core/usecases/recording_answer.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -6,6 +5,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
+import 'package:audio_diaries_flutter/core/utils/recording_answer_gate.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -27,47 +27,25 @@ class EditDiaryPage extends StatefulWidget {
   State<EditDiaryPage> createState() => _EditDiaryPageState();
 }
 
-class _EditDiaryPageState extends State<EditDiaryPage> {
+class _EditDiaryPageState extends State<EditDiaryPage>
+    with RecordingAnswerGate<EditDiaryPage> {
   late PromptCubit promptCubit;
 
   bool proceed = true;
 
-  /// Shared with the diary flow so both screens agree on what counts as an
-  /// answer, and so a recording that cannot be uploaded is cleared here too.
-  late final RecordingAnswerChecker _answers = RecordingAnswerChecker(
-    discard: (path) => promptCubit.removeResponse(
-      diary: widget.diary,
-      prompt: widget.prompt,
-      path: path,
-    ),
-    singleAnswer: !(widget.prompt.option?.multipleAnswers ?? false),
-  );
+  @override
+  void discardRecording(String path) => promptCubit.removeResponse(
+        diary: widget.diary,
+        prompt: widget.prompt,
+        path: path,
+      );
 
-  /// Guards [canUserProceed] against overlapping runs — it is async, and a
-  /// slower earlier run could otherwise land after a newer one.
-  int _responseCheckToken = 0;
+  @override
+  bool get gatedPromptIsSingleAnswer =>
+      !(widget.prompt.option?.multipleAnswers ?? false);
 
-  void onPlaybackResolved(String path, AudioStatus status) {
-    if (!mounted || !_answers.report(path, status)) return;
-
-    setState(() {});
-    canUserProceed(widget.prompt);
-  }
-
-  /// Takes a notice down at the participant's request, deleting the recording
-  /// behind it when one is still there.
-  ///
-  /// Re-runs the gate: dismissing an unplayable row removes something that was
-  /// never counted as an answer, but it can also be the last row on the
-  /// prompt, and the page has to notice that.
-  void onDismissRecording(String path) {
-    if (!mounted) return;
-
-    _answers.dismiss(path);
-
-    setState(() {});
-    canUserProceed(widget.prompt);
-  }
+  @override
+  Future<void> reevaluateAnswers() => canUserProceed(widget.prompt);
 
   // Functions to run before moving to the next page
   List<Function> preFunctions = [];
@@ -136,20 +114,12 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
   }
 
   Future<void> canUserProceed(PromptModel prompt) async {
-    final token = ++_responseCheckToken;
     final answer = prompt.answer;
 
-    // Runs before the required check: an optional prompt never gates the
-    // button, but a recording whose file was never written still has to be
-    // cleared or it fails S3 upload at submission.
-    final usable = await _answers.countUsable(answer?.recordings ?? []);
+    final count = await countUsableAnswers(prompt);
+    if (count == null) return;
 
-    if (!mounted || token != _responseCheckToken) return;
-
-    // The sweep can retire a notice or raise a new one, and nothing else
-    // rebuilds this page once it resolves — so without this the card renders a
-    // stale notice until something unrelated happens to rebuild it.
-    setState(() {});
+    final usable = count.usable;
 
     if (!prompt.required) {
       setState(() => proceed = true);
@@ -316,10 +286,10 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
           respond: (String type, index) =>
               recordResponse(prompt, type, index: index),
           prompt: prompt,
-          unplayable: _answers.unplayable,
+          answers: answers,
           onPlaybackResolved: onPlaybackResolved,
           onDismissRecording: onDismissRecording,
-          isRecordingUsable: _answers.isUsable,
+          recordingsUnchecked: answersCouldNotBeChecked,
         );
       case ResponseType.slider:
         return SliderQuestionCard(
