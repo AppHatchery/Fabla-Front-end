@@ -17,8 +17,11 @@ import 'package:flutter/material.dart' show TimeOfDay;
 const int threshold = 50;
 
 class NotificationManager {
-  final DiaryRepository diaryRepository = DiaryRepository();
+  final DiaryRepository diaryRepository;
   static final AwesomeNotifications _awesomeNotifications = AwesomeNotifications();
+
+  NotificationManager({DiaryRepository? diaryRepository})
+      : diaryRepository = diaryRepository ?? DiaryRepository();
 
   /// Recreates all diary reminders using the user's saved reminder times.
   ///
