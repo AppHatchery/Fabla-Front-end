@@ -14,6 +14,7 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/pr
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/time_picker.dart';
 import 'package:audio_diaries_flutter/services/timer_live_update_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
+import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
@@ -25,6 +26,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../../core/utils/device_checks.dart';
 import '../../../../core/utils/statuses.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
@@ -235,39 +237,44 @@ class _MultipleQuestionState extends State<MultipleQuestion> {
                           ? CustomColors.productBorderActive
                           : CustomColors.productBorderNormal,
                       width: 2)),
-              child: CheckboxListTile(
-                title: Text(
-                  widget.options[index],
-                  style: CustomTypography().button(
-                      color: selectedOptions.contains(widget.options[index]) &&
-                              !widget.disabled
-                          ? CustomColors.productNormalActive
-                          : Colors.black),
-                ),
-                checkColor: CustomColors.productLightPrimaryNormalWhite,
-                fillColor: selectedOptions.contains(widget.options[index]) &&
-                        !widget.disabled
-                    ? WidgetStateProperty.all(CustomColors.productNormalActive)
-                    : selectedOptions.contains(widget.options[index])
-                        ? WidgetStateProperty.all(
-                            CustomColors.textTertiaryContent)
-                        : null,
-                controlAffinity: ListTileControlAffinity.leading,
-                value: selectedOptions.contains(widget.options[index]),
-                onChanged: (value) {
-                  if (!widget.disabled) {
-                    if (value!) {
-                      selectedOptions.add(widget.options[index]);
-                    } else {
-                      selectedOptions.remove(widget.options[index]);
-                    }
+              child: Material(
+                  color: Colors.transparent,
+                  child: CheckboxListTile(
+                    title: Text(
+                      widget.options[index],
+                      style: CustomTypography().button(
+                          color:
+                              selectedOptions.contains(widget.options[index]) &&
+                                      !widget.disabled
+                                  ? CustomColors.productNormalActive
+                                  : Colors.black),
+                    ),
+                    checkColor: CustomColors.productLightPrimaryNormalWhite,
+                    fillColor:
+                        selectedOptions.contains(widget.options[index]) &&
+                                !widget.disabled
+                            ? WidgetStateProperty.all(
+                                CustomColors.productNormalActive)
+                            : selectedOptions.contains(widget.options[index])
+                                ? WidgetStateProperty.all(
+                                    CustomColors.textTertiaryContent)
+                                : null,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: selectedOptions.contains(widget.options[index]),
+                    onChanged: (value) {
+                      if (!widget.disabled) {
+                        if (value!) {
+                          selectedOptions.add(widget.options[index]);
+                        } else {
+                          selectedOptions.remove(widget.options[index]);
+                        }
 
-                    setState(() {
-                      widget.onChanged!(selectedOptions);
-                    });
-                  }
-                },
-              )),
+                        setState(() {
+                          widget.onChanged!(selectedOptions);
+                        });
+                      }
+                    },
+                  ))),
           const SizedBox(
             height: 12,
           ),
@@ -318,30 +325,32 @@ class _RadioQuestionState extends State<RadioQuestion> {
                           ? CustomColors.productNormalActive
                           : CustomColors.productBorderNormal,
                       width: 2)),
-              child: RadioListTile<String>(
-                title: Text(
-                  widget.options[index],
-                  style: CustomTypography().button(
-                      color: !widget.disabled
-                          ? widget.options[index] == widget.value
-                              ? CustomColors.productNormalActive
-                              : Colors.black
-                          : CustomColors.textTertiaryContent),
-                ),
-                fillColor: WidgetStateProperty.all(!widget.disabled
-                    ? widget.options[index] == widget.value
-                        ? CustomColors.productNormalActive
-                        : Colors.black
-                    : CustomColors.textTertiaryContent),
-                controlAffinity: ListTileControlAffinity.leading,
-                value: widget.options[index],
-                groupValue: widget.value,
-                onChanged: (String? value) {
-                  if (!widget.disabled) {
-                    widget.onChanged(value);
-                  }
-                },
-              )),
+              child: Material(
+                  color: Colors.transparent,
+                  child: RadioListTile<String>(
+                    title: Text(
+                      widget.options[index],
+                      style: CustomTypography().button(
+                          color: !widget.disabled
+                              ? widget.options[index] == widget.value
+                                  ? CustomColors.productNormalActive
+                                  : Colors.black
+                              : CustomColors.textTertiaryContent),
+                    ),
+                    fillColor: WidgetStateProperty.all(!widget.disabled
+                        ? widget.options[index] == widget.value
+                            ? CustomColors.productNormalActive
+                            : Colors.black
+                        : CustomColors.textTertiaryContent),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: widget.options[index],
+                    groupValue: widget.value,
+                    onChanged: (String? value) {
+                      if (!widget.disabled) {
+                        widget.onChanged(value);
+                      }
+                    },
+                  ))),
           const SizedBox(
             height: 12,
           ),
@@ -355,11 +364,22 @@ class AudioTextCard extends StatefulWidget {
   final void Function(String, int?) respond;
   final DiaryModel diary;
   final PromptModel prompt;
+
+  /// Recordings that resolved to an error, keyed by path. Owned by the page so
+  /// the record button and the Next button agree on what counts as an answer.
+  /// Empty when the host has no gating to keep in step, as on the edit screen.
+  final Map<String, AudioStatus> unplayable;
+
+  /// Reports a recording's terminal status back to the page.
+  final void Function(String path, AudioStatus status)? onPlaybackResolved;
+
   const AudioTextCard({
     super.key,
     required this.respond,
     required this.diary,
     required this.prompt,
+    this.unplayable = const {},
+    this.onPlaybackResolved,
   });
 
   @override
@@ -367,6 +387,63 @@ class AudioTextCard extends StatefulWidget {
 }
 
 class _AudioTextCardState extends State<AudioTextCard> {
+  bool _lowStorage = false;
+  bool _lowBattery = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkDevice();
+  }
+
+  /// Conditions that could cost the participant a recording, checked once as
+  /// the prompt opens.
+  Future<void> _checkDevice() async {
+    final isLowStorage = await checkLowStorage();
+    final isLowBattery = await checkLowBattery();
+    if (!mounted) return;
+    setState(() {
+      _lowStorage = isLowStorage;
+      _lowBattery = isLowBattery;
+    });
+  }
+
+  /// Recordings on this prompt that can actually be played back.
+  int get _playableCount {
+    final recordings = widget.prompt.answer?.recordings ?? [];
+    if (recordings.isEmpty) return 0;
+
+    var count = 0;
+    for (final recording in recordings) {
+      if (!widget.unplayable.containsKey(recording.path)) count++;
+    }
+    return count;
+  }
+
+  /// Notices for recordings that were discarded, so the participant still sees
+  /// why their answer disappeared. Recordings still in the list render their
+  /// own card inside [MyResponse].
+  Widget discardedNotices() {
+    if (widget.unplayable.isEmpty) return const SizedBox.shrink();
+
+    final present = <String>{
+      for (final recording in widget.prompt.answer?.recordings ?? [])
+        recording.path
+    };
+
+    final notices = <Widget>[
+      for (final entry in widget.unplayable.entries)
+        if (!present.contains(entry.key))
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6.0),
+            child: RecordingIssueCard(status: entry.value),
+          ),
+    ];
+
+    if (notices.isEmpty) return const SizedBox.shrink();
+    return Column(children: notices);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -375,8 +452,25 @@ class _AudioTextCardState extends State<AudioTextCard> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              if (_lowStorage) ...[
+                const LowWarningCard(
+                  message:
+                      'You are running low on storage space. Please clear up '
+                      'storage to avoid losing recording data.',
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (_lowBattery) ...[
+                const LowWarningCard(
+                  message:
+                      'Your battery is running low. Please connect your '
+                      'charger to avoid interruptions while recording.',
+                ),
+                const SizedBox(height: 12),
+              ],
               controls(),
               const SizedBox(height: 12),
+              discardedNotices(),
               (widget.prompt.answer != null &&
                       (widget.prompt.answer!.recordings.isNotEmpty ||
                           (widget.prompt.answer!.response != null &&
@@ -385,6 +479,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
                       diary: widget.diary,
                       edit: widget.respond,
                       prompt: widget.prompt,
+                      onPlaybackResolved: widget.onPlaybackResolved,
                       recordings: widget.prompt.answer?.recordings ?? [])
                   : const SizedBox.shrink()
             ],
@@ -394,7 +489,9 @@ class _AudioTextCardState extends State<AudioTextCard> {
 
   Widget controls() {
     final multipleAnswers = widget.prompt.option?.multipleAnswers ?? false;
-    final length = widget.prompt.answer?.recordings.length ?? 0;
+    // Broken recordings do not count as an answer, so they do not hide the
+    // record button — the error card below explains why it is still there.
+    final length = _playableCount;
     final textPresent = widget.prompt.answer?.response != null &&
         widget.prompt.answer!.response!.isNotEmpty;
     return !multipleAnswers && (length > 0 || textPresent)
@@ -833,6 +930,7 @@ class TimerWidget extends StatefulWidget {
   final Duration time;
   final bool playbackControls;
   final bool userInteraction;
+  final bool? showLiveUpdates;
   final void Function(String) respond;
   final Function(Function) addToPreFunction;
 
@@ -841,6 +939,7 @@ class TimerWidget extends StatefulWidget {
     required this.time,
     required this.playbackControls,
     required this.userInteraction,
+    this.showLiveUpdates = true,
     required this.respond,
     required this.addToPreFunction,
   });
@@ -878,12 +977,15 @@ class _TimerWidgetState extends State<TimerWidget>
   void Function()? _updateModalCallback;
   int? currentAlarmId;
 
-  static final _liveUpdate = TimerLiveUpdateService();
+  late final TimerLiveUpdateService _liveUpdate;
   // Track when the current countdown should complete (wall-clock). Used to detect completion when app is backgrounded
   DateTime? _expectedEndTime;
   @override
   void initState() {
     super.initState();
+
+    _liveUpdate =
+        TimerLiveUpdateService(enabled: widget.showLiveUpdates ?? true);
 
     WidgetsBinding.instance.addObserver(this);
 
@@ -931,7 +1033,7 @@ class _TimerWidgetState extends State<TimerWidget>
       });
 
       stopAlarm();
-      _liveUpdate.hide();
+      _liveUpdate.end();
       widget.respond("Complete");
       return;
     }
@@ -947,7 +1049,7 @@ class _TimerWidgetState extends State<TimerWidget>
     WidgetsBinding.instance.removeObserver(this);
 
     _timer?.cancel();
-    _liveUpdate.hide();
+    _liveUpdate.end();
     _shakeController.dispose();
     _remainingNotifier.dispose();
 
@@ -1002,6 +1104,7 @@ class _TimerWidgetState extends State<TimerWidget>
     setState(() => status = TimerStatus.paused);
 
     stopAlarm();
+    _liveUpdate.updatePaused(remaining);
     _expectedEndTime = null;
     _syncLiveUpdate();
   }
@@ -1013,6 +1116,7 @@ class _TimerWidgetState extends State<TimerWidget>
 
     _expectedEndTime = DateTime.now().add(remaining);
     setAlarm(remaining);
+    _liveUpdate.updateRunning(_expectedEndTime!);
     _startTimer();
     _syncLiveUpdate();
   }
@@ -1042,6 +1146,7 @@ class _TimerWidgetState extends State<TimerWidget>
     if (!mounted) return;
 
     _expectedEndTime = DateTime.now().add(duration);
+    _liveUpdate.start(_expectedEndTime!, duration);
     _startTimer();
     _syncLiveUpdate();
   }
@@ -1059,8 +1164,8 @@ class _TimerWidgetState extends State<TimerWidget>
     });
 
     stopAlarm();
+    _liveUpdate.end();
     _shakeController.reset();
-    _liveUpdate.hide();
   }
 
   void _pauseResumeTimer() => isPaused ? _resumeTimer() : _pauseTimer();
@@ -1074,6 +1179,14 @@ class _TimerWidgetState extends State<TimerWidget>
       showCompletionText = false; // Don't show completion text immediately
     });
     _shakeController.forward().then((_) => _shakeController.repeat());
+    // Leave the Live Activity up — it's ended later when the user closes or
+    // dismisses the timer. Its `staleDate` alone does NOT repaint the widget
+    // once passed; WidgetKit only re-evaluates `context.isStale` (and so its
+    // "complete" look) the next time it actually redraws. Re-sending the same
+    // endDate here forces that redraw at the exact moment we hit zero, so the
+    // Live Activity flips to "complete" immediately while the app is
+    // foregrounded, instead of sitting frozen on its last-drawn "0:00".
+    _liveUpdate.updateRunning(_expectedEndTime!);
     widget.respond("timer");
     _refreshModal();
     _liveUpdate.hide();
@@ -1100,7 +1213,7 @@ class _TimerWidgetState extends State<TimerWidget>
     _updateModalCallback = null;
     _shakeController.reset();
     stopAlarm();
-    _liveUpdate.hide();
+    _liveUpdate.end();
   }
 
   Future<void> _startAndShowModal({bool startPaused = false}) async {
@@ -1119,6 +1232,7 @@ class _TimerWidgetState extends State<TimerWidget>
       await setAlarm(duration);
       if (!mounted) return;
       _expectedEndTime = DateTime.now().add(duration);
+      _liveUpdate.start(_expectedEndTime!, duration);
     }
 
     await _startSound();
