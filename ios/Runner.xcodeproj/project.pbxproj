@@ -298,7 +298,6 @@
 				D9E42781E8AA9005E2934301 /* [firebase_crashlytics] Crashlytics Upload Symbols */,
 				A8FD1A0F0832CC7F1D18C5ED /* FlutterFire: "flutterfire upload-crashlytics-symbols" */,
 				BD3DA77C82E95BDB38D75F87 /* [CP] Embed Pods Frameworks */,
-				776B2C0E08721DDE1C25B77C /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -426,23 +425,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
-		};
-		776B2C0E08721DDE1C25B77C /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources.sh\"\n";
-			showEnvVarsInLog = 0;
 		};
 		9740EEB61CF901F6004384FC /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -681,33 +663,17 @@
 					"-framework",
 					"\"AVFoundation\"",
 					"-framework",
-					"\"IosAwnCore\"",
-					"-framework",
 					"\"MediaPlayer\"",
 					"-framework",
 					"\"ObjectBox\"",
 					"-framework",
 					"\"UIKit\"",
 					"-framework",
-					"\"audio_session\"",
-					"-framework",
-					"\"audioplayers_darwin\"",
-					"-framework",
-					"\"awesome_notifications\"",
-					"-framework",
 					"\"flutter_sound\"",
 					"-framework",
 					"\"flutter_sound_core\"",
 					"-framework",
 					"\"objectbox_flutter_libs\"",
-					"-framework",
-					"\"package_info_plus\"",
-					"-framework",
-					"\"permission_handler_apple\"",
-					"-framework",
-					"\"shared_preferences_foundation\"",
-					"-framework",
-					"\"url_launcher_ios\"",
 					"\"-lc++\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = edu.emory.audio.diaries;
@@ -1039,33 +1005,17 @@
 					"-framework",
 					"\"AVFoundation\"",
 					"-framework",
-					"\"IosAwnCore\"",
-					"-framework",
 					"\"MediaPlayer\"",
 					"-framework",
 					"\"ObjectBox\"",
 					"-framework",
 					"\"UIKit\"",
 					"-framework",
-					"\"audio_session\"",
-					"-framework",
-					"\"audioplayers_darwin\"",
-					"-framework",
-					"\"awesome_notifications\"",
-					"-framework",
 					"\"flutter_sound\"",
 					"-framework",
 					"\"flutter_sound_core\"",
 					"-framework",
 					"\"objectbox_flutter_libs\"",
-					"-framework",
-					"\"package_info_plus\"",
-					"-framework",
-					"\"permission_handler_apple\"",
-					"-framework",
-					"\"shared_preferences_foundation\"",
-					"-framework",
-					"\"url_launcher_ios\"",
 					"\"-lc++\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = edu.emory.audio.diaries;
@@ -1109,33 +1059,17 @@
 					"-framework",
 					"\"AVFoundation\"",
 					"-framework",
-					"\"IosAwnCore\"",
-					"-framework",
 					"\"MediaPlayer\"",
 					"-framework",
 					"\"ObjectBox\"",
 					"-framework",
 					"\"UIKit\"",
 					"-framework",
-					"\"audio_session\"",
-					"-framework",
-					"\"audioplayers_darwin\"",
-					"-framework",
-					"\"awesome_notifications\"",
-					"-framework",
 					"\"flutter_sound\"",
 					"-framework",
 					"\"flutter_sound_core\"",
 					"-framework",
 					"\"objectbox_flutter_libs\"",
-					"-framework",
-					"\"package_info_plus\"",
-					"-framework",
-					"\"permission_handler_apple\"",
-					"-framework",
-					"\"shared_preferences_foundation\"",
-					"-framework",
-					"\"url_launcher_ios\"",
 					"\"-lc++\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = edu.emory.audio.diaries;
