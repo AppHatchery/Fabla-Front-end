@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 // Core imports
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 
 // Test utilities
 import '../../../../dummy_data.dart';
@@ -15,6 +16,73 @@ The main functionality being tested:
 
 void main() {
   group('SetupRepository Business Logic Tests', () {
+    group('Protocol resync cutoff', () {
+      test(
+          'preserves today complete unsubmitted diary and replaces future diary',
+          () {
+        final now = DateTime(2026, 9, 17, 12);
+        final cutoff = protocolResyncCutoff(now);
+
+        final localDiaries = [
+          _createTestDiary(
+            id: 1,
+            name: 'Today diary',
+            start: DateTime(2026, 9, 17, 10),
+            status: DiaryStatus.complete,
+            submissions: const [],
+          ),
+          _createTestDiary(
+            id: 2,
+            name: 'Old future diary',
+            start: DateTime(2026, 9, 18, 10),
+          ),
+        ];
+
+        final fetchedDiaries = [
+          _createTestDiary(
+            id: 1,
+            name: 'Server copy of today diary',
+            start: DateTime(2026, 9, 17, 10),
+            status: DiaryStatus.idle,
+          ),
+          _createTestDiary(
+            id: 3,
+            name: 'Updated future diary',
+            start: DateTime(2026, 9, 18, 10),
+          ),
+        ];
+
+        // Simulate the two sides of a partial resync using the one cutoff used
+        // by SetupRepository: retain local diaries before it, then add fetched
+        // diaries at or after it.
+        final diariesAfterResync = localDiaries
+            .where((diary) => diary.start.isBefore(cutoff))
+            .toList()
+          ..addAll(
+              fetchedDiaries.where((diary) => !diary.start.isBefore(cutoff)));
+
+        expect(cutoff, DateTime(2026, 9, 18, 4));
+
+        final todayDiary =
+            diariesAfterResync.singleWhere((diary) => diary.id == 1);
+        expect(todayDiary.name, 'Today diary');
+        expect(todayDiary.status, DiaryStatus.complete);
+        expect(todayDiary.submissions, isEmpty);
+
+        expect(diariesAfterResync.any((diary) => diary.id == 2), isFalse);
+        expect(diariesAfterResync.any((diary) => diary.id == 3), isTrue);
+      });
+
+      test('keeps next-day sessions before 4 AM outside the resync window', () {
+        final cutoff = protocolResyncCutoff(DateTime(2026, 9, 17, 23, 30));
+        final lateNightDiary =
+            _createTestDiary(start: DateTime(2026, 9, 18, 2));
+
+        expect(cutoff, DateTime(2026, 9, 18, 4));
+        expect(lateNightDiary.start.isBefore(cutoff), isTrue);
+      });
+    });
+
     group('Diary Merging Logic', () {
       group('Diary Merging', () {
         test('should merge existing diaries with new diaries correctly', () {
@@ -431,6 +499,7 @@ DiaryModel _createTestDiary({
   int currentEntry = 0,
   int entries = 1,
   List<int>? activeDays,
+  List<DateTime>? submissions,
 }) {
   final now = DateTime.now();
   return createTestDiaryModel(
@@ -444,5 +513,6 @@ DiaryModel _createTestDiary({
     currentEntry: currentEntry,
     entries: entries,
     activeDays: activeDays,
+    submissions: submissions,
   );
 }
