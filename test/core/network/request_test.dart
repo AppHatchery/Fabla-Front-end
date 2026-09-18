@@ -1,7 +1,12 @@
+import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
+    show debugPlatformClientBuilder;
 import 'package:audio_diaries_flutter/core/network/request.dart';
+import 'package:audio_diaries_flutter/core/network/retry_policy.dart'
+    show kMaxRetries;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../dummy_data.dart';
@@ -24,6 +29,42 @@ void main() {
   setUp(() {
     mockHttpClient = MockHttpClient();
     registerFallbackValue(Uri.parse(TestValues.testUrl));
+  });
+
+  // Exercised through the `client == null` branch, which is the one that
+  // ships: injecting a client skips the line that picks the retry budget.
+  group('production retry budgets', () {
+    late int sends;
+
+    setUp(() {
+      sends = 0;
+      debugPlatformClientBuilder = () => MockClient((_) {
+            sends++;
+            throw http.ClientException('connection closed');
+          });
+    });
+
+    tearDown(() => debugPlatformClientBuilder = null);
+
+    test('get is retried', () async {
+      expect(await get(path: 'test'), isNull);
+      expect(sends, kMaxRetries + 1);
+    });
+
+    test('post is not retried unless a caller opts in', () async {
+      // The safe default for a generic POST helper: this function cannot know
+      // whether the endpoint it is pointed at appends.
+      expect(await post(path: 'test', body: const {}), isNull);
+      expect(sends, 1);
+    });
+
+    test('post re-sends when a caller opts in', () async {
+      expect(
+        await post(path: 'test', body: const {}, retries: kMaxRetries),
+        isNull,
+      );
+      expect(sends, kMaxRetries + 1);
+    });
   });
 
   group('Network Request Tests', () {

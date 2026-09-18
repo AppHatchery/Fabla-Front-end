@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
     as http_client_factory;
+import 'package:audio_diaries_flutter/core/network/retry_policy.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -39,7 +40,9 @@ Future<String?> get({
   http.Client? client,
 }) async {
   final bool ownClient = client == null;
-  final httpClient = client ?? http_client_factory.httpClient();
+  // A GET changes nothing, so re-sending one is always safe.
+  final httpClient =
+      client ?? http_client_factory.httpClient(retries: kMaxRetries);
 
   try {
     final url = Uri.https(base(), path);
@@ -63,24 +66,35 @@ Future<String?> get({
 /// In production, this parameter should be omitted to use the default client.
 ///
 /// Returns the response body as a String on success (status 200), or null on failure.
+///
+/// [retries] defaults to none. A POST is not idempotent by definition and this
+/// helper is generic — it cannot see which endpoint it is pointed at, so it
+/// cannot judge whether a re-send is safe, and the unsafe default is the one
+/// that silently corrupts data. A caller that knows its endpoint is a read or
+/// an overwrite opts in by passing [kMaxRetries]; a caller that appends must
+/// leave this alone. The timeout applies either way, so a hung request always
+/// fails rather than hanging.
 Future<String?> post({
   required String path,
   required Map<String, dynamic> body,
   http.Client? client,
+  int retries = 0,
 }) async {
   final bool ownClient = client == null;
-  final httpClient = client ?? http_client_factory.httpClient();
+  final httpClient =
+      client ?? http_client_factory.httpClient(retries: retries);
 
   try {
     final url = Uri.https(base(), path);
     final response = await httpClient.post(url, headers: headers, body: body);
     if (response.statusCode == 200) {
       return response.body;
-    } else {
-      CrashlyticsService().recordApiError(response.body, path,
-          statusCode: response.statusCode, method: 'POST', requestData: body);
-      throw Exception("Failed to post");
     }
+    // Reported here and returned directly — throwing would only be caught by
+    // the clause below and reported a second time for the same failure.
+    CrashlyticsService().recordApiError(response.body, path,
+        statusCode: response.statusCode, method: 'POST', requestData: body);
+    return null;
   } catch (e, stackTrace) {
     debugPrint(e.toString());
     CrashlyticsService().recordApiError(e, path,

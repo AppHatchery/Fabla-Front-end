@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:audio_diaries_flutter/core/network/request.dart';
+import 'package:audio_diaries_flutter/core/network/retry_policy.dart'
+    show kMaxRetries;
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
     show CrashlyticsService;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -42,10 +44,18 @@ class SecureSave {
     required String participant,
   }) async {
     try {
-      final response = await post(path: "/fabla/verifyuser", body: {
-        'login_code': study,
-        'participant_id': participant,
-      });
+      // Retried: `verifyuser` looks up a participant and returns their
+      // credentials — it creates nothing, so a re-send lands on the same
+      // answer. This is the first hop of the diary-submission path, and a
+      // transient failure here fails the whole submission before it starts.
+      final response = await post(
+        path: "/fabla/verifyuser",
+        retries: kMaxRetries,
+        body: {
+          'login_code': study,
+          'participant_id': participant,
+        },
+      );
 
       if (response != null) {
         final data = json.decode(response)['data'] as Map<String, dynamic>;
