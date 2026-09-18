@@ -391,9 +391,13 @@ Future<String?> getPresignedUrl(
   final secureStorage = secureSave ?? SecureSave();
   final bool ownClient = client == null;
   // Minting a presigned URL is a pure read — it reserves nothing and writes
-  // nothing — so the default retry budget is safe and wanted here.
-  final httpClient =
-      client ?? http_client_factory.httpClient(retries: kMaxRetries);
+  // nothing — so the default retry budget is safe and wanted here, and a 5xx
+  // from the Lambda can be re-sent for the same reason.
+  final httpClient = client ??
+      http_client_factory.httpClient(
+        retries: kMaxRetries,
+        retryServerErrors: true,
+      );
 
   try {
     var cred = await secureStorage.read();
@@ -488,6 +492,10 @@ Future<bool> uploadFileToS3(
         http_client_factory.httpClient(
           timeout: http_client_factory.kUploadTimeout,
           retries: kUploadMaxRetries,
+          // The PUT targets a fixed S3 key, so a re-send overwrites rather
+          // than adding an object — true of a 5xx as much as a dropped
+          // connection.
+          retryServerErrors: true,
         );
     try {
       final response = await s3Client.send(request);

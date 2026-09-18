@@ -49,6 +49,23 @@ void main() {
 
       expect(sends, kMaxRetries + 1);
     });
+
+    test('a 5xx on the credential fetch is retried', () async {
+      // `verifyuser` is a lookup, so a server fault can be re-sent — the
+      // distinction the ticket's "retry 5xx" line rests on.
+      var sends = 0;
+      debugPlatformClientBuilder = () => MockClient((_) async {
+            sends++;
+            return http.Response('server error', 503);
+          });
+
+      await expectLater(
+        secureSave.getCredentials(study: 'ABC123', participant: '1'),
+        throwsA(isA<String>()),
+      );
+
+      expect(sends, kMaxRetries + 1);
+    });
   });
 
   group('CredentialsModel', () {

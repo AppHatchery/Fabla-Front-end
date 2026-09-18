@@ -49,6 +49,19 @@ bool isTransientNetworkError(Object error) {
       error is http.ClientException;
 }
 
+/// Whether [statusCode] is a server-side failure worth re-sending.
+///
+/// Unlike [isTransientNetworkError], this is **not** safe to apply everywhere.
+/// A 5xx can be returned after the server has already acted, so re-sending one
+/// is only sound when the request is idempotent — a read, or a write that
+/// lands on the same state however many times it arrives. Callers assert that
+/// by passing `retryServerErrors: true`; the default is off.
+///
+/// 4xx is excluded throughout: a client error will not fix itself on a second
+/// identical attempt.
+bool isRetryableServerError(int statusCode) =>
+    statusCode >= 500 && statusCode < 600;
+
 /// Delay before the retry numbered [retryCount] (zero-based).
 ///
 /// Exponential — 500ms, then 1s — with ±20% jitter. The jitter matters: a

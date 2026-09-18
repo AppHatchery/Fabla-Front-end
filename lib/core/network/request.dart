@@ -40,9 +40,13 @@ Future<String?> get({
   http.Client? client,
 }) async {
   final bool ownClient = client == null;
-  // A GET changes nothing, so re-sending one is always safe.
-  final httpClient =
-      client ?? http_client_factory.httpClient(retries: kMaxRetries);
+  // A GET changes nothing, so re-sending one is always safe — including after
+  // a 5xx, which a non-idempotent caller could not assume.
+  final httpClient = client ??
+      http_client_factory.httpClient(
+        retries: kMaxRetries,
+        retryServerErrors: true,
+      );
 
   try {
     final url = Uri.https(base(), path);
@@ -72,7 +76,8 @@ Future<String?> get({
 /// cannot judge whether a re-send is safe, and the unsafe default is the one
 /// that silently corrupts data. A caller that knows its endpoint is a read or
 /// an overwrite opts in by passing [kMaxRetries]; a caller that appends must
-/// leave this alone. The timeout applies either way, so a hung request always
+/// leave this alone. Passing it also enables 5xx retry, since both rest on the
+/// same assertion. The timeout applies either way, so a hung request always
 /// fails rather than hanging.
 Future<String?> post({
   required String path,
@@ -81,8 +86,14 @@ Future<String?> post({
   int retries = 0,
 }) async {
   final bool ownClient = client == null;
-  final httpClient =
-      client ?? http_client_factory.httpClient(retries: retries);
+  // 5xx retry follows the same opt-in rather than adding a second flag: a
+  // caller passing [retries] on a POST has already asserted that re-sending
+  // this endpoint is safe, which is the one thing that licenses either.
+  final httpClient = client ??
+      http_client_factory.httpClient(
+        retries: retries,
+        retryServerErrors: retries > 0,
+      );
 
   try {
     final url = Uri.https(base(), path);

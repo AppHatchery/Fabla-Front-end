@@ -158,9 +158,11 @@ void main() {
     });
   });
 
-  group('status codes are never retried', () {
+  group('status codes are not retried by default', () {
     // This is the guard that keeps a retry from writing a diary response
-    // twice: a 5xx can be returned *after* the write has landed.
+    // twice: a 5xx can be returned *after* the write has landed. Only a caller
+    // that knows its request is idempotent may opt out of this, by passing
+    // `retryServerErrors` — see the group below.
     for (final status in [500, 502, 503, 504, 408, 429]) {
       test('$status is returned to the caller after exactly one send',
           () async {
@@ -193,6 +195,79 @@ void main() {
       expect(response.statusCode, 403);
       expect(recorder.sends, 1);
     });
+  });
+
+  group('server errors, when the caller opts in', () {
+    test('a 500 is re-sent and can still succeed', () async {
+      final recorder = _RecordingClient((_, attempt) async => attempt == 0
+          ? http.Response('overloaded', 500)
+          : http.Response('{"uploadURL":"..."}', 200));
+
+      final response = await wrapClient(
+        recorder.client,
+        retries: kMaxRetries,
+        retryServerErrors: true,
+        delay: _noDelay,
+      ).post(url, body: 'mint me a url');
+
+      expect(response.statusCode, 200);
+      expect(recorder.sends, 2);
+    });
+
+    test('the 5xx is returned once the budget is spent', () async {
+      final recorder = _RecordingClient(
+        (_, __) async => http.Response('still overloaded', 503),
+      );
+
+      final response = await wrapClient(
+        recorder.client,
+        retries: kMaxRetries,
+        retryServerErrors: true,
+        delay: _noDelay,
+      ).get(url);
+
+      // The caller sees the real status, not a synthesized failure.
+      expect(response.statusCode, 503);
+      expect(recorder.sends, kMaxRetries + 1);
+    });
+
+    test('a 4xx is still not retried', () async {
+      // Opting in covers server faults only — a client error will not fix
+      // itself on an identical second attempt.
+      final recorder = _RecordingClient(
+        (_, __) async => http.Response('nope', 403),
+      );
+
+      final response = await wrapClient(
+        recorder.client,
+        retries: kMaxRetries,
+        retryServerErrors: true,
+        delay: _noDelay,
+      ).get(url);
+
+      expect(response.statusCode, 403);
+      expect(recorder.sends, 1);
+    });
+
+    for (final status in [408, 429]) {
+      test('$status is still not retried', () async {
+        // Deliberately out of scope: the ticket asks for 5xx. 429 in
+        // particular wants Retry-After handling rather than blind backoff.
+        final recorder = _RecordingClient(
+          (_, __) async => http.Response('', status),
+        );
+
+        final response = await wrapClient(
+          recorder.client,
+          retries: kMaxRetries,
+          retryServerErrors: true,
+          delay: _noDelay,
+        ).get(url);
+
+        expect(response.statusCode, status);
+        expect(recorder.sends, 1);
+      });
+    }
   });
 
   group('request replay', () {

@@ -36,9 +36,12 @@ const kImageDownloadTimeout = Duration(seconds: 15);
 Client httpClient({
   Duration timeout = kDefaultTimeout,
   int retries = kMaxRetries,
+  bool retryServerErrors = false,
 }) =>
     wrapClient((debugPlatformClientBuilder ?? _platformClient)(),
-        timeout: timeout, retries: retries);
+        timeout: timeout,
+        retries: retries,
+        retryServerErrors: retryServerErrors);
 
 /// Replaces the platform client [httpClient] wraps, for tests only.
 ///
@@ -78,8 +81,10 @@ Client _platformClient() {
 /// Retry sits *outside* the timeout so each attempt gets its own full budget
 /// rather than all attempts sharing one.
 ///
-/// Only [isTransientNetworkError] failures are retried — never a status code,
-/// including 5xx. See [isTransientNetworkError] for why.
+/// [isTransientNetworkError] failures are always retried. Status codes are not,
+/// unless [retryServerErrors] is set — which only an idempotent caller may do,
+/// because a 5xx can arrive after the server has already acted. A 4xx is never
+/// retried. See [isRetryableServerError].
 ///
 /// [delay] overrides the backoff schedule; it defaults to [retryBackoff] and
 /// exists so tests can run without real waits.
@@ -92,6 +97,7 @@ Client wrapClient(
   Client inner, {
   Duration timeout = kDefaultTimeout,
   int retries = kMaxRetries,
+  bool retryServerErrors = false,
   Duration Function(int)? delay,
 }) {
   final timeoutClient = _TimeoutClient(inner, timeout);
@@ -100,7 +106,9 @@ Client wrapClient(
   return RetryClient(
     timeoutClient,
     retries: retries,
-    when: (_) => false,
+    when: retryServerErrors
+        ? (response) => isRetryableServerError(response.statusCode)
+        : (_) => false,
     whenError: (error, _) => isTransientNetworkError(error),
     delay: delay ?? retryBackoff,
     onRetry: (request, _, retryCount) {

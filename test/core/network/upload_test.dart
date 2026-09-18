@@ -73,6 +73,42 @@ void main() {
       expect(sends, 1);
     });
 
+    test('the diary write is not re-sent on a 500 either', () async {
+      // The safety case the whole policy exists for: a 500 can be returned
+      // after the Lambda has already written the row.
+      var sends = 0;
+      debugPlatformClientBuilder = () => MockClient((_) async {
+            sends++;
+            return http.Response('server error', 500);
+          });
+
+      final result = await uploadNonAudioData(
+        createTestPromptEntries(1),
+        secureSave: mockSecureSave,
+      );
+
+      expect(result, isFalse);
+      expect(sends, 1);
+    });
+
+    test('minting a presigned URL is retried on a 500', () async {
+      // Idempotent, so the hop the ticket asks to retry actually does.
+      var sends = 0;
+      debugPlatformClientBuilder = () => MockClient((_) async {
+            sends++;
+            return http.Response('server error', 500);
+          });
+
+      final result = await getPresignedUrl(
+        TestValues.testUrl,
+        'diary/audio.m4a',
+        secureSave: mockSecureSave,
+      );
+
+      expect(result, isNull);
+      expect(sends, kMaxRetries + 1);
+    });
+
     test('minting a presigned URL is retried', () async {
       // The contrast that makes the test above meaningful: same error, same
       // seam, different budget — because this call reserves nothing.
