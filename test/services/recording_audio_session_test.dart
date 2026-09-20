@@ -40,16 +40,13 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late int compromised;
-  late int interruptionsEnded;
   late RecordingAudioSession session;
 
   setUp(() {
     compromised = 0;
-    interruptionsEnded = 0;
 
     session = RecordingAudioSession(
       onCaptureCompromised: () async => compromised++,
-      onInterruptionEnded: () async => interruptionsEnded++,
     );
   });
 
@@ -158,18 +155,22 @@ void main() {
       );
 
       expect(compromised, 1);
-      expect(interruptionsEnded, 0);
     });
 
-    // Reported rather than acted on: whether the session is worth reclaiming
-    // depends on recorder state this class deliberately cannot see.
-    test('an interruption ending is reported, not acted on', () async {
+    // Deliberately inert. The take an interruption paused is still paused when
+    // it ends, and it stays that way until the participant resumes it — so
+    // there is nothing to report and nothing to reclaim here. This used to
+    // reclaim the session and clear the interrupted flag, which took the
+    // notice down the moment Siri finished, mid-take.
+    test('an interruption ending does nothing', () async {
+      await session.handleInterruption(
+        AudioInterruptionEvent(true, AudioInterruptionType.pause),
+      );
       await session.handleInterruption(
         AudioInterruptionEvent(false, AudioInterruptionType.pause),
       );
 
-      expect(interruptionsEnded, 1);
-      expect(compromised, 0);
+      expect(compromised, 1, reason: 'the end is not a second beginning');
     });
   });
 
@@ -193,7 +194,6 @@ void main() {
       );
 
       expect(compromised, 0);
-      expect(interruptionsEnded, 0);
     });
   });
 }

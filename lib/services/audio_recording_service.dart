@@ -29,6 +29,14 @@ class AudioRecordingState {
 
   final Duration elapsed;
 
+  /// Whether this take is paused because the audio system took the microphone,
+  /// rather than because the participant chose to stop talking.
+  ///
+  /// A fact about the take, not about the interruption: it outlives the
+  /// interruption itself and only clears when the participant acts — a resume,
+  /// a stop, or a fresh take. Clearing it the moment the audio system said the
+  /// interruption was over took the notice down while the take was still
+  /// sitting there paused, waiting to be resumed.
   final bool isInterrupted;
 
   final bool hasTake;
@@ -93,7 +101,6 @@ class RecordingSaveResult {
 
 typedef RecordingAudioSessionFactory = RecordingAudioSession Function({
   required Future<void> Function() onCaptureCompromised,
-  required Future<void> Function() onInterruptionEnded,
 });
 
 /// Captures one diary answer from the microphone.
@@ -139,7 +146,6 @@ class AudioRecordingService {
 
   late final RecordingAudioSession _audioSession = _audioSessionFactory(
     onCaptureCompromised: _pauseForAudioIssue,
-    onInterruptionEnded: _handleInterruptionEnd,
   );
 
   final ValueNotifier<AudioRecordingState> _state =
@@ -304,6 +310,10 @@ class AudioRecordingService {
 
     await _foregroundService.start();
 
+    // The only place an interrupted take reclaims the session. Nothing does it
+    // when the interruption ends, because the take stays paused until here —
+    // so the route is re-snapshotted against what is actually plugged in at
+    // the moment capture starts again, not at the moment Siri finished.
     if (_state.value.isInterrupted) {
       await _audioSession.activate();
       await _audioSession.captureInputDevices();
@@ -743,16 +753,6 @@ class AudioRecordingService {
     }
 
     return true;
-  }
-
-  /// Clears the interrupted banner once the audio system says the interruption
-  /// is over. Driven by [RecordingAudioSession].
-  Future<void> _handleInterruptionEnd() async {
-    if (_disposed || !_state.value.isInterrupted) return;
-
-    if (!await _audioSession.activate()) return;
-
-    _emit(isInterrupted: false);
   }
 
   /// Pauses a take the audio system has taken the route or the focus away

@@ -16,12 +16,9 @@ import 'package:flutter/foundation.dart';
 class RecordingAudioSession {
   RecordingAudioSession({
     required this.onCaptureCompromised,
-    required this.onInterruptionEnded,
   });
 
   final Future<void> Function() onCaptureCompromised;
-
-  final Future<void> Function() onInterruptionEnded;
 
   StreamSubscription<AudioInterruptionEvent>? _interruptionSubscription;
   StreamSubscription<AudioDevicesChangedEvent>? _devicesChangedSubscription;
@@ -132,18 +129,21 @@ class RecordingAudioSession {
 
   /// The `interruptionEventStream` subscription's target.
   ///
+  /// Only the beginning of an interruption is reported. The end of one needs
+  /// no response: the take is still paused, and Siri finishing is not the
+  /// participant deciding to go back to their answer — that is the resume,
+  /// which reclaims the session itself, at the point it is needed. Reclaiming
+  /// it here instead reconfigured the session under a paused recorder for
+  /// nothing, and took down the notice telling the participant the take was
+  /// waiting for them.
+  ///
   /// Not private so a test can drive it without a live audio session; nothing
   /// else should call it.
   @visibleForTesting
   Future<void> handleInterruption(AudioInterruptionEvent event) async {
     if (_stopped) return;
 
-    if (event.begin) {
-      await onCaptureCompromised();
-      return;
-    }
-
-    await onInterruptionEnded();
+    if (event.begin) await onCaptureCompromised();
   }
 
   /// Reports a take losing the input it started on.

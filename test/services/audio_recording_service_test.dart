@@ -567,12 +567,10 @@ void main() {
         // built with, which is the only way in to the audio-issue pause.
         audioSessionFactory: ({
           required onCaptureCompromised,
-          required onInterruptionEnded,
         }) {
           captureCompromised = onCaptureCompromised;
           return RecordingAudioSession(
             onCaptureCompromised: onCaptureCompromised,
-            onInterruptionEnded: onInterruptionEnded,
           );
         },
       );
@@ -774,6 +772,43 @@ void main() {
           reason: 'and unlike a tap, it says why');
       expect(callIndex('recorder.pauseRecorder'),
           lessThan(callIndex('service.stop')));
+    });
+
+    // Reclaiming the session belongs to the resume, and only an interrupted
+    // take needs it. It used to happen the moment the audio system said the
+    // interruption was over, which left this guard dead: the session was taken
+    // back — and the route re-snapshotted — against whatever was plugged in
+    // when Siri finished rather than when capture actually started again.
+    test('resuming an interrupted take reclaims the session before capturing',
+        () async {
+      await startTake();
+      await captureCompromised();
+      platformCalls.clear();
+
+      await service.record();
+
+      expect(service.state.value.isRecording, isTrue);
+      expect(service.state.value.isInterrupted, isFalse,
+          reason: 'the take is capturing again, so there is nothing to resume');
+      expect(callIndex('session.setConfiguration'),
+          lessThan(callIndex('recorder.resumeRecorder')));
+    });
+
+    // The other half of that guard. An ordinary pause never lost the session,
+    // and taking it again claims exclusive audio focus — which would stop the
+    // participant's music for a take that never gave it up.
+    test('resuming an ordinary pause leaves the session alone', () async {
+      await startTake();
+      await service.record();
+
+      expect(service.state.value.isPaused, isTrue);
+      expect(service.state.value.isInterrupted, isFalse);
+      platformCalls.clear();
+
+      await service.record();
+
+      expect(service.state.value.isRecording, isTrue);
+      expect(platformCalls, isNot(contains('session.setConfiguration')));
     });
 
     // Resuming used to be the only way out of the banner, so a participant who
