@@ -56,8 +56,12 @@ import 'services/notification_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:audio_diaries_flutter/core/notifications/controllers/notifications_controller.dart';
 
+import 'package:bug_reporter/bug_reporter.dart';
+
 //Global variables
 late ObjectBox objectbox;
+final GlobalKey<NavigatorState> bugReportNavigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<ScaffoldMessengerState> bugReportMessengerKey = GlobalKey<ScaffoldMessengerState>();
 NotificationsController notificationController = NotificationsController();
 late List<CameraDescription> cameras;
 void main() async {
@@ -88,6 +92,25 @@ void main() async {
   // RouteService reads ObjectBox (via SetupRepository), so it must run after
   // the batch above completes.
   final route = await RouteService().getRoute();
+
+    BugReporter.init(BugReporterConfig(
+    navigatorKey: bugReportNavigatorKey,
+    messengerKey: bugReportMessengerKey,
+    routeNames: const {
+      '/Hub': 'Home',
+      '/NewDiaryPage': 'New Diary',
+      '/DiarySummaryPage': 'Diary Summary',
+    },
+    github: GitHubConfig(
+      repo: dotenv.env['GH_BUG_REPO'] ?? '',
+      token: dotenv.env['GH_BUG_TOKEN'] ?? '',
+      labels: const ['bug', 'in-app'],
+    ),
+    imageUpload: ImageUploadConfig(
+      url: dotenv.env['BUG_UPLOAD_URL'] ?? '',
+      apiKey: dotenv.env['BUG_UPLOAD_KEY'] ?? '',
+    ),
+  ));
 
   runApp(MyApp(
     route: route,
@@ -158,6 +181,11 @@ class _MyAppState extends State<MyApp> {
               child: PendoActionListener(
                 child: MaterialApp(
                   title: 'Fabla',
+                  navigatorKey: bugReportNavigatorKey,            
+                  scaffoldMessengerKey: bugReportMessengerKey,    
+                  builder: (context, navChild) => BugReportScope( 
+                    child: navChild ?? const SizedBox.shrink(),
+                  ),
                   theme: ThemeData(
                       primaryColor: CustomColors.productNormal,
                       useMaterial3: true),
@@ -165,7 +193,8 @@ class _MyAppState extends State<MyApp> {
                   debugShowCheckedModeBanner: false,
                   navigatorObservers: [
                     PendoNavigationObserver(),
-                    CustomNavigatorObserver()
+                    CustomNavigatorObserver(),
+                    BreadcrumbNavigatorObserver(),  
                   ],
                   onGenerateRoute: (settings) {
                     switch (settings.name) {
@@ -253,6 +282,8 @@ class _HubState extends State<Hub>
     cubit = BlocProvider.of<HubCubit>(context);
     tabController = TabController(length: pages.length, vsync: this);
     tabController.addListener(_prepareQuickstartVideosOnSettingsVisit);
+    tabController.addListener(_reportActiveTab);
+    _reportActiveTab();
     _makeNavBars();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       startPendo(); // Defer Pendo session start until after the first frame
@@ -275,6 +306,7 @@ class _HubState extends State<Hub>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     tabController.removeListener(_prepareQuickstartVideosOnSettingsVisit);
+    tabController.removeListener(_reportActiveTab);
     tabController.dispose();
     super.dispose();
   }
@@ -418,6 +450,21 @@ class _HubState extends State<Hub>
         text: "Settings",
       ),
     ]);
+  }
+
+  void _reportActiveTab() {
+    Breadcrumbs.instance.setScreen(_tabScreenName(tabController.index));
+  }
+
+  String _tabScreenName(int index) {
+    switch (index) {
+      case 1:
+        return 'History';
+      case 2:
+        return 'Settings';
+      default:
+        return 'Study';
+    }
   }
 
   void refresh() {
