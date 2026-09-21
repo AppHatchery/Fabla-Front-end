@@ -24,6 +24,7 @@ import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/part
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/settings_active_reminders.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/study_details.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -52,6 +53,9 @@ class MockHubCubit extends Mock implements HubCubit {
 
   @override
   HubState get state => const HubInitial();
+
+  @override
+  bool hasPendingOrSubmittedToday() => true;
 }
 
 class MockSetupRepository extends Mock implements SetupRepository {}
@@ -116,22 +120,22 @@ Widget createTestableWidget(
     MockSettingsCubit mockSettingsCubit, MockSetupRepository mockRepository) {
   final mockHubCubit = MockHubCubit();
 
-  return ScreenUtilInit(
-    designSize: const Size(1080, 1920),
-    minTextAdapt: true,
-    splitScreenMode: true,
-    builder: (context, child) {
-      return MaterialApp(
-        home: MultiBlocProvider(
-          providers: [
-            BlocProvider<SettingsCubit>.value(value: mockSettingsCubit),
-            BlocProvider<HubCubit>.value(value: mockHubCubit),
-            RepositoryProvider<SetupRepository>.value(value: mockRepository),
-          ],
-          child: const Settings(),
-        ),
-      );
-    },
+  return RepositoryProvider<SetupRepository>.value(
+    value: mockRepository,
+    child: MultiBlocProvider(
+      providers: [
+        BlocProvider<SettingsCubit>.value(value: mockSettingsCubit),
+        BlocProvider<HubCubit>.value(value: mockHubCubit),
+      ],
+      child: ScreenUtilInit(
+        designSize: const Size(1080, 1920),
+        minTextAdapt: true,
+        splitScreenMode: true,
+        builder: (context, child) {
+          return const MaterialApp(home: Settings());
+        },
+      ),
+    ),
   );
 }
 
@@ -260,6 +264,22 @@ void main() {
     expect(find.text('View Details'), findsOneWidget);
     expect(find.text('Update Study'), findsOneWidget);
     expect(find.text('Contact Researcher'), findsOneWidget);
+  });
+
+  testWidgets('Update Study is not blocked by pending submissions',
+      (tester) async {
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('update_study')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(StudyUpdatePopUp), findsOneWidget);
+    expect(
+      find.textContaining('You cannot update the study right now'),
+      findsNothing,
+    );
   });
 
   testWidgets('Renders participant details', (tester) async {
