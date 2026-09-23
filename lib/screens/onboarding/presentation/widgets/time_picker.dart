@@ -92,8 +92,7 @@ class _OnboardingTimePickerState extends State<OnboardingTimePicker> {
         time = _time;
       });
 
-      widget.onChanged(
-          localizations.formatTimeOfDay(time!, alwaysUse24HourFormat: true));
+      widget.onChanged(formatTimeAnswer(time!));
     }
   }
 }

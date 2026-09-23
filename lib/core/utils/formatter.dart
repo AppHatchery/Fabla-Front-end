@@ -395,6 +395,10 @@ String formatMoney(double amount, {String? currency}) {
   return formatter.format(amount);
 }
 
+/// Formats a time answer for storage and uploads, independently of locale.
+String formatTimeAnswer(TimeOfDay time) =>
+    '${twoDigits(time.hour)}:${twoDigits(time.minute)}:00';
+
 /// Convert String to TimeOfDay
 TimeOfDay timeOfDayFromString(String value) {
   final parts = value.split(':');
