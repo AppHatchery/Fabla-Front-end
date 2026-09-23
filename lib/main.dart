@@ -4,6 +4,7 @@ import 'package:alarm/alarm.dart';
 import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart'
     show clearAllHomeProgressTracking, getAllHomeProgressTracking;
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
+import 'package:audio_diaries_flutter/core/utils/diary_counter.dart';
 import 'package:audio_diaries_flutter/core/utils/quickstart_handler.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -509,6 +510,8 @@ class _CustomHubTabViewState extends State<CustomHubTabView> {
 
     final totalSubmissions =
         allTracking.values.fold(0, (sum, p) => sum + p.submissions);
+
+    await trackUnsubmittedDiaries();
 
     if (navigationBars.isNotEmpty) navigationBars.clear();
 
