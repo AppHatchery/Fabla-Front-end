@@ -76,7 +76,7 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
         backgroundColor: CustomColors.fillNormal,
         leading: IconButton(
             onPressed: () =>
-                proceed ? Navigator.pop(context) : showSnackError(),
+                proceed ? Navigator.pop(context, true) : showSnackError(),
             icon: Icon(Icons.close_rounded)),
         centerTitle: true,
         title: Text('Edit Response',
