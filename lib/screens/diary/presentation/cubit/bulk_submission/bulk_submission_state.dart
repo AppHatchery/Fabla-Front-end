@@ -34,8 +34,16 @@ final class BulkSubmissionFailed extends BulkSubmissionState {
 final class BulkSubmissionError extends BulkSubmissionState {
   final String message;
 
-  const BulkSubmissionError(this.message);
+  /// The submissions as they stood when the exception hit, so the UI shows
+  /// what actually succeeded and a retry only re-sends what did not.
+  final List<DiarySubmission> diaries;
+
+  /// [diaries] is required rather than defaulting to empty: an emitter that
+  /// omitted it would render "0 submissions could not be uploaded" next to an
+  /// enabled retry button, and the page would silently drop the record of what
+  /// had already succeeded.
+  const BulkSubmissionError(this.message, {required this.diaries});
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [message, diaries];
 }

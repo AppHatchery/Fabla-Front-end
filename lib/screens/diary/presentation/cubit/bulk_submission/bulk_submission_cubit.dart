@@ -94,7 +94,9 @@ class BulkSubmissionCubit extends Cubit<BulkSubmissionState> {
       dev.log("Error during bulk submission: $e");
       CrashlyticsService().recordError(e, stackTrace,
           reason: 'Error during bulk submission in BulkSubmissionCubit');
-      emit(BulkSubmissionError(e.toString()));
+      // Carry the progress made so far: anything already marked successful
+      // must not be offered for retry, or it would be submitted twice.
+      emit(BulkSubmissionError(e.toString(), diaries: _submissions));
     }
   }
 

@@ -1,6 +1,13 @@
+import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
+    show debugPlatformClientBuilder;
+import 'package:audio_diaries_flutter/core/network/retry_policy.dart'
+    show kMaxRetries;
 import 'package:audio_diaries_flutter/core/network/secrets_handler.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../dummy_data.dart';
@@ -13,11 +20,52 @@ void main() {
 
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
+    // post() reads its api key from dotenv on first access.
+    dotenv.loadFromString(envString: 'APIKEY=${TestValues.testApiKey}');
   });
 
   setUp(() {
     mockStorage = MockFlutterSecureStorage();
     secureSave = SecureSave(storage: mockStorage);
+  });
+
+  group('getCredentials', () {
+    tearDown(() => debugPlatformClientBuilder = null);
+
+    test('a transient failure on the credential fetch is retried', () async {
+      // First hop of the diary-submission path. `verifyuser` looks a
+      // participant up and creates nothing, so re-sending is safe — and a
+      // transient failure here fails the whole submission before it starts.
+      var sends = 0;
+      debugPlatformClientBuilder = () => MockClient((_) {
+            sends++;
+            throw http.ClientException('connection closed');
+          });
+
+      await expectLater(
+        secureSave.getCredentials(study: 'ABC123', participant: '1'),
+        throwsA(isA<String>()),
+      );
+
+      expect(sends, kMaxRetries + 1);
+    });
+
+    test('a 5xx on the credential fetch is retried', () async {
+      // `verifyuser` is a lookup, so a server fault can be re-sent — the
+      // distinction the ticket's "retry 5xx" line rests on.
+      var sends = 0;
+      debugPlatformClientBuilder = () => MockClient((_) async {
+            sends++;
+            return http.Response('server error', 503);
+          });
+
+      await expectLater(
+        secureSave.getCredentials(study: 'ABC123', participant: '1'),
+        throwsA(isA<String>()),
+      );
+
+      expect(sends, kMaxRetries + 1);
+    });
   });
 
   group('CredentialsModel', () {

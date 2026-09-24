@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
+    show debugPlatformClientBuilder;
 import 'package:audio_diaries_flutter/core/notifications/controllers/notifications_controller.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter/services.dart';
 import '../../../firebase_mock.dart';
@@ -88,6 +91,50 @@ void main() {
             settings: any(named: 'settings'),
             onDidReceiveNotificationResponse:
                 any(named: 'onDidReceiveNotificationResponse'),
+          )).called(1);
+    });
+
+    test('the image download is not re-sent, and the reminder still shows',
+        () async {
+      // Built without an injected client, so the constructor's own
+      // `httpClient(timeout: ..., retries: 0)` is what runs. Inheriting the
+      // default two retries would stretch the intended 15s ceiling to ~46s of
+      // the participant waiting on a reminder that has not appeared yet,
+      // because a fired timeout is itself a retryable error.
+      var sends = 0;
+      debugPlatformClientBuilder = () => MockClient((_) {
+            sends++;
+            throw http.ClientException('connection closed');
+          });
+      addTearDown(() => debugPlatformClientBuilder = null);
+
+      final ownClientController = NotificationsController(
+        messaging: mockFirebaseMessaging,
+        localNotifications: mockLocalNotifications,
+      );
+
+      when(() => mockLocalNotifications.show(
+            id: any(named: 'id'),
+            title: any(named: 'title'),
+            body: any(named: 'body'),
+            notificationDetails: any(named: 'notificationDetails'),
+          )).thenAnswer((_) async => {});
+
+      await ownClientController.messageHandler(RemoteMessage(
+        notification: RemoteNotification(
+          title: TestValues.testName,
+          body: TestValues.testResponse,
+          android: AndroidNotification(imageUrl: TestValues.testImagePath),
+        ),
+      ));
+
+      expect(sends, 1);
+      // A dead image CDN must not cost the notification itself.
+      verify(() => mockLocalNotifications.show(
+            id: any(named: 'id'),
+            title: any(named: 'title'),
+            body: any(named: 'body'),
+            notificationDetails: any(named: 'notificationDetails'),
           )).called(1);
     });
 

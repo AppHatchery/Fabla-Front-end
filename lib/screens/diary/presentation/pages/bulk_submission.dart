@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/bulk_submission/bulk_submission_cubit.dart';
@@ -68,6 +69,12 @@ class _BulkSubmissionPageState extends State<BulkSubmissionPage> {
                   return content(state.diaries);
                 } else if (state is BulkSubmissionFailed) {
                   return content(state.diaries);
+                } else if (state is BulkSubmissionError) {
+                  // Render the progress made before the exception, so the user
+                  // sees the failed state and the retry/return controls rather
+                  // than a spinner that never resolves — and so a retry skips
+                  // the diaries that already uploaded.
+                  return content(state.diaries);
                 }
 
                 return CircularProgressIndicator();
@@ -87,6 +94,18 @@ class _BulkSubmissionPageState extends State<BulkSubmissionPage> {
                       complete = false;
                       retry = true;
                       failed = state.failedCount;
+                    });
+                  }
+                } else if (state is BulkSubmissionError) {
+                  if (mounted) {
+                    setState(() {
+                      complete = false;
+                      retry = true;
+                      // Count only what is still outstanding — diaries that
+                      // uploaded before the exception are already on the server.
+                      failed = state.diaries
+                          .where((d) => d.status != SubmissionStatus.successful)
+                          .length;
                     });
                   }
                 }
