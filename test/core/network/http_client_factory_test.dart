@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/network/http_client_factory.dart';
@@ -31,6 +32,52 @@ class _RecordingClient {
         return _respond(request, requests.length - 1);
       });
 }
+
+/// Tracks running requests the way `CupertinoClient` tracks its NSURLSession
+/// tasks: a request stays live until its abortTrigger lands, and [close]
+/// throws while any is still live.
+///
+/// [MockClient.close] does nothing, which is how a timed-out request left
+/// running slipped past the rest of this file.
+class _NativeLikeClient extends http.BaseClient {
+  /// A null response leaves that attempt hanging until it is aborted.
+  _NativeLikeClient(this._respond);
+
+  final http.StreamedResponse? Function(int attempt) _respond;
+
+  int sends = 0;
+  int aborts = 0;
+  int _live = 0;
+  bool closed = false;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final attempt = sends++;
+    await request.finalize().drain<void>();
+    final response = _respond(attempt);
+    if (response != null) return response;
+
+    _live++;
+    if (request case http.Abortable(:final abortTrigger?)) {
+      await abortTrigger;
+      // NSURLSession confirms a cancel on a later turn of the event loop.
+      await Future<void>.delayed(Duration.zero);
+      _live--;
+      aborts++;
+      throw http.RequestAbortedException(request.url);
+    }
+    return Completer<http.StreamedResponse>().future;
+  }
+
+  @override
+  void close() {
+    if (_live > 0) throw StateError('cannot close with running requests');
+    closed = true;
+  }
+}
+
+http.StreamedResponse _ok() =>
+    http.StreamedResponse(Stream.value(utf8.encode('ok')), 200);
 
 void main() {
   const shortTimeout = Duration(milliseconds: 50);
@@ -370,6 +417,66 @@ void main() {
         throwsA(isA<TimeoutException>()),
       );
       expect(sends, 1);
+    });
+  });
+
+  group('a timed-out attempt is aborted', () {
+    // Every call site closes its client in a `finally`. On iOS that close
+    // throws while a request is still running, and the throw replaces
+    // whatever the call site was about to return.
+    test('a retry that succeeds after a timeout leaves the client closable',
+        () async {
+      final inner = _NativeLikeClient((attempt) => attempt == 0 ? null : _ok());
+      final client = wrapClient(
+        inner,
+        timeout: shortTimeout,
+        retries: 1,
+        delay: _noDelay,
+      );
+
+      final response = await client.get(url);
+
+      expect(response.statusCode, 200);
+      expect(client.close, returnsNormally);
+      await pumpEventQueue();
+      expect(inner.aborts, 1);
+      expect(inner.closed, isTrue);
+    });
+
+    test('closing before the abort has landed does not throw', () async {
+      // The DynamoDB POST case: no retry, so the caller's `finally` runs before
+      // the abort has even reached the native client.
+      final inner = _NativeLikeClient((_) => null);
+      final client = wrapClient(inner, timeout: shortTimeout, retries: 0);
+
+      await expectLater(client.get(url), throwsA(isA<TimeoutException>()));
+
+      expect(inner.aborts, 0);
+      expect(client.close, returnsNormally);
+      expect(inner.closed, isFalse, reason: 'closing waits for the abort');
+      await pumpEventQueue();
+      expect(inner.aborts, 1);
+      expect(inner.closed, isTrue);
+    });
+
+    test("a caller's own abortTrigger still reaches the inner client",
+        () async {
+      final inner = _NativeLikeClient((_) => null);
+      final client = wrapClient(
+        inner,
+        timeout: const Duration(seconds: 5),
+        retries: 0,
+      );
+      final cancel = Completer<void>();
+
+      final sent = client
+          .send(http.AbortableRequest('GET', url, abortTrigger: cancel.future));
+      cancel.complete();
+
+      // A TimeoutException here would mean the trigger was dropped and only
+      // the timeout ended the request.
+      await expectLater(sent, throwsA(isA<http.RequestAbortedException>()));
+      expect(inner.aborts, 1);
     });
   });
 

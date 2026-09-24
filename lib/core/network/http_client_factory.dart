@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/network/retry_policy.dart';
@@ -132,17 +133,43 @@ Client wrapClient(
 /// only, and by the time the body stalls the request has been fully written,
 /// so re-sending it risks duplicating a write the server may have committed.
 ///
-/// One known limit, acceptable here: a fired timeout does not cancel the
-/// underlying native request; the connection lingers until the OS reaps it.
+/// A timeout while waiting for headers aborts the native request instead of
+/// abandoning it. `CupertinoClient.close()` throws while any of its tasks is
+/// still running, so an abandoned attempt would turn the caller's
+/// `finally { client.close(); }` into a `StateError`, replacing even a
+/// successful retry's result. On Cronet an abandoned S3 PUT would keep
+/// uploading alongside its own retry. The native cancel lands asynchronously,
+/// so [close] defers closing the inner client until aborted attempts settle.
+/// A body stall needs no abort of its own: the caller cancels the stream on
+/// the error, and both native clients cancel the request when that happens.
 class _TimeoutClient extends BaseClient {
   _TimeoutClient(this._inner, this._timeout);
 
   final Client _inner;
   final Duration _timeout;
 
+  /// Aborted attempts that the inner client may still count as running.
+  final _settling = <Future<void>>{};
+  bool _closeRequested = false;
+
   @override
   Future<StreamedResponse> send(BaseRequest request) async {
-    final response = await _inner.send(request).timeout(_timeout);
+    final abort = Completer<void>();
+    void abortAttempt() {
+      if (!abort.isCompleted) abort.complete();
+    }
+
+    // The copy below replaces the request, so forward a caller's own trigger.
+    if (request case Abortable(:final abortTrigger?)) {
+      unawaited(abortTrigger.whenComplete(abortAttempt));
+    }
+
+    final pending = _inner.send(_withAbortTrigger(request, abort.future));
+    final response = await pending.timeout(_timeout, onTimeout: () {
+      abortAttempt();
+      _trackSettling(pending);
+      throw TimeoutException('No response within $_timeout', _timeout);
+    });
     // `Stream.timeout` fires on the gap *between* chunks, not on total
     // duration, so a large-but-progressing download is never punished — only a
     // stall longer than [_timeout] aborts.
@@ -150,7 +177,8 @@ class _TimeoutClient extends BaseClient {
       response.stream.timeout(_timeout),
       response.statusCode,
       contentLength: response.contentLength,
-      request: response.request,
+      // The caller's request, not the abortable copy the inner client saw.
+      request: request,
       headers: response.headers,
       isRedirect: response.isRedirect,
       persistentConnection: response.persistentConnection,
@@ -158,8 +186,61 @@ class _TimeoutClient extends BaseClient {
     );
   }
 
+  void _trackSettling(Future<StreamedResponse> aborted) {
+    final settled = _settle(aborted);
+    _settling.add(settled);
+    unawaited(settled.whenComplete(() {
+      _settling.remove(settled);
+      if (_closeRequested && _settling.isEmpty) _inner.close();
+    }));
+  }
+
+  static Future<void> _settle(Future<StreamedResponse> aborted) async {
+    try {
+      // Headers can land just before the abort does; cancelling the body is
+      // then what releases the native task.
+      final orphan = await aborted;
+      await orphan.stream.listen(null).cancel();
+    } catch (_) {
+      // Normally the abort itself, as a RequestAbortedException. The caller
+      // has already been handed the TimeoutException.
+    }
+  }
+
   @override
   void close() {
-    _inner.close();
+    if (_settling.isEmpty) {
+      _inner.close();
+    } else {
+      _closeRequested = true;
+    }
   }
+}
+
+/// Copies [request] into its abortable counterpart, fired by [trigger].
+BaseRequest _withAbortTrigger(BaseRequest request, Future<void> trigger) {
+  // Finalize first: a MultipartRequest only sets its content-type here.
+  final body = request.finalize();
+  if (request is Request) {
+    // Stay non-streaming: CupertinoClient sends a Request body as one NSData
+    // rather than through an NSInputStream.
+    return AbortableRequest(request.method, request.url, abortTrigger: trigger)
+      ..followRedirects = request.followRedirects
+      ..maxRedirects = request.maxRedirects
+      ..persistentConnection = request.persistentConnection
+      ..headers.addAll(request.headers)
+      ..bodyBytes = request.bodyBytes;
+  }
+  final copy = AbortableStreamedRequest(request.method, request.url,
+      abortTrigger: trigger)
+    ..contentLength = request.contentLength
+    ..followRedirects = request.followRedirects
+    ..maxRedirects = request.maxRedirects
+    ..persistentConnection = request.persistentConnection
+    ..headers.addAll(request.headers);
+  body.listen(copy.sink.add,
+      onError: copy.sink.addError,
+      onDone: copy.sink.close,
+      cancelOnError: true);
+  return copy;
 }
