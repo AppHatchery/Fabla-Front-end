@@ -206,7 +206,9 @@ class SummaryRepository {
 
     final study = diaryRepository
         .getAllStudies()
-        .firstWhere((study) => study.studyId == diary.studyID);
+        .where((study) => study.studyId == diary.studyID)
+        .firstOrNull;
+    if (study == null) return;
 
     double earned = 0;
     bool bonusAchieved = false;

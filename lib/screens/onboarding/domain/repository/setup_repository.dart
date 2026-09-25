@@ -252,7 +252,6 @@ class SetupRepository {
           await Future.microtask(() async {
             final DiaryRepository repository = DiaryRepository();
             repository.removeDiariesFrom(today);
-            _studyDAO.deleteAllStudies();
           });
 
           //store the date the person last updated.
@@ -272,7 +271,9 @@ class SetupRepository {
         dev.log(
             "Studies: ${studyEntities.length} | Entities: ${entities.length}",
             name: "Get Studies");
-        _studyDAO.addStudies(studyEntities);
+        // Upsert rather than insert: partial clean keeps older diaries, which
+        // must still resolve their study even if the server no longer returns it.
+        _studyDAO.upsertStudies(studyEntities);
         diaryRepository.addDiaries(entities);
 
         //give enough time for the database to update

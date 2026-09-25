@@ -420,6 +420,11 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   Widget entries() {
+    // Skip diaries whose study is missing locally rather than crashing.
+    final visibleDiaries = diaries
+        .where((d) => widget.studies.any((s) => s.studyId == d.studyID))
+        .toList();
+
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -437,18 +442,18 @@ class _StudyCalendarState extends State<StudyCalendar> {
       const SizedBox(height: 4),
 
       //Scrollable widget to display all entries due on selected date
-      diaries.isNotEmpty
+      visibleDiaries.isNotEmpty
           ? ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: diaries.length,
+              itemCount: visibleDiaries.length,
               itemBuilder: (context, index) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10.0),
                   child: DiaryCardSmall(
-                    diary: diaries[index],
-                    study: widget.studies.firstWhere(
-                        (study) => study.studyId == diaries[index].studyID),
+                    diary: visibleDiaries[index],
+                    study: widget.studies.firstWhere((study) =>
+                        study.studyId == visibleDiaries[index].studyID),
                   ),
                 );
               },
@@ -510,9 +515,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
     // Check if ALL diaries on this date belong to studies with goals
     for (final diary in diariesForDate) {
       // Find the study that matches this diary
-      final study = studies.firstWhere(
-        (s) => s.studyId == diary.studyID,
-      );
+      final study =
+          studies.where((s) => s.studyId == diary.studyID).firstOrNull;
+      if (study == null) continue;
 
       // If diary(s) is not optional display the dot
       if (study.goals.weekly >= 1 || study.goals.daily >= 1) {

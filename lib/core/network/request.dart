@@ -6,7 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 const String devURL =
-    "vqujlfqpuxbfluuojai52fopvy0pregz.lambda-url.us-east-1.on.aws";
+    "bpyla7yzdfordt2mk36oskhudq0yliij.lambda-url.us-east-1.on.aws";
 const String prodURL =
     "bpyla7yzdfordt2mk36oskhudq0yliij.lambda-url.us-east-1.on.aws";
 
