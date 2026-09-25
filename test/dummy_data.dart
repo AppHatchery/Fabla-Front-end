@@ -19,6 +19,7 @@ import 'package:audio_diaries_flutter/screens/diary/domain/entities/answer.dart'
     as entity;
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
+import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
@@ -84,6 +85,23 @@ entity.Answer createTestAnswer({
   return entity.Answer(
     id: id,
     date: date ?? DateTime.now(),
+  );
+}
+
+/// Creates a test Recording entity with optional parameters
+Recording createTestRecording({
+  int id = 1,
+  String path = 'audios/test.aac',
+  String type = 'audio',
+  DateTime? date,
+}) {
+  return Recording(
+    'Test Recording',
+    path,
+    type,
+    null,
+    date ?? DateTime(2026, 9, 1, 10),
+    id: id,
   );
 }
 

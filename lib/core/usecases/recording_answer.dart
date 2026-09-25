@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -6,144 +7,160 @@ import 'package:path_provider/path_provider.dart';
 import '../../screens/diary/domain/entities/recording.dart';
 import '../utils/statuses.dart';
 
-/// Decides which of a prompt's recordings can actually serve as an answer, and
-/// clears the ones that cannot.
+class UsableAnswerCount {
+  const UsableAnswerCount(this.usable) : checked = true;
+
+  /// A sweep that could not read the disk at all.
+  ///
+  /// [usable] is 0 because nothing was proved either way, so the gate stays
+  /// shut. That is the safe direction.
+  const UsableAnswerCount.unchecked()
+      : usable = 0,
+        checked = false;
+
+  final int usable;
+
+  final bool checked;
+}
+
+abstract interface class RecordingAnswerView {
+  bool isUsable(String path);
+
+  Map<String, AudioStatus> get unplayable;
+}
+
+/// Decides which of a prompt's recordings can serve as an answer, and clears
+/// the ones that cannot.
 ///
-/// Shared by the diary flow and the edit screen because they must agree. The
-/// incident this guards against was caused by two layers deciding "is this an
-/// answer" independently and diverging on files that exist but will not
-/// decode, which let a participant submit a diary whose audio was never
-/// uploaded.
-///
-/// A recording is unusable when its file is absent, empty, or reported
-/// undecodable by the card that tried to load it. None of them can serve as an
-/// answer, so none of them count towards the gate — but only the first two get
-/// the row deleted. See [_deletable].
-class RecordingAnswerChecker {
+/// Shared by the diary flow and the edit screen so they always agree. They used
+/// to decide separately and disagreed about files that exist but will not play,
+/// which let a diary be submitted with audio that was never uploaded.
+class RecordingAnswerChecker implements RecordingAnswerView {
   RecordingAnswerChecker({
     required this.discard,
     required this.singleAnswer,
+    this.onError,
   });
 
   /// Removes the recording row at the given path.
   final void Function(String path) discard;
 
-  /// Whether this prompt accepts exactly one answer.
-  ///
-  /// Decides when a notice for a deleted row can come down. One slot means any
-  /// usable recording is the replacement the notice asked for. With several
-  /// slots there is no such link — a re-recording is saved under a new
-  /// filename, so nothing says which lost take it replaces — and guessing is
-  /// what let one healthy recording erase another's explanation.
+  final void Function(Object error, StackTrace stackTrace, String reason)?
+      onError;
+
   final bool singleAnswer;
 
-  /// Recordings known to be unusable, keyed by path.
-  ///
-  /// Exposed so the prompt can explain what happened. Treat as read-only —
-  /// mutate through [report] and [countUsable] so discards stay paired with
-  /// the status that caused them.
-  ///
-  /// These are the notices, not a record of what was deleted — entries leave
-  /// once the explanation has been read. See [_discarded].
-  final Map<String, AudioStatus> unplayable = {};
+  final Map<String, AudioStatus> _unplayable = {};
 
-  /// Paths already handed to [discard].
-  ///
-  /// Separate from [unplayable] because it has to last longer: a notice comes
-  /// down once the participant has an answer again, but "this row is gone"
-  /// stays true. Sharing one set let a retired notice trigger a second
-  /// [discard] of a row that no longer exists.
+  @override
+  Map<String, AudioStatus> get unplayable => UnmodifiableMapView(_unplayable);
+
   final Set<String> _discarded = {};
 
-  /// Statuses that prove the file cannot be uploaded, and so justify deleting
-  /// the row.
-  ///
-  /// [AudioStatus.canNotPlay] is deliberately absent. It means a decoder
-  /// declined the file, which can be transient — a first `getDuration()` on a
-  /// perfectly good AAC comes back null on some devices — and [discard] is
-  /// irreversible: it deletes the audio and its row. A file that exists and
-  /// holds bytes still uploads, so it is kept rather than destroyed on a
-  /// player's word. It is still never counted as an answer, so the gate stays
-  /// shut until a recording that does play replaces it.
   static const _deletable = {
     AudioStatus.fileNotFound,
     AudioStatus.noAudioLength,
   };
 
-  /// Records a card's verdict for [path].
-  ///
-  /// Returns whether anything changed, so the caller can skip a rebuild and a
-  /// re-evaluation when it did not.
-  bool report(String path, AudioStatus status) {
-    if (status == AudioStatus.available) {
-      // This recording's own notice only. Clearing every notice let a healthy
-      // sibling on a multiple-answer prompt erase the explanation for a
-      // different recording that had been discarded, so that answer
-      // disappeared from the list with nothing on screen to say why —
-      // whichever card happened to resolve last decided it. Retiring notices
-      // once a replacement arrives is countUsable()'s job instead.
-      return unplayable.remove(path) != null;
-    }
-
-    if (unplayable[path] == status) return false;
-
-    unplayable[path] = status;
-    if (_deletable.contains(status) && _discarded.add(path)) discard(path);
-    return true;
+  void _report(Object error, StackTrace stackTrace, String reason) {
+    try {
+      onError?.call(error, stackTrace, reason);
+    } catch (_) {}
   }
 
-  /// Counts the recordings that can serve as an answer, discarding any whose
-  /// file is missing or empty along the way.
-  ///
-  /// The sweep matters for prompts no card ever rendered — a resumed diary, or
-  /// an optional prompt that never gates navigation. O(n) stat calls.
-  Future<int> countUsable(List<Recording> recordings) async {
-    if (recordings.isEmpty) return 0;
+  bool report(String path, AudioStatus status) {
+    if (status == AudioStatus.available) {
+      return _unplayable.remove(path) != null;
+    }
 
-    final dir = await getApplicationDocumentsDirectory();
+    final changed = _unplayable[path] != status;
+
+    _unplayable[path] = status;
+
+    if (_deletable.contains(status) && !_discarded.contains(path)) {
+      try {
+        discard(path);
+        _discarded.add(path);
+      } catch (e, s) {
+        _report(e, s, 'Discarding an unusable recording failed');
+      }
+    }
+
+    return changed;
+  }
+
+  @override
+  bool isUsable(String path) =>
+      !_unplayable.containsKey(path) && !_discarded.contains(path);
+
+  /// Clears the notice for [path] because the participant asked, deleting the
+  /// row behind it if one is still there.
+  void dismiss(String path) {
+    _unplayable.remove(path);
+
+    if (!_discarded.contains(path)) {
+      try {
+        discard(path);
+        _discarded.add(path);
+      } catch (e, s) {
+        _report(e, s, 'Dismissing a recording failed');
+      }
+    }
+  }
+
+  /// Counts the recordings that can serve as an answer, deleting any whose file
+  /// is missing or empty as it goes.
+  Future<UsableAnswerCount> countUsable(List<Recording> recordings) async {
+    if (recordings.isEmpty) return const UsableAnswerCount(0);
+
+    final Directory dir;
+    try {
+      dir = await getApplicationDocumentsDirectory();
+    } catch (e, s) {
+      _report(e, s, 'Locating the documents directory failed');
+
+      // Nothing was checked, so nothing is claimed. The caller is told which
+      // kind of zero this is, so it can explain itself instead of quietly
+      // disabling its button.
+      return const UsableAnswerCount.unchecked();
+    }
 
     var usable = 0;
-    // Iterated over a copy: [discard] removes the row it is told about, and
-    // the list handed in is the live `Answer.recordings` relation, so walking
-    // it directly throws ConcurrentModificationError the moment a recording
-    // turns out to be unusable — the one case this sweep exists for.
+
     for (final recording in List.of(recordings)) {
-      // Already handled: either still carrying a notice, or a row deleted once
-      // already that must not be deleted again.
-      if (unplayable.containsKey(recording.path) ||
-          _discarded.contains(recording.path)) {
-        continue;
-      }
+      if (_discarded.contains(recording.path)) continue;
 
       final file = File(p.join(dir.path, recording.path));
-      final exists = await file.exists();
 
-      if (exists && await file.length() > 0) {
-        usable++;
+      try {
+        final exists = await file.exists();
+
+        if (!(exists && await file.length() > 0)) {
+          report(
+            recording.path,
+            exists ? AudioStatus.noAudioLength : AudioStatus.fileNotFound,
+          );
+          continue;
+        }
+
+        if (isUsable(recording.path)) usable++;
+      } catch (e, s) {
+        _report(e, s, 'Checking a recording on disk failed');
         continue;
       }
-
-      report(
-        recording.path,
-        exists ? AudioStatus.noAudioLength : AudioStatus.fileNotFound,
-      );
     }
 
     if (usable > 0) _retireDiscardedNotices();
 
-    return usable;
+    return UsableAnswerCount(usable);
   }
 
-  /// Takes down the notices for rows [discard] deleted, once the prompt has a
-  /// usable answer again. Single-answer prompts only — see [singleAnswer].
-  ///
-  /// Only the deleted ones. An [AudioStatus.canNotPlay] row is still in
-  /// `answer.recordings`, so dropping its key would hand it back as a playable
-  /// answer and let it open the gate — the exact thing this class exists to
-  /// prevent.
   void _retireDiscardedNotices() {
     if (!singleAnswer) return;
 
-    unplayable.removeWhere((_, status) => _deletable.contains(status));
+    _unplayable.removeWhere(
+      (path, status) =>
+          _deletable.contains(status) && _discarded.contains(path),
+    );
   }
 }

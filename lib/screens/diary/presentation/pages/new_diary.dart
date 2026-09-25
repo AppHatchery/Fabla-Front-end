@@ -10,7 +10,6 @@ import 'package:audio_diaries_flutter/services/preference_service.dart';
 // import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/usecases/recording_answer.dart';
 import '../../../../core/utils/types.dart';
 import '../../../../main.dart';
 import '../../../../theme/components/buttons.dart';
@@ -24,6 +23,7 @@ import '../../data/prompt.dart';
 import '../../domain/repository/diary_repository.dart';
 import '../cubit/prompt/prompt_cubit.dart';
 import 'diarysummary.dart';
+import '../../../../core/utils/recording_answer_gate.dart';
 
 /// This class holds and manages all the pages in the page view
 /// It has all the UI elements of the New Daily Diary flow
@@ -134,15 +134,16 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               settings: RouteSettings(name: "/Hub")),
           (route) => false);
     }
+  }
+
+  void _scrollToTopOfCurrentQuestion() {
+    if (currentPage < _questionPageKeys.length) {
+      final GlobalKey<_QuestionPageState> currentKey =
+          _questionPageKeys[currentPage];
+      final _QuestionPageState? currentState = currentKey.currentState;
+      currentState?._scrollToTop();
     }
-    void _scrollToTopOfCurrentQuestion() {
-      if (currentPage < _questionPageKeys.length) {
-        final GlobalKey<
-            _QuestionPageState> currentKey = _questionPageKeys[currentPage];
-        final _QuestionPageState? currentState = currentKey.currentState;
-        currentState?._scrollToTop();
-      }
-    }
+  }
 
   @override
   void dispose() {
@@ -241,7 +242,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                       currentPage = pageIdx;
                     });
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted){
+                      if (mounted) {
                         _scrollToTopOfCurrentQuestion();
                       }
                     });
@@ -312,7 +313,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         diary: widget.diary,
         prompt: e,
         scaffoldKey: GlobalKey<ScaffoldState>(),
-
         answerAdded: (value) {
           if (mounted) {
             setState(() {
@@ -416,7 +416,7 @@ class QuestionPage extends StatefulWidget {
 }
 
 class _QuestionPageState extends State<QuestionPage>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RecordingAnswerGate<QuestionPage> {
   final ScrollController _scrollController = ScrollController();
   late PromptCubit promptCubit;
   late PromptModel promptModel;
@@ -425,30 +425,22 @@ class _QuestionPageState extends State<QuestionPage>
   bool disabled = false;
   PersistentBottomSheetController? _bottomSheetController;
 
-  /// Owned here rather than in the card because the record button and the
-  /// Next button must agree on what counts as an answer. The card is the only
-  /// thing that can detect an undecodable file, so it reports upward.
-  late final RecordingAnswerChecker _answers = RecordingAnswerChecker(
-    discard: (path) => promptCubit.removeResponse(
-      diary: widget.diary,
-      prompt: promptModel,
-      path: path,
-    ),
-    singleAnswer: !(widget.prompt.option?.multipleAnswers ?? false),
-  );
+  /// Uses [promptModel], the live prompt, not `widget.prompt`: the flow swaps
+  /// prompts under one State, so the row has to leave whichever prompt is on
+  /// screen now.
+  @override
+  void discardRecording(String path) => promptCubit.removeResponse(
+        diary: widget.diary,
+        prompt: promptModel,
+        path: path,
+      );
 
-  /// Guards [checkForResponse] against overlapping runs. It is async and fires
-  /// both from the prompt listener and from [onPlaybackResolved], so a slower
-  /// earlier run could otherwise land after a newer one and re-enable Next
-  /// with a stale answer.
-  int _responseCheckToken = 0;
+  @override
+  bool get gatedPromptIsSingleAnswer =>
+      !(widget.prompt.option?.multipleAnswers ?? false);
 
-  void onPlaybackResolved(String path, AudioStatus status) {
-    if (!mounted || !_answers.report(path, status)) return;
-
-    setState(() {});
-    checkForResponse(promptModel);
-  }
+  @override
+  Future<void> reevaluateAnswers() => checkForResponse(promptModel);
 
   void updateSliderValue(PromptModel prompt, double value) {
     save(prompt, value.toString(), 'other', 0);
@@ -614,8 +606,10 @@ class _QuestionPageState extends State<QuestionPage>
         respond: (String type, int? index) =>
             recordResponse(prompt, type, index: index),
         prompt: prompt,
-        unplayable: _answers.unplayable,
+        answers: answers,
         onPlaybackResolved: onPlaybackResolved,
+        onDismissRecording: onDismissRecording,
+        recordingsUnchecked: answersCouldNotBeChecked,
       );
     } else if (prompt.responseType == ResponseType.webview) {
       responseWidget = WebViewResponseCard(
@@ -750,8 +744,8 @@ class _QuestionPageState extends State<QuestionPage>
                       ),
                       SizedBox(
                           height: (prompt.responseType == ResponseType.text ||
-                                   prompt.responseType == ResponseType.radio ||
-                                   prompt.responseType == ResponseType.multiple)
+                                  prompt.responseType == ResponseType.radio ||
+                                  prompt.responseType == ResponseType.multiple)
                               ? 48
                               : 112),
                       responseWidget,
@@ -778,21 +772,12 @@ class _QuestionPageState extends State<QuestionPage>
   ///Returns a bool for [`able to continue`] that allows the user to either proceed or not
   ///depending on the availability of the response/recording
   Future<void> checkForResponse(PromptModel prompt1) async {
-    final token = ++_responseCheckToken;
     final answer = prompt1.answer;
 
-    // Runs before the required check: an optional prompt never gates Next, but
-    // a recording whose file was never written still has to be cleared or it
-    // fails S3 upload at submission.
-    final usable = await _answers.countUsable(answer?.recordings ?? []);
+    final count = await countUsableAnswers(prompt1);
+    if (count == null) return;
 
-    if (!mounted || token != _responseCheckToken) return;
-
-    // The sweep can retire a notice or raise a new one, and nothing else
-    // rebuilds this page once it resolves — the prompt listener's rebuild has
-    // already run by the time the disk checks finish, so without this the card
-    // renders a stale notice until something unrelated happens to rebuild it.
-    setState(() {});
+    final usable = count.usable;
 
     if (!prompt1.required) {
       widget.answerAdded(true);
