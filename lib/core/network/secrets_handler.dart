@@ -20,7 +20,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 ///     "Authorization": "…",
 ///     "x-api-key": "…",
 ///     "dynamo_url": "https://…",
-///     "presigned_url": "https://…"
+///     "presigned_url": "https://…",
+///     "dynamo_device_info": "https://…"
 ///   }
 /// }
 /// ```
@@ -106,18 +107,20 @@ class SecureSave {
 /// - [xapikey]: API Gateway key attached to every upload request as `x-api-key`.
 /// - [dynamoUrl]: Endpoint that receives survey response JSON (see [uploadNonAudioData]).
 /// - [presignedUrl]: Endpoint that returns S3 presigned URLs for file uploads (see [getPresignedUrl]).
+/// - [deviceInfoUrl]: Endpoint that receives the device-info record (see [uploadDeviceInfo]).
 class CredentialsModel {
   final String? authorization;
   final String? xapikey;
   final String? dynamoUrl;
   final String? presignedUrl;
+  final String? deviceInfoUrl;
 
-  CredentialsModel({
-    this.authorization,
-    this.xapikey,
-    this.dynamoUrl,
-    this.presignedUrl,
-  });
+  CredentialsModel(
+      {this.authorization,
+      this.xapikey,
+      this.dynamoUrl,
+      this.presignedUrl,
+      this.deviceInfoUrl});
 
   /// Deserializes from the JSON stored in secure storage.
   ///
@@ -127,7 +130,8 @@ class CredentialsModel {
       : authorization = map['authorization'] as String?,
         xapikey = map['x-api-key'] as String?,
         dynamoUrl = map['dynamo_url'] as String?,
-        presignedUrl = map['presigned_url'] as String?;
+        presignedUrl = map['presigned_url'] as String?,
+        deviceInfoUrl = map['dynamo_device_info'] as String?;
 
   /// Deserializes from the `message` object in the backend `/fabla/verifyuser`
   /// response, where `Authorization` is capitalised.
@@ -135,7 +139,8 @@ class CredentialsModel {
       : authorization = message['Authorization'] as String?,
         xapikey = message['x-api-key'] as String?,
         dynamoUrl = message['dynamo_url'] as String?,
-        presignedUrl = message['presigned_url'] as String?;
+        presignedUrl = message['presigned_url'] as String?,
+        deviceInfoUrl = message['dynamo_device_info'] as String?;
 
   /// Serializes to JSON for secure storage persistence.
   Map<String, dynamic> toJson() => {
@@ -143,5 +148,6 @@ class CredentialsModel {
         'x-api-key': xapikey,
         'dynamo_url': dynamoUrl,
         'presigned_url': presignedUrl,
+        'dynamo_device_info': deviceInfoUrl
       };
 }
