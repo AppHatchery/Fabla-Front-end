@@ -4,7 +4,7 @@ import '../../screens/home/data/experiment.dart';
 import '../../screens/onboarding/domain/entities/participant.dart';
 import '../../screens/onboarding/domain/repository/setup_repository.dart';
 import 'email_function.dart';
-import 'device_appInfo.dart';
+import 'device_info.dart';
 
 /// Immutable holder for the study dates persisted in shared preferences.
 class StudyDates {

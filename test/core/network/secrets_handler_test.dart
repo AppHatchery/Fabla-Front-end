@@ -74,6 +74,54 @@ void main() {
       expect(restored.presignedUrl, original.presignedUrl);
     });
 
+    // Every participant installed before the device-info endpoint existed has
+    // credentials like this. A non-nullable cast here once made them
+    // undecodable, which broke diary uploads too.
+    test('fromJson reads credentials stored before dynamo_device_info existed',
+        () {
+      final map = {
+        'authorization': TestValues.testAuth,
+        'x-api-key': TestValues.testApiKey,
+        'dynamo_url': TestValues.testDynamoUrl,
+        'presigned_url': TestValues.testPresignedUrl,
+      };
+
+      final model = CredentialsModel.fromJson(map);
+
+      expect(model.deviceInfoUrl, isNull);
+      expect(model.dynamoUrl, TestValues.testDynamoUrl);
+    });
+
+    test('fromJson reads dynamo_device_info', () {
+      final model = CredentialsModel.fromJson(
+          {'dynamo_device_info': TestValues.testDeviceInfoUrl});
+
+      expect(model.deviceInfoUrl, TestValues.testDeviceInfoUrl);
+    });
+
+    test('fromBackendMessage reads dynamo_device_info', () {
+      final model = CredentialsModel.fromBackendMessage(
+          {'dynamo_device_info': TestValues.testDeviceInfoUrl});
+
+      expect(model.deviceInfoUrl, TestValues.testDeviceInfoUrl);
+    });
+
+    test('fromBackendMessage tolerates a backend without dynamo_device_info',
+        () {
+      final model = CredentialsModel.fromBackendMessage(
+          {'dynamo_url': TestValues.testDynamoUrl});
+
+      expect(model.deviceInfoUrl, isNull);
+      expect(model.dynamoUrl, TestValues.testDynamoUrl);
+    });
+
+    test('deviceInfoUrl round-trips through toJson', () {
+      final original = createTestCredentials();
+      final restored = CredentialsModel.fromJson(original.toJson());
+
+      expect(restored.deviceInfoUrl, TestValues.testDeviceInfoUrl);
+    });
+
     test('fromJson handles null values gracefully', () {
       final model = CredentialsModel.fromJson({});
 

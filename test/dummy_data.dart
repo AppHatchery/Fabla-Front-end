@@ -424,12 +424,14 @@ CredentialsModel createTestCredentials({
   String xapikey = 'test-api-key',
   String dynamoUrl = 'test-dynamo-url',
   String presignedUrl = 'test-presigned-url',
+  String? deviceInfoUrl = 'test-device-info-url',
 }) {
   return CredentialsModel(
     authorization: authorization,
     xapikey: xapikey,
     dynamoUrl: dynamoUrl,
     presignedUrl: presignedUrl,
+    deviceInfoUrl: deviceInfoUrl,
   );
 }
 
@@ -656,6 +658,7 @@ class TestValues {
   static const String testApiKey = 'test-api-key';
   static const String testDynamoUrl = 'test-dynamo-url';
   static const String testPresignedUrl = 'test-presigned-url';
+  static const String testDeviceInfoUrl = 'test-device-info-url';
   static const String testErrorMessage = 'Bad Request Error';
   static const String testSuccessMessage = 'Success';
   static const String testUrl = 'https://test-api.example.com';

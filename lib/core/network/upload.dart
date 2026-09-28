@@ -255,8 +255,21 @@ Future<CredentialsModel?> _refreshCredentials(SecureSave secureStorage) async {
   }
 }
 
-Future<bool> uploadNonAudioData(
-  List<PromptEntry> promptEntryList, {
+/// Posts [body] as JSON to the endpoint [urlOf] picks from the stored
+/// credentials, authorising with the token at [authIndex].
+///
+/// Shared by the diary and device-info uploads, which differ only in
+/// endpoint, auth index and how they are labelled in logs and metrics.
+/// [metricsEvent] is the Pendo `event` every failure is reported under, so
+/// each upload keeps its own bucket.
+Future<bool> _postJsonToDynamo({
+  required Object body,
+  required String? Function(CredentialsModel) urlOf,
+  required int authIndex,
+  required String caller,
+  required String logName,
+  required String metricsEvent,
+  Map<String, String> requestSummary = const {},
   SecureSave? secureSave,
   http.Client? client,
 }) async {
@@ -267,9 +280,11 @@ Future<bool> uploadNonAudioData(
   try {
     var cred = await secureStorage.read();
 
-    if (cred == null) {
-      dev.log('Credentials null — attempting refresh',
-          name: 'Upload - Non-Audio Data');
+    // Credentials stored before an endpoint existed have no URL for it, so
+    // they are refreshed the same way as missing credentials.
+    if (cred == null || (urlOf(cred)?.isEmpty ?? true)) {
+      dev.log('Credentials or endpoint missing — attempting refresh',
+          name: logName);
       cred = await _refreshCredentials(secureStorage);
     }
 
@@ -278,15 +293,24 @@ Future<bool> uploadNonAudioData(
           .log('Upload failed: credentials null after refresh attempt');
       return false;
     }
-    List<Map<String, dynamic>> promptListItems =
-        PromptEntry.promptListToMap(promptEntryList);
-    String jsonBody = json.encode(promptListItems);
 
-    var url = Uri.parse(cred.dynamoUrl ?? "");
+    final endpoint = urlOf(cred);
+    if (endpoint == null || endpoint.isEmpty) {
+      dev.log('Endpoint not configured', name: logName);
+      CrashlyticsService()
+          .log('Upload failed: no endpoint for $caller after refresh attempt');
+      await PendoService.track('Upload Error',
+          {'event': metricsEvent, 'reason': 'endpoint not configured'});
+      return false;
+    }
+
+    String jsonBody = json.encode(body);
+
+    var url = Uri.parse(endpoint);
 
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization': "${cred.authorization ?? ""}[0]",
+      'Authorization': "${cred.authorization ?? ""}[$authIndex]",
       'x-api-key': cred.xapikey ?? ""
     };
 
@@ -298,11 +322,11 @@ Future<bool> uploadNonAudioData(
 
       if (stopwatch.elapsed > const Duration(minutes: 2)) {
         CrashlyticsService().log(
-            'Slow DynamoDB upload: ${stopwatch.elapsedMilliseconds}ms | prompts=${promptEntryList.length}');
+            'Slow DynamoDB upload: ${stopwatch.elapsedMilliseconds}ms | $logName $requestSummary');
         await PendoService.track('Slow Upload', {
-          'event': 'Upload to DynamoDB',
+          'event': metricsEvent,
           'duration_ms': stopwatch.elapsedMilliseconds.toString(),
-          'prompt_count': promptEntryList.length.toString(),
+          ...requestSummary,
         });
       }
 
@@ -311,31 +335,67 @@ Future<bool> uploadNonAudioData(
       } else {
         dev.log(
             'DynamoDB upload failed: status=${response.statusCode} body=${response.body}',
-            name: 'Upload - Non-Audio Data');
+            name: logName);
         CrashlyticsService().recordApiError(
             'DynamoDB upload failed: ${response.body}', url.toString(),
             statusCode: response.statusCode,
             method: 'POST',
-            requestData: {'prompt_count': promptEntryList.length.toString()});
+            requestData: requestSummary);
         await PendoService.track('Upload Error', {
-          'event': 'Upload to DynamoDB',
+          'event': metricsEvent,
           'response': response.body,
           'status': response.statusCode
         });
         return false;
       }
     } catch (e, stackTrace) {
-      dev.log('Error sending request: $e', name: 'Upload - Non-Audio Data');
+      dev.log('Error sending request: $e', name: logName);
       CrashlyticsService().recordError(e, stackTrace,
-          reason: 'Error sending request in uploadNonAudioData');
-      await PendoService.track('Upload Error',
-          {'event': 'Upload to DynamoDB', 'reason': e.toString()});
+          reason: 'Error sending request in $caller');
+      await PendoService.track(
+          'Upload Error', {'event': metricsEvent, 'reason': e.toString()});
       return false;
     }
   } finally {
     if (ownClient) httpClient.close();
   }
 }
+
+Future<bool> uploadNonAudioData(
+  List<PromptEntry> promptEntryList, {
+  SecureSave? secureSave,
+  http.Client? client,
+}) =>
+    _postJsonToDynamo(
+      body: PromptEntry.promptListToMap(promptEntryList),
+      urlOf: (cred) => cred.dynamoUrl,
+      authIndex: 0,
+      caller: 'uploadNonAudioData',
+      logName: 'Upload - Non-Audio Data',
+      metricsEvent: 'Upload to DynamoDB',
+      requestSummary: {'prompt_count': promptEntryList.length.toString()},
+      secureSave: secureSave,
+      client: client,
+    );
+
+/// Uploads one device-info record (built by `DeviceSnapshot.toRecord`) to
+/// the device-info endpoint. The Lambda reads a list, so the record is sent
+/// wrapped in one.
+Future<bool> uploadDeviceInfo(
+  Map<String, dynamic> record, {
+  SecureSave? secureSave,
+  http.Client? client,
+}) =>
+    _postJsonToDynamo(
+      body: [record],
+      urlOf: (cred) => cred.deviceInfoUrl,
+      authIndex: 2,
+      caller: 'uploadDeviceInfo',
+      logName: 'Upload - Device Info',
+      metricsEvent: 'Upload Device Info',
+      secureSave: secureSave,
+      client: client,
+    );
 
 /// Retrieves a presigned URL for uploading a file to an S3 storage location.
 ///

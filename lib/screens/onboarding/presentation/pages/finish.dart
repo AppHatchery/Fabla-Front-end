@@ -1,3 +1,6 @@
+import 'dart:async' show unawaited;
+
+import 'package:audio_diaries_flutter/core/usecases/device_info_upload.dart';
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -178,6 +181,8 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
     await PreferenceService().setBoolPreference(key: 'setup', value: true);
     final start = DateTime.fromMillisecondsSinceEpoch(
         await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
+    // Not awaited, so a slow or offline network never holds up "Get Started".
+    unawaited(sendDeviceInfo());
 
     await PendoService.track("FinishOnBoarding",
         {"datetime": DateTime.now().toString(), "startDate": start.toString()});

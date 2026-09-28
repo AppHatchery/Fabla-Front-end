@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/utils/device_appInfo.dart';
+import '../../../../core/utils/device_info.dart';
 import '../../../../services/preference_service.dart';
 import '../../../../theme/dialogs/pop_ups.dart';
 import '../../../onboarding/domain/repository/setup_repository.dart';

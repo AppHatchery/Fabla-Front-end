@@ -26,7 +26,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../../core/utils/device_checks.dart';
+import '../../../../core/utils/device_info.dart';
 import '../../../../core/utils/statuses.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
