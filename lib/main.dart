@@ -511,7 +511,7 @@ class _CustomHubTabViewState extends State<CustomHubTabView> {
     final totalSubmissions =
         allTracking.values.fold(0, (sum, p) => sum + p.submissions);
 
-    await trackUnsubmittedDiaries();
+    if (count > 0 || totalSubmissions > 0) await trackUnsubmittedDiaries();
 
     if (navigationBars.isNotEmpty) navigationBars.clear();
 
