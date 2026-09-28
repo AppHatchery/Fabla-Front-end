@@ -4,11 +4,25 @@ import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 
+/// How the audio system took capture away from a take.
+///
+/// Kept apart because the recorder survives them differently. On iOS an
+/// interruption stops the recorder outright, while a lost route leaves it able
+/// to pause and resume.
+enum CaptureLoss {
+  /// Another audio client took the session: Siri, a call, an alarm.
+  interruption,
+
+  /// The input the take was using went away: a headset unplugged, Bluetooth
+  /// dropping out.
+  routeLost,
+}
+
 /// The audio session behind a take: its configuration, its focus, and the
 /// system events that can take either away mid-recording.
 ///
 /// Knows nothing about the recorder. It reports what the audio system did and
-/// leaves the response — pausing, resuming, publishing state — to the caller,
+/// leaves the response — pausing, ending, publishing state — to the caller,
 /// which is the only thing holding the recorder lock.
 ///
 /// Every method reports failures instead of throwing, because these run from
@@ -18,7 +32,7 @@ class RecordingAudioSession {
     required this.onCaptureCompromised,
   });
 
-  final Future<void> Function() onCaptureCompromised;
+  final Future<void> Function(CaptureLoss loss) onCaptureCompromised;
 
   StreamSubscription<AudioInterruptionEvent>? _interruptionSubscription;
   StreamSubscription<AudioDevicesChangedEvent>? _devicesChangedSubscription;
@@ -42,7 +56,7 @@ class RecordingAudioSession {
     _becomingNoisySubscription ??= session.becomingNoisyEventStream.listen(
       (_) {
         if (_stopped) return;
-        unawaited(onCaptureCompromised());
+        unawaited(onCaptureCompromised(CaptureLoss.routeLost));
       },
     );
   }
@@ -68,8 +82,16 @@ class RecordingAudioSession {
   Future<bool> activate() async {
     try {
       final session = await _configure();
-      await session.setActive(true);
-      return true;
+
+      // Its answer, not just whether it threw. iOS throws when a call holds
+      // the session, but Android refuses audio focus by returning false.
+      final active = await session.setActive(true);
+
+      if (!active) {
+        CrashlyticsService().log('Audio session activation was refused');
+      }
+
+      return active;
     } catch (e, s) {
       CrashlyticsService().recordError(
         e,
@@ -130,12 +152,11 @@ class RecordingAudioSession {
   /// The `interruptionEventStream` subscription's target.
   ///
   /// Only the beginning of an interruption is reported. The end of one needs
-  /// no response: the take is still paused, and Siri finishing is not the
-  /// participant deciding to go back to their answer — that is the resume,
-  /// which reclaims the session itself, at the point it is needed. Reclaiming
-  /// it here instead reconfigured the session under a paused recorder for
-  /// nothing, and took down the notice telling the participant the take was
-  /// waiting for them.
+  /// no response: by then the take is either paused, waiting for the
+  /// participant to resume it, or already finished. Siri finishing is not the
+  /// participant deciding to go back to their answer. Reclaiming the session
+  /// here instead reconfigured it under a paused recorder for nothing, and
+  /// took down the notice telling the participant what happened.
   ///
   /// Not private so a test can drive it without a live audio session; nothing
   /// else should call it.
@@ -143,7 +164,7 @@ class RecordingAudioSession {
   Future<void> handleInterruption(AudioInterruptionEvent event) async {
     if (_stopped) return;
 
-    if (event.begin) await onCaptureCompromised();
+    if (event.begin) await onCaptureCompromised(CaptureLoss.interruption);
   }
 
   /// Reports a take losing the input it started on.
@@ -175,7 +196,7 @@ class RecordingAudioSession {
 
     if (!lostActiveInput) return;
 
-    await onCaptureCompromised();
+    await onCaptureCompromised(CaptureLoss.routeLost);
   }
 
   /// Applies the recording configuration and returns the shared session.

@@ -145,6 +145,83 @@ void main() {
       }
     });
   });
+
+  // -------------------------------------------------------------------
+  // 3. takeNotice — what replaces the question on the sheet
+  // -------------------------------------------------------------------
+  //
+  // The real function, not a mirror: it is top level and pure, so there is
+  // nothing to reproduce.
+  // -------------------------------------------------------------------
+  group('takeNotice', () {
+    test('a take with nothing to report shows the question', () {
+      expect(takeNotice(const AudioRecordingState()), isNull);
+      expect(
+        takeNotice(const AudioRecordingState(
+          status: AudioRecordingStatus.recording,
+        )),
+        isNull,
+      );
+      expect(takeNotice(const AudioRecordingState(hasTake: true)), isNull,
+          reason: 'a take the participant stopped needs no explaining');
+    });
+
+    test('a paused interrupted take points at the resume button', () {
+      final notice = takeNotice(const AudioRecordingState(
+        status: AudioRecordingStatus.paused,
+        isInterrupted: true,
+      ));
+
+      expect(notice?.body, contains('resume'));
+    });
+
+    // The iOS case: the take was ended, not paused, so there is no resume
+    // button and the participant has to be told their audio is still there.
+    test('a take the interruption ended says it is kept and how to save it',
+        () {
+      final notice = takeNotice(const AudioRecordingState(
+        hasTake: true,
+        takeWasInterrupted: true,
+      ));
+
+      expect(notice, isNotNull);
+      expect(notice!.body, isNot(contains('resume')),
+          reason: 'a finished take has no resume button');
+      expect(notice.body, contains('kept'));
+      expect(notice.body, contains('checkmark'));
+    });
+
+    test('a refused start says the microphone is busy and how to retry', () {
+      final notice = takeNotice(
+        const AudioRecordingState(microphoneUnavailable: true),
+      );
+
+      expect(notice?.title, 'The microphone is busy');
+      expect(notice!.body, contains('try again'));
+    });
+
+    test('an empty take says nothing was recorded', () {
+      final notice = takeNotice(const AudioRecordingState(takeWasEmpty: true));
+
+      expect(notice?.title, 'No audio was recorded');
+    });
+
+    test('an interrupted take is explained before an empty one', () {
+      const both = AudioRecordingState(
+        hasTake: true,
+        takeWasInterrupted: true,
+        takeWasEmpty: true,
+      );
+
+      expect(
+        takeNotice(both)?.title,
+        takeNotice(const AudioRecordingState(
+          hasTake: true,
+          takeWasInterrupted: true,
+        ))?.title,
+      );
+    });
+  });
 }
 
 /// Mirror of the switch in `_BottomRecordingModalState.save()`:

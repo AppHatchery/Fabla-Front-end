@@ -5,6 +5,7 @@ import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/services/audio_recording_service.dart';
 import 'package:audio_diaries_flutter/services/recording_audio_session.dart';
 import 'package:audio_diaries_flutter/services/recording_foreground_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -64,6 +65,10 @@ class _FakeForegroundService implements RecordingForegroundService {
 
   bool _active = false;
 
+  /// Parks [start] until completed, holding a start or resume mid-move with
+  /// the recorder lock taken and the recorder not yet capturing.
+  Completer<void>? startGate;
+
   @override
   bool get isActive => _active;
 
@@ -73,6 +78,7 @@ class _FakeForegroundService implements RecordingForegroundService {
   @override
   Future<bool> start() async {
     calls.add('service.start');
+    if (startGate != null) await startGate!.future;
     _active = true;
     return true;
   }
@@ -82,6 +88,24 @@ class _FakeForegroundService implements RecordingForegroundService {
     calls.add('service.stop');
     _active = false;
   }
+}
+
+/// The real session, with the answer to `activate()` settable from a test.
+///
+/// Activation cannot be made to fail at the stubbed channel. Off a real iOS or
+/// Android device, audio_session's `setActive` never reaches a channel and
+/// reports success, and its `configure` swallows channel errors. So the answer
+/// is overridden here, after the real call has run against the stub.
+class _ControllableSession extends RecordingAudioSession {
+  _ControllableSession({
+    required super.onCaptureCompromised,
+    required this.activates,
+  });
+
+  final bool Function() activates;
+
+  @override
+  Future<bool> activate() async => await super.activate() && activates();
 }
 
 void main() {
@@ -96,6 +120,8 @@ void main() {
       expect(state.isInterrupted, isFalse);
       expect(state.hasTake, isFalse);
       expect(state.takeWasEmpty, isFalse);
+      expect(state.takeWasInterrupted, isFalse);
+      expect(state.microphoneUnavailable, isFalse);
       expect(state.isRecording, isFalse);
       expect(state.isPaused, isFalse);
     });
@@ -183,6 +209,24 @@ void main() {
       expect(interrupted.copyWith(isInterrupted: false).isInterrupted, isFalse);
     });
 
+    test('copyWith carries and clears an interrupted finished take', () {
+      const endedByInterruption = AudioRecordingState(
+        hasTake: true,
+        takeWasInterrupted: true,
+      );
+
+      expect(
+          endedByInterruption
+              .copyWith(elapsed: Duration.zero)
+              .takeWasInterrupted,
+          isTrue);
+      expect(
+          endedByInterruption
+              .copyWith(takeWasInterrupted: false)
+              .takeWasInterrupted,
+          isFalse);
+    });
+
     // Value equality is what lets the ValueNotifier behind
     // AudioRecordingService.state drop a publish that changes nothing, so a
     // handler re-asserting the current state does not rebuild the modal.
@@ -211,6 +255,14 @@ void main() {
       expect(base, isNot(base.copyWith(isInterrupted: true)));
       expect(base, isNot(base.copyWith(hasTake: true)));
       expect(base, isNot(base.copyWith(takeWasEmpty: true)));
+      expect(base, isNot(base.copyWith(takeWasInterrupted: true)));
+      expect(base.hashCode,
+          isNot(base.copyWith(takeWasInterrupted: true).hashCode));
+      expect(base, isNot(base.copyWith(microphoneUnavailable: true)));
+      expect(base.hashCode,
+          isNot(base.copyWith(microphoneUnavailable: true).hashCode));
+      expect(base.copyWith(microphoneUnavailable: true).microphoneUnavailable,
+          isTrue);
     });
   });
 
@@ -545,9 +597,18 @@ void main() {
     /// What `RecordingAudioSession` would call when the route or the focus
     /// goes. Captured through the injected factory, because the handler behind
     /// it is private and there is no live audio system here to trigger it.
-    late Future<void> Function() captureCompromised;
+    late Future<void> Function(CaptureLoss loss) captureCompromised;
+
+    /// Whether the audio session agrees to be activated. `false` is a call or
+    /// Siri still holding it: iOS throws, Android refuses audio focus.
+    late bool activationSucceeds;
 
     setUp(() {
+      // Android unless a test says otherwise, stated rather than left to the
+      // test host's default: an interruption only pauses there. The iOS tests
+      // below override it.
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+
       documents = Directory.systemTemp.createTempSync('take');
       startedPath = null;
       encoderWritesFile = true;
@@ -557,20 +618,23 @@ void main() {
       stopSucceeds = true;
       startRecorderFails = false;
       platformCalls = [];
+      activationSucceeds = true;
       foregroundService = _FakeForegroundService(calls: platformCalls);
 
       service = AudioRecordingService(
         promptId: 0,
         foregroundService: foregroundService,
-        // Kept, rather than replaced: the real session is harmless against the
-        // stubbed channel, and the factory is here to catch the handler it is
-        // built with, which is the only way in to the audio-issue pause.
+        // The real session, harmless against the stubbed channel, with only
+        // activation made answerable. The factory is also here to catch the
+        // handler it is built with, which is the only way in to the
+        // audio-issue pause.
         audioSessionFactory: ({
           required onCaptureCompromised,
         }) {
           captureCompromised = onCaptureCompromised;
-          return RecordingAudioSession(
+          return _ControllableSession(
             onCaptureCompromised: onCaptureCompromised,
+            activates: () => activationSucceeds,
           );
         },
       );
@@ -687,6 +751,8 @@ void main() {
         ..setMockMethodCallHandler(_recorderChannel, null);
 
       if (documents.existsSync()) documents.deleteSync(recursive: true);
+
+      debugDefaultTargetPlatformOverride = null;
     });
 
     /// Opens the recorder and captures a take, leaving it running.
@@ -723,6 +789,29 @@ void main() {
       final index = platformCalls.indexOf(call);
       expect(index, isNonNegative, reason: '$call never happened');
       return index;
+    }
+
+    /// Runs the event loop until [condition] holds, so a test can act at a
+    /// precise point inside a move rather than after a guessed delay.
+    Future<void> until(bool Function() condition) async {
+      for (var i = 0; i < 1000 && !condition(); i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(condition(), isTrue, reason: 'the move never got that far');
+    }
+
+    /// Starts a take and holds it inside `_startTake`, lock taken and recorder
+    /// not yet capturing. Completing the returned gate lets it finish.
+    Future<(Future<void>, Completer<void>)> startTakeHeldMidway() async {
+      await service.initialize();
+
+      final gate = Completer<void>();
+      foregroundService.startGate = gate;
+
+      final starting = service.record();
+      await until(() => platformCalls.contains('service.start'));
+
+      return (starting, gate);
     }
 
     // ----------------------------------------------------------------
@@ -765,7 +854,7 @@ void main() {
       await startTake();
       platformCalls.clear();
 
-      await captureCompromised();
+      await captureCompromised(CaptureLoss.interruption);
 
       expect(service.state.value.isPaused, isTrue);
       expect(service.state.value.isInterrupted, isTrue,
@@ -782,7 +871,7 @@ void main() {
     test('resuming an interrupted take reclaims the session before capturing',
         () async {
       await startTake();
-      await captureCompromised();
+      await captureCompromised(CaptureLoss.interruption);
       platformCalls.clear();
 
       await service.record();
@@ -817,7 +906,7 @@ void main() {
     // stopped take does not have.
     test('stopping an interrupted take takes the banner down', () async {
       await startTake();
-      await captureCompromised();
+      await captureCompromised(CaptureLoss.interruption);
 
       expect(service.state.value.isInterrupted, isTrue);
 
@@ -834,7 +923,7 @@ void main() {
     test('a fresh take does not inherit the last one\'s interruption',
         () async {
       await startTake();
-      await captureCompromised();
+      await captureCompromised(CaptureLoss.interruption);
       await service.stop();
       await service.discardTake();
 
@@ -854,13 +943,260 @@ void main() {
       encoderLeavesEmptyFile = true;
 
       await startTake();
-      await captureCompromised();
+      await captureCompromised(CaptureLoss.interruption);
 
       expect(await service.stop(), isFalse);
 
       expect(service.state.value.takeWasEmpty, isTrue);
       expect(service.state.value.isInterrupted, isFalse,
           reason: 'the empty-take notice must not be masked');
+    });
+
+    // A take still starting reads as not recording, and the handler used to
+    // check that before waiting for the lock, so it dropped the event and the
+    // take carried on as if the headset were still there.
+    test('an audio issue during a start is acted on once the start lands',
+        () async {
+      final (starting, gate) = await startTakeHeldMidway();
+
+      final issue = captureCompromised(CaptureLoss.routeLost);
+      gate.complete();
+
+      await starting;
+      await issue;
+
+      expect(platformCalls, contains('recorder.pauseRecorder'));
+      expect(service.state.value.isPaused, isTrue);
+      expect(service.state.value.isInterrupted, isTrue);
+    });
+
+    // The handler used to give up after two seconds and publish a pause that
+    // never happened, with the recorder still running under it: the next
+    // "Resume" tap then paused it, and the limit timer kept counting.
+    test('an audio issue behind a long move still pauses for real', () async {
+      final (starting, gate) = await startTakeHeldMidway();
+
+      final issue = captureCompromised(CaptureLoss.routeLost);
+
+      // Past the two seconds the handler used to wait.
+      await Future<void>.delayed(const Duration(milliseconds: 2100));
+      gate.complete();
+
+      await starting;
+      await issue;
+
+      expect(platformCalls, contains('recorder.pauseRecorder'));
+      expect(service.state.value.isPaused, isTrue);
+    });
+
+    // ----------------------------------------------------------------
+    // A session that will not come back
+    // ----------------------------------------------------------------
+    //
+    // Straight after an interruption the call that caused it can still hold
+    // the session, so activating it fails. flutter_sound's iOS side reports a
+    // start and a resume as successful regardless, so going ahead showed
+    // "Recording" over silence.
+    // ----------------------------------------------------------------
+
+    test('a take the session is refused for never starts, and says why',
+        () async {
+      await service.initialize();
+      activationSucceeds = false;
+
+      await service.record();
+
+      expect(platformCalls, isNot(contains('recorder.startRecorder')));
+      expect(platformCalls, isNot(contains('service.start')),
+          reason: 'nothing is claimed for a take that cannot run');
+
+      final state = service.state.value;
+      expect(state.status, AudioRecordingStatus.stopped);
+      expect(state.hasTake, isFalse);
+      expect(state.microphoneUnavailable, isTrue);
+    });
+
+    test('a retry once the microphone is free starts the take and clears it',
+        () async {
+      await service.initialize();
+      activationSucceeds = false;
+      await service.record();
+      expect(service.state.value.microphoneUnavailable, isTrue);
+
+      activationSucceeds = true;
+      await service.record();
+
+      expect(service.state.value.isRecording, isTrue);
+      expect(service.state.value.microphoneUnavailable, isFalse);
+    });
+
+    // Android only in practice: iOS ends an interrupted take instead.
+    test('an interrupted take stays paused if the session will not come back',
+        () async {
+      await startTake();
+      await captureCompromised(CaptureLoss.interruption);
+      expect(service.state.value.isInterrupted, isTrue);
+
+      activationSucceeds = false;
+      platformCalls.clear();
+
+      await service.record();
+
+      expect(platformCalls, isNot(contains('recorder.resumeRecorder')));
+      expect(platformCalls, isNot(contains('service.start')));
+      expect(service.state.value.isPaused, isTrue);
+      expect(service.state.value.isInterrupted, isTrue,
+          reason: 'still waiting to be resumed');
+
+      activationSucceeds = true;
+      await service.record();
+
+      expect(platformCalls, contains('recorder.resumeRecorder'));
+      expect(service.state.value.isRecording, isTrue);
+    });
+
+    // ----------------------------------------------------------------
+    // iOS: an interruption ends the take
+    // ----------------------------------------------------------------
+    //
+    // flutter_sound records on iOS through one AVAudioRecorder, which iOS
+    // stops rather than pauses when Siri or a call interrupts it, without the
+    // plugin noticing. Resuming then calls `record` on a stopped recorder,
+    // which erases the file: only what was said after the resume survived.
+    // These pin the response. The native stop itself cannot be reproduced
+    // here.
+    // ----------------------------------------------------------------
+    group('on iOS', () {
+      setUp(() => debugDefaultTargetPlatformOverride = TargetPlatform.iOS);
+
+      test('an interruption ends the take and keeps what it captured',
+          () async {
+        await startTake();
+        platformCalls.clear();
+
+        await captureCompromised(CaptureLoss.interruption);
+
+        expect(platformCalls, contains('recorder.stopRecorder'));
+        expect(platformCalls, isNot(contains('recorder.pauseRecorder')),
+            reason: 'a paused take would be resumed into an erased file');
+
+        final state = service.state.value;
+        expect(state.hasCompletedTake, isTrue);
+        expect(state.takeWasInterrupted, isTrue);
+        expect(state.isInterrupted, isFalse,
+            reason: 'there is no resume button to point at');
+
+        expect((await service.save()).path, startedPath);
+      });
+
+      test('a tap after the interruption does not resume the ended take',
+          () async {
+        await startTake();
+        await captureCompromised(CaptureLoss.interruption);
+        platformCalls.clear();
+
+        await service.record();
+
+        expect(platformCalls, isNot(contains('recorder.resumeRecorder')));
+        expect(platformCalls, isNot(contains('recorder.startRecorder')));
+        expect(service.state.value.hasCompletedTake, isTrue);
+      });
+
+      test('a tap racing the interruption never starts a second take',
+          () async {
+        await startTake();
+
+        await Future.wait([
+          captureCompromised(CaptureLoss.interruption),
+          service.record(),
+        ]);
+        await service.record();
+
+        expect(platformCalls.where((call) => call == 'recorder.startRecorder'),
+            hasLength(1));
+        expect(platformCalls, isNot(contains('recorder.resumeRecorder')));
+        expect(service.state.value.hasCompletedTake, isTrue);
+      });
+
+      // Resuming a paused take is exactly what erases the file, so a take the
+      // participant had paused is ended too.
+      test('a paused take is ended by an interruption too', () async {
+        await startTake();
+        await service.record();
+        expect(service.state.value.isPaused, isTrue);
+        platformCalls.clear();
+
+        await captureCompromised(CaptureLoss.interruption);
+
+        expect(platformCalls, contains('recorder.stopRecorder'));
+        expect(service.state.value.hasCompletedTake, isTrue);
+        expect(service.state.value.takeWasInterrupted, isTrue);
+      });
+
+      test('an interruption during a start ends the take once it lands',
+          () async {
+        final (starting, gate) = await startTakeHeldMidway();
+
+        final issue = captureCompromised(CaptureLoss.interruption);
+        gate.complete();
+
+        await starting;
+        await issue;
+
+        expect(platformCalls, contains('recorder.stopRecorder'));
+        expect(service.state.value.hasCompletedTake, isTrue);
+        expect(service.state.value.takeWasInterrupted, isTrue);
+      });
+
+      test('a lost route still pauses, because the recorder survives it',
+          () async {
+        await startTake();
+        platformCalls.clear();
+
+        await captureCompromised(CaptureLoss.routeLost);
+
+        expect(platformCalls, contains('recorder.pauseRecorder'));
+        expect(platformCalls, isNot(contains('recorder.stopRecorder')));
+        expect(service.state.value.isPaused, isTrue);
+        expect(service.state.value.isInterrupted, isTrue);
+        expect(service.state.value.takeWasInterrupted, isFalse);
+      });
+
+      test('an interruption with no take running changes nothing', () async {
+        await service.initialize();
+
+        await captureCompromised(CaptureLoss.interruption);
+
+        expect(platformCalls, isNot(contains('recorder.stopRecorder')));
+        expect(service.state.value, const AudioRecordingState());
+      });
+
+      test('the reason outlives the stop, and clears on discard and retake',
+          () async {
+        await startTake();
+        await captureCompromised(CaptureLoss.interruption);
+        expect(service.state.value.takeWasInterrupted, isTrue);
+
+        await service.discardTake();
+        expect(service.state.value.takeWasInterrupted, isFalse);
+
+        await service.record();
+        expect(service.state.value.isRecording, isTrue);
+        expect(service.state.value.takeWasInterrupted, isFalse);
+      });
+
+      test('an interrupted take that captured nothing reports empty', () async {
+        encoderWritesFile = false;
+        encoderLeavesEmptyFile = true;
+
+        await startTake();
+        await captureCompromised(CaptureLoss.interruption);
+
+        expect(service.state.value.takeWasEmpty, isTrue);
+        expect(service.state.value.takeWasInterrupted, isFalse,
+            reason: 'there is nothing to save, and that is the news');
+        expect(service.state.value.hasCompletedTake, isFalse);
+      });
     });
 
     // dispose() cancels the elapsed timer once, before waiting for an in-flight
@@ -984,13 +1320,11 @@ void main() {
           reason: 'a fresh take is not carrying the last one’s failure');
     });
 
-    // A failed stop leaves the recorder stopped but re-arms the start time so
-    // the stop can be retried, which puts the next tap on a fresh take rather
-    // than a resume. If that take never opens a file, the only path left over
-    // is the one the *first* take wrote — real audio, with bytes in it, and
-    // the first thing _locateTake looks for.
-    test('a take that never began cannot be saved as the previous one',
-        () async {
+    // flutter_sound reports a failed stop by throwing *after* marking the
+    // recorder stopped. This used to publish paused, so the next tap on the
+    // mic went to a fresh take: a new file, with the first one's audio left on
+    // disk and nothing pointing at it.
+    test('a failed stop still offers the take it captured', () async {
       await startTake();
       final firstTake = startedPath!;
 
@@ -998,24 +1332,52 @@ void main() {
       // startRecorder(), so failing every stop would fail the take above too.
       stopSucceeds = false;
 
-      expect(await service.stop(), isFalse, reason: 'the stop failed');
-      expect(File(firstTake).existsSync(), isTrue,
-          reason: 'but the audio it captured is on disk');
+      expect(await service.stop(), isTrue,
+          reason: 'the recorder did stop, and the audio is on disk');
+      expect(service.state.value.hasCompletedTake, isTrue);
+      expect(service.state.value.isPaused, isFalse,
+          reason: 'paused sent the next tap to a brand new take');
 
       stopSucceeds = true;
+      expect((await service.save()).path, firstTake);
+    });
+
+    // The guard behind the one above: nothing but a redo, which discards
+    // first, may start a take while a finished one is waiting to be saved.
+    test('a take waiting to be saved is never recorded over', () async {
+      await startTake();
+      await service.stop();
+      expect(service.state.value.hasCompletedTake, isTrue);
+
+      await service.record();
+
+      expect(platformCalls.where((call) => call == 'recorder.startRecorder'),
+          hasLength(1),
+          reason: 'a second take would write a new file and orphan this one');
+      expect(service.state.value.hasCompletedTake, isTrue);
+      expect((await service.save()).path, startedPath);
+    });
+
+    // A take whose second start never opens a file must not be saved as the
+    // first. Reaching a second start now takes a redo, which deletes the first.
+    test('a take that never began cannot be saved as the previous one',
+        () async {
+      await startTake();
+      await service.stop();
+      final firstTake = startedPath!;
+
+      await service.discardTake();
+
       startRecorderFails = true;
       await service.record();
 
       expect(service.state.value.isRecording, isFalse,
           reason: 'the second take never started');
-
       expect(await service.stop(), isFalse,
           reason: 'there is no second take to finish');
-      expect(service.state.value.hasCompletedTake, isFalse,
-          reason: 'the first take must not be offered in its place');
-
+      expect(service.state.value.hasCompletedTake, isFalse);
       expect((await service.save()).path, isNot(firstTake),
-          reason: 'and it is never handed back as the answer');
+          reason: 'and the first is never handed back as the answer');
     });
 
     // The take is over and both path references are dropped, so nothing can

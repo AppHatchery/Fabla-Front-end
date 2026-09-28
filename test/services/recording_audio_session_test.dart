@@ -40,13 +40,18 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late int compromised;
+  late List<CaptureLoss> losses;
   late RecordingAudioSession session;
 
   setUp(() {
     compromised = 0;
+    losses = [];
 
     session = RecordingAudioSession(
-      onCaptureCompromised: () async => compromised++,
+      onCaptureCompromised: (loss) async {
+        compromised++;
+        losses.add(loss);
+      },
     );
   });
 
@@ -66,6 +71,8 @@ void main() {
       );
 
       expect(compromised, 1);
+      expect(losses.single, CaptureLoss.routeLost,
+          reason: 'a lost input is not an interruption; the take can resume');
     });
 
     // The whole reason the snapshot exists. Asking whether *any* input is
@@ -149,17 +156,20 @@ void main() {
   });
 
   group('interruptions', () {
+    // Reported as an interruption, not a lost route: on iOS the service ends
+    // the take for one and pauses it for the other.
     test('an interruption beginning compromises capture', () async {
       await session.handleInterruption(
         AudioInterruptionEvent(true, AudioInterruptionType.pause),
       );
 
       expect(compromised, 1);
+      expect(losses.single, CaptureLoss.interruption);
     });
 
-    // Deliberately inert. The take an interruption paused is still paused when
-    // it ends, and it stays that way until the participant resumes it — so
-    // there is nothing to report and nothing to reclaim here. This used to
+    // Deliberately inert. By the time an interruption ends, the take is either
+    // paused waiting for the participant to resume it or already finished —
+    // so there is nothing to report and nothing to reclaim here. This used to
     // reclaim the session and clear the interrupted flag, which took the
     // notice down the moment Siri finished, mid-take.
     test('an interruption ending does nothing', () async {
