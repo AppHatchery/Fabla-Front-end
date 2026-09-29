@@ -1,0 +1,420 @@
+<title>Fabio Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: director's console. The phone stage stays pinned on the left;
+   the right column is the working surface (direct, timeline, edit, ship). */
+:root {
+  --bg: #EDF4FE;
+  --panel: #FFFFFF;
+  --panel-2: #F5F9FF;
+  --ink: #15233B;
+  --muted: #5B6B84;
+  --line: #D5E3F6;
+  --accent: #2F86F6;
+  --accent-strong: #0161DA;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #DCEBFF;
+  --warn: #B45309;
+  --warn-soft: #FEF1DC;
+  --ok: #13795B;
+  --ok-soft: #DDF5EA;
+  --danger: #C72C1E;
+  --t-motion: #2F86F6;
+  --t-face: #E97A26;
+  --t-action: #8A5CF6;
+  --t-look: #1E9E74;
+  --t-fx: #D99A0B;
+  --t-speech: #E4507A;
+  --t-event: #6F7F99;
+  --stage: #D9EAFF;
+  --phone-frame: #15233B;
+  --shadow: 0 1px 2px rgba(21, 35, 59, .06), 0 8px 24px rgba(21, 35, 59, .06);
+  --font-ui: "Rubik", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #09152A; --panel: #0F1F38; --panel-2: #0C1A30; --ink: #E3EDFF; --muted: #93A6C6; --line: #1E3558;
+    --accent: #69ABFE; --accent-strong: #9CC8FF; --accent-ink: #06101F; --accent-soft: #15325A;
+    --warn: #F6B25E; --warn-soft: #3A2A12; --ok: #5FD3A7; --ok-soft: #10332A; --danger: #FF7A6B;
+    --t-motion: #69ABFE; --t-face: #F59A55; --t-action: #A98BFF; --t-look: #4CCB9C; --t-fx: #F2C14E; --t-speech: #FF7FA2; --t-event: #93A6C6;
+    --phone-frame: #02070F; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #09152A; --panel: #0F1F38; --panel-2: #0C1A30; --ink: #E3EDFF; --muted: #93A6C6; --line: #1E3558;
+  --accent: #69ABFE; --accent-strong: #9CC8FF; --accent-ink: #06101F; --accent-soft: #15325A;
+  --warn: #F6B25E; --warn-soft: #3A2A12; --ok: #5FD3A7; --ok-soft: #10332A; --danger: #FF7A6B;
+  --t-motion: #69ABFE; --t-face: #F59A55; --t-action: #A98BFF; --t-look: #4CCB9C; --t-fx: #F2C14E; --t-speech: #FF7FA2; --t-event: #93A6C6;
+  --phone-frame: #02070F; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.25);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--ink); }
+body { font-family: var(--font-ui); font-size: 14px; line-height: 1.45; padding: 0 16px 48px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h2 { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+
+.bar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding-block: 14px; border-bottom: 1px solid var(--line); margin-bottom: 18px;
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg);
+}
+.brand { display: flex; align-items: center; gap: 10px; margin-right: 6px; }
+.brand canvas { width: 34px; height: 34px; }
+.brand h1 { font-size: 19px; font-weight: 700; letter-spacing: -.01em; }
+.brand small { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
+.bar .grow { flex: 1 1 auto; }
+.field-inline { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.field-inline label { font-size: 12px; color: var(--muted); }
+input[type="text"], select, textarea {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; min-width: 0;
+}
+select { padding-right: 28px; }
+#scriptName { width: 200px; font-weight: 500; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--panel);
+  border-radius: 10px; padding: 7px 12px; cursor: pointer; font-weight: 500; white-space: nowrap;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--danger); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn svg { width: 15px; height: 15px; }
+
+.studio { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 22px; align-items: start; }
+.stage-col { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.work-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+@media (max-width: 1020px) {
+  .studio { grid-template-columns: minmax(0, 1fr); }
+  .stage-col { position: static; }
+  .bar { position: static; }
+}
+
+.phone-wrap { position: relative; }
+.phone {
+  width: 390px; height: 844px; transform-origin: top left; position: absolute; left: 0; top: 0;
+  border-radius: 54px; background: var(--stage); overflow: hidden;
+  box-shadow: 0 0 0 10px var(--phone-frame), 0 24px 60px rgba(1, 40, 100, .25);
+}
+.phone canvas { position: absolute; inset: 0; width: 390px; height: 844px; touch-action: none; }
+.phone .island { position: absolute; top: 11px; left: 50%; width: 122px; height: 35px; margin-left: -61px; background: #000; border-radius: 20px; z-index: 3; pointer-events: none; }
+
+/* In-phone mock screens use the Fabla app's own light palette in both themes. */
+.mock { position: absolute; inset: 0; font-family: "Rubik", system-ui, sans-serif; color: #242424; }
+.mock .status { position: absolute; top: 16px; left: 34px; right: 30px; display: flex; justify-content: space-between; font-weight: 600; font-size: 16px; }
+.mock-home { background: #D9EAFF; }
+.mock-home .hello { position: absolute; top: 76px; left: 24px; right: 24px; }
+.mock-home .hello b { display: block; font-size: 26px; font-weight: 600; color: #0147A0; }
+.mock-home .hello span { color: #5C5C5C; font-size: 15px; }
+.mock-home .week { position: absolute; top: 158px; left: 16px; right: 16px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.mock-home .week div { background: #fff; border-radius: 12px; height: 60px; display: grid; place-items: center; font-size: 13px; color: #5C5C5C; }
+.mock-home .week div.on { background: #4396FE; color: #fff; }
+.mock-home .goal { position: absolute; top: 240px; left: 16px; right: 16px; height: 150px; background: #fff; border-radius: 20px; padding: 18px; display: flex; gap: 16px; align-items: center; }
+.mock-home .ring { width: 96px; height: 96px; border-radius: 50%; background: conic-gradient(#4396FE 0 66%, #E5E5E5 66% 100%); display: grid; place-items: center; flex: none; }
+.mock-home .ring i { width: 72px; height: 72px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-style: normal; font-weight: 600; font-size: 20px; color: #0147A0; }
+.mock-home .goal b { font-size: 17px; font-weight: 600; display: block; }
+.mock-home .goal span { color: #5C5C5C; font-size: 14px; }
+.mock-home .card { position: absolute; left: 16px; right: 16px; height: 86px; background: #fff; border-radius: 18px; padding: 16px 18px; }
+.mock-home .card b { display: block; font-weight: 500; }
+.mock-home .card span { color: #A3A3A3; font-size: 13px; }
+.mock-home .rec { position: absolute; bottom: 104px; left: 50%; width: 76px; height: 76px; margin-left: -38px; border-radius: 50%; background: #4396FE; box-shadow: 0 8px 24px rgba(67, 150, 254, .45); display: grid; place-items: center; }
+.mock-home .rec i { width: 22px; height: 34px; border-radius: 11px; background: #fff; }
+.mock-home .nav { position: absolute; bottom: 0; left: 0; right: 0; height: 84px; background: #fff; display: flex; justify-content: space-around; padding-top: 14px; color: #A3A3A3; font-size: 12px; }
+.mock-home .nav span.on { color: #016BEF; font-weight: 500; }
+.mock-rec { background: linear-gradient(180deg, #4396FE, #5B89FF); color: #fff; }
+.mock-rec .q { position: absolute; top: 110px; left: 28px; right: 28px; font-size: 26px; font-weight: 600; line-height: 1.25; }
+.mock-rec .wave { position: absolute; top: 470px; left: 36px; right: 36px; height: 80px; display: flex; align-items: center; gap: 5px; }
+.mock-rec .wave i { flex: 1; background: rgba(255, 255, 255, .8); border-radius: 3px; }
+.mock-rec .timer { position: absolute; top: 580px; width: 100%; text-align: center; font-size: 34px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.mock-rec .stop { position: absolute; bottom: 90px; left: 50%; width: 80px; height: 80px; margin-left: -40px; border-radius: 50%; background: #fff; display: grid; place-items: center; }
+.mock-rec .stop i { width: 28px; height: 28px; border-radius: 6px; background: #C72C1E; }
+.mock-plain { background: #D9EAFF; }
+
+.transport { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 420px; }
+.time { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted); min-width: 118px; text-align: center; }
+.time b { color: var(--ink); font-weight: 500; }
+.icon-btn { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line); background: var(--panel); cursor: pointer; }
+.icon-btn.play { width: 46px; height: 46px; background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.icon-btn svg { width: 18px; height: 18px; }
+.toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.checks { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; max-width: 420px; }
+.check { font-size: 12px; padding: 4px 10px; border-radius: 999px; display: inline-flex; gap: 6px; align-items: center; }
+.check.warn { background: var(--warn-soft); color: var(--warn); }
+.check.ok { background: var(--ok-soft); color: var(--ok); }
+.check::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; box-shadow: var(--shadow); min-width: 0; }
+.panel > header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.panel > header .grow { flex: 1; }
+.hint { color: var(--muted); font-size: 13px; }
+
+/* Direct Fabio */
+.direct textarea { width: 100%; min-height: 76px; resize: vertical; font-size: 15px; line-height: 1.45; padding: 12px 14px; border-radius: 12px; }
+.direct .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg label { padding: 6px 12px; cursor: pointer; font-size: 13px; color: var(--muted); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg input:checked + span { color: var(--ink); font-weight: 500; }
+.seg label:has(input:checked) { background: var(--accent-soft); }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+.examples { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.example { font-size: 12.5px; border: 1px dashed var(--line); background: var(--panel-2); border-radius: 999px; padding: 5px 11px; cursor: pointer; color: var(--muted); text-align: left; }
+.example:hover { border-color: var(--accent); color: var(--ink); }
+.status { font-size: 13px; color: var(--muted); min-height: 1.4em; }
+.status.err { color: var(--danger); }
+.status.good { color: var(--ok); }
+.dots::after { content: ""; animation: dots 1.2s steps(4) infinite; }
+@keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+
+/* Timeline */
+.tl { position: relative; user-select: none; -webkit-user-select: none; }
+.tl-scroll { overflow-x: auto; }
+.tl-inner { min-width: 560px; position: relative; }
+.tl-row { display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: stretch; border-top: 1px solid var(--line); }
+.tl-row:first-child { border-top: 0; }
+.tl-label { display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 12.5px; font-weight: 500; padding-right: 8px; color: var(--muted); }
+.tl-label .sw { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.tl-label span { display: flex; align-items: center; gap: 7px; }
+.tl-add { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; line-height: 1; color: var(--muted); }
+.tl-add:hover { color: var(--accent); border-color: var(--accent); }
+.tl-lane { position: relative; min-height: 34px; }
+.ruler { position: relative; height: 26px; cursor: ew-resize; font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
+.ruler i { position: absolute; bottom: 0; width: 1px; background: var(--line); }
+.ruler em { position: absolute; top: 2px; font-style: normal; transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+.clip {
+  position: absolute; height: 24px; border-radius: 7px; padding: 0 8px; display: flex; align-items: center;
+  font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: grab;
+  background: color-mix(in srgb, var(--c) 18%, var(--panel)); color: var(--ink); border: 1px solid color-mix(in srgb, var(--c) 55%, transparent);
+  border-left: 3px solid var(--c);
+}
+.clip.hold { border-right-style: dashed; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 18%, var(--panel)) 40%, transparent); }
+.clip.point { width: 14px !important; padding: 0; margin-left: -7px; border-radius: 4px; transform: rotate(45deg) scale(.72); border-left-width: 1px; background: var(--c); }
+.clip.sel { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--c); z-index: 2; }
+.clip .rz { position: absolute; right: 0; top: 0; bottom: 0; width: 8px; cursor: ew-resize; }
+.clip:active { cursor: grabbing; }
+.playhead { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--danger); pointer-events: none; z-index: 3; }
+.playhead::before { content: ""; position: absolute; top: 0; left: -5px; border: 6px solid transparent; border-top: 8px solid var(--danger); }
+.tl-foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 1280px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+
+/* Inspector */
+.insp-title { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.insp-title b { font-size: 16px; font-weight: 600; }
+.insp-title .tag { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 6px; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); }
+.insp-title .when { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.chips-label { font-size: 11.5px; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; margin: 10px 0 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { font-size: 12.5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; }
+.chip:hover { border-color: var(--accent); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.code { width: 100%; font-family: var(--font-mono); font-size: 12px; line-height: 1.55; resize: vertical; tab-size: 2; white-space: pre; overflow: auto; }
+#clipJson { min-height: 96px; margin-top: 12px; }
+#scriptJson { min-height: 320px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+
+/* Puppet */
+.puppet-stage { display: grid; place-items: center; background: var(--stage); border-radius: 12px; height: 230px; position: relative; overflow: hidden; }
+.puppet-stage canvas { width: 100%; height: 230px; cursor: pointer; touch-action: none; }
+.puppet-stage .cap { position: absolute; bottom: 8px; left: 12px; font-size: 12px; color: #5C6B84; pointer-events: none; }
+details.more { margin-top: 8px; }
+details.more summary { cursor: pointer; font-size: 12.5px; color: var(--muted); }
+
+/* Prop maker */
+.props-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; }
+@media (max-width: 1280px) { .props-grid { grid-template-columns: minmax(0, 1fr); } }
+.prop-editor { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.prop-editor .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.prop-editor label.f { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+#propName { width: 170px; font-family: var(--font-mono); }
+#propText { width: 110px; font-size: 22px; text-align: center; padding: 4px 8px; }
+#propSvg { min-height: 120px; }
+input[type="color"] { width: 42px; height: 32px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+input[type="range"] { accent-color: var(--accent); }
+.emoji-pick { font-size: 18px; padding: 2px 8px; }
+.prop-preview { position: relative; background: var(--stage); border-radius: 12px; height: 220px; overflow: hidden; }
+.prop-preview canvas { width: 100%; height: 220px; display: block; }
+.prop-preview .cap { position: absolute; bottom: 8px; left: 12px; font-size: 12px; color: #5C6B84; pointer-events: none; }
+.prop-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; }
+.prop-chip canvas { width: 22px; height: 22px; }
+.file-btn { position: relative; overflow: hidden; }
+.file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.draw-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.draw-row input { flex: 1 1 200px; }
+
+/* Code + library */
+.tabs { display: inline-flex; gap: 2px; background: var(--panel-2); border: 1px solid var(--line); padding: 3px; border-radius: 10px; }
+.tabs button { border: 0; background: transparent; padding: 5px 12px; border-radius: 7px; cursor: pointer; font-size: 13px; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--panel); color: var(--ink); font-weight: 500; box-shadow: var(--shadow); }
+pre.snippet { margin: 0; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 14px; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; overflow-x: auto; }
+.lib-list { display: flex; flex-direction: column; }
+.lib-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.lib-item:first-child { border-top: 0; }
+.lib-item b { font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-item small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.lib-item .actions { margin: 0; }
+.toast { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 10px; font-size: 13px; z-index: 20; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (prefers-reduced-motion: reduce) { .dots::after { animation: none; content: "..."; } }
+@media (max-width: 560px) {
+  #scriptName { width: 150px; }
+  .bar .btn span.lbl { display: none; }
+}
+</style>
+
+<header class="bar">
+  <div class="brand"><canvas id="logo" width="68" height="68" aria-hidden="true"></canvas><h1>Fabio Studio<small>Choreography for the Fabla mascot</small></h1></div>
+  <div class="field-inline"><label for="scriptName">Script</label><input type="text" id="scriptName" autocomplete="off"></div>
+  <div class="field-inline"><label for="preset">Open</label><select id="preset"></select></div>
+  <div class="grow"></div>
+  <button class="btn" id="saveLib" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg><span class="lbl">Save to library</span></button>
+  <button class="btn" id="copyJson"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span class="lbl">Copy JSON</span></button>
+  <button class="btn primary" id="exportJson"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v3h16v-3"/></svg><span class="lbl">Export .json</span></button>
+</header>
+
+<main class="studio">
+  <section class="stage-col" aria-label="Preview">
+    <div class="phone-wrap" id="phoneWrap">
+      <div class="phone" id="phone">
+        <div class="mock mock-home" data-backdrop="home">
+          <div class="status"><span>9:41</span><span>100%</span></div>
+          <div class="hello"><b>Good morning</b><span>Your study: Daily voice diary</span></div>
+          <div class="week"><div>M</div><div>T</div><div class="on">W</div><div>T</div><div>F</div><div>S</div><div>S</div></div>
+          <div class="goal"><div class="ring"><i>2/3</i></div><div><b>Today's goal</b><span>One more entry to reach your daily goal.</span></div></div>
+          <div class="card" style="top:408px"><b>Evening check-in</b><span>Prompt · 2 min · due 8:00 PM</span></div>
+          <div class="card" style="top:510px"><b>How did you sleep?</b><span>Prompt · 1 min · completed</span></div>
+          <div class="rec"><i></i></div>
+          <div class="nav"><span class="on">Home</span><span>Diaries</span><span>Hub</span><span>Settings</span></div>
+        </div>
+        <div class="mock mock-rec" data-backdrop="recording" hidden>
+          <div class="status"><span>9:41</span><span>100%</span></div>
+          <div class="q">What was the best part of your day?</div>
+          <div class="wave" id="recWave"></div>
+          <div class="timer">00:42</div>
+          <div class="stop"><i></i></div>
+        </div>
+        <div class="mock mock-plain" data-backdrop="plain" hidden></div>
+        <canvas id="stage" aria-label="Fabio stage preview. Drag handles to edit the selected motion path."></canvas>
+        <div class="island"></div>
+      </div>
+    </div>
+    <div class="transport">
+      <button class="icon-btn" id="restart" title="Restart" aria-label="Restart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6"/><path d="M4.5 15a8 8 0 1 0 1.9-8.3L4 10"/></svg></button>
+      <button class="icon-btn play" id="play" title="Play or pause (Space)" aria-label="Pause"></button>
+      <div class="time" id="time"><b>0.00</b> / 0.00 s</div>
+      <label class="toggle"><input type="checkbox" id="loop" checked> Loop</label>
+      <select id="speed" aria-label="Playback speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select>
+      <select id="backdrop" aria-label="Screen behind Fabio"><option value="home">Home screen</option><option value="recording">Recording</option><option value="plain">Plain</option></select>
+    </div>
+    <div class="checks" id="checks" aria-live="polite"></div>
+  </section>
+
+  <section class="work-col">
+    <div class="panel direct">
+      <header><h2>Direct Fabio</h2><div class="grow"></div>
+        <div class="seg" role="radiogroup" aria-label="What to generate">
+          <label><input type="radio" name="gmode" value="new" checked><span>New script</span></label>
+          <label><input type="radio" name="gmode" value="edit"><span>Change this script</span></label>
+        </div>
+      </header>
+      <textarea id="prompt" placeholder="Describe a performance. Example: Fabio swoops in from the top left, does a loop around the goal ring, then cheers while confetti rains down."></textarea>
+      <div class="row">
+        <button class="btn primary" id="generate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.8 4.9L19 9.7l-4.3 3.1L16 18l-4-2.8L8 18l1.3-5.2L5 9.7l5.2-1.8z"/></svg>Generate</button>
+        <button class="btn" id="stopGen" hidden>Stop</button>
+        <span class="status" id="genStatus" aria-live="polite"></span>
+      </div>
+      <div class="examples" id="examples"></div>
+    </div>
+
+    <div class="panel">
+      <header><h2>Timeline</h2><div class="grow"></div><span class="hint">Drag clips to retime, drag the right edge to resize, click the ruler to scrub.</span></header>
+      <div class="tl-scroll"><div class="tl tl-inner" id="timeline"></div></div>
+      <div class="tl-foot"><span class="hint" id="tlSummary"></span><span class="hint">Space play/pause · Delete removes the selected clip</span></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel" id="inspector"></div>
+      <div class="panel">
+        <header><h2>Puppet</h2><div class="grow"></div><label class="toggle"><input type="checkbox" id="record"> Add to script at playhead</label></header>
+        <div class="puppet-stage"><canvas id="puppet" aria-label="Close-up Fabio. Click him to get a reaction."></canvas><span class="cap">Close-up · click him, move your pointer</span></div>
+        <div class="chips-label">Expression</div><div class="chips" id="pExpr"></div>
+        <div class="chips-label">Gesture</div><div class="chips" id="pGest"></div>
+        <details class="more"><summary>Props</summary><div class="chips" id="pProp" style="margin-top:8px"></div></details>
+      </div>
+    </div>
+
+    <div class="panel" id="propsPanel">
+      <header><h2>Prop maker</h2><div class="grow"></div><span class="hint">New props live inside the script JSON, so the app plays them without a release.</span></header>
+      <div class="props-grid">
+        <div class="prop-editor">
+          <div class="row">
+            <label class="f" for="propName">Name<input type="text" id="propName" autocomplete="off" placeholder="balloon"></label>
+            <div class="seg" role="radiogroup" aria-label="Prop kind" style="align-self:flex-end">
+              <label><input type="radio" name="pkind" value="glyph" checked><span>Emoji or text</span></label>
+              <label><input type="radio" name="pkind" value="vector"><span>Vector</span></label>
+            </div>
+          </div>
+          <div id="glyphFields">
+            <div class="row"><input type="text" id="propText" maxlength="8" aria-label="Emoji or text" value="🎈"><span class="hint">Any emoji or up to 8 characters. Plain text takes the color below.</span></div>
+            <div class="chips" id="emojiPicks" style="margin-top:8px"></div>
+          </div>
+          <div id="vectorFields" hidden>
+            <textarea class="code" id="propSvg" spellcheck="false" aria-label="SVG markup or path data" placeholder='Paste SVG markup from Figma, or bare path data like M12 2 L22 22 H2 Z. fill="currentColor" takes the prop color.'></textarea>
+            <div class="row" style="margin-top:8px">
+              <span class="btn file-btn">Import .svg<input type="file" id="propFile" accept=".svg,image/svg+xml" aria-label="Import an SVG file"></span>
+              <span class="hint">Starters:</span><span class="chips" id="vectorStarters"></span>
+            </div>
+            <div class="draw-row" style="margin-top:10px">
+              <input type="text" id="propIdea" placeholder="Describe a prop, e.g. a tiny paper airplane" aria-label="Describe a prop for Claude to draw">
+              <button class="btn" id="drawProp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.8 4.9L19 9.7l-4.3 3.1L16 18l-4-2.8L8 18l1.3-5.2L5 9.7l5.2-1.8z"/></svg>Draw with Claude</button>
+            </div>
+          </div>
+          <div><div class="chips-label">How it moves</div><div class="chips" id="physChips"></div>
+            <p class="hint" style="margin:6px 0 0">A clip's mode decides where props spawn. This decides how they move afterwards, in every mode.</p></div>
+          <div class="row">
+            <label class="f" for="propColor">Color<input type="color" id="propColor" value="#4396fe"></label>
+            <label class="f" for="propSize">Size <span id="propSizeVal">1.0×</span><input type="range" id="propSize" min="0.5" max="3" step="0.1" value="1"></label>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="addProp">Add to script</button>
+            <button class="btn" id="addPropClip">Add and drop at playhead</button>
+            <button class="btn" id="saveProp" hidden>Save to team props</button>
+            <button class="btn danger" id="delProp" hidden>Remove from script</button>
+          </div>
+          <div class="status" id="propStatus" aria-live="polite"></div>
+        </div>
+        <div>
+          <div class="prop-preview"><canvas id="propCanvas" aria-label="Prop preview"></canvas><span class="cap">Live preview at app size · click to replay</span></div>
+          <div class="chips-label">In this script</div><div class="chips" id="scriptProps"></div>
+          <div class="chips-label" id="teamPropsLabel" hidden>Team props</div><div class="chips" id="teamProps"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <header><h2>Hand off</h2><div class="grow"></div>
+        <div class="tabs" role="tablist"><button role="tab" id="tabJson" aria-selected="true">Script JSON</button><button role="tab" id="tabDart" aria-selected="false">Use in Flutter</button></div>
+      </header>
+      <div id="paneJson"><textarea class="code" id="scriptJson" spellcheck="false" aria-label="Script JSON"></textarea><div class="status" id="jsonStatus"></div></div>
+      <div id="paneDart" hidden><pre class="snippet" id="dartSnippet"></pre><div class="actions"><button class="btn" id="copyDart">Copy snippet</button></div></div>
+    </div>
+
+    <div class="panel" id="libraryPanel">
+      <header><h2>Team library</h2><div class="grow"></div><span class="hint" id="libHint">Connecting…</span></header>
+      <div class="lib-list" id="library"></div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" hidden role="status"></div>
