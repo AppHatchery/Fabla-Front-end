@@ -70,8 +70,8 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
           prompt.responseType == ResponseType.image ||
           prompt.responseType == ResponseType.video ||
           prompt.responseType == ResponseType.imageVideo) {
-        _addFileData(experiment.login, prompt, participantID, diary, study, dir,
-            files, references);
+        await addFileData(experiment.login, prompt, participantID, diary, study,
+            dir, files, references);
 
         // If the prompt is textAudio and has a text response, add the text response
         if (prompt.responseType == ResponseType.textAudio &&
@@ -106,19 +106,33 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
     promptEntryList.addAll(
         references); // Adding the references to the list going to Dynamo
 
+    final missingFileCount = references
+        .where((r) => r.reference == PromptEntry.missingFileReference)
+        .length;
+
     CrashlyticsService().setCustomKeys({
       'submitting_diary': diary.name.toString(),
       'submitting_diary_id': diary.id.toString(),
       'submitting_participant_id': participantID,
       'submitting_entry': diary.currentEntry.toString(),
       'submitting_file_count': files.length.toString(),
+      'submitting_missing_file_count': missingFileCount.toString(),
     });
+
+    // Recorded after the keys above so the non-fatal carries them. A log alone
+    // would never be sent, because this submission is expected to succeed.
+    if (missingFileCount > 0) {
+      CrashlyticsService().recordError(
+          StateError('Recording files missing at upload'), StackTrace.current,
+          reason: 'Skipped recordings with no file on disk in upload');
+    }
 
     await PendoService.track('Submission Started', {
       'Diary': diary.name.toString(),
       'DiaryID': diary.id.toString(),
       'Entry': diary.currentEntry.toString(),
       'FileCount': files.length.toString(),
+      'MissingFileCount': missingFileCount.toString(),
       'HasFiles': files.isNotEmpty.toString(),
     });
 
@@ -147,7 +161,11 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
   }
 }
 
-void _addFileData(
+/// Queues each of [prompt]'s recordings for S3 and adds its Dynamo reference
+/// row. A recording whose file is gone gets no [FileData] and a
+/// [PromptEntry.missingFileReference] reference, so it cannot fail the upload.
+@visibleForTesting
+Future<void> addFileData(
   String experimentCode,
   PromptModel prompt,
   String participantID,
@@ -155,47 +173,70 @@ void _addFileData(
   StudyModel? study,
   Directory dir,
   List<FileData> files,
-  List<PromptEntry> references,
-) {
+  List<PromptEntry> references, {
+  Future<bool> Function(String path) fileExists = _fileExists,
+}) async {
   final recordings = prompt.answer?.recordings;
-  final data = <FileData>[];
+  if (recordings == null) return;
 
-  if (recordings != null) {
-    for (final record in recordings) {
+  // A copy, because the loop now awaits and the relation must not change
+  // under it.
+  for (final record in List.of(recordings)) {
+    final localPath = p.join(dir.path, record.path);
+    var reference = PromptEntry.missingFileReference;
+
+    if (await _isOnDisk(localPath, fileExists)) {
       final formattedTime = DateFormat('HH-mm-ss').format(DateTime.now());
-      String localPath = p.join(dir.path, record.path);
-      String filename =
-          "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}${p.extension(localPath)}";
-      String folder = '${capitalizeFirstLetter(record.type)}s';
+      // Shared by the S3 filename and the Dynamo reference so they match.
+      reference =
+          "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}";
+      final folder = '${capitalizeFirstLetter(record.type)}s';
 
-      final awsPath = "$experimentCode/$folder/$filename";
-      final fileData =
-          FileData(localDirectory: localPath, awsS3Directory: awsPath);
-      data.add(fileData);
-
-      // Adding references for audio question for transcription
-      // if (record.type == 'audio') {
-      references.add(
-        PromptEntry(
-            participantID: participantID,
-            experimentCode: experimentCode,
-            questionTitle: prompt.question,
-            diaryID: diary.id.toString(),
-            promptID: prompt.id.toString(),
-            diaryName: diary.name,
-            study: study?.name ?? "",
-            response: "",
-            respondedAt: record.date.toIso8601String(),
-            questionsType: responseTypeValue(prompt.responseType),
-            required: prompt.required,
-            reference:
-                "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}"),
-      );
-      // }
+      files.add(FileData(
+          localDirectory: localPath,
+          awsS3Directory:
+              "$experimentCode/$folder/$reference${p.extension(localPath)}"));
+    } else {
+      dev.log('Skipping missing ${record.type} file: ${record.path}',
+          name: 'Upload - Add File Data');
+      CrashlyticsService().log(
+          'Upload skipped missing ${record.type} recording ${record.id} (prompt ${prompt.id}): ${record.path}');
     }
-  }
 
-  files.addAll(data);
+    // Adding references for audio question for transcription
+    references.add(
+      PromptEntry(
+          participantID: participantID,
+          experimentCode: experimentCode,
+          questionTitle: prompt.question,
+          diaryID: diary.id.toString(),
+          promptID: prompt.id.toString(),
+          diaryName: diary.name,
+          study: study?.name ?? "",
+          response: "",
+          respondedAt: record.date.toIso8601String(),
+          questionsType: responseTypeValue(prompt.responseType),
+          required: prompt.required,
+          reference: reference),
+    );
+  }
+}
+
+Future<bool> _fileExists(String path) => File(path).exists();
+
+/// A check that throws counts as present. Calling a real file missing would
+/// drop it for good once the upload succeeds, while calling a missing file
+/// present only fails this upload in [uploadFileToS3], which can be retried.
+Future<bool> _isOnDisk(
+    String path, Future<bool> Function(String path) fileExists) async {
+  try {
+    return await fileExists(path);
+  } catch (e, s) {
+    CrashlyticsService().recordError(e, s,
+        context: {'file_path': path},
+        reason: 'Checking a recording on disk failed in addFileData');
+    return true;
+  }
 }
 
 void _addPromptEntry(
@@ -565,6 +606,10 @@ class FileData {
 ///Class representing audio entry in the dynamo db once an object is created
 ///
 class PromptEntry {
+  /// Sent as [reference] for a recording whose file was gone at upload. The
+  /// row still shows the prompt was answered; S3 gets nothing for it.
+  static const missingFileReference = 'null';
+
   String participantID;
   String experimentCode;
   String questionTitle;
