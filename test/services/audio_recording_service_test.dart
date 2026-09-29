@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/services/audio_recording_service.dart';
+import 'package:audio_diaries_flutter/services/audio_segment_merger.dart';
 import 'package:audio_diaries_flutter/services/recording_audio_session.dart';
 import 'package:audio_diaries_flutter/services/recording_foreground_service.dart';
 import 'package:flutter/foundation.dart';
@@ -90,6 +91,39 @@ class _FakeForegroundService implements RecordingForegroundService {
   }
 }
 
+/// Plays the native join: writes the segments' bytes, in order, into the
+/// output, the way AVAssetExportSession would leave one file holding all of
+/// them.
+///
+/// Injected because the real one talks to AppDelegate.swift, which is not
+/// here. Records each call in the shared [calls] list, so a test can see the
+/// join happen after the last stop.
+class _FakeSegmentMerger implements AudioSegmentMerger {
+  _FakeSegmentMerger({required this.calls});
+
+  final List<String> calls;
+
+  /// What each join was asked to put together, in call order.
+  final List<List<String>> merged = [];
+
+  /// Whether the join works. `false` is the export failing on the device.
+  bool succeeds = true;
+
+  @override
+  Future<String?> merge(List<String> segments, {required String output}) async {
+    calls.add('merger.merge');
+    merged.add(List.of(segments));
+
+    if (!succeeds) return null;
+
+    File(output).writeAsBytesSync([
+      for (final segment in segments) ...File(segment).readAsBytesSync(),
+    ]);
+
+    return output;
+  }
+}
+
 /// The real session, with the answer to `activate()` settable from a test.
 ///
 /// Activation cannot be made to fail at the stubbed channel. Off a real iOS or
@@ -120,7 +154,7 @@ void main() {
       expect(state.isInterrupted, isFalse);
       expect(state.hasTake, isFalse);
       expect(state.takeWasEmpty, isFalse);
-      expect(state.takeWasInterrupted, isFalse);
+      expect(state.joinFailed, isFalse);
       expect(state.microphoneUnavailable, isFalse);
       expect(state.isRecording, isFalse);
       expect(state.isPaused, isFalse);
@@ -209,22 +243,14 @@ void main() {
       expect(interrupted.copyWith(isInterrupted: false).isInterrupted, isFalse);
     });
 
-    test('copyWith carries and clears an interrupted finished take', () {
-      const endedByInterruption = AudioRecordingState(
-        hasTake: true,
-        takeWasInterrupted: true,
+    test('copyWith carries and clears a failed join', () {
+      const joinFailed = AudioRecordingState(
+        status: AudioRecordingStatus.paused,
+        joinFailed: true,
       );
 
-      expect(
-          endedByInterruption
-              .copyWith(elapsed: Duration.zero)
-              .takeWasInterrupted,
-          isTrue);
-      expect(
-          endedByInterruption
-              .copyWith(takeWasInterrupted: false)
-              .takeWasInterrupted,
-          isFalse);
+      expect(joinFailed.copyWith(elapsed: Duration.zero).joinFailed, isTrue);
+      expect(joinFailed.copyWith(joinFailed: false).joinFailed, isFalse);
     });
 
     // Value equality is what lets the ValueNotifier behind
@@ -255,9 +281,8 @@ void main() {
       expect(base, isNot(base.copyWith(isInterrupted: true)));
       expect(base, isNot(base.copyWith(hasTake: true)));
       expect(base, isNot(base.copyWith(takeWasEmpty: true)));
-      expect(base, isNot(base.copyWith(takeWasInterrupted: true)));
-      expect(base.hashCode,
-          isNot(base.copyWith(takeWasInterrupted: true).hashCode));
+      expect(base, isNot(base.copyWith(joinFailed: true)));
+      expect(base.hashCode, isNot(base.copyWith(joinFailed: true).hashCode));
       expect(base, isNot(base.copyWith(microphoneUnavailable: true)));
       expect(base.hashCode,
           isNot(base.copyWith(microphoneUnavailable: true).hashCode));
@@ -594,6 +619,9 @@ void main() {
     /// alongside the recorder's and the order between them can be read off.
     late _FakeForegroundService foregroundService;
 
+    /// The native join, so a take recorded in segments can be stopped here.
+    late _FakeSegmentMerger segmentMerger;
+
     /// What `RecordingAudioSession` would call when the route or the focus
     /// goes. Captured through the injected factory, because the handler behind
     /// it is private and there is no live audio system here to trigger it.
@@ -620,10 +648,12 @@ void main() {
       platformCalls = [];
       activationSucceeds = true;
       foregroundService = _FakeForegroundService(calls: platformCalls);
+      segmentMerger = _FakeSegmentMerger(calls: platformCalls);
 
       service = AudioRecordingService(
         promptId: 0,
         foregroundService: foregroundService,
+        segmentMerger: segmentMerger,
         // The real session, harmless against the stubbed channel, with only
         // activation made answerable. The factory is also here to catch the
         // handler it is built with, which is the only way in to the
@@ -1030,7 +1060,7 @@ void main() {
       expect(service.state.value.microphoneUnavailable, isFalse);
     });
 
-    // Android only in practice: iOS ends an interrupted take instead.
+    // Android: on iOS the interruption seals the segment instead (below).
     test('an interrupted take stays paused if the session will not come back',
         () async {
       await startTake();
@@ -1047,81 +1077,284 @@ void main() {
       expect(service.state.value.isPaused, isTrue);
       expect(service.state.value.isInterrupted, isTrue,
           reason: 'still waiting to be resumed');
+      expect(service.state.value.microphoneUnavailable, isTrue,
+          reason: 'the tap did nothing, and the sheet has to say why');
 
       activationSucceeds = true;
       await service.record();
 
       expect(platformCalls, contains('recorder.resumeRecorder'));
       expect(service.state.value.isRecording, isTrue);
+      expect(service.state.value.microphoneUnavailable, isFalse);
     });
 
     // ----------------------------------------------------------------
-    // iOS: an interruption ends the take
+    // iOS: an interruption splits the take into segments
     // ----------------------------------------------------------------
     //
     // flutter_sound records on iOS through one AVAudioRecorder, which iOS
     // stops rather than pauses when Siri or a call interrupts it, without the
     // plugin noticing. Resuming then calls `record` on a stopped recorder,
     // which erases the file: only what was said after the resume survived.
-    // These pin the response. The native stop itself cannot be reproduced
-    // here.
+    // So the interrupted segment is stopped and kept, resuming records a new
+    // one, and stop joins them. The native stop and the native join cannot be
+    // reproduced here; the fake merger stands in for the second.
     // ----------------------------------------------------------------
     group('on iOS', () {
       setUp(() => debugDefaultTargetPlatformOverride = TargetPlatform.iOS);
 
-      test('an interruption ends the take and keeps what it captured',
-          () async {
+      /// Starts a take and marks its first segment's bytes, so a join can be
+      /// read back off the disk.
+      Future<String> startMarkedTake() async {
         await startTake();
+        final first = startedPath!;
+        File(first).writeAsBytesSync([1, 1]);
+        return first;
+      }
+
+      /// Resumes a sealed take and marks the new segment's bytes.
+      Future<String> resumeMarked(List<int> bytes) async {
+        await service.record();
+        expect(service.state.value.isRecording, isTrue,
+            reason: 'the resume must be running before the test acts on it');
+        final next = startedPath!;
+        File(next).writeAsBytesSync(bytes);
+        return next;
+      }
+
+      test('an interruption keeps the segment and leaves the take paused',
+          () async {
+        final first = await startMarkedTake();
         platformCalls.clear();
 
         await captureCompromised(CaptureLoss.interruption);
 
         expect(platformCalls, contains('recorder.stopRecorder'));
         expect(platformCalls, isNot(contains('recorder.pauseRecorder')),
-            reason: 'a paused take would be resumed into an erased file');
+            reason: 'pausing is what iOS undoes behind the plugin');
 
         final state = service.state.value;
-        expect(state.hasCompletedTake, isTrue);
-        expect(state.takeWasInterrupted, isTrue);
-        expect(state.isInterrupted, isFalse,
-            reason: 'there is no resume button to point at');
-
-        expect((await service.save()).path, startedPath);
+        expect(state.isPaused, isTrue);
+        expect(state.isInterrupted, isTrue,
+            reason: 'the sheet points at the resume button');
+        expect(state.hasCompletedTake, isFalse);
+        expect(File(first).readAsBytesSync(), [1, 1]);
       });
 
-      test('a tap after the interruption does not resume the ended take',
+      test('resuming records a new segment instead of the stopped recorder',
           () async {
+        final first = await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        platformCalls.clear();
+
+        final second = await resumeMarked([2, 2]);
+
+        expect(platformCalls, isNot(contains('recorder.resumeRecorder')),
+            reason: 'resuming the stopped recorder erases the first segment');
+        // activate() configures the session first; setActive itself never
+        // reaches the channel off a device (see _ControllableSession).
+        expect(platformCalls, contains('session.setConfiguration'),
+            reason: 'the interruption took the session');
+        expect(second, isNot(first));
+        expect(p.dirname(second), p.dirname(first));
+        expect(service.state.value.isInterrupted, isFalse);
+        expect(File(first).readAsBytesSync(), [1, 1],
+            reason: 'the first segment is untouched by the resume');
+      });
+
+      test('stop joins the segments into the take\'s own file, in order',
+          () async {
+        final first = await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        final second = await resumeMarked([2, 2]);
+
+        expect(await service.stop(), isTrue);
+
+        expect(segmentMerger.merged, [
+          [first, second]
+        ]);
+        expect(service.state.value.hasCompletedTake, isTrue);
+
+        final result = await service.save();
+        expect(result.outcome, RecordingSaveOutcome.saved);
+        expect(result.path, first,
+            reason: 'a split take is saved under the name it started with');
+        expect(File(first).readAsBytesSync(), [1, 1, 2, 2]);
+        expect(File(second).existsSync(), isFalse,
+            reason: 'the joined file replaces the segments');
+      });
+
+      test('several interruptions join every segment', () async {
+        final first = await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        final second = await resumeMarked([2]);
+        await captureCompromised(CaptureLoss.interruption);
+        final third = await resumeMarked([3]);
+
+        await service.stop();
+
+        expect(segmentMerger.merged.single, [first, second, third]);
+        expect(File(first).readAsBytesSync(), [1, 1, 2, 3]);
+      });
+
+      test('a take never interrupted is not joined', () async {
+        final first = await startMarkedTake();
+
+        await service.stop();
+
+        expect(platformCalls, isNot(contains('merger.merge')));
+        expect((await service.save()).path, first);
+      });
+
+      test('stopping while interrupted keeps the one segment as the take',
+          () async {
+        final first = await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        platformCalls.clear();
+
+        expect(await service.stop(), isTrue);
+
+        expect(platformCalls, isNot(contains('recorder.stopRecorder')),
+            reason: 'the segment was already stopped by the interruption');
+        expect(platformCalls, isNot(contains('merger.merge')));
+        expect((await service.save()).path, first);
+      });
+
+      test('a failed join keeps every segment and lets stop try again',
+          () async {
+        final first = await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        final second = await resumeMarked([2, 2]);
+        segmentMerger.succeeds = false;
+
+        expect(await service.stop(), isFalse);
+
+        final state = service.state.value;
+        expect(state.joinFailed, isTrue);
+        expect(state.isPaused, isTrue);
+        expect(state.hasCompletedTake, isFalse);
+        expect(File(first).existsSync(), isTrue);
+        expect(File(second).existsSync(), isTrue);
+
+        segmentMerger.succeeds = true;
+        platformCalls.clear();
+
+        expect(await service.stop(), isTrue);
+
+        expect(platformCalls, isNot(contains('recorder.stopRecorder')));
+        expect(service.state.value.joinFailed, isFalse);
+        expect(File(first).readAsBytesSync(), [1, 1, 2, 2]);
+      });
+
+      test('a take whose join failed can be resumed into another segment',
+          () async {
+        final first = await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        final second = await resumeMarked([2]);
+        segmentMerger.succeeds = false;
+        await service.stop();
+
+        segmentMerger.succeeds = true;
+        final third = await resumeMarked([3]);
+        expect(service.state.value.joinFailed, isFalse);
+
+        await service.stop();
+
+        expect(segmentMerger.merged.last, [first, second, third]);
+        expect(File(first).readAsBytesSync(), [1, 1, 2, 3]);
+      });
+
+      test('an empty segment is dropped from the join', () async {
+        final first = await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+
+        encoderWritesFile = false;
+        await service.record();
+        await captureCompromised(CaptureLoss.interruption);
+
+        encoderWritesFile = true;
+        final third = await resumeMarked([3]);
+
+        await service.stop();
+
+        expect(segmentMerger.merged.single, [first, third]);
+      });
+
+      test('a take whose only audio came after an empty first segment is kept',
+          () async {
+        encoderWritesFile = false;
+        await startTake();
+        final base = startedPath!;
+        await captureCompromised(CaptureLoss.interruption);
+
+        encoderWritesFile = true;
+        final second = await resumeMarked([2]);
+
+        expect(await service.stop(), isTrue);
+
+        expect(platformCalls, isNot(contains('merger.merge')));
+        expect((await service.save()).path, base,
+            reason: 'moved to the base name like any other take');
+        expect(File(base).readAsBytesSync(), [2]);
+        expect(File(second).existsSync(), isFalse);
+      });
+
+      test('a take in which every segment came back empty reports empty',
+          () async {
+        encoderWritesFile = false;
+        encoderLeavesEmptyFile = true;
+
         await startTake();
         await captureCompromised(CaptureLoss.interruption);
+        await service.stop();
+
+        expect(service.state.value.takeWasEmpty, isTrue);
+        expect(service.state.value.hasCompletedTake, isFalse);
+        expect(platformCalls, isNot(contains('merger.merge')));
+      });
+
+      test('a refused session on resume keeps the take paused and says why',
+          () async {
+        final first = await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        activationSucceeds = false;
         platformCalls.clear();
 
         await service.record();
 
-        expect(platformCalls, isNot(contains('recorder.resumeRecorder')));
         expect(platformCalls, isNot(contains('recorder.startRecorder')));
-        expect(service.state.value.hasCompletedTake, isTrue);
+        expect(service.state.value.isPaused, isTrue);
+        expect(service.state.value.microphoneUnavailable, isTrue);
+        expect(File(first).readAsBytesSync(), [1, 1]);
+
+        activationSucceeds = true;
+        await resumeMarked([2]);
+
+        expect(service.state.value.microphoneUnavailable, isFalse);
       });
 
-      test('a tap racing the interruption never starts a second take',
+      test('a recorder that will not start the next segment stays paused',
           () async {
-        await startTake();
+        final first = await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        startRecorderFails = true;
 
-        await Future.wait([
-          captureCompromised(CaptureLoss.interruption),
-          service.record(),
-        ]);
         await service.record();
 
-        expect(platformCalls.where((call) => call == 'recorder.startRecorder'),
-            hasLength(1));
-        expect(platformCalls, isNot(contains('recorder.resumeRecorder')));
-        expect(service.state.value.hasCompletedTake, isTrue);
+        expect(service.state.value.isPaused, isTrue);
+        expect(File(first).readAsBytesSync(), [1, 1]);
+
+        startRecorderFails = false;
+        final second = await resumeMarked([2]);
+        await service.stop();
+
+        expect(segmentMerger.merged.single, [first, second]);
       });
 
-      // Resuming a paused take is exactly what erases the file, so a take the
-      // participant had paused is ended too.
-      test('a paused take is ended by an interruption too', () async {
-        await startTake();
+      // iOS stops a paused recorder on an interruption too, and resuming it
+      // is exactly what erases the file.
+      test('a paused take is sealed by an interruption too', () async {
+        final first = await startMarkedTake();
         await service.record();
         expect(service.state.value.isPaused, isTrue);
         platformCalls.clear();
@@ -1129,11 +1362,41 @@ void main() {
         await captureCompromised(CaptureLoss.interruption);
 
         expect(platformCalls, contains('recorder.stopRecorder'));
-        expect(service.state.value.hasCompletedTake, isTrue);
-        expect(service.state.value.takeWasInterrupted, isTrue);
+        expect(service.state.value.isInterrupted, isTrue);
+
+        final second = await resumeMarked([2]);
+        await service.stop();
+
+        expect(segmentMerger.merged.single, [first, second]);
       });
 
-      test('an interruption during a start ends the take once it lands',
+      test('a second interruption while sealed changes nothing', () async {
+        await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        platformCalls.clear();
+
+        await captureCompromised(CaptureLoss.interruption);
+
+        expect(platformCalls, isNot(contains('recorder.stopRecorder')));
+        expect(service.state.value.isInterrupted, isTrue);
+      });
+
+      test('a tap racing the interruption never starts a second take',
+          () async {
+        final first = await startMarkedTake();
+
+        await Future.wait([
+          captureCompromised(CaptureLoss.interruption),
+          service.record(),
+        ]);
+        await service.stop();
+
+        expect(platformCalls, isNot(contains('recorder.resumeRecorder')));
+        expect(service.state.value.hasCompletedTake, isTrue);
+        expect((await service.save()).path, first);
+      });
+
+      test('an interruption during a start seals the segment once it lands',
           () async {
         final (starting, gate) = await startTakeHeldMidway();
 
@@ -1144,8 +1407,8 @@ void main() {
         await issue;
 
         expect(platformCalls, contains('recorder.stopRecorder'));
-        expect(service.state.value.hasCompletedTake, isTrue);
-        expect(service.state.value.takeWasInterrupted, isTrue);
+        expect(service.state.value.isPaused, isTrue);
+        expect(service.state.value.isInterrupted, isTrue);
       });
 
       test('a lost route still pauses, because the recorder survives it',
@@ -1159,7 +1422,10 @@ void main() {
         expect(platformCalls, isNot(contains('recorder.stopRecorder')));
         expect(service.state.value.isPaused, isTrue);
         expect(service.state.value.isInterrupted, isTrue);
-        expect(service.state.value.takeWasInterrupted, isFalse);
+
+        await service.record();
+
+        expect(platformCalls, contains('recorder.resumeRecorder'));
       });
 
       test('an interruption with no take running changes nothing', () async {
@@ -1171,31 +1437,30 @@ void main() {
         expect(service.state.value, const AudioRecordingState());
       });
 
-      test('the reason outlives the stop, and clears on discard and retake',
-          () async {
-        await startTake();
+      test('the elapsed count carries on across segments', () async {
+        await startMarkedTake();
         await captureCompromised(CaptureLoss.interruption);
-        expect(service.state.value.takeWasInterrupted, isTrue);
+        final before = service.state.value.elapsed;
 
-        await service.discardTake();
-        expect(service.state.value.takeWasInterrupted, isFalse);
+        await resumeMarked([2]);
 
-        await service.record();
-        expect(service.state.value.isRecording, isTrue);
-        expect(service.state.value.takeWasInterrupted, isFalse);
+        expect(service.state.value.elapsed, before,
+            reason: 'a resumed take does not start again from 00:00');
       });
 
-      test('an interrupted take that captured nothing reports empty', () async {
-        encoderWritesFile = false;
-        encoderLeavesEmptyFile = true;
-
-        await startTake();
+      test('discarding a take whose join failed deletes every segment',
+          () async {
+        final first = await startMarkedTake();
         await captureCompromised(CaptureLoss.interruption);
+        final second = await resumeMarked([2]);
+        segmentMerger.succeeds = false;
+        await service.stop();
 
-        expect(service.state.value.takeWasEmpty, isTrue);
-        expect(service.state.value.takeWasInterrupted, isFalse,
-            reason: 'there is nothing to save, and that is the news');
-        expect(service.state.value.hasCompletedTake, isFalse);
+        await service.discardTake();
+
+        expect(File(first).existsSync(), isFalse);
+        expect(File(second).existsSync(), isFalse);
+        expect(service.state.value.joinFailed, isFalse);
       });
     });
 
@@ -1404,6 +1669,27 @@ void main() {
     // failed its check — here, opened and never written to. Redo used to
     // delete the located take and drop the reference to the placeholder
     // without deleting it, leaving an empty .m4a nothing points at.
+    // A take that was never split is saved wherever the recorder says the
+    // audio landed. Only a take split by an iOS interruption is moved to the
+    // name it started with, so Android's save path is what it always was.
+    test('a take never split is saved at the reported path, not moved',
+        () async {
+      encoderWritesFile = false;
+      encoderLeavesEmptyFile = true;
+
+      final elsewhere = File(p.join(documents.path, 'audios', 'elsewhere.m4a'));
+      reportedStopPath = (_) => elsewhere.path;
+
+      await startTake();
+      elsewhere.writeAsBytesSync([1, 2, 3, 4]);
+
+      expect(await service.stop(), isTrue);
+
+      expect((await service.save()).path, elsewhere.path);
+      expect(elsewhere.readAsBytesSync(), [1, 2, 3, 4]);
+      expect(platformCalls, isNot(contains('merger.merge')));
+    });
+
     test('discarding a take also deletes the placeholder it never wrote to',
         () async {
       encoderWritesFile = false;

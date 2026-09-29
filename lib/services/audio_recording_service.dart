@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart'
     show formatDate;
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/services/audio_segment_merger.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/recording_audio_session.dart';
 import 'package:audio_diaries_flutter/services/recording_foreground_service.dart';
@@ -23,7 +24,7 @@ class AudioRecordingState {
     this.isInterrupted = false,
     this.hasTake = false,
     this.takeWasEmpty = false,
-    this.takeWasInterrupted = false,
+    this.joinFailed = false,
     this.microphoneUnavailable = false,
   });
 
@@ -45,13 +46,14 @@ class AudioRecordingState {
 
   final bool takeWasEmpty;
 
-  /// Whether this finished take was ended by an audio interruption rather than
-  /// by the participant. iOS only: see [AudioRecordingService].
+  /// Whether the last stop could not join the take's segments into one file.
+  /// iOS only, since only an interruption there splits a take: see
+  /// [AudioRecordingService].
   ///
-  /// A fact about the finished take, like [takeWasEmpty]. Set together with
-  /// [hasTake] and deliberately outlives the stop, so the sheet can say why the
-  /// take ended. Cleared by a discard or a fresh take.
-  final bool takeWasInterrupted;
+  /// Nothing is lost. The take stays paused with every segment on disk, so
+  /// the participant can stop again to retry the join, or resume and carry
+  /// on. Cleared by a successful stop, a resume, a discard or a fresh take.
+  final bool joinFailed;
 
   /// Whether the last attempt to start a take was refused because the audio
   /// system would not hand over the microphone, most often because a call
@@ -80,7 +82,7 @@ class AudioRecordingState {
     bool? isInterrupted,
     bool? hasTake,
     bool? takeWasEmpty,
-    bool? takeWasInterrupted,
+    bool? joinFailed,
     bool? microphoneUnavailable,
   }) {
     return AudioRecordingState(
@@ -89,7 +91,7 @@ class AudioRecordingState {
       isInterrupted: isInterrupted ?? this.isInterrupted,
       hasTake: hasTake ?? this.hasTake,
       takeWasEmpty: takeWasEmpty ?? this.takeWasEmpty,
-      takeWasInterrupted: takeWasInterrupted ?? this.takeWasInterrupted,
+      joinFailed: joinFailed ?? this.joinFailed,
       microphoneUnavailable:
           microphoneUnavailable ?? this.microphoneUnavailable,
     );
@@ -106,12 +108,12 @@ class AudioRecordingState {
       other.isInterrupted == isInterrupted &&
       other.hasTake == hasTake &&
       other.takeWasEmpty == takeWasEmpty &&
-      other.takeWasInterrupted == takeWasInterrupted &&
+      other.joinFailed == joinFailed &&
       other.microphoneUnavailable == microphoneUnavailable;
 
   @override
   int get hashCode => Object.hash(status, elapsed, isInterrupted, hasTake,
-      takeWasEmpty, takeWasInterrupted, microphoneUnavailable);
+      takeWasEmpty, joinFailed, microphoneUnavailable);
 }
 
 /// The outcome of a save attempt, plus the file it produced.
@@ -144,13 +146,16 @@ typedef RecordingAudioSessionFactory = RecordingAudioSession Function({
 /// recorder, a file or a timer. Build it when the recording UI opens and
 /// [dispose] it when that UI closes; after that the instance is spent.
 ///
-/// On iOS an audio interruption (Siri, a call, an alarm) ends the take instead
-/// of pausing it. flutter_sound records there through one `AVAudioRecorder`,
-/// which iOS stops rather than pauses when it interrupts the session, and the
-/// plugin never notices. Resuming then calls `record` on a stopped recorder,
-/// which erases the file and starts again, so everything said before the
-/// interruption was lost. Ending the take keeps it. Android's recorder really
-/// does pause, so interruptions there still pause and resume.
+/// On iOS a take can be recorded in several segments. flutter_sound records
+/// there through one `AVAudioRecorder`, which iOS stops rather than pauses when
+/// an interruption (Siri, a call, an alarm) takes the session, and the plugin
+/// never notices. Resuming that recorder calls `record` on a stopped recorder,
+/// which erases the file, so everything said before the interruption was
+/// lost. Instead the interrupted segment is stopped and kept as a finished
+/// file, the take stays paused, and resuming starts a new segment in a new
+/// file. [stop] joins the segments into one file through
+/// [AudioSegmentMerger]. Android's recorder really does pause, so a take there
+/// is always one segment.
 ///
 /// ```dart
 /// final service = AudioRecordingService(promptId: 0, limit: limit);
@@ -164,8 +169,10 @@ class AudioRecordingService {
     this.onLimitReached,
     RecordingForegroundService? foregroundService,
     RecordingAudioSessionFactory? audioSessionFactory,
+    AudioSegmentMerger? segmentMerger,
   })  : _foregroundService = foregroundService ?? RecordingForegroundService(),
-        _audioSessionFactory = audioSessionFactory ?? RecordingAudioSession.new;
+        _audioSessionFactory = audioSessionFactory ?? RecordingAudioSession.new,
+        _segmentMerger = segmentMerger ?? AudioSegmentMerger();
 
   final int promptId;
 
@@ -178,6 +185,8 @@ class AudioRecordingService {
   final RecordingForegroundService _foregroundService;
 
   final RecordingAudioSessionFactory _audioSessionFactory;
+
+  final AudioSegmentMerger _segmentMerger;
 
   late final RecordingAudioSession _audioSession = _audioSessionFactory(
     onCaptureCompromised: _respondToCaptureLoss,
@@ -196,6 +205,28 @@ class AudioRecordingService {
   String? _requestedTakePath;
 
   String? _takePath;
+
+  /// Where the live take's first segment is recorded, and where [stop] leaves
+  /// the joined take. Keeping the name means a take split by an interruption
+  /// is saved under the same name as one that was not.
+  String? _takeBasePath;
+
+  /// Finished segments of the live take, oldest first. Only ever more than one
+  /// on iOS: see the class doc.
+  final List<String> _segments = [];
+
+  /// Segments started in the live take, used to name the next one. A counter
+  /// rather than `_segments.length`, because an empty segment is dropped and
+  /// reusing its number would be confusing to anyone reading the disk.
+  int _segmentCount = 0;
+
+  /// Whether the live take's current segment was stopped by an interruption.
+  ///
+  /// The take is paused, but flutter_sound's recorder is stopped, not paused.
+  /// Resuming has to start a new segment rather than call `resumeRecorder`,
+  /// and [record] has to route here on this flag, because to the recorder
+  /// nothing is live.
+  bool _segmentSealed = false;
 
   bool _recorderBusy = false;
 
@@ -255,7 +286,7 @@ class AudioRecordingService {
 
       if (_recorder.isRecording) {
         await _pauseCapture(failureReason: 'pauseRecorder failed');
-      } else if (_recorder.isPaused) {
+      } else if (_recorder.isPaused || _segmentSealed) {
         await _resumeTake();
       } else {
         await _startTake();
@@ -289,7 +320,7 @@ class AudioRecordingService {
           isInterrupted: false,
           hasTake: false,
           takeWasEmpty: false,
-          takeWasInterrupted: false,
+          joinFailed: false,
           microphoneUnavailable: true,
         );
         return;
@@ -301,6 +332,10 @@ class AudioRecordingService {
       await _foregroundService.start();
       await _recorder.startRecorder(codec: Codec.aacMP4, toFile: path);
       _requestedTakePath = path;
+      _takeBasePath = path;
+      _segments.clear();
+      _segmentCount = 1;
+      _segmentSealed = false;
       _recordingStartedAt = DateTime.now();
 
       _emit(
@@ -309,7 +344,7 @@ class AudioRecordingService {
         isInterrupted: false,
         hasTake: false,
         takeWasEmpty: false,
-        takeWasInterrupted: false,
+        joinFailed: false,
         microphoneUnavailable: false,
       );
 
@@ -335,7 +370,7 @@ class AudioRecordingService {
         isInterrupted: false,
         hasTake: false,
         takeWasEmpty: false,
-        takeWasInterrupted: false,
+        joinFailed: false,
         microphoneUnavailable: false,
       );
     }
@@ -374,12 +409,20 @@ class AudioRecordingService {
     // the moment capture starts again, not at the moment Siri finished.
     //
     // Before anything is claimed. If the session will not come back, a call
-    // still holding it, the take stays paused and interrupted: resuming anyway
-    // would record silence under "Recording". Android only in practice, since
-    // iOS ends an interrupted take rather than pausing it.
-    if (_state.value.isInterrupted) {
-      if (!await _audioSession.activate()) return;
+    // still holding it, the take stays paused: resuming anyway would record
+    // silence under "Recording". A sealed segment always reclaims, because
+    // the interruption that sealed it took the session.
+    if (_state.value.isInterrupted || _segmentSealed) {
+      if (!await _audioSession.activate()) {
+        _emit(microphoneUnavailable: true);
+        return;
+      }
       await _audioSession.captureInputDevices();
+    }
+
+    if (_segmentSealed) {
+      await _startNextSegment();
+      return;
     }
 
     _setWakelock(enable: true);
@@ -405,6 +448,50 @@ class AudioRecordingService {
     _emit(
       status: AudioRecordingStatus.recording,
       isInterrupted: false,
+      microphoneUnavailable: false,
+    );
+
+    _startTimer();
+  }
+
+  /// Resumes a take whose last segment an interruption stopped, by recording
+  /// the next segment into a file of its own.
+  ///
+  /// If the recorder will not start, the take stays paused with its finished
+  /// segments untouched, so another tap can try again.
+  Future<void> _startNextSegment() async {
+    final path = _segmentPath(_segmentCount + 1);
+
+    _setWakelock(enable: true);
+
+    await _foregroundService.start();
+
+    try {
+      await _recorder.startRecorder(codec: Codec.aacMP4, toFile: path);
+    } catch (e, s) {
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'Starting the next segment failed',
+      );
+
+      _setWakelock(enable: false);
+      await _foregroundService.stop();
+
+      // Nothing was kept from it, so nothing it opened is worth keeping.
+      await _deleteFile(path);
+      return;
+    }
+
+    _segmentCount++;
+    _requestedTakePath = path;
+    _segmentSealed = false;
+
+    _emit(
+      status: AudioRecordingStatus.recording,
+      isInterrupted: false,
+      joinFailed: false,
+      microphoneUnavailable: false,
     );
 
     _startTimer();
@@ -415,7 +502,7 @@ class AudioRecordingService {
     _recorderBusy = true;
 
     try {
-      return await _finishTake(interrupted: false);
+      return await _finishTake();
     } finally {
       _recorderBusy = false;
     }
@@ -424,14 +511,106 @@ class AudioRecordingService {
   /// Ends the live take, recording or paused, and reports whether there is one
   /// to save. The caller holds the recorder lock.
   ///
-  /// [interrupted] says the audio system ended it rather than the participant,
-  /// and is kept on the finished take as [AudioRecordingState.takeWasInterrupted].
-  Future<bool> _finishTake({required bool interrupted}) async {
+  /// A take in several segments is joined here, not in [save], so what
+  /// [AudioRecordingState.hasTake] puts on screen is always one file.
+  Future<bool> _finishTake() async {
     final startedAt = _recordingStartedAt;
     if (startedAt == null) return false;
 
     _timer?.cancel();
     _recordingStartedAt = null;
+
+    _setWakelock(enable: false);
+    await _foregroundService.stop();
+
+    // A sealed segment was already stopped and kept by the interruption.
+    if (!_segmentSealed) {
+      String? reported;
+      try {
+        reported = await _recorder.stopRecorder();
+      } catch (e, s) {
+        CrashlyticsService().recordError(
+          e,
+          s,
+          reason: 'stopRecorder failed',
+        );
+
+        // flutter_sound reports a failed stop by throwing after it has
+        // already marked the recorder stopped. Publishing paused then sent the
+        // next tap to a fresh take, which wrote a new file and orphaned this
+        // one. So only a recorder that really is still live is left to be
+        // stopped again; a stopped one goes on to have its file checked like
+        // any other stop.
+        if (!_recorder.isStopped) {
+          _recordingStartedAt = startedAt;
+
+          _emit(status: AudioRecordingStatus.paused);
+
+          return false;
+        }
+      }
+
+      await _keepSegment(reported);
+    }
+
+    _segmentSealed = false;
+
+    if (_segments.isEmpty) {
+      _takePath = null;
+
+      _emit(
+        status: AudioRecordingStatus.stopped,
+        elapsed: Duration.zero,
+        isInterrupted: false,
+        hasTake: false,
+        takeWasEmpty: true,
+        joinFailed: false,
+      );
+
+      return false;
+    }
+
+    final path = await _joinSegments();
+
+    if (path == null) {
+      // Every segment is still on disk. Leaving the take paused and sealed
+      // means the next stop tries the join again, and a resume carries on
+      // recording, rather than any of it being thrown away.
+      _recordingStartedAt = startedAt;
+      _segmentSealed = true;
+
+      _emit(
+        status: AudioRecordingStatus.paused,
+        isInterrupted: false,
+        joinFailed: true,
+      );
+
+      return false;
+    }
+
+    _segments.clear();
+    _takePath = path;
+
+    _emit(
+      status: AudioRecordingStatus.stopped,
+      isInterrupted: false,
+      hasTake: true,
+      joinFailed: false,
+    );
+
+    return true;
+  }
+
+  /// Stops the segment being recorded when an interruption takes the session,
+  /// keeping what it captured and leaving the take paused to be resumed.
+  /// iOS only: see the class doc. The caller holds the recorder lock.
+  ///
+  /// A take the participant had already paused is sealed too, since iOS stops
+  /// that recorder just the same and resuming it is what erases the file.
+  Future<void> _sealSegment() async {
+    if (_recordingStartedAt == null || _segmentSealed) return;
+
+    _timer?.cancel();
 
     _setWakelock(enable: false);
     await _foregroundService.stop();
@@ -443,26 +622,32 @@ class AudioRecordingService {
       CrashlyticsService().recordError(
         e,
         s,
-        reason: 'stopRecorder failed',
+        reason: 'stopRecorder on interruption failed',
       );
 
-      // flutter_sound reports a failed stop by throwing after it has already
-      // marked the recorder stopped. Publishing paused then sent the next tap
-      // to a fresh take, which wrote a new file and orphaned this one. So only
-      // a recorder that really is still live is left to be stopped again; a
-      // stopped one goes on to have its file checked like any other stop.
+      // Same as in [_finishTake]: a recorder still live after a failed stop
+      // is left for the next stop to try again, and nothing is sealed.
       if (!_recorder.isStopped) {
-        _recordingStartedAt = startedAt;
-
-        _emit(status: AudioRecordingStatus.paused);
-
-        return false;
+        _emit(status: AudioRecordingStatus.paused, isInterrupted: true);
+        return;
       }
     }
 
+    await _keepSegment(reported);
+
+    _segmentSealed = true;
+
+    _emit(status: AudioRecordingStatus.paused, isInterrupted: true);
+  }
+
+  /// Adds the segment the recorder just stopped to the take, or clears away
+  /// what it left if there is nothing in it.
+  Future<void> _keepSegment(String? reported) async {
     final path = await _locateTake(reported);
 
-    if (path == null) {
+    if (path != null) {
+      _segments.add(path);
+    } else {
       CrashlyticsService().recordError(
         StateError('stopRecorder produced no usable file'),
         StackTrace.current,
@@ -470,39 +655,79 @@ class AudioRecordingService {
         context: {
           'prompt_id': promptId,
           'reported_path': reported ?? 'null',
+          'segment': _segmentCount,
         },
       );
 
       await _deleteCandidates(reported);
 
-      _takePath = null;
       _requestedTakePath = null;
-
-      // Empty wins over interrupted: there is nothing to save, and that is
-      // what the participant needs to hear.
-      _emit(
-        status: AudioRecordingStatus.stopped,
-        elapsed: Duration.zero,
-        isInterrupted: false,
-        hasTake: false,
-        takeWasEmpty: true,
-        takeWasInterrupted: false,
-      );
-
-      return false;
     }
 
-    _takePath = path;
-
-    _emit(
-      status: AudioRecordingStatus.stopped,
-      isInterrupted: false,
-      hasTake: true,
-      takeWasInterrupted: interrupted,
-    );
-
-    return true;
+    // Left set when the segment is kept. If the recorder reported the audio
+    // somewhere else, the requested file is an empty placeholder, and
+    // [discardTake] can only delete it while this still names it.
   }
+
+  /// Joins the take's segments into the file at [_takeBasePath] and reports
+  /// where the take ended up, or `null` if the join failed.
+  ///
+  /// A take that was never split, the usual case and every Android take, is
+  /// left exactly where the recorder put it, even when that is not the path it
+  /// was asked for. Only a split take is moved to the base name, which also
+  /// covers one whose empty first segment was dropped.
+  Future<String?> _joinSegments() async {
+    final base = _takeBasePath ?? _segments.first;
+
+    final String joined;
+    if (_segments.length == 1) {
+      joined = _segments.single;
+    } else {
+      final result = await _segmentMerger.merge(
+        List.of(_segments),
+        output: _joiningPath(base),
+      );
+
+      if (result == null) return null;
+
+      joined = result;
+    }
+
+    if (joined == base || _segmentCount <= 1) return joined;
+
+    try {
+      // Replaces the first segment, which the joined file now contains.
+      await File(joined).rename(base);
+    } catch (e, s) {
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'Moving the joined take into place failed',
+      );
+
+      // The joined file still holds the whole take, just under another name,
+      // so it is kept as it is and nothing else is touched.
+      return joined;
+    }
+
+    for (final segment in _segments) {
+      if (segment != base) await _deleteFile(segment);
+    }
+
+    return base;
+  }
+
+  /// The file the [n]th segment of the live take is recorded into. The first
+  /// is the base path itself.
+  String _segmentPath(int n) {
+    final base = _takeBasePath!;
+    if (n <= 1) return base;
+
+    return '${p.withoutExtension(base)}_part$n${p.extension(base)}';
+  }
+
+  String _joiningPath(String base) =>
+      '${p.withoutExtension(base)}_joined${p.extension(base)}';
 
   /// Finds the file a finished take is actually in, or `null` if there is not
   /// one.
@@ -534,8 +759,8 @@ class AudioRecordingService {
   }
 
   /// The files a finished take could be in: the one we asked the recorder to
-  /// write, plus [other] — the stop's reported path in [stop], the located take
-  /// in [discardTake].
+  /// write, plus [other] — the stop's reported path when a segment ends, the
+  /// located take in [discardTake].
   ///
   /// A set, so the usual case of both naming the same file is handled once.
   /// Neither name is reliably a path, so callers must check the file itself.
@@ -572,14 +797,19 @@ class AudioRecordingService {
       elapsed: Duration.zero,
       hasTake: false,
       takeWasEmpty: false,
-      takeWasInterrupted: false,
+      joinFailed: false,
       microphoneUnavailable: false,
     );
 
     // The participant has explicitly rejected this take, so nothing it left
-    // behind is worth keeping.
+    // behind is worth keeping. Segments too: a take whose join failed still
+    // has them on disk.
     await _deleteCandidates(_takePath);
+    for (final segment in _segments) {
+      await _deleteFile(segment);
+    }
 
+    _segments.clear();
     _requestedTakePath = null;
     _takePath = null;
   }
@@ -617,7 +847,6 @@ class AudioRecordingService {
           elapsed: Duration.zero,
           hasTake: false,
           takeWasEmpty: true,
-          takeWasInterrupted: false,
         );
 
         return const RecordingSaveResult(RecordingSaveOutcome.emptyFile);
@@ -708,7 +937,7 @@ class AudioRecordingService {
     bool? isInterrupted,
     bool? hasTake,
     bool? takeWasEmpty,
-    bool? takeWasInterrupted,
+    bool? joinFailed,
     bool? microphoneUnavailable,
   }) {
     if (_disposed) return;
@@ -719,7 +948,7 @@ class AudioRecordingService {
       isInterrupted: isInterrupted,
       hasTake: hasTake,
       takeWasEmpty: takeWasEmpty,
-      takeWasInterrupted: takeWasInterrupted,
+      joinFailed: joinFailed,
       microphoneUnavailable: microphoneUnavailable,
     );
   }
@@ -775,8 +1004,8 @@ class AudioRecordingService {
   /// the wait in [dispose], which lets an in-flight *move* finish.
   ///
   /// The take is not saved, because nothing here has the participant's consent
-  /// to keep it, so the file is left on disk unreferenced. No cleanup pass for
-  /// those orphans exists yet.
+  /// to keep it, so its file, or its segments, are left on disk unreferenced.
+  /// No cleanup pass for those orphans exists yet.
   Future<void> _shutdownRecorder() async {
     try {
       if (_recorder.isRecording || _recorder.isPaused) {
@@ -850,10 +1079,11 @@ class AudioRecordingService {
     return true;
   }
 
-  /// Whether an audio interruption ends the take rather than pausing it. See
-  /// the class doc for why iOS differs. Read off [defaultTargetPlatform] so a
-  /// test can override it.
-  bool get _interruptionEndsTake => defaultTargetPlatform == TargetPlatform.iOS;
+  /// Whether an audio interruption stops the current segment rather than
+  /// pausing the recorder. See the class doc for why iOS differs. Read off
+  /// [defaultTargetPlatform] so a test can override it.
+  bool get _interruptionSealsSegment =>
+      defaultTargetPlatform == TargetPlatform.iOS;
 
   /// Responds to the audio system taking the route or the focus away from a
   /// take. Driven by [RecordingAudioSession].
@@ -865,10 +1095,10 @@ class AudioRecordingService {
     if (!await _acquireRecorderLock()) return;
 
     try {
-      if (loss == CaptureLoss.interruption && _interruptionEndsTake) {
-        // A paused take too: resuming it is what would erase the file. Does
-        // nothing when no take is live.
-        await _finishTake(interrupted: true);
+      if (loss == CaptureLoss.interruption && _interruptionSealsSegment) {
+        // Does nothing when no take is live, or when the segment is already
+        // sealed.
+        await _sealSegment();
         return;
       }
 

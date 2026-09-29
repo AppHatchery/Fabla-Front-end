@@ -563,9 +563,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   /// Closes the sheet, first asking whether to save a finished take.
   ///
-  /// A take the audio system ended is sitting on disk with no row behind it
-  /// until the participant saves it, and closing used to leave it there
-  /// unreferenced. Dismissing the question keeps the sheet open.
+  /// A finished take is sitting on disk with no row behind it until the
+  /// participant saves it, and closing used to leave it there unreferenced. Dismissing the question keeps the sheet open.
   Future<void> _closeSheet() async {
     if (!mounted || _completingTake) return;
 
@@ -702,25 +701,36 @@ String basePath(String path) {
 /// The notice the recording sheet shows in place of the question, or `null`
 /// when nothing happened to the take that the participant has to act on.
 ///
-/// At most one flag is set in practice. The order only settles which one wins
-/// if that ever changes: a paused take waiting to be resumed first, then a
-/// take the audio system ended, then a take with nothing in it.
+/// The order settles which one wins when more than one flag is set. A join
+/// that failed comes first, because the participant has to know their audio
+/// is safe before anything else. A refused microphone comes before the
+/// interruption, because tapping resume while a call still holds the
+/// microphone is refused again, and the notice has to say to wait.
 ({String title, String body})? takeNotice(AudioRecordingState state) {
+  // iOS only: the take was recorded in pieces around an interruption, and
+  // they could not be put back together.
+  if (state.joinFailed) {
+    return (
+      title: "We couldn't finish your recording",
+      body: "Your recording is safe. Tap the stop button to try again.",
+    );
+  }
+
+  // A take that never began, or could not resume, because another app still
+  // holds the microphone. Tapping again straight away would be refused the
+  // same way.
+  if (state.microphoneUnavailable) {
+    return (
+      title: "The microphone is busy",
+      body: "Another app, like a phone call, is using the microphone. "
+          "When it has finished, tap the record button to try again.",
+    );
+  }
+
   if (state.isInterrupted) {
     return (
       title: "Recording Interrupted,",
       body: "Tap the resume button to continue recording",
-    );
-  }
-
-  // iOS ends the take on an interruption rather than pausing it (see
-  // AudioRecordingService), so there is no resume button to point at.
-  if (state.takeWasInterrupted) {
-    return (
-      title: "Your recording was interrupted",
-      body: "Another app used the microphone, so your recording stopped "
-          "there. What you said before that is kept. Tap the checkmark to "
-          "save it, or redo to start over.",
     );
   }
 
@@ -732,16 +742,6 @@ String basePath(String path) {
       title: "No audio was recorded",
       body: "Something stopped the microphone from picking you up. "
           "Tap the record button to try again.",
-    );
-  }
-
-  // A take that never began because another app still holds the microphone.
-  // Tapping again straight away would be refused the same way.
-  if (state.microphoneUnavailable) {
-    return (
-      title: "The microphone is busy",
-      body: "Another app, like a phone call, is using the microphone. "
-          "When it has finished, tap the record button to try again.",
     );
   }
 

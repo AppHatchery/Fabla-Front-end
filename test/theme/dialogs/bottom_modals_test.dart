@@ -175,20 +175,18 @@ void main() {
       expect(notice?.body, contains('resume'));
     });
 
-    // The iOS case: the take was ended, not paused, so there is no resume
-    // button and the participant has to be told their audio is still there.
-    test('a take the interruption ended says it is kept and how to save it',
-        () {
+    // iOS: the segments of a take split by an interruption could not be put
+    // back together. Nothing is lost, and the participant has to hear that
+    // first.
+    test('a failed join says the recording is safe and how to retry', () {
       final notice = takeNotice(const AudioRecordingState(
-        hasTake: true,
-        takeWasInterrupted: true,
+        status: AudioRecordingStatus.paused,
+        joinFailed: true,
       ));
 
       expect(notice, isNotNull);
-      expect(notice!.body, isNot(contains('resume')),
-          reason: 'a finished take has no resume button');
-      expect(notice.body, contains('kept'));
-      expect(notice.body, contains('checkmark'));
+      expect(notice!.body, contains('safe'));
+      expect(notice.body, contains('stop'));
     });
 
     test('a refused start says the microphone is busy and how to retry', () {
@@ -206,20 +204,30 @@ void main() {
       expect(notice?.title, 'No audio was recorded');
     });
 
-    test('an interrupted take is explained before an empty one', () {
-      const both = AudioRecordingState(
-        hasTake: true,
-        takeWasInterrupted: true,
-        takeWasEmpty: true,
+    test('a failed join is explained before anything else', () {
+      const all = AudioRecordingState(
+        status: AudioRecordingStatus.paused,
+        joinFailed: true,
+        isInterrupted: true,
+        microphoneUnavailable: true,
       );
 
       expect(
-        takeNotice(both)?.title,
-        takeNotice(const AudioRecordingState(
-          hasTake: true,
-          takeWasInterrupted: true,
-        ))?.title,
+        takeNotice(all)?.title,
+        takeNotice(const AudioRecordingState(joinFailed: true))?.title,
       );
+    });
+
+    // Tapping resume while a call still holds the microphone is refused
+    // again, so "tap resume" would send the participant round in a circle.
+    test('a busy microphone is explained before the interruption', () {
+      final notice = takeNotice(const AudioRecordingState(
+        status: AudioRecordingStatus.paused,
+        isInterrupted: true,
+        microphoneUnavailable: true,
+      ));
+
+      expect(notice?.title, 'The microphone is busy');
     });
   });
 }
