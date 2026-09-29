@@ -33,9 +33,6 @@ void main() {
     tearDown(() => debugPlatformClientBuilder = null);
 
     test('a transient failure on the credential fetch is retried', () async {
-      // First hop of the diary-submission path. `verifyuser` looks a
-      // participant up and creates nothing, so re-sending is safe — and a
-      // transient failure here fails the whole submission before it starts.
       var sends = 0;
       debugPlatformClientBuilder = () => MockClient((_) {
             sends++;
@@ -51,8 +48,6 @@ void main() {
     });
 
     test('a 5xx on the credential fetch is retried', () async {
-      // `verifyuser` is a lookup, so a server fault can be re-sent — the
-      // distinction the ticket's "retry 5xx" line rests on.
       var sends = 0;
       debugPlatformClientBuilder = () => MockClient((_) async {
             sends++;

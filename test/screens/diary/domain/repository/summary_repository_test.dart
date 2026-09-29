@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/answer_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -34,9 +37,8 @@ void main() {
       diaryRepository: diaryRepository,
       setupRepository: setupRepository,
     );
-    // Every test here stops before the upload. Returning no participant is the
-    // cheapest way to make submitDiary bail once the guard has let it past,
-    // which is exactly what distinguishes "guard fired" from "guard did not".
+    // No participant makes submitDiary stop before the upload; tests that
+    // reach the upload override this.
     when(() => setupRepository.getParticipant()).thenReturn(null);
   });
 
@@ -53,8 +55,7 @@ void main() {
 
       expect(result, isTrue);
       verifyNever(() => diaryRepository.updateDiary(any()));
-      // Short-circuited before the participant lookup, so it never reached the
-      // upload path at all.
+      // Short-circuited before it could reach the upload.
       verifyNever(() => setupRepository.getParticipant());
     });
 
@@ -94,6 +95,72 @@ void main() {
 
       expect(result, isFalse);
       verify(() => setupRepository.getParticipant()).called(1);
+    });
+  });
+
+  group('submitDiary result', () {
+    late int uploads;
+    late Completer<bool> upload;
+    late SummaryRepository uploading;
+
+    setUp(() {
+      uploads = 0;
+      upload = Completer<bool>();
+      uploading = SummaryRepository(
+        answerRepository: MockAnswerRepository(),
+        promptRepository: MockPromptRepository(),
+        diaryRepository: diaryRepository,
+        setupRepository: setupRepository,
+        uploader: (_, __) {
+          uploads++;
+          return upload.future;
+        },
+      );
+      when(() => setupRepository.getParticipant())
+          .thenReturn(createTestParticipant());
+      when(() => diaryRepository.getDiaryByID(any()))
+          .thenReturn(createTestDiaryModel(currentEntry: 0));
+    });
+
+    // Each test uses its own diary id: a test that fails before completing
+    // [upload] leaves its entry in the static in-flight map.
+
+    // A deadline here would fire after an iOS suspension and report failure
+    // for a diary the upload then records.
+    test('waits for the upload however long it takes', () {
+      fakeAsync((async) {
+        // Created inside the fake zone, or completing it would schedule on
+        // the real event loop and flushMicrotasks would never see it.
+        upload = Completer<bool>();
+        bool? result;
+        var settled = false;
+        uploading
+            .submitDiary(createTestDiaryModel(id: 7, currentEntry: 0))
+            .then((r) {
+          result = r;
+          settled = true;
+        });
+
+        async.elapse(const Duration(minutes: 30));
+        expect(settled, isFalse);
+
+        upload.complete(false);
+        async.flushMicrotasks();
+        expect(settled, isTrue);
+        expect(result, isFalse);
+      });
+    });
+
+    test('a second submit while one is uploading joins it', () async {
+      final snapshot = createTestDiaryModel(id: 8, currentEntry: 0);
+
+      final first = uploading.submitDiary(snapshot);
+      final second = uploading.submitDiary(snapshot);
+      upload.complete(false);
+
+      expect(await first, isFalse);
+      expect(await second, isFalse);
+      expect(uploads, 1);
     });
   });
 }

@@ -31,8 +31,7 @@ void main() {
     registerFallbackValue(Uri.parse(TestValues.testUrl));
   });
 
-  // Exercised through the `client == null` branch, which is the one that
-  // ships: injecting a client skips the line that picks the retry budget.
+  // Through the `client == null` branch, so each call site's own budget runs.
   group('production retry budgets', () {
     late int sends;
 
@@ -52,8 +51,6 @@ void main() {
     });
 
     test('post is not retried unless a caller opts in', () async {
-      // The safe default for a generic POST helper: this function cannot know
-      // whether the endpoint it is pointed at appends.
       expect(await post(path: 'test', body: const {}), isNull);
       expect(sends, 1);
     });

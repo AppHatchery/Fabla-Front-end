@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/usecases/connectivity.dart';
 import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart';
@@ -20,35 +18,28 @@ import '../../data/prompt.dart';
 import 'answer_repository.dart';
 import 'diary_repository.dart';
 
-/// Upper bound on a single diary submission, across every network attempt and
-/// retry it makes. Past this the UI shows a failure rather than a spinner.
-const Duration _submissionDeadline = Duration(minutes: 5);
-
 class SummaryRepository {
-  /// Submissions currently uploading, keyed by diary id.
-  ///
-  /// Static because callers construct `SummaryRepository()` freshly at each
-  /// call site, so an instance field would not see an upload started elsewhere.
+  /// Submissions currently uploading, keyed by diary id. Static because each
+  /// call site constructs its own `SummaryRepository()`.
   static final Map<int, Future<bool>> _inFlight = {};
 
-  /// The collaborators default to real repositories, so the existing
-  /// `SummaryRepository()` call sites are unaffected. They are injectable
-  /// because each one binds an ObjectBox `Box` as a field initializer, which a
-  /// unit test has no store to satisfy.
   SummaryRepository({
     AnswerRepository? answerRepository,
     PromptRepository? promptRepository,
     DiaryRepository? diaryRepository,
     SetupRepository? setupRepository,
+    Future<bool> Function(String participantID, DiaryModel diary)? uploader,
   })  : answerRepository = answerRepository ?? AnswerRepository(),
         promptRepository = promptRepository ?? PromptRepository(),
         diaryRepository = diaryRepository ?? DiaryRepository(),
-        setupRepository = setupRepository ?? SetupRepository();
+        setupRepository = setupRepository ?? SetupRepository(),
+        _upload = uploader ?? upload;
 
   final AnswerRepository answerRepository;
   final PromptRepository promptRepository;
   final DiaryRepository diaryRepository;
   final SetupRepository setupRepository;
+  final Future<bool> Function(String participantID, DiaryModel diary) _upload;
 
   /// Asynchronous method to load summary information for a Diary object.
   /// This function iterates through the prompts within the provided Diary instance,
@@ -140,17 +131,14 @@ class SummaryRepository {
   /// Returns:
   /// - `true` — uploaded and recorded, or already recorded by an earlier run.
   /// - `false` — the upload failed; the diary is untouched and still pending.
-  /// - `null` — nothing was sent (no connectivity), or the upload is still
-  ///   running past [_submissionDeadline] and its outcome is not yet known.
-  ///   Callers treat null as "saved locally, try again later" rather than as a
-  ///   failure, because the upload may still complete and record itself.
+  /// - `null` — nothing was sent (no connectivity).
   ///
   Future<bool?> submitDiary(DiaryModel diary) async {
-    // Checked before connectivity: if this entry is already on the server,
-    // that is true whether or not the phone is online, and reporting "saved,
-    // try again later" for it would invite the very re-upload guarded against.
+    // Before the connectivity check: an already-recorded entry is done even
+    // offline.
     if (_alreadyRecorded(diary)) {
-      dev.log("Entry ${diary.currentEntry} of diary ${diary.id} is already "
+      dev.log(
+          "Entry ${diary.currentEntry} of diary ${diary.id} is already "
           "recorded — skipping re-upload",
           name: "SummaryRepository - submitDiary");
       return true;
@@ -161,11 +149,7 @@ class SummaryRepository {
 
     final participant = setupRepository.getParticipant();
     if (participant == null) {
-      // Reported rather than merely returned: no participant means onboarding
-      // state is gone, and the participant is now silently unable to submit
-      // anything. The `participant!` this replaced threw a TypeError that the
-      // catch below turned into a Crashlytics report, so dropping the report
-      // with the null check would have made a study-blocking fault invisible.
+      // Reported: without a participant no diary can be submitted.
       dev.log("No participant on record — cannot submit diary ${diary.id}",
           name: "SummaryRepository - submitDiary");
       CrashlyticsService().recordError(
@@ -179,75 +163,31 @@ class SummaryRepository {
       return false;
     }
 
-    // One upload per diary at a time. The deadline below bounds how long the
-    // UI waits, not how long the upload runs, so a diary can still be in
-    // flight when the user tries again — joining that run instead of starting
-    // a second one is what keeps a slow submission from being sent twice.
-    final pending = _inFlight[diary.id] ??=
-        _uploadAndRecord(participant.studyCode, diary)
-            .whenComplete(() => _inFlight.remove(diary.id));
-
-    try {
-      return await pending.timeout(_submissionDeadline);
-    } on TimeoutException catch (e, stackTrace) {
-      dev.log("Submission exceeded ${_submissionDeadline.inMinutes}m deadline",
-          name: "SummaryRepository - submitDiary");
-      CrashlyticsService().recordError(e, stackTrace,
-          context: {
-            'Diary': diary.name.toString(),
-            'DiaryID': diary.id.toString(),
-            'CurrentEntry': diary.currentEntry.toString(),
-          },
-          reason: 'Diary submission exceeded deadline in submitDiary');
-      // Null routes to the "saved on your phone, submit when you're back
-      // online" state, which is what is actually true: the diary is untouched
-      // locally, the upload may still finish and record itself, and the diary
-      // stays in the pending backlog either way. Returning false would claim a
-      // failure we do not know to have happened.
-      return null;
-    }
+    // Join an upload already running for this diary. No deadline: iOS
+    // suspension would fire it for a diary that then records. The block body
+    // matters: `remove` returns this future, and whenComplete would await it.
+    return _inFlight[diary.id] ??=
+        _uploadAndRecord(participant.studyCode, diary).whenComplete(() {
+      _inFlight.remove(diary.id);
+    });
   }
 
-  /// Whether the submission [snapshot] stands for has already been recorded.
+  /// Whether an earlier run already recorded the entry [snapshot] stands for.
   ///
-  /// [_inFlight] only dedupes *overlapping* calls and is cleared the moment a
-  /// run finishes, so it cannot help once a run has completed. That gap is
-  /// ordinary rather than exotic: [_submissionDeadline] is far shorter than the
-  /// budget the network layer permits, so the UI routinely gives up, marks the
-  /// diary retryable, and lets the upload finish afterwards.
-  ///
-  /// Neither retry surface re-reads the diary — `retryFailedSubmissions`
-  /// carries the `DiaryModel` it was handed through `copyWith`, and
-  /// `diarysummary.dart` reuses the model the page was built with. A re-upload
-  /// from that stale snapshot would not overwrite anything: the S3 object name
-  /// carries a per-run timestamp, so it lands under a new key and writes a
-  /// second DynamoDB item set, while locally `currentEntry` is recomputed from
-  /// the same stale base and lands on the value it already held. Nothing looks
-  /// wrong on the phone; the duplicate exists only on the server.
-  ///
-  /// [_uploadAndRecord] advances `currentEntry` by exactly one per recorded
-  /// submission, so a stored value ahead of the snapshot's means this entry is
-  /// already up.
+  /// Retry paths resubmit the model they were handed rather than re-reading
+  /// it, so without this an entry already on the server would be uploaded
+  /// again. [_uploadAndRecord] advances `currentEntry` by one per entry.
   bool _alreadyRecorded(DiaryModel snapshot) {
     final stored = diaryRepository.getDiaryByID(snapshot.id);
-    // No local record to compare against — proceed rather than silently
-    // swallow a submission on the strength of a missing row.
+    // No stored row: upload rather than drop it.
     if (stored == null) return false;
     return stored.currentEntry > snapshot.currentEntry;
   }
 
   /// Uploads [diary] and, on success, records the submission locally.
-  ///
-  /// Kept separate from [submitDiary] so the recording happens when the upload
-  /// actually finishes rather than only while a caller is still waiting — a
-  /// submission that outlives [_submissionDeadline] still advances the diary,
-  /// so it is not offered for resubmission and cannot be uploaded twice.
-  ///
-  /// Never throws: the future is left unawaited once the deadline passes, so an
-  /// escaping error would surface as an unhandled async exception.
   Future<bool> _uploadAndRecord(String participantID, DiaryModel diary) async {
     try {
-      final uploaded = await upload(participantID, diary);
+      final uploaded = await _upload(participantID, diary);
 
       if (uploaded) {
         final study = await diaryRepository.getStudy(diary.studyID);
@@ -290,7 +230,8 @@ class SummaryRepository {
         cancelContinueNotifications(diary.id);
         calculateEarnedIncentivesForAWS(
             participantID: participantID, studyID: diary.studyID);
-        await modifyHomeProgressTracking(studyID: diary.studyID, submissions: 1, activateAnimation: true);
+        await modifyHomeProgressTracking(
+            studyID: diary.studyID, submissions: 1, activateAnimation: true);
         return true;
       } else {
         return false;

@@ -13,11 +13,6 @@ import 'package:http/testing.dart';
 Duration _noDelay(int _) => Duration.zero;
 
 /// A client that records every request it is asked to send.
-///
-/// [MockClient] is used here rather than the repo's usual mocktail mocks
-/// because the wrappers under test call `send()`, and this is the clean way to
-/// count sends and script a different response per attempt. It ships inside
-/// the existing `http` dependency.
 class _RecordingClient {
   _RecordingClient(this._respond);
 
@@ -35,10 +30,7 @@ class _RecordingClient {
 
 /// Tracks running requests the way `CupertinoClient` tracks its NSURLSession
 /// tasks: a request stays live until its abortTrigger lands, and [close]
-/// throws while any is still live.
-///
-/// [MockClient.close] does nothing, which is how a timed-out request left
-/// running slipped past the rest of this file.
+/// throws while any is still live. [MockClient.close] does nothing.
 class _NativeLikeClient extends http.BaseClient {
   /// A null response leaves that attempt hanging until it is aborted.
   _NativeLikeClient(this._respond);
@@ -206,10 +198,6 @@ void main() {
   });
 
   group('status codes are not retried by default', () {
-    // This is the guard that keeps a retry from writing a diary response
-    // twice: a 5xx can be returned *after* the write has landed. Only a caller
-    // that knows its request is idempotent may opt out of this, by passing
-    // `retryServerErrors` — see the group below.
     for (final status in [500, 502, 503, 504, 408, 429]) {
       test('$status is returned to the caller after exactly one send',
           () async {
@@ -279,8 +267,7 @@ void main() {
     });
 
     test('a 4xx is still not retried', () async {
-      // Opting in covers server faults only — a client error will not fix
-      // itself on an identical second attempt.
+      // Opting in covers server faults only.
       final recorder = _RecordingClient(
         (_, __) async => http.Response('nope', 403),
       );
@@ -298,8 +285,7 @@ void main() {
 
     for (final status in [408, 429]) {
       test('$status is still not retried', () async {
-        // Deliberately out of scope: the ticket asks for 5xx. 429 in
-        // particular wants Retry-After handling rather than blind backoff.
+        // 429 needs Retry-After handling; out of scope.
         final recorder = _RecordingClient(
           (_, __) async => http.Response('', status),
         );
@@ -364,10 +350,6 @@ void main() {
   });
 
   group('body drain', () {
-    // BaseClient.get/post drain the body in Response.fromStream, after send()
-    // has already completed. Without an explicit guard the timeout would only
-    // cover the headers, and a server that sends headers then stalls would
-    // hang the caller forever — Cronet has no timeout of its own to stop it.
     test('a stalled response body times out rather than hanging', () {
       final inner = MockClient.streaming(
         (_, __) async => http.StreamedResponse(
@@ -398,9 +380,6 @@ void main() {
     });
 
     test('a stalled body is not re-sent', () async {
-      // RetryClient wraps send() only, so by the time the body stalls the
-      // request has been fully written. Re-sending could duplicate a write the
-      // server already committed.
       var sends = 0;
       final inner = MockClient.streaming((_, __) async {
         sends++;
@@ -421,9 +400,8 @@ void main() {
   });
 
   group('a timed-out attempt is aborted', () {
-    // Every call site closes its client in a `finally`. On iOS that close
-    // throws while a request is still running, and the throw replaces
-    // whatever the call site was about to return.
+    // Call sites close in `finally`; on iOS a throwing close replaces their
+    // result.
     test('a retry that succeeds after a timeout leaves the client closable',
         () async {
       final inner = _NativeLikeClient((attempt) => attempt == 0 ? null : _ok());
@@ -482,8 +460,6 @@ void main() {
 
   group('timeout constants', () {
     test('the upload ceiling is more generous than the default', () {
-      // The S3 PUT pushes the whole file inside send(), so it cannot share the
-      // budget sized for a JSON round trip.
       expect(kUploadTimeout, greaterThan(kDefaultTimeout));
     });
 

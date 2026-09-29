@@ -96,11 +96,7 @@ void main() {
 
     test('the image download is not re-sent, and the reminder still shows',
         () async {
-      // Built without an injected client, so the constructor's own
-      // `httpClient(timeout: ..., retries: 0)` is what runs. Inheriting the
-      // default two retries would stretch the intended 15s ceiling to ~46s of
-      // the participant waiting on a reminder that has not appeared yet,
-      // because a fired timeout is itself a retryable error.
+      // No injected client, so the constructor's own `retries: 0` client runs.
       var sends = 0;
       debugPlatformClientBuilder = () => MockClient((_) {
             sends++;

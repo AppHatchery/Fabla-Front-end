@@ -22,12 +22,7 @@ import 'package:http/http.dart' as http;
 import 'dart:developer' as dev;
 import 'secrets_handler.dart';
 
-/// A DynamoDB POST slower than one attempt's full budget is worth reporting.
-///
-/// Derived from the budget rather than written as a literal: the previous
-/// two-minute threshold predated the timeouts added underneath it and quietly
-/// became unreachable, because the call can no longer take that long. Tying
-/// the two together means a change to the budget carries the signal with it.
+/// A DynamoDB POST slower than one attempt's timeout is worth reporting.
 final Duration _slowDynamoThreshold = http_client_factory.kDefaultTimeout;
 
 /// An S3 PUT past this has burned a whole attempt and is into its retry, which
@@ -316,11 +311,8 @@ Future<bool> uploadNonAudioData(
 }) async {
   final secureStorage = secureSave ?? SecureSave();
   final bool ownClient = client == null;
-  // This is the app's one non-idempotent write, and the Lambda behind it has
-  // no dedupe. A re-send is only safe when the server cannot have acted on the
-  // first attempt, and neither a fired timeout nor a connection dropped
-  // mid-request tells us that — both happen after the body has gone out. Retry
-  // is therefore disabled here rather than relying on the error type.
+  // No retry: this POST appends and the Lambda has no dedupe, and a timeout or
+  // dropped connection can follow a write the server already committed.
   final httpClient = client ?? http_client_factory.httpClient(retries: 0);
 
   try {
@@ -380,10 +372,7 @@ Future<bool> uploadNonAudioData(
           {'event': 'Upload to DynamoDB', 'reason': e.toString()});
       return false;
     } finally {
-      // Reported in `finally`, not on the success path: a POST that exhausts
-      // its budget throws, and those are precisely the slowest calls — the
-      // ones the signal most needs to catch. Reporting only on success meant
-      // the worst cases were the ones that never showed up.
+      // In finally so timed-out calls, the slowest, are reported too.
       stopwatch.stop();
       if (stopwatch.elapsed > _slowDynamoThreshold) {
         CrashlyticsService().log(
@@ -431,9 +420,7 @@ Future<String?> getPresignedUrl(
 }) async {
   final secureStorage = secureSave ?? SecureSave();
   final bool ownClient = client == null;
-  // Minting a presigned URL is a pure read — it reserves nothing and writes
-  // nothing — so the default retry budget is safe and wanted here, and a 5xx
-  // from the Lambda can be re-sent for the same reason.
+  // A pure read: network errors and 5xx are both retried.
   final httpClient = client ??
       http_client_factory.httpClient(
         retries: kMaxRetries,
@@ -502,9 +489,6 @@ Future<String?> getPresignedUrl(
 
 /// Uploads [filePath] to S3 using a previously-minted [presignedUrl].
 ///
-/// The [client] parameter is optional and used primarily for testing; when
-/// omitted a client with the upload timeout and retry budget is built.
-///
 /// Retrying is safe here: the presigned URL points at a fixed S3 key, so a
 /// re-sent PUT overwrites rather than creating a second object.
 Future<bool> uploadFileToS3(
@@ -533,9 +517,6 @@ Future<bool> uploadFileToS3(
         http_client_factory.httpClient(
           timeout: http_client_factory.kUploadTimeout,
           retries: kUploadMaxRetries,
-          // The PUT targets a fixed S3 key, so a re-send overwrites rather
-          // than adding an object — true of a 5xx as much as a dropped
-          // connection.
           retryServerErrors: true,
         );
     try {

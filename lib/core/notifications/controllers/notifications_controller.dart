@@ -26,10 +26,8 @@ class NotificationsController {
         _client = client ??
             http_client_factory.httpClient(
               timeout: http_client_factory.kImageDownloadTimeout,
-              // The notification waits on this download, and a fired timeout
-              // is itself a retryable error — so inheriting the default two
-              // retries would turn the intended 15s ceiling into ~46s before
-              // the reminder is shown at all.
+              // No retries: the notification waits on this download, and two
+              // retries of a timeout would stretch 15s to ~46s.
               retries: 0,
             ) {
     // Initialize the local notifications plugin with injected or default instance
@@ -65,8 +63,6 @@ class NotificationsController {
         imagePath = await _downloadAndSaveFile(
             androidNotification.imageUrl!, 'bigPicture');
 
-        // A failed download leaves imagePath null — keep the default style so
-        // the notification still shows, just without the image.
         if (imagePath != null) {
           notificationStyle = BigPictureStyleInformation(
             FilePathAndroidBitmap(imagePath),
@@ -151,9 +147,7 @@ class NotificationsController {
   }
 
   /// Downloads the notification's big-picture image to the documents directory.
-  ///
-  /// Returns `null` when the download fails so the notification can still be
-  /// shown without an image, rather than the whole notification being lost.
+  /// Returns `null` on failure, so the notification still shows without it.
   Future<String?> _downloadAndSaveFile(String url, String fileName) async {
     final Directory directory = await getApplicationDocumentsDirectory();
     final String filePath = '${directory.path}/$fileName';

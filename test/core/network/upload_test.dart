@@ -38,10 +38,7 @@ void main() {
     registerFallbackValue(Uri.parse(TestValues.testUrl));
   });
 
-  // These exercise the `client == null` branch — the one that ships — by
-  // swapping the platform client out from under it. Injecting a client at the
-  // call site skips the very line that chooses the retry budget, so without
-  // this seam dropping a `retries:` argument would leave every test green.
+  // Through the `client == null` branch, so each call site's own budget runs.
   group('production retry budgets', () {
     late int sends;
 
@@ -63,9 +60,7 @@ void main() {
     }
 
     test('the diary write is sent once and never re-sent', () async {
-      // The append-shaped write: a re-send could add a second row, and the
-      // Lambda has no dedupe. A mid-request drop is exactly the error that
-      // would be retried if this call site inherited the default budget.
+      // The append-shaped write: a re-send could add a second row.
       failEveryAttemptWith(http.ClientException('connection closed'));
 
       final result = await uploadNonAudioData(
@@ -78,8 +73,7 @@ void main() {
     });
 
     test('the diary write is not re-sent on a 500 either', () async {
-      // The safety case the whole policy exists for: a 500 can be returned
-      // after the Lambda has already written the row.
+      // A 500 can arrive after the Lambda has already written the row.
       var sends = 0;
       debugPlatformClientBuilder = () => MockClient((_) async {
             sends++;
@@ -96,7 +90,6 @@ void main() {
     });
 
     test('minting a presigned URL is retried on a 500', () async {
-      // Idempotent, so the hop the ticket asks to retry actually does.
       var sends = 0;
       debugPlatformClientBuilder = () => MockClient((_) async {
             sends++;
@@ -114,8 +107,7 @@ void main() {
     });
 
     test('minting a presigned URL is retried', () async {
-      // The contrast that makes the test above meaningful: same error, same
-      // seam, different budget — because this call reserves nothing.
+      // Same error as the diary write, but this call reserves nothing.
       failEveryAttemptWith(http.ClientException('connection closed'));
 
       final result = await getPresignedUrl(
@@ -363,8 +355,7 @@ void main() {
     test('a retried upload reuses the same presigned URL, so S3 holds one object',
         () async {
       // ───── Arrange ─────
-      // This is the no-duplicate-upload guard: the retry must overwrite the
-      // same key rather than create a second object.
+      // The retry must overwrite the same key, not create a second object.
       final sent = <http.Request>[];
       final inner = MockClient((request) async {
         sent.add(request);
@@ -418,8 +409,7 @@ void main() {
   group('uploadNonAudioData retry safety', () {
     test('a 500 posts the diary response exactly once', () async {
       // ───── Arrange ─────
-      // A 5xx may be returned after the write landed, so re-sending it could
-      // duplicate the participant's responses in DynamoDB.
+      // A 5xx can follow the write landing; a re-send would duplicate rows.
       var sends = 0;
       final inner = MockClient((_) async {
         sends++;

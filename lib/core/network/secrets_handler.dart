@@ -44,10 +44,7 @@ class SecureSave {
     required String participant,
   }) async {
     try {
-      // Retried: `verifyuser` looks up a participant and returns their
-      // credentials — it creates nothing, so a re-send lands on the same
-      // answer. This is the first hop of the diary-submission path, and a
-      // transient failure here fails the whole submission before it starts.
+      // verifyuser is a read, so it is safe to retry.
       final response = await post(
         path: "/fabla/verifyuser",
         retries: kMaxRetries,

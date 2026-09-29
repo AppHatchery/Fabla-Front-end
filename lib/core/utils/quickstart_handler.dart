@@ -57,10 +57,7 @@ class QuickstartHandler {
     String videoName, {
     http.Client? client,
   }) async {
-    // Matches the `.timeout(_requestTimeout)` below, which bounds all attempts
-    // together and so fires first. Left at the 30s default the per-attempt
-    // budget could never be reached, leaving a number in the code that looked
-    // load-bearing and was not.
+    // Per-attempt timeout matches the overall `.timeout` below.
     final httpClient =
         client ?? http_client_factory.httpClient(timeout: _requestTimeout);
 
@@ -93,8 +90,6 @@ class QuickstartHandler {
   /// the same reuse-or-create convention as [getVideo].
   Future<void> getVideos({http.Client? client}) async {
     final videoUrls = <String, String>{};
-    // Shared across every video in the batch; each call still applies
-    // `_requestTimeout` individually, so one slow video cannot stall the rest.
     final httpClient =
         client ?? http_client_factory.httpClient(timeout: _requestTimeout);
     try {
