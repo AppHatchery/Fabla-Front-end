@@ -134,6 +134,38 @@ void main() {
       expect(s.fx.map((c) => c.custom?.name ?? c.prop!.name), ['kite', 'taco', 'star']);
     });
 
+    test('custom props follow their physics in every spawn mode', () {
+      // Regression: float and rain used to overwrite gravity, so every
+      // "How it moves" option looked the same.
+      double travel(String physics, FabioFxMode mode) {
+        final prop = FabioCustomProp.fromJson('p', {'text': 'x', 'physics': physics})!;
+        final fx = FabioFx(seed: 3)..bounds = const Size(390, 844);
+        fx.emitCustom(prop, mode, const Offset(195, 422), count: 30);
+        final start = {for (final p in fx.particles) p: p.y};
+        for (var i = 0; i < 48; i++) {
+          fx.update(1 / 60);
+        }
+        final alive = fx.particles.where(start.containsKey).toList();
+        return alive.fold(0.0, (s, p) => s + p.y - start[p]!) / alive.length;
+      }
+
+      for (final mode in [FabioFxMode.burst, FabioFxMode.float]) {
+        expect(travel('rise', mode), lessThan(-80), reason: 'rise in ${mode.name}');
+        expect(travel('fall', mode), greaterThan(80), reason: 'fall in ${mode.name}');
+        expect(travel('drop', mode), greaterThan(travel('fall', mode)), reason: mode.name);
+        expect(travel('still', mode).abs(), lessThan(10), reason: 'still in ${mode.name}');
+      }
+      // Rain showers floating props up from the bottom instead of down.
+      expect(travel('float', FabioFxMode.rain), lessThan(0));
+      expect(travel('fall', FabioFxMode.rain), greaterThan(0));
+    });
+
+    test('built-in props keep their tuned per-mode motion', () {
+      final fx = FabioFx(seed: 3);
+      fx.emit(FabioProp.heart, FabioFxMode.float, Offset.zero, count: 1);
+      expect(fx.particles.single.gravity, 0);
+    });
+
     test('physics overrides apply on top of the preset', () {
       final p = FabioCustomProp.fromJson('x', {'text': 'a', 'physics': 'fall', 'gravity': -10})!;
       expect(p.physics.gravity, -10);

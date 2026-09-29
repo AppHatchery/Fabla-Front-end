@@ -58,6 +58,9 @@ class FabioCustomProp {
       n('drag') ?? base.drag,
       spin: n('spin') ?? base.spin,
       sway: n('sway') ?? base.sway,
+      life: (n('life') ?? base.life).clamp(0.2, 5).toDouble(),
+      flip: json['flip'] is bool ? json['flip'] as bool : base.flip,
+      pulse: json['pulse'] is bool ? json['pulse'] as bool : base.pulse,
     );
     final size = (n('size') ?? 1).clamp(0.2, 5).toDouble();
 

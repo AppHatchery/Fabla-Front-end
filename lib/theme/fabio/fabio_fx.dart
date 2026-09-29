@@ -82,23 +82,32 @@ class FabioParticle {
 }
 
 /// How a prop moves once emitted: gravity (px/s², negative floats up),
-/// velocity drag, random spin (rad/s) and side-to-side sway (px/s).
+/// velocity drag, random spin (rad/s), side-to-side sway (px/s), a lifetime
+/// multiplier, a paper-like [flip] tumble and a gentle size [pulse].
+///
+/// Custom props always obey their physics, whichever [FabioFxMode] spawns
+/// them; built-in props keep the tuned per-mode behaviour they were designed
+/// with.
 class FabioPropPhysics {
   final double gravity;
   final double drag;
   final double spin;
   final double sway;
-  const FabioPropPhysics(this.gravity, this.drag, {this.spin = 0, this.sway = 0});
+  final double life;
+  final bool flip;
+  final bool pulse;
+  const FabioPropPhysics(this.gravity, this.drag,
+      {this.spin = 0, this.sway = 0, this.life = 1, this.flip = false, this.pulse = false});
 
-  // Named presets for custom props, borrowed from the built-ins that move
-  // that way. Fabio Studio mirrors this list.
-  static const float = FabioPropPhysics(-60, 1.5, sway: 10);
-  static const rise = FabioPropPhysics(-90, 1.2, sway: 12);
-  static const fall = FabioPropPhysics(260, 1.0, spin: 4);
-  static const flutter = FabioPropPhysics(380, 1.3, spin: 8, sway: 18);
-  static const drift = FabioPropPhysics(0, 2.5);
-  static const still = FabioPropPhysics(0, 3);
-  static const drop = FabioPropPhysics(500, 0.5);
+  // Named presets for custom props. Fabio Studio mirrors this list.
+  static const float = FabioPropPhysics(-140, 1.2, sway: 16, life: 1.6);
+  static const rise = FabioPropPhysics(-380, 0.8, sway: 10, life: 1.3);
+  static const fall = FabioPropPhysics(520, 0.6, spin: 5, life: 1.4);
+  static const flutter =
+      FabioPropPhysics(160, 2.2, spin: 6, sway: 60, life: 1.8, flip: true);
+  static const drift = FabioPropPhysics(0, 3.5, sway: 22, life: 1.6, pulse: true);
+  static const still = FabioPropPhysics(0, 10, life: 1.4);
+  static const drop = FabioPropPhysics(1100, 0.3, life: 1.2);
 
   static const presets = {
     'float': float,
@@ -223,6 +232,8 @@ class FabioFx {
     required double sizeScale,
     required double? life,
   }) {
+    // Custom props obey their own physics in every mode.
+    final honor = custom != null;
     final u = unit;
     for (var i = 0; i < count; i++) {
       if (particles.length >= maxParticles) particles.removeAt(0);
@@ -238,30 +249,53 @@ class FabioFx {
         case FabioFxMode.fountain:
           angle = -math.pi / 2 + _rng.range(-0.55, 0.55) * spread;
           speed = _rng.range(260, 440) * u;
-          gravity = math.max(gravity, 0) + 520 * u;
+          if (!honor) gravity = math.max(gravity, 0) + 520 * u;
           plife = life ?? _rng.range(1.2, 1.9);
         case FabioFxMode.ring:
           angle = i / count * 2 * math.pi;
           speed = 230 * u * spread;
-          drag = 3;
-          gravity = 0;
+          if (!honor) {
+            drag = 3;
+            gravity = 0;
+          }
           plife = life ?? 0.9;
         case FabioFxMode.float:
           angle = -math.pi / 2 + _rng.range(-0.3, 0.3);
           speed = _rng.range(30, 50) * u;
-          gravity = 0;
-          drag = 0.5;
+          if (!honor) {
+            gravity = 0;
+            drag = 0.5;
+          }
           plife = life ?? 1.8;
           size *= 1.35;
           px += _rng.range(-8, 8) * u * (count > 1 ? spread * 3 : 0);
         case FabioFxMode.rain:
           px = _rng.range(0, math.max(bounds.width, 1));
-          py = -20 * u - _rng.range(0, bounds.height * 0.3);
-          angle = math.pi / 2;
-          speed = _rng.range(120, 260) * u;
-          gravity = gravity.abs() * 0.3 + 40 * u;
-          drag = 0.2;
-          plife = life ?? (bounds.height / (speed + 1) + 1.2);
+          if (!honor || phys.gravity > 0) {
+            // Showers down from the top edge.
+            py = -20 * u - _rng.range(0, bounds.height * 0.3);
+            angle = math.pi / 2;
+            speed = _rng.range(120, 260) * u;
+            if (!honor) {
+              gravity = gravity.abs() * 0.3 + 40 * u;
+              drag = 0.2;
+            } else {
+              speed *= 0.5;
+            }
+            plife = life ?? (bounds.height / (speed + 1) + 1.2);
+          } else if (phys.gravity < 0) {
+            // Floating props rise up from the bottom edge instead.
+            py = bounds.height + 20 * u + _rng.range(0, bounds.height * 0.3);
+            angle = -math.pi / 2;
+            speed = _rng.range(60, 160) * u;
+            plife = life ?? (bounds.height / (speed + 1) + 1.2);
+          } else {
+            // Weightless props sprinkle in across the screen.
+            py = _rng.range(0.1, 0.9) * bounds.height;
+            angle = _rng.range(0, 2 * math.pi);
+            speed = _rng.range(10, 30) * u;
+            plife = life ?? _rng.range(1.2, 2);
+          }
         case FabioFxMode.orbit:
           angle = 0;
           speed = 0;
@@ -269,11 +303,12 @@ class FabioFx {
         case FabioFxMode.trail:
           angle = _rng.range(0, 2 * math.pi);
           speed = _rng.range(8, 36) * u;
-          gravity *= 0.25;
+          gravity *= honor ? 0.5 : 0.25;
           plife = life ?? _rng.range(0.5, 0.9);
           size *= 0.7;
           front = false;
       }
+      if (life == null) plife *= phys.life;
       final pColor = randomConfetti ? _rng.pick(confettiColors) : baseColor;
       final p = FabioParticle(
         prop: prop,
@@ -341,11 +376,15 @@ class FabioFx {
       final orbitFront = p.orbitAngle == null ||
           math.sin(p.orbitAngle! + p.orbitSpeed * p.age) >= 0;
       if (!orbitFront) alpha *= 0.55;
+      final custom = p.custom;
+      if (custom != null && custom.physics.pulse) {
+        scale *= 1 + 0.12 * math.sin(p.age * 5 + p.swayPhase);
+      }
       canvas.save();
       canvas.translate(p.x, p.y);
       canvas.rotate(p.rot);
-      final custom = p.custom;
       if (custom != null) {
+        if (custom.physics.flip) canvas.scale(math.cos(p.age * 7 + p.swayPhase), 1);
         custom.paint(canvas, p.size / 2 * scale, p.color, alpha);
       } else {
         paintProp(canvas, p.prop!, p.size / 2 * scale, p.color, alpha, p.age);
