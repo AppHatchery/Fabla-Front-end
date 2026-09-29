@@ -1,5 +1,4 @@
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/cubit/settings_cubit.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/pages/settings_onboarding.dart';
@@ -22,7 +21,6 @@ class ParticipantDetails extends StatefulWidget {
 
 class _ParticipantDetailsState extends State<ParticipantDetails> {
   late SettingsCubit cubit;
-  late HubCubit _hubCubit;
 
   final ParticipantAndExperimentDetails _details =
       ParticipantAndExperimentDetails();
@@ -36,7 +34,6 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
   void initState() {
     super.initState();
     cubit = context.read<SettingsCubit>();
-    _hubCubit = context.read<HubCubit>();
     cubit.load();
     _loadDetails();
   }
@@ -257,7 +254,7 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
     return InkWell(onTap: () => update(questions), child: tile);
   }
 
-  update(List<Questions> questions) async {
+  Future<void> update(List<Questions> questions) async {
     if (!mounted) return;
 
     final result = await Navigator.push(
@@ -268,16 +265,8 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
 
     if (result != true || !mounted) return;
 
-    // Editing the answers already confirms intent, so skip the warning: block
-    // if there are pending/submitted diaries today, otherwise go straight to
-    // the updating phase.
-    if (_hubCubit.hasPendingOrSubmittedToday()) {
-      showDialog(
-        context: context,
-        builder: (_) => const StudyUpdateBlockedPopUp(),
-      );
-      return;
-    }
+    // Same-day diaries are protected by the protocol resync cutoff, so editing
+    // onboarding answers can proceed even when submissions are pending.
     showDialog(
       context: context,
       barrierDismissible: false,

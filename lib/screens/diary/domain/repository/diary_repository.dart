@@ -670,8 +670,8 @@ class DiaryRepository {
     return _diaryDAO.deleteAllDiaries();
   }
 
-  // Removing all the diaries that start today and onwards
-  Future<bool> removeDiariesFrom(DateTime now) async {
+  // Removes diaries starting at or after the supplied resync cutoff.
+  Future<bool> removeDiariesFrom(DateTime cutoff) async {
     try {
       // Get all diaries
       final all = getAllDiaries();
@@ -679,9 +679,9 @@ class DiaryRepository {
       dev.log("Total diaries before deletion: ${all.length}",
           name: "Diary Deletion");
 
-      // Filter diaries that start today
+      // Filter diaries that start at or after the cutoff.
       final filtered =
-          all.where((diary) => !diary.start.isBefore(now)).toList();
+          all.where((diary) => !diary.start.isBefore(cutoff)).toList();
 
       dev.log("Diaries to delete: ${filtered.length}", name: "Diary Deletion");
 

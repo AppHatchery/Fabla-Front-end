@@ -45,6 +45,13 @@ import '../../../diary/domain/entities/protocol_entity.dart';
 import '../entities/participant.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+/// Returns the local-time boundary after which protocol resync may replace
+/// diaries. The next-day 4 AM boundary protects same-day participant work and
+/// treats after-midnight sessions as part of the preceding diary day.
+DateTime protocolResyncCutoff(DateTime now) {
+  return DateTime(now.year, now.month, now.day + 1, 4);
+}
+
 class SetupRepository {
   final ParticipantDAO _participantDAO =
       ParticipantDAO(box: Box<Participant>(objectbox.store));
@@ -150,9 +157,10 @@ class SetupRepository {
   /// This function does not return any data but updates the local database directly.
   ///
   /// Parameters:
-  /// - [partialCleanDB]: If true, the database will be partially cleared by removing diaries
-  ///  from the current date until the last diary, while keeping all old data. If false,
-  /// the database will be completely cleared before adding new studies and diaries.
+  /// - [partialCleanDB]: If true, the database will be partially cleared by
+  /// removing diaries from the next resync cutoff onward while preserving
+  /// earlier participant data. If false, the database will be completely
+  /// cleared before adding new studies and diaries.
   ///
   /// Example usage:
   /// ```dart
@@ -198,18 +206,20 @@ class SetupRepository {
 
         // Determine which diaries to add based on whether this is a fresh install or not
         List<DiaryModel> diariesToAdd;
+        DateTime? resyncCutoff;
 
         if (partialCleanDB) {
-          // NOT a fresh install - only add today and future diaries
-          final now = DateTime.now();
-          final today = DateTime(now.year, now.month, now.day);
+          // Preserve today's diaries (including ongoing or completed but
+          // unsubmitted work) and late-night sessions. Replacing diaries from
+          // today is what caused participant data to be lost during resync.
+          resyncCutoff = protocolResyncCutoff(DateTime.now());
 
           diariesToAdd = fetchedDiaries
-              .where((diary) => !diary.start.isBefore(today))
+              .where((diary) => !diary.start.isBefore(resyncCutoff!))
               .toList();
 
           dev.log(
-              "Partial update: Total fetched: ${fetchedDiaries.length}, Future only: ${diariesToAdd.length}",
+              "Partial update: Total fetched: ${fetchedDiaries.length}, Starting from $resyncCutoff: ${diariesToAdd.length}",
               name: "Get Studies");
         } else {
           // Fresh install - add ALL diaries
@@ -241,17 +251,13 @@ class SetupRepository {
         // if partialCleanDB is true, clear the database partially
         if (partialCleanDB) {
           // Partially clear the database not to lose the old data
-          // Get rid of all the data from now till last while keeping all the old data
-          final now = DateTime.now();
-          //get today's date
-          final today = DateTime(now.year, now.month, now.day);
-
-          dev.log("Partial clean: Deleting diaries from today onwards",
+          // Use the same cutoff used above when selecting server diaries so
+          // deletion and replacement cannot get out of sync.
+          dev.log("Partial clean: Deleting diaries from $resyncCutoff onwards",
               name: "Get Studies");
 
           await Future.microtask(() async {
-            final DiaryRepository repository = DiaryRepository();
-            repository.removeDiariesFrom(today);
+            await diaryRepository.removeDiariesFrom(resyncCutoff!);
             _studyDAO.deleteAllStudies();
           });
 
@@ -259,7 +265,8 @@ class SetupRepository {
           final SharedPreferences lastUpdated =
               await SharedPreferences.getInstance();
 
-          final lastUpdatedDate = DateFormat('dd/MM/yyyy').format(today);
+          final lastUpdatedDate =
+              DateFormat('dd/MM/yyyy').format(DateTime.now());
 
           await lastUpdated.setString(
               'last_Updated', lastUpdatedDate); // store today's date

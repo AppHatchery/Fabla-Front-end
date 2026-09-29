@@ -7,10 +7,8 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/utils/participant_experiment_details.dart';
-import '../../../hub/presentation/cubit/hub_cubit.dart';
 
 class SettingsStudyDetails extends StatefulWidget {
   const SettingsStudyDetails({super.key});
@@ -20,7 +18,6 @@ class SettingsStudyDetails extends StatefulWidget {
 }
 
 class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
-  late HubCubit _hubCubit;
   ExperimentModel? experiment;
 
   String? lastUpdated;
@@ -31,7 +28,6 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
   @override
   void initState() {
     super.initState();
-    _hubCubit = context.read<HubCubit>();
     _loadDetails();
   }
 
@@ -152,7 +148,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                         Expanded(
                           child: CustomOutlineButton(
                             key: Key("update_study"),
-                            onClick: _showUpdateWarning,
+                            onClick: _showUpdateDialog,
                             backgroundColor: Colors.transparent,
                             color: CustomColors.productNormal,
                             borderRadius: 200,
@@ -191,17 +187,9 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
         body: 'Describe the issue you are facing',
       );
 
-  /// Entry point for the manual study update. Blocks first when there are
-  /// pending/submitted diaries today; otherwise opens the single morphing
-  /// dialog, which drives the update itself and shows progress/result.
-  void _showUpdateWarning() {
-    if (_hubCubit.hasPendingOrSubmittedToday()) {
-      showDialog(
-        context: context,
-        builder: (_) => const StudyUpdateBlockedPopUp(),
-      );
-      return;
-    }
+  /// Opens the update flow. Same-day diaries are protected by the protocol
+  /// resync cutoff, so pending submissions no longer need to block updates.
+  void _showUpdateDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
