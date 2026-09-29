@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "name": "Welcome",
+  "seed": 3,
+  "start": { "x": -0.25, "y": 0.3, "scale": 1, "expression": "excited" },
+  "clips": [
+    { "track": "motion", "type": "fly", "t": 0, "d": 1700, "path": [[0.3, 0.18], [0.82, 0.32], [0.55, 0.56], [0.5, 0.45]] },
+    { "track": "fx", "t": 0, "d": 1700, "prop": "sparkle", "mode": "trail", "rate": 24 },
+    { "track": "face", "t": 1700, "expression": "happy" },
+    { "track": "look", "t": 1700, "d": 2700, "target": "viewer" },
+    { "track": "action", "t": 1750, "gesture": "wave" },
+    { "track": "speech", "t": 1900, "d": 2400, "text": "Hi! I'm Fabio." },
+    { "track": "fx", "t": 2000, "prop": "heart", "mode": "float", "count": 2 },
+    { "track": "action", "t": 4400, "gesture": "spin" },
+    { "track": "face", "t": 4400, "d": 1400, "expression": "joyful" },
+    { "track": "motion", "type": "fly", "t": 4800, "d": 1100, "path": [[0.78, 0.22], [1.3, -0.12]], "ease": "inCubic", "scale": 0.7 }
+  ]
+}

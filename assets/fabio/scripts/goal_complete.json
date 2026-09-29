@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "name": "Goal complete",
+  "seed": 21,
+  "start": { "x": 0.5, "y": 1.25, "scale": 1, "expression": "determined" },
+  "clips": [
+    { "track": "motion", "type": "dash", "t": 0, "d": 900, "path": [[0.5, 0.42]] },
+    { "track": "fx", "t": 0, "d": 800, "prop": "puff", "mode": "trail", "rate": 30 },
+    { "track": "face", "t": 900, "expression": "starstruck" },
+    { "track": "action", "t": 950, "gesture": "flip" },
+    { "track": "fx", "t": 1500, "prop": "star", "mode": "burst", "count": 16 },
+    { "track": "fx", "t": 1500, "d": 2600, "prop": "confetti", "mode": "rain", "rate": 70 },
+    { "track": "action", "t": 2100, "gesture": "cheer" },
+    { "track": "speech", "t": 2200, "d": 2200, "text": "You did it! Goal complete!" },
+    { "track": "look", "t": 2100, "d": 2400, "target": "viewer" },
+    { "track": "event", "t": 2200, "name": "goal_badge" },
+    { "track": "motion", "type": "orbit", "t": 4500, "d": 1600, "center": [0.5, 0.45], "radius": 0.18, "turns": 1 },
+    { "track": "fx", "t": 4500, "d": 1600, "prop": "sparkle", "mode": "trail", "rate": 26 },
+    { "track": "face", "t": 4500, "expression": "proud" },
+    { "track": "action", "t": 6150, "gesture": "tada" },
+    { "track": "fx", "t": 6200, "prop": "check", "mode": "float", "count": 1 },
+    { "track": "motion", "type": "fly", "t": 7600, "d": 1000, "path": [[0.25, 0.3], [-0.3, 0.1]], "ease": "inCubic" }
+  ]
+}

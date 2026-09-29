@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "name": "Recording start",
+  "seed": 5,
+  "start": { "x": 1.2, "y": 0.28, "scale": 0.8, "expression": "curious" },
+  "clips": [
+    { "track": "motion", "type": "fly", "t": 0, "d": 1400, "path": [[0.75, 0.2], [0.72, 0.32]], "ease": "outBack" },
+    { "track": "fx", "t": 1300, "prop": "mic", "mode": "float", "count": 1, "at": [0.5, 0.3] },
+    { "track": "look", "t": 1300, "d": 1400, "at": [0.5, 0.3] },
+    { "track": "face", "t": 1500, "expression": "listening" },
+    { "track": "action", "t": 1600, "gesture": "nod" },
+    { "track": "speech", "t": 1800, "d": 2200, "text": "I'm all ears. Go ahead!" },
+    { "track": "fx", "t": 2400, "prop": "note", "mode": "float", "count": 1 },
+    { "track": "fx", "t": 3200, "prop": "note", "mode": "float", "count": 1 },
+    { "track": "motion", "type": "wander", "t": 1400, "d": 3600, "radius": 0.04 },
+    { "track": "motion", "type": "fly", "t": 5000, "d": 900, "path": [[1.3, 0.1]], "ease": "inBack" }
+  ]
+}

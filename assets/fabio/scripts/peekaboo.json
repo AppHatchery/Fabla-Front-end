@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "name": "Peekaboo",
+  "seed": 31,
+  "start": { "x": 0.2, "y": 1.2, "scale": 1, "expression": "curious" },
+  "clips": [
+    { "track": "motion", "type": "hold", "t": 0, "d": 900, "to": [0.2, 0.9], "ease": "outBack" },
+    { "track": "look", "t": 900, "d": 900, "at": [0.9, 0.6] },
+    { "track": "fx", "t": 1000, "prop": "question", "mode": "float", "count": 1 },
+    { "track": "motion", "type": "hold", "t": 1900, "d": 500, "to": [0.2, 1.2], "ease": "inBack" },
+    { "track": "motion", "type": "teleport", "t": 2600, "d": 800, "to": [0.75, 0.4] },
+    { "track": "face", "t": 3200, "d": 900, "expression": "surprised" },
+    { "track": "action", "t": 3300, "gesture": "startle" },
+    { "track": "fx", "t": 3300, "prop": "exclaim", "mode": "float", "count": 1 },
+    { "track": "face", "t": 4100, "expression": "joyful" },
+    { "track": "action", "t": 4200, "gesture": "laugh" },
+    { "track": "speech", "t": 4300, "d": 1800, "text": "Peekaboo!" },
+    { "track": "motion", "type": "teleport", "t": 6400, "d": 800, "to": [0.3, 0.3] },
+    { "track": "action", "t": 7300, "gesture": "hop" },
+    { "track": "face", "t": 7200, "d": 1200, "expression": "wink" },
+    { "track": "motion", "type": "dash", "t": 8500, "d": 700, "path": [[-0.4, 0.2]] }
+  ]
+}

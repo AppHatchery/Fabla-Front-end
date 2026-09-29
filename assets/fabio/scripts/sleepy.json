@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "name": "Good night",
+  "seed": 14,
+  "start": { "x": 0.5, "y": 0.45, "scale": 1, "expression": "sleepy" },
+  "clips": [
+    { "track": "action", "t": 200, "gesture": "yawn" },
+    { "track": "speech", "t": 2300, "d": 1800, "text": "Time to rest..." },
+    { "track": "face", "t": 4000, "expression": "asleep" },
+    { "track": "motion", "type": "hold", "t": 4000, "d": 3000, "to": [0.5, 0.52], "ease": "inOutSine" },
+    { "track": "fx", "t": 4300, "prop": "zzz", "mode": "float", "count": 1 },
+    { "track": "fx", "t": 5200, "prop": "zzz", "mode": "float", "count": 1 },
+    { "track": "fx", "t": 6100, "prop": "zzz", "mode": "float", "count": 1 },
+    { "track": "fx", "t": 4000, "d": 3000, "prop": "bubble", "mode": "trail", "rate": 3 }
+  ]
+}
