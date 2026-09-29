@@ -145,6 +145,91 @@ void main() {
       }
     });
   });
+
+  // -------------------------------------------------------------------
+  // 3. takeNotice — what replaces the question on the sheet
+  // -------------------------------------------------------------------
+  //
+  // The real function, not a mirror: it is top level and pure, so there is
+  // nothing to reproduce.
+  // -------------------------------------------------------------------
+  group('takeNotice', () {
+    test('a take with nothing to report shows the question', () {
+      expect(takeNotice(const AudioRecordingState()), isNull);
+      expect(
+        takeNotice(const AudioRecordingState(
+          status: AudioRecordingStatus.recording,
+        )),
+        isNull,
+      );
+      expect(takeNotice(const AudioRecordingState(hasTake: true)), isNull,
+          reason: 'a take the participant stopped needs no explaining');
+    });
+
+    test('a paused interrupted take points at the resume button', () {
+      final notice = takeNotice(const AudioRecordingState(
+        status: AudioRecordingStatus.paused,
+        isInterrupted: true,
+      ));
+
+      expect(notice?.body, contains('resume'));
+    });
+
+    // iOS: the segments of a take split by an interruption could not be put
+    // back together. Nothing is lost, and the participant has to hear that
+    // first.
+    test('a failed join says the recording is safe and how to retry', () {
+      final notice = takeNotice(const AudioRecordingState(
+        status: AudioRecordingStatus.paused,
+        joinFailed: true,
+      ));
+
+      expect(notice, isNotNull);
+      expect(notice!.body, contains('safe'));
+      expect(notice.body, contains('stop'));
+    });
+
+    test('a refused start says the microphone is busy and how to retry', () {
+      final notice = takeNotice(
+        const AudioRecordingState(microphoneUnavailable: true),
+      );
+
+      expect(notice?.title, 'The microphone is busy');
+      expect(notice!.body, contains('try again'));
+    });
+
+    test('an empty take says nothing was recorded', () {
+      final notice = takeNotice(const AudioRecordingState(takeWasEmpty: true));
+
+      expect(notice?.title, 'No audio was recorded');
+    });
+
+    test('a failed join is explained before anything else', () {
+      const all = AudioRecordingState(
+        status: AudioRecordingStatus.paused,
+        joinFailed: true,
+        isInterrupted: true,
+        microphoneUnavailable: true,
+      );
+
+      expect(
+        takeNotice(all)?.title,
+        takeNotice(const AudioRecordingState(joinFailed: true))?.title,
+      );
+    });
+
+    // Tapping resume while a call still holds the microphone is refused
+    // again, so "tap resume" would send the participant round in a circle.
+    test('a busy microphone is explained before the interruption', () {
+      final notice = takeNotice(const AudioRecordingState(
+        status: AudioRecordingStatus.paused,
+        isInterrupted: true,
+        microphoneUnavailable: true,
+      ));
+
+      expect(notice?.title, 'The microphone is busy');
+    });
+  });
 }
 
 /// Mirror of the switch in `_BottomRecordingModalState.save()`:
