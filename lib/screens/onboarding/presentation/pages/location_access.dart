@@ -2,6 +2,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -131,7 +132,7 @@ class _LocationAccessState extends State<LocationAccess>
                                   const EdgeInsets.symmetric(horizontal: 16.0),
                               child: Column(
                                 children: [
-                                  Text(
+                                  OnboardingScaledText(
                                     "Let's enable access to your location.",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
@@ -206,12 +207,15 @@ class _LocationAccessState extends State<LocationAccess>
                                                       ),
                                                       onPressed:
                                                           openPermissionSettings,
-                                                      child: Text(
-                                                          "Open Settings",
-                                                          style: CustomTypography()
-                                                              .bodyLarge(
-                                                                  color: CustomColors
-                                                                      .textWhite)))
+                                                      child: FittedBox(
+                                                        fit: BoxFit.scaleDown,
+                                                        child: Text(
+                                                            "Open Settings",
+                                                            style: CustomTypography()
+                                                                .bodyLarge(
+                                                                    color: CustomColors
+                                                                        .textWhite)),
+                                                      ))
                                                 ],
                                               ),
                                             ],

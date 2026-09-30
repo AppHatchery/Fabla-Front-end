@@ -196,8 +196,9 @@ class _CustomMultipleQuestion extends State<CustomMultipleQuestion> {
               child: Material(
                   color: Colors.transparent,
                   child: CheckboxListTile(
-                    title: Text(
-                      widget.options[index].title,
+                    contentPadding: EdgeInsets.zero,
+                    title: OptionLabel(
+                      text: widget.options[index].title,
                       style: CustomTypography().button(
                           color: selectedOptions
                                       .contains(widget.options[index].value) &&

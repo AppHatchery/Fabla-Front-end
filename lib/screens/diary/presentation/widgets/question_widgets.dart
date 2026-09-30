@@ -37,6 +37,27 @@ import 'my_responses.dart';
 ///They are used to display tbe answer options for each question
 ///whether slider option, multiple questions or radio questions
 
+class OptionLabel extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+
+  const OptionLabel({super.key, required this.text, required this.style});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = Text(text, style: style);
+    if (text.trim().contains(RegExp(r'\s'))) {
+      return label;
+    }
+
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: label,
+    );
+  }
+}
+
 class SliderQuestionCard extends StatefulWidget {
   final double? value;
   final String? scaleMinText;
@@ -130,27 +151,30 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
                       trackHeight: 4,
                       valueIndicatorTextStyle: CustomTypography()
                           .bodyLarge(color: CustomColors.textWhite)),
-                  child: Slider(
-                    value: _value,
-                    min: widget.scaleMin.toDouble(),
-                    max: widget.scaleMax.toDouble(),
-                    divisions: widget.scaleMax - widget.scaleMin,
-                    label: _value.round().toString(),
-                    onChangeEnd: widget.isSliderEnabled
-                        ? (double value) {
-                            if (widget.onSliderValueChanged != null) {
-                              widget.onSliderValueChanged!(value);
+                  child: SizedBox(
+                    height: 48,
+                    child: Slider(
+                      value: _value,
+                      min: widget.scaleMin.toDouble(),
+                      max: widget.scaleMax.toDouble(),
+                      divisions: widget.scaleMax - widget.scaleMin,
+                      label: _value.round().toString(),
+                      onChangeEnd: widget.isSliderEnabled
+                          ? (double value) {
+                              if (widget.onSliderValueChanged != null) {
+                                widget.onSliderValueChanged!(value);
+                              }
                             }
-                          }
-                        : null,
-                    onChanged: widget.isSliderEnabled
-                        ? (val) {
-                            setState(() {
-                              _value = val;
-                            });
-                          }
-                        : null,
-                    //overlayColor:CustomColors.newBlue,
+                          : null,
+                      onChanged: widget.isSliderEnabled
+                          ? (val) {
+                              setState(() {
+                                _value = val;
+                              });
+                            }
+                          : null,
+                      //overlayColor:CustomColors.newBlue,
+                    ),
                   ),
                 ),
               ),
@@ -164,21 +188,29 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
           ],
         ),
         Row(
-          spacing: 40,
+          spacing: 20,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              child: Text(
-                widget.scaleMinText ?? '',
-                textAlign: TextAlign.start,
-                style: CustomTypography().bodyLarge(color: widget.colorFont),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  widget.scaleMinText ?? '',
+                  textAlign: TextAlign.start,
+                  style: CustomTypography().bodyLarge(color: widget.colorFont),
+                ),
               ),
             ),
             Expanded(
-              child: Text(
-                widget.scaleMaxText ?? '',
-                textAlign: TextAlign.end,
-                style: CustomTypography().bodyLarge(color: widget.colorFont),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  widget.scaleMaxText ?? '',
+                  textAlign: TextAlign.end,
+                  style: CustomTypography().bodyLarge(color: widget.colorFont),
+                ),
               ),
             ),
           ],
@@ -240,8 +272,9 @@ class _MultipleQuestionState extends State<MultipleQuestion> {
               child: Material(
                   color: Colors.transparent,
                   child: CheckboxListTile(
-                    title: Text(
-                      widget.options[index],
+                    contentPadding: EdgeInsets.zero,
+                    title: OptionLabel(
+                      text: widget.options[index],
                       style: CustomTypography().button(
                           color:
                               selectedOptions.contains(widget.options[index]) &&
@@ -328,8 +361,9 @@ class _RadioQuestionState extends State<RadioQuestion> {
               child: Material(
                   color: Colors.transparent,
                   child: RadioListTile<String>(
-                    title: Text(
-                      widget.options[index],
+                    contentPadding: EdgeInsets.zero,
+                    title: OptionLabel(
+                      text: widget.options[index],
                       style: CustomTypography().button(
                           color: !widget.disabled
                               ? widget.options[index] == widget.value
@@ -462,8 +496,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
               ],
               if (_lowBattery) ...[
                 const LowWarningCard(
-                  message:
-                      'Your battery is running low. Please connect your '
+                  message: 'Your battery is running low. Please connect your '
                       'charger to avoid interruptions while recording.',
                 ),
                 const SizedBox(height: 12),
@@ -806,8 +839,12 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                     SizedBox(
                       height: 70,
                     ),
-                    GestureDetector(
-                      onTap: _launchEmail,
+                    TextButton(
+                      onPressed: _launchEmail,
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(0, 48),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                      ),
                       child: Text(
                         "Contact Researcher",
                         textAlign: TextAlign.center,
@@ -1412,13 +1449,17 @@ class _TimerWidgetState extends State<TimerWidget>
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Flexible(
-                  child: Text(
-                    "Time Length",
-                    style: CustomTypography().custom(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF383838)),
-                    textAlign: TextAlign.start,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Time Length",
+                      style: CustomTypography().custom(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF383838)),
+                      textAlign: TextAlign.start,
+                    ),
                   ),
                 ),
               ],
@@ -1738,9 +1779,14 @@ class _MediaPreviewState extends State<MediaPreview> {
                             right: 0,
                             child: Padding(
                               padding: const EdgeInsets.all(6),
-                              child: GestureDetector(
-                                onTap: () => widget.delete(path),
-                                child: Container(
+                              child: IconButton(
+                                constraints: const BoxConstraints(
+                                    minWidth: 48, minHeight: 48),
+                                padding: EdgeInsets.zero,
+                                onPressed: () => widget.delete(path),
+                                icon: Container(
+                                  width: 48,
+                                  height: 48,
                                   decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       color: Color(0xFF616161)),
@@ -1848,9 +1894,14 @@ class _MediaPreviewState extends State<MediaPreview> {
                             right: 0,
                             child: Padding(
                               padding: const EdgeInsets.all(6),
-                              child: GestureDetector(
-                                onTap: () => widget.delete(path),
-                                child: Container(
+                              child: IconButton(
+                                constraints: const BoxConstraints(
+                                    minWidth: 48, minHeight: 48),
+                                padding: EdgeInsets.zero,
+                                onPressed: () => widget.delete(path),
+                                icon: Container(
+                                  width: 48,
+                                  height: 48,
                                   decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       color: Color(0xFF616161)),
@@ -1986,9 +2037,11 @@ class _MediaPreviewState extends State<MediaPreview> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(left: 16.0),
-                            child: GestureDetector(
-                              onTap: () => Navigator.pop(context),
-                              child: const Icon(
+                            child: IconButton(
+                              constraints: const BoxConstraints(
+                                  minWidth: 48, minHeight: 48),
+                              onPressed: () => Navigator.pop(context),
+                              icon: const Icon(
                                 CupertinoIcons.clear,
                                 size: 24,
                                 color: Colors.black,
@@ -2140,10 +2193,13 @@ class _VideoViewerState extends State<VideoViewer> {
                                     thumbShape: const RoundSliderThumbShape(
                                         enabledThumbRadius: 2, elevation: 0),
                                     overlayShape: SliderComponentShape.noThumb),
-                                child: Slider(
-                                  value: current,
-                                  max: max,
-                                  onChanged: (val) => seek(val),
+                                child: SizedBox(
+                                  height: 48,
+                                  child: Slider(
+                                    value: current,
+                                    max: max,
+                                    onChanged: (val) => seek(val),
+                                  ),
                                 ),
                               ),
                             ],

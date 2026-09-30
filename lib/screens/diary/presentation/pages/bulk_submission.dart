@@ -189,32 +189,24 @@ class _BulkSubmissionPageState extends State<BulkSubmissionPage> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(left: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 8,
-                    children: [
-                      Text(
-                        retry ? 'Upload Failed' : "Uploading in Progress",
-                        style:
-                            CustomTypography().titleSmallCustom(color: color),
-                      ),
-                      Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 0, vertical: 2),
-                        decoration: ShapeDecoration(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4)),
-                        ),
-                        child: Text(
-                          retry ? retryText : text,
-                          style: CustomTypography().bodyLarge(color: color),
-                        ),
-                      )
-                    ],
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      retry ? 'Upload Failed' : "Uploading in Progress",
+                      style: CustomTypography().titleSmallCustom(color: color),
+                    ),
                   ),
                 ),
               ),
             ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              retry ? retryText : text,
+              style: CustomTypography().bodyLarge(color: color),
+            ),
           ),
           retry
               ? Padding(

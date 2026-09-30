@@ -1,4 +1,3 @@
-
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +6,6 @@ import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
-
 
 class VerificationCodeTextField extends StatefulWidget {
   final String title;
@@ -90,14 +88,14 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
             ? Padding(
                 padding: const EdgeInsets.only(top: 12.0),
                 child: Container(
-                  width: width,
+                  width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: ShapeDecoration(
                       color: CustomColors.fillVanilla,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(11),
                       )),
-                  child: Row(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
@@ -105,64 +103,50 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
                         size: 24,
                         color: CustomColors.pumpkinOrange, // Same orange
                       ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 8,
-                            children: [
-                              Text(
-                                "Participant ID Already in Use",
+                      const SizedBox(height: 8),
+                      Text(
+                        "Participant ID Already in Use",
+                        style: CustomTypography().bodyLarge(
+                            color: CustomColors.pumpkinOrange,
+                            weight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        widget.warningMessage,
+                        style: CustomTypography().bodyLarge(
+                          color: CustomColors.pumpkinOrange,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Container(
+                          constraints: const BoxConstraints(
+                            minHeight: 48,
+                          ),
+                          decoration: ShapeDecoration(
+                            color: CustomColors.pumpkinOrange,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(11),
+                            ),
+                          ),
+                          child: TextButton(
+                            onPressed: () => launchEmail(),
+                            style: TextButton.styleFrom(
+                              minimumSize: const Size(0, 48),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                            ),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                "Contact Researcher",
                                 style: CustomTypography().bodyLarge(
-                                    color: CustomColors.pumpkinOrange,
-                                    weight: FontWeight.w700),
+                                  color: CustomColors.fillVanilla,
+                                  weight: FontWeight.w400,
+                                ),
                               ),
-                              Column(
-                                children: [
-                                  Text(
-                                    widget.warningMessage,
-                                    style: CustomTypography().bodyLarge(
-                                      color: CustomColors.pumpkinOrange,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  SizedBox(
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          height: 45,
-                                          decoration: ShapeDecoration(
-                                            color: CustomColors.pumpkinOrange,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(11),
-                                            ),
-                                          ),
-                                          child: TextButton(
-                                            onPressed: () => launchEmail(),
-                                            child: FittedBox(
-                                              fit: BoxFit.scaleDown,
-                                              child: Text(
-                                                "Contact Researcher",
-                                                style: CustomTypography()
-                                                    .bodyLarge(
-                                                  color:
-                                                      CustomColors.fillVanilla,
-                                                  weight: FontWeight.w400,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                ],
-                              )
-                            ],
+                            ),
                           ),
                         ),
                       ),
@@ -207,10 +191,10 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
 Future<void> launchEmail() async {
   await ParticipantAndExperimentDetails().loginSupportEmail(
       subject: 'Assistance Needed: Participant ID Already in Use',
-      body: ''' Participant ID entered is already in use. Please confirm or advise next steps.
+      body:
+          ''' Participant ID entered is already in use. Please confirm or advise next steps.
         
         
 Name: ''',
-      example: ''
-  );
+      example: '');
 }

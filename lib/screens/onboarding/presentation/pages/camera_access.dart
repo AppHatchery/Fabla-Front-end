@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/camera_preview.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -117,7 +118,7 @@ class _CameraAccessState extends State<CameraAccess>
                             children: [
                               Column(
                                 children: [
-                                  Text(
+                                  OnboardingScaledText(
                                     permission
                                         ? "Let's test the camera feed."
                                         : "Let's enable access to your camera.",

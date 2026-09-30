@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -79,7 +80,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Study Information",
+                OnboardingScaledText("Study Information",
                     style: CustomTypography()
                         .headlineLarge(color: CustomColors.textWhite)),
                 const SizedBox(
@@ -139,7 +140,10 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
                           fontSize: 18.sp,
                           decoration: TextDecoration.underline,
                           decorationColor: CustomColors.textWhite),
-                    ))
+                    )),
+                const SizedBox(
+                  height: 140,
+                ),
               ],
             ),
           ),

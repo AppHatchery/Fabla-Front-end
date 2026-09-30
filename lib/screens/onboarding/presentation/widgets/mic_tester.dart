@@ -26,9 +26,9 @@ class _MicTesterState extends State<MicTester> {
     return SizedBox(
       width: widget.width,
       child: Container(
-        height: 60,
+        constraints: const BoxConstraints(minHeight: 68),
         width: widget.width,
-        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 18),
         decoration: BoxDecoration(
           color: CustomColors.fillWhite,
           border: Border.all(color: CustomColors.productBorderNormal, width: 2),
@@ -45,13 +45,15 @@ class _MicTesterState extends State<MicTester> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            GestureDetector(
-              onTap: () {
+            IconButton(
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              padding: EdgeInsets.zero,
+              onPressed: () {
                 if (widget.request != null && mounted) {
                   widget.request!();
                 }
               },
-              child: const Icon(CustomIcons.keyboardVoice,
+              icon: const Icon(CustomIcons.keyboardVoice,
                   color: CustomColors.productNormal),
             ),
             const SizedBox(

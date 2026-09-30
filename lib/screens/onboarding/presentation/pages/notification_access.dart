@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/services/battery_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -134,7 +135,7 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                             left: 16.0, right: 16.0, bottom: 34.0),
                         child: Column(
                           children: [
-                            Text(
+                            OnboardingScaledText(
                               granted != null && granted == true
                                   ? "Make sure you have sound on to catch these alerts on time"
                                   : "Turn on notifications for timely reminders!",
@@ -237,9 +238,12 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                       ),
                     ),
                     onPressed: openPermissionSettings,
-                    child: Text("Open Settings",
-                        style: CustomTypography()
-                            .bodyLarge(color: CustomColors.textWhite)))
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text("Open Settings",
+                          style: CustomTypography()
+                              .bodyLarge(color: CustomColors.textWhite)),
+                    ))
               ],
             ),
           ],
@@ -295,9 +299,12 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                       ),
                     ),
                     onPressed: () => openSetting(),
-                    child: Text("Open Settings",
-                        style: CustomTypography()
-                            .bodyLarge(color: CustomColors.textWhite)))
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text("Open Settings",
+                          style: CustomTypography()
+                              .bodyLarge(color: CustomColors.textWhite)),
+                    ))
               ],
             ),
           ],

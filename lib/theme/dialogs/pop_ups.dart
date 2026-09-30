@@ -14,6 +14,77 @@ import '../components/checkboxes.dart';
 import '../custom_colors.dart';
 import '../custom_icons.dart';
 
+class _PopupText extends StatelessWidget {
+  final String data;
+  final TextStyle style;
+  final TextAlign? textAlign;
+
+  const _PopupText(
+    this.data, {
+    required this.style,
+    this.textAlign,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final maxWidth = MediaQuery.sizeOf(context).width - 64;
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    final spans = <InlineSpan>[];
+    var skipWhitespace = false;
+    var hasLongWord = false;
+
+    for (final match in RegExp(r'\s+|\S+').allMatches(data)) {
+      final token = match.group(0)!;
+      if (token.trim().isEmpty) {
+        if (!skipWhitespace) spans.add(TextSpan(text: token, style: style));
+        continue;
+      }
+      skipWhitespace = false;
+
+      final painter = TextPainter(
+        text: TextSpan(text: token, style: style),
+        textDirection: direction,
+        textScaler: scaler,
+      )..layout();
+      final exceedsWidth = painter.width > maxWidth;
+      painter.dispose();
+
+      if (exceedsWidth) {
+        hasLongWord = true;
+        spans
+          ..add(TextSpan(text: '\n', style: style))
+          ..add(
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: SizedBox(
+                width: maxWidth,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(token, style: style),
+                ),
+              ),
+            ),
+          )
+          ..add(TextSpan(text: '\n', style: style));
+        skipWhitespace = true;
+      } else {
+        spans.add(TextSpan(text: token, style: style));
+      }
+    }
+
+    if (!hasLongWord) {
+      return Text(data, style: style, textAlign: textAlign);
+    }
+
+    return Text.rich(
+      TextSpan(children: spans),
+      textAlign: textAlign,
+      semanticsLabel: data,
+    );
+  }
+}
+
 /// Pop up for showing a tip to the user.
 ///
 /// [title] is the title of the pop up. - String?
@@ -1103,6 +1174,7 @@ class DeletePopUp extends StatelessWidget {
   Widget build(BuildContext context) {
     return SimpleDialog(
       contentPadding: const EdgeInsets.all(0),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
           side: const BorderSide(color: Colors.grey, width: 2)),
@@ -1110,13 +1182,14 @@ class DeletePopUp extends StatelessWidget {
       surfaceTintColor: CustomColors.fillWhite,
       children: [
         Container(
+          width: MediaQuery.sizeOf(context).width - 32,
           constraints: const BoxConstraints.tightFor(),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Title
-              Text(
+              _PopupText(
                 title ?? "Do you want to delete your response?",
                 style: CustomTypography().headlineMedium(),
                 textAlign: TextAlign.center,
@@ -1276,21 +1349,26 @@ class StudyInfoPopUp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dialogWidth = MediaQuery.sizeOf(context).width - 32;
+    final descriptionStyle = CustomTypography().custom(
+        fontSize: 18.sp,
+        fontWeight: FontWeight.w400,
+        color: const Color(0xA3000000));
+    final largeText = MediaQuery.textScalerOf(context).scale(18.sp) > 28;
     return SimpleDialog(
         backgroundColor: CustomColors.fillWhite,
         contentPadding: const EdgeInsets.all(0),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 29),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16),
         title: Column(
           children: [
             Align(
               alignment: Alignment.topRight,
-              child: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: const Icon(Icons.close, size: 24),
+              child: IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close, size: 24),
               ),
             ),
-            Row(
-              spacing: 16,
+            Column(
               children: [
                 Container(
                   decoration: const BoxDecoration(
@@ -1301,72 +1379,87 @@ class StudyInfoPopUp extends StatelessWidget {
                     width: 80,
                   ),
                 ),
-                Flexible(
-                  child: Text(
-                    "What's my Study String?",
-                    style: CustomTypography().custom(
-                        fontSize: 22.sp,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xDB000000)),
-                  ),
+                const SizedBox(height: 12),
+                _PopupText(
+                  "What's my Study String?",
+                  style: CustomTypography().custom(
+                      fontSize: 22.sp,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xDB000000)),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
           ],
         ),
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 19, right: 30, bottom: 41),
-            child: Column(
-              children: [
-                const SizedBox(height: 26),
-                Text.rich(TextSpan(
-                    text: "Your ",
-                    style: CustomTypography().custom(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xA3000000)),
-                    children: [
-                      TextSpan(
-                        text: "Study String ",
-                        style: CustomTypography().titleSmall(
-                            color: CustomColors.backgroundSecondary),
-                      ),
-                      TextSpan(
-                        text:
-                            "is an alphanumeric code (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla",
-                        style: CustomTypography().custom(
-                            fontSize: 18.sp,
-                            fontWeight: FontWeight.w400,
-                            color: const Color(0xA3000000)),
-                      )
-                    ])),
-                const SizedBox(height: 26),
-                Text.rich(
-                  TextSpan(
-                    text: 'If you need help with your Study String, you may ',
-                    style: CustomTypography().custom(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xA3000000)),
-                    children: [
-                      TextSpan(
-                          text: "Contact Us",
-                          style: CustomTypography()
-                              .titleSmall(color: const Color(0xA3000000))
-                              .copyWith(decoration: TextDecoration.underline),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = launchEmail),
-                      TextSpan(
-                          text: ' or reach out to your researcher directly!',
-                          style: CustomTypography().custom(
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.w400,
-                              color: const Color(0xA3000000))),
-                    ],
+          SizedBox(
+            width: dialogWidth,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 41),
+              child: Column(
+                children: [
+                  const SizedBox(height: 26),
+                  Text.rich(
+                    TextSpan(
+                      text: "Your ",
+                      style: descriptionStyle,
+                      children: [
+                        TextSpan(
+                          text: "Study String ",
+                          style: CustomTypography().titleSmall(
+                              color: CustomColors.backgroundSecondary),
+                        ),
+                        if (largeText) ...[
+                          TextSpan(text: "is an\n", style: descriptionStyle),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: SizedBox(
+                              width: dialogWidth - 32,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  "alphanumeric",
+                                  style: descriptionStyle,
+                                ),
+                              ),
+                            ),
+                          ),
+                          TextSpan(
+                            text:
+                                "\ncode (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla",
+                            style: descriptionStyle,
+                          ),
+                        ] else
+                          TextSpan(
+                            text:
+                                "is an alphanumeric code (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla",
+                            style: descriptionStyle,
+                          ),
+                      ],
+                    ),
                   ),
-                )
-              ],
+                  const SizedBox(height: 26),
+                  Text.rich(
+                    TextSpan(
+                      text: 'If you need help with your Study String, you may ',
+                      style: descriptionStyle,
+                      children: [
+                        TextSpan(
+                            text: "Contact Us",
+                            style: CustomTypography()
+                                .titleSmall(color: const Color(0xA3000000))
+                                .copyWith(decoration: TextDecoration.underline),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = launchEmail),
+                        TextSpan(
+                            text: ' or reach out to your researcher directly!',
+                            style: descriptionStyle),
+                      ],
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         ]);
@@ -1397,18 +1490,20 @@ class CompletedPopUp extends StatelessWidget {
     return SimpleDialog(
       backgroundColor: CustomColors.fillWhite,
       contentPadding: const EdgeInsets.all(0),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(25),
       ),
       surfaceTintColor: CustomColors.fillWhite,
       children: [
         Container(
+          width: MediaQuery.sizeOf(context).width - 32,
           constraints: const BoxConstraints.tightFor(),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
+              _PopupText(
                 title,
                 style: CustomTypography().titleLarge(),
                 textAlign: TextAlign.center,
@@ -1541,13 +1636,14 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       child: SimpleDialog(
         backgroundColor: CustomColors.fillWhite,
         contentPadding: const EdgeInsets.all(0),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16),
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
             side: const BorderSide(color: Colors.grey, width: 2)),
         surfaceTintColor: CustomColors.fillWhite,
         children: [
           Container(
-            width: width - 70,
+            width: width - 32,
             constraints: const BoxConstraints.tightFor(),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
             child: Center(
@@ -1630,10 +1726,11 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
         ),
       ),
       const SizedBox(height: 12),
-      Text(
+      _PopupText(
         'Warning',
         style: CustomTypography()
             .headlineMedium(color: CustomColors.warningActive),
+        textAlign: TextAlign.center,
       ),
       const SizedBox(height: 12),
       Text(
@@ -1687,7 +1784,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
         ),
       ),
       const SizedBox(height: 12),
-      Text(
+      _PopupText(
         'Updating Study',
         textAlign: TextAlign.center,
         style: CustomTypography().headlineMedium(),
@@ -1706,9 +1803,9 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
     return [
       Align(
         alignment: Alignment.lerp(Alignment.topRight, Alignment.bottomLeft, 0)!,
-        child: GestureDetector(
-          onTap: _exit,
-          child: const Icon(Icons.close, size: 24),
+        child: IconButton(
+          onPressed: _exit,
+          icon: const Icon(Icons.close, size: 24),
         ),
       ),
       Center(
@@ -1719,7 +1816,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
         ),
       ),
       const SizedBox(height: 12),
-      Text(
+      _PopupText(
         'Study Update Successful',
         textAlign: TextAlign.center,
         style: CustomTypography().headlineMedium(),
@@ -1857,9 +1954,9 @@ class StudyUpdateBlockedPopUp extends StatelessWidget {
             children: [
               Align(
                 alignment: Alignment.topRight,
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: const Icon(Icons.close, size: 24),
+                child: IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close, size: 24),
                 ),
               ),
               Center(

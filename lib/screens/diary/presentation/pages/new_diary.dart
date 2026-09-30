@@ -728,32 +728,45 @@ class _QuestionPageState extends State<QuestionPage>
                         height: 12,
                       ),
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              prompt.question.toString(),
-                              style: CustomTypography().titleLarge(),
-                            ),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.35,
+                        ),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      prompt.question.toString(),
+                                      style: CustomTypography().titleLarge(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (questionTip.isNotEmpty)
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(questionTip,
+                                          style: CustomTypography().bodyLarge(
+                                              color: CustomColors.textNormalContent,
+                                              weight: FontWeight.w400)),
+                                    )
+                                  ],
+                                ),
+                            ],
                           ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(questionTip,
-                                style: CustomTypography().bodyLarge(
-                                    color: CustomColors.textNormalContent,
-                                    weight: FontWeight.w400)),
-                          )
-                        ],
+                        ),
                       ),
                       SizedBox(
                           height: (prompt.responseType == ResponseType.text ||
                                    prompt.responseType == ResponseType.radio ||
                                    prompt.responseType == ResponseType.multiple)
-                              ? 48
-                              : 112),
+                              ? 24
+                              : 48),
                       responseWidget,
                       if (widget.diary.status != DiaryStatus.submitted &&
                           widget.diary.status != DiaryStatus.missed &&

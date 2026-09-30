@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/notification_access.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/list_active_times.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
@@ -72,7 +73,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16.0),
-                                  child: Text(
+                                  child: OnboardingScaledText(
                                     "When would you like to receive reminders?",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),

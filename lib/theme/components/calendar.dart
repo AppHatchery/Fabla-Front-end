@@ -65,7 +65,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
               color: CustomColors.productNormal, shape: BoxShape.circle),
         ),
         startingDayOfWeek: StartingDayOfWeek.monday,
-        daysOfWeekHeight: scaler.scale(45),
+        daysOfWeekHeight: scaler.scale(45).clamp(35.0, 52.0),
         rowHeight: rowHeight,
         onDaySelected: _onDaySelected,
         onCalendarCreated: (controller) {
@@ -80,10 +80,14 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                 Flexible(
                   child: Padding(
                     padding: const EdgeInsets.only(left: 20),
-                    child: Text(
-                      getMonthYear(day),
-                      style: CustomTypography()
-                          .titleSmall(color: CustomColors.textSecondaryContent),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        getMonthYear(day),
+                        style: CustomTypography()
+                            .titleSmall(color: CustomColors.textSecondaryContent),
+                      ),
                     ),
                   ),
                 ),
@@ -131,10 +135,13 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                           width: 0.6,
                           color: CustomColors.productBorderNormal))),
               child: Center(
-                child: Text(
-                  DateFormat.E().format(day)[0],
-                  style: CustomTypography()
-                      .titleSmall(color: CustomColors.textSecondaryContent),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    DateFormat.E().format(day)[0],
+                    style: CustomTypography()
+                        .titleSmall(color: CustomColors.textSecondaryContent),
+                  ),
                 ),
               ),
             );
@@ -152,14 +159,17 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                 : isPast ? CustomColors.textTertiaryContent : CustomColors.textNormalContent;
             return Center(
               child: Container(
-                width: scaler.scale(33),
-                height: scaler.scale(33),
+                width: scaler.scale(32).clamp(28.0, 32.0),
+                height: scaler.scale(32).clamp(28.0, 32.0),
                 margin: const EdgeInsets.only(bottom: 4),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-                child: Text(
-                  day.day.toString(),
-                  style: CustomTypography().bodyMedium(color: textColor),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    day.day.toString(),
+                    style: CustomTypography().bodyMedium(color: textColor),
+                  ),
                 ),
               ),
             );
@@ -177,14 +187,17 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                 : CustomColors.textTertiaryContent;
             return Center(
               child: Container(
-                width: scaler.scale(33),
-                height: scaler.scale(33),
+                width: scaler.scale(32).clamp(28.0, 32.0),
+                height: scaler.scale(32).clamp(28.0, 32.0),
                 margin: const EdgeInsets.only(bottom: 4),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-                child: Text(
-                  date.day.toString(),
-                  style: CustomTypography().bodyLarge(color: textColor),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    date.day.toString(),
+                    style: CustomTypography().bodyLarge(color: textColor),
+                  ),
                 ),
               ),
             );

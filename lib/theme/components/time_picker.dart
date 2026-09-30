@@ -49,7 +49,8 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
 
     final contentWidth =
         scaler.scale(width / 2) > (width / 2) ? width / 1.25 : width / 2;
-    final contentExtent = scaler.scale(50) > 80 ? 80.0 : scaler.scale(50);
+    final contentExtent = scaler.scale(50).clamp(45.0, 75.0);
+    final wheelHeight = scaler.scale(200).clamp(200.0, 320.0);
     return SizedBox(
       width: width,
       child: Padding(
@@ -101,7 +102,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(
-                  height: 200,
+                  height: wheelHeight,
                   width: contentWidth,
                   child: Center(
                     child: Row(
@@ -118,7 +119,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                               diameterRatio: 1,
                               itemExtent: contentExtent,
                               overAndUnderCenterOpacity: 0.3,
-                              squeeze: 2,
+                              squeeze: 1.2,
                               childDelegate: ListWheelChildBuilderDelegate(
                                 builder: (context, index) {
                                   return Hours(hour: index + 1);
@@ -130,7 +131,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                         ),
                         Expanded(
                           child: SizedBox(
-                            height: 200,
+                            height: wheelHeight,
                             width: 80,
                             child: ListWheelScrollView.useDelegate(
                               controller: minutesController,
@@ -143,7 +144,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                               diameterRatio: 1,
                               itemExtent: contentExtent,
                               overAndUnderCenterOpacity: 0.3,
-                              squeeze: 2,
+                              squeeze: 1.2,
                               childDelegate: ListWheelChildBuilderDelegate(
                                 builder: (context, index) {
                                   return Minutes(
@@ -156,8 +157,6 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                         ),
                         Expanded(
                           child: SizedBox(
-                            // height: 200,
-                            // width: 80,
                             child: ListWheelScrollView.useDelegate(
                               controller: periodController,
                               physics: const FixedExtentScrollPhysics(),
@@ -165,7 +164,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                               diameterRatio: 1,
                               itemExtent: contentExtent,
                               overAndUnderCenterOpacity: 0.3,
-                              squeeze: 2,
+                              squeeze: 1.2,
                               childDelegate: ListWheelChildBuilderDelegate(
                                 builder: (context, index) {
                                   return Period(
@@ -215,9 +214,12 @@ class Minutes extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
         child: Center(
-      child: Text(
-        twoDigits(mins),
-        style: CustomTypography().titleSmall(),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          twoDigits(mins),
+          style: CustomTypography().titleSmall(),
+        ),
       ),
     ));
   }
@@ -233,9 +235,12 @@ class Hours extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
         child: Center(
-      child: Text(
-        hour.toString(),
-        style: CustomTypography().titleSmall(),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          hour.toString(),
+          style: CustomTypography().titleSmall(),
+        ),
       ),
     ));
   }
@@ -249,9 +254,12 @@ class HoursAndMinutes extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
         child: Center(
-      child: Text(
-        number % 1 == 0 ? number.toInt().toString() : number.toStringAsFixed(1),
-        style: CustomTypography().titleSmall(),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          number % 1 == 0 ? number.toInt().toString() : number.toStringAsFixed(1),
+          style: CustomTypography().titleSmall(),
+        ),
       ),
     ));
   }
@@ -267,9 +275,12 @@ class Period extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: SizedBox(
           child: Center(
-        child: Text(
-          period,
-          style: CustomTypography().titleSmall(),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            period,
+            style: CustomTypography().titleSmall(),
+          ),
         ),
       )),
     );
@@ -303,7 +314,10 @@ class _CustomTimeElapsedPickerState extends State<CustomTimeElapsedPicker> {
 
   @override
   Widget build(BuildContext context) {
+    final scaler = MediaQuery.of(context).textScaler;
     final width = MediaQuery.of(context).size.width;
+    final wheelHeight = scaler.scale(200).clamp(200.0, 320.0);
+    final itemExtent = scaler.scale(50).clamp(45.0, 75.0);
     return SizedBox(
       width: width,
       child: Padding(
@@ -341,8 +355,8 @@ class _CustomTimeElapsedPickerState extends State<CustomTimeElapsedPicker> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(
-                  height: 200,
-                  width: width / 2,
+                  height: wheelHeight,
+                  width: width / 1.5,
                   child: Center(
                     child: Row(
                       children: [
@@ -368,9 +382,9 @@ class _CustomTimeElapsedPickerState extends State<CustomTimeElapsedPicker> {
                               physics: const FixedExtentScrollPhysics(),
                               perspective: 0.01,
                               diameterRatio: 1,
-                              itemExtent: 50,
+                              itemExtent: itemExtent,
                               overAndUnderCenterOpacity: 0.3,
-                              squeeze: 2,
+                              squeeze: 1.2,
                               childDelegate: ListWheelChildBuilderDelegate(
                                 builder: (context, index) {
                                   return HoursAndMinutes(number: 0.5 * index);
@@ -664,7 +678,7 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                               diameterRatio: 2,
                               itemExtent: itemExtent,
                               overAndUnderCenterOpacity: 0.3,
-                              squeeze: 2,
+                              squeeze: 1.2,
                               childDelegate: ListWheelChildBuilderDelegate(
                                 builder: (context, index) {
                                   return Minutes(mins: index);
@@ -703,7 +717,7 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                               diameterRatio: 2,
                               itemExtent: itemExtent,
                               overAndUnderCenterOpacity: 0.3,
-                              squeeze: 2,
+                              squeeze: 1.2,
                               childDelegate: ListWheelChildBuilderDelegate(
                                 builder: (context, index) {
                                   return Minutes(mins: index);

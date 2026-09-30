@@ -21,10 +21,13 @@ class BeforeStartWidget extends StatelessWidget {
           const SizedBox(
             height: 16,
           ),
-          Text(
-            'No Responses Recorded Yet',
-            style: CustomTypography().titleLarge(),
-            textAlign: TextAlign.center,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              'No Responses Recorded Yet',
+              style: CustomTypography().titleLarge(),
+              textAlign: TextAlign.center,
+            ),
           ),
           const SizedBox(
             height: 6,

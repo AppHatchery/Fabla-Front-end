@@ -208,29 +208,43 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
                     height: 2,
                   ),
 
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          prompt.question,
-                          style: CustomTypography().titleLarge(),
-                        ),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.35,
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  prompt.question,
+                                  style: CustomTypography().titleLarge(),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (prompt.subtitle != null &&
+                              prompt.subtitle!.isNotEmpty)
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    prompt.subtitle!,
+                                    style: const TextStyle(
+                                        color: CustomColors.textTertiaryContent),
+                                  ),
+                                )
+                              ],
+                            ),
+                        ],
                       ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          prompt.subtitle ?? "",
-                          style: const TextStyle(
-                              color: CustomColors.textTertiaryContent),
-                        ),
-                      )
-                    ],
+                    ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 36.0),
+                    padding: const EdgeInsets.only(top: 24.0),
                     child: getResponseWidget(prompt),
                   )
 

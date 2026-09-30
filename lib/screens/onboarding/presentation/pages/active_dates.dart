@@ -4,6 +4,7 @@ import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/quickstart_handler.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -162,7 +163,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                               const SizedBox(
                                 height: 12,
                               ),
-                              Text(
+                              OnboardingScaledText(
                                 "All set ${participant.name}, here is your study schedule",
                                 style: CustomTypography().titleMedium(
                                     color: CustomColors.textNormalContent),

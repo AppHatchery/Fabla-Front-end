@@ -42,10 +42,13 @@ class _SubmitLoadingPageState extends State<SubmitLoadingPage> {
             const SizedBox(
               height: 24,
             ),
-            Text(
-              loadingText,
-              style: CustomTypography()
-                  .headlineMedium(color: CustomColors.textSecondaryContent),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                loadingText,
+                style: CustomTypography()
+                    .headlineMedium(color: CustomColors.textSecondaryContent),
+              ),
             ),
             const SizedBox(
               height: 12,

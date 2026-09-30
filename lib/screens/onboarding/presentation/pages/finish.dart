@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart' as rive;
 import 'dart:io' show Platform;
@@ -113,7 +114,7 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
+                                        OnboardingScaledText(
                                           "Welcome, \nLet's Get Started",
                                           style: CustomTypography()
                                               .headlineLarge(

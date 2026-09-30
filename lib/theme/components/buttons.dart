@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+ import 'package:flutter/material.dart';
 
 import '../custom_colors.dart';
 import '../custom_typography.dart';
@@ -63,16 +63,19 @@ class CustomElevatedButton extends StatelessWidget {
                 : () => {
                       if (onClick != null) {onClick!()}
                     },
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
-              child: Center(
-                  child: Text(text.toString(),
-                      style: CustomTypography().button(
-                        color: isDisabled
-                            ? CustomColors.textTertiaryContent
-                            : textColor ?? CustomColors.fillWhite,
-                      ))),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48.0),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+                child: Center(
+                    child: Text(text.toString(),
+                        style: CustomTypography().button(
+                          color: isDisabled
+                              ? CustomColors.textTertiaryContent
+                              : textColor ?? CustomColors.fillWhite,
+                        ))),
+              ),
             ),
           ),
         ),
@@ -147,14 +150,17 @@ class CustomElevatedIconButton extends StatelessWidget {
                 : () => {
                       if (onClick != null) {onClick!()}
                     },
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-              child: Center(
-                  child: Icon(
-                icon,
-                color: iconColor,
-              )),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48.0),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                child: Center(
+                    child: Icon(
+                  icon,
+                  color: iconColor,
+                )),
+              ),
             ),
           ),
         ),
@@ -218,25 +224,28 @@ class CustomIconButtonWithTextButton extends StatelessWidget {
                 : () => {
                       if (onClick != null) {onClick!()}
                     },
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 4.0, vertical: 12.0),
-              child: Center(
-                  child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, color: iconColor,
-                      size: iconSize,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(text.toString(),
-                      style: CustomTypography().button(
-                        color: isDisabled
-                            ? CustomColors.textTertiaryContent
-                            : textColor ?? CustomColors.fillWhite,
-                      )),
-                ],
-              )),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48.0),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 4.0, vertical: 12.0),
+                child: Center(
+                    child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, color: iconColor,
+                        size: iconSize,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(text.toString(),
+                        style: CustomTypography().button(
+                          color: isDisabled
+                              ? CustomColors.textTertiaryContent
+                              : textColor ?? CustomColors.fillWhite,
+                        )),
+                  ],
+                )),
+              ),
             ),
           ),
         ),
@@ -298,22 +307,23 @@ class CustomFlatButton extends StatelessWidget {
                 : () => {
                       if (onClick != null) {onClick!()}
                     },
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
-              child: Center(
-                  child: Text(text.toString(),
-                    style: CustomTypography().button(
-                      color: isDisabled ? CustomColors.greyDark : textColor,
-                    ).copyWith(fontSize: buttonFontSize),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48.0),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+                child: Center(
+                    child: Text(text.toString(),
+                      style: CustomTypography().button(
+                        color: isDisabled ? CustomColors.greyDark : textColor,
+                      ).copyWith(fontSize: buttonFontSize),
+                    )),
+              ),
             ),
           ),
         ),
       ),
-        )
-      )
-        );
-
+    );
   }
 }
 
@@ -346,6 +356,7 @@ class CustomTextButton extends StatelessWidget {
                   if (onClick != null) {onClick!()}
                 },
         style: TextButton.styleFrom(
+          minimumSize: const Size(48, 48),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -459,6 +470,7 @@ class CustomTextAnswerButton extends StatelessWidget {
               if (onClick != null) {onClick!()}
             },
             child: Container(
+              constraints: const BoxConstraints(minHeight: 48.0),
               padding:
                   const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
               width: MediaQuery.of(context).size.width,
@@ -512,6 +524,7 @@ class CustomButton extends StatelessWidget {
               if (onClick != null) {onClick!()}
             },
             child: Container(
+              constraints: const BoxConstraints(minHeight: 48.0),
               padding:
                   const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
               width: MediaQuery.of(context).size.width,
@@ -562,9 +575,12 @@ class CustomOutlineButton extends StatelessWidget {
         child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: isDisabled ?? false ? null : () => onClick(),
-            child: Padding(
-              padding: padding,
-              child: Container(child: children),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48.0),
+              child: Padding(
+                padding: padding,
+                child: Container(child: children),
+              ),
             )),
       ),
     );

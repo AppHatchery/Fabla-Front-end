@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/study_login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/verification_code.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -190,7 +191,8 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                     const SizedBox(
                       height: 24,
                     ),
-                    Text("Welcome to Fabla! ${Strings.wavingEmoji}",
+                    OnboardingScaledText(
+                        "Welcome to Fabla! ${Strings.wavingEmoji}",
                         style: CustomTypography()
                             .headlineLarge(color: CustomColors.textWhite)),
                     const SizedBox(

@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/mic_tester.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_session/audio_session.dart';
@@ -153,7 +154,7 @@ class _MicAccessPageState extends State<MicAccessPage>
                             children: [
                               Column(
                                 children: [
-                                  Text(
+                                  OnboardingScaledText(
                                     permission
                                         ? "Let's test your microphone, say something"
                                         : "Great, next enable microphone access",
@@ -237,12 +238,15 @@ class _MicAccessPageState extends State<MicAccessPage>
                                                       ),
                                                       onPressed:
                                                           openPermissionSettings,
-                                                      child: Text(
-                                                          "Open Settings",
-                                                          style: CustomTypography()
-                                                              .bodyLarge(
-                                                                  color: CustomColors
-                                                                      .textWhite)))
+                                                      child: FittedBox(
+                                                        fit: BoxFit.scaleDown,
+                                                        child: Text(
+                                                            "Open Settings",
+                                                            style: CustomTypography()
+                                                                .bodyLarge(
+                                                                    color: CustomColors
+                                                                        .textWhite)),
+                                                      ))
                                                 ],
                                               ),
                                             ],
