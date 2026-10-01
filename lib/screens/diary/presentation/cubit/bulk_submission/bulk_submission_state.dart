@@ -34,8 +34,11 @@ final class BulkSubmissionFailed extends BulkSubmissionState {
 final class BulkSubmissionError extends BulkSubmissionState {
   final String message;
 
-  const BulkSubmissionError(this.message);
+  /// The submissions as they stood when the exception hit.
+  final List<DiarySubmission> diaries;
+
+  const BulkSubmissionError(this.message, {required this.diaries});
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [message, diaries];
 }

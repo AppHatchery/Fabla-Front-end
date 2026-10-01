@@ -5,6 +5,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/prompt_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
+import 'package:audio_diaries_flutter/core/utils/recording_answer_gate.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -26,10 +27,25 @@ class EditDiaryPage extends StatefulWidget {
   State<EditDiaryPage> createState() => _EditDiaryPageState();
 }
 
-class _EditDiaryPageState extends State<EditDiaryPage> {
+class _EditDiaryPageState extends State<EditDiaryPage>
+    with RecordingAnswerGate<EditDiaryPage> {
   late PromptCubit promptCubit;
 
   bool proceed = true;
+
+  @override
+  void discardRecording(String path) => promptCubit.removeResponse(
+        diary: widget.diary,
+        prompt: widget.prompt,
+        path: path,
+      );
+
+  @override
+  bool get gatedPromptIsSingleAnswer =>
+      !(widget.prompt.option?.multipleAnswers ?? false);
+
+  @override
+  Future<void> reevaluateAnswers() => canUserProceed(widget.prompt);
 
   // Functions to run before moving to the next page
   List<Function> preFunctions = [];
@@ -97,14 +113,20 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
     );
   }
 
-  void canUserProceed(PromptModel prompt) {
-    bool isValidResponse = false;
+  Future<void> canUserProceed(PromptModel prompt) async {
     final answer = prompt.answer;
+
+    final count = await countUsableAnswers(prompt);
+    if (count == null) return;
+
+    final usable = count.usable;
 
     if (!prompt.required) {
       setState(() => proceed = true);
       return;
     }
+
+    bool isValidResponse = false;
 
     switch (prompt.responseType) {
       case ResponseType.instruction:
@@ -116,10 +138,10 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
       case ResponseType.video:
       case ResponseType.imageVideo:
         if (prompt.responseType == ResponseType.textAudio) {
-          isValidResponse = (answer?.recordings.isNotEmpty ?? false) ||
+          isValidResponse = usable > 0 ||
               (answer?.response != null && answer!.response!.isNotEmpty);
         } else {
-          isValidResponse = answer?.recordings.isNotEmpty ?? false;
+          isValidResponse = usable > 0;
         }
         break;
       case ResponseType.multiple:
@@ -264,6 +286,10 @@ class _EditDiaryPageState extends State<EditDiaryPage> {
           respond: (String type, index) =>
               recordResponse(prompt, type, index: index),
           prompt: prompt,
+          answers: answers,
+          onPlaybackResolved: onPlaybackResolved,
+          onDismissRecording: onDismissRecording,
+          recordingsUnchecked: answersCouldNotBeChecked,
         );
       case ResponseType.slider:
         return SliderQuestionCard(

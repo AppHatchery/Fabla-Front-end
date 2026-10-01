@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:alarm/alarm.dart';
+import 'package:audio_diaries_flutter/core/usecases/recording_answer.dart';
 import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/participant_experiment_details.dart';
@@ -14,6 +15,7 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/pr
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/time_picker.dart';
 import 'package:audio_diaries_flutter/services/timer_live_update_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
+import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
@@ -25,6 +27,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
+import 'package:audio_diaries_flutter/core/utils/device_appInfo.dart';
 import '../../../../core/utils/statuses.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
@@ -235,39 +238,44 @@ class _MultipleQuestionState extends State<MultipleQuestion> {
                           ? CustomColors.productBorderActive
                           : CustomColors.productBorderNormal,
                       width: 2)),
-              child: CheckboxListTile(
-                title: Text(
-                  widget.options[index],
-                  style: CustomTypography().button(
-                      color: selectedOptions.contains(widget.options[index]) &&
-                              !widget.disabled
-                          ? CustomColors.productNormalActive
-                          : Colors.black),
-                ),
-                checkColor: CustomColors.productLightPrimaryNormalWhite,
-                fillColor: selectedOptions.contains(widget.options[index]) &&
-                        !widget.disabled
-                    ? WidgetStateProperty.all(CustomColors.productNormalActive)
-                    : selectedOptions.contains(widget.options[index])
-                        ? WidgetStateProperty.all(
-                            CustomColors.textTertiaryContent)
-                        : null,
-                controlAffinity: ListTileControlAffinity.leading,
-                value: selectedOptions.contains(widget.options[index]),
-                onChanged: (value) {
-                  if (!widget.disabled) {
-                    if (value!) {
-                      selectedOptions.add(widget.options[index]);
-                    } else {
-                      selectedOptions.remove(widget.options[index]);
-                    }
+              child: Material(
+                  color: Colors.transparent,
+                  child: CheckboxListTile(
+                    title: Text(
+                      widget.options[index],
+                      style: CustomTypography().button(
+                          color:
+                              selectedOptions.contains(widget.options[index]) &&
+                                      !widget.disabled
+                                  ? CustomColors.productNormalActive
+                                  : Colors.black),
+                    ),
+                    checkColor: CustomColors.productLightPrimaryNormalWhite,
+                    fillColor:
+                        selectedOptions.contains(widget.options[index]) &&
+                                !widget.disabled
+                            ? WidgetStateProperty.all(
+                                CustomColors.productNormalActive)
+                            : selectedOptions.contains(widget.options[index])
+                                ? WidgetStateProperty.all(
+                                    CustomColors.textTertiaryContent)
+                                : null,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: selectedOptions.contains(widget.options[index]),
+                    onChanged: (value) {
+                      if (!widget.disabled) {
+                        if (value!) {
+                          selectedOptions.add(widget.options[index]);
+                        } else {
+                          selectedOptions.remove(widget.options[index]);
+                        }
 
-                    setState(() {
-                      widget.onChanged!(selectedOptions);
-                    });
-                  }
-                },
-              )),
+                        setState(() {
+                          widget.onChanged!(selectedOptions);
+                        });
+                      }
+                    },
+                  ))),
           const SizedBox(
             height: 12,
           ),
@@ -318,30 +326,32 @@ class _RadioQuestionState extends State<RadioQuestion> {
                           ? CustomColors.productNormalActive
                           : CustomColors.productBorderNormal,
                       width: 2)),
-              child: RadioListTile<String>(
-                title: Text(
-                  widget.options[index],
-                  style: CustomTypography().button(
-                      color: !widget.disabled
-                          ? widget.options[index] == widget.value
-                              ? CustomColors.productNormalActive
-                              : Colors.black
-                          : CustomColors.textTertiaryContent),
-                ),
-                fillColor: WidgetStateProperty.all(!widget.disabled
-                    ? widget.options[index] == widget.value
-                        ? CustomColors.productNormalActive
-                        : Colors.black
-                    : CustomColors.textTertiaryContent),
-                controlAffinity: ListTileControlAffinity.leading,
-                value: widget.options[index],
-                groupValue: widget.value,
-                onChanged: (String? value) {
-                  if (!widget.disabled) {
-                    widget.onChanged(value);
-                  }
-                },
-              )),
+              child: Material(
+                  color: Colors.transparent,
+                  child: RadioListTile<String>(
+                    title: Text(
+                      widget.options[index],
+                      style: CustomTypography().button(
+                          color: !widget.disabled
+                              ? widget.options[index] == widget.value
+                                  ? CustomColors.productNormalActive
+                                  : Colors.black
+                              : CustomColors.textTertiaryContent),
+                    ),
+                    fillColor: WidgetStateProperty.all(!widget.disabled
+                        ? widget.options[index] == widget.value
+                            ? CustomColors.productNormalActive
+                            : Colors.black
+                        : CustomColors.textTertiaryContent),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: widget.options[index],
+                    groupValue: widget.value,
+                    onChanged: (String? value) {
+                      if (!widget.disabled) {
+                        widget.onChanged(value);
+                      }
+                    },
+                  ))),
           const SizedBox(
             height: 12,
           ),
@@ -355,11 +365,25 @@ class AudioTextCard extends StatefulWidget {
   final void Function(String, int?) respond;
   final DiaryModel diary;
   final PromptModel prompt;
+
+  final RecordingAnswerView answers;
+
+  /// Reports a recording's terminal status back to the page.
+  final void Function(String path, AudioStatus status)? onPlaybackResolved;
+
+  final void Function(String path)? onDismissRecording;
+
+  final bool recordingsUnchecked;
+
   const AudioTextCard({
     super.key,
     required this.respond,
     required this.diary,
     required this.prompt,
+    required this.answers,
+    this.onPlaybackResolved,
+    this.onDismissRecording,
+    this.recordingsUnchecked = false,
   });
 
   @override
@@ -367,6 +391,69 @@ class AudioTextCard extends StatefulWidget {
 }
 
 class _AudioTextCardState extends State<AudioTextCard> {
+  bool _lowStorage = false;
+  bool _lowBattery = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkDevice();
+  }
+
+  /// Conditions that could cost the participant a recording, checked once as
+  /// the prompt opens.
+  Future<void> _checkDevice() async {
+    final isLowStorage = await checkLowStorage();
+    final isLowBattery = await checkLowBattery();
+    if (!mounted) return;
+    setState(() {
+      _lowStorage = isLowStorage;
+      _lowBattery = isLowBattery;
+    });
+  }
+
+  /// Recordings on this prompt that can actually be played back.
+  int get _playableCount {
+    final recordings = widget.prompt.answer?.recordings ?? [];
+    if (recordings.isEmpty) return 0;
+
+    var count = 0;
+    for (final recording in recordings) {
+      if (widget.answers.isUsable(recording.path)) count++;
+    }
+    return count;
+  }
+
+  Widget discardedNotices() {
+    final unplayable = widget.answers.unplayable;
+    if (unplayable.isEmpty) return const SizedBox.shrink();
+
+    final present = <String>{
+      for (final recording in widget.prompt.answer?.recordings ?? [])
+        recording.path
+    };
+
+    final notices = <Widget>[
+      for (final entry in unplayable.entries)
+        if (!present.contains(entry.key))
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6.0),
+            child: RecordingIssueCard(
+              status: entry.value,
+              promptId: widget.prompt.id,
+              // The row this explains is already gone, so dismissing only
+              // clears the message. Nothing to confirm.
+              onDismiss: widget.onDismissRecording == null
+                  ? null
+                  : () => widget.onDismissRecording!(entry.key),
+            ),
+          ),
+    ];
+
+    if (notices.isEmpty) return const SizedBox.shrink();
+    return Column(children: notices);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -375,8 +462,33 @@ class _AudioTextCardState extends State<AudioTextCard> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              if (_lowStorage) ...[
+                const LowWarningCard(
+                  message:
+                      'You are running low on storage space. Please clear up '
+                      'storage to avoid losing recording data.',
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (_lowBattery) ...[
+                const LowWarningCard(
+                  message: 'Your battery is running low. Please connect your '
+                      'charger to avoid interruptions while recording.',
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (widget.recordingsUnchecked) ...[
+                const LowWarningCard(
+                  message: 'We could not check your recordings on this device, '
+                      'so we cannot confirm this answer yet. Please try again '
+                      'in a moment, or restart the app if this keeps '
+                      'happening.',
+                ),
+                const SizedBox(height: 12),
+              ],
               controls(),
               const SizedBox(height: 12),
+              discardedNotices(),
               (widget.prompt.answer != null &&
                       (widget.prompt.answer!.recordings.isNotEmpty ||
                           (widget.prompt.answer!.response != null &&
@@ -385,6 +497,8 @@ class _AudioTextCardState extends State<AudioTextCard> {
                       diary: widget.diary,
                       edit: widget.respond,
                       prompt: widget.prompt,
+                      onPlaybackResolved: widget.onPlaybackResolved,
+                      onDismissRecording: widget.onDismissRecording,
                       recordings: widget.prompt.answer?.recordings ?? [])
                   : const SizedBox.shrink()
             ],
@@ -394,7 +508,9 @@ class _AudioTextCardState extends State<AudioTextCard> {
 
   Widget controls() {
     final multipleAnswers = widget.prompt.option?.multipleAnswers ?? false;
-    final length = widget.prompt.answer?.recordings.length ?? 0;
+    // Broken recordings do not count as an answer, so they do not hide the
+    // record button — the error card below explains why it is still there.
+    final length = _playableCount;
     final textPresent = widget.prompt.answer?.response != null &&
         widget.prompt.answer!.response!.isNotEmpty;
     return !multipleAnswers && (length > 0 || textPresent)

@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:audio_diaries_flutter/core/network/request.dart';
+import 'package:audio_diaries_flutter/core/network/retry_policy.dart'
+    show kMaxRetries;
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
     show CrashlyticsService;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -42,10 +44,15 @@ class SecureSave {
     required String participant,
   }) async {
     try {
-      final response = await post(path: "/fabla/verifyuser", body: {
-        'login_code': study,
-        'participant_id': participant,
-      });
+      // verifyuser is a read, so it is safe to retry.
+      final response = await post(
+        path: "/fabla/verifyuser",
+        retries: kMaxRetries,
+        body: {
+          'login_code': study,
+          'participant_id': participant,
+        },
+      );
 
       if (response != null) {
         final data = json.decode(response)['data'] as Map<String, dynamic>;

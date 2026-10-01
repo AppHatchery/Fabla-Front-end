@@ -23,6 +23,7 @@ import '../../data/prompt.dart';
 import '../../domain/repository/diary_repository.dart';
 import '../cubit/prompt/prompt_cubit.dart';
 import 'diarysummary.dart';
+import '../../../../core/utils/recording_answer_gate.dart';
 
 /// This class holds and manages all the pages in the page view
 /// It has all the UI elements of the New Daily Diary flow
@@ -133,15 +134,16 @@ class _NewDiaryPageState extends State<NewDiaryPage>
               settings: RouteSettings(name: "/Hub")),
           (route) => false);
     }
+  }
+
+  void _scrollToTopOfCurrentQuestion() {
+    if (currentPage < _questionPageKeys.length) {
+      final GlobalKey<_QuestionPageState> currentKey =
+          _questionPageKeys[currentPage];
+      final _QuestionPageState? currentState = currentKey.currentState;
+      currentState?._scrollToTop();
     }
-    void _scrollToTopOfCurrentQuestion() {
-      if (currentPage < _questionPageKeys.length) {
-        final GlobalKey<
-            _QuestionPageState> currentKey = _questionPageKeys[currentPage];
-        final _QuestionPageState? currentState = currentKey.currentState;
-        currentState?._scrollToTop();
-      }
-    }
+  }
 
   @override
   void dispose() {
@@ -240,7 +242,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                       currentPage = pageIdx;
                     });
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted){
+                      if (mounted) {
                         _scrollToTopOfCurrentQuestion();
                       }
                     });
@@ -311,7 +313,6 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         diary: widget.diary,
         prompt: e,
         scaffoldKey: GlobalKey<ScaffoldState>(),
-
         answerAdded: (value) {
           if (mounted) {
             setState(() {
@@ -415,7 +416,7 @@ class QuestionPage extends StatefulWidget {
 }
 
 class _QuestionPageState extends State<QuestionPage>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RecordingAnswerGate<QuestionPage> {
   final ScrollController _scrollController = ScrollController();
   late PromptCubit promptCubit;
   late PromptModel promptModel;
@@ -423,6 +424,23 @@ class _QuestionPageState extends State<QuestionPage>
   bool isChecked = false;
   bool disabled = false;
   PersistentBottomSheetController? _bottomSheetController;
+
+  /// Uses [promptModel], the live prompt, not `widget.prompt`: the flow swaps
+  /// prompts under one State, so the row has to leave whichever prompt is on
+  /// screen now.
+  @override
+  void discardRecording(String path) => promptCubit.removeResponse(
+        diary: widget.diary,
+        prompt: promptModel,
+        path: path,
+      );
+
+  @override
+  bool get gatedPromptIsSingleAnswer =>
+      !(widget.prompt.option?.multipleAnswers ?? false);
+
+  @override
+  Future<void> reevaluateAnswers() => checkForResponse(promptModel);
 
   void updateSliderValue(PromptModel prompt, double value) {
     save(prompt, value.toString(), 'other', 0);
@@ -588,6 +606,10 @@ class _QuestionPageState extends State<QuestionPage>
         respond: (String type, int? index) =>
             recordResponse(prompt, type, index: index),
         prompt: prompt,
+        answers: answers,
+        onPlaybackResolved: onPlaybackResolved,
+        onDismissRecording: onDismissRecording,
+        recordingsUnchecked: answersCouldNotBeChecked,
       );
     } else if (prompt.responseType == ResponseType.webview) {
       responseWidget = WebViewResponseCard(
@@ -722,8 +744,8 @@ class _QuestionPageState extends State<QuestionPage>
                       ),
                       SizedBox(
                           height: (prompt.responseType == ResponseType.text ||
-                                   prompt.responseType == ResponseType.radio ||
-                                   prompt.responseType == ResponseType.multiple)
+                                  prompt.responseType == ResponseType.radio ||
+                                  prompt.responseType == ResponseType.multiple)
                               ? 48
                               : 112),
                       responseWidget,
@@ -749,14 +771,20 @@ class _QuestionPageState extends State<QuestionPage>
   ///Checks whether the provided prompt has a response
   ///Returns a bool for [`able to continue`] that allows the user to either proceed or not
   ///depending on the availability of the response/recording
-  void checkForResponse(PromptModel prompt1) {
-    bool isValidResponse = false;
+  Future<void> checkForResponse(PromptModel prompt1) async {
     final answer = prompt1.answer;
+
+    final count = await countUsableAnswers(prompt1);
+    if (count == null) return;
+
+    final usable = count.usable;
 
     if (!prompt1.required) {
       widget.answerAdded(true);
       return;
     }
+
+    bool isValidResponse = false;
 
     switch (prompt1.responseType) {
       case ResponseType.instruction:
@@ -768,10 +796,10 @@ class _QuestionPageState extends State<QuestionPage>
       case ResponseType.video:
       case ResponseType.imageVideo:
         if (prompt1.responseType == ResponseType.textAudio) {
-          isValidResponse = (answer?.recordings.isNotEmpty ?? false) ||
+          isValidResponse = usable > 0 ||
               (answer?.response != null && answer!.response!.isNotEmpty);
         } else {
-          isValidResponse = answer?.recordings.isNotEmpty ?? false;
+          isValidResponse = usable > 0;
         }
         break;
       default:

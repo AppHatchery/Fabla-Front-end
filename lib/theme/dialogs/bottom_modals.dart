@@ -9,28 +9,26 @@ import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
+import 'package:audio_diaries_flutter/services/audio_recording_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart'
     show PendoService;
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
 import 'package:audio_diaries_flutter/theme/components/webview.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/overlays/keyboard_overlay.dart';
-import 'package:audio_session/audio_session.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sound/flutter_sound.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart' as r;
 import 'package:video_player/video_player.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../core/usecases/webview_survey_detector.dart';
 import '../../core/utils/formatter.dart';
+import '../../services/crashlytics_service.dart';
 import '../components/buttons.dart';
 import '../custom_icons.dart';
 import '../custom_typography.dart';
@@ -62,16 +60,25 @@ class BottomRecordingModal extends StatefulWidget {
 
 class _BottomRecordingModalState extends State<BottomRecordingModal>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  //Recording
-  final FlutterSoundRecorder recorder = FlutterSoundRecorder();
-  String timer = "00:00";
-  Timer? _timer;
-  Duration elapsed = const Duration();
-  RecorderState recorderState = RecorderState.isStopped;
+  /// Everything about capturing the answer — the recorder, the audio session,
+  /// the foreground service, the wakelock, the elapsed timer, the file. This
+  /// modal only renders what the service publishes and forwards taps to it.
+  late final AudioRecordingService _recordingService;
+
+  /// Clears the waveform. Purely a display concern — the service has no
+  /// opinion on it — so it stays here.
   final ValueNotifier<bool> _erase = ValueNotifier<bool>(false);
-  String? tempUrl;
-  // a flag to check if the recording is active or not
-  bool _recordingCheck = false;
+
+  /// Held while [save] or [redo] is running.
+  ///
+  /// Both hang off controls that sit side by side in the completed state, and
+  /// both await before they act, so a double tap — or one of each — would
+  /// otherwise run twice over the same take: two answer rows for one file, and
+  /// a second [Navigator.pop] taking the route underneath this one with it.
+  ///
+  /// Released once the attempt finishes rather than on first use, so a save
+  /// whose `onSave` threw can still be retried.
+  bool _completingTake = false;
 
   ScrollController scrollController = ScrollController();
 
@@ -82,22 +89,28 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Deliberately fire-and-forget: both handlers report their own failures
+    // and never throw, so nothing can escape into
+    // PlatformDispatcher.onError and be logged as a fatal.
     if (state == AppLifecycleState.paused) {
-      setState(() {
-        if (recorder.isRecording) {
-          recorderState = RecorderState.isPaused;
-          WakelockPlus.disable();
-          recorder.pauseRecorder();
-          _timer?.cancel();
-        }
-      });
+      unawaited(_recordingService.handleAppBackgrounded());
     }
+
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_recordingService.handleAppResumed());
+    }
+
     super.didChangeAppLifecycleState(state);
   }
 
   @override
   void initState() {
-    recorderInit();
+    _recordingService = AudioRecordingService(
+      promptId: widget.promptId,
+      limit: widget.limit,
+      onLimitReached: () => unawaited(save()),
+    );
+    unawaited(_recordingService.initialize());
     WidgetsBinding.instance.addObserver(this);
     _loadRive();
     super.initState();
@@ -109,7 +122,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       riveFactory: r.Factory.rive,
     );
 
-    if(!mounted) {
+    if (!mounted) {
       file?.dispose();
       return;
     }
@@ -129,10 +142,14 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   @override
   void dispose() {
-    recorder.closeRecorder();
+    // Fire-and-forget: the teardown inside awaits platform calls, and the
+    // service marks itself spent synchronously so nothing it publishes can
+    // reach this modal afterwards.
+    unawaited(_recordingService.dispose());
     _riveController?.dispose();
     _riveFile?.dispose();
     scrollController.dispose();
+    _erase.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -158,42 +175,53 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             topRight: Radius.circular(24),
           ),
         ),
-        child: Column(
-          children: [
-            // Close Modal Button
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  GestureDetector(
-                    onTap: () => {
-                      //setting the tap to null when recording is on to avoid accidental closes
-                      recorder.isRecording ? null : Navigator.pop(context),
-                    },
-                    child: Icon(
-                      CupertinoIcons.clear_circled_solid,
-                      size: 32,
-                      color: CustomColors.textSecondaryContent,
-                    ),
+        child: ValueListenableBuilder<AudioRecordingState>(
+          valueListenable: _recordingService.state,
+          builder: (context, recordingState, _) => PopScope(
+            // Android back goes through the same question as the close button,
+            // so a finished take is never dropped without the participant
+            // choosing to.
+            canPop: !recordingState.hasCompletedTake,
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop) unawaited(_closeSheet());
+            },
+            child: Column(
+              children: [
+                // Close Modal Button
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
                   ),
-                ],
-              ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        //setting the tap to null when recording is on to avoid accidental closes
+                        onTap: recordingState.isRecording
+                            ? null
+                            : () => unawaited(_closeSheet()),
+                        child: Icon(
+                          CupertinoIcons.clear_circled_solid,
+                          size: 32,
+                          color: CustomColors.textSecondaryContent,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(child: questionAndHints(recordingState)),
+              ],
             ),
-            Expanded(child: questionAndHints()),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget questionAndHints() {
+  Widget questionAndHints(AudioRecordingState recordingState) {
     final width = MediaQuery.of(context).size.width;
-    final isCompleted =
-        recorderState == RecorderState.isStopped && elapsed.inSeconds > 0;
+    final isCompleted = recordingState.hasCompletedTake;
 
     return LayoutBuilder(builder: (context, constraints) {
       return Column(
@@ -203,25 +231,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             child: SingleChildScrollView(
               controller: scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.question,
-                    style: CustomTypography()
-                        .titleLarge(color: const Color(0xFF000000)),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    widget.subtitle ?? "",
-                    style: CustomTypography().bodyLarge(
-                      color: CustomColors.textNormalContent,
-                      weight: FontWeight.w400,
-                    ),
-                  ),
-                  _riveAnimation(),
-                ],
-              ),
+              child: _sheetBody(recordingState),
             ),
           ),
 
@@ -237,9 +247,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      recorderState == RecorderState.isPaused
+                      recordingState.isPaused
                           ? "Resume Recording"
-                          : recorderState == RecorderState.isRecording
+                          : recordingState.isRecording
                               ? "Recording"
                               : isCompleted
                                   ? "Save Recording"
@@ -255,15 +265,51 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 const SizedBox(height: 5),
                 SizedBox(height: 42, width: width, child: waveForm()),
                 const SizedBox(height: 5),
-                progressBar(),
+                progressBar(recordingState),
                 const SizedBox(height: 15),
-                recordingControls(),
+                recordingControls(recordingState),
               ],
             ),
           ),
         ],
       );
     });
+  }
+
+  /// What fills the sheet above the buttons: the question, or a notice when
+  /// something happened to the take that the participant has to act on.
+  Widget _sheetBody(AudioRecordingState recordingState) {
+    final notice = takeNotice(recordingState);
+    if (notice != null) return _sheetNotice(notice.title, notice.body);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.question,
+          style: CustomTypography().titleLarge(color: const Color(0xFF000000)),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          widget.subtitle ?? "",
+          style: CustomTypography().bodyLarge(
+            color: CustomColors.textNormalContent,
+            weight: FontWeight.w400,
+          ),
+        ),
+        _riveAnimation(),
+      ],
+    );
+  }
+
+  Widget _sheetNotice(String title, String body) {
+    return Column(
+      spacing: 10,
+      children: [
+        Text(title, style: CustomTypography().headlineMedium()),
+        Text(body, style: CustomTypography().bodyLarge()),
+      ],
+    );
   }
 
   Widget _riveAnimation() {
@@ -293,36 +339,34 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     );
   }
 
-  Widget recordingTimer() {
-    final text =
-        widget.suggested != null && widget.suggested!.inMilliseconds > 0
-            ? widget.suggested!
-            : widget.limit != null && widget.limit!.inMilliseconds > 0
-                ? widget.limit!
-                : const Duration(minutes: 5);
+  /// The duration the timer and the progress bar are measured against.
+  Duration get _displayedDuration =>
+      widget.suggested != null && widget.suggested!.inMilliseconds > 0
+          ? widget.suggested!
+          : widget.limit != null && widget.limit!.inMilliseconds > 0
+              ? widget.limit!
+              : const Duration(minutes: 5);
+
+  Widget recordingTimer(AudioRecordingState recordingState) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text(
-          "$timer / ${formatDurationtoHHMMSS(text)}",
+          "${formatDurationtoHHMMSS(recordingState.elapsed)}"
+          " / ${formatDurationtoHHMMSS(_displayedDuration)}",
           style: CustomTypography().titleSmall(color: CustomColors.textWhite),
         )
       ],
     );
   }
 
-  Widget progressBar() {
+  Widget progressBar(AudioRecordingState recordingState) {
     // Calculate the total duration for the progress bar
-    final totalDuration =
-        widget.suggested != null && widget.suggested!.inMilliseconds > 0
-            ? widget.suggested!
-            : widget.limit != null && widget.limit!.inMilliseconds > 0
-                ? widget.limit!
-                : const Duration(minutes: 5);
+    final totalDuration = _displayedDuration;
 
     // Calculate progress as a percentage (0.0 to 1.0)
     final progress = totalDuration.inMilliseconds > 0
-        ? (elapsed.inMilliseconds / totalDuration.inMilliseconds)
+        ? (recordingState.elapsed.inMilliseconds / totalDuration.inMilliseconds)
             .clamp(0.0, 1.0)
         : 0.0;
 
@@ -332,7 +376,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            recordingTimer(),
+            recordingTimer(recordingState),
           ],
         ),
         const SizedBox(height: 5),
@@ -358,7 +402,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     final width = MediaQuery.of(context).size.width;
 
     return CustomWaveform(
-      recorder: recorder,
+      recorder: _recordingService.recorder,
       maxVisibleValues: width ~/ 2,
       maxValue: 40,
       color: CustomColors.fillWhite,
@@ -366,9 +410,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     );
   }
 
-  Widget recordingControls() {
-    final isCompleted = recorderState == RecorderState.isStopped &&
-        elapsed.inSeconds > 0; // Completed by stop or timeout
+  Widget recordingControls(AudioRecordingState recordingState) {
+    // Completed by stop or timeout
+    final isCompleted = recordingState.hasCompletedTake;
 
     return Column(
       children: [
@@ -379,7 +423,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             children: [
               if (!isCompleted) ...[
                 // When stopped initially: Show mic
-                if (recorderState == RecorderState.isStopped)
+                if (!recordingState.isRecording && !recordingState.isPaused)
                   Container(
                     height: 68,
                     width: 68,
@@ -390,52 +434,49 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     child: _buildControlButton(
                       icon: Icons.mic,
                       size: 34,
-                      onPressed: () => record(),
+                      onPressed: () => unawaited(record()),
                       color: CustomColors.warningActive,
                     ),
                   )
                 else
                   // When recording or paused
                   ...[
-                  SizedBox(
-                      width: recorderState == RecorderState.isRecording
-                          ? 90
-                          : 130),
+                  SizedBox(width: recordingState.isRecording ? 90 : 130),
                   // Stop button
                   Container(
-                    height: recorderState == RecorderState.isPaused ? 40 : 68,
-                    width: recorderState == RecorderState.isPaused ? 40 : 68,
+                    height: recordingState.isPaused ? 40 : 68,
+                    width: recordingState.isPaused ? 40 : 68,
                     decoration: BoxDecoration(
                       color: CustomColors.fillWhite,
                       borderRadius: BorderRadius.circular(42),
                     ),
                     child: _buildControlButton(
                       icon: CupertinoIcons.stop_fill,
-                      size: recorderState == RecorderState.isPaused ? 24 : 34,
-                      onPressed: () => stop(),
+                      size: recordingState.isPaused ? 24 : 34,
+                      onPressed: () => unawaited(_recordingService.stop()),
                       color: CustomColors.warningActive,
                     ),
                   ),
                   const SizedBox(width: 50),
                   // Pause/Resume (right - swaps size)
                   Container(
-                    height: recorderState == RecorderState.isPaused ? 68 : 40,
-                    width: recorderState == RecorderState.isPaused ? 68 : 40,
+                    height: recordingState.isPaused ? 68 : 40,
+                    width: recordingState.isPaused ? 68 : 40,
                     decoration: BoxDecoration(
-                      color: recorderState == RecorderState.isRecording
+                      color: recordingState.isRecording
                           ? CustomColors.fillWhite
                           : CustomColors.warningActive,
                       borderRadius: BorderRadius.circular(42),
                     ),
                     child: _buildControlButton(
-                      icon: recorderState == RecorderState.isPaused
+                      icon: recordingState.isPaused
                           ? Icons.mic
                           : CupertinoIcons.pause_fill,
-                      color: recorderState == RecorderState.isPaused
+                      color: recordingState.isPaused
                           ? CustomColors.fillWhite
                           : CustomColors.productNormal,
-                      size: recorderState == RecorderState.isPaused ? 34 : 24,
-                      onPressed: () => record(),
+                      size: recordingState.isPaused ? 34 : 24,
+                      onPressed: () => unawaited(record()),
                     ),
                   ),
                 ],
@@ -452,7 +493,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   child: _buildControlButton(
                     icon: CupertinoIcons.checkmark_alt,
                     size: 34,
-                    onPressed: () => save(),
+                    onPressed: () => unawaited(save()),
                     color: CustomColors.productNormal,
                   ),
                 ),
@@ -470,7 +511,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     child: _buildControlButton(
                       icon: CupertinoIcons.refresh_bold,
                       size: 24,
-                      onPressed: () => redo(),
+                      onPressed: () => unawaited(redo()),
                       color: CustomColors.productNormal,
                     ),
                   ),
@@ -499,198 +540,212 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     );
   }
 
-  void recorderInit() async {
-    await recorder.openRecorder();
-    final session = await AudioSession.instance;
-    await session.configure(AudioSessionConfiguration(
-      avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
-      avAudioSessionCategoryOptions:
-          AVAudioSessionCategoryOptions.allowBluetooth |
-              AVAudioSessionCategoryOptions.defaultToSpeaker,
-      avAudioSessionMode: AVAudioSessionMode.spokenAudio,
-      avAudioSessionRouteSharingPolicy:
-          AVAudioSessionRouteSharingPolicy.defaultPolicy,
-      avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
-      androidAudioAttributes: const AndroidAudioAttributes(
-        contentType: AndroidAudioContentType.speech,
-        flags: AndroidAudioFlags.none,
-        usage: AndroidAudioUsage.voiceCommunication,
-      ),
-      androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
-      androidWillPauseWhenDucked: true,
-    ));
-
-    // Finer-grained progress updates make the waveform read as a smooth,
-    // continuous trace instead of a choppy, blocky one.
-    await recorder.setSubscriptionDuration(const Duration(milliseconds: 60));
-  }
-
-  void startTimer() {
-    final limit = (widget.limit != null && widget.limit!.inSeconds > 0)
-        ? widget.limit
-        : null;
-    _timer = Timer.periodic(const Duration(seconds: 1), (time) async {
-      if (limit != null && elapsed >= limit) {
-        await stop();
-        save();
-        return;
-      }
-
-      if (!mounted) return;
-
-      setState(() {
-        elapsed += const Duration(seconds: 1);
-        timer = formatDurationtoHHMMSS(elapsed);
-      });
-    });
-  }
-
-  Future<void> stop() async {
-    tempUrl = await recorder.stopRecorder();
-    _timer?.cancel();
-    setState(() {
-      recorderState = RecorderState.isStopped;
-    });
-  }
-
-  Future<void> redo() async {
-    _timer?.cancel();
-
-    if (mounted) {
-      final showDialogResult = await showDialog<bool>(
-        context: context,
-        builder: (context) => const RedoPopUp(),
-      );
-
-      if (showDialogResult == true) {
-        if (mounted) {
-          setState(() {
-            elapsed = const Duration();
-            timer = "00:00";
-            _erase.value = !_erase.value;
-          });
-        }
-
-        if (tempUrl != null) {
-          final file = File(tempUrl!);
-          if (await file.exists()) {
-            try {
-              await file.delete();
-            } catch (e) {
-              dev.log("Error deleting file: $e");
-            }
-          }
-        }
-
-        if (!mounted) return;
-        await Future.delayed(const Duration(milliseconds: 150));
-        await record();
-
-        if (mounted) {
-          setState(() {
-            _erase.value = !_erase.value;
-          });
-        }
-      } else {
-        setState(() {
-          recorderState = RecorderState.isStopped;
-        });
-      }
-    }
-  }
-
+  /// Starts, pauses, or resumes the take behind the record control.
+  ///
+  /// The microphone is secured here rather than inside the service so the
+  /// refusal case stays a UI decision.
   Future<void> record() async {
-    //if recording is active return
-    if (_recordingCheck) return;
+    //TODO:: add a show permission error when recorder has no permission
+    final hasPermission = await _recordingService.ensureMicrophonePermission();
+    if (!hasPermission || !mounted) return;
 
-    // set recoding to true
-    _recordingCheck = true;
-
-    try {
-      final hasPermission = await checkAndRequestPermission();
-      //TODO:: add a show permission error when recorder has no permission
-      if (!hasPermission) return;
-
-      if (!mounted) return;
-
-      //Check if scroll controller is already at the bottom
+    //Check if scroll controller is already at the bottom
+    if (scrollController.hasClients) {
       scrollController.animateTo(
         scrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeIn,
       );
-
-      if (recorder.isRecording) {
-        WakelockPlus.disable();
-        _timer?.cancel();
-        await recorder.pauseRecorder();
-      } else if (recorder.isPaused) {
-        WakelockPlus.enable();
-        await recorder.resumeRecorder();
-        startTimer();
-      } else {
-        //start fresh
-        final path = await getFilePath();
-        WakelockPlus.enable();
-        await recorder.startRecorder(toFile: path, codec: Codec.aacMP4);
-        startTimer();
-      }
-
-      if (mounted) {
-        setState(() {
-          recorderState = recorder.isRecording
-              ? RecorderState.isRecording
-              : RecorderState.isPaused;
-        });
-      }
-    } on Exception catch (e) {
-      debugPrint('record() failed: $e');
-
-      //reset state to stopped state
-      if (mounted) setState(() => recorderState = RecorderState.isStopped);
-    } finally {
-      //set recording check back to false
-      _recordingCheck = false;
     }
+
+    await _recordingService.record();
   }
 
-  void save() async {
-    WakelockPlus.disable();
+  /// Closes the sheet, first asking whether to save a finished take.
+  ///
+  /// A finished take is sitting on disk with no row behind it until the
+  /// participant saves it, and closing used to leave it there unreferenced. Dismissing the question keeps the sheet open.
+  Future<void> _closeSheet() async {
+    if (!mounted || _completingTake) return;
+
+    if (!_recordingService.state.value.hasCompletedTake) {
+      Navigator.pop(context);
+      return;
+    }
+
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (context) => ExitPopUp(
+        confirmText: "Discard Recording",
+        cancelText: "Save Recording",
+        content: [
+          Text(
+            "Save your recording?",
+            style: CustomTypography().headlineMedium(),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            "If you close without saving, this recording will be lost.",
+            style: CustomTypography().bodyLarge(),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted || discard == null) return;
+
+    // save() closes the sheet itself once the answer is written.
+    if (!discard) return save();
+
+    await _recordingService.discardTake();
+
+    if (mounted) Navigator.pop(context);
+  }
+
+  /// Confirms the redo, then throws the take away and records a fresh one.
+  Future<void> redo() async {
+    if (!mounted || _completingTake) return;
+    _completingTake = true;
+
     try {
-      _timer?.cancel();
-      if (mounted) setState(() => recorderState = RecorderState.isStopped);
+      final showDialogResult = await showDialog<bool>(
+        context: context,
+        builder: (context) => const RedoPopUp(),
+      );
 
-      if (tempUrl != null) {
-        final file = File(tempUrl!);
-        final name = basePath(file.path);
-        widget.onSave?.call(name);
-        if (mounted) Navigator.pop(context);
-      }
-    } catch (e) {
-      // TODO: Show Error
+      if (showDialogResult != true) return;
+
+      await _recordingService.discardTake();
+
+      if (!mounted) return;
+
+      _erase.value = !_erase.value;
+
+      await Future.delayed(const Duration(milliseconds: 150));
+
+      if (!mounted) return;
+
+      await record();
+
+      if (!mounted) return;
+
+      _erase.value = !_erase.value;
+    } finally {
+      _completingTake = false;
     }
   }
 
-  Future<bool> checkAndRequestPermission() async {
-    final status = await Permission.microphone.request();
-    return status.isGranted;
+  /// Hands the captured answer to [BottomRecordingModal.onSave] and closes.
+  ///
+  /// Also the handler for a take that ran out its limit, so it tolerates
+  /// being reached with nothing to save. The service has already reported and
+  /// reset an empty or failed take; what is left here is the participant-facing
+  /// half — persist the path, or stay open so they can record again.
+  Future<void> save() async {
+    if (!mounted || _completingTake) return;
+    _completingTake = true;
+
+    try {
+      final result = await _recordingService.save();
+
+      if (!mounted) return;
+
+      switch (result.outcome) {
+        case RecordingSaveOutcome.saved:
+          widget.onSave?.call(basePath(result.path!));
+          if (mounted) Navigator.pop(context);
+          break;
+        case RecordingSaveOutcome.emptyFile:
+          // Drop the waveform of the take that produced no audio, so the
+          // participant is not recording over someone else's bars.
+          _erase.value = !_erase.value;
+          break;
+        case RecordingSaveOutcome.nothingRecorded:
+          break;
+        case RecordingSaveOutcome.failed:
+          _trackFailedSave();
+          break;
+      }
+    } catch (e, s) {
+      // onSave writes the answer away, so a throw from it lands here.
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'save() failed',
+      );
+
+      _trackFailedSave();
+    } finally {
+      _completingTake = false;
+    }
   }
 
-  Future<String> getFilePath() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final dir = await Directory(p.join(directory.path, 'audios'))
-        .create(recursive: true);
-    final now = DateTime.now();
-    final fileName =
-        'audio_prompt_${widget.promptId + 1}_${formatDate(now)}.m4a';
-    final filePath = p.join(dir.path, fileName);
-    return filePath;
+  void _trackFailedSave() {
+    PendoService.track(
+      "Failed to Save Audio",
+      {
+        "study_date": "${DateTime.now()}",
+        "prompt_number": "${widget.promptId + 1}",
+      },
+    );
   }
 }
 
 String basePath(String path) {
   final parts = p.split(path);
   return parts.sublist(parts.length - 2).join(p.separator);
+}
+
+/// The notice the recording sheet shows in place of the question, or `null`
+/// when nothing happened to the take that the participant has to act on.
+///
+/// The order settles which one wins when more than one flag is set. A join
+/// that failed comes first, because the participant has to know their audio
+/// is safe before anything else. A refused microphone comes before the
+/// interruption, because tapping resume while a call still holds the
+/// microphone is refused again, and the notice has to say to wait.
+({String title, String body})? takeNotice(AudioRecordingState state) {
+  // iOS only: the take was recorded in pieces around an interruption, and
+  // they could not be put back together.
+  if (state.joinFailed) {
+    return (
+      title: "We couldn't finish your recording",
+      body: "Your recording is safe. Tap the stop button to try again.",
+    );
+  }
+
+  // A take that never began, or could not resume, because another app still
+  // holds the microphone. Tapping again straight away would be refused the
+  // same way.
+  if (state.microphoneUnavailable) {
+    return (
+      title: "The microphone is busy",
+      body: "Another app, like a phone call, is using the microphone. "
+          "When it has finished, tap the record button to try again.",
+    );
+  }
+
+  if (state.isInterrupted) {
+    return (
+      title: "Recording Interrupted,",
+      body: "Tap the resume button to continue recording",
+    );
+  }
+
+  // A take that ended with no audio behind it. Without this the sheet just
+  // resets to 00:00, which looks like a tap that did not register, so the
+  // participant records the same answer again and loses it the same way.
+  if (state.takeWasEmpty) {
+    return (
+      title: "No audio was recorded",
+      body: "Something stopped the microphone from picking you up. "
+          "Tap the record button to try again.",
+    );
+  }
+
+  return null;
 }
 
 class BottomTextModal extends StatefulWidget {
@@ -764,7 +819,7 @@ class _BottomTextModalState extends State<BottomTextModal>
       riveFactory: r.Factory.rive,
     );
 
-    if(!mounted) {
+    if (!mounted) {
       file?.dispose();
       return;
     }
@@ -1530,7 +1585,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
       riveFactory: r.Factory.rive,
     );
 
-    if(!mounted) {
+    if (!mounted) {
       file?.dispose();
       return;
     }
@@ -2650,7 +2705,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
       riveFactory: r.Factory.rive,
     );
 
-    if(!mounted) {
+    if (!mounted) {
       file?.dispose();
       return;
     }
@@ -2762,15 +2817,15 @@ class _BottomTimerModalState extends State<BottomTimerModal>
                         textAlign: TextAlign.center,
                         style: CustomTypography()
                             .custom(
-                              color: CustomColors.textWhite,
-                              fontWeight: FontWeight.w400,
-                              fontSize: 48,
-                            )
+                          color: CustomColors.textWhite,
+                          fontWeight: FontWeight.w400,
+                          fontSize: 48,
+                        )
                             .copyWith(
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
-                            ),
+                          fontFeatures: const [
+                            FontFeature.tabularFigures(),
+                          ],
+                        ),
                       ),
                     ),
             ),
