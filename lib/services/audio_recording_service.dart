@@ -254,7 +254,7 @@ class AudioRecordingService {
       await _recorder.openRecorder();
 
       await _recorder.setSubscriptionDuration(
-        const Duration(milliseconds: 150),
+        const Duration(milliseconds: 60),
       );
 
       await _audioSession.startListening();
