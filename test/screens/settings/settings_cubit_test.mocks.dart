@@ -168,16 +168,6 @@ class MockSetupRepository extends _i1.Mock implements _i6.SetupRepository {
       ));
 
   @override
-  void createNotifications({String? page}) => super.noSuchMethod(
-        Invocation.method(
-          #createNotifications,
-          [],
-          {#page: page},
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
   _i7.Future<List<_i9.Questions>> getOnBoardingQuestions() =>
       (super.noSuchMethod(
         Invocation.method(
