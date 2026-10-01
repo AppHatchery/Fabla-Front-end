@@ -57,7 +57,9 @@ class QuickstartHandler {
     String videoName, {
     http.Client? client,
   }) async {
-    final httpClient = client ?? http_client_factory.httpClient();
+    // Per-attempt timeout matches the overall `.timeout` below.
+    final httpClient =
+        client ?? http_client_factory.httpClient(timeout: _requestTimeout);
 
     try {
       final url = getVideoUrl(videoName);
@@ -88,7 +90,8 @@ class QuickstartHandler {
   /// the same reuse-or-create convention as [getVideo].
   Future<void> getVideos({http.Client? client}) async {
     final videoUrls = <String, String>{};
-    final httpClient = client ?? http_client_factory.httpClient();
+    final httpClient =
+        client ?? http_client_factory.httpClient(timeout: _requestTimeout);
     try {
       for (var videoName in videos.keys) {
         try {

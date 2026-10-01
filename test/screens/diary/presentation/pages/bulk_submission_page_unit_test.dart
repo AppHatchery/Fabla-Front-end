@@ -217,6 +217,43 @@ void main() {
       ],
       wait: const Duration(seconds: 2),
     );
+
+    blocTest<BulkSubmissionCubit, BulkSubmissionState>(
+      'error state carries the diaries that already uploaded, '
+      'so a retry cannot submit them twice',
+      build: () => bulkSubmissionCubit,
+      setUp: () {
+        // First two succeed, then the third blows up mid-batch.
+        var call = 0;
+        when(() => mockSummaryRepository.submitDiary(any()))
+            .thenAnswer((_) async {
+          if (++call > 2) throw Exception('Network error');
+          return true;
+        });
+      },
+      act: (cubit) => cubit.startBulkSubmission(createTestSubmissions(4)),
+      expect: () => [
+        isA<BulkSubmissionInProgress>(),
+        isA<BulkSubmissionInProgress>(),
+        isA<BulkSubmissionInProgress>(),
+        isA<BulkSubmissionError>()
+            .having(
+              (state) => state.diaries
+                  .where((d) => d.status == SubmissionStatus.successful)
+                  .length,
+              'successful diaries preserved',
+              2,
+            )
+            .having(
+              (state) => state.diaries
+                  .where((d) => d.status != SubmissionStatus.successful)
+                  .length,
+              'diaries still outstanding',
+              2,
+            ),
+      ],
+      wait: const Duration(seconds: 2),
+    );
   });
 
   group('retryFailedSubmissions', () {
@@ -338,8 +375,8 @@ void main() {
     });
 
     test('BulkSubmissionError states are equal with same message', () {
-      final state1 = BulkSubmissionError('Error message');
-      final state2 = BulkSubmissionError('Error message');
+      final state1 = BulkSubmissionError('Error message', diaries: const []);
+      final state2 = BulkSubmissionError('Error message', diaries: const []);
 
       expect(state1, equals(state2));
       expect(state1.props, equals(state2.props));

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
     as http_client_factory;
+import 'package:audio_diaries_flutter/core/network/retry_policy.dart';
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/location.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -20,6 +21,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:developer' as dev;
 import 'secrets_handler.dart';
+
+/// A DynamoDB POST slower than one attempt's timeout is worth reporting.
+final Duration _slowDynamoThreshold = http_client_factory.kDefaultTimeout;
+
+/// An S3 PUT past this has burned a whole attempt and is into its retry, which
+/// is the point at which a participant notices the wait.
+final Duration _slowS3Threshold = http_client_factory.kUploadTimeout;
 
 /// Uploads audio files associated with a diary to an S3 storage and returns the result.
 ///
@@ -303,7 +311,9 @@ Future<bool> uploadNonAudioData(
 }) async {
   final secureStorage = secureSave ?? SecureSave();
   final bool ownClient = client == null;
-  final httpClient = client ?? http_client_factory.httpClient();
+  // No retry: this POST appends and the Lambda has no dedupe, and a timeout or
+  // dropped connection can follow a write the server already committed.
+  final httpClient = client ?? http_client_factory.httpClient(retries: 0);
 
   try {
     var cred = await secureStorage.read();
@@ -331,21 +341,10 @@ Future<bool> uploadNonAudioData(
       'x-api-key': cred.xapikey ?? ""
     };
 
+    final stopwatch = Stopwatch()..start();
     try {
-      final stopwatch = Stopwatch()..start();
       var response =
           await httpClient.post(url, headers: headers, body: jsonBody);
-      stopwatch.stop();
-
-      if (stopwatch.elapsed > const Duration(minutes: 2)) {
-        CrashlyticsService().log(
-            'Slow DynamoDB upload: ${stopwatch.elapsedMilliseconds}ms | prompts=${promptEntryList.length}');
-        await PendoService.track('Slow Upload', {
-          'event': 'Upload to DynamoDB',
-          'duration_ms': stopwatch.elapsedMilliseconds.toString(),
-          'prompt_count': promptEntryList.length.toString(),
-        });
-      }
 
       if (response.statusCode == 200) {
         return true;
@@ -372,6 +371,18 @@ Future<bool> uploadNonAudioData(
       await PendoService.track('Upload Error',
           {'event': 'Upload to DynamoDB', 'reason': e.toString()});
       return false;
+    } finally {
+      // In finally so timed-out calls, the slowest, are reported too.
+      stopwatch.stop();
+      if (stopwatch.elapsed > _slowDynamoThreshold) {
+        CrashlyticsService().log(
+            'Slow DynamoDB upload: ${stopwatch.elapsedMilliseconds}ms | prompts=${promptEntryList.length}');
+        await PendoService.track('Slow Upload', {
+          'event': 'Upload to DynamoDB',
+          'duration_ms': stopwatch.elapsedMilliseconds.toString(),
+          'prompt_count': promptEntryList.length.toString(),
+        });
+      }
     }
   } finally {
     if (ownClient) httpClient.close();
@@ -409,7 +420,12 @@ Future<String?> getPresignedUrl(
 }) async {
   final secureStorage = secureSave ?? SecureSave();
   final bool ownClient = client == null;
-  final httpClient = client ?? http_client_factory.httpClient();
+  // A pure read: network errors and 5xx are both retried.
+  final httpClient = client ??
+      http_client_factory.httpClient(
+        retries: kMaxRetries,
+        retryServerErrors: true,
+      );
 
   try {
     var cred = await secureStorage.read();
@@ -471,7 +487,15 @@ Future<String?> getPresignedUrl(
   }
 }
 
-Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
+/// Uploads [filePath] to S3 using a previously-minted [presignedUrl].
+///
+/// Retrying is safe here: the presigned URL points at a fixed S3 key, so a
+/// re-sent PUT overwrites rather than creating a second object.
+Future<bool> uploadFileToS3(
+  String presignedUrl,
+  String filePath, {
+  http.Client? client,
+}) async {
   try {
     var file = File(filePath);
     var fileStream = file.openRead();
@@ -488,7 +512,13 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
     // Set the body bytes of the request
     request.bodyBytes = bytes;
 
-    final s3Client = http_client_factory.httpClient();
+    final bool ownClient = client == null;
+    final s3Client = client ??
+        http_client_factory.httpClient(
+          timeout: http_client_factory.kUploadTimeout,
+          retries: kUploadMaxRetries,
+          retryServerErrors: true,
+        );
     try {
       final response = await s3Client.send(request);
       // Drain the response stream so the underlying native client considers
@@ -513,7 +543,7 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
         return false;
       }
     } finally {
-      s3Client.close();
+      if (ownClient) s3Client.close();
     }
   } catch (e, stackTrace) {
     dev.log('S3 Storage: Error uploading file: $e',
@@ -570,7 +600,7 @@ Future<bool> uploadFiles(List<FileData> files) async {
           'File uploaded: $result | Duration: ${stopwatch.elapsedMilliseconds}ms | File: ${file.awsS3Directory}',
           name: 'Upload - Upload Files');
 
-      if (stopwatch.elapsed > const Duration(minutes: 2)) {
+      if (stopwatch.elapsed > _slowS3Threshold) {
         CrashlyticsService().log(
             'Slow S3 upload: ${file.awsS3Directory} took ${stopwatch.elapsedMilliseconds}ms');
         await PendoService.track('Slow Upload', {

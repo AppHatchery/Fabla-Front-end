@@ -19,10 +19,27 @@ import 'answer_repository.dart';
 import 'diary_repository.dart';
 
 class SummaryRepository {
-  final AnswerRepository answerRepository = AnswerRepository();
-  final PromptRepository promptRepository = PromptRepository();
-  final DiaryRepository diaryRepository = DiaryRepository();
-  final SetupRepository setupRepository = SetupRepository();
+  /// Submissions currently uploading, keyed by diary id. Static because each
+  /// call site constructs its own `SummaryRepository()`.
+  static final Map<int, Future<bool>> _inFlight = {};
+
+  SummaryRepository({
+    AnswerRepository? answerRepository,
+    PromptRepository? promptRepository,
+    DiaryRepository? diaryRepository,
+    SetupRepository? setupRepository,
+    Future<bool> Function(String participantID, DiaryModel diary)? uploader,
+  })  : answerRepository = answerRepository ?? AnswerRepository(),
+        promptRepository = promptRepository ?? PromptRepository(),
+        diaryRepository = diaryRepository ?? DiaryRepository(),
+        setupRepository = setupRepository ?? SetupRepository(),
+        _upload = uploader ?? upload;
+
+  final AnswerRepository answerRepository;
+  final PromptRepository promptRepository;
+  final DiaryRepository diaryRepository;
+  final SetupRepository setupRepository;
+  final Future<bool> Function(String participantID, DiaryModel diary) _upload;
 
   /// Asynchronous method to load summary information for a Diary object.
   /// This function iterates through the prompts within the provided Diary instance,
@@ -108,30 +125,72 @@ class SummaryRepository {
     }
   }
 
-  /// Asynchronous method to submit a Diary for processing.
-  /// This function attempts to submit a provided Diary for processing. It marks the Diary as submitted,
-  /// updates its status using `diaryRepository.updateDiary(diary)`, and returns a boolean indicating the submission result.
-  ///
-  /// Parameters:
-  /// - [diary]: The Diary object to be submitted.
+  /// Submits [diary] and, on success, advances it via
+  /// `diaryRepository.updateDiary`.
   ///
   /// Returns:
-  /// A Future<bool> indicating the success or failure of the submission process.
-  /// The boolean value indicates whether the submission was successful (true) or encountered an error (false).
+  /// - `true` — uploaded and recorded, or already recorded by an earlier run.
+  /// - `false` — the upload failed; the diary is untouched and still pending.
+  /// - `null` — nothing was sent (no connectivity).
   ///
   Future<bool?> submitDiary(DiaryModel diary) async {
-    try {
-      final hasInternet = await checkForInternet();
-      if (!hasInternet) return null;
+    // Before the connectivity check: an already-recorded entry is done even
+    // offline.
+    if (_alreadyRecorded(diary)) {
+      dev.log(
+          "Entry ${diary.currentEntry} of diary ${diary.id} is already "
+          "recorded — skipping re-upload",
+          name: "SummaryRepository - submitDiary");
+      return true;
+    }
 
-      final participant = setupRepository.getParticipant();
-      final uploaded = await upload(participant!.studyCode, diary);
-      final study = await diaryRepository.getStudy(diary.studyID);
-      // final entry = diary.status == DiaryStatus.submitted
-      //     ? diary.entries
-      //     : diary.currentEntry;
+    final hasInternet = await checkForInternet();
+    if (!hasInternet) return null;
+
+    final participant = setupRepository.getParticipant();
+    if (participant == null) {
+      // Reported: without a participant no diary can be submitted.
+      dev.log("No participant on record — cannot submit diary ${diary.id}",
+          name: "SummaryRepository - submitDiary");
+      CrashlyticsService().recordError(
+          StateError('getParticipant() returned null'), StackTrace.current,
+          context: {
+            'Diary': diary.name.toString(),
+            'DiaryID': diary.id.toString(),
+            'CurrentEntry': diary.currentEntry.toString(),
+          },
+          reason: 'Missing participant in submitDiary - SummaryRepository');
+      return false;
+    }
+
+    // Join an upload already running for this diary. No deadline: iOS
+    // suspension would fire it for a diary that then records. The block body
+    // matters: `remove` returns this future, and whenComplete would await it.
+    return _inFlight[diary.id] ??=
+        _uploadAndRecord(participant.studyCode, diary).whenComplete(() {
+      _inFlight.remove(diary.id);
+    });
+  }
+
+  /// Whether an earlier run already recorded the entry [snapshot] stands for.
+  ///
+  /// Retry paths resubmit the model they were handed rather than re-reading
+  /// it, so without this an entry already on the server would be uploaded
+  /// again. [_uploadAndRecord] advances `currentEntry` by one per entry.
+  bool _alreadyRecorded(DiaryModel snapshot) {
+    final stored = diaryRepository.getDiaryByID(snapshot.id);
+    // No stored row: upload rather than drop it.
+    if (stored == null) return false;
+    return stored.currentEntry > snapshot.currentEntry;
+  }
+
+  /// Uploads [diary] and, on success, records the submission locally.
+  Future<bool> _uploadAndRecord(String participantID, DiaryModel diary) async {
+    try {
+      final uploaded = await _upload(participantID, diary);
 
       if (uploaded) {
+        final study = await diaryRepository.getStudy(diary.studyID);
         late DiaryModel newDiary;
 
         dev.log("Current entry: ${diary.currentEntry}",
@@ -170,8 +229,9 @@ class SummaryRepository {
         }
         cancelContinueNotifications(diary.id);
         calculateEarnedIncentivesForAWS(
-            participantID: participant.studyCode, studyID: diary.studyID);
-        await modifyHomeProgressTracking(studyID: diary.studyID, submissions: 1, activateAnimation: true);
+            participantID: participantID, studyID: diary.studyID);
+        await modifyHomeProgressTracking(
+            studyID: diary.studyID, submissions: 1, activateAnimation: true);
         return true;
       } else {
         return false;

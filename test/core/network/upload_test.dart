@@ -1,3 +1,5 @@
+import 'package:audio_diaries_flutter/core/network/http_client_factory.dart';
+import 'package:audio_diaries_flutter/core/network/retry_policy.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/network/secrets_handler.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -7,8 +9,10 @@ import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.da
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
+import 'dart:async';
 import 'dart:io';
 
 import '../../dummy_data.dart';
@@ -32,6 +36,89 @@ void main() {
     mockHttpClient = MockHttpClient();
     mockSecureSave = MockSecureSave();
     registerFallbackValue(Uri.parse(TestValues.testUrl));
+  });
+
+  // Through the `client == null` branch, so each call site's own budget runs.
+  group('production retry budgets', () {
+    late int sends;
+
+    setUp(() {
+      sends = 0;
+      registerFallbackValue(Uri.parse(TestValues.testUrl));
+      when(() => mockSecureSave.read())
+          .thenAnswer((_) async => createTestCredentials());
+    });
+
+    tearDown(() => debugPlatformClientBuilder = null);
+
+    /// A client that always fails the way a dropped connection does.
+    void failEveryAttemptWith(Object error) {
+      debugPlatformClientBuilder = () => MockClient((_) {
+            sends++;
+            throw error;
+          });
+    }
+
+    test('the diary write is sent once and never re-sent', () async {
+      // The append-shaped write: a re-send could add a second row.
+      failEveryAttemptWith(http.ClientException('connection closed'));
+
+      final result = await uploadNonAudioData(
+        createTestPromptEntries(1),
+        secureSave: mockSecureSave,
+      );
+
+      expect(result, isFalse);
+      expect(sends, 1);
+    });
+
+    test('the diary write is not re-sent on a 500 either', () async {
+      // A 500 can arrive after the Lambda has already written the row.
+      var sends = 0;
+      debugPlatformClientBuilder = () => MockClient((_) async {
+            sends++;
+            return http.Response('server error', 500);
+          });
+
+      final result = await uploadNonAudioData(
+        createTestPromptEntries(1),
+        secureSave: mockSecureSave,
+      );
+
+      expect(result, isFalse);
+      expect(sends, 1);
+    });
+
+    test('minting a presigned URL is retried on a 500', () async {
+      var sends = 0;
+      debugPlatformClientBuilder = () => MockClient((_) async {
+            sends++;
+            return http.Response('server error', 500);
+          });
+
+      final result = await getPresignedUrl(
+        TestValues.testUrl,
+        'diary/audio.m4a',
+        secureSave: mockSecureSave,
+      );
+
+      expect(result, isNull);
+      expect(sends, kMaxRetries + 1);
+    });
+
+    test('minting a presigned URL is retried', () async {
+      // Same error as the diary write, but this call reserves nothing.
+      failEveryAttemptWith(http.ClientException('connection closed'));
+
+      final result = await getPresignedUrl(
+        TestValues.testUrl,
+        'diary/audio.m4a',
+        secureSave: mockSecureSave,
+      );
+
+      expect(result, isNull);
+      expect(sends, kMaxRetries + 1);
+    });
   });
 
   group('Upload Tests', () {
@@ -213,6 +300,167 @@ void main() {
             headers: any(named: 'headers'),
             body: any(named: 'body'),
           )).called(1);
+    });
+  });
+
+  group('uploadFileToS3', () {
+    late Directory tempDir;
+    late String filePath;
+
+    setUp(() {
+      tempDir = Directory.systemTemp.createTempSync('upload_test');
+      filePath = p.join(tempDir.path, 'recording.m4a');
+      File(filePath).writeAsBytesSync(List<int>.generate(1024, (i) => i % 256));
+    });
+
+    tearDown(() => tempDir.deleteSync(recursive: true));
+
+    test('returns true when S3 accepts the PUT', () async {
+      // ───── Arrange ─────
+      final sent = <http.Request>[];
+      final client = MockClient((request) async {
+        sent.add(request);
+        return http.Response('', 200);
+      });
+
+      // ───── Act ─────
+      final result =
+          await uploadFileToS3(TestValues.testUrl, filePath, client: client);
+
+      // ───── Assert ─────
+      expect(result, true);
+      expect(sent.length, 1);
+      expect(sent.single.method, 'PUT');
+      expect(sent.single.headers['Content-Type'], 'audio/mp4');
+      expect(sent.single.bodyBytes.length, 1024);
+    });
+
+    test('returns false on a non-200 without re-sending', () async {
+      // ───── Arrange ─────
+      var sends = 0;
+      final client = MockClient((_) async {
+        sends++;
+        return http.Response('AccessDenied', 403);
+      });
+
+      // ───── Act ─────
+      final result =
+          await uploadFileToS3(TestValues.testUrl, filePath, client: client);
+
+      // ───── Assert ─────
+      expect(result, false);
+      expect(sends, 1);
+    });
+
+    test('a retried upload reuses the same presigned URL, so S3 holds one object',
+        () async {
+      // ───── Arrange ─────
+      // The retry must overwrite the same key, not create a second object.
+      final sent = <http.Request>[];
+      final inner = MockClient((request) async {
+        sent.add(request);
+        if (sent.length == 1) throw TimeoutException('timed out');
+        return http.Response('', 200);
+      });
+
+      // ───── Act ─────
+      final result = await uploadFileToS3(
+        TestValues.testUrl,
+        filePath,
+        client: wrapClient(
+          inner,
+          retries: kUploadMaxRetries,
+          delay: (_) => Duration.zero,
+        ),
+      );
+
+      // ───── Assert ─────
+      expect(result, true);
+      expect(sent.length, 2);
+      expect(sent[1].url, sent[0].url);
+      expect(sent[1].bodyBytes, sent[0].bodyBytes);
+    });
+
+    test('returns false once the retry budget is exhausted', () async {
+      // ───── Arrange ─────
+      var sends = 0;
+      final inner = MockClient((_) async {
+        sends++;
+        throw const SocketException('connection reset');
+      });
+
+      // ───── Act ─────
+      final result = await uploadFileToS3(
+        TestValues.testUrl,
+        filePath,
+        client: wrapClient(
+          inner,
+          retries: kUploadMaxRetries,
+          delay: (_) => Duration.zero,
+        ),
+      );
+
+      // ───── Assert ─────
+      expect(result, false);
+      expect(sends, kUploadMaxRetries + 1);
+    });
+  });
+
+  group('uploadNonAudioData retry safety', () {
+    test('a 500 posts the diary response exactly once', () async {
+      // ───── Arrange ─────
+      // A 5xx can follow the write landing; a re-send would duplicate rows.
+      var sends = 0;
+      final inner = MockClient((_) async {
+        sends++;
+        return http.Response('internal error', 500);
+      });
+
+      when(() => mockSecureSave.read())
+          .thenAnswer((_) async => createTestCredentials());
+
+      // ───── Act ─────
+      final result = await uploadNonAudioData(
+        createTestPromptEntries(2),
+        secureSave: mockSecureSave,
+        client: wrapClient(
+          inner,
+          retries: kMaxRetries,
+          delay: (_) => Duration.zero,
+        ),
+      );
+
+      // ───── Assert ─────
+      expect(result, false);
+      expect(sends, 1);
+    });
+
+    test('a dropped connection is retried and can still succeed', () async {
+      // ───── Arrange ─────
+      var sends = 0;
+      final inner = MockClient((_) async {
+        sends++;
+        if (sends == 1) throw const SocketException('connection reset');
+        return http.Response('Success', 200);
+      });
+
+      when(() => mockSecureSave.read())
+          .thenAnswer((_) async => createTestCredentials());
+
+      // ───── Act ─────
+      final result = await uploadNonAudioData(
+        createTestPromptEntries(1),
+        secureSave: mockSecureSave,
+        client: wrapClient(
+          inner,
+          retries: kMaxRetries,
+          delay: (_) => Duration.zero,
+        ),
+      );
+
+      // ───── Assert ─────
+      expect(result, true);
+      expect(sends, 2);
     });
   });
 

@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
     as http_client_factory;
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
@@ -22,7 +23,13 @@ class NotificationsController {
     FlutterLocalNotificationsPlugin? localNotifications,
     http.Client? client,
   })  : _messaging = messaging ?? FirebaseMessaging.instance,
-        _client = client ?? http_client_factory.httpClient() {
+        _client = client ??
+            http_client_factory.httpClient(
+              timeout: http_client_factory.kImageDownloadTimeout,
+              // No retries: the notification waits on this download, and two
+              // retries of a timeout would stretch 15s to ~46s.
+              retries: 0,
+            ) {
     // Initialize the local notifications plugin with injected or default instance
     flutterLocalNotificationsPlugin =
         localNotifications ?? FlutterLocalNotificationsPlugin();
@@ -56,13 +63,15 @@ class NotificationsController {
         imagePath = await _downloadAndSaveFile(
             androidNotification.imageUrl!, 'bigPicture');
 
-        notificationStyle = BigPictureStyleInformation(
-          FilePathAndroidBitmap(imagePath),
-          contentTitle: '<b>${notification.title}</b>',
-          htmlFormatContentTitle: true,
-          summaryText: '${notification.body}',
-          htmlFormatSummaryText: true,
-        );
+        if (imagePath != null) {
+          notificationStyle = BigPictureStyleInformation(
+            FilePathAndroidBitmap(imagePath),
+            contentTitle: '<b>${notification.title}</b>',
+            htmlFormatContentTitle: true,
+            summaryText: '${notification.body}',
+            htmlFormatSummaryText: true,
+          );
+        }
       }
 
       await flutterLocalNotificationsPlugin.show(
@@ -137,13 +146,25 @@ class NotificationsController {
     }
   }
 
-  Future<String> _downloadAndSaveFile(String url, String fileName) async {
+  /// Downloads the notification's big-picture image to the documents directory.
+  /// Returns `null` on failure, so the notification still shows without it.
+  Future<String?> _downloadAndSaveFile(String url, String fileName) async {
     final Directory directory = await getApplicationDocumentsDirectory();
     final String filePath = '${directory.path}/$fileName';
     // Updated to use injected http client instead of static http.get
-    final http.Response response = await _client.get(Uri.parse(url));
-    final File file = File(filePath);
-    await file.writeAsBytes(response.bodyBytes);
-    return filePath;
+    try {
+      final http.Response response = await _client.get(Uri.parse(url));
+      final File file = File(filePath);
+      await file.writeAsBytes(response.bodyBytes);
+      return filePath;
+    } catch (e, stackTrace) {
+      log("Failed to download notification image from $url: $e",
+          name: "NotificationsController");
+      CrashlyticsService().recordApiError(e, url,
+          stackTrace: stackTrace,
+          method: 'GET',
+          requestData: {'file_name': fileName});
+      return null;
+    }
   }
 }
