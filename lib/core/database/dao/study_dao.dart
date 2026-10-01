@@ -8,7 +8,7 @@ class StudyDAO {
   StudyDAO({required this.box});
 
   Study? getStudy(int id) {
-    return box.getAll().where((element) => element.studyId == id).first;
+    return box.getAll().where((element) => element.studyId == id).firstOrNull;
   }
 
   List<Study> getStudies() {
@@ -29,6 +29,17 @@ class StudyDAO {
   }
 
   List<int> addStudies(List<Study> studies) {
+    return box.putMany(studies);
+  }
+
+  /// Inserts or updates studies, matching existing rows by [Study.studyId].
+  /// Studies already stored but missing from [studies] are kept, so older
+  /// diaries that reference them can still resolve their study.
+  List<int> upsertStudies(List<Study> studies) {
+    final existing = {for (final s in box.getAll()) s.studyId: s.id};
+    for (final study in studies) {
+      study.id = existing[study.studyId] ?? 0;
+    }
     return box.putMany(studies);
   }
 

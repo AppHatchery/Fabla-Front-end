@@ -191,7 +191,9 @@ List<DiaryModel> _filterDiariesByStudyGoals(List<DiaryModel> diaries) {
   return diaries.where((diary) {
     if (diary.status != DiaryStatus.missed) return true;
 
-    final study = studies.firstWhere((s) => s.studyId == diary.studyID);
+    final study =
+        studies.where((s) => s.studyId == diary.studyID).firstOrNull;
+    if (study == null) return false;
     return study.goals.daily != 0 && study.goals.weekly != 0;
   }).toList();
 }
