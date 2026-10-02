@@ -1,0 +1,29 @@
+name: bug_reporter
+description: >-
+  In-app bug reporting for Flutter: a floating capture button that grabs a
+  screenshot, recent breadcrumbs, and device info, then submits to a
+  configurable backend.
+version: 0.2.0
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dio: ^5.7.0
+  device_info_plus: ">=10.1.2 <14.0.0"
+  package_info_plus: ">=8.1.0 <11.0.0"
+  path: ^1.9.0
+  path_provider: ^2.1.4
+  url_launcher: ^6.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
