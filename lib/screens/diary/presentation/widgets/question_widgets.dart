@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:alarm/alarm.dart';
+import 'package:audio_diaries_flutter/core/usecases/recording_answer.dart';
 import 'package:audio_diaries_flutter/core/usecases/video_image_thumbnail.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/participant_experiment_details.dart';
@@ -26,7 +27,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../../core/utils/device_checks.dart';
+import 'package:audio_diaries_flutter/core/utils/device_appInfo.dart';
 import '../../../../core/utils/statuses.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
@@ -365,21 +366,24 @@ class AudioTextCard extends StatefulWidget {
   final DiaryModel diary;
   final PromptModel prompt;
 
-  /// Recordings that resolved to an error, keyed by path. Owned by the page so
-  /// the record button and the Next button agree on what counts as an answer.
-  /// Empty when the host has no gating to keep in step, as on the edit screen.
-  final Map<String, AudioStatus> unplayable;
+  final RecordingAnswerView answers;
 
   /// Reports a recording's terminal status back to the page.
   final void Function(String path, AudioStatus status)? onPlaybackResolved;
+
+  final void Function(String path)? onDismissRecording;
+
+  final bool recordingsUnchecked;
 
   const AudioTextCard({
     super.key,
     required this.respond,
     required this.diary,
     required this.prompt,
-    this.unplayable = const {},
+    required this.answers,
     this.onPlaybackResolved,
+    this.onDismissRecording,
+    this.recordingsUnchecked = false,
   });
 
   @override
@@ -415,16 +419,14 @@ class _AudioTextCardState extends State<AudioTextCard> {
 
     var count = 0;
     for (final recording in recordings) {
-      if (!widget.unplayable.containsKey(recording.path)) count++;
+      if (widget.answers.isUsable(recording.path)) count++;
     }
     return count;
   }
 
-  /// Notices for recordings that were discarded, so the participant still sees
-  /// why their answer disappeared. Recordings still in the list render their
-  /// own card inside [MyResponse].
   Widget discardedNotices() {
-    if (widget.unplayable.isEmpty) return const SizedBox.shrink();
+    final unplayable = widget.answers.unplayable;
+    if (unplayable.isEmpty) return const SizedBox.shrink();
 
     final present = <String>{
       for (final recording in widget.prompt.answer?.recordings ?? [])
@@ -432,11 +434,19 @@ class _AudioTextCardState extends State<AudioTextCard> {
     };
 
     final notices = <Widget>[
-      for (final entry in widget.unplayable.entries)
+      for (final entry in unplayable.entries)
         if (!present.contains(entry.key))
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6.0),
-            child: RecordingIssueCard(status: entry.value),
+            child: RecordingIssueCard(
+              status: entry.value,
+              promptId: widget.prompt.id,
+              // The row this explains is already gone, so dismissing only
+              // clears the message. Nothing to confirm.
+              onDismiss: widget.onDismissRecording == null
+                  ? null
+                  : () => widget.onDismissRecording!(entry.key),
+            ),
           ),
     ];
 
@@ -462,9 +472,17 @@ class _AudioTextCardState extends State<AudioTextCard> {
               ],
               if (_lowBattery) ...[
                 const LowWarningCard(
-                  message:
-                      'Your battery is running low. Please connect your '
+                  message: 'Your battery is running low. Please connect your '
                       'charger to avoid interruptions while recording.',
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (widget.recordingsUnchecked) ...[
+                const LowWarningCard(
+                  message: 'We could not check your recordings on this device, '
+                      'so we cannot confirm this answer yet. Please try again '
+                      'in a moment, or restart the app if this keeps '
+                      'happening.',
                 ),
                 const SizedBox(height: 12),
               ],
@@ -480,6 +498,7 @@ class _AudioTextCardState extends State<AudioTextCard> {
                       edit: widget.respond,
                       prompt: widget.prompt,
                       onPlaybackResolved: widget.onPlaybackResolved,
+                      onDismissRecording: widget.onDismissRecording,
                       recordings: widget.prompt.answer?.recordings ?? [])
                   : const SizedBox.shrink()
             ],

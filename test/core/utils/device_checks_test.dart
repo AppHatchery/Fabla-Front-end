@@ -1,9 +1,9 @@
-import 'package:audio_diaries_flutter/core/utils/device_checks.dart';
+import 'package:audio_diaries_flutter/core/utils/device_appInfo.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// Tests for lib/core/utils/device_checks.dart.
+// Tests for lib/core/utils/device_appInfo.dart';.
 //
 // `checkLowStorage` compares the device's free bytes against a 512 MB
 // threshold, and `checkLowBattery` compares the charge against 20%. Both

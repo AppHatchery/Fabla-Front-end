@@ -178,35 +178,42 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         ),
         child: ValueListenableBuilder<AudioRecordingState>(
           valueListenable: _recordingService.state,
-          builder: (context, recordingState, _) => Column(
-            children: [
-              // Close Modal Button
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    GestureDetector(
-                      onTap: () => {
+          builder: (context, recordingState, _) => PopScope(
+            // Android back goes through the same question as the close button,
+            // so a finished take is never dropped without the participant
+            // choosing to.
+            canPop: !recordingState.hasCompletedTake,
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop) unawaited(_closeSheet());
+            },
+            child: Column(
+              children: [
+                // Close Modal Button
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
                         //setting the tap to null when recording is on to avoid accidental closes
-                        recordingState.isRecording
+                        onTap: recordingState.isRecording
                             ? null
-                            : Navigator.pop(context),
-                      },
-                      child: Icon(
-                        CupertinoIcons.clear_circled_solid,
-                        size: 32,
-                        color: CustomColors.textSecondaryContent,
+                            : () => unawaited(_closeSheet()),
+                        child: Icon(
+                          CupertinoIcons.clear_circled_solid,
+                          size: 32,
+                          color: CustomColors.textSecondaryContent,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Expanded(child: questionAndHints(recordingState)),
-            ],
+                Expanded(child: questionAndHints(recordingState)),
+              ],
+            ),
           ),
         ),
       ),
@@ -225,32 +232,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
             child: SingleChildScrollView(
               controller: scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-              child: recordingState.isInterrupted
-                  ? Column(
-                spacing: 10,
-                    children: [
-                      Text("Recording Interrupted,", style: CustomTypography().headlineMedium(),),
-                      Text("Tap the resume button to continue recording",style: CustomTypography().bodyLarge(),)
-                    ],
-                  ) : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.question,
-                    style: CustomTypography()
-                        .titleLarge(color: const Color(0xFF000000)),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    widget.subtitle ?? "",
-                    style: CustomTypography().bodyLarge(
-                      color: CustomColors.textNormalContent,
-                      weight: FontWeight.w400,
-                    ),
-                  ),
-                  _riveAnimation(),
-                ],
-              ),
+              child: _sheetBody(recordingState),
             ),
           ),
 
@@ -293,6 +275,42 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         ],
       );
     });
+  }
+
+  /// What fills the sheet above the buttons: the question, or a notice when
+  /// something happened to the take that the participant has to act on.
+  Widget _sheetBody(AudioRecordingState recordingState) {
+    final notice = takeNotice(recordingState);
+    if (notice != null) return _sheetNotice(notice.title, notice.body);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.question,
+          style: CustomTypography().titleLarge(color: const Color(0xFF000000)),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          widget.subtitle ?? "",
+          style: CustomTypography().bodyLarge(
+            color: CustomColors.textNormalContent,
+            weight: FontWeight.w400,
+          ),
+        ),
+        _riveAnimation(),
+      ],
+    );
+  }
+
+  Widget _sheetNotice(String title, String body) {
+    return Column(
+      spacing: 10,
+      children: [
+        Text(title, style: CustomTypography().headlineMedium()),
+        Text(body, style: CustomTypography().bodyLarge()),
+      ],
+    );
   }
 
   Widget _riveAnimation() {
@@ -349,8 +367,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
     // Calculate progress as a percentage (0.0 to 1.0)
     final progress = totalDuration.inMilliseconds > 0
-        ? (recordingState.elapsed.inMilliseconds /
-                totalDuration.inMilliseconds)
+        ? (recordingState.elapsed.inMilliseconds / totalDuration.inMilliseconds)
             .clamp(0.0, 1.0)
         : 0.0;
 
@@ -545,6 +562,49 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     await _recordingService.record();
   }
 
+  /// Closes the sheet, first asking whether to save a finished take.
+  ///
+  /// A finished take is sitting on disk with no row behind it until the
+  /// participant saves it, and closing used to leave it there unreferenced. Dismissing the question keeps the sheet open.
+  Future<void> _closeSheet() async {
+    if (!mounted || _completingTake) return;
+
+    if (!_recordingService.state.value.hasCompletedTake) {
+      Navigator.pop(context);
+      return;
+    }
+
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (context) => ExitPopUp(
+        confirmText: "Discard Recording",
+        cancelText: "Save Recording",
+        content: [
+          Text(
+            "Save your recording?",
+            style: CustomTypography().headlineMedium(),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            "If you close without saving, this recording will be lost.",
+            style: CustomTypography().bodyLarge(),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted || discard == null) return;
+
+    // save() closes the sheet itself once the answer is written.
+    if (!discard) return save();
+
+    await _recordingService.discardTake();
+
+    if (mounted) Navigator.pop(context);
+  }
+
   /// Confirms the redo, then throws the take away and records a fresh one.
   Future<void> redo() async {
     if (!mounted || _completingTake) return;
@@ -612,7 +672,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     } catch (e, s) {
       // onSave writes the answer away, so a throw from it lands here.
       CrashlyticsService().recordError(
-        e, s, reason: 'save() failed',
+        e,
+        s,
+        reason: 'save() failed',
       );
 
       _trackFailedSave();
@@ -635,6 +697,56 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 String basePath(String path) {
   final parts = p.split(path);
   return parts.sublist(parts.length - 2).join(p.separator);
+}
+
+/// The notice the recording sheet shows in place of the question, or `null`
+/// when nothing happened to the take that the participant has to act on.
+///
+/// The order settles which one wins when more than one flag is set. A join
+/// that failed comes first, because the participant has to know their audio
+/// is safe before anything else. A refused microphone comes before the
+/// interruption, because tapping resume while a call still holds the
+/// microphone is refused again, and the notice has to say to wait.
+({String title, String body})? takeNotice(AudioRecordingState state) {
+  // iOS only: the take was recorded in pieces around an interruption, and
+  // they could not be put back together.
+  if (state.joinFailed) {
+    return (
+      title: "We couldn't finish your recording",
+      body: "Your recording is safe. Tap the stop button to try again.",
+    );
+  }
+
+  // A take that never began, or could not resume, because another app still
+  // holds the microphone. Tapping again straight away would be refused the
+  // same way.
+  if (state.microphoneUnavailable) {
+    return (
+      title: "The microphone is busy",
+      body: "Another app, like a phone call, is using the microphone. "
+          "When it has finished, tap the record button to try again.",
+    );
+  }
+
+  if (state.isInterrupted) {
+    return (
+      title: "Recording Interrupted,",
+      body: "Tap the resume button to continue recording",
+    );
+  }
+
+  // A take that ended with no audio behind it. Without this the sheet just
+  // resets to 00:00, which looks like a tap that did not register, so the
+  // participant records the same answer again and loses it the same way.
+  if (state.takeWasEmpty) {
+    return (
+      title: "No audio was recorded",
+      body: "Something stopped the microphone from picking you up. "
+          "Tap the record button to try again.",
+    );
+  }
+
+  return null;
 }
 
 class BottomTextModal extends StatefulWidget {

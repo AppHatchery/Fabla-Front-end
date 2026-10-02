@@ -1,14 +1,15 @@
 import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
     as http_client_factory;
+import 'package:audio_diaries_flutter/core/network/retry_policy.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 const String devURL =
-    "sropo6jsmhm4hnxzlrqairw6xu0tfjcn.lambda-url.us-east-1.on.aws";
+    "vqujlfqpuxbfluuojai52fopvy0pregz.lambda-url.us-east-1.on.aws";
 const String prodURL =
-    "phy7427sobzzf3dbeevuvi6z4m0dehgx.lambda-url.us-east-1.on.aws";
+    "bpyla7yzdfordt2mk36oskhudq0yliij.lambda-url.us-east-1.on.aws";
 
 final Map<String, String> headers = {
   'Content-Type': 'application/x-www-form-urlencoded',
@@ -39,7 +40,12 @@ Future<String?> get({
   http.Client? client,
 }) async {
   final bool ownClient = client == null;
-  final httpClient = client ?? http_client_factory.httpClient();
+  // GET is idempotent, so 5xx is retried too.
+  final httpClient = client ??
+      http_client_factory.httpClient(
+        retries: kMaxRetries,
+        retryServerErrors: true,
+      );
 
   try {
     final url = Uri.https(base(), path);
@@ -63,24 +69,32 @@ Future<String?> get({
 /// In production, this parameter should be omitted to use the default client.
 ///
 /// Returns the response body as a String on success (status 200), or null on failure.
+///
+/// [retries] defaults to 0 because a POST may append. Pass [kMaxRetries] only
+/// for a read or overwrite endpoint; that also retries 5xx.
 Future<String?> post({
   required String path,
   required Map<String, dynamic> body,
   http.Client? client,
+  int retries = 0,
 }) async {
   final bool ownClient = client == null;
-  final httpClient = client ?? http_client_factory.httpClient();
+  final httpClient = client ??
+      http_client_factory.httpClient(
+        retries: retries,
+        retryServerErrors: retries > 0,
+      );
 
   try {
     final url = Uri.https(base(), path);
     final response = await httpClient.post(url, headers: headers, body: body);
     if (response.statusCode == 200) {
       return response.body;
-    } else {
-      CrashlyticsService().recordApiError(response.body, path,
-          statusCode: response.statusCode, method: 'POST', requestData: body);
-      throw Exception("Failed to post");
     }
+    // Return, don't throw: the catch below would report it a second time.
+    CrashlyticsService().recordApiError(response.body, path,
+        statusCode: response.statusCode, method: 'POST', requestData: body);
+    return null;
   } catch (e, stackTrace) {
     debugPrint(e.toString());
     CrashlyticsService().recordApiError(e, path,

@@ -7,6 +7,7 @@ import UserNotifications
 import alarm
 import flutter_foreground_task
 import ActivityKit
+import AVFoundation
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -40,6 +41,28 @@ import ActivityKit
       binaryMessenger: engineBridge.applicationRegistrar.messenger())
     liveActivityChannel.setMethodCallHandler { [weak self] call, result in
       self?.handleLiveActivityCall(call, result: result)
+    }
+
+    // Joins the segments of a recording split by an interruption. See
+    // AudioRecordingService and AudioSegmentMerger on the Dart side.
+    let audioSegmentsChannel = FlutterMethodChannel(
+      name: "diary/audio_segments",
+      binaryMessenger: engineBridge.applicationRegistrar.messenger())
+    audioSegmentsChannel.setMethodCallHandler { call, result in
+      guard call.method == "merge" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      guard let args = call.arguments as? [String: Any],
+            let segments = args["segments"] as? [String],
+            let output = args["output"] as? String else {
+        result(FlutterError(code: "BAD_ARGS", message: "segments and output required", details: nil))
+        return
+      }
+      Task {
+        let reply = await AudioSegmentMerger.merge(segments, into: output)
+        await MainActor.run { result(reply) }
+      }
     }
   }
 
@@ -111,4 +134,62 @@ import ActivityKit
   }
 
   override func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {}
+}
+
+/// Joins the m4a segments of one recording into a single file.
+///
+/// flutter_sound records through AVAudioRecorder, which iOS stops when Siri or
+/// a call interrupts it, and resuming that recorder erases the file. So the
+/// Dart side records each stretch between interruptions into its own file and
+/// asks for them to be joined here once the participant stops.
+enum AudioSegmentMerger {
+  /// Returns [output] on success, or a FlutterError. The segments are never
+  /// touched, so a failure loses nothing.
+  ///
+  /// Passthrough first: it copies the AAC data as it is, so it is fast and
+  /// lossless. Re-encoding is the fallback for segments whose formats do not
+  /// match, which a route change between them could cause.
+  static func merge(_ segments: [String], into output: String) async -> Any {
+    let composition = AVMutableComposition()
+    guard let track = composition.addMutableTrack(
+      withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) else {
+      return FlutterError(code: "NO_TRACK", message: "Could not create an audio track", details: nil)
+    }
+
+    do {
+      var cursor = CMTime.zero
+      for path in segments {
+        let asset = AVURLAsset(url: URL(fileURLWithPath: path))
+        // A segment with no audio in it adds nothing, rather than failing the
+        // whole recording.
+        guard let source = try await asset.loadTracks(withMediaType: .audio).first else { continue }
+        let duration = try await asset.load(.duration)
+        try track.insertTimeRange(
+          CMTimeRange(start: .zero, duration: duration), of: source, at: cursor)
+        cursor = CMTimeAdd(cursor, duration)
+      }
+      if cursor == .zero {
+        return FlutterError(code: "EMPTY", message: "No segment held any audio", details: nil)
+      }
+    } catch {
+      return FlutterError(code: "COMPOSE_FAILED", message: error.localizedDescription, details: nil)
+    }
+
+    let outputURL = URL(fileURLWithPath: output)
+    var lastError: String?
+
+    for preset in [AVAssetExportPresetPassthrough, AVAssetExportPresetAppleM4A] {
+      try? FileManager.default.removeItem(at: outputURL)
+      guard let export = AVAssetExportSession(asset: composition, presetName: preset),
+            export.supportedFileTypes.contains(.m4a) else { continue }
+      export.outputURL = outputURL
+      export.outputFileType = .m4a
+      await export.export()
+      if export.status == .completed { return output }
+      lastError = export.error?.localizedDescription
+    }
+
+    try? FileManager.default.removeItem(at: outputURL)
+    return FlutterError(code: "EXPORT_FAILED", message: lastError, details: nil)
+  }
 }
