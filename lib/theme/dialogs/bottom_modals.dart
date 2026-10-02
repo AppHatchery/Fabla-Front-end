@@ -26,6 +26,7 @@ import 'package:path/path.dart' as p;
 import 'package:rive/rive.dart' as r;
 import 'package:video_player/video_player.dart';
 
+import '../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../core/usecases/webview_survey_detector.dart';
 import '../../core/utils/formatter.dart';
 import '../../services/crashlytics_service.dart';
@@ -1378,12 +1379,15 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
               confirmText: "Yes, Leave Survey",
               content: [
                 Text(
+                  textScaler: getAdaptiveTextScaler(context),
                   "Exit Survey?",
                   style: CustomTypography().headlineMedium(),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                Text("If you exit, your progress will not be saved.",
+                Text(
+                  textScaler: getAdaptiveTextScaler(context),
+                    "If you exit, your progress will not be saved.",
                     style: CustomTypography().bodyLarge(),
                     textAlign: TextAlign.center),
               ],
