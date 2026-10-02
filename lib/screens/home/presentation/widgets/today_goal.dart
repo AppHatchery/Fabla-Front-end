@@ -14,6 +14,8 @@ import 'package:rive/rive.dart';
 
 import 'dart:developer' as dev;
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class TodayGoalWidget extends StatefulWidget {
   final Map<StudyModel, DailyGoalData> dailyGoal;
   final int weeklyEntries;
@@ -348,6 +350,7 @@ class DailyGoalEntries extends StatelessWidget {
           const SizedBox(width: 6),
           Flexible(
             child: Text(
+              textScaler: getAdaptiveTextScaler(context),
               key: const Key('displayText'),
               displayText,
               style: CustomTypography().bodyMedium(),
