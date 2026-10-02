@@ -6,6 +6,8 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class WeeklyGoalWidget extends StatefulWidget {
   final List<StudyModel> studies;
   final List<DiaryModel> diaries;
@@ -113,6 +115,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: Text(
+                textScaler: getAdaptiveTextScaler(context),
                 key: const Key('weekly_goal_text'),
                 "$currentEntries/$weeklyGoal",
                 style: CustomTypography().caption(color: color),

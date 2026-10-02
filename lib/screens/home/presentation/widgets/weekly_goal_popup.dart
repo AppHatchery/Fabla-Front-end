@@ -8,6 +8,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class WeeklyGoalPopup extends StatefulWidget {
   final List<StudyModel> studies;
   final List<DiaryModel> diaries;
@@ -172,7 +174,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
           children: [
             SizedBox(
               width: totalWidth,
-              height: 45,
+              height: 47,
               child: Stack(
                 children: [
                   //PROGRESS BAR BACKGROUND
@@ -220,6 +222,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                                   : 1,
                               // Hide the progress indicator when it reaches the lower goal
                               child: Text(
+                                textScaler: getAdaptiveTextScaler(context),
                                 "$currentEntries",
                                 style: CustomTypography().caption(),
                               ),
@@ -243,6 +246,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                         ),
                         Flexible(
                           child: Text(
+                            textScaler: getAdaptiveTextScaler(context),
                             "$lowerGoal",
                             style: CustomTypography().caption(),
                           ),
@@ -263,6 +267,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                             color: color, size: 20),
                         Flexible(
                           child: Text(
+                            textScaler: getAdaptiveTextScaler(context),
                             "$goal",
                             style: CustomTypography().caption(),
                           ),
