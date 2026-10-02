@@ -51,13 +51,8 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          TextButton(
-                              onPressed: launchEmail,
-                              style: TextButton.styleFrom(
-                                minimumSize: const Size(0, 48),
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                              ),
+                          GestureDetector(
+                              onTap: () => launchEmail(),
                               child: Text(
                                 "fabla@emory.edu",
                                 style: TextStyle(
@@ -97,12 +92,15 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                 ))));
   }
 
+
+
   Future<void> launchEmail() async {
       await ParticipantAndExperimentDetails()
           .launchSupportEmail(
-        subject: 'Had an error submitting my diary',
-        body: 'I had a problem submitting my diary on day   ',
+          subject: 'Had an error submitting my diary',
+          body: 'I had a problem submitting my diary on day   ',
           example: ''
       );
+      }
   }
-}
+

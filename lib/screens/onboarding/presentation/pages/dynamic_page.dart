@@ -9,7 +9,6 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dyna
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_dates.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/avatar_background.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/dynamic_widget.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/time_picker.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -121,14 +120,6 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
                       if (answer != null) {
                         _cubit.save(state.questions[index - 1], answer);
                         nextPage(state.questions.length);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Please select an answer to continue"),
-                            duration: Duration(seconds: 2),
-                            backgroundColor: CustomColors.warningActive,
-                          ),
-                        );
                       }
                     },
                   );
@@ -326,18 +317,19 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       body: SafeArea(
           bottom: false,
           child: LayoutBuilder(builder: (context, constraints) {
-            return Column(
-              children: [
-                Expanded(
-                  child: LayoutBuilder(builder: (context, constraint) {
-                    return SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints:
-                            BoxConstraints(minHeight: constraint.maxHeight),
-                        child: GestureDetector(
-                          onTap: () => FocusScope.of(context).unfocus(),
-                          child: Container(
+            return SingleChildScrollView(
+              child: Container(
+                color: CustomColors.fillWhite,
+                height: constraints.maxHeight,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => FocusScope.of(context).unfocus(),
+                        child: LayoutBuilder(builder: (context, constraint) {
+                          return Container(
                             color: CustomColors.backgroundSecondary,
+                            height: constraint.maxHeight,
                             width: width,
                             child: AvatarBackground(
                                 height: constraint.maxHeight,
@@ -364,33 +356,33 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
                                   getWidget(widget.question,
                                       index: widget.index)
                                 ]),
-                          ),
-                        ),
+                          );
+                        }),
                       ),
-                    );
-                  }),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        top: 16,
+                        bottom: bottomPadding > 0
+                            ? bottomPadding + 16
+                            : (isIos ? 34 + 16 : 16),
+                      ),
+                      child: CustomFlatButton(
+                          onClick: () => {
+                                FocusScope.of(context).unfocus(),
+                                widget.onContinue(
+                                    textEditingController.text != ''
+                                        ? textEditingController.text
+                                        : answer)
+                              },
+                          // isDisabled: answer != null || textEditingController.text.isNotEmpty,
+                          text: "Continue"),
+                    ),
+                  ],
                 ),
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    top: 16,
-                    bottom: bottomPadding > 0
-                        ? bottomPadding + 16
-                        : (isIos ? 34 + 16 : 16),
-                  ),
-                  child: CustomFlatButton(
-                      onClick: () => {
-                            FocusScope.of(context).unfocus(),
-                            widget.onContinue(
-                                textEditingController.text != ''
-                                    ? textEditingController.text
-                                    : answer)
-                          },
-                      // isDisabled: answer != null || textEditingController.text.isNotEmpty,
-                      text: "Continue"),
-                ),
-              ],
+              ),
             );
           })),
     );
@@ -652,7 +644,7 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                                 Padding(
                                   padding: const EdgeInsets.only(
                                       left: 16.0, right: 16.0),
-                                  child: OnboardingScaledText(
+                                  child: Text(
                                     "You’re almost done! Just a few more questions to personalize your study",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),

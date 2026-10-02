@@ -289,30 +289,31 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
               color: CustomColors.fillWhite),
           child: Column(
             children: [
-              Column(
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Text(
-                    "Q${index + 1}. ${prompt.question}",
-                    style: CustomTypography()
-                        .custom(fontSize: 18, fontWeight: FontWeight.w400),
+                  Expanded(
+                    child: Text(
+                      "Q${index + 1}. ${prompt.question}",
+                      style: CustomTypography()
+                          .custom(fontSize: 18, fontWeight: FontWeight.w400),
+                    ),
                   ),
+
+                  // Edit Button
                   isEditable(prompt)
-                      ? Align(
-                          alignment: Alignment.centerRight,
-                          child: GestureDetector(
-                            onTap: () => editResponse(prompt, index + 1),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Icon(Icons.edit_note_sharp,
-                                    color: Color(0xFF4186F5), size: 24),
-                                Text(' Edit',
-                                    style: CustomTypography()
-                                        .button(color: Color(0xFF4186F5)))
-                              ],
-                            ),
+                      ? GestureDetector(
+                          onTap: () => editResponse(prompt, index + 1),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(Icons.edit_note_sharp,
+                                  color: Color(0xFF4186F5), size: 24),
+                              Text(' Edit',
+                                  style: CustomTypography()
+                                      .button(color: Color(0xFF4186F5)))
+                            ],
                           ),
                         )
                       : const SizedBox.shrink()
