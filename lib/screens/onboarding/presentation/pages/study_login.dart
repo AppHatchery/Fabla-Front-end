@@ -191,7 +191,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                     const SizedBox(
                       height: 24,
                     ),
-                    OnboardingScaledText(
+                    Text(
                         "Welcome to Fabla! ${Strings.wavingEmoji}",
                         style: CustomTypography()
                             .headlineLarge(color: CustomColors.textWhite)),
