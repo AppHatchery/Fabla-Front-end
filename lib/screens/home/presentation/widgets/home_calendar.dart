@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -5,6 +7,7 @@ import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repo
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
+import 'package:audio_diaries_flutter/theme/components/calendar.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -14,6 +17,8 @@ import 'package:intl/intl.dart';
 import 'package:popover/popover.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:rive/rive.dart' as rive;
+
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 
 class StudyCalendar extends StatefulWidget {
   final List<StudyModel> studies;
@@ -113,6 +118,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                       Expanded(
                         flex: 2,
                         child: Text(
+                          textScaler: getAdaptiveTextScaler(context),
                           "Study Calendar",
                           style: CustomTypography().titleLarge(
                               color: CustomColors.productNormalActive),
@@ -208,15 +214,18 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   Widget calendar() {
+    final scaler = MediaQuery.textScalerOf(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           spacing: 6,
           children: [
-            Text(
-              "Study Calendar",
-              style: CustomTypography().titleLarge(),
+            Flexible(
+              child: Text(
+                "Study Calendar",
+                style: CustomTypography().titleLarge(),
+              ),
             ),
             HelpButton()
           ],
@@ -235,7 +244,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
             focusedDay: focusedDay,
             currentDay: today,
             availableGestures: AvailableGestures.horizontalSwipe,
-            rowHeight: 54,
+            rowHeight: math.min(scaler.scale(54), 80.0),
             headerStyle: const HeaderStyle(
                 titleCentered: false,
                 formatButtonVisible: false,
@@ -249,7 +258,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                   shape: BoxShape.circle),
             ),
             startingDayOfWeek: StartingDayOfWeek.monday,
-            daysOfWeekHeight: 45,
+            daysOfWeekHeight: scaler.scale(45),
             onDaySelected: _onDaySelected,
             onCalendarCreated: (controller) {
               pageController = controller;
@@ -261,38 +270,36 @@ class _StudyCalendarState extends State<StudyCalendar> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20),
-                      child: Text(
-                        getMonthYear(day),
-                        style: CustomTypography().titleSmall(
-                            color: CustomColors.textSecondaryContent),
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 20),
+                        child: Text(
+                          getMonthYear(day),
+                          style: CustomTypography().titleSmall(
+                              color: CustomColors.textSecondaryContent),
+                        ),
                       ),
                     ),
-                    SizedBox(
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => pageController?.previousPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.ease),
-                            child: const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: Icon(Icons.chevron_left_rounded)),
-                          ),
-                          const SizedBox(width: 12),
-                          GestureDetector(
-                            onTap: () => pageController?.nextPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.ease),
-                            child: const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: Icon(Icons.chevron_right_rounded)),
-                          ),
-                        ],
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          constraints:
+                              const BoxConstraints(minWidth: 48, minHeight: 48),
+                          onPressed: () => pageController?.previousPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.ease),
+                          icon: const Icon(Icons.chevron_left_rounded),
+                        ),
+                        IconButton(
+                          constraints:
+                              const BoxConstraints(minWidth: 48, minHeight: 48),
+                          onPressed: () => pageController?.nextPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.ease),
+                          icon: const Icon(Icons.chevron_right_rounded),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -327,19 +334,11 @@ class _StudyCalendarState extends State<StudyCalendar> {
                     : isPast
                         ? CustomColors.textTertiaryContent
                         : CustomColors.textNormalContent;
-                return Center(
-                  child: Container(
-                    width: 33,
-                    height: 33,
-                    margin: const EdgeInsets.only(bottom: 4),
-                    alignment: Alignment.center,
-                    decoration:
-                        BoxDecoration(shape: BoxShape.circle, color: color),
-                    child: Text(
-                      day.day.toString(),
-                      style: CustomTypography().bodyMedium(color: textColor),
-                    ),
-                  ),
+                return CalendarDayCircle(
+                  label: day.day.toString(),
+                  style: CustomTypography().bodyMedium(color: textColor),
+                  color: color,
+                  baseSize: 33,
                 );
               },
               todayBuilder: (context, date, time) {
@@ -351,19 +350,11 @@ class _StudyCalendarState extends State<StudyCalendar> {
                     (today == selectedDate || date == selectedDate)
                         ? CustomColors.textWhite
                         : CustomColors.productNormal;
-                return Center(
-                  child: Container(
-                    width: 33,
-                    height: 33,
-                    margin: const EdgeInsets.only(bottom: 4),
-                    alignment: Alignment.center,
-                    decoration:
-                        BoxDecoration(shape: BoxShape.circle, color: color),
-                    child: Text(
-                      date.day.toString(),
-                      style: CustomTypography().bodyLarge(color: textColor),
-                    ),
-                  ),
+                return CalendarDayCircle(
+                  label: date.day.toString(),
+                  style: CustomTypography().bodyLarge(color: textColor),
+                  color: color,
+                  baseSize: 33,
                 );
               },
               singleMarkerBuilder: (context, date, event) {
@@ -424,13 +415,19 @@ class _StudyCalendarState extends State<StudyCalendar> {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            _getEntriesHeading(selectedDate),
-            style: CustomTypography().titleLarge(),
+          Flexible(
+            child: Text(
+              textScaler: getAdaptiveTextScaler(context),
+              _getEntriesHeading(selectedDate),
+              style: CustomTypography().titleLarge(),
+            ),
           ),
-          Text(
-            DateFormat("MMM d, yyyy").format(selectedDate),
-            style: CustomTypography().titleMedium(),
+          Flexible(
+            child: Text(
+              textScaler: getAdaptiveTextScaler(context),
+              DateFormat("MMM d, yyyy").format(selectedDate),
+              style: CustomTypography().titleMedium(),
+            ),
           ),
         ],
       ),
@@ -552,7 +549,7 @@ class HelpButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-        iconSize: 20,
+        iconSize: MediaQuery.textScalerOf(context).scale(20).clamp(20.0, 30.0),
         color: CustomColors.productNormalActive,
         onPressed: () => showPopover(
             context: context,

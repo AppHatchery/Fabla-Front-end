@@ -346,10 +346,12 @@ class DailyGoalEntries extends StatelessWidget {
             width: 20,
           ),
           const SizedBox(width: 6),
-          Text(
-            key: const Key('displayText'),
-            displayText,
-            style: CustomTypography().bodyMedium(),
+          Flexible(
+            child: Text(
+              key: const Key('displayText'),
+              displayText,
+              style: CustomTypography().bodyMedium(),
+            ),
           ),
         ],
       ));

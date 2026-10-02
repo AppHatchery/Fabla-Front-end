@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class StudyIncentives extends StatefulWidget {
   final List<StudyModel> studies;
   final ValueChanged<bool> refresh;
@@ -34,11 +36,14 @@ class _StudyIncentivesState extends State<StudyIncentives> {
   double acquired = 0.0;
   double total = 0.0;
 
+  late final mediaQuery = MediaQuery.of(context);
+  late final textScaler = mediaQuery.textScaler;
+  late final textScale = textScaler.scale(1.0);
+
   @override
   void initState() {
     diaryList = _getAllDiaries();
     studies = _getStudies();
-
     track();
     super.initState();
   }
@@ -73,10 +78,10 @@ class _StudyIncentivesState extends State<StudyIncentives> {
                       Expanded(
                         flex: 2,
                         child: Text(
+                          textScaler: getAdaptiveTextScaler(context),
                           "Incentives Earned",
                           style: CustomTypography()
-                              .titleLarge(color: CustomColors.yellowDark),
-                          textAlign: TextAlign.center,
+                              .titleLarge(color: CustomColors.yellowDark)
                         ),
                       ),
                       Expanded(
@@ -132,6 +137,7 @@ class _StudyIncentivesState extends State<StudyIncentives> {
       children: [
         Center(
           child: Text(
+            textScaler: getAdaptiveTextScaler(context),
             formatMoney(acquired,
                 currency: widget.studies.first.incentive.currency),
             style: CustomTypography().headlineLargeCustom(
@@ -154,17 +160,27 @@ class _StudyIncentivesState extends State<StudyIncentives> {
   //Incentive Calculation
   Widget compensation() {
     final width = MediaQuery.of(context).size.width;
+    final titleFontSize = getTitleFontSize(
+      textScale: textScale,
+      iosThreshold: 3.1,
+      iosFontSize: 13.5,
+      androidThreshold: 2,
+      androidFontSize: 20,
+      defaultSize: 20,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "Compensation Details",
-          style: CustomTypography().titleLarge(),
+          style: CustomTypography().titleLarge().copyWith(
+            fontSize: titleFontSize
+          ),
           textAlign: TextAlign.left,
         ),
         const SizedBox(height: 6),
         Padding(
-          padding:EdgeInsets.only(bottom: 24),
+          padding: EdgeInsets.only(bottom: 24),
           child: Container(
             // height: 81,
             width: 440,
@@ -178,6 +194,7 @@ class _StudyIncentivesState extends State<StudyIncentives> {
                 alignment: WrapAlignment.spaceBetween,
                 children: [
                   Text(
+                    textScaler: getAdaptiveTextScaler(context),
                     "Total Compensation",
                     style: CustomTypography().headlineSmall(),
                   ),
@@ -188,7 +205,8 @@ class _StudyIncentivesState extends State<StudyIncentives> {
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 2, horizontal: 4),
                       child: Text(
-                        formatMoney(total, currency: widget.studies.first.incentive.currency),
+                        formatMoney(total,
+                            currency: widget.studies.first.incentive.currency),
                         style: CustomTypography().headlineSmall(),
                       ),
                     ),
@@ -219,7 +237,8 @@ class _StudyIncentivesState extends State<StudyIncentives> {
                   return StudyIncentive(
                     study: widget.studies[index],
                     diaries: diaries,
-                    addToAcquired: (amount, studyTotal) => addToAcquired(amount, studyTotal),
+                    addToAcquired: (amount, studyTotal) =>
+                        addToAcquired(amount, studyTotal),
                   );
                 },
                 separatorBuilder: (context, index) =>
@@ -233,9 +252,9 @@ class _StudyIncentivesState extends State<StudyIncentives> {
 
   // Having all the studies calculate their own incentives and acquired
   void addToAcquired(double amount, double studyTotal) => setState(() {
-    acquired += amount;
-    total += studyTotal;
-  });
+        acquired += amount;
+        total += studyTotal;
+      });
 }
 
 class StudyIncentive extends StatefulWidget {
@@ -339,7 +358,9 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                   spacing: 6,
                   runSpacing: 4,
                   children: [
-                    Text(widget.study.name,
+                    Text(
+                      textScaler: getAdaptiveTextScaler(context),
+                        widget.study.name,
                         style: CustomTypography().titleSmall()),
                     previewTotal()
                   ],
@@ -673,18 +694,20 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                             style: CustomTypography().bodyMedium()),
                       ],
                     ),
-                    bonusAvailable ? Row(
-                      children: [
-                        Expanded(
-                            child: Text(
-                                "Bonus When You Complete $bonusEntriesRequired Entries",
-                                style: CustomTypography().bodyMedium())),
-                        Text(
-                            formatMoney(widget.study.incentive.bonus,
-                                currency: currency),
-                            style: CustomTypography().bodyMedium()),
-                      ],
-                    ) : SizedBox.shrink(),
+                    bonusAvailable
+                        ? Row(
+                            children: [
+                              Expanded(
+                                  child: Text(
+                                      "Bonus When You Complete $bonusEntriesRequired Entries",
+                                      style: CustomTypography().bodyMedium())),
+                              Text(
+                                  formatMoney(widget.study.incentive.bonus,
+                                      currency: currency),
+                                  style: CustomTypography().bodyMedium()),
+                            ],
+                          )
+                        : SizedBox.shrink(),
                   ],
                 ),
               ),

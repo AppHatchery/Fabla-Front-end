@@ -1,5 +1,4 @@
 import 'package:app_settings/app_settings.dart';
-import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
@@ -15,6 +14,8 @@ import 'package:location/location.dart' as l;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart' as rive;
 import 'dart:io' show Platform;
+
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 
 class LocationAccess extends StatefulWidget {
   const LocationAccess({super.key});

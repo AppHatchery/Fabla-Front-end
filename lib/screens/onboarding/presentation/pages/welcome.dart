@@ -1,4 +1,4 @@
-import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
+
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../services/pendo_service.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';

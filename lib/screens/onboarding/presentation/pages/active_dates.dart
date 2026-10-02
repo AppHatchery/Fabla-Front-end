@@ -1,6 +1,6 @@
 import 'dart:async' show unawaited;
 
-import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
+
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/quickstart_handler.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:io' show Platform;
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../services/preference_service.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';

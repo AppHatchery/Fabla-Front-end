@@ -42,22 +42,28 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text("Weekly Goal", style: CustomTypography().bodyLarge()),
-            const SizedBox(width: 6),
-            GestureDetector(
-              child: Icon(
-                key: const Key('weekly_goal_icon'),
-                widget.isExpanded
-                    ? Icons.keyboard_arrow_up_rounded
-                    : Icons.keyboard_arrow_down_rounded,
-                color: CustomColors.textTertiaryContent,
-                size: 20,
-              ),
-            )
-          ],
+        // This sits in the fixed-height app bar, so at the largest text sizes
+        // shrink the label to one line rather than wrapping it.
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text("Weekly Goal", style: CustomTypography().bodyLarge()),
+              const SizedBox(width: 6),
+              GestureDetector(
+                child: Icon(
+                  key: const Key('weekly_goal_icon'),
+                  widget.isExpanded
+                      ? Icons.keyboard_arrow_up_rounded
+                      : Icons.keyboard_arrow_down_rounded,
+                  color: CustomColors.textTertiaryContent,
+                  size: 20,
+                ),
+              )
+            ],
+          ),
         ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,

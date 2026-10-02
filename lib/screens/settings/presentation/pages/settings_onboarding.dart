@@ -77,12 +77,14 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
                 // Important Note
                 Row(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6, bottom: 12),
-                      child: Text(
-                        "Important Note",
-                        style: CustomTypography()
-                            .titleLarge(color: CustomColors.textNormalContent),
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 6, bottom: 12),
+                        child: Text(
+                          "Important Note",
+                          style: CustomTypography()
+                              .titleLarge(color: CustomColors.textNormalContent),
+                        ),
                       ),
                     ),
                   ],

@@ -1,8 +1,7 @@
-import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
+
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/study_login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/verification_code.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
@@ -13,6 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:math' show pi;
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../services/pendo_service.dart';
 

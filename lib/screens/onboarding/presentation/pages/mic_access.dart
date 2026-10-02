@@ -1,5 +1,4 @@
 import 'package:app_settings/app_settings.dart';
-import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/mic_tester.dart';
@@ -14,6 +13,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../services/preference_service.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';

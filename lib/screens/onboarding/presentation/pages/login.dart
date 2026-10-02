@@ -1,4 +1,4 @@
-import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
+
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/participant_experiment_details.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../theme/custom_colors.dart';
 
 class LoginPage extends StatefulWidget {

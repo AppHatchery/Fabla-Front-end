@@ -1,8 +1,52 @@
+import 'dart:math' as math;
+
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+
+/// Circle behind a day number in a [TableCalendar] cell.
+///
+/// Grows with the system text scale until it fills the cell (leaving room for
+/// the bottom margin and event markers); past that the number shrinks to stay
+/// inside the circle.
+class CalendarDayCircle extends StatelessWidget {
+  final String label;
+  final TextStyle style;
+  final Color? color;
+  final double baseSize;
+
+  const CalendarDayCircle({
+    super.key,
+    required this.label,
+    required this.style,
+    this.color,
+    this.baseSize = 32,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final preferred = MediaQuery.textScalerOf(context).scale(baseSize);
+    return LayoutBuilder(builder: (context, constraints) {
+      final diameter =
+          math.min(preferred, constraints.biggest.shortestSide - 8);
+      return Center(
+        child: Container(
+          width: diameter,
+          height: diameter,
+          margin: const EdgeInsets.only(bottom: 4),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(label, style: style),
+          ),
+        ),
+      );
+    });
+  }
+}
 
 class CustomDatePicker extends StatefulWidget {
   final DateTime? date;
@@ -80,14 +124,10 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                 Flexible(
                   child: Padding(
                     padding: const EdgeInsets.only(left: 20),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        getMonthYear(day),
-                        style: CustomTypography()
-                            .titleSmall(color: CustomColors.textSecondaryContent),
-                      ),
+                    child: Text(
+                      getMonthYear(day),
+                      style: CustomTypography()
+                          .titleSmall(color: CustomColors.textSecondaryContent),
                     ),
                   ),
                 ),
@@ -157,21 +197,10 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
             final textColor = _selected == _day
                 ? CustomColors.textWhite
                 : isPast ? CustomColors.textTertiaryContent : CustomColors.textNormalContent;
-            return Center(
-              child: Container(
-                width: scaler.scale(32).clamp(28.0, 32.0),
-                height: scaler.scale(32).clamp(28.0, 32.0),
-                margin: const EdgeInsets.only(bottom: 4),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    day.day.toString(),
-                    style: CustomTypography().bodyMedium(color: textColor),
-                  ),
-                ),
-              ),
+            return CalendarDayCircle(
+              label: day.day.toString(),
+              style: CustomTypography().bodyMedium(color: textColor),
+              color: color,
             );
           },
           todayBuilder: (context, date, time) {
@@ -185,21 +214,10 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
             final textColor = (today == _selected || _day == _selected)
                 ? CustomColors.textWhite
                 : CustomColors.textTertiaryContent;
-            return Center(
-              child: Container(
-                width: scaler.scale(32).clamp(28.0, 32.0),
-                height: scaler.scale(32).clamp(28.0, 32.0),
-                margin: const EdgeInsets.only(bottom: 4),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    date.day.toString(),
-                    style: CustomTypography().bodyLarge(color: textColor),
-                  ),
-                ),
-              ),
+            return CalendarDayCircle(
+              label: date.day.toString(),
+              style: CustomTypography().bodyLarge(color: textColor),
+              color: color,
             );
           },
         ),

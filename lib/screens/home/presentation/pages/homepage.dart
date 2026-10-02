@@ -132,7 +132,9 @@ class _HomePageState extends State<HomePage>
       backgroundColor: CustomColors.fillWhiteShade,
       scrolledUnderElevation: 0.0,
       bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(30),
+        // Grow with the text so the weekly goal row fits at large font sizes.
+        preferredSize:
+            Size.fromHeight(MediaQuery.textScalerOf(context).scale(30)),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
