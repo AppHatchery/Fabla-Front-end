@@ -39,16 +39,20 @@ extension PromptConditionEvaluation on PromptCondition {
     }
   }
 
+  /// Repeatable prompts (e.g. a timer run more than once) store every result
+  /// in one "|"-joined string such as "timer| Complete| Complete", which never
+  /// equals "Complete" as a whole. So after an exact match, fall back to
+  /// matching any single entry.
   bool _evaluateEquals(Answer? answer) {
-    if (answer == null) return false;
+    if (answer == null || answer.response == null) return false;
+    if (answer.response!.isEmpty) return false;
 
-    // For single value answers (radio, text, etc.)
-    if (answer.response != null) {
-      return answer.response!.first.toLowerCase() ==
-          expectedValue.toString().toLowerCase();
-    }
+    final expected = expectedValue.toString().trim().toLowerCase();
+    final response = answer.response!.first.trim().toLowerCase();
 
-    return false;
+    if (response == expected) return true;
+
+    return response.split('|').any((entry) => entry.trim() == expected);
   }
 
   bool _evaluateNotEquals(Answer? answer) {
