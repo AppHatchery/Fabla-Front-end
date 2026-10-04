@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,12 +21,22 @@ class MyResponse extends StatefulWidget {
   final List<Recording> recordings;
   final void Function(String, int) edit;
 
+  /// Reports each recording's terminal [AudioStatus] as its card resolves, so
+  /// the prompt can tell whether it still has a usable answer.
+  final void Function(String path, AudioStatus status)? onPlaybackResolved;
+
+  /// Clears a recording's notice and deletes the row behind it, because the
+  /// participant asked.
+  final void Function(String path)? onDismissRecording;
+
   const MyResponse({
     super.key,
     required this.edit,
     required this.diary,
     required this.prompt,
     required this.recordings,
+    this.onPlaybackResolved,
+    this.onDismissRecording,
   });
 
   @override
@@ -103,6 +114,8 @@ class _MyResponseState extends State<MyResponse> {
                   viewOnly: false,
                   promptId: widget.prompt.id,
                   callerWidget: "diary",
+                  onPlaybackResolved: widget.onPlaybackResolved,
+                  onDismissRecording: widget.onDismissRecording,
                 ),
               );
             }),

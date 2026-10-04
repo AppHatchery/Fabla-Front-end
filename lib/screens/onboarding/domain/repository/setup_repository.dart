@@ -254,7 +254,6 @@ class SetupRepository {
           await Future.microtask(() async {
             final DiaryRepository repository = DiaryRepository();
             repository.removeDiariesFrom(today);
-            _studyDAO.deleteAllStudies();
           });
 
           //store the date the person last updated.
@@ -274,7 +273,9 @@ class SetupRepository {
         dev.log(
             "Studies: ${studyEntities.length} | Entities: ${entities.length}",
             name: "Get Studies");
-        _studyDAO.addStudies(studyEntities);
+        // Upsert rather than insert: partial clean keeps older diaries, which
+        // must still resolve their study even if the server no longer returns it.
+        _studyDAO.upsertStudies(studyEntities);
         diaryRepository.addDiaries(entities);
 
         //give enough time for the database to update
@@ -780,8 +781,20 @@ class SetupRepository {
       // Clear all notifications
       await NotificationService.cancelAllNotifications();
 
+      // Clearing preferences below would also wipe 'has_seen_quickstart',
+      // resurfacing the quickstart walkthrough for a returning participant.
+      // Preserve it if it was already set.
+      final hasSeenQuickstart = await PreferenceService()
+              .getBoolPreference(key: 'has_seen_quickstart') ??
+          false;
+
       // Clear all preferences
       await PreferenceService().clearPreferences();
+
+      if (hasSeenQuickstart) {
+        await PreferenceService()
+            .setBoolPreference(key: 'has_seen_quickstart', value: true);
+      }
       // Clear home progress tracking
       await clearAllHomeProgressTracking();
 

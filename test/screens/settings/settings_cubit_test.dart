@@ -2,7 +2,7 @@ import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
-import 'package:audio_diaries_flutter/screens/settings/cubit/settings_cubit.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/cubit/settings_cubit.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';

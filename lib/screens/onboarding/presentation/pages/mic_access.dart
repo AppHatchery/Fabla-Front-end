@@ -333,10 +333,10 @@ class _MicAccessPageState extends State<MicAccessPage>
 
     try {
       final tempDir = await getTemporaryDirectory();
-      final path = '${tempDir.path}/flutter_sound.aac';
+      final path = '${tempDir.path}/flutter_sound.m4a';
       await recorder.startRecorder(
           toFile: path,
-          codec: Codec.aacADTS,
+          codec: Codec.aacMP4,
           sampleRate: 44100,
           bitRate: 48000);
     } catch (_) {

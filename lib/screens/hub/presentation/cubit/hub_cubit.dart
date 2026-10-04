@@ -98,7 +98,7 @@ class HubCubit extends Cubit<HubState> {
     emit(HubRefreshing());
   }
 
-  void checkForUpdates() async {
+  Future<void> checkForUpdates() async {
     final status = await _experimentManager.checkForUpdates();
     if (status == UpdateStatus.available) {
       if (hasOngoingOrCompleteToday()) {

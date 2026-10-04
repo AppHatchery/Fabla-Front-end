@@ -22,6 +22,7 @@ import '../../data/diary.dart';
 import '../../data/prompt.dart';
 import '../../domain/repository/diary_repository.dart';
 import 'diarysummary.dart';
+import '../../../../core/utils/recording_answer_gate.dart';
 
 class NewDiaryPage extends StatefulWidget {
   final DiaryModel diary;
@@ -397,7 +398,7 @@ class QuestionPage extends StatefulWidget {
 }
 
 class _QuestionPageState extends State<QuestionPage>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RecordingAnswerGate<QuestionPage> {
   final ScrollController _scrollController = ScrollController();
   void scrollToTop() {
     _scrollController.animateTo(
@@ -413,6 +414,23 @@ class _QuestionPageState extends State<QuestionPage>
   bool disabled = false;
   PersistentBottomSheetController? _bottomSheetController;
   bool isClicked = false;
+
+    /// Uses [promptModel], the live prompt, not `widget.prompt`: the flow swaps
+  /// prompts under one State, so the row has to leave whichever prompt is on
+  /// screen now.
+  @override
+  void discardRecording(String path) => sessionCubit.removeAnswer(
+        prompt: promptModel,
+        path: path,
+      );
+
+  @override
+  bool get gatedPromptIsSingleAnswer =>
+      !(widget.prompt.option?.multipleAnswers ?? false);
+
+  @override
+  Future<void> reevaluateAnswers() => checkForResponse(promptModel);
+
 
   @override
   void initState() {
@@ -540,6 +558,10 @@ class _QuestionPageState extends State<QuestionPage>
         respond: (String type, int? index) =>
             recordResponse(prompt, type, index: index),
         prompt: prompt,
+        answers: answers,
+        onPlaybackResolved: onPlaybackResolved,
+        onDismissRecording: onDismissRecording,
+        recordingsUnchecked: answersCouldNotBeChecked,
       );
     } else if (prompt.responseType == ResponseType.webview) {
       responseWidget = WebViewResponseCard(
@@ -690,37 +712,50 @@ class _QuestionPageState extends State<QuestionPage>
               );
   }
 
-  void checkForResponse(PromptModel prompt) {
+  ///Checks whether the provided prompt has a response
+  ///Returns a bool for [`able to continue`] that allows the user to either proceed or not
+  ///depending on the availability of the response/recording
+  Future<void> checkForResponse(PromptModel prompt) async {
+    final answer = prompt.answer;
+
+    final count = await countUsableAnswers(prompt);
+    if (count == null) return;
+
+    final usable = count.usable;
+
     if (!prompt.required) {
       widget.answerAdded(true);
       return;
     }
 
-    final answer = prompt.answer;
-    bool isValid;
+    bool isValidResponse = false;
+
 
     switch (prompt.responseType) {
       case ResponseType.instruction:
       case ResponseType.timer:
-        isValid = true;
+        isValidResponse = true;
         break;
       case ResponseType.textAudio:
-        isValid = (answer?.recordings.isNotEmpty ?? false) ||
+        isValidResponse = (answer?.recordings.isNotEmpty ?? false) ||
             (answer?.response?.isNotEmpty ?? false);
         break;
       case ResponseType.audio:
       case ResponseType.image:
       case ResponseType.video:
       case ResponseType.imageVideo:
-      case ResponseType.mediaImage:
-      case ResponseType.mediaVideo:
-        isValid = answer?.recordings.isNotEmpty ?? false;
+        if (prompt.responseType == ResponseType.textAudio) {
+          isValidResponse = usable > 0 ||
+              (answer?.response != null && answer!.response!.isNotEmpty);
+        } else {
+          isValidResponse = usable > 0;
+        }
         break;
       default:
-        isValid = answer?.response?.isNotEmpty ?? false;
+        isValidResponse = answer?.response?.isNotEmpty ?? false;
     }
 
-    widget.answerAdded(isValid);
+    widget.answerAdded(isValidResponse);
   }
 
   void recordResponse(PromptModel prompt, String type, {int? index}) {

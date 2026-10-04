@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
+    as http_client_factory;
+import 'package:audio_diaries_flutter/core/network/retry_policy.dart';
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/location.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -18,6 +21,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:developer' as dev;
 import 'secrets_handler.dart';
+
+/// A DynamoDB POST slower than one attempt's timeout is worth reporting.
+final Duration _slowDynamoThreshold = http_client_factory.kDefaultTimeout;
+
+/// An S3 PUT past this has burned a whole attempt and is into its retry, which
+/// is the point at which a participant notices the wait.
+final Duration _slowS3Threshold = http_client_factory.kUploadTimeout;
 
 /// Uploads audio files associated with a diary to an S3 storage and returns the result.
 ///
@@ -68,8 +78,8 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
           prompt.responseType == ResponseType.image ||
           prompt.responseType == ResponseType.video ||
           prompt.responseType == ResponseType.imageVideo) {
-        _addFileData(experiment.login, prompt, participantID, diary, study, dir,
-            files, references);
+        await addFileData(experiment.login, prompt, participantID, diary, study,
+            dir, files, references);
 
         // If the prompt is textAudio and has a text response, add the text response
         if (prompt.responseType == ResponseType.textAudio &&
@@ -104,19 +114,33 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
     promptEntryList.addAll(
         references); // Adding the references to the list going to Dynamo
 
+    final missingFileCount = references
+        .where((r) => r.reference == PromptEntry.missingFileReference)
+        .length;
+
     CrashlyticsService().setCustomKeys({
       'submitting_diary': diary.name.toString(),
       'submitting_diary_id': diary.id.toString(),
       'submitting_participant_id': participantID,
       'submitting_entry': diary.currentEntry.toString(),
       'submitting_file_count': files.length.toString(),
+      'submitting_missing_file_count': missingFileCount.toString(),
     });
+
+    // Recorded after the keys above so the non-fatal carries them. A log alone
+    // would never be sent, because this submission is expected to succeed.
+    if (missingFileCount > 0) {
+      CrashlyticsService().recordError(
+          StateError('Recording files missing at upload'), StackTrace.current,
+          reason: 'Skipped recordings with no file on disk in upload');
+    }
 
     await PendoService.track('Submission Started', {
       'Diary': diary.name.toString(),
       'DiaryID': diary.id.toString(),
       'Entry': diary.currentEntry.toString(),
       'FileCount': files.length.toString(),
+      'MissingFileCount': missingFileCount.toString(),
       'HasFiles': files.isNotEmpty.toString(),
     });
 
@@ -145,7 +169,11 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
   }
 }
 
-void _addFileData(
+/// Queues each of [prompt]'s recordings for S3 and adds its Dynamo reference
+/// row. A recording whose file is gone gets no [FileData] and a
+/// [PromptEntry.missingFileReference] reference, so it cannot fail the upload.
+@visibleForTesting
+Future<void> addFileData(
   String experimentCode,
   PromptModel prompt,
   String participantID,
@@ -153,47 +181,70 @@ void _addFileData(
   StudyModel? study,
   Directory dir,
   List<FileData> files,
-  List<PromptEntry> references,
-) {
+  List<PromptEntry> references, {
+  Future<bool> Function(String path) fileExists = _fileExists,
+}) async {
   final recordings = prompt.answer?.recordings;
-  final data = <FileData>[];
+  if (recordings == null) return;
 
-  if (recordings != null) {
-    for (final record in recordings) {
+  // A copy, because the loop now awaits and the relation must not change
+  // under it.
+  for (final record in List.of(recordings)) {
+    final localPath = p.join(dir.path, record.path);
+    var reference = PromptEntry.missingFileReference;
+
+    if (await _isOnDisk(localPath, fileExists)) {
       final formattedTime = DateFormat('HH-mm-ss').format(DateTime.now());
-      String localPath = p.join(dir.path, record.path);
-      String filename =
-          "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}${p.extension(localPath)}";
-      String folder = '${capitalizeFirstLetter(record.type)}s';
+      // Shared by the S3 filename and the Dynamo reference so they match.
+      reference =
+          "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}";
+      final folder = '${capitalizeFirstLetter(record.type)}s';
 
-      final awsPath = "$experimentCode/$folder/$filename";
-      final fileData =
-          FileData(localDirectory: localPath, awsS3Directory: awsPath);
-      data.add(fileData);
-
-      // Adding references for audio question for transcription
-      // if (record.type == 'audio') {
-      references.add(
-        PromptEntry(
-            participantID: participantID,
-            experimentCode: experimentCode,
-            questionTitle: prompt.question,
-            diaryID: diary.id.toString(),
-            promptID: prompt.id.toString(),
-            diaryName: diary.name,
-            study: study?.name ?? "",
-            response: "",
-            respondedAt: record.date.toIso8601String(),
-            questionsType: responseTypeValue(prompt.responseType),
-            required: prompt.required,
-            reference:
-                "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}"),
-      );
-      // }
+      files.add(FileData(
+          localDirectory: localPath,
+          awsS3Directory:
+              "$experimentCode/$folder/$reference${p.extension(localPath)}"));
+    } else {
+      dev.log('Skipping missing ${record.type} file: ${record.path}',
+          name: 'Upload - Add File Data');
+      CrashlyticsService().log(
+          'Upload skipped missing ${record.type} recording ${record.id} (prompt ${prompt.id}): ${record.path}');
     }
-  }
 
-  files.addAll(data);
+    // Adding references for audio question for transcription
+    references.add(
+      PromptEntry(
+          participantID: participantID,
+          experimentCode: experimentCode,
+          questionTitle: prompt.question,
+          diaryID: diary.id.toString(),
+          promptID: prompt.id.toString(),
+          diaryName: diary.name,
+          study: study?.name ?? "",
+          response: "",
+          respondedAt: record.date.toIso8601String(),
+          questionsType: responseTypeValue(prompt.responseType),
+          required: prompt.required,
+          reference: reference),
+    );
+  }
+}
+
+Future<bool> _fileExists(String path) => File(path).exists();
+
+/// A check that throws counts as present. Calling a real file missing would
+/// drop it for good once the upload succeeds, while calling a missing file
+/// present only fails this upload in [uploadFileToS3], which can be retried.
+Future<bool> _isOnDisk(
+    String path, Future<bool> Function(String path) fileExists) async {
+  try {
+    return await fileExists(path);
+  } catch (e, s) {
+    CrashlyticsService().recordError(e, s,
+        context: {'file_path': path},
+        reason: 'Checking a recording on disk failed in addFileData');
+    return true;
+  }
 }
 
 void _addPromptEntry(
@@ -260,7 +311,9 @@ Future<bool> uploadNonAudioData(
 }) async {
   final secureStorage = secureSave ?? SecureSave();
   final bool ownClient = client == null;
-  final httpClient = client ?? http.Client();
+  // No retry: this POST appends and the Lambda has no dedupe, and a timeout or
+  // dropped connection can follow a write the server already committed.
+  final httpClient = client ?? http_client_factory.httpClient(retries: 0);
 
   try {
     var cred = await secureStorage.read();
@@ -288,21 +341,10 @@ Future<bool> uploadNonAudioData(
       'x-api-key': cred.xapikey ?? ""
     };
 
+    final stopwatch = Stopwatch()..start();
     try {
-      final stopwatch = Stopwatch()..start();
       var response =
           await httpClient.post(url, headers: headers, body: jsonBody);
-      stopwatch.stop();
-
-      if (stopwatch.elapsed > const Duration(minutes: 2)) {
-        CrashlyticsService().log(
-            'Slow DynamoDB upload: ${stopwatch.elapsedMilliseconds}ms | prompts=${promptEntryList.length}');
-        await PendoService.track('Slow Upload', {
-          'event': 'Upload to DynamoDB',
-          'duration_ms': stopwatch.elapsedMilliseconds.toString(),
-          'prompt_count': promptEntryList.length.toString(),
-        });
-      }
 
       if (response.statusCode == 200) {
         return true;
@@ -329,6 +371,18 @@ Future<bool> uploadNonAudioData(
       await PendoService.track('Upload Error',
           {'event': 'Upload to DynamoDB', 'reason': e.toString()});
       return false;
+    } finally {
+      // In finally so timed-out calls, the slowest, are reported too.
+      stopwatch.stop();
+      if (stopwatch.elapsed > _slowDynamoThreshold) {
+        CrashlyticsService().log(
+            'Slow DynamoDB upload: ${stopwatch.elapsedMilliseconds}ms | prompts=${promptEntryList.length}');
+        await PendoService.track('Slow Upload', {
+          'event': 'Upload to DynamoDB',
+          'duration_ms': stopwatch.elapsedMilliseconds.toString(),
+          'prompt_count': promptEntryList.length.toString(),
+        });
+      }
     }
   } finally {
     if (ownClient) httpClient.close();
@@ -366,7 +420,12 @@ Future<String?> getPresignedUrl(
 }) async {
   final secureStorage = secureSave ?? SecureSave();
   final bool ownClient = client == null;
-  final httpClient = client ?? http.Client();
+  // A pure read: network errors and 5xx are both retried.
+  final httpClient = client ??
+      http_client_factory.httpClient(
+        retries: kMaxRetries,
+        retryServerErrors: true,
+      );
 
   try {
     var cred = await secureStorage.read();
@@ -428,7 +487,15 @@ Future<String?> getPresignedUrl(
   }
 }
 
-Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
+/// Uploads [filePath] to S3 using a previously-minted [presignedUrl].
+///
+/// Retrying is safe here: the presigned URL points at a fixed S3 key, so a
+/// re-sent PUT overwrites rather than creating a second object.
+Future<bool> uploadFileToS3(
+  String presignedUrl,
+  String filePath, {
+  http.Client? client,
+}) async {
   try {
     var file = File(filePath);
     var fileStream = file.openRead();
@@ -445,9 +512,18 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
     // Set the body bytes of the request
     request.bodyBytes = bytes;
 
-    final s3Client = http.Client();
+    final bool ownClient = client == null;
+    final s3Client = client ??
+        http_client_factory.httpClient(
+          timeout: http_client_factory.kUploadTimeout,
+          retries: kUploadMaxRetries,
+          retryServerErrors: true,
+        );
     try {
       final response = await s3Client.send(request);
+      // Drain the response stream so the underlying native client considers
+      // the request complete before we close it below.
+      await response.stream.drain();
       if (response.statusCode == 200) {
         return true;
       } else {
@@ -467,7 +543,7 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
         return false;
       }
     } finally {
-      s3Client.close();
+      if (ownClient) s3Client.close();
     }
   } catch (e, stackTrace) {
     dev.log('S3 Storage: Error uploading file: $e',
@@ -484,6 +560,7 @@ Future<bool> uploadFileToS3(String presignedUrl, String filePath) async {
 String extensionToContentType(String extension) {
   final type = {
     '.aac': 'audio/aac',
+    '.m4a': 'audio/mp4',
     '.jpg': 'image/jpeg',
     '.mp4': 'video/mp4',
   };
@@ -523,7 +600,7 @@ Future<bool> uploadFiles(List<FileData> files) async {
           'File uploaded: $result | Duration: ${stopwatch.elapsedMilliseconds}ms | File: ${file.awsS3Directory}',
           name: 'Upload - Upload Files');
 
-      if (stopwatch.elapsed > const Duration(minutes: 2)) {
+      if (stopwatch.elapsed > _slowS3Threshold) {
         CrashlyticsService().log(
             'Slow S3 upload: ${file.awsS3Directory} took ${stopwatch.elapsedMilliseconds}ms');
         await PendoService.track('Slow Upload', {
@@ -559,6 +636,10 @@ class FileData {
 ///Class representing audio entry in the dynamo db once an object is created
 ///
 class PromptEntry {
+  /// Sent as [reference] for a recording whose file was gone at upload. The
+  /// row still shows the prompt was answered; S3 gets nothing for it.
+  static const missingFileReference = 'null';
+
   String participantID;
   String experimentCode;
   String questionTitle;

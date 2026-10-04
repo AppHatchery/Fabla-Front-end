@@ -162,6 +162,7 @@ class RouteService {
     // The order matches the _flow sequence — whichever step is not yet marked
     // complete in preferences is where the participant resumes.
     if (setup) {
+      await _prepareQuickstartForExistingParticipant();
       return const Hub();
     }
     if (participant == null) {
@@ -189,6 +190,24 @@ class RouteService {
       return const ActiveDatesPage();
     }
     return const FinishPage();
+  }
+
+  /// Participants who completed setup before the quickstart walkthrough
+  /// existed have no 'has_seen_quickstart' preference. New participants
+  /// only reach this method with 'setup' already true on a later cold
+  /// start, by which point Hub has already recorded whether they saw it —
+  /// so a missing preference here always means an existing installation.
+  /// Mark it seen so the modal never surfaces for them. Their quickstart
+  /// videos are cached lazily when they visit the Settings tab (see
+  /// [Hub]) rather than here, to avoid a Lambda call on every cold start
+  /// for participants who never open Settings.
+  Future<void> _prepareQuickstartForExistingParticipant() async {
+    final hasSeenQuickstart =
+        await _preferenceService.getBoolPreference(key: 'has_seen_quickstart');
+    if (hasSeenQuickstart != null) return;
+
+    await _preferenceService.setBoolPreference(
+        key: 'has_seen_quickstart', value: true);
   }
 
   Future<dynamic> navigate(dynamic arguments,

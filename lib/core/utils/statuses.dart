@@ -1,9 +1,16 @@
 enum DiaryStatus { idle, ongoing, complete, submitted, missed }
 
-enum RecorderState {
-  isStopped,
-  isPaused,
-  isRecording,
+enum AudioRecordingStatus {
+  stopped,
+  recording,
+  paused,
+}
+
+enum RecordingSaveOutcome {
+  saved,
+  nothingRecorded,
+  emptyFile,
+  failed,
 }
 
 enum SubmissionStatus { pending, successful, failed }
@@ -29,3 +36,11 @@ enum UpdateState {
 }
 
 enum UpdateStatus { none, available, pending }
+
+enum AudioStatus {
+  loading,
+  available,
+  fileNotFound,
+  noAudioLength,
+  canNotPlay
+}
