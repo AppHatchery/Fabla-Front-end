@@ -401,6 +401,7 @@ class _QuestionPageState extends State<QuestionPage>
     with WidgetsBindingObserver, RecordingAnswerGate<QuestionPage> {
   final ScrollController _scrollController = ScrollController();
   void scrollToTop() {
+    if (!_scrollController.hasClients) return;
     _scrollController.animateTo(
       0,
       duration: const Duration(milliseconds: 300),
@@ -415,7 +416,7 @@ class _QuestionPageState extends State<QuestionPage>
   PersistentBottomSheetController? _bottomSheetController;
   bool isClicked = false;
 
-    /// Uses [promptModel], the live prompt, not `widget.prompt`: the flow swaps
+  /// Uses [promptModel], the live prompt, not `widget.prompt`: the flow swaps
   /// prompts under one State, so the row has to leave whichever prompt is on
   /// screen now.
   @override
@@ -730,26 +731,22 @@ class _QuestionPageState extends State<QuestionPage>
 
     bool isValidResponse = false;
 
-
     switch (prompt.responseType) {
       case ResponseType.instruction:
       case ResponseType.timer:
         isValidResponse = true;
         break;
       case ResponseType.textAudio:
-        isValidResponse = (answer?.recordings.isNotEmpty ?? false) ||
-            (answer?.response?.isNotEmpty ?? false);
+        isValidResponse =
+            usable > 0 || (answer?.response?.isNotEmpty ?? false);
         break;
       case ResponseType.audio:
       case ResponseType.image:
       case ResponseType.video:
       case ResponseType.imageVideo:
-        if (prompt.responseType == ResponseType.textAudio) {
-          isValidResponse = usable > 0 ||
-              (answer?.response != null && answer!.response!.isNotEmpty);
-        } else {
-          isValidResponse = usable > 0;
-        }
+      case ResponseType.mediaImage:
+      case ResponseType.mediaVideo:
+        isValidResponse = usable > 0;
         break;
       default:
         isValidResponse = answer?.response?.isNotEmpty ?? false;
