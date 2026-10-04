@@ -3,11 +3,11 @@ import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/session/diary_session_cubit.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/audio_quiestions_widget.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
-// import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/types.dart';
@@ -21,14 +21,9 @@ import '../../../../theme/dialogs/bottom_modals.dart';
 import '../../data/diary.dart';
 import '../../data/prompt.dart';
 import '../../domain/repository/diary_repository.dart';
-import '../cubit/prompt/prompt_cubit.dart';
 import 'diarysummary.dart';
 import '../../../../core/utils/recording_answer_gate.dart';
 
-/// This class holds and manages all the pages in the page view
-/// It has all the UI elements of the New Daily Diary flow
-/// The pages have been hardcoded into the PageView(later to be replaced by the number of questions in the diary)
-/// The page view has a controller which is used to navigate between pages
 class NewDiaryPage extends StatefulWidget {
   final DiaryModel diary;
   final int? index;
@@ -43,7 +38,12 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> key = GlobalKey<ScaffoldState>();
   late PageController controller;
-  late int currentPage;
+  late DiarySessionCubit sessionCubit;
+  int currentPage = 0;
+
+  // Tracks the visible list length across builds so we can detect changes
+  int _lastVisibleCount = 0;
+
   final PageTimer timer = PageTimer();
   bool ableToContinue = false;
   bool showCloseIcon = true;
@@ -55,9 +55,16 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   @override
   void initState() {
+    super.initState();
     controller = PageController();
-    controllerInit();
-    showTip();
+    controller.addListener(() {
+      final page = controller.page?.round();
+      if (page != null && page != currentPage && mounted) {
+        setState(() => currentPage = page);
+      }
+    });
+    sessionCubit = BlocProvider.of<DiarySessionCubit>(context);
+    sessionCubit.init(widget.diary);
     timer.start();
     // loop to initialize keys for each prompt
     for (int i = 0; i < widget.diary.prompts.length; i++) {
@@ -65,16 +72,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     }
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.diary.status == DiaryStatus.complete || widget.index != null) {
-        currentPage = widget.index != null
-            ? widget.index!
-            : widget.diary.prompts.length - 1;
-        if (controller.hasClients) {
-          controller.jumpToPage(currentPage);
-        }
-      }
-    });
+    showTip();
   }
 
   @override
@@ -87,42 +85,44 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     }
   }
 
-  void nextPage() {
-    for (var function in preFunctions) {
-      function();
-    }
+  @override
+  void dispose() {
+    controller.dispose();
+    timer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
-    if (currentPage < widget.diary.prompts.length - 1) {
+  void nextPage(List<PromptModel> visiblePrompts) {
+    for (var fn in preFunctions) {
+      fn();
+    }
+    if (currentPage < visiblePrompts.length - 1) {
       track(timer.reset(), "Next");
       controller.nextPage(
           duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
-      // Change dairy status to complete
       if (widget.diary.status == DiaryStatus.submitted ||
           widget.diary.status == DiaryStatus.missed) {
         Navigator.pop(context);
       } else {
-        DiaryRepository repository = DiaryRepository();
-        widget.diary.status = DiaryStatus.complete;
-        repository.updateDiary(widget.diary);
+        DiaryRepository()
+            .updateDiary(widget.diary..status = DiaryStatus.complete);
         diaryEnd(diaryID: widget.diary.id.toString());
         track(timer.stop(), "Finished");
         Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) => DiarySummaryPage(diary: widget.diary),
-                settings: RouteSettings(name: "/DiarySummaryPage")));
+                settings: const RouteSettings(name: "/DiarySummaryPage")));
       }
     }
   }
 
-  bool get isCurrentPageLast => currentPage == widget.diary.prompts.length - 1;
-
   void previousPage() {
-    for (var function in preFunctions) {
-      function();
+    for (var fn in preFunctions) {
+      fn();
     }
-
     if (currentPage > 0) {
       controller.previousPage(
           duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
@@ -131,7 +131,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
           context,
           MaterialPageRoute(
               builder: (context) => const Hub(),
-              settings: RouteSettings(name: "/Hub")),
+              settings: const RouteSettings(name: "/Hub")),
           (route) => false);
     }
   }
@@ -141,16 +141,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
       final GlobalKey<_QuestionPageState> currentKey =
           _questionPageKeys[currentPage];
       final _QuestionPageState? currentState = currentKey.currentState;
-      currentState?._scrollToTop();
+      currentState?.scrollToTop();
     }
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    timer.dispose();
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
   }
 
   @override
@@ -160,204 +152,197 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         previousPage();
         return false;
       },
-      child: Scaffold(
-        key: key,
-        backgroundColor: CustomColors.fillNormal,
-        appBar: AppBar(
-          backgroundColor: CustomColors.fillNormal,
-          scrolledUnderElevation: 0.0,
-          automaticallyImplyLeading: false,
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const SizedBox(
-                  width: 7,
-                ),
-                IconButton(
-                  onPressed: () {
-                    if (widget.diary.status == DiaryStatus.ongoing) {
-                      scheduleContinueDiaryNotifications(widget.diary.id);
-                    }
-                    trackExit("Closed");
-                    track(timer.stop(), "Close");
-                    for (var function in preFunctions) {
-                      function();
-                    }
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) =>
-                            const Hub(),
-                        transitionsBuilder:
-                            (context, animation, secondaryAnimation, child) {
-                          const begin = Offset(-1.0,
-                              0.0); // Left to right for back-to-home effect
-                          const end = Offset.zero;
-                          const curve = Curves.easeInOut;
-
-                          var tween = Tween(begin: begin, end: end)
-                              .chain(CurveTween(curve: curve));
-                          var offsetAnimation = animation.drive(tween);
-
-                          return SlideTransition(
-                            position: offsetAnimation,
-                            child: child,
-                          );
-                        },
-                        transitionDuration: const Duration(
-                            milliseconds: 300), // Matches iOS animation speed
-                      ),
-                      (route) => false, // Clears the entire stack
-                    );
-                  },
-                  icon: const Icon(CustomIcons.close),
-                  iconSize: 15.0,
-                ),
-                Expanded(
-                  child: CustomBarIndicator(
-                      pageCount: widget.diary.prompts.length,
-                      currentPage: currentPage),
-                ),
-                const SizedBox(
-                  width: 15,
-                ),
-              ],
-            ),
-          ),
-        ),
-        body: Column(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: PageView(
-                  key: const PageStorageKey('diaryPageView'),
-                  physics: const NeverScrollableScrollPhysics(),
-                  controller: controller,
-                  children: pages(),
-                  onPageChanged: (pageIdx) {
-                    setState(() {
-                      currentPage = pageIdx;
-                    });
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted) {
-                        _scrollToTopOfCurrentQuestion();
-                      }
-                    });
-                  },
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 16,
-                right: 16,
-                bottom: 30,
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    spacing: 16,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      if (currentPage != 0)
-                        CustomElevatedIconButton(
-                          onClick: () {
-                            track(timer.reset(), "Previous");
-                            previousPage();
-                          },
-                          icon: Icons.arrow_back,
-                          iconColor: CustomColors.productNormal,
-                          color: CustomColors.fillWhite,
-                          shadowColor: Colors.transparent,
-                          border: Border.all(
-                            color: CustomColors.productBorderNormal,
-                            width: 2,
-                          ),
-                        ),
-                      Expanded(
-                        flex: 3,
-                        child: CustomFlatButton(
-                          isDisabled:
-                              widget.diary.prompts[currentPage].responseType ==
-                                      ResponseType.timer
-                                  ? false
-                                  : !ableToContinue,
-                          onClick: () => nextPage(),
-                          text: "Next",
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 20,
-                  )
-                ],
-              ),
-            ),
-          ],
-        ),
+      child: BlocConsumer<DiarySessionCubit, DiarySessionState>(
+        buildWhen: (_, current) =>
+            current is DiarySessionReady || current is DiarySessionLoading,
+        builder: (context, state) {
+          if (state is DiarySessionLoading) return _buildLoading();
+          if (state is DiarySessionReady) return _buildDiary(state);
+          return _buildLoading();
+        },
+        listener: (context, state) {
+          if (state is DiarySessionReady) {
+            // When the visible list changes size, keep the same prompt on screen
+            if (state.visiblePrompts.length != _lastVisibleCount &&
+                _lastVisibleCount > 0) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (controller.hasClients) {
+                  controller.jumpToPage(
+                      currentPage.clamp(0, state.visiblePrompts.length - 1));
+                }
+              });
+            }
+            _lastVisibleCount = state.visiblePrompts.length;
+          }
+        },
       ),
     );
   }
 
-  List<Widget> pages() {
-    return widget.diary.prompts.asMap().entries.map((entry) {
-      final index = entry.key;
-      final e = entry.value;
-      return QuestionPage(
-        key: _questionPageKeys[index],
-        currentPage: currentPage,
-        diary: widget.diary,
-        prompt: e,
-        scaffoldKey: GlobalKey<ScaffoldState>(),
-        answerAdded: (value) {
-          if (mounted) {
-            setState(() {
-              ableToContinue = value;
-            });
-          }
-        },
-        previousPage: previousPage,
-        nextPage: nextPage,
-        isLastPage: isCurrentPageLast,
-        addToPreFunction: (p0) {
-          preFunctions.add(p0);
-        },
-      );
-    }).toList();
+  Widget _buildLoading() {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
   }
 
-  void controllerInit() {
-    currentPage = controller.initialPage;
-    controller.addListener(() {
-      if (controller.page != currentPage) {
-        if (mounted) {
-          setState(() {
-            currentPage = controller.page!.round();
-          });
-        }
-      }
-    });
+  Widget _buildDiary(DiarySessionReady state) {
+    final visiblePrompts = state.visiblePrompts;
+    final isLastPage = currentPage == visiblePrompts.length - 1;
+
+    return Scaffold(
+      key: key,
+      backgroundColor: CustomColors.fillNormal,
+      appBar: AppBar(
+        backgroundColor: CustomColors.fillNormal,
+        scrolledUnderElevation: 0.0,
+        automaticallyImplyLeading: false,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const SizedBox(width: 7),
+              IconButton(
+                onPressed: () {
+                  if (widget.diary.status == DiaryStatus.ongoing) {
+                    scheduleContinueDiaryNotifications(widget.diary.id);
+                  }
+                  trackExit("Closed");
+                  track(timer.stop(), "Close");
+                  for (var fn in preFunctions) {
+                    fn();
+                  }
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const Hub(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        const begin = Offset(-1.0, 0.0);
+                        const end = Offset.zero;
+                        const curve = Curves.easeInOut;
+                        final tween = Tween(begin: begin, end: end)
+                            .chain(CurveTween(curve: curve));
+                        return SlideTransition(
+                            position: animation.drive(tween), child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 300),
+                    ),
+                    (route) => false,
+                  );
+                },
+                icon: const Icon(CustomIcons.close),
+                iconSize: 15.0,
+              ),
+              Expanded(
+                child: CustomBarIndicator(
+                    pageCount: widget.diary.prompts.length,
+                    currentPage: currentPage < visiblePrompts.length
+                        ? widget.diary.prompts.indexWhere(
+                            (p) => p.id == visiblePrompts[currentPage].id)
+                        : 0),
+              ),
+              const SizedBox(width: 15),
+            ],
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8, right: 8, bottom: 12),
+              child: PageView(
+                key: const PageStorageKey('diaryPageView'),
+                physics: const NeverScrollableScrollPhysics(),
+                controller: controller,
+                onPageChanged: (idx) {
+                  setState(() {
+                    currentPage = idx;
+                    ableToContinue = false;
+                  });
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      _scrollToTopOfCurrentQuestion();
+                    }
+                  });
+                },
+                children: visiblePrompts.asMap().entries.map((entry) {
+                  final scaffoldKey = GlobalKey<ScaffoldState>();
+                  return QuestionPage(
+                    key: ValueKey(entry.value.id),
+                    index: entry.key,
+                    currentPage: currentPage,
+                    diary: widget.diary,
+                    prompt: entry.value,
+                    scaffoldKey: scaffoldKey,
+                    answerAdded: (value) {
+                      if (mounted) setState(() => ableToContinue = value);
+                    },
+                    previousPage: previousPage,
+                    nextPage: () => nextPage(visiblePrompts),
+                    isLastPage: isLastPage,
+                    addToPreFunction: (fn) => preFunctions.add(fn),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 30),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Visibility(
+                      visible: currentPage != 0,
+                      child: CustomElevatedIconButton(
+                        onClick: () {
+                          track(timer.reset(), "Previous");
+                          previousPage();
+                        },
+                        icon: Icons.arrow_back,
+                        iconColor: CustomColors.productNormal,
+                        color: CustomColors.fillWhite,
+                        shadowColor: Colors.transparent,
+                        border: Border.all(
+                          color: CustomColors.productBorderNormal,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 3,
+                      child: CustomFlatButton(
+                        isDisabled: visiblePrompts[currentPage].responseType ==
+                                ResponseType.timer
+                            ? false
+                            : !ableToContinue,
+                        onClick: () => nextPage(visiblePrompts),
+                        text: "Next",
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void showTip() async {
     bool show =
         await PreferenceService().getBoolPreference(key: "show_diary_tip") ??
             true;
-
     if (show && mounted) {
       Future.delayed(const Duration(milliseconds: 500),
           () async => await PendoService.track("DiaryPopUp", null));
-      // () => showModalBottomSheet(
-      //     backgroundColor: Colors.white,
-      //     context: context,
-      //     isScrollControlled: true,
-      //     builder: (context) => const Wrap(
-      //           children: [CustomBottomTipPopUp()],
-      //         )));
     }
   }
 
@@ -366,33 +351,29 @@ class _NewDiaryPageState extends State<NewDiaryPage>
       "time_on_page": spent,
       "status": status,
       "diary": widget.diary.name,
-      "prompt": currentPage + 1
+      "prompt": currentPage + 1,
     });
   }
 
   trackExit(String state) async {
     final now = DateTime.now();
-
     PendoService.track("Exit Survey", {
       "question_at_exit": "${currentPage + 1}",
       "diary_id": widget.diary.id,
       "diary_name": widget.diary.name,
       "time": now.toIso8601String(),
-      "state": state
+      "state": state,
     });
   }
 }
 
-/// This class is the page that is being duplicated in the PageView
-/// It has two parameters:
-/// onNextPage: a function that is called when the user clicks on the continue button
-/// question: the question that is being asked in the diary
 class QuestionPage extends StatefulWidget {
   final DiaryModel diary;
   final PromptModel prompt;
   final GlobalKey<ScaffoldState> scaffoldKey;
   final ValueChanged<bool> answerAdded;
   final int currentPage;
+  final int index;
   final VoidCallback nextPage;
   final VoidCallback previousPage;
   final ValueChanged<Function> addToPreFunction;
@@ -404,6 +385,7 @@ class QuestionPage extends StatefulWidget {
     required this.prompt,
     required this.scaffoldKey,
     required this.currentPage,
+    required this.index,
     required this.answerAdded,
     required this.previousPage,
     required this.nextPage,
@@ -418,19 +400,27 @@ class QuestionPage extends StatefulWidget {
 class _QuestionPageState extends State<QuestionPage>
     with WidgetsBindingObserver, RecordingAnswerGate<QuestionPage> {
   final ScrollController _scrollController = ScrollController();
-  late PromptCubit promptCubit;
-  late PromptModel promptModel;
+  void scrollToTop() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
 
-  bool isChecked = false;
+  late PromptModel promptModel;
+  late DiarySessionCubit sessionCubit;
+
   bool disabled = false;
   PersistentBottomSheetController? _bottomSheetController;
+  bool isClicked = false;
 
   /// Uses [promptModel], the live prompt, not `widget.prompt`: the flow swaps
   /// prompts under one State, so the row has to leave whichever prompt is on
   /// screen now.
   @override
-  void discardRecording(String path) => promptCubit.removeResponse(
-        diary: widget.diary,
+  void discardRecording(String path) => sessionCubit.removeAnswer(
         prompt: promptModel,
         path: path,
       );
@@ -442,32 +432,37 @@ class _QuestionPageState extends State<QuestionPage>
   @override
   Future<void> reevaluateAnswers() => checkForResponse(promptModel);
 
-  void updateSliderValue(PromptModel prompt, double value) {
-    save(prompt, value.toString(), 'other', 0);
-    widget.answerAdded(true);
-  }
-
-  void _scrollToTop() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.minScrollExtent,
-        duration: const Duration(milliseconds: 800),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
-  bool isClicked = false;
-  // final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addObserver(this);
     promptModel = widget.prompt;
-    promptCubit = BlocProvider.of<PromptCubit>(context);
-    loadPrompt();
-    diaryStart(diaryID: widget.diary.id.toString());
-    super.initState();
+    sessionCubit = BlocProvider.of<DiarySessionCubit>(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      checkForResponse(promptModel);
+      if (promptModel.responseType == ResponseType.instruction) {
+        save(promptModel, 'read', 'other', 0);
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(QuestionPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.prompt != widget.prompt) {
+      setState(() => promptModel = widget.prompt);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) checkForResponse(widget.prompt);
+      });
+    } else if (oldWidget.currentPage != widget.currentPage &&
+        widget.currentPage == widget.index) {
+      // This page just became active — re-evaluate the Next button
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) checkForResponse(promptModel);
+      });
+    }
   }
 
   @override
@@ -479,14 +474,9 @@ class _QuestionPageState extends State<QuestionPage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    switch (state) {
-      case AppLifecycleState.paused:
-        if (widget.diary.status == DiaryStatus.ongoing) {
-          scheduleContinueDiaryNotifications(widget.diary.id);
-          //partialDataUpload(widget.diary);
-        }
-        break;
-      default:
+    if (state == AppLifecycleState.paused &&
+        widget.diary.status == DiaryStatus.ongoing) {
+      scheduleContinueDiaryNotifications(widget.diary.id);
     }
     super.didChangeAppLifecycleState(state);
   }
@@ -495,53 +485,23 @@ class _QuestionPageState extends State<QuestionPage>
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: BlocConsumer<PromptCubit, PromptState>(
-        buildWhen: (previous, current) =>
-            current is PromptLoaded || current is PromptInitial,
-        builder: (context, state) {
-          if (state is PromptInitial) {
-            return buildInitial();
-          } else if (state is PromptLoading) {
-            return buildLoading();
-          } else if (state is PromptLoaded) {
-            return buildPrompt(state.prompt);
-          } else {
-            return buildInitial();
-          }
-        },
+      child: BlocListener<DiarySessionCubit, DiarySessionState>(
         listener: (context, state) {
-          if (state is PromptRespondState) {
-            recordResponse(promptModel, "");
-          } else if (state is PromptResponseSuccess) {
-            showSuccessModal();
-          } else if (state is PromptResponseError) {
-            showErrorModal();
-          } else if (state is PromptLoaded) {
-            checkForResponse(state.prompt);
-          } else if (state is PromptResponseDeleted) {
-            dismissSuccessModal();
+          if (state is DiarySessionResponseSaved &&
+              state.promptId == widget.prompt.id) {
+            setState(() => promptModel = state.updatedPrompt);
+            checkForResponse(state.updatedPrompt);
+            _showSuccessModal();
+          } else if (state is DiarySessionResponseDeleted &&
+              state.promptId == widget.prompt.id) {
+            _dismissSuccessModal();
+            checkForResponse(promptModel);
           }
         },
+        child: buildPrompt(promptModel),
       ),
     );
   }
-
-  Widget buildLoading() {
-    return const Center(
-      child: CircularProgressIndicator(
-        color: CustomColors.productNormalActive,
-      ),
-    );
-  }
-
-  Widget buildInitial() {
-    return SizedBox(
-      height: 900,
-      width: double.infinity,
-    );
-  }
-
-  bool isSnackBarVisible = false;
 
   Widget buildPrompt(PromptModel prompt) {
     Widget responseWidget;
@@ -555,40 +515,33 @@ class _QuestionPageState extends State<QuestionPage>
         scaleMax: prompt.option!.maxValue!,
         scaleMinText: prompt.option!.minLabel,
         scaleMaxText: prompt.option!.maxLabel,
-        onSliderValueChanged: (value) => updateSliderValue(prompt, value),
+        onSliderValueChanged: (value) {
+          save(prompt, value.toString(), 'other', 0);
+          widget.answerAdded(true);
+        },
         isSliderEnabled: !disabled,
       );
     } else if (prompt.responseType == ResponseType.multiple) {
       final selected = prompt.answer?.response != null
           ? prompt.answer?.response!.first.split("/ ")
           : <String>[];
-
       responseWidget = MultipleQuestion(
         options: prompt.option!.choices!,
         selected: selected,
         onChanged: (value) {
           final response = value.join("/ ");
           save(prompt, response.isEmpty ? null : response, 'other', 0);
-          if (response.isNotEmpty) {
-            widget.answerAdded(true);
-          } else {
-            widget.answerAdded(false);
-          }
+          widget.answerAdded(response.isNotEmpty);
         },
         disabled: disabled,
       );
     } else if (prompt.responseType == ResponseType.radio) {
-      final selected = prompt.answer?.response?.first;
       responseWidget = RadioQuestion(
-        value: selected,
+        value: prompt.answer?.response?.first,
         options: prompt.option!.choices!,
         onChanged: (value) {
           save(prompt, value, 'other', 0);
-          if (value != null) {
-            widget.answerAdded(true);
-          } else {
-            widget.answerAdded(false);
-          }
+          widget.answerAdded(value != null);
         },
         disabled: disabled,
       );
@@ -621,17 +574,15 @@ class _QuestionPageState extends State<QuestionPage>
           ? prompt.answer?.response!.first.split("| ")
           : <String>[];
       responseWidget = TimerWidget(
-        time: prompt.option?.timerLength ?? Duration(seconds: 30),
+        time: prompt.option?.timerLength ?? const Duration(seconds: 30),
         userInteraction: prompt.option?.userInteraction ?? false,
         playbackControls: prompt.option?.playbackControl ?? false,
         respond: (answer) {
           final completed = completedTimes ?? [];
           completed.add(answer);
-          final response = completed.join("| ");
-
-          save(prompt, response, 'other', 0);
+          save(prompt, completed.join("| "), 'other', 0);
         },
-        addToPreFunction: (p0) => {widget.addToPreFunction(p0)},
+        addToPreFunction: (fn) => widget.addToPreFunction(fn),
       );
     } else if (prompt.responseType == ResponseType.image) {
       responseWidget = VisualResponseWidget(
@@ -658,7 +609,6 @@ class _QuestionPageState extends State<QuestionPage>
     }
 
     String questionTip = "";
-
     if (prompt.responseType == ResponseType.slider) {
       questionTip = prompt.subtitle ?? "Please use the slider to rate:";
     } else if (prompt.responseType == ResponseType.multiple) {
@@ -672,7 +622,7 @@ class _QuestionPageState extends State<QuestionPage>
           prompt.subtitle ?? "Tap ‘Finish’ when you’ve completed the survey";
     } else if (prompt.responseType == ResponseType.timer) {
       questionTip =
-          'Hit the “Start” button to begin meditation countdown.\nDuring the countdown, if you leave the page, the timer will continue on the background.';
+          'Hit the "Start" button to begin meditation countdown.\nDuring the countdown, if you leave the page, the timer will continue on the background.';
     } else if (prompt.responseType == ResponseType.timePicker) {
       questionTip = prompt.subtitle ?? "";
     }
@@ -711,7 +661,7 @@ class _QuestionPageState extends State<QuestionPage>
                           Container(
                               alignment: Alignment.topLeft,
                               child: Text(
-                                "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
+                                "Question ${widget.diary.prompts.indexWhere((p) => p.id == widget.prompt.id) + 1}/${widget.diary.prompts.length}",
                                 style: CustomTypography().button(),
                               )),
                           const SizedBox(height: 15),
@@ -763,44 +713,40 @@ class _QuestionPageState extends State<QuestionPage>
               );
   }
 
-  void loadPrompt() {
-    promptCubit.loadPrompt(widget.diary, promptModel);
-    promptCubit.handleInstructionsPrompt(promptModel, widget.diary);
-  }
-
   ///Checks whether the provided prompt has a response
   ///Returns a bool for [`able to continue`] that allows the user to either proceed or not
   ///depending on the availability of the response/recording
-  Future<void> checkForResponse(PromptModel prompt1) async {
-    final answer = prompt1.answer;
+  Future<void> checkForResponse(PromptModel prompt) async {
+    final answer = prompt.answer;
 
-    final count = await countUsableAnswers(prompt1);
+    final count = await countUsableAnswers(prompt);
     if (count == null) return;
 
     final usable = count.usable;
 
-    if (!prompt1.required) {
+    if (!prompt.required) {
       widget.answerAdded(true);
       return;
     }
 
     bool isValidResponse = false;
 
-    switch (prompt1.responseType) {
+    switch (prompt.responseType) {
       case ResponseType.instruction:
+      case ResponseType.timer:
         isValidResponse = true;
         break;
-      case ResponseType.audio:
       case ResponseType.textAudio:
+        isValidResponse =
+            usable > 0 || (answer?.response?.isNotEmpty ?? false);
+        break;
+      case ResponseType.audio:
       case ResponseType.image:
       case ResponseType.video:
       case ResponseType.imageVideo:
-        if (prompt1.responseType == ResponseType.textAudio) {
-          isValidResponse = usable > 0 ||
-              (answer?.response != null && answer!.response!.isNotEmpty);
-        } else {
-          isValidResponse = usable > 0;
-        }
+      case ResponseType.mediaImage:
+      case ResponseType.mediaVideo:
+        isValidResponse = usable > 0;
         break;
       default:
         isValidResponse = answer?.response?.isNotEmpty ?? false;
@@ -811,7 +757,7 @@ class _QuestionPageState extends State<QuestionPage>
 
   void recordResponse(PromptModel prompt, String type, {int? index}) {
     if (type == "audio") {
-      track("Audio");
+      _track("Audio");
       showModalBottomSheet(
           backgroundColor: Colors.transparent,
           context: context,
@@ -820,14 +766,13 @@ class _QuestionPageState extends State<QuestionPage>
           enableDrag: false,
           elevation: 0,
           useSafeArea: true,
-          routeSettings: RouteSettings(name: "/RecordingModal"),
+          routeSettings: const RouteSettings(name: "/RecordingModal"),
           builder: (context) => DraggableScrollableSheet(
                 initialChildSize: 1,
                 minChildSize: 1,
                 snap: true,
                 builder: (context, scrollController) {
                   final hint = prompt.subtitle?.replaceAll(r'\\n', '\n');
-
                   return BottomRecordingModal(
                     promptId: prompt.id,
                     question: prompt.question,
@@ -835,14 +780,13 @@ class _QuestionPageState extends State<QuestionPage>
                     hint: hint,
                     limit: prompt.option?.maxLength,
                     suggested: prompt.option?.suggestedLength,
-                    onSave: (value) {
-                      save(prompt, value.toString(), "audio", null);
-                    },
+                    onSave: (value) =>
+                        save(prompt, value.toString(), "audio", null),
                   );
                 },
               ));
     } else {
-      track("Text");
+      _track("Text");
       showModalBottomSheet(
           backgroundColor: Colors.transparent,
           context: context,
@@ -851,21 +795,19 @@ class _QuestionPageState extends State<QuestionPage>
           enableDrag: false,
           elevation: 0,
           useSafeArea: true,
-          routeSettings: RouteSettings(name: "/TextModal"),
+          routeSettings: const RouteSettings(name: "/TextModal"),
           builder: (context) => DraggableScrollableSheet(
                 initialChildSize: 1,
                 minChildSize: 1,
                 snap: true,
                 builder: (context, scrollController) {
                   final hint = prompt.subtitle?.replaceAll(r'\\n', '\n');
-
                   return BottomTextModal(
                     prompt: prompt,
                     question: prompt.question,
                     hint: hint,
-                    onSave: (value) {
-                      save(prompt, value.toString(), 'other', index);
-                    },
+                    onSave: (value) =>
+                        save(prompt, value.toString(), 'other', index),
                     index: index,
                     scrollController: scrollController,
                   );
@@ -874,62 +816,37 @@ class _QuestionPageState extends State<QuestionPage>
     }
   }
 
-  track(String option) async {
-    await PendoService.track("Diary Entry Question Type", {
-      "option_selected": option,
-      "diary": widget.diary.name,
-    });
-  }
-
   void save(PromptModel prompt, dynamic response, String type, int? index) {
-    // Change diary status
     if (widget.diary.status == DiaryStatus.idle) {
       widget.diary.status = DiaryStatus.ongoing;
-      DiaryRepository repository = DiaryRepository();
-      repository.updateDiary(widget.diary);
+      DiaryRepository().updateDiary(widget.diary);
     }
-    promptCubit.saveResponse(
-        diary: widget.diary,
-        prompt: prompt,
-        response: response,
-        type: type,
-        index: index);
+    sessionCubit.saveAnswer(
+        prompt: prompt, response: response, type: type, index: index);
     cancelContinueNotifications(widget.diary.id);
-    if (!isClicked && mounted) {
-      setState(() {
-        isClicked = true;
-      });
-    }
+    if (!isClicked && mounted) setState(() => isClicked = true);
   }
 
-  void showSuccessModal() {
-    bool isLast = widget.isLastPage ?? true;
-
+  void _showSuccessModal() {
     _bottomSheetController =
         widget.scaffoldKey.currentState?.showBottomSheet((context) {
-      // _scrollController.animateTo(
-      //   _scrollController.position.maxScrollExtent,
-      //   duration: const Duration(milliseconds: 300),
-      //   curve: Curves.easeInOut,
-      // );
-
       return BottomSuccessModal(
-        previousPage: () => widget.previousPage(),
+        previousPage: widget.previousPage,
         onNextQuestionClicked: widget.nextPage,
-        text: isLast ? "Review Summary" : "Next Question",
+        text: (widget.isLastPage ?? true) ? "Review Summary" : "Next Question",
       );
     });
   }
 
-  void dismissSuccessModal() {
-    if (_bottomSheetController != null) {
-      _bottomSheetController!.close();
-      _bottomSheetController = null;
-    }
+  void _dismissSuccessModal() {
+    _bottomSheetController?.close();
+    _bottomSheetController = null;
   }
 
-  void showErrorModal() {
-    widget.scaffoldKey.currentState!
-        .showBottomSheet((context) => const BottomErrorModal());
+  _track(String option) async {
+    await PendoService.track("Diary Entry Question Type", {
+      "option_selected": option,
+      "diary": widget.diary.name,
+    });
   }
 }

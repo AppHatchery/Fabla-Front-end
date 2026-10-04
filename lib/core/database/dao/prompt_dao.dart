@@ -6,39 +6,18 @@ class PromptDAO {
 
   PromptDAO({required this.box});
 
-  /// Retrieves a prompt with the specified ID from the database.
-  ///
-  /// This function queries the database to retrieve a prompt with the given ID,
-  /// and returns the first prompt found that matches the ID.
-  ///
-  /// Parameters:
-  /// - [id]: The ID of the prompt to retrieve.
-  ///
-  /// Returns:
-  /// A Prompt object representing the prompt with the specified ID.
   Prompt getPrompt(int id) {
-    // Query the database to find the prompt with the specified ID
-    return box.query().build().find().firstWhere((element) => element.id == id);
+    final prompt = box.get(id);
+    if (prompt == null) throw StateError('Prompt $id not found');
+    return prompt;
   }
 
-  /// Retrieves prompts associated with a specific diary ID from the database.
-  ///
-  /// This function queries the database to retrieve prompts that are associated with
-  /// the diary having the provided ID. It filters prompts based on the target diary's ID.
-  ///
-  /// Parameters:
-  /// - [id]: The ID of the diary whose prompts are to be retrieved.
-  ///
-  /// Returns:
-  /// A list of Prompt objects associated with the diary ID.
   List<Prompt> getPrompts({required int id}) {
-    // Query the database to find prompts associated with the specified diary ID
     return box
-        .query()
+        .query(Prompt_.diary.equals(id))
+        .order(Prompt_.questionNumber)
         .build()
-        .find()
-        .where((element) => element.diary.target?.id == id)
-        .toList();
+        .find();
   }
 
   /// Retrieves all prompts from the database.

@@ -19,6 +19,8 @@ class Prompt {
   String? subtitle;
   bool required;
   bool? multipleAnswer;
+  String? conditions;
+  int? conditionLogic;
 
   @Backlink('prompt')
   final answers = ToMany<Answer>();
@@ -43,6 +45,8 @@ class Prompt {
     this.subtitle,
     this.required = true,
     this.multipleAnswer = false,
+    this.conditions,
+    this.conditionLogic,
   });
 
   void _ensureResponseType() {
@@ -73,7 +77,13 @@ class Prompt {
         option: jsonEncode(model.option?.toJson()),
         subtitle: model.subtitle,
         required: model.required,
-        multipleAnswer: model.multipleAnswer);
+        multipleAnswer: model.multipleAnswer,
+        conditions: model.conditions != null
+            ? jsonEncode(
+                model.conditions!.map((e) => e.toJson()).toList(),
+              )
+            : null,
+        conditionLogic: model.conditionLogic?.index);
 
     if (model.answer != null) {
       entity.answers.insert(0, model.answer!);
