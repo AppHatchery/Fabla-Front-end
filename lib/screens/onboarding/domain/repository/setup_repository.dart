@@ -171,8 +171,6 @@ class SetupRepository {
       'participant_id': participant!.studyCode,
     });
 
-    // final response = await rootBundle.loadString('assets/diary_json.json');
-
     if (response != null) {
       try {
         final data = json.decode(response)['data'];
