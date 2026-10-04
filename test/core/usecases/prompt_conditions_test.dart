@@ -73,4 +73,131 @@ void main() {
       expect(notComplete.evaluate(null), isTrue);
     });
   });
+
+  group('contains / notContains', () {
+    test('contains matches a substring', () {
+      final c = condition(ConditionType.contains, 'Anxious');
+      expect(c.evaluate(answerOf('Calm/ Anxious')), isTrue);
+      expect(c.evaluate(answerOf('Calm')), isFalse);
+      expect(c.evaluate(null), isFalse);
+    });
+
+    test('contains with a list requires every value', () {
+      final c = condition(ConditionType.contains, ['Calm', 'Tired']);
+      expect(c.evaluate(answerOf('Calm/ Tired/ Happy')), isTrue);
+      expect(c.evaluate(answerOf('Calm/ Happy')), isFalse);
+    });
+
+    test('notContains is true when the value is absent or unanswered', () {
+      final c = condition(ConditionType.notContains, 'Anxious');
+      expect(c.evaluate(answerOf('Calm')), isTrue);
+      expect(c.evaluate(answerOf('Anxious')), isFalse);
+      expect(c.evaluate(null), isTrue);
+    });
+
+    test('notContains with a list requires none of the values', () {
+      final c = condition(ConditionType.notContains, ['Calm', 'Tired']);
+      expect(c.evaluate(answerOf('Happy')), isTrue);
+      expect(c.evaluate(answerOf('Happy/ Tired')), isFalse);
+    });
+  });
+
+  group('answered / notAnswered', () {
+    test('answered needs a non-blank response', () {
+      final c = condition(ConditionType.answered, null);
+      expect(c.evaluate(answerOf('Yes')), isTrue);
+      expect(c.evaluate(answerOf('   ')), isFalse);
+      expect(c.evaluate(Answer(id: 0, date: DateTime(2026))), isFalse);
+      expect(c.evaluate(null), isFalse);
+    });
+
+    test('notAnswered is the inverse', () {
+      final c = condition(ConditionType.notAnswered, null);
+      expect(c.evaluate(null), isTrue);
+      expect(c.evaluate(answerOf('Yes')), isFalse);
+    });
+  });
+
+  group('numeric comparisons', () {
+    test('greaterThan accepts numeric and string expected values', () {
+      expect(condition(ConditionType.greaterThan, 5).evaluate(answerOf('7')),
+          isTrue);
+      expect(condition(ConditionType.greaterThan, '5').evaluate(answerOf('5')),
+          isFalse);
+      expect(condition(ConditionType.greaterThan, 2.5).evaluate(answerOf('3.0')),
+          isTrue);
+    });
+
+    test('lessThan compares numerically', () {
+      expect(condition(ConditionType.lessThan, 5).evaluate(answerOf('4.5')),
+          isTrue);
+      expect(condition(ConditionType.lessThan, 5).evaluate(answerOf('5')),
+          isFalse);
+    });
+
+    test('non-numeric or missing values are false', () {
+      expect(condition(ConditionType.greaterThan, 5).evaluate(answerOf('abc')),
+          isFalse);
+      expect(condition(ConditionType.lessThan, 5).evaluate(answerOf('abc')),
+          isFalse);
+      expect(condition(ConditionType.greaterThan, true).evaluate(answerOf('1')),
+          isFalse);
+      expect(condition(ConditionType.greaterThan, 5).evaluate(null), isFalse);
+      expect(condition(ConditionType.lessThan, 5).evaluate(null), isFalse);
+    });
+
+    test('between is inclusive of min and max', () {
+      final c = condition(ConditionType.between, {'min': 3, 'max': 7});
+      expect(c.evaluate(answerOf('3')), isTrue);
+      expect(c.evaluate(answerOf('7')), isTrue);
+      expect(c.evaluate(answerOf('5.5')), isTrue);
+      expect(c.evaluate(answerOf('8')), isFalse);
+      expect(c.evaluate(answerOf('abc')), isFalse);
+      expect(c.evaluate(null), isFalse);
+    });
+
+    test('between needs a map with min and max', () {
+      expect(condition(ConditionType.between, 5).evaluate(answerOf('5')),
+          isFalse);
+      expect(
+          condition(ConditionType.between, {'min': 1}).evaluate(answerOf('5')),
+          isFalse);
+    });
+  });
+
+  group('time comparisons', () {
+    test('beforeTime and afterTime compare HH:mm strings', () {
+      expect(condition(ConditionType.beforeTime, '12:00')
+          .evaluate(answerOf('09:30')), isTrue);
+      expect(condition(ConditionType.beforeTime, '12:00')
+          .evaluate(answerOf('12:00')), isFalse);
+      expect(condition(ConditionType.afterTime, '12:00')
+          .evaluate(answerOf('12:01')), isTrue);
+      expect(condition(ConditionType.afterTime, '12:00')
+          .evaluate(answerOf('11:59')), isFalse);
+    });
+
+    test('compares hours before minutes', () {
+      expect(condition(ConditionType.afterTime, '09:45')
+          .evaluate(answerOf('10:05')), isTrue);
+    });
+
+    test('accepts an expected value as an hour/minute map', () {
+      final c =
+          condition(ConditionType.beforeTime, {'hour': 21, 'minute': 30});
+      expect(c.evaluate(answerOf('21:15')), isTrue);
+      expect(c.evaluate(answerOf('22:00')), isFalse);
+    });
+
+    test('unparseable or missing times are false', () {
+      expect(condition(ConditionType.beforeTime, '12:00')
+          .evaluate(answerOf('noon')), isFalse);
+      expect(condition(ConditionType.afterTime, 12).evaluate(answerOf('13:00')),
+          isFalse);
+      expect(condition(ConditionType.beforeTime, '12:00').evaluate(null),
+          isFalse);
+      expect(condition(ConditionType.afterTime, '12:00').evaluate(null),
+          isFalse);
+    });
+  });
 }
