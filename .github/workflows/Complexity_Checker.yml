@@ -1,0 +1,85 @@
+name: Complexity Checker
+
+# Runs only when a v-tagged release is published — never on pushes, pull
+# requests or feature branches, and drafts don't fire until they are published.
+# Each step's logic lives in .github/scripts/complexity/.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  # To open and update the issue that notifies the team.
+  issues: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checker:
+    # This name is the heading the report appears under on the run Summary page.
+    name: Complexity Score and Suggestions
+    # `release` takes no tag filter, so the tag is checked here. startsWith is
+    # case-insensitive, so V1.9.21 matches as well as v1.9.21.
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Event values go through `env:` rather than `${{ }}` inside `run:`, which
+    # is textual substitution into the shell.
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+      RELEASE_AUTHOR: ${{ github.event.release.author.login }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      AUDIT_THRESHOLD: '10'
+      AUDIT_EXCLUDE: '**/*.g.dart,**/*.freezed.dart,**/*.gr.dart,**/*.mocks.dart,**/*.pb.dart'
+      # Title prefix, label and assignees follow .github/ISSUE_TEMPLATE.
+      ISSUE_LABEL: complexity
+      ISSUE_ASSIGNEES: BuchiNy,Wiza-Munthali,carol-kadza
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # The previous release is found by walking tag history, which the
+          # default single-commit checkout does not have.
+          fetch-depth: 0
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.4'
+          channel: stable
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Measure the previous release
+        run: bash .github/scripts/complexity/complexity_previous_release.sh
+
+      - name: Run complexity audit
+        run: bash .github/scripts/complexity/complexity_audit.sh
+
+      # Renders under the job name on the run Summary page.
+      - name: Write job summary
+        if: ${{ !cancelled() }}
+        run: bash .github/scripts/complexity/complexity_summary.sh
+
+      - name: Upload complexity report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: complexity-report
+          path: |
+            complexity-report.md
+            complexity-summary.md
+          if-no-files-found: warn
+
+      - name: Update the complexity issue
+        if: ${{ !cancelled() }}
+        env:
+          # Only this step gets the token, so `flutter pub get` and the build
+          # hooks `dart run` executes never see it.
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/complexity/complexity_issue.sh
