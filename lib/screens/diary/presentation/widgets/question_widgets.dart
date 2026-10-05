@@ -28,6 +28,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:audio_diaries_flutter/core/utils/device_appInfo.dart';
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../core/utils/statuses.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_colors.dart';
@@ -1560,12 +1561,15 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
                           const SizedBox(
                             width: 8,
                           ),
-                          Text(
-                            widget.prompt.answer?.recordings.isNotEmpty ?? false
-                                ? 'Add Another Picture'
-                                : 'Take a Picture',
-                            style: CustomTypography()
-                                .button(color: CustomColors.textWhite),
+                          Flexible(
+                            child: Text(
+                              maxLines: 2,
+                              widget.prompt.answer?.recordings.isNotEmpty ?? false
+                                  ? 'Add Another Picture'
+                                  : 'Take a Picture',
+                              style: CustomTypography()
+                                  .button(color: CustomColors.textWhite),
+                            ),
                           )
                         ],
                       )
@@ -1583,13 +1587,15 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
                           const SizedBox(
                             width: 8,
                           ),
-                          Text(
-                            widget.prompt.answer?.recordings.isNotEmpty ?? false
-                                ? 'Add Another Video'
-                                : 'Take a Video',
-                            style: CustomTypography()
-                                .button(color: CustomColors.textWhite),
-                          )
+                          Flexible(
+                            child: Text(
+                              widget.prompt.answer?.recordings.isNotEmpty ?? false
+                                  ? 'Add Another Video'
+                                  : 'Take a Video',
+                              maxLines: 2,
+                              style: CustomTypography().button(color: CustomColors.textWhite),
+                            ),
+                          ),
                         ],
                       )
                     : const SizedBox.shrink(),
