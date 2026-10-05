@@ -1,22 +1,25 @@
 #!/usr/bin/env bash
-# Computes line coverage for the code the coverage gate applies to.
+# Counts covered lines for the code the coverage gate applies to.
 #
 # Used by UnitAndWidgetTesting.yml after `flutter test --coverage`. Generated
 # code and files that are not unit-testable are removed from lcov.info first,
 # so they neither raise nor lower the number.
 #
+# The counts are summed from the per-file LH/LF records rather than read from
+# `lcov --summary`, which rounds to one decimal: 23.955% would print as 24.0%
+# and pass a 24% gate.
+#
 # Reads:   MIN_COVERAGE (for the log line only)
 # Changes: coverage/lcov.info, filtered in place
-# Sets for later steps:
-#   COVERAGE        line coverage percent, 0 when there is no lcov.info
-#   COVERAGE_LINES  "<covered> of <total>", empty when unknown
+# Sets for later steps (both empty when there is no lcov.info):
+#   COVERAGE_COVERED  covered lines
+#   COVERAGE_TOTAL    instrumented lines
 set -euo pipefail
 
-sudo apt-get install -y lcov
-
-coverage="0"
-lines=""
+covered=""
+total=""
 if [ -f coverage/lcov.info ]; then
+  sudo apt-get install -y lcov
   lcov --remove coverage/lcov.info \
     'lib/**/*.g.dart' \
     'lib/**/*.freezed.dart' \
@@ -28,11 +31,13 @@ if [ -f coverage/lcov.info ]; then
     'lib/core/utils/errorCodes.dart' \
     'lib/core/utils/emailFunction.dart' \
     -o coverage/lcov.info --ignore-errors unused
-  summary=$(lcov --summary coverage/lcov.info 2>&1)
-  coverage=$(echo "$summary" | grep -oP 'lines.*: \K[0-9.]+(?=%)' || echo "0")
-  lines=$(echo "$summary" | grep -oP 'lines.*\(\K[0-9]+ of [0-9]+(?= lines\))' || echo "")
+  read -r covered total < <(
+    awk -F: '$1 == "LH" { c += $2 } $1 == "LF" { t += $2 } END { print c + 0, t + 0 }' \
+      coverage/lcov.info)
+  echo "Coverage: $covered of $total lines (gate ${MIN_COVERAGE}%)"
+else
+  echo "::warning::coverage/lcov.info is missing, so coverage was not measured."
 fi
 
-echo "COVERAGE=$coverage" >> "$GITHUB_ENV"
-echo "COVERAGE_LINES=$lines" >> "$GITHUB_ENV"
-echo "Coverage: $coverage% (gate ${MIN_COVERAGE}%)"
+echo "COVERAGE_COVERED=$covered" >> "$GITHUB_ENV"
+echo "COVERAGE_TOTAL=$total" >> "$GITHUB_ENV"

@@ -29,8 +29,19 @@ jobs:
     timeout-minutes: 15
     env:
       MIN_COVERAGE: "24"
+      # For the report's "Results for <commit>" line and its file:line links.
+      # The PR head is the commit the author pushed; github.sha would be the
+      # temporary merge commit.
+      COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - uses: actions/checkout@v6
+
+      # Under a second, and first, so a broken report script fails fast rather
+      # than after a ten-minute test run.
+      - name: Test the report script
+        run: python3 .github/scripts/tests/test_summary_test.py
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -85,6 +96,9 @@ jobs:
 
       - name: Build test report
         if: ${{ !cancelled() }}
+        env:
+          # The report's verdict uses the same inputs as the gate below.
+          TESTS_OUTCOME: ${{ steps.tests.outcome }}
         run: bash .github/scripts/tests/test_report.sh
 
       # Upsert a single sticky comment on the PR. The shared helper handles
@@ -103,7 +117,7 @@ jobs:
               fallback: '_Test report was not generated._',
             });
 
-      # The only step that fails the job: tests must pass and coverage must meet
+      # Fails the job on results: tests must pass and coverage must meet
       # MIN_COVERAGE.
       - name: Enforce results and coverage gate
         if: ${{ !cancelled() }}

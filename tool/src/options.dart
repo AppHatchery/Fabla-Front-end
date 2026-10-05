@@ -60,7 +60,7 @@ class AuditOptions {
   final String outputPath;
 
   /// Extended whole-repo report for the Actions run Summary page. Empty to
-  /// skip. Mirrors `--summary-out` in `.github/scripts/test_summary.py`.
+  /// skip. Mirrors `--summary-out` in `.github/scripts/tests/test_summary.py`.
   final String summaryOut;
 
   /// Git ref to diff against, e.g. `origin/main`. Empty audits everything.

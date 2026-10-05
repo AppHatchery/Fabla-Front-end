@@ -57,7 +57,7 @@ module.exports = async function upsertPrComment({
   if (body.length > MAX_BODY) {
     const notice =
       '\n\n_Comment truncated at the GitHub size limit — ' +
-      'see the run summary or the uploaded artifact for the full report._\n';
+      'see the run summary for the full report._\n';
     body = body.slice(0, SAFE_BODY - notice.length) + notice;
   }
 
@@ -99,11 +99,11 @@ module.exports = async function upsertPrComment({
   } catch (error) {
     // A pull_request event from a fork gets a read-only GITHUB_TOKEN whatever
     // the `permissions:` block says, so this 403s. That must not turn a passing
-    // job red — the report is still in the run summary and the artifact.
+    // job red — the report is still in the run summary.
     if (error.status === 403) {
       core.warning(
         'No write access to comment (this is expected on a fork PR). ' +
-          'The report is in the run summary and the uploaded artifact.'
+          'The report is in the run summary.'
       );
       return;
     }

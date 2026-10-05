@@ -4,7 +4,7 @@
 /// `main` writes the reports first and picks the exit code afterwards, which is
 /// the workflow's hard requirement — every consumer step is `if: always()`.
 ///
-/// Two shapes, mirroring `.github/scripts/test_summary.py`:
+/// Two shapes, mirroring `.github/scripts/tests/test_summary.py`:
 ///   * [ReportMode.comment] — concise, scoped to the change, collapsed by
 ///     default, sized for a PR comment.
 ///   * [ReportMode.summary] — the whole repo, for the Actions run Summary page.
