@@ -248,6 +248,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       recordingState.isPaused
                           ? "Resume Recording"
                           : recordingState.isRecording
