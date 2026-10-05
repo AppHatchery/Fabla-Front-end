@@ -16,6 +16,7 @@ import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../core/utils/audioPlayer.dart';
 import '../../core/utils/formatter.dart';
 import '../../core/utils/participant_experiment_details.dart';
@@ -870,12 +871,15 @@ class _NewAudioCardState extends State<NewAudioCard>
           Expanded(
             child: slider(),
           ),
-          Row(
-            children: [
-              Text(formatDuration(currentSliderPosition.toInt())),
-              const Text(" / "),
-              Text(formatDuration(maxDuration.inMilliseconds.toInt()))
-            ],
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '${formatDuration(currentSliderPosition.toInt())} / ${formatDuration(maxDuration.inMilliseconds)}',
+                textScaler: getAdaptiveTextScaler(context),
+                maxLines: 2,
+              ),
+            ),
           ),
           widget.isVisible ?? false
               ? IconButton(
@@ -979,8 +983,7 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
           child: Text(widget.answer,
               style: CustomTypography()
                   .bodyLarge(color: CustomColors.textSecondaryContent),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis),
+              maxLines: 2,),
         ),
         widget.isVisible ?? false
             ? IconButton(
@@ -1236,6 +1239,7 @@ class PendingSubmissionCard extends StatelessWidget {
                     spacing: 8,
                     children: [
                       Text(
+                        textScaler: getAdaptiveTextScaler(context),
                         retry ? 'Upload Failed' : "You're Back Online",
                         style:
                             CustomTypography().titleSmallCustom(color: color),
@@ -1248,6 +1252,7 @@ class PendingSubmissionCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(4)),
                         ),
                         child: Text(
+                          textScaler: getAdaptiveTextScaler(context),
                           retry ? retryText : text,
                           style: CustomTypography().bodyLarge(color: color),
                         ),
@@ -1269,6 +1274,7 @@ class PendingSubmissionCard extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
               children: Wrap(children: [
                 Text(
+                  textScaler: getAdaptiveTextScaler(context),
                   retry ? retryButtonText : buttonText,
                   style:
                       CustomTypography().button(color: CustomColors.textWhite),
