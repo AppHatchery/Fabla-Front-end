@@ -424,7 +424,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
             child: Text(
               textScaler: getAdaptiveTextScaler(context),
               _getEntriesHeading(selectedDate),
-              style: CustomTypography().titleLarge(),
+              style: CustomTypography().titleLarge().copyWith(fontSize: 19.5),
             ),
           ),
           Flexible(
