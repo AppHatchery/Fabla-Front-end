@@ -1,6 +1,8 @@
 import 'dart:async' show unawaited;
 
 import 'package:alarm/alarm.dart';
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart'
+    show getAdaptiveTextScaler;
 import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart'
     show clearAllHomeProgressTracking, getAllHomeProgressTracking;
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
@@ -441,27 +443,14 @@ class CustomHubTabView extends StatefulWidget {
 
 class _CustomHubTabViewState extends State<CustomHubTabView> {
   static const _historyTabIndex = 1;
-  List<Tab> navigationBars = [];
+  int _completeCount = 0;
+  int _totalSubmissions = 0;
 
   @override
   void initState() {
     super.initState();
-    navigationBars.addAll([
-      const Tab(
-        icon: Icon(CupertinoIcons.text_badge_checkmark),
-        text: "Study",
-      ),
-      const Tab(
-        icon: Icon(Icons.history),
-        text: "History",
-      ),
-      const Tab(
-        icon: Icon(Icons.settings_outlined),
-        text: "Settings",
-      ),
-    ]);
-    _makeNavBars();
     widget.tabController.addListener(_onTabChanged);
+    _loadBadgeState();
   }
 
   @override
@@ -474,36 +463,14 @@ class _CustomHubTabViewState extends State<CustomHubTabView> {
     // History tab is index 1
     if (widget.tabController.index == _historyTabIndex &&
         !widget.tabController.indexIsChanging) {
-      clearAllHomeProgressTracking().then((_) => _makeNavBars());
+      clearAllHomeProgressTracking().then((_) => _loadBadgeState());
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final isIos = Platform.isIOS;
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-
-    return TabBar(
-      controller: widget.tabController,
-      tabs: navigationBars,
-      labelColor: CustomColors.productNormal,
-      unselectedLabelColor: Colors.black,
-      indicatorColor: Colors.transparent,
-      indicatorWeight: 2,
-      indicator: null,
-      padding: EdgeInsets.only(
-        top: 8,
-        bottom: bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 8),
-      ),
-      dividerColor: Colors.transparent,
-    );
-  }
-
-  void _makeNavBars() async {
-    final repository = DiaryRepository();
-    final diaries = repository.getAllDiaries();
-    final count = diaries
-        .where((element) => element.status == DiaryStatus.complete)
+  Future<void> _loadBadgeState() async {
+    final count = DiaryRepository()
+        .getAllDiaries()
+        .where((d) => d.status == DiaryStatus.complete)
         .length;
     final allTracking = await getAllHomeProgressTracking();
     if (!mounted) return;
@@ -512,41 +479,69 @@ class _CustomHubTabViewState extends State<CustomHubTabView> {
         allTracking.values.fold(0, (sum, p) => sum + p.submissions);
 
     if (count > 0 || totalSubmissions > 0) await trackUnsubmittedDiaries();
+    if (!mounted) return;
 
-    if (navigationBars.isNotEmpty) navigationBars.clear();
+    setState(() {
+      _completeCount = count;
+      _totalSubmissions = totalSubmissions;
+    });
+  }
 
-    navigationBars.addAll(<Tab>[
-      const Tab(
-        icon: Icon(CupertinoIcons.text_badge_checkmark),
-        text: "Study",
+  @override
+  Widget build(BuildContext context) {
+    final isIos = Platform.isIOS;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    final showUpload = _completeCount > 0;
+    final showCount = !showUpload && _totalSubmissions > 0;
+
+    // Clamped scaling keeps the labels inside the default 72pt tab height.
+    // Use Tab.text, not Tab.child: only text keeps labels to a single line.
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: getAdaptiveTextScaler(context),
       ),
-      Tab(
-        icon: Badge(
-          backgroundColor: count > 0
-              ? Colors.transparent
-              : totalSubmissions > 0
-                  ? CustomColors.productNormal
-                  : Colors.transparent,
-          textColor: CustomColors.fillWhite,
-          label: count > 0
-              ? Icon(
-                  CupertinoIcons.cloud_upload_fill,
-                  color: CustomColors.warningActive,
-                )
-              : totalSubmissions > 0
-                  ? Text(totalSubmissions.toString())
-                  : null,
-          isLabelVisible: count > 0 || totalSubmissions > 0,
-          child: const Icon(Icons.history),
+      child: TabBar(
+        controller: widget.tabController,
+        labelColor: CustomColors.productNormal,
+        unselectedLabelColor: Colors.black,
+        indicatorColor: Colors.transparent,
+        indicatorWeight: 2,
+        indicator: null,
+        padding: EdgeInsets.only(
+          top: 8,
+          bottom: bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 8),
         ),
-        text: "History",
+        dividerColor: Colors.transparent,
+        tabs: [
+          const Tab(
+            icon: Icon(CupertinoIcons.text_badge_checkmark),
+            text: "Study",
+          ),
+          Tab(
+            icon: Badge(
+              backgroundColor:
+                  showCount ? CustomColors.productNormal : Colors.transparent,
+              textColor: CustomColors.fillWhite,
+              isLabelVisible: showUpload || showCount,
+              label: showUpload
+                  ? Icon(
+                      CupertinoIcons.cloud_upload_fill,
+                      color: CustomColors.warningActive,
+                    )
+                  : showCount
+                      ? Text(_totalSubmissions.toString())
+                      : null,
+              child: const Icon(Icons.history),
+            ),
+            text: "History",
+          ),
+          const Tab(
+            icon: Icon(Icons.settings_outlined),
+            text: "Settings",
+          ),
+        ],
       ),
-      const Tab(
-        icon: Icon(Icons.settings_outlined),
-        text: "Settings",
-      ),
-    ]);
-
-    if (mounted) setState(() {});
+    );
   }
 }
