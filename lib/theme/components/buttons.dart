@@ -1,4 +1,4 @@
- import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../custom_colors.dart';
 import '../custom_typography.dart';
@@ -66,8 +66,8 @@ class CustomElevatedButton extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 48.0),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10.0, vertical: 12.0),
                 child: Center(
                     child: Text(text.toString(),
                         style: CustomTypography().button(
@@ -153,8 +153,8 @@ class CustomElevatedIconButton extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 48.0),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0, vertical: 12.0),
                 child: Center(
                     child: Icon(
                   icon,
@@ -181,19 +181,18 @@ class CustomIconButtonWithTextButton extends StatelessWidget {
   final bool isDisabled;
   final Color? textColor;
 
-  const CustomIconButtonWithTextButton({
-    super.key,
-    required this.onClick,
-    required this.icon,
-    required this.text,
-    this.color = CustomColors.productNormal,
-    this.shadowColor = CustomColors.productNormalActive,
-    this.iconColor = CustomColors.fillWhite,
-    this.border = const Border(),
-    this.elevation = 0,
-    this.isDisabled = false,
-    this.textColor
-  });
+  const CustomIconButtonWithTextButton(
+      {super.key,
+      required this.onClick,
+      required this.icon,
+      required this.text,
+      this.color = CustomColors.productNormal,
+      this.shadowColor = CustomColors.productNormalActive,
+      this.iconColor = CustomColors.fillWhite,
+      this.border = const Border(),
+      this.elevation = 0,
+      this.isDisabled = false,
+      this.textColor});
 
   @override
   Widget build(BuildContext context) {
@@ -233,8 +232,10 @@ class CustomIconButtonWithTextButton extends StatelessWidget {
                     child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(icon, color: iconColor,
-                        size: iconSize,
+                    Icon(
+                      icon,
+                      color: iconColor,
+                      size: iconSize,
                     ),
                     const SizedBox(width: 8),
                     Text(text.toString(),
@@ -280,7 +281,6 @@ class CustomFlatButton extends StatelessWidget {
     this.textColor = CustomColors.fillWhite,
     this.borderColor = CustomColors.productNormal,
     this.buttonFontSize,
-
   });
 
   @override
@@ -310,14 +310,17 @@ class CustomFlatButton extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 48.0),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10.0, vertical: 12.0),
                 child: Center(
-                    child: Text(text.toString(),
-                      style: CustomTypography().button(
+                    child: Text(
+                  text.toString(),
+                  style: CustomTypography()
+                      .button(
                         color: isDisabled ? CustomColors.greyDark : textColor,
-                      ).copyWith(fontSize: buttonFontSize),
-                    )),
+                      )
+                      .copyWith(fontSize: buttonFontSize),
+                )),
               ),
             ),
           ),
@@ -421,7 +424,8 @@ class CustomRecordButton extends StatelessWidget {
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 25.0),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 24.0, horizontal: 25.0),
                   child: const Icon(
                     Icons.mic,
                     color: CustomColors.fillWhite,
@@ -478,7 +482,8 @@ class CustomTextAnswerButton extends StatelessWidget {
                   child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.keyboard_alt, color: CustomColors.productNormal),
+                  const Icon(Icons.keyboard_alt,
+                      color: CustomColors.productNormal),
                   const SizedBox(
                     width: 8,
                   ),
