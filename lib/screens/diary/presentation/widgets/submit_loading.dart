@@ -31,38 +31,40 @@ class _SubmitLoadingPageState extends State<SubmitLoadingPage> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(
-              strokeWidth: 6,
-              color: CustomColors.productNormalActive,
-            ),
-            const SizedBox(
-              height: 24,
-            ),
-            Text(
-              loadingText,
-              style: CustomTypography()
-                  .headlineMedium(color: CustomColors.textSecondaryContent),
-            ),
-            const SizedBox(
-              height: 12,
-            ),
-            Text(
-              "Hang tight while we process your responses - almost there!",
-              style: CustomTypography().bodyLarge(
-                color: CustomColors.textSecondaryContent,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(
+                strokeWidth: 6,
+                color: CustomColors.productNormalActive,
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 40),
-            const WarningCard(
-              title: "Do Not Leave This Screen",
-              message: "Please stay on this screen until the upload is complete to ensure your diary is saved safely. Closing the app now may result in data loss."
-            ),
-          ],
+              const SizedBox(
+                height: 24,
+              ),
+              Text(
+                loadingText,
+                style: CustomTypography()
+                    .headlineMedium(color: CustomColors.textSecondaryContent),
+              ),
+              const SizedBox(
+                height: 12,
+              ),
+              Text(
+                "Hang tight while we process your responses - almost there!",
+                style: CustomTypography().bodyLarge(
+                  color: CustomColors.textSecondaryContent,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 40),
+              const WarningCard(
+                title: "Do Not Leave This Screen",
+                message: "Please stay on this screen until the upload is complete to ensure your diary is saved safely. Closing the app now may result in data loss."
+              ),
+            ],
+          ),
         ),
       ),
     );
