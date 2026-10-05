@@ -1837,6 +1837,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
+                                    textScaler: getAdaptiveTextScaler(context),
                                     formatDurationtoHHMMSS(elapsed),
                                     style: CustomTypography().custom(
                                         fontSize: 16,
