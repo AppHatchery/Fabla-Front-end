@@ -85,3 +85,9 @@ Desktop.ini
 .env
 
 coverage/
+# Complexity audit output. The release workflow builds its baseline from the
+# previous release tag, so no baseline is committed.
+complexity-report.md
+complexity-summary.md
+
+.claude
