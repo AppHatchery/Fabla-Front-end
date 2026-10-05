@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -711,6 +712,7 @@ class _QuestionPageState extends State<QuestionPage>
                           Container(
                               alignment: Alignment.topLeft,
                               child: Text(
+                                textScaler: getAdaptiveTextScaler(context),
                                 "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
                                 style: CustomTypography().button(),
                               )),
