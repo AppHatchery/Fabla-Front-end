@@ -31,7 +31,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
   void initState() {
     _date = widget.date ?? const TimeOfDay(hour: 0, minute: 0);
     hoursController = FixedExtentScrollController(
-      initialItem: (_date.hour % 12) == 0 ? 12 : (_date.hour % 12) - 1,
+      initialItem: (_date.hour % 12) == 0 ? 11 : (_date.hour % 12) - 1,
     );
     minutesController = FixedExtentScrollController(
       initialItem: _date.minute,

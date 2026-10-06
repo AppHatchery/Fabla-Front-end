@@ -236,7 +236,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
   void edit(Questions question, int index) async {
     if (question.type == "time") {
       final time = timeOfDayFromString(question.answer!);
-      final _time = await showModalBottomSheet(
+      final _time = await showModalBottomSheet<String>(
           backgroundColor: CustomColors.fillWhite,
           isScrollControlled: true,
           enableDrag: false,
@@ -255,7 +255,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
               }));
 
       if (_time != null) {
-        update(question, '$_time:00');
+        update(question, _time);
       }
     } else if (question.type == 'text') {
       final result = await showModalBottomSheet(
