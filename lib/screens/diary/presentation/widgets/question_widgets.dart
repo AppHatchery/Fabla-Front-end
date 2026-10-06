@@ -171,6 +171,7 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
           children: [
             Expanded(
               child: Text(
+                textScaler: getAdaptiveTextScaler(context),
                 widget.scaleMinText ?? '',
                 textAlign: TextAlign.start,
                 style: CustomTypography().bodyLarge(color: widget.colorFont),
@@ -178,6 +179,7 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
             ),
             Expanded(
               child: Text(
+                textScaler: getAdaptiveTextScaler(context),
                 widget.scaleMaxText ?? '',
                 textAlign: TextAlign.end,
                 style: CustomTypography().bodyLarge(color: widget.colorFont),

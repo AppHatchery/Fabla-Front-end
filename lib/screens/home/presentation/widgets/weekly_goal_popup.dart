@@ -140,10 +140,12 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
               width: 20,
             ),
             const SizedBox(width: 6),
-            Text(
-              textScaler: getAdaptiveTextScaler(context),
-              study.name,
-              style: CustomTypography().bodyLarge(),
+            Flexible(
+              child: Text(
+                textScaler: getAdaptiveTextScaler(context),
+                study.name,
+                style: CustomTypography().bodyLarge(),
+              ),
             )
           ],
         ),

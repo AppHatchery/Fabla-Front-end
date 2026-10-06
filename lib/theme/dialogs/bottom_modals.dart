@@ -582,12 +582,14 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         cancelText: "Save Recording",
         content: [
           Text(
+            textScaler: getAdaptiveTextScaler(context),
             "Save your recording?",
             style: CustomTypography().headlineMedium(),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
           Text(
+            textScaler: getAdaptiveTextScaler(context),
             "If you close without saving, this recording will be lost.",
             style: CustomTypography().bodyLarge(),
             textAlign: TextAlign.center,

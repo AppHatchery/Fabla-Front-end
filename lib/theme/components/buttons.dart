@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:flutter/material.dart';
 
 import '../custom_colors.dart';
@@ -314,6 +315,7 @@ class CustomFlatButton extends StatelessWidget {
                     horizontal: 10.0, vertical: 12.0),
                 child: Center(
                     child: Text(
+                  textScaler: getAdaptiveTextScaler(context),
                   text.toString(),
                   style: CustomTypography()
                       .button(
