@@ -499,12 +499,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       ));
     } else if (question.type == 'multiple') {
       final selected = question.answer != null
-          ? json
-          .decode(question.answer!)
-          .cast()
-          .toList()
-          .map<String>((element) => element.toString())
-          .toList()
+          ? _decodeMultipleAnswers(question.answer!)
           : <String>[];
       children.add(OnBoardingMultipleOption(
         subtitle: null,
@@ -546,6 +541,20 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       spacing: 12,
       children: children,
     );
+  }
+
+  List<String> _decodeMultipleAnswers(String source) {
+    try {
+      return (json.decode(source) as List<dynamic>)
+          .map((element) => element.toString())
+          .toList();
+    } on FormatException {
+      final value = source.trim();
+      if (!value.startsWith('[') || !value.endsWith(']')) return <String>[];
+      final contents = value.substring(1, value.length - 1).trim();
+      if (contents.isEmpty) return <String>[];
+      return contents.split(',').map((item) => item.trim()).toList();
+    }
   }
 
   void saveAnswer() {}

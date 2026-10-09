@@ -83,7 +83,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                                 SizedBox(
                                   height: 500,
                                   child: AvatarBackground(
-                                      height: height,
+                                      height: 500,
                                       width: width,
                                       image: "assets/images/active_time.png",
                                       avatarType: "animation",

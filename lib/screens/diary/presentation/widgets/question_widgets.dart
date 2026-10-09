@@ -165,25 +165,21 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
             ),
           ],
         ),
-        Row(
-          spacing: 40,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: Text(
-                textScaler: getAdaptiveTextScaler(context),
-                widget.scaleMinText ?? '',
-                textAlign: TextAlign.start,
-                style: CustomTypography().bodyLarge(color: widget.colorFont),
-              ),
+            Text(
+              textScaler: getAdaptiveTextScaler(context),
+              widget.scaleMinText ?? '',
+              textAlign: TextAlign.start,
+              style: CustomTypography().bodyLarge(color: widget.colorFont),
             ),
-            Expanded(
-              child: Text(
-                textScaler: getAdaptiveTextScaler(context),
-                widget.scaleMaxText ?? '',
-                textAlign: TextAlign.end,
-                style: CustomTypography().bodyLarge(color: widget.colorFont),
-              ),
+            const SizedBox(height: 8),
+            Text(
+              textScaler: getAdaptiveTextScaler(context),
+              widget.scaleMaxText ?? '',
+              textAlign: TextAlign.end,
+              style: CustomTypography().bodyLarge(color: widget.colorFont),
             ),
           ],
         )
@@ -316,7 +312,7 @@ class _RadioQuestionState extends State<RadioQuestion> {
         return Column(children: [
           Container(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 3.0),
+                  const EdgeInsets.symmetric(horizontal: 4.0, vertical: 3.0),
               decoration: BoxDecoration(
                   color:
                       widget.options[index] == widget.value && !widget.disabled
@@ -332,6 +328,7 @@ class _RadioQuestionState extends State<RadioQuestion> {
               child: Material(
                   color: Colors.transparent,
                   child: RadioListTile<String>(
+                    contentPadding: EdgeInsets.zero,
                     title: Text(
                       widget.options[index],
                       style: CustomTypography().button(

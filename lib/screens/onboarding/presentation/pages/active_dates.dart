@@ -146,7 +146,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                         height: constraint.maxHeight,
                         width: width,
                         child: AvatarBackground(
-                            height: height,
+                            height: constraint.maxHeight,
                             width: width,
                             image: "",
                             avatarType: "animation",

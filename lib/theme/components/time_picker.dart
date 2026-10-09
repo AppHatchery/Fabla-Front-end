@@ -50,7 +50,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
     final contentWidth =
         scaler.scale(width / 2) > (width / 2) ? width / 1.25 : width / 2;
     final contentExtent = scaler.scale(50).clamp(45.0, 75.0);
-    final wheelHeight = scaler.scale(200).clamp(200.0, 320.0);
+    final wheelHeight = (contentExtent * 3).clamp(200.0, 225.0);
     return SizedBox(
       width: width,
       child: Padding(
@@ -59,42 +59,39 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Expanded(flex: 1, child: SizedBox()),
                 Expanded(
-                    flex: 5,
-                    child: Text(
-                      widget.title,
-                      style: CustomTypography().titleLarge(),
-                      textAlign: TextAlign.center,
-                    )),
-                Expanded(
-                  flex: 1,
-                  child: Container(
-                      alignment: Alignment.centerRight,
-                      child: IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(
-                            Icons.close,
-                            color: CustomColors.textNormalContent,
-                          ))),
-                )
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        widget.title,
+                        style: CustomTypography().titleLarge(),
+                        textAlign: TextAlign.center,
+                      ),
+                      if (widget.subtitle != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          widget.subtitle!,
+                          style: CustomTypography().titleSmall(),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(
+                    Icons.close,
+                    color: CustomColors.textNormalContent,
+                  ),
+                ),
               ],
             ),
-            if (widget.subtitle != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 12.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Flexible(
-                        child: Text(
-                      widget.subtitle!,
-                      style: CustomTypography().titleSmall(),
-                    ))
-                  ],
-                ),
-              ),
             const SizedBox(
               height: 32,
             ),
@@ -115,11 +112,11 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                                 _date = _date.replacing(hour: value + 1);
                               }),
                               physics: const FixedExtentScrollPhysics(),
-                              perspective: 0.01,
-                              diameterRatio: 1,
+                              perspective: 0.003,
+                              diameterRatio: 2,
                               itemExtent: contentExtent,
-                              overAndUnderCenterOpacity: 0.3,
-                              squeeze: 1.2,
+                              overAndUnderCenterOpacity: 0.5,
+                              squeeze: 1,
                               childDelegate: ListWheelChildBuilderDelegate(
                                 builder: (context, index) {
                                   return Hours(hour: index + 1);
@@ -140,11 +137,11 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                                     minute: value * widget.minuteInterval);
                               }),
                               physics: const FixedExtentScrollPhysics(),
-                              perspective: 0.01,
-                              diameterRatio: 1,
+                              perspective: 0.003,
+                              diameterRatio: 2,
                               itemExtent: contentExtent,
-                              overAndUnderCenterOpacity: 0.3,
-                              squeeze: 1.2,
+                              overAndUnderCenterOpacity: 0.5,
+                              squeeze: 1,
                               childDelegate: ListWheelChildBuilderDelegate(
                                 builder: (context, index) {
                                   return Minutes(
@@ -160,11 +157,11 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                             child: ListWheelScrollView.useDelegate(
                               controller: periodController,
                               physics: const FixedExtentScrollPhysics(),
-                              perspective: 0.01,
-                              diameterRatio: 1,
+                              perspective: 0.003,
+                              diameterRatio: 2,
                               itemExtent: contentExtent,
-                              overAndUnderCenterOpacity: 0.3,
-                              squeeze: 1.2,
+                              overAndUnderCenterOpacity: 0.5,
+                              squeeze: 1,
                               childDelegate: ListWheelChildBuilderDelegate(
                                 builder: (context, index) {
                                   return Period(
@@ -257,7 +254,9 @@ class HoursAndMinutes extends StatelessWidget {
       child: FittedBox(
         fit: BoxFit.scaleDown,
         child: Text(
-          number % 1 == 0 ? number.toInt().toString() : number.toStringAsFixed(1),
+          number % 1 == 0
+              ? number.toInt().toString()
+              : number.toStringAsFixed(1),
           style: CustomTypography().titleSmall(),
         ),
       ),
@@ -316,8 +315,8 @@ class _CustomTimeElapsedPickerState extends State<CustomTimeElapsedPicker> {
   Widget build(BuildContext context) {
     final scaler = MediaQuery.of(context).textScaler;
     final width = MediaQuery.of(context).size.width;
-    final wheelHeight = scaler.scale(200).clamp(200.0, 320.0);
     final itemExtent = scaler.scale(50).clamp(45.0, 75.0);
+    final wheelHeight = (itemExtent * 3).clamp(200.0, 225.0);
     return SizedBox(
       width: width,
       child: Padding(
@@ -326,26 +325,24 @@ class _CustomTimeElapsedPickerState extends State<CustomTimeElapsedPicker> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Expanded(flex: 1, child: SizedBox()),
                 Expanded(
-                    flex: 5,
-                    child: Text(
-                      widget.title,
-                      style: CustomTypography().titleLarge(),
-                      textAlign: TextAlign.center,
-                    )),
-                Expanded(
-                  flex: 1,
-                  child: Container(
-                      alignment: Alignment.centerRight,
-                      child: IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(
-                            Icons.close,
-                            color: CustomColors.textNormalContent,
-                          ))),
-                )
+                  child: Text(
+                    widget.title,
+                    style: CustomTypography().titleLarge(),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(
+                    Icons.close,
+                    color: CustomColors.textNormalContent,
+                  ),
+                ),
               ],
             ),
             const SizedBox(
@@ -380,11 +377,11 @@ class _CustomTimeElapsedPickerState extends State<CustomTimeElapsedPicker> {
                                 });
                               },
                               physics: const FixedExtentScrollPhysics(),
-                              perspective: 0.01,
-                              diameterRatio: 1,
+                              perspective: 0.003,
+                              diameterRatio: 2,
                               itemExtent: itemExtent,
-                              overAndUnderCenterOpacity: 0.3,
-                              squeeze: 1.2,
+                              overAndUnderCenterOpacity: 0.5,
+                              squeeze: 1,
                               childDelegate: ListWheelChildBuilderDelegate(
                                 builder: (context, index) {
                                   return HoursAndMinutes(number: 0.5 * index);
@@ -624,10 +621,9 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Expanded(flex: 1, child: SizedBox()),
                 Expanded(
-                  flex: 5,
                   child: Text(
                     widget.title,
                     style: CustomTypography().titleLarge(),
@@ -636,18 +632,14 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Expanded(
-                  flex: 1,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(
-                        Icons.close,
-                        color: CustomColors.textNormalContent,
-                        size: closeIconSize,
-                      ),
-                    ),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(
+                    Icons.close,
+                    color: CustomColors.textNormalContent,
+                    size: closeIconSize,
                   ),
                 ),
               ],

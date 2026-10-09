@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/services/battery_service.dart';
@@ -263,22 +264,16 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
         ),
         child: Column(
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(CustomIcons.cancel,
-                    size: 20, color: CustomColors.warningActive),
-                const SizedBox(
-                  width: 10,
-                ),
-                Flexible(
-                  child: Text(
-                    "Oops! It looks like your phone is in battery-saving mode. This may affect your ability to receive diary notifications. To ensure the study runs smoothly, we recommend turning off battery-saving mode.",
-                    style: CustomTypography()
-                        .bodyLarge(color: CustomColors.warningActive),
-                  ),
-                )
-              ],
+            OnboardingIconText(
+              icon: const Icon(
+                CustomIcons.cancel,
+                size: 16,
+                color: CustomColors.warningActive,
+              ),
+              text:
+                  "Oops! It looks like your phone is in battery\u2011saving mode. This may affect your ability to receive diary notifications. To ensure the study runs smoothly, we recommend turning off battery\u2011saving mode.",
+              style: CustomTypography()
+                  .bodyLarge(color: CustomColors.warningActive),
             ),
             const SizedBox(height: 12),
             Row(

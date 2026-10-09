@@ -921,7 +921,6 @@ class _BottomTextModalState extends State<BottomTextModal>
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -947,12 +946,21 @@ class _BottomTextModalState extends State<BottomTextModal>
                     ),
                     // Text controls
                     responseField(),
-
-                    SizedBox(
-                        height: keyboardHeight > 0 ? keyboardHeight + 50 : 50),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
+            ),
+            AnimatedPadding(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.fromLTRB(
+                32,
+                16,
+                32,
+                MediaQuery.viewInsetsOf(context).bottom + 16,
+              ),
+              child: SafeArea(top: false, child: saveButton()),
             ),
           ],
         ),
@@ -1037,78 +1045,66 @@ class _BottomTextModalState extends State<BottomTextModal>
   Widget responseField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: TextField(
+        key: fieldKey,
+        focusNode: textFocusNode,
+        controller: textController,
+        maxLines: 5,
+        cursorColor: CustomColors.productNormal,
+        style: CustomTypography().bodyLarge(),
+        decoration: InputDecoration(
+          hintText: "Type your response here",
+          hintStyle: CustomTypography()
+              .bodyLarge(color: CustomColors.textSecondaryContent),
+          enabledBorder: OutlineInputBorder(
+              borderSide: const BorderSide(
+                  width: 1, color: CustomColors.productBorderNormal),
+              borderRadius: BorderRadius.circular(11)),
+          border: OutlineInputBorder(
+              borderSide: const BorderSide(
+                  width: 1, color: CustomColors.productBorderNormal),
+              borderRadius: BorderRadius.circular(11)),
+          contentPadding: const EdgeInsets.all(16),
+          fillColor: CustomColors.fillWhite,
+          filled: true,
+          focusColor: CustomColors.productBorderActive,
+          focusedBorder: OutlineInputBorder(
+            borderSide: const BorderSide(
+                width: 1, color: CustomColors.productBorderActive),
+            borderRadius: BorderRadius.circular(11),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget saveButton() {
+    return CustomOutlineButton(
+      onClick: () => {
+        if (!disabled)
+          {
+            widget.onSave?.call(textController.text),
+            Navigator.pop(context),
+          }
+      },
+      color: !disabled ? CustomColors.textWhite : CustomColors.fillDisabled,
+      backgroundColor:
+          !disabled ? CustomColors.productNormal : CustomColors.fillDisabled,
+      children: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          TextField(
-            key: fieldKey,
-            focusNode: textFocusNode,
-            controller: textController,
-            maxLines: 5,
-            cursorColor: CustomColors.productNormal,
-            style: CustomTypography().bodyLarge(),
-            decoration: InputDecoration(
-              hintText: "Type your response here",
-              hintStyle: CustomTypography()
-                  .bodyLarge(color: CustomColors.textSecondaryContent),
-              enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(
-                      width: 1, color: CustomColors.productBorderNormal),
-                  borderRadius: BorderRadius.circular(11)),
-              border: OutlineInputBorder(
-                  borderSide: const BorderSide(
-                      width: 1, color: CustomColors.productBorderNormal),
-                  borderRadius: BorderRadius.circular(11)),
-              contentPadding: const EdgeInsets.all(16),
-              fillColor: CustomColors.fillWhite,
-              filled: true,
-              focusColor: CustomColors.productBorderActive,
-              focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
-                    width: 1, color: CustomColors.productBorderActive),
-                borderRadius: BorderRadius.circular(11),
-              ),
+          Text(
+            "OK",
+            style: CustomTypography().button(
+              color: !disabled ? CustomColors.textWhite : CustomColors.greyDark,
             ),
           ),
-          const SizedBox(
-            height: 16,
+          const SizedBox(width: 8),
+          Icon(
+            CupertinoIcons.checkmark_alt,
+            color: !disabled ? CustomColors.textWhite : CustomColors.greyDark,
+            size: 20,
           ),
-          CustomOutlineButton(
-              onClick: () => {
-                    if (!disabled)
-                      {
-                        widget.onSave?.call(textController.text),
-                        Navigator.pop(context)
-                      }
-                  },
-              color: !disabled
-                  ? CustomColors.textWhite
-                  : CustomColors.fillDisabled,
-              backgroundColor: !disabled
-                  ? CustomColors.productNormal
-                  : CustomColors.fillDisabled,
-              children: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    "OK",
-                    style: CustomTypography().button(
-                        color: !disabled
-                            ? CustomColors.textWhite
-                            : CustomColors.greyDark),
-                  ),
-                  const SizedBox(
-                    width: 8,
-                  ),
-                  Icon(
-                    CupertinoIcons.checkmark_alt,
-                    color: !disabled
-                        ? CustomColors.textWhite
-                        : CustomColors.greyDark,
-                    size: 20,
-                  )
-                ],
-              ))
         ],
       ),
     );

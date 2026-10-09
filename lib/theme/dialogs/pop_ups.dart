@@ -1081,82 +1081,82 @@ class _RedoPopUpState extends State<RedoPopUp> {
 
   @override
   Widget build(BuildContext context) {
+    final largeText = MediaQuery.textScalerOf(context).scale(16.sp) > 24;
+    final dialogWidth = MediaQuery.sizeOf(context).width - 32;
+    final maxDialogHeight = MediaQuery.sizeOf(context).height - 48;
+
+    final cancelButton = CustomFlatButton(
+      key: const Key('redo_cancel_button'),
+      onClick: () => Navigator.pop(context, false),
+      text: "Cancel",
+      color: CustomColors.greyLight,
+      borderColor: CustomColors.greyLight,
+    );
+    final confirmButton = CustomFlatButton(
+      key: const Key('redo_confirm_button'),
+      onClick: () => Navigator.pop(context, true),
+      text: "Yes",
+      color: CustomColors.warningActive,
+      borderColor: CustomColors.warningActive,
+    );
+
     return SimpleDialog(
       contentPadding: const EdgeInsets.all(0),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
           side: const BorderSide(color: Colors.grey, width: 1)),
       surfaceTintColor: CustomColors.fillWhite,
       children: [
-        Container(
-          constraints: const BoxConstraints.tightFor(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Title
-              Text(
-                "Redo Your Answer?",
-                style: CustomTypography().headlineMedium(),
-              ),
-
-              const SizedBox(
-                height: 24,
-              ),
-
-              // Message
-              Text(
-                "This will erase your current answer. Would you still like to redo it?",
-                style: CustomTypography().bodyLarge(),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(
-                height: 24,
-              ),
-
-              //Checkbox
-              Container(
-                  alignment: Alignment.center,
-                  child: IntrinsicWidth(
-                    child: CustomCheckbox(
-                        value: _dontShowAgain,
-                        label: "Don't show me again",
-                        onChanged: (value) {
-                          setState(() {
-                            _dontShowAgain = value!;
-                          });
-                        }),
-                  )),
-
-              const SizedBox(
-                height: 24,
-              ),
-
-              // Buttons
-              Row(
+        SizedBox(
+          width: dialogWidth,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxDialogHeight),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, false),
-                      text: "Cancel",
-                      color: CustomColors.greyLight,
-                      borderColor: CustomColors.greyLight,
+                  Text(
+                    "Redo Your Answer?",
+                    style: CustomTypography().headlineMedium(),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    "This will erase your current answer. Would you still like to redo it?",
+                    style: CustomTypography().bodyLarge(),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: CustomCheckbox(
+                      value: _dontShowAgain,
+                      label: "Don't show me again",
+                      onChanged: (value) {
+                        setState(() {
+                          _dontShowAgain = value!;
+                        });
+                      },
                     ),
                   ),
-                  const SizedBox(
-                    width: 18,
-                  ),
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, true),
-                      text: "Yes",
-                      color: CustomColors.warningActive,
-                      borderColor: CustomColors.warningActive,
+                  const SizedBox(height: 24),
+                  if (largeText) ...[
+                    SizedBox(width: double.infinity, child: cancelButton),
+                    const SizedBox(height: 8),
+                    SizedBox(width: double.infinity, child: confirmButton),
+                  ] else
+                    Row(
+                      children: [
+                        Expanded(child: cancelButton),
+                        const SizedBox(width: 18),
+                        Expanded(child: confirmButton),
+                      ],
                     ),
-                  ),
                 ],
-              )
-            ],
+              ),
+            ),
           ),
         ),
       ],

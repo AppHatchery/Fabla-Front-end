@@ -2,6 +2,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/mic_tester.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -184,27 +185,19 @@ class _MicAccessPageState extends State<MicAccessPage>
                                           ),
                                           child: Column(
                                             children: [
-                                              Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  const Icon(CustomIcons.cancel,
-                                                      size: 20,
-                                                      color: CustomColors
-                                                          .warningActive),
-                                                  const SizedBox(
-                                                    width: 10,
-                                                  ),
-                                                  Flexible(
-                                                    child: Text(
-                                                      "Oops! You need to enable microphone access to use the recording diary.",
-                                                      style: CustomTypography()
-                                                          .bodyLarge(
-                                                              color: CustomColors
-                                                                  .warningActive),
-                                                    ),
-                                                  )
-                                                ],
+                                              OnboardingIconText(
+                                                icon: const Icon(
+                                                  CustomIcons.cancel,
+                                                  size: 16,
+                                                  color: CustomColors
+                                                      .warningActive,
+                                                ),
+                                                text:
+                                                    "Oops! You need to enable microphone access to use the recording diary.",
+                                                style: CustomTypography()
+                                                    .bodyLarge(
+                                                        color: CustomColors
+                                                            .warningActive),
                                               ),
                                               const SizedBox(height: 12),
                                               Row(
@@ -339,10 +332,7 @@ class _MicAccessPageState extends State<MicAccessPage>
       final tempDir = await getTemporaryDirectory();
       final path = '${tempDir.path}/flutter_sound.m4a';
       await recorder.startRecorder(
-          toFile: path,
-          codec: Codec.aacMP4,
-          sampleRate: 44100,
-          bitRate: 48000);
+          toFile: path, codec: Codec.aacMP4, sampleRate: 44100, bitRate: 48000);
     } catch (_) {
       return;
     }

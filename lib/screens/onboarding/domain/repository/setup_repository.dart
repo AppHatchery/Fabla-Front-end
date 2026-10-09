@@ -681,14 +681,19 @@ class SetupRepository {
       },
     );
 
-    final result =
-        await post(path: "/fabla/updateuserextras", body: map).then((value) {
-      if (value != null) {
-        final response = jsonDecode(value);
-        return response['status'] == 'success';
-      }
-      return false;
-    });
+    final value = await post(path: "/fabla/updateuserextras", body: map);
+    if (value == null) return false;
+
+    bool result = false;
+    try {
+      final response = jsonDecode(value);
+      result =
+          response is Map<String, dynamic> && response['status'] == 'success';
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: "Uploading onboarding answers returned an invalid response");
+      dev.log("Response JSON decode error: $e");
+    }
 
     if (result) {
       final res = await getStudies(partialCleanDB: partialCleanDB);

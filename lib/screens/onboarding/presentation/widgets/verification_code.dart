@@ -6,6 +6,7 @@ import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
+import 'confirm_tile.dart';
 
 class VerificationCodeTextField extends StatefulWidget {
   final String title;
@@ -163,22 +164,15 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
                   color: CustomColors.warningFill,
                   borderRadius: BorderRadius.circular(11),
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(CustomIcons.cancel,
-                        size: 20, color: CustomColors.warningActive),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Flexible(
-                      child: Text(
-                        widget.errorMessage,
-                        style: CustomTypography()
-                            .bodyLarge(color: CustomColors.warningActive),
-                      ),
-                    )
-                  ],
+                child: OnboardingIconText(
+                  icon: const Icon(
+                    CustomIcons.cancel,
+                    size: 16,
+                    color: CustomColors.warningActive,
+                  ),
+                  text: widget.errorMessage,
+                  style: CustomTypography()
+                      .bodyLarge(color: CustomColors.warningActive),
                 ),
               )
             : const SizedBox.shrink(),

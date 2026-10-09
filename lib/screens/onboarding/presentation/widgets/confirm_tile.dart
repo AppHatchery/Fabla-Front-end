@@ -27,21 +27,68 @@ class ConfrimTile extends StatelessWidget {
                 border: Border.all(
                     color: CustomColors.productBorderNormal, width: 2),
                 borderRadius: BorderRadius.circular(11)),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                icon != null
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 8.0), child: icon)
-                    : const SizedBox.shrink(),
-                Expanded(
-                  child: Text(
-                    info,
+            child: icon == null
+                ? Text(info, style: CustomTypography().bodyLarge())
+                : OnboardingIconText(
+                    icon: icon!,
+                    text: info,
                     style: CustomTypography().bodyLarge(),
-                  ),
-                )
-              ],
-            )),
+                  )),
+      ],
+    );
+  }
+}
+
+class OnboardingIconText extends StatelessWidget {
+  final Icon icon;
+  final String text;
+  final TextStyle style;
+  final double spacing;
+
+  const OnboardingIconText({
+    super.key,
+    required this.icon,
+    required this.text,
+    required this.style,
+    this.spacing = 8,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textScaler = MediaQuery.textScalerOf(context);
+    final baseIconSize = icon.size ?? IconTheme.of(context).size ?? 24;
+    final iconSize = textScaler.scale(baseIconSize);
+    final fontSize =
+        style.fontSize ?? DefaultTextStyle.of(context).style.fontSize;
+    final scaledLineHeight =
+        textScaler.scale(fontSize ?? 14) * (style.height ?? 1);
+    final iconTop = (scaledLineHeight > iconSize
+            ? (scaledLineHeight - iconSize) / 2
+            : 0.0) +
+        textScaler.scale(2);
+    final textTop =
+        iconSize > scaledLineHeight ? (iconSize - scaledLineHeight) / 2 : 0.0;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: iconSize,
+          child: Padding(
+            padding: EdgeInsets.only(top: iconTop),
+            child: SizedBox.square(
+              dimension: iconSize,
+              child: FittedBox(child: icon),
+            ),
+          ),
+        ),
+        SizedBox(width: spacing),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(top: textTop),
+            child: Text(text, style: style),
+          ),
+        ),
       ],
     );
   }

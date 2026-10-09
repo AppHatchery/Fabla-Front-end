@@ -98,10 +98,15 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Expanded(
-              child: Text(
-                "Participant Details",
-                style: CustomTypography()
-                    .titleLarge(color: CustomColors.textNormalContent),
+              child: FittedBox(
+                alignment: Alignment.centerLeft,
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  "Participant Details",
+                  maxLines: 1,
+                  style: CustomTypography()
+                      .titleLarge(color: CustomColors.textNormalContent),
+                ),
               ),
             ),
           ],
@@ -177,13 +182,12 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                                   ),
                                 ),
                               ),
-                              Flexible(
-                                child: Text(
-                                  dateJoined ?? "-",
-                                  style: CustomTypography().bodyMedium(
-                                      color:
-                                          CustomColors.textSecondaryContent),
-                                ),
+                              const SizedBox(width: 12),
+                              Text(
+                                dateJoined ?? "-",
+                                maxLines: 1,
+                                style: CustomTypography().bodyMedium(
+                                    color: CustomColors.textSecondaryContent),
                               ),
                             ],
                           )

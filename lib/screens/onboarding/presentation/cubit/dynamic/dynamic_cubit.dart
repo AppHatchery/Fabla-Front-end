@@ -75,6 +75,7 @@ class DynamicCubit extends Cubit<DynamicState> {
       CrashlyticsService().recordError(e, stackTrace,
           reason: "Error uploading Onboarding Answers");
       debugPrint("Error uploading Onboarding Answers: $e");
+      emit(DynamicError("Uh oh, looks like something went wrong!", length));
     }
   }
 }

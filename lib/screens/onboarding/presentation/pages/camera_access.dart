@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/camera_preview.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -142,27 +143,19 @@ class _CameraAccessState extends State<CameraAccess>
                                           ),
                                           child: Column(
                                             children: [
-                                              Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  const Icon(CustomIcons.cancel,
-                                                      size: 20,
-                                                      color: CustomColors
-                                                          .warningActive),
-                                                  const SizedBox(
-                                                    width: 10,
-                                                  ),
-                                                  Flexible(
-                                                    child: Text(
-                                                      "Oops! You need to enable camera access to participate in the study.",
-                                                      style: CustomTypography()
-                                                          .bodyLarge(
-                                                              color: CustomColors
-                                                                  .warningActive),
-                                                    ),
-                                                  )
-                                                ],
+                                              OnboardingIconText(
+                                                icon: const Icon(
+                                                  CustomIcons.cancel,
+                                                  size: 16,
+                                                  color: CustomColors
+                                                      .warningActive,
+                                                ),
+                                                text:
+                                                    "Oops! You need to enable camera access to participate in the study.",
+                                                style: CustomTypography()
+                                                    .bodyLarge(
+                                                        color: CustomColors
+                                                            .warningActive),
                                               ),
                                               const SizedBox(height: 12),
                                               Row(

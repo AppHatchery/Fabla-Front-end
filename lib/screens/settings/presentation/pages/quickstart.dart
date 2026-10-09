@@ -92,41 +92,60 @@ class QuickstartPage extends StatelessWidget {
                 side: const BorderSide(
                     color: CustomColors.productBorderNormal, width: 1)),
             color: Colors.white),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          spacing: 14,
-          children: [
-            SizedBox(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final details = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 3,
+              children: [
+                Text(
+                  title,
+                  style: CustomTypography().bodyLarge(
+                      color: CustomColors.textNormalContent,
+                      weight: FontWeight.w500),
+                ),
+                Text(
+                  description,
+                  style: CustomTypography()
+                      .bodyMedium(color: CustomColors.textTertiaryContent),
+                ),
+              ],
+            );
+            final image = SizedBox(
               width: 60,
               height: 60,
               child: Image.asset(imagePath),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 3,
-                children: [
-                  Text(
-                    title,
-                    style: CustomTypography().bodyLarge(
-                        color: CustomColors.textNormalContent,
-                        weight: FontWeight.w500),
-                  ),
-                  Text(
-                    description,
-                    style: CustomTypography()
-                        .bodyMedium(color: CustomColors.textTertiaryContent),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
+            );
+            const chevron = Icon(
               Icons.chevron_right_rounded,
               size: 24,
               color: CustomColors.midGrey,
-              applyTextScaling: true,
-            ),
-          ],
+            );
+
+            if (MediaQuery.textScalerOf(context).scale(1) >= 1.5) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [image, chevron],
+                  ),
+                  const SizedBox(height: 10),
+                  details,
+                ],
+              );
+            }
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              spacing: 14,
+              children: [
+                image,
+                Expanded(child: details),
+                chevron,
+              ],
+            );
+          },
         ),
       ),
     );
