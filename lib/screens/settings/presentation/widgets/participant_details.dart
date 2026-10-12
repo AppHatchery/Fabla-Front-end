@@ -139,12 +139,12 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                             ),
                           ),
                         ),
-                        Flexible(
-                          child: Text(
-                            participant!.studyCode,
-                            style: CustomTypography().bodyMedium(
-                                color: CustomColors.textSecondaryContent),
-                          ),
+                        const SizedBox(width: 12),
+                        Text(
+                          participant!.studyCode,
+                          maxLines: 1,
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textSecondaryContent),
                         ),
                       ],
                     ),

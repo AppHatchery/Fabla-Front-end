@@ -165,21 +165,25 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
             ),
           ],
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              textScaler: getAdaptiveTextScaler(context),
-              widget.scaleMinText ?? '',
-              textAlign: TextAlign.start,
-              style: CustomTypography().bodyLarge(color: widget.colorFont),
+            Expanded(
+              child: Text(
+                textScaler: getAdaptiveTextScaler(context),
+                widget.scaleMinText ?? '',
+                textAlign: TextAlign.start,
+                style: CustomTypography().bodyLarge(color: widget.colorFont),
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              textScaler: getAdaptiveTextScaler(context),
-              widget.scaleMaxText ?? '',
-              textAlign: TextAlign.end,
-              style: CustomTypography().bodyLarge(color: widget.colorFont),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                textScaler: getAdaptiveTextScaler(context),
+                widget.scaleMaxText ?? '',
+                textAlign: TextAlign.end,
+                style: CustomTypography().bodyLarge(color: widget.colorFont),
+              ),
             ),
           ],
         )

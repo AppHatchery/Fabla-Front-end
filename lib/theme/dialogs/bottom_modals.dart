@@ -932,37 +932,33 @@ class _BottomTextModalState extends State<BottomTextModal>
           borderRadius: BorderRadius.only(
               topLeft: Radius.circular(14), topRight: Radius.circular(14)),
         ),
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                controller: widget.scrollController,
-                child: Column(
-                  children: [
-                    questionAndHints(),
-
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    // Text controls
-                    responseField(),
-                    const SizedBox(height: 24),
-                  ],
+        child: AnimatedPadding(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: widget.scrollController,
+                  child: Column(
+                    children: [
+                      questionAndHints(),
+                      const SizedBox(height: 16),
+                      responseField(),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            AnimatedPadding(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-              padding: EdgeInsets.fromLTRB(
-                32,
-                16,
-                32,
-                MediaQuery.viewInsetsOf(context).bottom + 16,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
+                child: SafeArea(top: false, child: saveButton()),
               ),
-              child: SafeArea(top: false, child: saveButton()),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1049,7 +1045,9 @@ class _BottomTextModalState extends State<BottomTextModal>
         key: fieldKey,
         focusNode: textFocusNode,
         controller: textController,
+        minLines: 3,
         maxLines: 5,
+        scrollPadding: const EdgeInsets.only(bottom: 96),
         cursorColor: CustomColors.productNormal,
         style: CustomTypography().bodyLarge(),
         decoration: InputDecoration(

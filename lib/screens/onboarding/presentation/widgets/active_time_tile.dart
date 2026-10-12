@@ -35,7 +35,7 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
           color: widget.isEnabled
               ? CustomColors.fillWhite
@@ -44,30 +44,35 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
           border:
               Border.all(color: CustomColors.productBorderNormal, width: 2)),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                period,
-                style: CustomTypography().button(
-                    color: widget.isEnabled
-                        ? CustomColors.textNormalContent
-                        : CustomColors.textTertiaryContent),
-              ),
-              Text(
-                localizations.formatTimeOfDay(timeOfDay),
-                style: CustomTypography().bodyMedium(
-                    color: widget.isEnabled
-                        ? CustomColors.textNormalContent
-                        : CustomColors.textTertiaryContent),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  period,
+                  style: CustomTypography().button(
+                      color: widget.isEnabled
+                          ? CustomColors.textNormalContent
+                          : CustomColors.textTertiaryContent),
+                ),
+                Text(
+                  localizations.formatTimeOfDay(timeOfDay),
+                  style: CustomTypography().bodyMedium(
+                      color: widget.isEnabled
+                          ? CustomColors.textNormalContent
+                          : CustomColors.textTertiaryContent),
+                ),
+              ],
+            ),
           ),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
+                  constraints:
+                      const BoxConstraints.tightFor(width: 40, height: 48),
+                  padding: EdgeInsets.zero,
                   onPressed:
                       widget.isEnabled ? () => pickDate(timeOfDay) : null,
                   icon: Icon(
@@ -78,6 +83,9 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
                     size: 24,
                   )),
               IconButton(
+                  constraints:
+                      const BoxConstraints.tightFor(width: 40, height: 48),
+                  padding: EdgeInsets.zero,
                   onPressed: widget.isEnabled
                       ? () {
                           widget.delete();
