@@ -154,6 +154,10 @@ class SummaryRepository {
     await traceNetworkSnapshot(submissionHosts);
 
     DebugTrace.current?.step('connectivity');
+    if (DeveloperModeService().consumeSimulated(SimulatedFailure.noInternet)) {
+      DebugTrace.current?.fail('No internet connection (simulated)');
+      return null;
+    }
     final hasInternet = await checkForInternet();
     if (!hasInternet) {
       DebugTrace.current?.fail('No internet connection');

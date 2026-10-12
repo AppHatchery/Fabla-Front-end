@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
 import 'dart:async';
 
 import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
@@ -83,6 +84,30 @@ void main() {
         expect(service.simulatedFailure.value, SimulatedFailure.none);
         expect(() => service.throwIfSimulated(SimulatedFailure.beforeUpload),
             returnsNormally);
+      });
+
+      test('consumeSimulated reports and disarms without throwing', () async {
+        await service.enable();
+        service.simulateNextFailure(SimulatedFailure.noInternet);
+
+        expect(service.consumeSimulated(SimulatedFailure.s3Upload), isFalse);
+        expect(service.consumeSimulated(SimulatedFailure.noInternet), isTrue);
+        expect(service.consumeSimulated(SimulatedFailure.noInternet), isFalse);
+      });
+
+      test('marks the current trace as simulated', () async {
+        await service.enable();
+        service.simulateNextFailure(SimulatedFailure.noInternet);
+        final trace = DebugTrace('diary_submission');
+
+        await trace.run(
+            () async => service.consumeSimulated(SimulatedFailure.noInternet));
+
+        expect(DeveloperModeService.isSimulated(trace), isTrue);
+        expect(trace.context[DeveloperModeService.simulatedContextKey],
+            'No internet');
+        expect(DeveloperModeService.isSimulated(DebugTrace('other')), isFalse);
+        expect(DeveloperModeService.isSimulated(null), isFalse);
       });
 
       test('turning developer mode off disarms it', () async {

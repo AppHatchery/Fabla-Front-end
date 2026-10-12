@@ -2,8 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/diagnostics/debug_trace.dart';
+import '../../../../services/developer_mode_service.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
+
+/// A [SubmissionDebugPanel] for [trace], shown only while developer mode is
+/// on. Participants, and submissions without a trace, see nothing.
+class DeveloperModeDebugPanel extends StatelessWidget {
+  final DebugTrace? trace;
+  final EdgeInsetsGeometry padding;
+
+  const DeveloperModeDebugPanel({
+    super.key,
+    required this.trace,
+    this.padding = const EdgeInsets.only(top: 24),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final trace = this.trace;
+    if (trace == null) return const SizedBox.shrink();
+    return ValueListenableBuilder<bool>(
+      valueListenable: DeveloperModeService().enabled,
+      builder: (context, isEnabled, _) => Visibility(
+        visible: isEnabled,
+        child: Padding(
+          padding: padding,
+          child: SubmissionDebugPanel(trace: trace),
+        ),
+      ),
+    );
+  }
+}
 
 /// Developer mode panel shown on the submission error page: what failed,
 /// where, why, and the full submission timeline, with a copy button for bug

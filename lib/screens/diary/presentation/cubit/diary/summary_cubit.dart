@@ -145,7 +145,7 @@ class SummaryCubit extends Cubit<SummaryState> {
       if (result == null) {
         // Save network error state
         saveNetworkError();
-        emit(const SubmitNoInternet());
+        emit(SubmitNoInternet(trace: trace));
         return;
       }
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/diagnostics/debug_trace.dart';
 import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../main.dart';
-import '../../../../services/developer_mode_service.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
@@ -78,20 +77,7 @@ class _SubmitErrorPageState extends State<SubmitErrorPage> {
                                             CustomColors.productNormal,
                                         color: CustomColors.productNormal),
                                   )),
-                              if (widget.trace != null)
-                                ValueListenableBuilder<bool>(
-                                  valueListenable:
-                                      DeveloperModeService().enabled,
-                                  builder: (context, isEnabled, _) =>
-                                      Visibility(
-                                    visible: isEnabled,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(top: 24),
-                                      child: SubmissionDebugPanel(
-                                          trace: widget.trace!),
-                                    ),
-                                  ),
-                                ),
+                              DeveloperModeDebugPanel(trace: widget.trace),
                             ],
                           ),
                         ),

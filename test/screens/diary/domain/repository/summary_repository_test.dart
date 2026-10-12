@@ -1,13 +1,16 @@
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/answer_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../dummy_data.dart';
 
@@ -95,6 +98,33 @@ void main() {
 
       expect(result, isFalse);
       verify(() => setupRepository.getParticipant()).called(1);
+    });
+  });
+
+  group('submitDiary simulated no internet', () {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      await DeveloperModeService().enable();
+      when(() => diaryRepository.getDiaryByID(any()))
+          .thenReturn(createTestDiaryModel(currentEntry: 0));
+    });
+
+    tearDown(() => DeveloperModeService().disable());
+
+    test('returns null before anything is sent, once', () async {
+      DeveloperModeService().simulateNextFailure(SimulatedFailure.noInternet);
+      final trace = DebugTrace('diary_submission');
+
+      final result = await trace.run(() => repository
+          .submitDiary(createTestDiaryModel(id: 21, currentEntry: 0)));
+
+      expect(result, isNull);
+      verifyNever(() => setupRepository.getParticipant());
+      expect(trace.rootFailure!.step, 'connectivity');
+      expect(trace.rootFailure!.message, 'No internet connection (simulated)');
+      expect(DeveloperModeService.isSimulated(trace), isTrue);
+      expect(
+          DeveloperModeService().simulatedFailure.value, SimulatedFailure.none);
     });
   });
 

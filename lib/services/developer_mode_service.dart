@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../core/diagnostics/debug_trace.dart';
 import 'preference_service.dart';
 
 /// Points in the submission flow where developer mode can force a failure.
 enum SimulatedFailure {
   none('Off', 'Submissions run normally'),
+  noInternet(
+      'No internet', 'Acts as if offline: the diary is saved to submit later'),
   beforeUpload('Before upload', 'Throws after the upload is prepared'),
   presignedUrl('Presigned URL',
       'Fails getting a file upload URL (diaries with recordings)'),
@@ -85,11 +88,28 @@ class DeveloperModeService {
   /// Throws [SimulatedSubmissionFailure] if a failure is armed at [point],
   /// then disarms it. A no-op unless developer mode is on.
   void throwIfSimulated(SimulatedFailure point) {
-    if (!isEnabled || simulatedFailure.value != point) return;
+    if (consumeSimulated(point)) throw SimulatedSubmissionFailure(point);
+  }
+
+  /// Whether a failure is armed at [point], disarming it if so. For failures
+  /// that are a result rather than an exception, like no internet. Marks the
+  /// current [DebugTrace] as simulated (see [isSimulated]). A no-op unless
+  /// developer mode is on.
+  bool consumeSimulated(SimulatedFailure point) {
+    if (!isEnabled || simulatedFailure.value != point) return false;
     simulatedFailure.value = SimulatedFailure.none;
     (Zone.current[_simulationScopeKey] as _SimulationScope?)?.fired = true;
-    throw SimulatedSubmissionFailure(point);
+    DebugTrace.current?.context[simulatedContextKey] = point.label;
+    return true;
   }
+
+  /// [DebugTrace.context] entry naming the simulated failure, if one fired.
+  static const String simulatedContextKey = 'Simulated failure';
+
+  /// Whether [trace] ended in a simulated failure, so its reporting can be
+  /// skipped outside the submission's zone (e.g. Pendo events in the UI).
+  static bool isSimulated(DebugTrace? trace) =>
+      trace?.context.containsKey(simulatedContextKey) ?? false;
 
   /// Runs one submission. If a failure is armed, [body] runs in a scope so
   /// that, once the simulated failure fires, the rest of the submission's

@@ -365,6 +365,25 @@ void main() {
           expect(root.stackTrace, isNotNull);
         },
       );
+
+      blocTest<SummaryCubit, SummaryState>(
+        'SubmitNoInternet carries the trace with the connectivity failure',
+        setUp: () {
+          when(() => mockSummaryRepository.submitDiary(any()))
+              .thenAnswer((_) async {
+            DebugTrace.current
+                ?.fail('No internet connection', step: 'connectivity');
+            return null;
+          });
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) => cubit.submitDiary(testDiary),
+        verify: (cubit) {
+          final trace = (cubit.state as SubmitNoInternet).trace!;
+          expect(trace.rootFailure!.step, 'connectivity');
+          expect(trace.rootFailure!.message, 'No internet connection');
+        },
+      );
     });
 
     group('updateDiaryCompletion', () {

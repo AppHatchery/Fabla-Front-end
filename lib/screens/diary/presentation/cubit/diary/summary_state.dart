@@ -43,5 +43,8 @@ final class SubmitError extends SummaryState {
 }
 
 final class SubmitNoInternet extends SummaryState {
-  const SubmitNoInternet();
+  /// The trace of the submission that found no connection, for the developer
+  /// mode debug panel. Left out of [props], like [SubmitError.trace].
+  final DebugTrace? trace;
+  const SubmitNoInternet({this.trace});
 }
