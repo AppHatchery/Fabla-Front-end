@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
+import 'package:audio_diaries_flutter/core/diagnostics/trace_watchers.dart';
 import 'package:audio_diaries_flutter/core/utils/device_appInfo.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
@@ -139,8 +140,8 @@ class SummaryCubit extends Cubit<SummaryState> {
       emit(const SubmitLoading());
       trace.context.addAll(await _submissionContext(diary));
       // Updated to use injected repository instance
-      final result =
-          await trace.run(() => _summaryRepository.submitDiary(diary));
+      final result = await trace.run(() => watchDuring(
+          trace, () => _summaryRepository.submitDiary(diary)));
       if (result == null) {
         // Save network error state
         saveNetworkError();

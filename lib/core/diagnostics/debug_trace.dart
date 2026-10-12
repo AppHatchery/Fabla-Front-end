@@ -7,6 +7,10 @@ class TraceEvent {
   final String? message;
   final Map<String, String> data;
   final bool isFailure;
+
+  /// Recorded with [DebugTrace.note]: context within a step (an HTTP
+  /// attempt, a lifecycle change) rather than the start of one.
+  final bool isNote;
   final Object? error;
   final StackTrace? stackTrace;
 
@@ -16,6 +20,7 @@ class TraceEvent {
     this.message,
     this.data = const {},
     this.isFailure = false,
+    this.isNote = false,
     this.error,
     this.stackTrace,
   });
@@ -90,6 +95,18 @@ class DebugTrace {
     ));
   }
 
+  /// Records context within the current step without changing [currentStep],
+  /// so later failures are still attributed to the step that was running.
+  void note(String message, {Map<String, String>? data}) {
+    _events.add(TraceEvent(
+      time: DateTime.now(),
+      step: _currentStep,
+      message: message,
+      data: {...?data},
+      isNote: true,
+    ));
+  }
+
   /// Records a failure at [step] (defaults to [currentStep]).
   void fail(
     String reason, {
@@ -143,9 +160,13 @@ class DebugTrace {
       ..writeln('Timeline:');
     for (final event in _events) {
       final offset = event.time.difference(startedAt).inMilliseconds;
-      buffer.write('  +${offset}ms ${event.isFailure ? 'FAIL' : 'step'} '
-          '${event.step}');
-      if (event.message != null) buffer.write(' — ${event.message}');
+      if (event.isNote) {
+        buffer.write('  +${offset}ms   · ${event.message}');
+      } else {
+        buffer.write('  +${offset}ms ${event.isFailure ? 'FAIL' : 'step'} '
+            '${event.step}');
+        if (event.message != null) buffer.write(' — ${event.message}');
+      }
       buffer.writeln();
       event.data.forEach((k, v) => buffer.writeln('      $k: $v'));
     }

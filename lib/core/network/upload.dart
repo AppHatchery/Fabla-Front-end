@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
+import 'package:audio_diaries_flutter/core/diagnostics/network_diagnostics.dart';
+import 'package:audio_diaries_flutter/core/network/request.dart' show base;
 import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
     as http_client_factory;
 import 'package:audio_diaries_flutter/core/network/retry_policy.dart';
@@ -611,6 +613,20 @@ Future<bool> uploadFileToS3(
   }
 }
 
+/// The hosts a submission talks to before any file is uploaded: the backend
+/// and the endpoints from the stored credentials. Never refreshes credentials.
+Future<List<String?>> submissionHosts({SecureSave? secureSave}) async {
+  CredentialsModel? cred;
+  try {
+    cred = await (secureSave ?? SecureSave()).read();
+  } catch (_) {}
+  return [
+    base(),
+    Uri.tryParse(cred?.dynamoUrl ?? '')?.host,
+    Uri.tryParse(cred?.presignedUrl ?? '')?.host,
+  ];
+}
+
 /// Human-readable size of the file at [path], for debug traces.
 String _fileSize(String path) {
   try {
@@ -665,6 +681,11 @@ Future<bool> uploadFiles(List<FileData> files) async {
     var presignedUrl = await getPresignedUrl(apiUrl, file.awsS3Directory,
         secureSave: secureStorage);
     if (presignedUrl != null) {
+      // The storage host is only known once the first URL is issued.
+      if (index == 0) {
+        await traceHostProbe(Uri.tryParse(presignedUrl)?.host ?? '',
+            step: 'network_storage');
+      }
       DebugTrace.current?.step('s3_upload', data: {
         'file': '${index + 1}/${files.length}',
         'size': _fileSize(file.localDirectory),

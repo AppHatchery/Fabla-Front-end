@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
 import 'package:audio_diaries_flutter/core/network/http_client_factory.dart';
+import 'package:audio_diaries_flutter/core/network/request.dart' show base;
 import 'package:audio_diaries_flutter/core/network/retry_policy.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/network/secrets_handler.dart';
@@ -740,6 +741,27 @@ void main() {
         expect(url, isNull);
         expect(trace.rootFailure!.step, 'presigned_url');
       });
+    });
+  });
+
+  group('submissionHosts', () {
+    test('lists the backend and the credential endpoint hosts', () async {
+      when(() => mockSecureSave.read()).thenAnswer((_) async =>
+          createTestCredentials(
+              dynamoUrl: 'https://dynamo.example.com/prod/items',
+              presignedUrl: 'https://presign.example.com/prod/url'));
+
+      final hosts = await submissionHosts(secureSave: mockSecureSave);
+
+      expect(hosts, [base(), 'dynamo.example.com', 'presign.example.com']);
+    });
+
+    test('still lists the backend when credentials are missing', () async {
+      when(() => mockSecureSave.read()).thenAnswer((_) async => null);
+
+      final hosts = await submissionHosts(secureSave: mockSecureSave);
+
+      expect(hosts.whereType<String>().where((h) => h.isNotEmpty), [base()]);
     });
   });
 }

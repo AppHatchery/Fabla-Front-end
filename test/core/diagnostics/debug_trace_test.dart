@@ -91,5 +91,18 @@ void main() {
       expect(trace.hasFailed, isFalse);
       expect(trace.toReport(), isNot(contains('FAILED')));
     });
+
+    test('note adds context without changing the current step', () {
+      final trace = DebugTrace('op')
+        ..step('upload_files')
+        ..note('PUT s3 → 200', data: {'sent': '1.2 MB'})
+        ..fail('Rejected');
+
+      expect(trace.currentStep, 'upload_files');
+      expect(trace.rootFailure!.step, 'upload_files');
+      final report = trace.toReport();
+      expect(report, contains('· PUT s3 → 200'));
+      expect(report, contains('sent: 1.2 MB'));
+    });
   });
 }

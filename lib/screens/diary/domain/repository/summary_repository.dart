@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
+import 'package:audio_diaries_flutter/core/diagnostics/network_diagnostics.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/usecases/connectivity.dart';
 import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart';
@@ -12,6 +13,8 @@ import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'dart:developer' as dev;
+
+import 'package:flutter/foundation.dart' show kDebugMode;
 
 import '../../../../core/usecases/notifications.dart';
 import '../../../../core/utils/statuses.dart';
@@ -148,12 +151,19 @@ class SummaryRepository {
       return true;
     }
 
+    await traceNetworkSnapshot(submissionHosts);
+
     DebugTrace.current?.step('connectivity');
     final hasInternet = await checkForInternet();
     if (!hasInternet) {
       DebugTrace.current?.fail('No internet connection');
       return null;
     }
+    DebugTrace.current
+        ?.step('connectivity', message: 'Internet check passed', data: {
+      // checkForInternet always passes in debug builds.
+      if (kDebugMode) 'note': 'check skipped in debug builds',
+    });
 
     DebugTrace.current?.step('participant');
     final participant = setupRepository.getParticipant();
