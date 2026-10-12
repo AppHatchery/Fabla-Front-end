@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
 import 'package:audio_diaries_flutter/core/usecases/diary.dart' show diaryEnd;
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
@@ -151,7 +152,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                               state is SubmitNoInternet
                           ? submitLoading()
                           : state is SubmitError
-                              ? submitError()
+                              ? submitError(state.trace)
                               : initial(),
         );
       },
@@ -183,8 +184,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     return const SubmitLoadingPage();
   }
 
-  Widget submitError() {
-    return const SubmitErrorPage();
+  Widget submitError(DebugTrace? trace) {
+    return SubmitErrorPage(trace: trace);
   }
 
   track(int spent, String status) async {

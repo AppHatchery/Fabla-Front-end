@@ -36,7 +36,10 @@ final class SubmitLoading extends SummaryState {
 }
 
 final class SubmitError extends SummaryState {
-  const SubmitError();
+  /// What happened during the failed submission, for the developer mode debug
+  /// panel. Left out of [props]: two failures are the same state to the UI.
+  final DebugTrace? trace;
+  const SubmitError({this.trace});
 }
 
 final class SubmitNoInternet extends SummaryState {

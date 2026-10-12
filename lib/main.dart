@@ -26,6 +26,7 @@ import 'package:audio_diaries_flutter/screens/settings/presentation/cubit/settin
 import 'package:audio_diaries_flutter/screens/settings/presentation/pages/settings.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/quickstart_modal.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -84,6 +85,7 @@ void main() async {
     NotificationService.init(),
     PendoService.init(),
     _configureFirebase(),
+    DeveloperModeService().load(),
   ]);
 
   // RouteService reads ObjectBox (via SetupRepository), so it must run after

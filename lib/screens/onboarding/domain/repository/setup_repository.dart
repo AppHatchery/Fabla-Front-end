@@ -26,6 +26,7 @@ import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -793,6 +794,8 @@ class SetupRepository {
         await PreferenceService()
             .setBoolPreference(key: 'has_seen_quickstart', value: true);
       }
+      // Preferences are cleared above; also reset the in-memory flag.
+      await DeveloperModeService().disable();
       // Clear home progress tracking
       await clearAllHomeProgressTracking();
 

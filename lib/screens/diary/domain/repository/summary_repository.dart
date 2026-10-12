@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/usecases/connectivity.dart';
 import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart';
@@ -8,6 +9,7 @@ import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'dart:developer' as dev;
 
@@ -137,6 +139,8 @@ class SummaryRepository {
     // Before the connectivity check: an already-recorded entry is done even
     // offline.
     if (_alreadyRecorded(diary)) {
+      DebugTrace.current?.step('already_recorded',
+          message: 'Entry already recorded, skipping upload');
       dev.log(
           "Entry ${diary.currentEntry} of diary ${diary.id} is already "
           "recorded — skipping re-upload",
@@ -144,11 +148,17 @@ class SummaryRepository {
       return true;
     }
 
+    DebugTrace.current?.step('connectivity');
     final hasInternet = await checkForInternet();
-    if (!hasInternet) return null;
+    if (!hasInternet) {
+      DebugTrace.current?.fail('No internet connection');
+      return null;
+    }
 
+    DebugTrace.current?.step('participant');
     final participant = setupRepository.getParticipant();
     if (participant == null) {
+      DebugTrace.current?.fail('No participant on record');
       // Reported: without a participant no diary can be submitted.
       dev.log("No participant on record — cannot submit diary ${diary.id}",
           name: "SummaryRepository - submitDiary");
@@ -166,8 +176,9 @@ class SummaryRepository {
     // Join an upload already running for this diary. No deadline: iOS
     // suspension would fire it for a diary that then records. The block body
     // matters: `remove` returns this future, and whenComplete would await it.
-    return _inFlight[diary.id] ??=
-        _uploadAndRecord(participant.studyCode, diary).whenComplete(() {
+    return _inFlight[diary.id] ??= DeveloperModeService()
+        .runSubmission(() => _uploadAndRecord(participant.studyCode, diary))
+        .whenComplete(() {
       _inFlight.remove(diary.id);
     });
   }
@@ -190,6 +201,7 @@ class SummaryRepository {
       final uploaded = await _upload(participantID, diary);
 
       if (uploaded) {
+        DebugTrace.current?.step('record_locally');
         final study = await diaryRepository.getStudy(diary.studyID);
         late DiaryModel newDiary;
 
@@ -237,6 +249,8 @@ class SummaryRepository {
         return false;
       }
     } catch (e, stackTrace) {
+      DebugTrace.current?.fail('Unexpected exception during submission',
+          error: e, stackTrace: stackTrace);
       dev.log("Error submitting diary: $e",
           name: "SummaryRepository - submitDiary");
       CrashlyticsService().recordError(e, stackTrace,

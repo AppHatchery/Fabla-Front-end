@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
@@ -237,6 +238,7 @@ class CrashlyticsService {
   ///
   Future<void> log(String message) async {
     if (!_ensureInitialized()) return;
+    if (DeveloperModeService.shouldSuppressReporting()) return;
     try {
       await _crashlytics!.log('${DateTime.now().toIso8601String()}: $message');
     } catch (e) {
@@ -307,6 +309,7 @@ class CrashlyticsService {
     String? reason,
   }) async {
     if (!_ensureInitialized()) return;
+    if (DeveloperModeService.shouldSuppressReporting(error)) return;
     try {
       // Add context before recording error
       if (context != null) {

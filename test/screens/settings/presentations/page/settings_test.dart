@@ -23,6 +23,7 @@ import 'package:audio_diaries_flutter/screens/settings/presentation/pages/settin
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/participant_details.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/settings_active_reminders.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/study_details.dart';
+import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -344,5 +345,78 @@ void main() {
     expect(find.byType(ActiveReminders), findsOneWidget);
     expect(find.text('+ Add Reminder'), findsOneWidget);
     expect(find.text('No Scheduled Reminder Time'), findsOneWidget);
+  });
+
+  testWidgets('Developer mode section is hidden by default', (tester) async {
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('developer_mode_tap_target')), findsOneWidget);
+    expect(find.text('Developer mode'), findsNothing);
+    expect(find.byKey(const Key('developer_mode_switch')), findsNothing);
+  });
+
+  testWidgets('Developer mode section shows when enabled and can be turned off',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(
+        {DeveloperModeService.preferenceKey: true});
+
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Developer mode'), findsOneWidget);
+
+    await tester.ensureVisible(find.byKey(const Key('developer_mode_switch')));
+    await tester.tap(find.byKey(const Key('developer_mode_switch')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Developer mode'), findsNothing);
+    expect(DeveloperModeService().isEnabled, isFalse);
+  });
+
+  testWidgets('Tapping the footer 10 times enables developer mode',
+      (tester) async {
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    final footer = find.byKey(const Key('developer_mode_tap_target'));
+    await tester.ensureVisible(footer);
+    for (var i = 0; i < DeveloperModeService.requiredTaps; i++) {
+      await tester.tap(footer);
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+
+    expect(DeveloperModeService().isEnabled, isTrue);
+    expect(find.text('Developer mode'), findsOneWidget);
+  });
+
+  testWidgets('Simulate submission failure arms the chosen failure point',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(
+        {DeveloperModeService.preferenceKey: true});
+    DeveloperModeService().simulatedFailure.value = SimulatedFailure.none;
+
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    final tile = find.byKey(const Key('simulate_failure_tile'));
+    await tester.ensureVisible(tile);
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('simulate_failure_responseUpload')));
+    await tester.pumpAndSettle();
+
+    expect(DeveloperModeService().simulatedFailure.value,
+        SimulatedFailure.responseUpload);
+    expect(find.text('Next submission fails at: Response upload'),
+        findsOneWidget);
+
+    await DeveloperModeService().disable();
   });
 }
