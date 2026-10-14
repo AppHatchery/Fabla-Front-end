@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
     show CrashlyticsService;
+import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:pendo_sdk/pendo_sdk.dart';
 import 'dart:developer' as dev;
@@ -140,6 +141,7 @@ class PendoService {
   /// Returns:
   ///   - A Future<void> representing the asynchronous event tracking process.
   static Future<void> track(String event, Map<String, dynamic>? data) async {
+    if (DeveloperModeService.shouldSuppressReporting()) return;
     try {
       await _plugin.track(event, data);
     } catch (e, stackTrace) {

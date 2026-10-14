@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
 import 'package:audio_diaries_flutter/core/usecases/diary.dart' show diaryEnd;
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
@@ -15,6 +16,7 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/circle_
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/submit_error.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/submit_loading.dart';
+import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:flutter/material.dart';
@@ -151,7 +153,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                               state is SubmitNoInternet
                           ? submitLoading()
                           : state is SubmitError
-                              ? submitError()
+                              ? submitError(state.trace)
                               : initial(),
         );
       },
@@ -168,9 +170,13 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           // If the user reaches the submission page for the first time add to the completion list
           summaryCubit.updateDiaryCompletion(widget.diary);
         } else if (state is SubmitNoInternet) {
-          track(timer.stop(), "Submission Failed");
+          final spent = timer.stop();
+          if (!DeveloperModeService.isSimulated(state.trace)) {
+            track(spent, "Submission Failed");
+          }
           Navigator.of(context)
-              .pushReplacement(_completionRoute(submissionFailed: true))
+              .pushReplacement(
+                  _completionRoute(submissionFailed: true, trace: state.trace))
               .then((_) {
             summaryCubit.loadSummary(widget.diary);
           });
@@ -183,8 +189,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     return const SubmitLoadingPage();
   }
 
-  Widget submitError() {
-    return const SubmitErrorPage();
+  Widget submitError(DebugTrace? trace) {
+    return SubmitErrorPage(trace: trace);
   }
 
   track(int spent, String status) async {
@@ -195,11 +201,12 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
     });
   }
 
-  Route _completionRoute({bool? submissionFailed}) {
+  Route _completionRoute({bool? submissionFailed, DebugTrace? trace}) {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>
           DiaryCompletionPage(
         submissionFailed: submissionFailed,
+        trace: trace,
       ),
       transitionDuration: const Duration(milliseconds: 1200),
       reverseTransitionDuration: const Duration(milliseconds: 1200),

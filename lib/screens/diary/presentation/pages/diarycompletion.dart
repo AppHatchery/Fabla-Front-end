@@ -1,4 +1,6 @@
+import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
 import 'package:audio_diaries_flutter/main.dart';
+import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/submission_debug_panel.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/ghost_widget.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart'
     show FailedSubmissionCard;
@@ -13,7 +15,11 @@ import '../../../../theme/custom_typography.dart';
 /// The button leads to the home page
 class DiaryCompletionPage extends StatefulWidget {
   final bool? submissionFailed;
-  const DiaryCompletionPage({super.key, this.submissionFailed});
+
+  /// The failed submission's trace, shown in developer mode.
+  final DebugTrace? trace;
+
+  const DiaryCompletionPage({super.key, this.submissionFailed, this.trace});
 
   @override
   State<DiaryCompletionPage> createState() => _DiaryCompletionPageState();
@@ -111,6 +117,9 @@ class _DiaryCompletionPageState extends State<DiaryCompletionPage>
                                     style: CustomTypography().bodyLarge(),
                                     textAlign: TextAlign.center,
                                   ),
+                                  if (widget.submissionFailed == true)
+                                    DeveloperModeDebugPanel(
+                                        trace: widget.trace),
                                   const SizedBox(
                                     height: 60,
                                   ),

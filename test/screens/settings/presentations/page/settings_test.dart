@@ -8,6 +8,8 @@
 // so the mock store has to satisfy the participant query chain or `pumpAndSettle`
 // would time out on the spinner. SharedPreferences / PackageInfo / permission
 // channels are mocked for the same reason (deterministic, no plugin exceptions).
+import 'package:audio_diaries_flutter/screens/settings/presentation/pages/failed_submissions.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/pages/network_sweep_page.dart';
 import 'package:audio_diaries_flutter/core/database/object_box.dart';
 import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/main.dart' as app;
@@ -23,6 +25,7 @@ import 'package:audio_diaries_flutter/screens/settings/presentation/pages/settin
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/participant_details.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/settings_active_reminders.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/study_details.dart';
+import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -344,5 +347,149 @@ void main() {
     expect(find.byType(ActiveReminders), findsOneWidget);
     expect(find.text('+ Add Reminder'), findsOneWidget);
     expect(find.text('No Scheduled Reminder Time'), findsOneWidget);
+  });
+
+  testWidgets('Developer mode section is hidden by default', (tester) async {
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('developer_mode_tap_target')), findsOneWidget);
+    expect(find.text('Developer mode'), findsNothing);
+    expect(find.byKey(const Key('developer_mode_switch')), findsNothing);
+  });
+
+  testWidgets('Developer mode section shows when enabled and can be turned off',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(
+        {DeveloperModeService.preferenceKey: true});
+
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Developer mode'), findsOneWidget);
+
+    await tester.ensureVisible(find.byKey(const Key('developer_mode_switch')));
+    await tester.tap(find.byKey(const Key('developer_mode_switch')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Developer mode'), findsNothing);
+    expect(DeveloperModeService().isEnabled, isFalse);
+  });
+
+  testWidgets('Tapping the footer 10 times enables developer mode',
+      (tester) async {
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    final footer = find.byKey(const Key('developer_mode_tap_target'));
+    await tester.ensureVisible(footer);
+    for (var i = 0; i < DeveloperModeService.requiredTaps; i++) {
+      await tester.tap(footer);
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+
+    expect(DeveloperModeService().isEnabled, isTrue);
+    expect(find.text('Developer mode'), findsOneWidget);
+  });
+
+  testWidgets('Simulate submission failure arms the chosen failure point',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(
+        {DeveloperModeService.preferenceKey: true});
+    DeveloperModeService().simulatedFailure.value = SimulatedFailure.none;
+
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    final tile = find.byKey(const Key('simulate_failure_tile'));
+    await tester.ensureVisible(tile);
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('simulate_failure_responseUpload')));
+    await tester.pumpAndSettle();
+
+    expect(DeveloperModeService().simulatedFailure.value,
+        SimulatedFailure.responseUpload);
+    expect(
+        find.text('Next submission fails at: Response upload'), findsOneWidget);
+
+    await DeveloperModeService().disable();
+  });
+
+  testWidgets('Skip connectivity check switch warns before turning on',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(
+        {DeveloperModeService.preferenceKey: true});
+
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    final toggle = find.byKey(const Key('skip_connectivity_switch'));
+    await tester.ensureVisible(toggle);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+
+    // Cancelling the warning leaves the check on.
+    expect(find.text('Skip connectivity check?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(DeveloperModeService().shouldSkipConnectivityCheck, isFalse);
+
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('confirm_skip_connectivity')));
+    await tester.pumpAndSettle();
+
+    expect(DeveloperModeService().shouldSkipConnectivityCheck, isTrue);
+    expect(find.text('Submits straight away without checking for internet'),
+        findsOneWidget);
+
+    await DeveloperModeService().disable();
+  });
+
+  testWidgets('Failed submissions opens the recorded failures', (tester) async {
+    SharedPreferences.setMockInitialValues(
+        {DeveloperModeService.preferenceKey: true});
+
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    final tile = find.byKey(const Key('failed_submissions_tile'));
+    await tester.ensureVisible(tile);
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FailedSubmissionsPage), findsOneWidget);
+    expect(find.text('No failed submissions recorded on this device.'),
+        findsOneWidget);
+
+    await DeveloperModeService().disable();
+  });
+
+  testWidgets('Run network sweep opens the sweep page', (tester) async {
+    SharedPreferences.setMockInitialValues(
+        {DeveloperModeService.preferenceKey: true});
+
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    final tile = find.byKey(const Key('network_sweep_tile'));
+    await tester.ensureVisible(tile);
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NetworkSweepPage), findsOneWidget);
+    expect(find.text('Run sweep'), findsOneWidget);
+
+    await DeveloperModeService().disable();
   });
 }

@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:audio_diaries_flutter/screens/settings/presentation/pages/quickstart.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/developer_mode_tap_target.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/developer_settings_section.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/participant_details.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/settings_active_reminders.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/study_details.dart';
@@ -13,6 +15,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/utils/device_appInfo.dart';
+import '../../../../services/developer_mode_service.dart';
 import '../../../../services/preference_service.dart';
 import '../../../../theme/dialogs/pop_ups.dart';
 import '../../../onboarding/domain/repository/setup_repository.dart';
@@ -44,6 +47,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
     checkMicrophonePermission();
     getAppVersion();
     _loadInfo();
+    DeveloperModeService().load();
   }
 
   Future<void> _loadInfo() async {
@@ -436,6 +440,13 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                 SizedBox(
                   height: 24,
                 ),
+                ValueListenableBuilder<bool>(
+                  valueListenable: DeveloperModeService().enabled,
+                  builder: (context, isEnabled, _) => Visibility(
+                    visible: isEnabled,
+                    child: const DeveloperSettingsSection(),
+                  ),
+                ),
                 CustomFlatButton(
                     borderColor: CustomColors.warningActive,
                     color: CustomColors.fillWhite,
@@ -474,11 +485,13 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                   const SizedBox(
                     height: 12,
                   ),
-                  Text(
-                    "Powered by AppHatchery",
-                    style: CustomTypography()
-                        .bodyMedium(color: CustomColors.textSecondaryContent),
-                    textAlign: TextAlign.center,
+                  DeveloperModeTapTarget(
+                    child: Text(
+                      "Powered by AppHatchery",
+                      style: CustomTypography()
+                          .bodyMedium(color: CustomColors.textSecondaryContent),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ],
               ),

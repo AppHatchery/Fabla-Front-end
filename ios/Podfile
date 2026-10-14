@@ -61,6 +61,9 @@ post_install do |installer|
 
             ]
     config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+    if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 15.0
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+    end
     end
     ################  Awesome Notifications pod modification  ###################
       awesome_pod_file = File.expand_path(File.join('plugins', 'awesome_notifications', 'ios', 'Scripts', 'AwesomePodFile'), '.symlinks')

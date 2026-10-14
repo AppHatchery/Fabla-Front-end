@@ -1,9 +1,12 @@
+import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
 import 'package:audio_diaries_flutter/core/network/http_client_factory.dart';
+import 'package:audio_diaries_flutter/core/network/request.dart' show base;
 import 'package:audio_diaries_flutter/core/network/retry_policy.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/network/secrets_handler.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
+import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
@@ -11,6 +14,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as p;
 import 'dart:async';
 import 'dart:io';
@@ -620,6 +624,144 @@ void main() {
         expect(
             references.map((r) => r.reference), [stem(files.single), 'null']);
       });
+    });
+  });
+
+  group('debug trace', () {
+    test('a rejected response upload records status and body', () async {
+      when(() => mockSecureSave.read())
+          .thenAnswer((_) async => createTestCredentials());
+      when(() => mockHttpClient.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          )).thenAnswer((_) async => http.Response('Throttled', 429));
+
+      final trace = DebugTrace('test');
+      final result = await trace.run(() => uploadNonAudioData(
+            createTestPromptEntries(1),
+            secureSave: mockSecureSave,
+            client: mockHttpClient,
+          ));
+
+      expect(result, isFalse);
+      final root = trace.rootFailure!;
+      expect(root.step, 'upload_responses');
+      expect(root.data['status'], '429');
+      expect(root.data['response'], 'Throttled');
+    });
+
+    test('a presigned URL network error records the exception', () async {
+      when(() => mockSecureSave.read())
+          .thenAnswer((_) async => createTestCredentials());
+      when(() => mockHttpClient.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          )).thenThrow(const SocketException('Connection reset'));
+
+      final trace = DebugTrace('test');
+      await trace.run(() => getPresignedUrl(
+            TestValues.testUrl,
+            'file.m4a',
+            secureSave: mockSecureSave,
+            client: mockHttpClient,
+          ));
+
+      final root = trace.rootFailure!;
+      expect(root.step, 'presigned_url');
+      expect(root.data['error'], contains('Connection reset'));
+    });
+
+    test('outside a trace, failures are not recorded anywhere', () async {
+      when(() => mockSecureSave.read())
+          .thenAnswer((_) async => createTestCredentials());
+      when(() => mockHttpClient.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          )).thenAnswer((_) async => http.Response('Error', 500));
+
+      final result = await uploadNonAudioData(
+        createTestPromptEntries(1),
+        secureSave: mockSecureSave,
+        client: mockHttpClient,
+      );
+
+      expect(result, isFalse);
+      expect(DebugTrace.current, isNull);
+    });
+
+    group('simulated failures', () {
+      setUp(() async {
+        SharedPreferences.setMockInitialValues({});
+        await DeveloperModeService().enable();
+        when(() => mockSecureSave.read())
+            .thenAnswer((_) async => createTestCredentials());
+      });
+
+      tearDown(() => DeveloperModeService().disable());
+
+      test('a simulated response upload failure never reaches the server',
+          () async {
+        DeveloperModeService()
+            .simulateNextFailure(SimulatedFailure.responseUpload);
+
+        final trace = DebugTrace('test');
+        final result = await trace.run(() => uploadNonAudioData(
+              createTestPromptEntries(1),
+              secureSave: mockSecureSave,
+              client: mockHttpClient,
+            ));
+
+        expect(result, isFalse);
+        verifyNever(() => mockHttpClient.post(
+              any(),
+              headers: any(named: 'headers'),
+              body: any(named: 'body'),
+            ));
+        final root = trace.rootFailure!;
+        expect(root.step, 'upload_responses');
+        expect(root.data['error'], contains('SimulatedSubmissionFailure'));
+      });
+
+      test('a simulated presigned URL failure is recorded at that step',
+          () async {
+        DeveloperModeService()
+            .simulateNextFailure(SimulatedFailure.presignedUrl);
+
+        final trace = DebugTrace('test');
+        final url = await trace.run(() => getPresignedUrl(
+              TestValues.testUrl,
+              'file.m4a',
+              secureSave: mockSecureSave,
+              client: mockHttpClient,
+            ));
+
+        expect(url, isNull);
+        expect(trace.rootFailure!.step, 'presigned_url');
+      });
+    });
+  });
+
+  group('submissionHosts', () {
+    test('lists the backend and the credential endpoint hosts', () async {
+      when(() => mockSecureSave.read()).thenAnswer((_) async =>
+          createTestCredentials(
+              dynamoUrl: 'https://dynamo.example.com/prod/items',
+              presignedUrl: 'https://presign.example.com/prod/url'));
+
+      final hosts = await submissionHosts(secureSave: mockSecureSave);
+
+      expect(hosts, [base(), 'dynamo.example.com', 'presign.example.com']);
+    });
+
+    test('still lists the backend when credentials are missing', () async {
+      when(() => mockSecureSave.read()).thenAnswer((_) async => null);
+
+      final hosts = await submissionHosts(secureSave: mockSecureSave);
+
+      expect(hosts.whereType<String>().where((h) => h.isNotEmpty), [base()]);
     });
   });
 }
