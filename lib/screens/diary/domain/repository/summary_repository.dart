@@ -158,16 +158,21 @@ class SummaryRepository {
       DebugTrace.current?.fail('No internet connection (simulated)');
       return null;
     }
-    final hasInternet = await checkForInternet();
-    if (!hasInternet) {
-      DebugTrace.current?.fail('No internet connection');
-      return null;
+    if (DeveloperModeService().shouldSkipConnectivityCheck) {
+      DebugTrace.current?.step('connectivity',
+          message: 'Internet check skipped (developer mode)');
+    } else {
+      final hasInternet = await checkForInternet();
+      if (!hasInternet) {
+        DebugTrace.current?.fail('No internet connection');
+        return null;
+      }
+      DebugTrace.current
+          ?.step('connectivity', message: 'Internet check passed', data: {
+        // checkForInternet always passes in debug builds.
+        if (kDebugMode) 'note': 'check skipped in debug builds',
+      });
     }
-    DebugTrace.current
-        ?.step('connectivity', message: 'Internet check passed', data: {
-      // checkForInternet always passes in debug builds.
-      if (kDebugMode) 'note': 'check skipped in debug builds',
-    });
 
     DebugTrace.current?.step('participant');
     final participant = setupRepository.getParticipant();

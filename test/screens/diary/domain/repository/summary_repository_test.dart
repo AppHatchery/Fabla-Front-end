@@ -128,6 +128,42 @@ void main() {
     });
   });
 
+  group('submitDiary skip connectivity check', () {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      await DeveloperModeService().enable();
+      when(() => diaryRepository.getDiaryByID(any()))
+          .thenReturn(createTestDiaryModel(currentEntry: 0));
+    });
+
+    tearDown(() => DeveloperModeService().disable());
+
+    test('goes straight on without checking for internet', () async {
+      await DeveloperModeService().setSkipConnectivityCheck(true);
+      final trace = DebugTrace('diary_submission');
+
+      await trace.run(() => repository
+          .submitDiary(createTestDiaryModel(id: 21, currentEntry: 0)));
+
+      verify(() => setupRepository.getParticipant()).called(1);
+      expect(trace.events.map((e) => e.message),
+          contains('Internet check skipped (developer mode)'));
+      expect(trace.events.map((e) => e.message),
+          isNot(contains('Internet check passed')));
+    });
+
+    test('a simulated no internet still fires', () async {
+      await DeveloperModeService().setSkipConnectivityCheck(true);
+      DeveloperModeService().simulateNextFailure(SimulatedFailure.noInternet);
+
+      final result = await repository
+          .submitDiary(createTestDiaryModel(id: 21, currentEntry: 0));
+
+      expect(result, isNull);
+      verifyNever(() => setupRepository.getParticipant());
+    });
+  });
+
   group('submitDiary result', () {
     late int uploads;
     late Completer<bool> upload;

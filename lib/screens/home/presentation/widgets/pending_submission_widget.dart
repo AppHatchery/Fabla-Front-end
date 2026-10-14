@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
+import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart'
@@ -20,6 +21,7 @@ class PendingSubmissionWidget extends StatefulWidget {
 
 class _PendingSubmissionWidgetState extends State<PendingSubmissionWidget> {
   final _pref = PreferenceService();
+  final _developerMode = DeveloperModeService();
   List<DiarySubmission> submissions = [];
   bool connected = true;
   bool hadNetworkError = false;
@@ -30,6 +32,8 @@ class _PendingSubmissionWidgetState extends State<PendingSubmissionWidget> {
     super.initState();
     _getDiaries();
     _initConnectivity();
+    _developerMode.enabled.addListener(_initConnectivity);
+    _developerMode.skipConnectivityCheck.addListener(_initConnectivity);
   }
 
   void _initConnectivity() async {
@@ -42,7 +46,14 @@ class _PendingSubmissionWidgetState extends State<PendingSubmissionWidget> {
       listener = null;
     }
 
+    // Developer mode can skip the check: always show as connected.
+    if (_developerMode.shouldSkipConnectivityCheck) {
+      if (mounted) setState(() => connected = true);
+      return;
+    }
+
     final currentStatus = await InternetConnection().internetStatus;
+    if (_developerMode.shouldSkipConnectivityCheck) return;
 
     if (mounted) {
       setState(() => connected = currentStatus == InternetStatus.connected);
@@ -73,6 +84,8 @@ class _PendingSubmissionWidgetState extends State<PendingSubmissionWidget> {
 
   @override
   void dispose() {
+    _developerMode.enabled.removeListener(_initConnectivity);
+    _developerMode.skipConnectivityCheck.removeListener(_initConnectivity);
     listener?.cancel();
     super.dispose();
   }

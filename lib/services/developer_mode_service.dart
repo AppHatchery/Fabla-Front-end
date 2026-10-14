@@ -60,6 +60,7 @@ class DeveloperModeService {
   DeveloperModeService._internal();
 
   static const String preferenceKey = 'developer_mode_enabled';
+  static const String skipConnectivityKey = 'developer_skip_connectivity_check';
 
   static final Object _simulationScopeKey = Object();
 
@@ -73,6 +74,27 @@ class DeveloperModeService {
   final ValueNotifier<bool> enabled = ValueNotifier(false);
 
   bool get isEnabled => enabled.value;
+
+  /// Whether internet checks are bypassed so submissions go straight to the
+  /// network, and the homepage never shows the offline card. Persisted, and
+  /// cleared with developer mode.
+  final ValueNotifier<bool> skipConnectivityCheck = ValueNotifier(false);
+
+  /// Whether the connectivity check should be skipped right now: the option
+  /// is on and developer mode is enabled.
+  bool get shouldSkipConnectivityCheck =>
+      isEnabled && skipConnectivityCheck.value;
+
+  Future<void> setSkipConnectivityCheck(bool value) async {
+    if (!isEnabled) return;
+    if (value) {
+      await _preferences.setBoolPreference(
+          key: skipConnectivityKey, value: true);
+    } else {
+      await _preferences.removePreference(key: skipConnectivityKey);
+    }
+    skipConnectivityCheck.value = value;
+  }
 
   /// Where the next submission is forced to fail. In memory only, so it never
   /// survives a restart, and cleared after it fires once.
@@ -131,6 +153,9 @@ class DeveloperModeService {
   Future<bool> load() async {
     enabled.value =
         await _preferences.getBoolPreference(key: preferenceKey) ?? false;
+    skipConnectivityCheck.value = enabled.value &&
+        (await _preferences.getBoolPreference(key: skipConnectivityKey) ??
+            false);
     return enabled.value;
   }
 
@@ -141,7 +166,9 @@ class DeveloperModeService {
 
   Future<void> disable() async {
     await _preferences.removePreference(key: preferenceKey);
+    await _preferences.removePreference(key: skipConnectivityKey);
     enabled.value = false;
     simulatedFailure.value = SimulatedFailure.none;
+    skipConnectivityCheck.value = false;
   }
 }

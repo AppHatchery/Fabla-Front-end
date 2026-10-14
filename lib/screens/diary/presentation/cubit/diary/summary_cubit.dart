@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
+import 'package:audio_diaries_flutter/core/diagnostics/trace_log.dart';
 import 'package:audio_diaries_flutter/core/diagnostics/trace_watchers.dart';
 import 'package:audio_diaries_flutter/core/utils/device_appInfo.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
@@ -145,6 +148,7 @@ class SummaryCubit extends Cubit<SummaryState> {
       if (result == null) {
         // Save network error state
         saveNetworkError();
+        unawaited(TraceLog().add(trace));
         emit(SubmitNoInternet(trace: trace));
         return;
       }
@@ -158,6 +162,7 @@ class SummaryCubit extends Cubit<SummaryState> {
         if (!trace.hasFailed) {
           trace.fail('Submission returned false without a recorded reason');
         }
+        unawaited(TraceLog().add(trace));
         emit(SubmitError(trace: trace));
       }
     } catch (e, stackTrace) {
@@ -166,6 +171,7 @@ class SummaryCubit extends Cubit<SummaryState> {
           reason: 'Error submitting diary in submitDiary - SummaryCubit');
       trace.fail('Unexpected exception in SummaryCubit',
           error: e, stackTrace: stackTrace);
+      unawaited(TraceLog().add(trace));
       emit(SubmitError(trace: trace));
     }
   }

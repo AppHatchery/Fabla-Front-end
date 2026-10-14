@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/database/object_box.dart';
 import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
+import 'package:audio_diaries_flutter/core/diagnostics/trace_log.dart';
 import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/answer.dart'
     as entities;
@@ -364,6 +365,39 @@ void main() {
           expect(root.data['error'], contains('boom'));
           expect(root.stackTrace, isNotNull);
         },
+      );
+
+      blocTest<SummaryCubit, SummaryState>(
+        'failed submissions are kept in the trace log',
+        setUp: () {
+          when(() => mockSummaryRepository.submitDiary(any()))
+              .thenAnswer((_) async {
+            DebugTrace.current
+                ?.fail('Rejected', step: 'upload_responses', statusCode: 500);
+            return false;
+          });
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) => cubit.submitDiary(testDiary),
+        verify: (_) async {
+          final record = (await TraceLog().load()).first;
+          expect(record.step, 'upload_responses');
+          expect(record.reason, 'Rejected');
+          expect(record.diary, testDiary.name);
+        },
+      );
+
+      blocTest<SummaryCubit, SummaryState>(
+        'successful submissions are not logged',
+        setUp: () {
+          when(() => mockSummaryRepository.submitDiary(any()))
+              .thenAnswer((_) async => true);
+          when(() => mockSummaryRepository.calculateEarnedIncentives(any()))
+              .thenAnswer((_) async {});
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) => cubit.submitDiary(testDiary),
+        verify: (_) async => expect(await TraceLog().load(), isEmpty),
       );
 
       blocTest<SummaryCubit, SummaryState>(

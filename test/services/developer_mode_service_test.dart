@@ -57,6 +57,46 @@ void main() {
       expect(prefs.containsKey(DeveloperModeService.preferenceKey), isFalse);
     });
 
+    group('skip connectivity check', () {
+      test('is off by default', () async {
+        await service.enable();
+
+        expect(service.skipConnectivityCheck.value, isFalse);
+        expect(service.shouldSkipConnectivityCheck, isFalse);
+      });
+
+      test('persists and is reloaded', () async {
+        await service.enable();
+        await service.setSkipConnectivityCheck(true);
+
+        expect(service.shouldSkipConnectivityCheck, isTrue);
+        service.skipConnectivityCheck.value = false;
+        await service.load();
+        expect(service.shouldSkipConnectivityCheck, isTrue);
+      });
+
+      test('cannot be turned on without developer mode', () async {
+        await service.setSkipConnectivityCheck(true);
+
+        expect(service.shouldSkipConnectivityCheck, isFalse);
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.containsKey(DeveloperModeService.skipConnectivityKey),
+            isFalse);
+      });
+
+      test('turning developer mode off clears it', () async {
+        await service.enable();
+        await service.setSkipConnectivityCheck(true);
+
+        await service.disable();
+
+        expect(service.skipConnectivityCheck.value, isFalse);
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.containsKey(DeveloperModeService.skipConnectivityKey),
+            isFalse);
+      });
+    });
+
     group('simulated failures', () {
       test('throws once at the armed point, then disarms', () async {
         await service.enable();

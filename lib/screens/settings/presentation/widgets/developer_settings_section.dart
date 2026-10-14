@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../services/developer_mode_service.dart';
+import '../pages/failed_submissions.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
 
@@ -59,6 +60,38 @@ class DeveloperSettingsSection extends StatelessWidget {
                   onTap: () => _chooseFailure(context, failure),
                 ),
               ),
+              const Divider(height: 1, thickness: 0.5),
+              ValueListenableBuilder<bool>(
+                valueListenable: developerMode.skipConnectivityCheck,
+                builder: (context, skip, _) => _tile(
+                  icon: Icons.wifi_off_rounded,
+                  title: "Skip connectivity check",
+                  subtitle: skip
+                      ? "Submits straight away without checking for internet"
+                      : "Off",
+                  trailing: Switch.adaptive(
+                    key: const Key("skip_connectivity_switch"),
+                    value: skip,
+                    activeTrackColor: CustomColors.productNormal,
+                    onChanged: (value) => _setSkipConnectivityCheck(
+                        context, developerMode, value),
+                  ),
+                ),
+              ),
+              const Divider(height: 1, thickness: 0.5),
+              _tile(
+                key: const Key("failed_submissions_tile"),
+                icon: Icons.history_rounded,
+                title: "Failed submissions",
+                subtitle: "Recent failures on this device, with their traces.",
+                trailing: const Icon(Icons.chevron_right_rounded,
+                    color: CustomColors.midGrey),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const FailedSubmissionsPage()),
+                ),
+              ),
             ],
           ),
         ),
@@ -113,6 +146,38 @@ class DeveloperSettingsSection extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Turning the check off asks for confirmation first; turning it back on
+  /// does not.
+  Future<void> _setSkipConnectivityCheck(BuildContext context,
+      DeveloperModeService developerMode, bool skip) async {
+    if (skip) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Skip connectivity check?"),
+          content: const Text(
+              "Submissions will be sent without checking for internet first, "
+              "and the homepage will stop showing the offline card. Without "
+              "a connection, submissions will fail instead of being saved to "
+              "submit later."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              key: const Key("confirm_skip_connectivity"),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("Skip check"),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+    await developerMode.setSkipConnectivityCheck(skip);
   }
 
   Future<void> _chooseFailure(

@@ -8,6 +8,7 @@
 // so the mock store has to satisfy the participant query chain or `pumpAndSettle`
 // would time out on the spinner. SharedPreferences / PackageInfo / permission
 // channels are mocked for the same reason (deterministic, no plugin exceptions).
+import 'package:audio_diaries_flutter/screens/settings/presentation/pages/failed_submissions.dart';
 import 'package:audio_diaries_flutter/core/database/object_box.dart';
 import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/main.dart' as app;
@@ -415,6 +416,58 @@ void main() {
     expect(DeveloperModeService().simulatedFailure.value,
         SimulatedFailure.responseUpload);
     expect(find.text('Next submission fails at: Response upload'),
+        findsOneWidget);
+
+    await DeveloperModeService().disable();
+  });
+
+  testWidgets('Skip connectivity check switch warns before turning on',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(
+        {DeveloperModeService.preferenceKey: true});
+
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    final toggle = find.byKey(const Key('skip_connectivity_switch'));
+    await tester.ensureVisible(toggle);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+
+    // Cancelling the warning leaves the check on.
+    expect(find.text('Skip connectivity check?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(DeveloperModeService().shouldSkipConnectivityCheck, isFalse);
+
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('confirm_skip_connectivity')));
+    await tester.pumpAndSettle();
+
+    expect(DeveloperModeService().shouldSkipConnectivityCheck, isTrue);
+    expect(find.text('Submits straight away without checking for internet'),
+        findsOneWidget);
+
+    await DeveloperModeService().disable();
+  });
+
+  testWidgets('Failed submissions opens the recorded failures', (tester) async {
+    SharedPreferences.setMockInitialValues(
+        {DeveloperModeService.preferenceKey: true});
+
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    final tile = find.byKey(const Key('failed_submissions_tile'));
+    await tester.ensureVisible(tile);
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FailedSubmissionsPage), findsOneWidget);
+    expect(find.text('No failed submissions recorded on this device.'),
         findsOneWidget);
 
     await DeveloperModeService().disable();
