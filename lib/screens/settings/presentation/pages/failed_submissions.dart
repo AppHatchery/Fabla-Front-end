@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/diagnostics/trace_log.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
+import '../../../../theme/dialogs/pop_ups.dart';
 
 /// Developer mode page listing recent failed submissions recorded by
 /// [TraceLog], newest first, each with its full trace and a copy button.
@@ -180,21 +181,11 @@ class _FailedSubmissionsPageState extends State<FailedSubmissionsPage> {
   Future<void> _confirmClear() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear failed submissions?'),
-        content:
-            const Text('This removes the recorded traces from this device.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            key: const Key('confirm_clear_failed_submissions'),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Clear'),
-          ),
-        ],
+      builder: (context) => const DeletePopUp(
+        title: 'Clear failed submissions?',
+        subheader: 'This removes the recorded traces from this device.',
+        confirmText: 'Clear',
+        confirmKey: Key('confirm_clear_failed_submissions'),
       ),
     );
     if (confirmed != true) return;
