@@ -9,6 +9,7 @@
 // would time out on the spinner. SharedPreferences / PackageInfo / permission
 // channels are mocked for the same reason (deterministic, no plugin exceptions).
 import 'package:audio_diaries_flutter/screens/settings/presentation/pages/failed_submissions.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/pages/network_sweep_page.dart';
 import 'package:audio_diaries_flutter/core/database/object_box.dart';
 import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/main.dart' as app;
@@ -415,8 +416,8 @@ void main() {
 
     expect(DeveloperModeService().simulatedFailure.value,
         SimulatedFailure.responseUpload);
-    expect(find.text('Next submission fails at: Response upload'),
-        findsOneWidget);
+    expect(
+        find.text('Next submission fails at: Response upload'), findsOneWidget);
 
     await DeveloperModeService().disable();
   });
@@ -469,6 +470,25 @@ void main() {
     expect(find.byType(FailedSubmissionsPage), findsOneWidget);
     expect(find.text('No failed submissions recorded on this device.'),
         findsOneWidget);
+
+    await DeveloperModeService().disable();
+  });
+
+  testWidgets('Run network sweep opens the sweep page', (tester) async {
+    SharedPreferences.setMockInitialValues(
+        {DeveloperModeService.preferenceKey: true});
+
+    await tester.pumpWidget(
+        createTestableWidget(mockSettingsCubit, mockSetupRepository));
+    await tester.pumpAndSettle();
+
+    final tile = find.byKey(const Key('network_sweep_tile'));
+    await tester.ensureVisible(tile);
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NetworkSweepPage), findsOneWidget);
+    expect(find.text('Run sweep'), findsOneWidget);
 
     await DeveloperModeService().disable();
   });

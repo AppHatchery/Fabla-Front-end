@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../services/developer_mode_service.dart';
 import '../pages/failed_submissions.dart';
+import '../pages/network_sweep_page.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
+import '../../../../theme/dialogs/pop_ups.dart';
 
 /// The Settings section shown while developer mode is on: a switch to turn
 /// it off and testing tools such as simulating a submission failure.
@@ -92,6 +94,20 @@ class DeveloperSettingsSection extends StatelessWidget {
                       builder: (context) => const FailedSubmissionsPage()),
                 ),
               ),
+              const Divider(height: 1, thickness: 0.5),
+              _tile(
+                key: const Key("network_sweep_tile"),
+                icon: Icons.network_check_rounded,
+                title: "Run network sweep",
+                subtitle: "Full check of this device's internet connection.",
+                trailing: const Icon(Icons.chevron_right_rounded,
+                    color: CustomColors.midGrey),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const NetworkSweepPage()),
+                ),
+              ),
             ],
           ),
         ),
@@ -155,24 +171,16 @@ class DeveloperSettingsSection extends StatelessWidget {
     if (skip) {
       final confirmed = await showDialog<bool>(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Skip connectivity check?"),
-          content: const Text(
+        builder: (context) => const DeletePopUp(
+          title: "Skip connectivity check?",
+          subheader:
               "Submissions will be sent without checking for internet first, "
               "and the homepage will stop showing the offline card. Without "
-              "a connection, submissions will fail instead of being saved to "
-              "submit later."),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              key: const Key("confirm_skip_connectivity"),
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text("Skip check"),
-            ),
-          ],
+              "a connection, you'll see the submission error page instead of "
+              "the no-internet screen. The entry stays on the device either "
+              "way.",
+          confirmText: "Skip check",
+          confirmKey: Key("confirm_skip_connectivity"),
         ),
       );
       if (confirmed != true) return;
@@ -185,11 +193,23 @@ class DeveloperSettingsSection extends StatelessWidget {
     final choice = await showDialog<SimulatedFailure>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text("Fail the next submission at"),
+        backgroundColor: CustomColors.fillWhite,
+        surfaceTintColor: CustomColors.fillWhite,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: Colors.grey, width: 1)),
+        titlePadding: const EdgeInsets.fromLTRB(16, 32, 16, 16),
+        contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 24),
+        title: Text(
+          "Fail the next submission at",
+          style: CustomTypography().headlineMedium(),
+          textAlign: TextAlign.center,
+        ),
         children: [
           for (final failure in SimulatedFailure.values)
             SimpleDialogOption(
               key: Key("simulate_failure_${failure.name}"),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               onPressed: () => Navigator.pop(context, failure),
               child: Row(
                 spacing: 12,
