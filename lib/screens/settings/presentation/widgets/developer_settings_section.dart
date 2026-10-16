@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/diagnostics/diagnostics_bundle.dart';
+import '../../../../core/usecases/time_travel.dart';
+import '../../../../core/utils/app_clock.dart';
 import '../../../../services/developer_mode_service.dart';
 import '../pages/failed_submissions.dart';
+import '../pages/local_data_page.dart';
 import '../pages/network_sweep_page.dart';
+import '../pages/pending_submissions_page.dart';
+import '../pages/time_travel_page.dart';
+import 'developer_widgets.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
 import '../../../../theme/dialogs/pop_ups.dart';
 
 /// The Settings section shown while developer mode is on: a switch to turn
-/// it off and testing tools such as simulating a submission failure.
+/// it off and testing tools such as simulating a submission failure, time
+/// travel and a diagnostics export.
 class DeveloperSettingsSection extends StatelessWidget {
   const DeveloperSettingsSection({super.key});
 
@@ -43,7 +51,7 @@ class DeveloperSettingsSection extends StatelessWidget {
                   value: true,
                   activeTrackColor: CustomColors.productNormal,
                   onChanged: (value) {
-                    if (!value) developerMode.disable();
+                    if (!value) _disable(context, developerMode);
                   },
                 ),
               ),
@@ -108,6 +116,55 @@ class DeveloperSettingsSection extends StatelessWidget {
                       builder: (context) => const NetworkSweepPage()),
                 ),
               ),
+              const Divider(height: 1, thickness: 0.5),
+              _tile(
+                key: const Key("local_data_tile"),
+                icon: Icons.storage_rounded,
+                title: "Local data",
+                subtitle:
+                    "Protocol, studies and diaries stored on this device.",
+                trailing: const Icon(Icons.chevron_right_rounded,
+                    color: CustomColors.midGrey),
+                onTap: () => _open(context, const LocalDataPage()),
+              ),
+              const Divider(height: 1, thickness: 0.5),
+              _tile(
+                key: const Key("pending_submissions_tile"),
+                icon: Icons.cloud_upload_outlined,
+                title: "Pending submissions",
+                subtitle: "Entries waiting to upload, with a retry button.",
+                trailing: const Icon(Icons.chevron_right_rounded,
+                    color: CustomColors.midGrey),
+                onTap: () => _open(context, const PendingSubmissionsPage()),
+              ),
+              const Divider(height: 1, thickness: 0.5),
+              ValueListenableBuilder<Duration>(
+                valueListenable: developerMode.timeTravel,
+                builder: (context, offset, _) => _tile(
+                  key: const Key("time_travel_tile"),
+                  icon: Icons.schedule_rounded,
+                  title: "Time travel",
+                  subtitle: offset == Duration.zero
+                      ? "Off"
+                      : "App date: ${developerDateFormat.format(AppClock.now())}",
+                  trailing: const Icon(Icons.chevron_right_rounded,
+                      color: CustomColors.midGrey),
+                  onTap: () => _open(context, const TimeTravelPage()),
+                ),
+              ),
+              const Divider(height: 1, thickness: 0.5),
+              Builder(
+                builder: (context) => _tile(
+                  key: const Key("export_diagnostics_tile"),
+                  icon: Icons.ios_share_rounded,
+                  title: "Export diagnostics",
+                  subtitle:
+                      "Share one file describing this device, for the study team.",
+                  trailing: const Icon(Icons.chevron_right_rounded,
+                      color: CustomColors.midGrey),
+                  onTap: () => _exportDiagnostics(context),
+                ),
+              ),
             ],
           ),
         ),
@@ -162,6 +219,55 @@ class DeveloperSettingsSection extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _open(BuildContext context, Widget page) =>
+      Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+
+  /// Turns developer mode off. If time travel left anything behind, comes
+  /// back to the present and repairs statuses first, since the page that
+  /// does it is hidden once developer mode is off.
+  Future<void> _disable(
+      BuildContext context, DeveloperModeService developerMode) async {
+    final timeTravel = TimeTravel();
+    if (developerMode.isTimeTravelling || await timeTravel.hasSnapshot()) {
+      if (!context.mounted) return;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => const DeletePopUp(
+          title: "Turn off developer mode?",
+          subheader: "Time travel is or was on. The app date goes back to "
+              "today, and diary statuses changed while travelling are "
+              "repaired.",
+          confirmText: "Turn off",
+          confirmKey: Key("confirm_disable_developer_mode"),
+        ),
+      );
+      if (confirmed != true) return;
+      await timeTravel.returnToPresent();
+      await timeTravel.repair();
+    }
+    await developerMode.disable();
+  }
+
+  Future<void> _exportDiagnostics(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final box = context.findRenderObject() as RenderBox?;
+    final origin =
+        box == null ? null : box.localToGlobal(Offset.zero) & box.size;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text("Preparing diagnostics…")));
+    try {
+      final file = await DiagnosticsBundle.write();
+      messenger.hideCurrentSnackBar();
+      await DiagnosticsBundle.share(file, origin: origin);
+    } catch (e) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+            SnackBar(content: Text("Could not export diagnostics: $e")));
+    }
   }
 
   /// Turning the check off asks for confirmation first; turning it back on

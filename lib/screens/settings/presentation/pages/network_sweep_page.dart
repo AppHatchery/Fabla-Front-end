@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/diagnostics/diagnostics_bundle.dart';
 import '../../../../core/usecases/network_sweep.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
@@ -320,6 +322,8 @@ class _NetworkSweepPageState extends State<NetworkSweepPage> {
     } catch (e) {
       report = {'error': '$e'};
     }
+    // For the next diagnostics export; never holds up showing the result.
+    unawaited(DiagnosticsBundle.rememberSweep(report));
     if (!mounted) return;
     setState(() {
       _json = const JsonEncoder.withIndent('  ').convert(report);
