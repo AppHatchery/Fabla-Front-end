@@ -1,6 +1,7 @@
 import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -224,6 +225,50 @@ void main() {
         ]);
 
         expect(await otherWork.future, isFalse);
+      });
+    });
+    group('time travel', () {
+      test('shifts the app clock and persists across a reload', () async {
+        await service.enable();
+        await service.setTimeTravel(const Duration(days: 2));
+
+        expect(AppClock.offset, const Duration(days: 2));
+        expect(
+            AppClock.now().difference(DateTime.now()).inHours, closeTo(48, 1));
+
+        AppClock.offset = Duration.zero;
+        await service.load();
+        expect(service.timeTravel.value, const Duration(days: 2));
+        expect(AppClock.offset, const Duration(days: 2));
+      });
+
+      test('is ignored while developer mode is off', () async {
+        await service.setTimeTravel(const Duration(days: 2));
+
+        expect(service.isTimeTravelling, isFalse);
+        expect(AppClock.isShifted, isFalse);
+      });
+
+      test('is not applied on load when developer mode is off', () async {
+        SharedPreferences.setMockInitialValues(
+            {DeveloperModeService.timeTravelKey: 60});
+
+        await service.load();
+
+        expect(AppClock.isShifted, isFalse);
+      });
+
+      test('turning developer mode off returns to the present', () async {
+        await service.enable();
+        await service.setTimeTravel(const Duration(days: -1));
+
+        await service.disable();
+
+        expect(service.isTimeTravelling, isFalse);
+        expect(AppClock.isShifted, isFalse);
+        await service.enable();
+        await service.load();
+        expect(service.isTimeTravelling, isFalse);
       });
     });
   });

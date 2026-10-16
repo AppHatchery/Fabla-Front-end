@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../core/diagnostics/debug_trace.dart';
+import '../core/utils/app_clock.dart';
 import 'preference_service.dart';
 
 /// Points in the submission flow where developer mode can force a failure.
@@ -61,6 +62,7 @@ class DeveloperModeService {
 
   static const String preferenceKey = 'developer_mode_enabled';
   static const String skipConnectivityKey = 'developer_skip_connectivity_check';
+  static const String timeTravelKey = 'developer_time_travel_minutes';
 
   static final Object _simulationScopeKey = Object();
 
@@ -94,6 +96,29 @@ class DeveloperModeService {
       await _preferences.removePreference(key: skipConnectivityKey);
     }
     skipConnectivityCheck.value = value;
+  }
+
+  /// How far the app's clock ([AppClock]) is shifted from the device clock.
+  /// Persisted, and cleared with developer mode. Set it through `TimeTravel`,
+  /// which also snapshots diary statuses so they can be repaired afterwards.
+  final ValueNotifier<Duration> timeTravel = ValueNotifier(Duration.zero);
+
+  bool get isTimeTravelling => timeTravel.value != Duration.zero;
+
+  Future<void> setTimeTravel(Duration offset) async {
+    if (!isEnabled) return;
+    if (offset == Duration.zero) {
+      await _preferences.removePreference(key: timeTravelKey);
+    } else {
+      await _preferences.setIntPreference(
+          key: timeTravelKey, value: offset.inMinutes);
+    }
+    _applyTimeTravel(offset);
+  }
+
+  void _applyTimeTravel(Duration offset) {
+    AppClock.offset = offset;
+    timeTravel.value = offset;
   }
 
   /// Where the next submission is forced to fail. In memory only, so it never
@@ -156,6 +181,10 @@ class DeveloperModeService {
     skipConnectivityCheck.value = enabled.value &&
         (await _preferences.getBoolPreference(key: skipConnectivityKey) ??
             false);
+    final minutes = enabled.value
+        ? await _preferences.getIntPreference(key: timeTravelKey)
+        : null;
+    _applyTimeTravel(Duration(minutes: minutes ?? 0));
     return enabled.value;
   }
 
@@ -167,8 +196,10 @@ class DeveloperModeService {
   Future<void> disable() async {
     await _preferences.removePreference(key: preferenceKey);
     await _preferences.removePreference(key: skipConnectivityKey);
+    await _preferences.removePreference(key: timeTravelKey);
     enabled.value = false;
     simulatedFailure.value = SimulatedFailure.none;
     skipConnectivityCheck.value = false;
+    _applyTimeTravel(Duration.zero);
   }
 }
