@@ -1,9 +1,10 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:async';
 
 import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
+import 'package:audio_diaries_flutter/core/diagnostics/submission_trace.dart';
 import 'package:audio_diaries_flutter/core/diagnostics/trace_log.dart';
 import 'package:audio_diaries_flutter/core/diagnostics/trace_watchers.dart';
-import 'package:audio_diaries_flutter/core/utils/device_appInfo.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
@@ -11,7 +12,6 @@ import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:location/location.dart' as l;
 import 'dart:developer' as dev;
 
@@ -141,7 +141,7 @@ class SummaryCubit extends Cubit<SummaryState> {
     final trace = DebugTrace('diary_submission');
     try {
       emit(const SubmitLoading());
-      trace.context.addAll(await _submissionContext(diary));
+      trace.context.addAll(await submissionTraceContext(diary));
       // Updated to use injected repository instance
       final result = await trace.run(() => watchDuring(
           trace, () => _summaryRepository.submitDiary(diary)));
@@ -176,28 +176,6 @@ class SummaryCubit extends Cubit<SummaryState> {
     }
   }
 
-  /// Metadata describing [diary] and the device for the submission trace.
-  /// No participant identifiers or response content.
-  Future<Map<String, String>> _submissionContext(DiaryModel diary) async {
-    String appVersion;
-    try {
-      appVersion = await getAppVersion();
-    } catch (_) {
-      appVersion = 'unknown';
-    }
-    final answered = diary.prompts.where((p) => p.answer != null).length;
-    return {
-      'Diary': diary.name,
-      'DiaryID': diary.id.toString(),
-      'StudyID': diary.studyID.toString(),
-      'Entry': '${diary.currentEntry + 1}/${diary.entries}',
-      'Status': diary.status.name,
-      'Prompts answered': '$answered/${diary.prompts.length}',
-      'App version': appVersion,
-      'Platform': defaultTargetPlatform.name,
-    };
-  }
-
   Future<bool?> checkForLocationPermission() async {
     final extraPermissions = await PreferenceService().getStringListPreference(
           key: 'extra_permissions',
@@ -218,7 +196,7 @@ class SummaryCubit extends Cubit<SummaryState> {
     final isAlreadyAvailable =
         diary.completions?.elementAtOrNull(diary.currentEntry);
     if (isAlreadyAvailable == null) {
-      final now = DateTime.now();
+      final now = AppClock.now();
       final completions = List<DateTime>.from(diary.completions ?? []);
       completions.add(now);
       final newDiary = diary.copyWith(

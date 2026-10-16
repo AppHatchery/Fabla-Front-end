@@ -85,4 +85,12 @@ void main() {
 
     expect((await log.load()).single.reason, 'Rejected');
   });
+
+  test('keeps the diary id from the trace context', () async {
+    await log.add(DebugTrace('diary_submission',
+        context: {'Diary': 'Daily', 'DiaryID': '42'})
+      ..fail('Rejected'));
+
+    expect((await log.load()).single.diaryId, 42);
+  });
 }

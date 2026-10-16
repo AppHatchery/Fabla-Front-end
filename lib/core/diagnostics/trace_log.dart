@@ -17,6 +17,9 @@ class TraceRecord {
 
   /// The diary being submitted, if the trace recorded one.
   final String? diary;
+
+  /// The submitted diary's id, if the trace recorded one.
+  final int? diaryId;
   final bool simulated;
 
   /// [DebugTrace.toReport], for the detail view and copying.
@@ -28,6 +31,7 @@ class TraceRecord {
     required this.step,
     required this.reason,
     this.diary,
+    this.diaryId,
     this.simulated = false,
     required this.report,
   });
@@ -40,6 +44,7 @@ class TraceRecord {
       step: root?.step ?? trace.currentStep,
       reason: root?.message ?? 'Unknown',
       diary: trace.context['Diary'],
+      diaryId: int.tryParse(trace.context['DiaryID'] ?? ''),
       simulated: DeveloperModeService.isSimulated(trace),
       report: trace.toReport(),
     );
@@ -51,6 +56,7 @@ class TraceRecord {
         step: json['step'] as String,
         reason: json['reason'] as String,
         diary: json['diary'] as String?,
+        diaryId: json['diaryId'] as int?,
         simulated: json['simulated'] as bool? ?? false,
         report: json['report'] as String,
       );
@@ -61,6 +67,7 @@ class TraceRecord {
         'step': step,
         'reason': reason,
         if (diary != null) 'diary': diary,
+        if (diaryId != null) 'diaryId': diaryId,
         'simulated': simulated,
         'report': report,
       };
