@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -97,7 +98,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
   }
 
   getThisWeek() {
-    final today = DateTime.now();
+    final today = AppClock.now();
     final monday = today.subtract(Duration(days: today.weekday - 1));
     final sunday = monday.add(const Duration(days: 6));
 

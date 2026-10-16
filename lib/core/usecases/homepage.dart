@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
@@ -65,7 +66,7 @@ String determineDiaryIcon(DiaryModel diary) {
 /// 2. if there are more than one entries due at the same time, display the new ones on top.
 /// 3. if there are more than one entries due at the same time and opens at the same time, display in orders of: audio diary, survey diary, video diary, timer diary
 List<DiaryModel> prioritySort(List<DiaryModel> diaries) {
-  final now = DateTime.now();
+  final now = AppClock.now();
 
   return List<DiaryModel>.from(diaries)
     ..sort((a, b) {
@@ -109,7 +110,7 @@ int getPriorityCategory(DiaryModel diary, DateTime now) {
 /// - Are not past their due date
 ///
 /// Parameters:
-/// - [day]: The day to get diaries for (typically DateTime.now() for homepage)
+/// - [day]: The day to get diaries for (typically AppClock.now() for homepage)
 ///
 /// Returns:
 /// A list of DiaryModel objects that should be available on the specified day
@@ -121,7 +122,7 @@ List<DiaryModel> getDiariesUseCase(
   final shiftedDayBoundaries = getShiftedDayBoundaries(day);
   final dayStart = shiftedDayBoundaries.start;
   final dayEnd = shiftedDayBoundaries.end;
-  final now = DateTime.now();
+  final now = AppClock.now();
 
   // Filter diaries that should be available on the specified day
   final availableDiaries = diaries.where((diary) {

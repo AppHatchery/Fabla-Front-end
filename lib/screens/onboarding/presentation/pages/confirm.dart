@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:async';
 
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
@@ -227,7 +228,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
 
     if (pendoID == null) {
       final anonymousID =
-          "$login-anonymous-${DateTime.now().millisecondsSinceEpoch}";
+          "$login-anonymous-${AppClock.now().millisecondsSinceEpoch}";
       await service.setStringPreference(key: 'pendo-ID', value: anonymousID);
       await PendoService.start(anonymousID, login);
     } else {

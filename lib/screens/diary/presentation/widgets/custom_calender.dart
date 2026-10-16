@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -33,7 +34,7 @@ class _CustomCalenderState extends State<CustomCalender> {
   @override
   void initState() {
     today =
-        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+        DateTime(AppClock.now().year, AppClock.now().month, AppClock.now().day);
     pageController = null;
     focusedDay = today;
     selectedDate = today;
@@ -51,7 +52,7 @@ class _CustomCalenderState extends State<CustomCalender> {
     final rowHeight = scaled < 100 ? 60.0 : scaled < 130 ? 72.0 : 80.0;
 
     final today =
-    DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    DateTime(AppClock.now().year, AppClock.now().month, AppClock.now().day);
     return Container(
       decoration: BoxDecoration(
           color: CustomColors.fillWhite,

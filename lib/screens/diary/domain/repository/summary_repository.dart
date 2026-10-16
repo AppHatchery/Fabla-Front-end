@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
 import 'package:audio_diaries_flutter/core/diagnostics/network_diagnostics.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
@@ -228,7 +229,7 @@ class SummaryRepository {
             name: "SummaryRepository - submitDiary");
 
         final List<DateTime> submissions = diary.submissions ?? [];
-        submissions.add(DateTime.now());
+        submissions.add(AppClock.now());
         if (diary.currentEntry + 1 == diary.entries) {
           newDiary = diary.copyWith(
               id: diary.id,

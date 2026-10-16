@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
@@ -704,7 +705,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   }
 
   void pendoEvent() async {
-    final now = DateTime.now();
+    final now = AppClock.now();
     for (final prompt in widget.diary.prompts) {
       int audioPromptCount = 0;
       int totalRecordingCount = 0;
@@ -775,7 +776,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
 
   bool isEditable(PromptModel prompt) {
     final due = widget.diary.due;
-    final now = DateTime.now();
+    final now = AppClock.now();
 
     if (now.isAfter(due)) return false;
 

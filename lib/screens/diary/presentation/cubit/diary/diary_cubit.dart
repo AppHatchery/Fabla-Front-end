@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
     show CrashlyticsService;
@@ -17,7 +18,7 @@ class DiaryCubit extends Cubit<DiaryState> {
   DiaryRepository repository = DiaryRepository();
 
   Future<void> loadDiaries({DateTime? date}) async {
-    final today = date ?? DateTime.now();
+    final today = date ?? AppClock.now();
     final startDate = DateTime.fromMillisecondsSinceEpoch(
         await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
 
@@ -47,7 +48,7 @@ class DiaryCubit extends Cubit<DiaryState> {
   }
 
   List<Tag> _getTags(DiaryModel diary) {
-    final today = DateTime.now();
+    final today = AppClock.now();
     List<Tag> tags = [];
 
     if (diary.status == DiaryStatus.submitted) {

@@ -1,5 +1,6 @@
 // import 'package:audio_diaries_flutter/core/utils/statuses.dart'
 //     show DiaryStatus;
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 
@@ -9,7 +10,7 @@ class DailyGoalService {
   Map<StudyModel, DailyGoalData> calculateDailyGoals(
       List<StudyModel> studies, List<DiaryModel> allDiaries,
       {DateTime? targetDay}) {
-    final day = targetDay ?? DateTime.now();
+    final day = targetDay ?? AppClock.now();
     final shiftedBoundaries = _getShiftedDayBoundaries(day);
     final logicalDay = _getLogicalDay(day);
 

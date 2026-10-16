@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
@@ -14,7 +15,7 @@ class CompletionCubit extends Cubit<CompletionState> {
   CompletionCubit() : super(const CompletionInitial());
 
   void completeDiary(DiaryModel diary) async {
-    final today = DateTime.now();
+    final today = AppClock.now();
     final monday = DateTime(today.year, today.month, today.day)
         .subtract(Duration(days: today.weekday - 1));
     final sunday = monday.add(const Duration(days: 6));

@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/utils/types.dart';
@@ -70,10 +71,10 @@ class AnswerRepository {
     if (type == 'audio' || type == 'image' || type == 'video') {
       answer = isUpdating
           ? prompt.answer! // Use the existing answer for updating
-          : Answer(id: 0, date: DateTime.now()); // Create a new answer
+          : Answer(id: 0, date: AppClock.now()); // Create a new answer
       // Create a new recording and associate it with the answer
       final recording =
-          Recording(prompt.question, response, type, null, DateTime.now());
+          Recording(prompt.question, response, type, null, AppClock.now());
       recording.answer.target = answer;
       answer.recordings.add(recording);
     } else {
@@ -82,7 +83,7 @@ class AnswerRepository {
           : Answer(
               id: 0,
               //promptId: prompt.id,
-              date: DateTime.now(),
+              date: AppClock.now(),
               response: response);
     }
 

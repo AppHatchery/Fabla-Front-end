@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
@@ -22,7 +23,7 @@ class TodaysDiaryList extends StatelessWidget {
     final _diaries = diaries
         .where((diary) =>
             diary.status != DiaryStatus.submitted &&
-            diary.due.isAfter(DateTime.now()))
+            diary.due.isAfter(AppClock.now()))
         .toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

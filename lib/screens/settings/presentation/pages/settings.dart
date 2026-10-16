@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:async';
 
 import 'package:audio_diaries_flutter/screens/settings/presentation/pages/quickstart.dart';
@@ -33,7 +34,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
   bool notificationCheck = false;
   List<TimeOfDay> times = [];
   bool isButtonVisible = true;
-  final DateTime _date = DateTime.now();
+  final DateTime _date = AppClock.now();
 
   final repository = SetupRepository();
 

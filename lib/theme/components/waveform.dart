@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:async';
 import 'dart:math';
 
@@ -53,7 +54,7 @@ class CustomWaveform extends StatefulWidget {
 /// A single recorded level, already normalized to [0.0, 1.0], along with the
 /// time it was captured so the painter can ease it in as it appears.
 class WaveformSample {
-  WaveformSample(this.level) : insertedAt = DateTime.now();
+  WaveformSample(this.level) : insertedAt = AppClock.now();
 
   final double level;
   final DateTime insertedAt;
@@ -88,7 +89,7 @@ class CustomWaveformState extends State<CustomWaveform>
 
     final newest = _samples.isEmpty ? null : _samples.first;
     final stillGrowing = newest != null &&
-        DateTime.now().difference(newest.insertedAt) < _growDuration;
+        AppClock.now().difference(newest.insertedAt) < _growDuration;
     if (!stillGrowing) _ticker.stop();
   }
 
@@ -175,7 +176,7 @@ class WaveformPainter extends CustomPainter {
       ..color = CustomColors.productNormalActive
       ..style = PaintingStyle.fill;
 
-    final now = DateTime.now();
+    final now = AppClock.now();
     final growthMs = growDuration.inMilliseconds;
     double x = size.width / 2 - barWidth / 2;
 

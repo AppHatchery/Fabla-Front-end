@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
@@ -371,7 +372,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   }
 
   trackExit(String state) async {
-    final now = DateTime.now();
+    final now = AppClock.now();
 
     PendoService.track("Exit Survey", {
       "question_at_exit": "${currentPage + 1}",

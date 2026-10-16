@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:convert' show jsonDecode;
 
 import 'package:audio_diaries_flutter/core/network/request.dart' show post;
@@ -104,7 +105,7 @@ class ExperimentManager {
   /// it so callers can use it directly without a round-trip read.
   Future<DateTime> reschedule() async {
     await setUpdateStatus(UpdateStatus.pending);
-    final shiftedDayBoundaries = getShiftedDayBoundaries(DateTime.now());
+    final shiftedDayBoundaries = getShiftedDayBoundaries(AppClock.now());
     final nextUpdateTime = shiftedDayBoundaries.end.add(const Duration(minutes: 1));
     await _preferenceService.setStringPreference(
       key: pendingDateKey,

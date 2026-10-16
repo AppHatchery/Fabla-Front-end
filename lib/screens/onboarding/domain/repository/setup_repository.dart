@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -202,7 +203,7 @@ class SetupRepository {
 
         if (partialCleanDB) {
           // NOT a fresh install - only add today and future diaries
-          final now = DateTime.now();
+          final now = AppClock.now();
           final today = DateTime(now.year, now.month, now.day);
 
           diariesToAdd = fetchedDiaries
@@ -243,7 +244,7 @@ class SetupRepository {
         if (partialCleanDB) {
           // Partially clear the database not to lose the old data
           // Get rid of all the data from now till last while keeping all the old data
-          final now = DateTime.now();
+          final now = AppClock.now();
           //get today's date
           final today = DateTime(now.year, now.month, now.day);
 
@@ -622,7 +623,7 @@ class SetupRepository {
       return null;
     });
 
-    final date = DateTime.now();
+    final date = AppClock.now();
     final formatted = DateFormat('yyyy-MM-dd').format(date);
     final SharedPreferences dateJoined = await SharedPreferences.getInstance();
 
@@ -665,7 +666,7 @@ class SetupRepository {
     // append acknowledgment of protocol to extras
     extras['protocol_acknowledged'] = true;
     extras['protocol_acknowledged_at'] =
-        DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(AppClock.now());
 
     //dev.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>: $jsonString");
 

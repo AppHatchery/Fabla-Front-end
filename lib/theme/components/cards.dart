@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:async';
 
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
@@ -43,7 +44,7 @@ class DiaryCard extends StatefulWidget {
 }
 
 class _DiaryCardState extends State<DiaryCard> {
-  DateTime now = DateTime.now();
+  DateTime now = AppClock.now();
   late bool closed;
   StudyModel? study;
   Color color = CustomColors.productNormal;
@@ -69,7 +70,7 @@ class _DiaryCardState extends State<DiaryCard> {
   }
 
   bool isClosed() {
-    now = DateTime.now();
+    now = AppClock.now();
     // remainingTime = widget.diary!.due.difference(now);
     final diary = widget.diary!;
 
@@ -96,7 +97,7 @@ class _DiaryCardState extends State<DiaryCard> {
 
   // Function to refresh the diary card
   void _refreshDiary() {
-    final now = DateTime.now();
+    final now = AppClock.now();
     final start = widget.diary!.start;
     final due = widget.diary!.due;
 
@@ -190,10 +191,10 @@ class _DiaryCardState extends State<DiaryCard> {
           arguments: widget.diary);
     } else if (widget.diary!.status == DiaryStatus.submitted ||
         widget.diary!.status == DiaryStatus.missed ||
-        widget.diary!.start.isAfter(DateTime.now())) {
+        widget.diary!.start.isAfter(AppClock.now())) {
       PendoService.track("ViewOldDiary", {
         "study_day": "${widget.diary!.id}",
-        "diary_day_viewed": "${DateTime.now()}"
+        "diary_day_viewed": "${AppClock.now()}"
       });
       showModalBottomSheet(
           context: context,
@@ -457,7 +458,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
   void trackControl(String action) {
     PendoService.track("AudioControl", {
       "action": action,
-      "study_date": "${DateTime.now()}",
+      "study_date": "${AppClock.now()}",
       "prompt_number": "${widget.promptId + 1}"
     });
   }
@@ -468,7 +469,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
 
     if (widget.isExpanded) {
       PendoService.track("AudioOpen", {
-        "study_date": "${DateTime.now()}",
+        "study_date": "${AppClock.now()}",
       });
     }
 
@@ -882,7 +883,7 @@ class _NewAudioCardState extends State<NewAudioCard>
                   onPressed: () {
                     PendoService.track("AudioControl", {
                       "action": "delete",
-                      "study_date": "${DateTime.now()}",
+                      "study_date": "${AppClock.now()}",
                       "prompt_number": "${widget.promptId + 1}"
                     });
                     delete();
@@ -1953,7 +1954,7 @@ class RecordingIssueCard extends StatelessWidget {
     // check — the callback reaches the prompt, which does its own.
     PendoService.track("AudioControl", {
       "action": "Dismiss",
-      "study_date": "${DateTime.now()}",
+      "study_date": "${AppClock.now()}",
       if (promptId != null) "prompt_number": "${promptId! + 1}",
     });
 
