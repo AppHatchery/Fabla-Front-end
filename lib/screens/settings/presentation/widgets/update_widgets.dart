@@ -33,13 +33,11 @@ class _UpdateTimePickerState extends State<UpdateTimePicker> {
   late FixedExtentScrollController minutesController;
   late FixedExtentScrollController periodController;
 
-  late MaterialLocalizations localizations;
-
   @override
   void initState() {
     _date = widget.date ?? const TimeOfDay(hour: 0, minute: 0);
     hoursController = FixedExtentScrollController(
-      initialItem: (_date.hour % 12) == 0 ? 12 : (_date.hour % 12) - 1,
+      initialItem: (_date.hour + 11) % 12,
     );
     minutesController = FixedExtentScrollController(
       initialItem: _date.minute,
@@ -52,7 +50,6 @@ class _UpdateTimePickerState extends State<UpdateTimePicker> {
 
   @override
   Widget build(BuildContext context) {
-    localizations = MaterialLocalizations.of(context);
     final width = MediaQuery.of(context).size.width;
     return SizedBox(
       width: width,
@@ -234,8 +231,7 @@ class _UpdateTimePickerState extends State<UpdateTimePicker> {
       _date = TimeOfDay(hour: _date.hour - 12, minute: _date.minute);
     }
 
-    Navigator.pop(context,
-        localizations.formatTimeOfDay(_date, alwaysUse24HourFormat: true));
+    Navigator.pop(context, formatTimeAnswer(_date));
   }
 }
 

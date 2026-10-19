@@ -479,7 +479,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
         subtitle: question.subtitle,
         onChanged: (String time) {
           setState(() {
-            answer = '$time:00'; // TODO Find better way of adding seconds
+            answer = time;
           });
         },
       ));
