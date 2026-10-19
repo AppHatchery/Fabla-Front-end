@@ -51,13 +51,9 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
         appBar: AppBar(
           backgroundColor: CustomColors.fillNormal,
           scrolledUnderElevation: 0.0,
-          title: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              "Participant Details",
-              maxLines: 1,
-              style: CustomTypography().titleLarge(),
-            ),
+          title: Text(
+            "Participant Details",
+            style: CustomTypography().titleLarge(),
           ),
           centerTitle: true,
           leading: IconButton(
@@ -214,7 +210,12 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
 
     switch (question.type) {
       case "multiple":
-        final List<String> _selected = _decodeMultipleAnswers(ans);
+        final List<String> _selected = json
+            .decode(ans)
+            .cast()
+            .toList()
+            .map<String>((element) => element.toString())
+            .toList();
         final selected = question.options
             ?.map((option) =>
                 _selected.contains(option.value) ? option.title : null)
@@ -233,21 +234,6 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
         return ans;
     }
   }
-
-  List<String> _decodeMultipleAnswers(String source) {
-    try {
-      return (json.decode(source) as List<dynamic>)
-          .map((element) => element.toString())
-          .toList();
-    } on FormatException {
-      final value = source.trim();
-      if (!value.startsWith('[') || !value.endsWith(']')) return <String>[];
-      final contents = value.substring(1, value.length - 1).trim();
-      if (contents.isEmpty) return <String>[];
-      return contents.split(',').map((item) => item.trim()).toList();
-    }
-  }
-
   void edit(Questions question, int index) async {
     if (question.type == "time") {
       final time = timeOfDayFromString(question.answer!);

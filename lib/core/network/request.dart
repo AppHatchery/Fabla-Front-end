@@ -7,7 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 const String devURL =
-    "vqujlfqpuxbfluuojai52fopvy0pregz.lambda-url.us-east-1.on.aws";
+   "jvcr98ygcj.execute-api.us-east-1.amazonaws.com";
 const String prodURL =
     "bpyla7yzdfordt2mk36oskhudq0yliij.lambda-url.us-east-1.on.aws";
 
@@ -48,7 +48,8 @@ Future<String?> get({
       );
 
   try {
-    final url = Uri.https(base(), path);
+    final url = Uri.https(base(),
+      kDebugMode ? '/dev${path.startsWith('/') ? path : '/$path'}' : path,);
     final response = await httpClient.get(url, headers: headers);
     return response.body;
   } catch (e, stackTrace) {
@@ -86,7 +87,8 @@ Future<String?> post({
       );
 
   try {
-    final url = Uri.https(base(), path);
+    final url = Uri.https(base(),
+      kDebugMode ? '/dev${path.startsWith('/') ? path : '/$path'}' : path,);
     final response = await httpClient.post(url, headers: headers, body: body);
     if (response.statusCode == 200) {
       return response.body;

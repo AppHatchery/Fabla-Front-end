@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
@@ -136,7 +134,7 @@ class _OnBoardingMultipleOptionState extends State<OnBoardingMultipleOption> {
           selected: widget.selected,
           options: widget.options,
           onChanged: (value) {
-            widget.onChanged(jsonEncode(value));
+            widget.onChanged(value.toString());
           },
         )
       ],

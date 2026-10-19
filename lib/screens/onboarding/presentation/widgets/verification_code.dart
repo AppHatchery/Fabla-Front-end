@@ -54,6 +54,7 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
                     context: context, builder: (context) => StudyInfoPopUp()),
                 icon: const Icon(
                   Icons.info_outline,
+                  applyTextScaling: true,
                   color: CustomColors.textWhite,
                 ),
                 padding: EdgeInsets.zero,
@@ -79,6 +80,7 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
               icon: const Icon(
                 CustomIcons.cancel,
                 size: 20,
+                applyTextScaling: true,
               ),
               color: CustomColors.productBorderNormal),
         ),
@@ -92,63 +94,62 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: ShapeDecoration(
-                      color: CustomColors.fillVanilla,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(11),
-                      )),
-                  child: Column(
+                    color: CustomColors.fillVanilla,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                  ),
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.warning_rounded,
                         size: 24,
-                        color: CustomColors.pumpkinOrange, // Same orange
+                        applyTextScaling: true,
+                        color: CustomColors.pumpkinOrange,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "Participant ID Already in Use",
-                        style: CustomTypography().bodyLarge(
-                            color: CustomColors.pumpkinOrange,
-                            weight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        widget.warningMessage,
-                        style: CustomTypography().bodyLarge(
-                          color: CustomColors.pumpkinOrange,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Container(
-                          constraints: const BoxConstraints(
-                            minHeight: 48,
-                          ),
-                          decoration: ShapeDecoration(
-                            color: CustomColors.pumpkinOrange,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(11),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Participant ID Already in Use",
+                              style: CustomTypography().bodyLarge(
+                                color: CustomColors.pumpkinOrange,
+                                weight: FontWeight.w700,
+                              ),
                             ),
-                          ),
-                          child: TextButton(
-                            onPressed: () => launchEmail(),
-                            style: TextButton.styleFrom(
-                              minimumSize: const Size(0, 48),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
+                            const SizedBox(height: 8),
+                            Text(
+                              widget.warningMessage,
+                              style: CustomTypography().bodyLarge(
+                                color: CustomColors.pumpkinOrange,
+                              ),
                             ),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
+                            const SizedBox(height: 12),
+                            TextButton(
+                              onPressed: launchEmail,
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                                backgroundColor: CustomColors.pumpkinOrange,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(11),
+                                ),
+                              ),
                               child: Text(
                                 "Contact Researcher",
+                                textAlign: TextAlign.center,
                                 style: CustomTypography().bodyLarge(
                                   color: CustomColors.fillVanilla,
                                   weight: FontWeight.w400,
                                 ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
                     ],
