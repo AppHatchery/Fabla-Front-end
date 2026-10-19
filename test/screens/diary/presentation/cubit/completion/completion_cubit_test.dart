@@ -10,7 +10,6 @@ import 'package:audio_diaries_flutter/core/database/object_box.dart';
 import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
-import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
 
 import '../../../../../dummy_data.dart';
 
@@ -26,8 +25,6 @@ class MockStore extends Mock implements Store {
       return MockDiaryBox() as Box<T>;
     } else if (T == Study) {
       return MockStudyBox() as Box<T>;
-    } else if (T == ProtocolEntity) {
-      return MockProtocolBox() as Box<T>;
     }
     throw UnimplementedError('Unexpected box type: $T');
   }
@@ -36,8 +33,6 @@ class MockStore extends Mock implements Store {
 class MockDiaryBox extends Mock implements Box<Diary> {}
 
 class MockStudyBox extends Mock implements Box<Study> {}
-
-class MockProtocolBox extends Mock implements Box<ProtocolEntity> {}
 
 void main() {
   group('CompletionCubit', () {

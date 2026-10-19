@@ -18,7 +18,6 @@ import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/answer.dart'
     as entity;
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
-import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
@@ -220,23 +219,6 @@ QuestionsEntity createTestQuestion({
     maxLabel: maxLabel,
     variable: variable,
     answer: answer,
-  );
-}
-
-/// Creates a test ProtocolEntity with optional parameters
-ProtocolEntity createTestProtocol({
-  int id = 1,
-  int version = 1,
-  int weeklyGoal = 5,
-  int dailyGoal = 1,
-  List<String> diaryBlueprints = const ['blueprint1', 'blueprint2'],
-}) {
-  return ProtocolEntity(
-    id: id,
-    version: version,
-    weeklyGoal: weeklyGoal,
-    dailyGoal: dailyGoal,
-    diaryBlueprints: diaryBlueprints,
   );
 }
 

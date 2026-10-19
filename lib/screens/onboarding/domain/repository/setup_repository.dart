@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:developer' as dev;
 import 'package:audio_diaries_flutter/core/database/dao/experiment_dao.dart';
-import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/questions_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/network/request.dart';
@@ -31,7 +30,6 @@ import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -40,16 +38,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/database/dao/participant_dao.dart';
 import '../../../../main.dart';
 import '../../../../objectbox.g.dart';
-import '../../../diary/data/protocol.dart';
-import '../../../diary/domain/entities/protocol_entity.dart';
 import '../entities/participant.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class SetupRepository {
   final ParticipantDAO _participantDAO =
       ParticipantDAO(box: Box<Participant>(objectbox.store));
-  final ProtocolDAO _protocolDAO =
-      ProtocolDAO(box: Box<ProtocolEntity>(objectbox.store));
   final StudyDAO _studyDAO = StudyDAO(box: Box<Study>(objectbox.store));
   final QuestionsDAO _questionsDAO =
       QuestionsDAO(box: Box<QuestionsEntity>(objectbox.store));
@@ -95,47 +89,6 @@ class SetupRepository {
   /// ```
   void updateParticipant(String name) {
     _participantDAO.update(name);
-  }
-
-  /// This method is responsible for creating a protocol by retrieving data from a remote source.
-  ///
-  /// This function retrieves the protocol data from a remote source and stores it in the database.
-  /// The function then checks if the protocol is already in the database and if the version has changed.
-  /// If the protocol is new or the version has changed, the function updates or adds the protocol to the database.
-  ///
-  /// Example usage:
-  /// ```dart
-  /// createProtocol(); // Create and store the protocol in the database.
-  /// ```
-  void createProtocol() async {
-    // Get the protocol from the assets/ from Remote source
-    final String response = await rootBundle.loadString('assets/protocol.json');
-    final data = await json.decode(response);
-
-    // Convert to model
-    final protocol = Protocol.fromJson(data);
-
-    // check if protocol is already in the database and if version changed
-    final ProtocolEntity? existingProtocol = _protocolDAO.getProtocol();
-
-    if (existingProtocol == null ||
-        existingProtocol.version != protocol.version) {
-      // Update or add the protocol to the database
-      final newProtocol = existingProtocol != null
-          ? existingProtocol.copyWith(
-              entity: ProtocolEntity.fromModel(model: protocol))
-          : ProtocolEntity.fromModel(model: protocol);
-
-      _protocolDAO.addProtocol(newProtocol);
-    } else {
-      debugPrint("Protocol already exists and no updates");
-    }
-  }
-
-  /// This method is responsible for creating a protocol by retrieving data from a remote source.
-  Protocol? getProtocol() {
-    final ProtocolEntity? protocolEntity = _protocolDAO.getProtocol();
-    return protocolEntity == null ? null : Protocol.fromEntity(protocolEntity);
   }
 
   /// Retrieves studies and diaries from the remote source and updates the local database.
@@ -768,7 +721,6 @@ class SetupRepository {
 
       _participantDAO.remove();
       _experimentDAO.deleteExperiment();
-      _protocolDAO.deleteProtocol();
       _studyDAO.deleteAllStudies();
       _questionsDAO.removeAllQuestions();
       diaryRepository.removeAllDiaries();

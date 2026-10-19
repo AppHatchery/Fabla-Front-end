@@ -3,7 +3,6 @@ import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/answer.dart'
     as entities;
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
-import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -42,8 +41,6 @@ class MockStore extends Mock implements Store {
 }
 
 class MockDiaryBox extends Mock implements Box<Diary> {}
-
-class MockProtocolBox extends Mock implements Box<ProtocolEntity> {}
 
 class MockStudyBox extends Mock implements Box<Study> {}
 

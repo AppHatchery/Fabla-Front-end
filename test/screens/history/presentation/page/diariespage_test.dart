@@ -10,7 +10,6 @@ import 'package:audio_diaries_flutter/main.dart' as main_app;
 import 'package:audio_diaries_flutter/core/database/object_box.dart';
 import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
-import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
 import 'package:audio_diaries_flutter/core/usecases/diary_history.dart';
 
@@ -26,8 +25,6 @@ class MockStore extends Mock implements Store {
   Box<T> box<T>() {
     if (T == Diary) {
       return MockDiaryBox() as Box<T>;
-    } else if (T == ProtocolEntity) {
-      return MockProtocolBox() as Box<T>;
     } else if (T == Study) {
       return MockStudyBox() as Box<T>;
     }
@@ -36,8 +33,6 @@ class MockStore extends Mock implements Store {
 }
 
 class MockDiaryBox extends Mock implements Box<Diary> {}
-
-class MockProtocolBox extends Mock implements Box<ProtocolEntity> {}
 
 class MockStudyBox extends Mock implements Box<Study> {}
 

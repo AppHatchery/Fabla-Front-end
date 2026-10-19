@@ -2,7 +2,6 @@ import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 
-import 'package:audio_diaries_flutter/core/database/dao/protocal_dao.dart';
 import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
 import 'package:audio_diaries_flutter/core/usecases/diary_history.dart'
@@ -14,8 +13,6 @@ import 'package:audio_diaries_flutter/core/usecases/diary_history.dart'
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
-import 'package:audio_diaries_flutter/screens/diary/data/protocol.dart';
-import 'package:audio_diaries_flutter/screens/diary/domain/entities/protocol_entity.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
@@ -31,8 +28,6 @@ import '../entities/diary_entity.dart';
 
 class DiaryRepository {
   final DiaryDAO _diaryDAO = DiaryDAO(box: Box<Diary>(objectbox.store));
-  final ProtocolDAO _protocolDAO =
-      ProtocolDAO(box: Box<ProtocolEntity>(objectbox.store));
   final StudyDAO _studyDAO = StudyDAO(box: Box<Study>(objectbox.store));
 
   /// A method to retrieve all DiaryEntity objects from the data source.
@@ -118,10 +113,6 @@ class DiaryRepository {
   Diary? _getDiaryEntityByID(int id) {
     // Delegate the retrieval of the diary entity to the DAO
     return _diaryDAO.getDiaryByID(id);
-  }
-
-  ProtocolEntity? _getProtocolEntity() {
-    return _protocolDAO.getProtocol();
   }
 
   /// Retrieves a list of Diary objects representing all stored diary entries.
@@ -492,19 +483,6 @@ class DiaryRepository {
     diaries.sort((a, b) => a.start.compareTo(b.start));
 
     return diaries;
-  }
-
-  // retrieves the protocol from the protocol entity
-  // This function attempts to obtain a ProtocolEntity instance using the `_getProtocolEntity()` method,
-  // and if a matching ProtocolEntity is found, it is transformed into a Protocol object using the `Protocol.fromEntity()` factory constructor.
-  // returns:
-  // A Protocol object representing the protocol entity, if found, or null if no matching entity is found in the data source.
-  Protocol? getProtocol() {
-    final protocol = _getProtocolEntity();
-    if (protocol != null) {
-      return Protocol.fromEntity(protocol);
-    }
-    return null;
   }
 
   Study? _getStudy(int id) {
