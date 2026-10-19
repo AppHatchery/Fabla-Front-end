@@ -70,7 +70,9 @@ class CustomElevatedButton extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 10.0, vertical: 12.0),
                 child: Center(
-                    child: Text(text.toString(),
+                    child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
+                        text.toString(),
                         style: CustomTypography().button(
                           color: isDisabled
                               ? CustomColors.textTertiaryContent

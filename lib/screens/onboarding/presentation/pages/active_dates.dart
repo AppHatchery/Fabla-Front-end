@@ -4,7 +4,6 @@ import 'dart:async' show unawaited;
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/quickstart_handler.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -85,10 +84,13 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                   RouteService()
                       .navigateBack(context: context, current: 'active_dates')
                 },
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
             )),
       ),
       body: SafeArea(
@@ -164,7 +166,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                               const SizedBox(
                                 height: 12,
                               ),
-                              OnboardingScaledText(
+                              Text(
                                 "All set ${participant.name}, here is your study schedule",
                                 style: CustomTypography().titleMedium(
                                     color: CustomColors.textNormalContent),

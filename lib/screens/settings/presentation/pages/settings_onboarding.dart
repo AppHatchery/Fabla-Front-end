@@ -59,9 +59,12 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
           leading: IconButton(
             key: Key("back_button"),
               onPressed: () => Navigator.pop(context, updated),
-              icon: Icon(
-                Icons.arrow_back_rounded,
-                size: 32,
+              icon: FittedBox(
+                child: Icon(
+                  applyTextScaling: true,
+                  Icons.arrow_back_rounded,
+                  size: 32,
+                ),
               )),
           shape: const Border(
               bottom: BorderSide(
@@ -104,6 +107,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
+                        applyTextScaling: true,
                         Icons.warning_rounded,
                         size: 24,
                         color: Color(0xFF0066E6),
@@ -192,6 +196,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
             key: Key("edit_icon_button"),
               onPressed: () => edit(question, index),
               icon: Icon(
+                applyTextScaling: true,
                 Icons.edit_outlined,
                 color: CustomColors.textSecondaryContent,
                 size: 30,

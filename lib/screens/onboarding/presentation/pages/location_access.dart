@@ -2,7 +2,6 @@ import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -106,10 +105,13 @@ class _LocationAccessState extends State<LocationAccess>
                   RouteService()
                       .navigateBack(context: context, current: 'location')
                 },
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
             )),
         automaticallyImplyLeading: false,
       ),
@@ -134,7 +136,8 @@ class _LocationAccessState extends State<LocationAccess>
                                   const EdgeInsets.symmetric(horizontal: 16.0),
                               child: Column(
                                 children: [
-                                  OnboardingScaledText(
+                                  Text(
+                                    textScaler: getAdaptiveTextScaler(context),
                                     "Let's enable access to your location.",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
@@ -155,19 +158,28 @@ class _LocationAccessState extends State<LocationAccess>
                                           ),
                                           child: Column(
                                             children: [
-                                              OnboardingIconText(
-                                                icon: const Icon(
-                                                  CustomIcons.cancel,
-                                                  size: 16,
-                                                  color: CustomColors
-                                                      .warningActive,
-                                                ),
-                                                text:
-                                                    "Oops! You need to enable location access to participate in the study.",
-                                                style: CustomTypography()
-                                                    .bodyLarge(
-                                                        color: CustomColors
-                                                            .warningActive),
+                                              Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Icon(CustomIcons.cancel,
+                                                      size: getAdaptiveTextScaler(context).scale(16),
+                                                      color: CustomColors
+                                                          .warningActive),
+                                                  const SizedBox(
+                                                    width: 10,
+                                                  ),
+                                                  Flexible(
+                                                    child: Text(
+                                                      textScaler: getAdaptiveTextScaler(context),
+                                                      "Oops! You need to enable location access to participate in the study.",
+                                                      style: CustomTypography()
+                                                          .bodyLarge(
+                                                              color: CustomColors
+                                                                  .warningActive),
+                                                    ),
+                                                  )
+                                                ],
                                               ),
                                               const SizedBox(height: 12),
                                               Row(
@@ -201,15 +213,13 @@ class _LocationAccessState extends State<LocationAccess>
                                                       ),
                                                       onPressed:
                                                           openPermissionSettings,
-                                                      child: FittedBox(
-                                                        fit: BoxFit.scaleDown,
-                                                        child: Text(
-                                                            "Open Settings",
-                                                            style: CustomTypography()
-                                                                .bodyLarge(
-                                                                    color: CustomColors
-                                                                        .textWhite)),
-                                                      ))
+                                                      child: Text(
+                                                          textScaler: getAdaptiveTextScaler(context),
+                                                          "Open Settings",
+                                                          style: CustomTypography()
+                                                              .bodyLarge(
+                                                                  color: CustomColors
+                                                                      .textWhite)))
                                                 ],
                                               ),
                                             ],

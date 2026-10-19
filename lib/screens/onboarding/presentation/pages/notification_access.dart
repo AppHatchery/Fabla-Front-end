@@ -2,8 +2,6 @@ import 'dart:io' show Platform;
 
 import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/services/battery_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -114,10 +112,13 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                   RouteService().navigateBack(
                       context: context, current: 'notification_access')
                 },
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
             )),
       ),
       body: SafeArea(
@@ -136,7 +137,8 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                             left: 16.0, right: 16.0, bottom: 34.0),
                         child: Column(
                           children: [
-                            OnboardingScaledText(
+                            Text(
+                              textScaler: getAdaptiveTextScaler(context),
                               granted != null && granted == true
                                   ? "Make sure you have sound on to catch these alerts on time"
                                   : "Turn on notifications for timely reminders!",
@@ -206,13 +208,15 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.warning_rounded,
-                    size: 24, color: CustomColors.pumpkinOrange),
+                Icon(Icons.warning_rounded,
+                    size: getAdaptiveTextScaler(context).scale(24),
+                    color: CustomColors.pumpkinOrange),
                 const SizedBox(
                   width: 10,
                 ),
                 Flexible(
                   child: Text(
+                    textScaler: getAdaptiveTextScaler(context),
                     "Oops! We recommend you turn ON notifications to allow Fabla to send you reminders to complete the study, otherwise you might not know when to submit the diaries and measures needed for this study.",
                     style: CustomTypography()
                         .bodyLarge(color: CustomColors.pumpkinOrange),
@@ -239,12 +243,11 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                       ),
                     ),
                     onPressed: openPermissionSettings,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text("Open Settings",
-                          style: CustomTypography()
-                              .bodyLarge(color: CustomColors.textWhite)),
-                    ))
+                    child: Text(
+                        textScaler: getAdaptiveTextScaler(context),
+                        "Open Settings",
+                        style: CustomTypography()
+                            .bodyLarge(color: CustomColors.textWhite)))
               ],
             ),
           ],
@@ -264,16 +267,24 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
         ),
         child: Column(
           children: [
-            OnboardingIconText(
-              icon: const Icon(
-                CustomIcons.cancel,
-                size: 16,
-                color: CustomColors.warningActive,
-              ),
-              text:
-                  "Oops! It looks like your phone is in battery\u2011saving mode. This may affect your ability to receive diary notifications. To ensure the study runs smoothly, we recommend turning off battery\u2011saving mode.",
-              style: CustomTypography()
-                  .bodyLarge(color: CustomColors.warningActive),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(CustomIcons.cancel,
+                    size: getAdaptiveTextScaler(context).scale(24),
+                    color: CustomColors.warningActive),
+                const SizedBox(
+                  width: 10,
+                ),
+                Flexible(
+                  child: Text(
+                    textScaler: getAdaptiveTextScaler(context),
+                    "Oops! It looks like your phone is in battery-saving mode. This may affect your ability to receive diary notifications. To ensure the study runs smoothly, we recommend turning off battery-saving mode.",
+                    style: CustomTypography()
+                        .bodyLarge(color: CustomColors.warningActive),
+                  ),
+                )
+              ],
             ),
             const SizedBox(height: 12),
             Row(
@@ -294,12 +305,11 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                       ),
                     ),
                     onPressed: () => openSetting(),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text("Open Settings",
-                          style: CustomTypography()
-                              .bodyLarge(color: CustomColors.textWhite)),
-                    ))
+                    child: Text(
+                        textScaler: getAdaptiveTextScaler(context),
+                        "Open Settings",
+                        style: CustomTypography()
+                            .bodyLarge(color: CustomColors.textWhite)))
               ],
             ),
           ],

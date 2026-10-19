@@ -152,10 +152,13 @@ class _ParticipantDetailsPageState extends State<ParticipantDetailsPage>
                   RouteService().navigateBack(
                       context: context, current: 'participant_details')
                 },
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
             )),
       ),
       body: SafeArea(

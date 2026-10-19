@@ -2,8 +2,6 @@ import 'package:app_settings/app_settings.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/mic_tester.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_session/audio_session.dart';
@@ -124,10 +122,13 @@ class _MicAccessPageState extends State<MicAccessPage>
                   RouteService()
                       .navigateBack(context: context, current: 'microphone')
                 },
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
             )),
       ),
       body: SafeArea(
@@ -155,7 +156,8 @@ class _MicAccessPageState extends State<MicAccessPage>
                             children: [
                               Column(
                                 children: [
-                                  OnboardingScaledText(
+                                  Text(
+                                    textScaler: getAdaptiveTextScaler(context),
                                     permission
                                         ? "Let's test your microphone, say something"
                                         : "Great, next enable microphone access",
@@ -185,19 +187,28 @@ class _MicAccessPageState extends State<MicAccessPage>
                                           ),
                                           child: Column(
                                             children: [
-                                              OnboardingIconText(
-                                                icon: const Icon(
-                                                  CustomIcons.cancel,
-                                                  size: 16,
-                                                  color: CustomColors
-                                                      .warningActive,
-                                                ),
-                                                text:
-                                                    "Oops! You need to enable microphone access to use the recording diary.",
-                                                style: CustomTypography()
-                                                    .bodyLarge(
-                                                        color: CustomColors
-                                                            .warningActive),
+                                              Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                   Icon(CustomIcons.cancel,
+                                                      size:  getAdaptiveTextScaler(context).scale(20),
+                                                      color: CustomColors
+                                                          .warningActive),
+                                                  const SizedBox(
+                                                    width: 10,
+                                                  ),
+                                                  Flexible(
+                                                    child: Text(
+                                                      textScaler: getAdaptiveTextScaler(context),
+                                                      "Oops! You need to enable microphone access to use the recording diary.",
+                                                      style: CustomTypography()
+                                                          .bodyLarge(
+                                                              color: CustomColors
+                                                                  .warningActive),
+                                                    ),
+                                                  )
+                                                ],
                                               ),
                                               const SizedBox(height: 12),
                                               Row(
@@ -231,15 +242,13 @@ class _MicAccessPageState extends State<MicAccessPage>
                                                       ),
                                                       onPressed:
                                                           openPermissionSettings,
-                                                      child: FittedBox(
-                                                        fit: BoxFit.scaleDown,
-                                                        child: Text(
-                                                            "Open Settings",
-                                                            style: CustomTypography()
-                                                                .bodyLarge(
-                                                                    color: CustomColors
-                                                                        .textWhite)),
-                                                      ))
+                                                      child: Text(
+                                                          "Open Settings",
+                                                          textScaler: getAdaptiveTextScaler(context),
+                                                          style: CustomTypography()
+                                                              .bodyLarge(
+                                                                  color: CustomColors
+                                                                      .textWhite)))
                                                 ],
                                               ),
                                             ],

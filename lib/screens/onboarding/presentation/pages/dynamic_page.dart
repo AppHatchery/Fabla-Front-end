@@ -162,11 +162,11 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
   }
 
   Widget loading() {
-    return const Center(
+    return Center(
       child: CircularProgressIndicator(
         color: CustomColors.fillWhite,
         strokeCap: StrokeCap.round,
-        strokeWidth: 8,
+        strokeWidth: getAdaptiveTextScaler(context).scale(8),
       ),
     );
   }
@@ -256,10 +256,10 @@ class DynamicOnBoardingPage extends StatefulWidget {
   final Function(String? answer) onContinue;
   const DynamicOnBoardingPage(
       {super.key,
-        required this.index,
-        required this.question,
-        required this.onPrevious,
-        required this.onContinue});
+      required this.index,
+      required this.question,
+      required this.onPrevious,
+      required this.onContinue});
 
   @override
   State<DynamicOnBoardingPage> createState() => _DynamicOnBoardingPageState();
@@ -308,10 +308,13 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
         scrolledUnderElevation: 0.0,
         leading: IconButton(
             onPressed: () => widget.onPrevious(),
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
             )),
       ),
       body: SafeArea(
@@ -347,9 +350,9 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
                                           ctrl.stateMachine.trigger("Question");
                                     });
                                     Future.delayed(const Duration(seconds: 2),
-                                            () {
-                                          if (mounted) _questionTrigger?.fire();
-                                        });
+                                        () {
+                                      if (mounted) _questionTrigger?.fire();
+                                    });
                                   }
                                 },
                                 children: [
@@ -371,12 +374,12 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
                       ),
                       child: CustomFlatButton(
                           onClick: () => {
-                            FocusScope.of(context).unfocus(),
-                            widget.onContinue(
-                                textEditingController.text != ''
-                                    ? textEditingController.text
-                                    : answer)
-                          },
+                                FocusScope.of(context).unfocus(),
+                                widget.onContinue(
+                                    textEditingController.text != ''
+                                        ? textEditingController.text
+                                        : answer)
+                              },
                           // isDisabled: answer != null || textEditingController.text.isNotEmpty,
                           text: "Continue"),
                     ),
@@ -499,7 +502,12 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       ));
     } else if (question.type == 'multiple') {
       final selected = question.answer != null
-          ? _decodeMultipleAnswers(question.answer!)
+          ? json
+              .decode(question.answer!)
+              .cast()
+              .toList()
+              .map<String>((element) => element.toString())
+              .toList()
           : <String>[];
       children.add(OnBoardingMultipleOption(
         subtitle: null,
@@ -513,7 +521,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       ));
     } else if (question.type == 'slider') {
       final value =
-      question.answer != null ? double.parse(question.answer!) : null;
+          question.answer != null ? double.parse(question.answer!) : null;
       children.add(OnBoardingSlider(
           scaleMinText: question.minLabel ?? "",
           scaleMaxText: question.maxLabel ?? "",
@@ -531,8 +539,8 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       children.add(CustomDatePicker(
           date: _date,
           onSelect: (date) => setState(() {
-            answer = formatDateOnly(date);
-          })));
+                answer = formatDateOnly(date);
+              })));
     }
 
     return Column(
@@ -541,20 +549,6 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       spacing: 12,
       children: children,
     );
-  }
-
-  List<String> _decodeMultipleAnswers(String source) {
-    try {
-      return (json.decode(source) as List<dynamic>)
-          .map((element) => element.toString())
-          .toList();
-    } on FormatException {
-      final value = source.trim();
-      if (!value.startsWith('[') || !value.endsWith(']')) return <String>[];
-      final contents = value.substring(1, value.length - 1).trim();
-      if (contents.isEmpty) return <String>[];
-      return contents.split(',').map((item) => item.trim()).toList();
-    }
   }
 
   void saveAnswer() {}
@@ -621,13 +615,16 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
         scrolledUnderElevation: 0.0,
         leading: IconButton(
             onPressed: () => {
-              RouteService().navigateBack(
-                  context: context, current: 'dynamic_onboarding')
-            },
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
+                  RouteService().navigateBack(
+                      context: context, current: 'dynamic_onboarding')
+                },
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
             )),
       ),
       backgroundColor: CustomColors.backgroundSecondary,
@@ -643,7 +640,7 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                   builder: (context, constraint) => SingleChildScrollView(
                     child: ConstrainedBox(
                       constraints:
-                      BoxConstraints(minHeight: constraint.maxHeight),
+                          BoxConstraints(minHeight: constraint.maxHeight),
                       child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -654,6 +651,7 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                                   padding: const EdgeInsets.only(
                                       left: 16.0, right: 16.0),
                                   child: Text(
+                                    textScaler: getAdaptiveTextScaler(context),
                                     "You’re almost done! Just a few more questions to personalize your study",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
@@ -666,9 +664,9 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                               width: width,
                               child: _riveController != null
                                   ? RiveWidget(
-                                controller: _riveController!,
-                                fit: Fit.fitWidth,
-                              )
+                                      controller: _riveController!,
+                                      fit: Fit.fitWidth,
+                                    )
                                   : const SizedBox.shrink(),
                             ),
                           ]),
@@ -706,9 +704,9 @@ class DynamicErrorPage extends StatefulWidget {
 
   const DynamicErrorPage(
       {super.key,
-        required this.message,
-        required this.onRetry,
-        required this.onBack});
+      required this.message,
+      required this.onRetry,
+      required this.onBack});
 
   @override
   State<DynamicErrorPage> createState() => _DynamicErrorPageState();
@@ -763,10 +761,13 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
         scrolledUnderElevation: 0.0,
         leading: IconButton(
             onPressed: () => widget.onBack(),
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.textNormalContent,
-              size: 32,
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
             )),
       ),
       backgroundColor: CustomColors.fillWhite,
@@ -784,9 +785,9 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
                     width: width * 0.75,
                     child: _riveController != null
                         ? RiveWidget(
-                      controller: _riveController!,
-                      fit: Fit.cover,
-                    )
+                            controller: _riveController!,
+                            fit: Fit.cover,
+                          )
                         : const SizedBox.shrink(),
                   ),
 
@@ -799,7 +800,7 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
                   ),
                   Padding(
                     padding:
-                    const EdgeInsets.only(left: 32.0, right: 32.0, top: 40),
+                        const EdgeInsets.only(left: 32.0, right: 32.0, top: 40),
                     child: CustomFlatButton(
                       onClick: widget.onRetry,
                       text: 'Try Again',
@@ -855,7 +856,7 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
     await ParticipantAndExperimentDetails().loginSupportEmail(
         subject: 'Issue with Uploading Onboarding Questions',
         body:
-        'Hi,\n\nI\'m experiencing the following issue while trying to onboard:\n\n[Please describe the issue you\'re facing]\n\nThank you!',
+            'Hi,\n\nI\'m experiencing the following issue while trying to onboard:\n\n[Please describe the issue you\'re facing]\n\nThank you!',
         example: '');
   }
 }

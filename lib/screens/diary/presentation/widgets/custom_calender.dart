@@ -5,6 +5,7 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 
 import '../../../../theme/custom_colors.dart';
 import '../../../home/data/study.dart';
@@ -123,7 +124,7 @@ class _CustomCalenderState extends State<CustomCalender> {
                                   curve: Curves.ease),
                               icon: Icon(
                                 Icons.chevron_left_rounded,
-                                size: scaler.scale(24),
+                                size: getAdaptiveTextScaler(context).scale(24),
                               )),
                           IconButton(
                             constraints: const BoxConstraints(
@@ -133,7 +134,7 @@ class _CustomCalenderState extends State<CustomCalender> {
                                 curve: Curves.ease),
                             icon: Icon(
                               Icons.chevron_right_rounded,
-                              size: scaler.scale(24),
+                              size: getAdaptiveTextScaler(context).scale(24),
                             ),
                           ),
                         ],

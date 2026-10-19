@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 /// Circle behind a day number in a [TableCalendar] cell.
 ///
 /// Grows with the system text scale until it fills the cell (leaving room for
@@ -125,6 +127,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 20),
                     child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       getMonthYear(day),
                       style: CustomTypography()
                           .titleSmall(color: CustomColors.textSecondaryContent),
@@ -167,24 +170,22 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
           ),
           dowBuilder: (context, day) {
             return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.only(bottom: 8),
-              decoration: const BoxDecoration(
-                  border: Border(
-                      bottom: BorderSide(
-                          width: 0.6,
-                          color: CustomColors.productBorderNormal))),
-              child: Center(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    DateFormat.E().format(day)[0],
-                    style: CustomTypography()
-                        .titleSmall(color: CustomColors.textSecondaryContent),
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 8),
+                decoration: const BoxDecoration(
+                    border: Border(
+                        bottom: BorderSide(
+                            width: 0.6,
+                            color: CustomColors.productBorderNormal))),
+                child: Center(
+                  child: FittedBox(
+                    child: Text(
+                      DateFormat.E().format(day)[0],
+                      style: CustomTypography()
+                          .titleSmall(color: CustomColors.textSecondaryContent),
+                    ),
                   ),
-                ),
-              ),
-            );
+                ));
           },
           defaultBuilder: (context, day, focusedDay) {
             final _day = DateTime(day.year, day.month, day.day, 0, 0, 0);
@@ -196,7 +197,9 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
 
             final textColor = _selected == _day
                 ? CustomColors.textWhite
-                : isPast ? CustomColors.textTertiaryContent : CustomColors.textNormalContent;
+                : isPast
+                    ? CustomColors.textTertiaryContent
+                    : CustomColors.textNormalContent;
             return CalendarDayCircle(
               label: day.day.toString(),
               style: CustomTypography().bodyMedium(color: textColor),
@@ -226,13 +229,13 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
   }
 
   _onDaySelected(DateTime selectedDay, DateTime focusedDate) {
-      setState(() {
-        //reloading diaries bases on new selected date
+    setState(() {
+      //reloading diaries bases on new selected date
 
-        focusedDay = selectedDay;
-        selectedDate = selectedDay;
-      });
-      widget.onSelect(selectedDay);
+      focusedDay = selectedDay;
+      selectedDate = selectedDay;
+    });
+    widget.onSelect(selectedDay);
   }
 
   getMonthYear(DateTime day) {

@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 
@@ -53,7 +54,7 @@ class _MicTesterState extends State<MicTester> {
                   widget.request!();
                 }
               },
-              icon: const Icon(CustomIcons.keyboardVoice,
+              icon: const Icon(applyTextScaling: true, CustomIcons.keyboardVoice,
                   color: CustomColors.productNormal),
             ),
             const SizedBox(
@@ -99,7 +100,7 @@ class _MicGaugeState extends State<MicGauge> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 1.5),
                 child: Container(
-                  height: 20,
+                  height: getAdaptiveTextScaler(context).scale(20),
                   decoration: BoxDecoration(
                     color: e,
                     borderRadius: BorderRadius.circular(3),

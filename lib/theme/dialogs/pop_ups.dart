@@ -1187,6 +1187,7 @@ class ExitPopUp extends StatelessWidget {
     return SimpleDialog(
       backgroundColor: CustomColors.fillWhite,
       contentPadding: const EdgeInsets.all(0),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
           side: const BorderSide(color: Colors.grey, width: 1)),

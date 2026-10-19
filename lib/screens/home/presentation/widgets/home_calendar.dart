@@ -321,6 +321,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                               color: CustomColors.productBorderNormal))),
                   child: Center(
                     child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       DateFormat.E().format(day)[0],
                       style: CustomTypography()
                           .titleSmall(color: CustomColors.textSecondaryContent),
@@ -560,7 +561,6 @@ class HelpButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-        iconSize: MediaQuery.textScalerOf(context).scale(20).clamp(20.0, 30.0),
         color: CustomColors.productNormalActive,
         onPressed: () => showPopover(
             context: context,
@@ -583,7 +583,7 @@ class HelpButton extends StatelessWidget {
                   ),
                 ),
             direction: PopoverDirection.top,
-            constraints: BoxConstraints(maxWidth: 220),
+            constraints: BoxConstraints(maxWidth: getAdaptiveTextScaler(context).scale(220),),
             arrowHeight: 0,
             arrowWidth: 0,
             barrierColor: Colors.transparent),

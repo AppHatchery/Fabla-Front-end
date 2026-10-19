@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -80,13 +79,16 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                OnboardingScaledText("Study Information",
+                Text(
+                  textScaler: getAdaptiveTextScaler(context),
+                    "Study Information",
                     style: CustomTypography()
                         .headlineLarge(color: CustomColors.textWhite)),
                 const SizedBox(
                   height: 16,
                 ),
                 Text(
+                  textScaler: getAdaptiveTextScaler(context),
                     "Below is the study information associated with this study string.",
                     style: CustomTypography()
                         .bodyLarge(color: CustomColors.textWhite)),
@@ -97,6 +99,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
                   title: "Study Name",
                   info: widget.experiment.name,
                   icon: const Icon(
+                    applyTextScaling: true,
                     Icons.assured_workload_rounded,
                   ),
                 ),
@@ -107,6 +110,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
                   title: "Study Duration",
                   info: widget.experiment.duration,
                   icon: const Icon(
+                    applyTextScaling: true,
                     Icons.calendar_month_outlined,
                   ),
                 ),
@@ -117,6 +121,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
                   title: "Researcher Name",
                   info: widget.experiment.researcher,
                   icon: const Icon(
+                    applyTextScaling: true,
                     Icons.person_outline_rounded,
                   ),
                 ),
@@ -133,6 +138,7 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
                         widget.experiment.description,
                         widget.experiment.login),
                     child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       "View Study Details",
                       style: TextStyle(
                           color: CustomColors.textWhite,

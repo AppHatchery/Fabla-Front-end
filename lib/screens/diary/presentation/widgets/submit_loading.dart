@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../theme/components/cards.dart';

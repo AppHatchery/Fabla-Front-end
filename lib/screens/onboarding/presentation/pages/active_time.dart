@@ -1,11 +1,11 @@
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/notification_access.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/list_active_times.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/onboarding_scaled_text.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 import 'dart:io' show Platform;
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../services/pendo_service.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
@@ -44,10 +44,13 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
         leading: canGoBack
             ? IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: CustomColors.fillWhite,
-                  size: 32,
+                icon: FittedBox(
+                  fit: BoxFit.contain,
+                  child: Icon(
+                    Icons.arrow_back_rounded,
+                    color: CustomColors.fillWhite,
+                    size: getAdaptiveTextScaler(context).scale(32),
+                  ),
                 ))
             : null,
       ),
@@ -73,7 +76,7 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16.0),
-                                  child: OnboardingScaledText(
+                                  child: Text(
                                     "When would you like to receive reminders?",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
