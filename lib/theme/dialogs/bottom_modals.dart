@@ -453,7 +453,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     child: _buildControlButton(
                       icon: CupertinoIcons.stop_fill,
                       size: recordingState.isPaused ? 24 : 34,
-                      onPressed: () => unawaited(_recordingService.stop()),
+                      onPressed: recordingState.elapsed < const Duration(seconds: 1)
+                          ? null
+                          : () => unawaited(_recordingService.stop()),
                       color: CustomColors.warningActive,
                     ),
                   ),
@@ -526,7 +528,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Widget _buildControlButton({
     required IconData icon,
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
     required int size,
     required color,
   }) {
